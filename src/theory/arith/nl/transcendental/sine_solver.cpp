@@ -75,13 +75,12 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
       nm->mkNode(Kind::ITE,
                  mkValidPhase(a[0], d_data->d_pi),
                  a[0].eqNode(y),
-                 a[0].eqNode(nm->mkNode(
-                     Kind::PLUS,
-                     y,
-                     nm->mkNode(Kind::MULT,
-                                nm->mkConstReal(Rational(2)),
-                                shift,
-                                d_data->d_pi)))),
+                 a[0].eqNode(nm->mkNode(Kind::PLUS,
+                                        y,
+                                        nm->mkNode(Kind::MULT,
+                                                   nm->mkConstReal(Rational(2)),
+                                                   shift,
+                                                   d_data->d_pi)))),
       new_a.eqNode(a));
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())

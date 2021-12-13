@@ -204,21 +204,15 @@ void TranscendentalState::mkPi()
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-    d_pi_2 = rewrite(
-        nm->mkNode(Kind::MULT,
-                   d_pi,
-                   nm->mkConstReal(Rational(1) / Rational(2))));
-    d_pi_neg_2 = rewrite(
-        nm->mkNode(Kind::MULT,
-                   d_pi,
-                   nm->mkConstReal(Rational(-1) / Rational(2))));
-    d_pi_neg = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
+    d_pi_2 = rewrite(nm->mkNode(
+        Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
+    d_pi_neg_2 = rewrite(nm->mkNode(
+        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
+    d_pi_neg =
+        rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
     // initialize bounds
-    d_pi_bound[0] =
-        nm->mkConstReal(Rational(103993) / Rational(33102));
-    d_pi_bound[1] =
-        nm->mkConstReal(Rational(104348) / Rational(33215));
+    d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
+    d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
   }
 }
 
@@ -344,37 +338,27 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConstInt(2 * actual_d),
-                        tf[0],
-                        lower,
-                        upper});
+                       {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
       else
       {
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
                        {},
-                       {nm->mkConstInt(2 * actual_d),
-                        tf[0],
-                        lower,
-                        upper});
+                       {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
     }
     else if (tf.getKind() == Kind::SINE)
     {
       if (convexity == Convexity::CONCAVE)
       {
-        proof->addStep(lem,
-                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
-                       {},
-                       {nm->mkConstInt(2 * actual_d),
-                        tf[0],
-                        lower,
-                        upper,
-                        lapprox,
-                        uapprox
+        proof->addStep(
+            lem,
+            PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+            {},
+            {nm->mkConstInt(2 * actual_d), tf[0], lower, upper, lapprox, uapprox
 
-                       });
+            });
       }
       else
       {

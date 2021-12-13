@@ -244,12 +244,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
-        leftSum << nm->mkNode(Kind::MULT,
-                              args[i],
-                              children[i][0]);
-        rightSum << nm->mkNode(Kind::MULT,
-                               args[i],
-                               children[i][1]);
+        leftSum << nm->mkNode(Kind::MULT, args[i], children[i][0]);
+        rightSum << nm->mkNode(Kind::MULT, args[i], children[i][1]);
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
                           leftSum.constructNode(),

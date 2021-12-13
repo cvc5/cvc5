@@ -899,9 +899,7 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
     ite = d_nm->mkNode(
         kind::ITE,
         d_nm->mkNode(
-            kind::EQUAL,
-            y,
-            d_nm->mkConstInt(Rational(Integer(i), Integer(1)))),
+            kind::EQUAL, y, d_nm->mkConstInt(Rational(Integer(i), Integer(1)))),
         body,
         ite);
   }

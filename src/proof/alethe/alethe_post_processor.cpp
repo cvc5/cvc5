@@ -1874,9 +1874,7 @@ bool AletheProofPostprocessCallback::finalStep(
   if (id != PfRule::ALETHE_RULE)
   {
     std::vector<Node> sanitized_args{
-        res,
-        res,
-        nm->mkConstInt(static_cast<unsigned>(AletheRule::ASSUME))};
+        res, res, nm->mkConstInt(static_cast<unsigned>(AletheRule::ASSUME))};
     for (const Node& arg : args)
     {
       sanitized_args.push_back(d_anc.convert(arg));
@@ -1939,7 +1937,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   }
 
   std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(NodeManager::currentNM()->mkConstInt(Rational(static_cast<unsigned>(rule))));
+  new_args.push_back(NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<unsigned>(rule))));
   new_args.push_back(res);
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());

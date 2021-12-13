@@ -60,9 +60,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       // Maclaurin series for exponential:
       //   \sum_{n=0}^\infty x^n / n!
       sum.push_back(
-          nm->mkNode(Kind::DIVISION,
-                     varpow,
-                     nm->mkConstReal(factorial)));
+          nm->mkNode(Kind::DIVISION, varpow, nm->mkConstReal(factorial)));
     }
     else if (k == Kind::SINE)
     {
@@ -71,20 +69,19 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       if (counter % 2 == 0)
       {
         int sign = (counter % 4 == 0 ? -1 : 1);
-        sum.push_back(nm->mkNode(
-            Kind::MULT,
-            nm->mkNode(Kind::DIVISION,
-                       nm->mkConstReal(sign),
-                       nm->mkConstReal(factorial)),
-            varpow));
+        sum.push_back(nm->mkNode(Kind::MULT,
+                                 nm->mkNode(Kind::DIVISION,
+                                            nm->mkConstReal(sign),
+                                            nm->mkConstReal(factorial)),
+                                 varpow));
       }
     }
     factorial *= counter;
     varpow = nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow);
   }
   Node taylor_sum = (sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
-  Node taylor_rem = nm->mkNode(
-      Kind::DIVISION, varpow, nm->mkConstReal(factorial));
+  Node taylor_rem =
+      nm->mkNode(Kind::DIVISION, varpow, nm->mkConstReal(factorial));
 
   auto res = std::make_pair(taylor_sum, taylor_rem);
 
@@ -116,10 +113,10 @@ void TaylorGenerator::getPolynomialApproximationBounds(
     {
       pbounds.d_lower = taylor_sum;
       pbounds.d_upperNeg = nm->mkNode(Kind::PLUS, taylor_sum, ru);
-      pbounds.d_upperPos = nm->mkNode(
-          Kind::MULT,
-          taylor_sum,
-          nm->mkNode(Kind::PLUS, nm->mkConstReal(Rational(1)), ru));
+      pbounds.d_upperPos =
+          nm->mkNode(Kind::MULT,
+                     taylor_sum,
+                     nm->mkNode(Kind::PLUS, nm->mkConstReal(Rational(1)), ru));
     }
     else
     {

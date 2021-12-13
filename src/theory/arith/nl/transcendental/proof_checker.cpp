@@ -235,10 +235,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
             x.eqNode(
                 nm->mkNode(Kind::PLUS,
                            y,
-                           nm->mkNode(Kind::MULT,
-                                      nm->mkConstReal(2),
-                                      s,
-                                      pi)))),
+                           nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
         nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
   }
   else if (id == PfRule::ARITH_TRANS_SINE_SYMMETRY)
