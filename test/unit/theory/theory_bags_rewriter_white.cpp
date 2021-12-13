@@ -196,8 +196,6 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
 
   Node geq = d_nodeManager->mkNode(GEQ, three, one);
   Node ite = d_nodeManager->mkNode(ITE, geq, three, zero);
-  std::cout << n2 << std::endl;
-  std::cout << response2.d_node << std::endl;
   ASSERT_TRUE(response2.d_status == REWRITE_AGAIN_FULL
               && response2.d_node == three);
 }
