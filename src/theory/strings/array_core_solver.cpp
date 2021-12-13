@@ -116,7 +116,6 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
     Node right =
         nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
-    right = Rewriter::rewrite(right);
     Node lem = nm->mkNode(EQUAL, left, right);
     Trace("seq-array-debug") << "enter" << std::endl;
     sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);

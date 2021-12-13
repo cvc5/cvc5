@@ -81,7 +81,8 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
   if (tk == STRING_TO_CODE)
   {
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConstInt(Rational(1)));
+    Node len = nm->mkNode(STRING_LENGTH, t[0]);
+    Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
     Node code_range =
         nm->mkNode(AND,
@@ -115,7 +116,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
         sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
     Node sk2 =
         sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
+    lemma = t[0].eqNode(nm->mkNode(STRING_CONCAT, sk1, t[1], sk2));
     lemma = nm->mkNode(ITE, t, lemma, t[0].eqNode(t[1]).notNode());
   }
   return lemma;
@@ -667,6 +668,24 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     Trace("strings-subs-proxy") << "...unprocessed" << std::endl;
     unproc.push_back(n);
   }
+}
+
+
+Node TermRegistry::mkNConcat(Node n1, Node n2)
+{
+  return rewrite(
+      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
+}
+
+Node TermRegistry::mkNConcat(Node n1, Node n2, Node n3)
+{
+  return rewrite(
+      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
+}
+
+Node TermRegistry::mkNConcat(const std::vector<Node>& c, TypeNode tn)
+{
+  return rewrite(utils::mkConcat(c, tn));
 }
 
 }  // namespace strings

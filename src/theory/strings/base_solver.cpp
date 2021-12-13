@@ -32,8 +32,8 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
-    : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
+BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr)
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
@@ -344,7 +344,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     Node c;
     if (isConst)
     {
-      c = utils::mkNConcat(vecc, n.getType());
+      c = d_termReg.mkNConcat(vecc, n.getType());
     }
     if (!isConst || !d_state.areEqual(n, c))
     {
@@ -421,7 +421,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           {
             // The equivalence class is not entailed to be equal to a constant
             // and we found a better concatenation
-            Node nct = utils::mkNConcat(vecnc, n.getType());
+            Node nct = d_termReg.mkNConcat(vecnc, n.getType());
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
             bei.d_bestScore = contentSize;
