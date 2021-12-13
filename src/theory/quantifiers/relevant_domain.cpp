@@ -301,6 +301,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
 
 void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, Node n ) {
   if( d_rel_dom_lit[hasPol][pol].find( n )==d_rel_dom_lit[hasPol][pol].end() ){
+    NodeManager * nm = NodeManager::currentNM();
     RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
     rdl.d_merge = false;
     int varCount = 0;
@@ -405,10 +406,12 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
         if( n.getKind()==EQUAL ){
           for( unsigned i=0; i<2; i++ ){
-            rdl.d_val.push_back(ArithMSum::offset(r_add, i == 0 ? 1 : -1));
+            Node roff = nm->mkNode(PLUS, r_add, nm->mkConstInt(Rational(i==0 ? 1 : -1)));
+            rdl.d_val.push_back(roff);
           }
         }else if( n.getKind()==GEQ ){
-          rdl.d_val.push_back(ArithMSum::offset(r_add, varLhs ? 1 : -1));
+          Node roff = nm->mkNode(PLUS, r_add, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
+          rdl.d_val.push_back(roff);
         }
       }
     }

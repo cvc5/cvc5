@@ -173,12 +173,6 @@ class ArithMSum
   */
   static bool decompose(Node n, Node v, Node& coeff, Node& rem);
 
-  /** return the rewritten form of (UMINUS t) */
-  static Node negate(Node t);
-
-  /** return the rewritten form of (PLUS t (CONST_RATIONAL i)) */
-  static Node offset(Node t, int i);
-
   /** debug print for a monmoial sum, prints to Trace(c) */
   static void debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c);
 };

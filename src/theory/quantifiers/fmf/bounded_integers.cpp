@@ -239,9 +239,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
                   n1 = veq[1];
                   n2 = veq[0];
                   if( n1.getKind()==BOUND_VARIABLE ){
-                    n2 = ArithMSum::offset(n2, 1);
+                    n2 = nm->mkNode(PLUS,n2, nm->mkConstInt(Rational(1)));
                   }else{
-                    n1 = ArithMSum::offset(n1, -1);
+                    n1 = nm->mkNode(PLUS,n1, nm->mkConstInt(Rational(-1)));
                   }
                   veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
                 }
