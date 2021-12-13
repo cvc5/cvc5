@@ -322,7 +322,7 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(
           n, "expecting datatype bound term to have datatype argument.");
     }
-    if (!n[1].isConst() || n[1].getType().isInteger())
+    if (!n[1].isConst() || !n[1].getType().isInteger())
     {
       throw TypeCheckingExceptionPrivate(
           n, "datatype bound must be a constant integer");
