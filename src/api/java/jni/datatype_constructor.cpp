@@ -65,17 +65,17 @@ Java_io_github_cvc5_api_DatatypeConstructor_getConstructorTerm(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_DatatypeConstructor
- * Method:    getSpecializedConstructorTerm
+ * Method:    getInstantiatedConstructorTerm
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_DatatypeConstructor_getSpecializedConstructorTerm(
+Java_io_github_cvc5_api_DatatypeConstructor_getInstantiatedConstructorTerm(
     JNIEnv* env, jobject, jlong pointer, jlong retSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructor* current = (DatatypeConstructor*)pointer;
   Sort* sort = (Sort*)retSortPointer;
-  Term* retPointer = new Term(current->getSpecializedConstructorTerm(*sort));
+  Term* retPointer = new Term(current->getInstantiatedConstructorTerm(*sort));
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
