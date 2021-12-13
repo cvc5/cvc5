@@ -41,7 +41,7 @@ ArraySolver::ArraySolver(Env& env,
       d_termReg(tr),
       d_csolver(cs),
       d_esolver(es),
-      d_sasolver(env, s, im, tr, cs, es, extt),
+      d_coreSolver(env, s, im, tr, cs, es, extt),
       d_eqProc(context())
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -73,7 +73,7 @@ void ArraySolver::checkArray()
     return;
   }
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
-  d_sasolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
+  d_coreSolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
 
 void ArraySolver::checkArrayEager()
@@ -87,7 +87,7 @@ void ArraySolver::checkArrayEager()
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
   std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
   std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
-  d_sasolver.check(nthTerms, updateTerms);
+  d_coreSolver.check(nthTerms, updateTerms);
 }
 
 void ArraySolver::checkTerms(Kind k)
@@ -300,12 +300,12 @@ void ArraySolver::checkTerms(Kind k)
 
 const std::map<Node, Node>& ArraySolver::getWriteModel(Node eqc)
 {
-  return d_sasolver.getWriteModel(eqc);
+  return d_coreSolver.getWriteModel(eqc);
 }
 
 const std::map<Node, Node>& ArraySolver::getConnectedSequences()
 {
-  return d_sasolver.getConnectedSequences();
+  return d_coreSolver.getConnectedSequences();
 }
 
 }  // namespace strings

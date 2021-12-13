@@ -22,7 +22,7 @@
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
-#include "theory/strings/sequences_array_solver.h"
+#include "theory/strings/array_core_solver.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 
@@ -101,7 +101,7 @@ class ArraySolver : protected EnvObj
   /** Common constants */
   Node d_zero;
   /** The core array solver */
-  SequencesArraySolver d_sasolver;
+  ArrayCoreSolver d_coreSolver;
   /** Equalities we have processed in the current context */
   NodeSet d_eqProc;
 };
