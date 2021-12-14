@@ -26,9 +26,11 @@ if __name__ == "__main__":
 
     # options
     solver.setOption("produce-models", "true")
+    # we need finite model finding to answer sat problems with universal
+    # quantified formulas
     solver.setOption("finite-model-find", "true")
+    # we need sets extension to support set.universe operator
     solver.setOption("sets-ext", "true")
-    solver.setOption("output-language", "smt2")
 
     integer = solver.getIntegerSort()
     set_ = solver.mkSetSort(integer)

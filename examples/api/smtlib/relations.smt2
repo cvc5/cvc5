@@ -1,7 +1,10 @@
 (set-logic ALL)
 
-(set-option :finite-model-find true)
 (set-option :produce-models true)
+; we need finite model finding to answer sat problems with universal
+; quantified formulas
+(set-option :finite-model-find true)
+; we need sets extension to support set.universe operator
 (set-option :sets-ext true)
 
 (declare-sort Person 0)

@@ -28,9 +28,11 @@ int main()
 
   // options
   solver.setOption("produce-models", "true");
+  // we need finite model finding to answer sat problems with universal
+  // quantified formulas
   solver.setOption("finite-model-find", "true");
+  // we need sets extension to support set.universe operator
   solver.setOption("sets-ext", "true");
-  solver.setOption("output-language", "smt2");
 
   // (declare-sort Person 0)
   Sort personSort = solver.mkUninterpretedSort("Person");
@@ -74,8 +76,8 @@ int main()
   // (assert (not (= females (as set.empty (Set (Tuple Person))))))
   Term femaleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty2);
 
-  // (assert (= (set.inter males females) (as set.empty (Set (Tuple
-  // Person)))))
+  // (assert (= (set.inter males females)
+  //            (as set.empty (Set (Tuple Person)))))
   Term malesFemalesIntersection = solver.mkTerm(SET_INTER, males, females);
   Term malesAndFemalesAreDisjoint =
       solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);

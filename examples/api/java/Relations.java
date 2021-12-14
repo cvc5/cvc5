@@ -17,49 +17,6 @@ import static io.github.cvc5.api.Kind.*;
 
 import io.github.cvc5.api.*;
 
-/*
-This file uses the API to make a sat call equivalent to the following benchmark:
-(set-logic ALL)
-
-(set-option :finite-model-find true)
-(set-option :produce-models true)
-(set-option :sets-ext true)
-
-(declare-sort Person 0)
-
-(declare-fun people () (Set (Tuple Person)))
-(declare-fun males () (Set (Tuple Person)))
-(declare-fun females () (Set (Tuple Person)))
-(declare-fun father () (Set (Tuple Person Person)))
-(declare-fun mother () (Set (Tuple Person Person)))
-(declare-fun parent () (Set (Tuple Person Person)))
-(declare-fun ancestor () (Set (Tuple Person Person)))
-(declare-fun descendant () (Set (Tuple Person Person)))
-
-(assert (= people (as set.universe (Set (Tuple Person)))))
-(assert (not (= males (as set.empty (Set (Tuple Person))))))
-(assert (not (= females (as set.empty (Set (Tuple Person))))))
-(assert (= (set.inter males females) (as set.empty (Set (Tuple Person)))))
-; father relation is not empty
-(assert (not (= father (as set.empty (Set (Tuple Person Person))))))
-; mother relation is not empty
-(assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
-; fathers are males
-(assert (set.subset (rel.join father people) males))
-; mothers are females
-(assert (set.subset (rel.join mother people) females))
-; parent
-(assert (= parent (set.union father mother)))
-; no self ancestor
-(assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
-; descendant
-(assert (= descendant (rel.tclosure parent)))
-; ancestor
-(assert (= ancestor (rel.transpose descendant)))
-(check-sat)
-(get-model)
- */
-
 public class Relations
 {
   public static void main(String[] args) throws CVC5ApiException
@@ -71,9 +28,11 @@ public class Relations
 
       // options
       solver.setOption("produce-models", "true");
+      // we need finite model finding to answer sat problems with universal
+      // quantified formulas
       solver.setOption("finite-model-find", "true");
+      // we need sets extension to support set.universe operator
       solver.setOption("sets-ext", "true");
-      solver.setOption("output-language", "smt2");
 
       // (declare-sort Person 0)
       Sort personSort = solver.mkUninterpretedSort("Person");
