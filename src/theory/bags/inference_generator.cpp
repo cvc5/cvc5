@@ -36,8 +36,8 @@ InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
   d_nm = NodeManager::currentNM();
   d_sm = d_nm->getSkolemManager();
   d_true = d_nm->mkConst(true);
-  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = d_nm->mkConstInt(Rational(0));
+  d_one = d_nm->mkConstInt(Rational(1));
 }
 
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)

@@ -235,25 +235,19 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       }
       else if (current.isConst())
       {
-        switch (current.getKind())
+        if (current.getType().isInteger())
         {
-          case kind::CONST_RATIONAL:
+          Rational constant = current.getConst<Rational>();
+          Assert (constant.isIntegral());
+          BitVector bv(size, constant.getNumerator());
+          if (bv.toSignedInteger() != constant.getNumerator())
           {
-            Rational constant = current.getConst<Rational>();
-            if (constant.isIntegral()) {
-              BitVector bv(size, constant.getNumerator());
-              if (bv.toSignedInteger() != constant.getNumerator())
-              {
-                throw TypeCheckingExceptionPrivate(
-                    current,
-                    string("Not enough bits for constant in intToBV: ")
-                        + current.toString());
-              }
-              result = nm->mkConst(bv);
-            }
-            break;
+            throw TypeCheckingExceptionPrivate(
+                current,
+                string("Not enough bits for constant in intToBV: ")
+                    + current.toString());
           }
-          default: break;
+          result = nm->mkConst(bv);
         }
       }
       else

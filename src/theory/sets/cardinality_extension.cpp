@@ -47,7 +47,7 @@ CardinalityExtension::CardinalityExtension(Env& env,
       d_finite_type_constants_processed(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 void CardinalityExtension::reset()
@@ -134,7 +134,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   if (finiteType)
   {
     Node typeCardinality =
-        nm->mkConst(CONST_RATIONAL, Rational(card.getFiniteCardinality()));
+        nm->mkConstInt(Rational(card.getFiniteCardinality()));
     Node cardUniv = nm->mkNode(kind::SET_CARD, proxy);
     Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
 
@@ -980,8 +980,8 @@ void CardinalityExtension::checkMinCard()
     }
     if (!members.empty())
     {
-      Node conc = nm->mkNode(
-          GEQ, cardTerm, nm->mkConst(CONST_RATIONAL, Rational(members.size())));
+      Node conc =
+          nm->mkNode(GEQ, cardTerm, nm->mkConstInt(Rational(members.size())));
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       d_im.assertInference(conc, InferenceId::SETS_CARD_MINIMAL, expn, 1);
     }

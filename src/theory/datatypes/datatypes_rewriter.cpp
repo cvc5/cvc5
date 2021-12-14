@@ -78,7 +78,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       const DType& dt = utils::datatypeOf(constructor);
       const DTypeConstructor& c = dt[constructorIndex];
       unsigned weight = c.getWeight();
-      children.push_back(nm->mkConst(CONST_RATIONAL, Rational(weight)));
+      children.push_back(nm->mkConstInt(Rational(weight)));
       Node res =
           children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
       Trace("datatypes-rewrite")
@@ -104,9 +104,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
             res = nm->mkConst(false);
             break;
           }
-          children.push_back(nm->mkNode(kind::DT_HEIGHT_BOUND,
-                                        in[0][i],
-                                        nm->mkConst(CONST_RATIONAL, rmo)));
+          children.push_back(
+              nm->mkNode(kind::DT_HEIGHT_BOUND, in[0][i], nm->mkConstInt(rmo)));
         }
       }
       if (res.isNull())
