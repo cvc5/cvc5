@@ -1,0 +1,5 @@
+(set-logic ALL)
+(set-option :solve-int-as-bv 1)
+(declare-const x Real)
+(assert (>= 0.0 x))
+(check-sat)
