@@ -76,8 +76,9 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       // Shuffle active terms to maximize the different possible behaviors
       // in the subsolver. This is instead of making multiple queries with
       // the same assertion order for a subsequence.
-      std::shuffle(activeTerms.begin(), activeTerms.end(), Random::getRandom());
-      Result r = checkCurrent(activeTerms, out, currModel);
+      std::vector<Node> aTermCurr = activeTerms;
+      std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
+      Result r = checkCurrent(aTermCurr, out, currModel);
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         // exclude the last active term
