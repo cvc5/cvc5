@@ -141,6 +141,29 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       kind::Kind_t newKind = current.getKind();
       if (max > 0)
       {
+        // check that no argument has type Real
+        if (newKind == kind::PLUS || newKind == kind::MULT
+            || newKind == kind::NONLINEAR_MULT || newKind == kind::MINUS
+            || newKind == kind::UMINUS || newKind == kind::LT
+            || newKind == kind::LEQ || newKind == kind::GT
+            || newKind == kind::GEQ || newKind == kind::EQUAL
+            || newKind == kind::ITE)
+        {
+          bool hasReal = false;
+          for (Node child : children)
+          {
+            if (child.getType().isReal())
+            {
+              hasReal = true;
+            }
+          }
+          if (hasReal)
+          {
+            throw TypeCheckingExceptionPrivate(
+                current,
+                string("Cannot translate to BV: ") + current.toString());
+          }
+        }
         switch (newKind)
         {
           case kind::PLUS:
