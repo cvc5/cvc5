@@ -35,10 +35,10 @@
 (assert (= parent (set.union father mother)))
 ; no self ancestor
 (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
-; descendant
-(assert (= descendant (rel.tclosure parent)))
 ; ancestor
-(assert (= ancestor (rel.transpose descendant)))
+(assert (= ancestor (rel.tclosure parent)))
+; ancestor
+(assert (= descendant (rel.transpose ancestor)))
 
 (check-sat)
 (get-model)

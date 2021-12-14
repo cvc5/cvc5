@@ -106,13 +106,13 @@ if __name__ == "__main__":
     unionFatherMother = solver.mkTerm(Kind.SetUnion, father, mother)
     parentIsFatherOrMother = solver.mkTerm(Kind.Equal, parent, unionFatherMother)
 
-    # (assert (= descendant (rel.tclosure parent)))
+    # (assert (= ancestor (rel.tclosure parent)))
     transitiveClosure = solver.mkTerm(Kind.RelationTclosure, parent)
-    descendantFormula = solver.mkTerm(Kind.Equal, descendant, transitiveClosure)
+    ancestorFormula = solver.mkTerm(Kind.Equal, ancestor, transitiveClosure)
 
-    # (assert (= ancestor (rel.transpose descendant)))
-    transpose = solver.mkTerm(Kind.RelationTranspose, descendant)
-    ancestorFormula = solver.mkTerm(Kind.Equal, ancestor, transpose)
+    # (assert (= descendant (rel.transpose ancestor)))
+    transpose = solver.mkTerm(Kind.RelationTranspose, ancestor)
+    descendantFormula = solver.mkTerm(Kind.Equal, descendant, transpose)
 
     # (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
     x = solver.mkVar(personSort, "x")

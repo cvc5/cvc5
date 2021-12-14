@@ -76,8 +76,8 @@ public class Relations
       // (assert (not (= females (as set.empty (Set (Tuple Person))))))
       Term femaleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty2);
 
-      // (assert (= (set.inter males females) (as set.empty (Set (Tuple
-      // Person)))))
+      // (assert (= (set.inter males females)
+      //            (as set.empty (Set (Tuple Person)))))
       Term malesFemalesIntersection = solver.mkTerm(SET_INTER, males, females);
       Term malesAndFemalesAreDisjoint =
           solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
@@ -103,13 +103,13 @@ public class Relations
       Term unionFatherMother = solver.mkTerm(SET_UNION, father, mother);
       Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
 
-      // (assert (= descendant (rel.tclosure parent)))
+      // (assert (= ancestor (rel.tclosure parent)))
       Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
-      Term descendantFormula = solver.mkTerm(EQUAL, descendant, transitiveClosure);
+      Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transitiveClosure);
 
-      // (assert (= ancestor (rel.transpose descendant)))
-      Term transpose = solver.mkTerm(RELATION_TRANSPOSE, descendant);
-      Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transpose);
+      // (assert (= descendant (rel.transpose ancestor)))
+      Term transpose = solver.mkTerm(RELATION_TRANSPOSE, ancestor);
+      Term descendantFormula = solver.mkTerm(EQUAL, descendant, transpose);
 
       // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
       Term x = solver.mkVar(personSort, "x");

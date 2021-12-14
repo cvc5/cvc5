@@ -103,13 +103,13 @@ int main()
   Term unionFatherMother = solver.mkTerm(SET_UNION, father, mother);
   Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
 
-  // (assert (= descendant (rel.tclosure parent)))
+  // (assert (= ancestor (rel.tclosure parent)))
   Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
-  Term descendantFormula = solver.mkTerm(EQUAL, descendant, transitiveClosure);
+  Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transitiveClosure);
 
-  // (assert (= ancestor (rel.transpose descendant)))
-  Term transpose = solver.mkTerm(RELATION_TRANSPOSE, descendant);
-  Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transpose);
+  // (assert (= descendant (rel.transpose descendant)))
+  Term transpose = solver.mkTerm(RELATION_TRANSPOSE, ancestor);
+  Term descendantFormula = solver.mkTerm(EQUAL, descendant, transpose);
 
   // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
   Term x = solver.mkVar(personSort, "x");
