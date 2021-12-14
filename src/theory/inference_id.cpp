@@ -119,6 +119,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP: return "BAGS_MAP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
+    case InferenceId::BAGS_CARD: return "BAGS_CARD";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -229,12 +230,6 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
-    case InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED:
-      return "QUANTIFIERS_SYGUS_SI_SOLVED";
-    case InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED:
-      return "QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED";
-    case InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED:
-      return "QUANTIFIERS_SYGUS_VERIFY_SOLVED";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB:
@@ -412,6 +407,11 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_ARRAY_NTH_UNIT: return "STRINGS_ARRAY_NTH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_CONCAT:
       return "STRINGS_ARRAY_NTH_CONCAT";
+    case InferenceId::STRINGS_ARRAY_NTH_EXTRACT:
+      return "STRINGS_ARRAY_NTH_EXTRACT";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE:
+      return "STRINGS_ARRAY_NTH_UPDATE";
+    case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
     case InferenceId::STRINGS_RE_UNFOLD_NEG: return "STRINGS_RE_UNFOLD_NEG";
@@ -470,8 +470,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                           Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

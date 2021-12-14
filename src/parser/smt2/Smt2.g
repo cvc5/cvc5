@@ -371,7 +371,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if (PARSER_STATE->sygus()) {
+    {
+      if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
       cmd->reset(new CheckSatCommand());
@@ -405,10 +406,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new GetDifficultyCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support push command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
         if(num == 0) {
@@ -438,10 +435,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support pop command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
         // we don't compare num to PARSER_STATE->scopeLevel() here, since
@@ -1371,7 +1364,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           {
             // lookup constructor by name
             api::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            api::Term scons = dc.getSpecializedConstructorTerm(expr.getSort());
+            api::Term scons = dc.getInstantiatedConstructorTerm(expr.getSort());
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }
@@ -1801,8 +1794,10 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->preemptCommand(
-          new DefineFunctionCommand(s, expr.getSort(), expr));
+      DefineFunctionCommand* defFunCmd =
+          new DefineFunctionCommand(s, expr.getSort(), expr);
+      defFunCmd->setMuted(true);
+      PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;

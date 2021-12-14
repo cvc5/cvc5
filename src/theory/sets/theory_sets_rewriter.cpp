@@ -272,13 +272,12 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   {
     if(node[0].isConst()) {
       std::set<Node> elements = NormalForm::getElementsFromNormalConstant(node[0]);
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(CONST_RATIONAL, Rational(elements.size())));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConstInt(Rational(elements.size())));
     }
     else if (node[0].getKind() == kind::SET_SINGLETON)
     {
-      return RewriteResponse(REWRITE_DONE,
-                             nm->mkConst(CONST_RATIONAL, Rational(1)));
+      return RewriteResponse(REWRITE_DONE, nm->mkConstInt(Rational(1)));
     }
     else if (node[0].getKind() == kind::SET_UNION)
     {

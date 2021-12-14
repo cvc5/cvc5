@@ -92,11 +92,13 @@ TEST_F(TestBlackOptions, set)
                 }
                 EXPECT_NO_THROW(d_solver.setOption(
                     name, std::to_string((range.first + range.second) / 2)));
+                EXPECT_THROW(d_solver.setOption(name, "0123abc"), CVC5ApiOptionException);
               },
               [this, &name](const OptionInfo::NumberInfo<uint64_t>& v) {
                 std::pair<uint64_t, uint64_t> range{
                     std::numeric_limits<uint64_t>::min(),
                     std::numeric_limits<uint64_t>::max()};
+                EXPECT_THROW(d_solver.setOption(name, "-1"), CVC5ApiOptionException);
                 if (v.minimum)
                 {
                   EXPECT_THROW(
@@ -117,6 +119,7 @@ TEST_F(TestBlackOptions, set)
                 }
                 EXPECT_NO_THROW(d_solver.setOption(
                     name, std::to_string((range.first + range.second) / 2)));
+                EXPECT_THROW(d_solver.setOption(name, "0123abc"), CVC5ApiOptionException);
               },
               [this, &name](const OptionInfo::NumberInfo<double>& v) {
                 std::pair<double, double> range{
@@ -149,7 +152,9 @@ TEST_F(TestBlackOptions, set)
                 for (const auto& m : v.modes)
                 {
                   d_solver.setOption(name, m);
+                  EXPECT_EQ(d_solver.getOption(name), m);
                 }
+                EXPECT_DEATH(d_solver.setOption(name, "help"), "");
               },
           },
           info.valueInfo);

@@ -13,7 +13,6 @@
 
 import pytest
 import pycvc5
-from pycvc5 import kinds
 from pycvc5 import Sort, Term 
 from pycvc5 import DatatypeDecl
 from pycvc5 import Datatype
@@ -156,6 +155,8 @@ def test_datatype_structs(solver):
     dtypeSpec.addConstructor(nil)
     dtypeSort = solver.mkDatatypeSort(dtypeSpec)
     dt = dtypeSort.getDatatype()
+    # not parametric datatype
+    with pytest.raises(RuntimeError): dt.getParameters()
     assert not dt.isCodatatype()
     assert not dt.isTuple()
     assert not dt.isRecord()
@@ -263,7 +264,7 @@ def test_parametric_datatype(solver):
     v.append(t1)
     v.append(t2)
     pairSpec = solver.mkDatatypeDecl("pair", v)
-
+        
     mkpair = solver.mkDatatypeConstructorDecl("mk-pair")
     mkpair.addSelector("first", t1)
     mkpair.addSelector("second", t2)
@@ -272,6 +273,8 @@ def test_parametric_datatype(solver):
     pairType = solver.mkDatatypeSort(pairSpec)
 
     assert pairType.getDatatype().isParametric()
+    dparams = pairType.getDatatype().getParameters()
+    assert dparams[0]==t1 and dparams[1]==t2
 
     v.clear()
     v.append(solver.getIntegerSort())
@@ -559,8 +562,8 @@ def test_datatype_specialized_cons(solver):
 
     testConsTerm = Term(solver)
     # get the specialized constructor term for list[Int]
-    testConsTerm = nilc.getSpecializedConstructorTerm(listInt)
+    testConsTerm = nilc.getInstantiatedConstructorTerm(listInt)
     assert testConsTerm != nilc.getConstructorTerm()
     # error to get the specialized constructor term for Int
     with pytest.raises(RuntimeError):
-        nilc.getSpecializedConstructorTerm(isort)
+        nilc.getInstantiatedConstructorTerm(isort)

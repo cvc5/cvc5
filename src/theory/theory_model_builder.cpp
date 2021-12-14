@@ -1034,7 +1034,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     if (!repSet.empty())
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
-                             << ", first = " << *(repSet.begin()) << endl;
+                             << ", repSet = " << repSet << endl;
       Assert(false);
     }
   }
@@ -1278,7 +1278,8 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   }
   std::stringstream ss;
   ss << "_arg_";
-  Node val = ufmt.getFunctionValue(ss.str().c_str(), condenseFuncValues);
+  Rewriter* r = condenseFuncValues ? d_env.getRewriter() : nullptr;
+  Node val = ufmt.getFunctionValue(ss.str(), r);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );
 }

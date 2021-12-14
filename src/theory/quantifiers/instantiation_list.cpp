@@ -16,6 +16,7 @@
 #include "theory/quantifiers/instantiation_list.h"
 
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "printer/printer.h"
 
 namespace cvc5 {
@@ -30,13 +31,15 @@ InstantiationVec::InstantiationVec(const std::vector<Node>& vec,
 void InstantiationList::initialize(Node q) { d_quant = q; }
 std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist)
 {
-  Printer::getPrinter(options::outputLanguage())->toStream(out, ilist);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, ilist);
   return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const SkolemList& skl)
 {
-  Printer::getPrinter(options::outputLanguage())->toStream(out, skl);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, skl);
   return out;
 }
 

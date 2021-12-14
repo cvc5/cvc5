@@ -36,6 +36,10 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode consType = n.getOperator().getType(check);
+  if (!consType.isConstructor())
+  {
+    throw TypeCheckingExceptionPrivate(n, "expected constructor to apply");
+  }
   TypeNode t = consType.getConstructorRangeType();
   Assert(t.isDatatype());
   TNode::iterator child_it = n.begin();
@@ -215,16 +219,17 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
   Assert(updType.getNumChildren() == 2);
   if (check)
   {
+    TypeNode t = updType[0];
     for (size_t i = 0; i < 2; i++)
     {
       TypeNode childType = n[i].getType(check);
-      TypeNode t = updType[i];
+      TypeNode targ = updType[i];
+      Trace("typecheck-idt") << "typecheck update: " << n << "[" << i
+                             << "]: " << targ << " " << childType << std::endl;
       if (t.isParametricDatatype())
       {
-        Debug("typecheck-idt")
-            << "typecheck parameterized update: " << n << std::endl;
         TypeMatcher m(t);
-        if (!m.doMatching(t, childType))
+        if (!m.doMatching(targ, childType))
         {
           throw TypeCheckingExceptionPrivate(
               n,
@@ -233,9 +238,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
       }
       else
       {
-        Debug("typecheck-idt") << "typecheck update: " << n << std::endl;
-        Debug("typecheck-idt") << "test type: " << updType << std::endl;
-        if (!t.isComparableTo(childType))
+        if (!targ.isComparableTo(childType))
         {
           throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
         }
@@ -243,7 +246,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   // type is the first argument
-  return updType[0];
+  return n[0].getType();
 }
 
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
@@ -319,10 +322,10 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(
           n, "expecting datatype bound term to have datatype argument.");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
+    if (!n[1].isConst() || !n[1].getType().isInteger())
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "datatype bound must be a constant");
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype bound must be a constant integer");
     }
     if (n[1].getConst<Rational>().getNumerator().sgn() == -1)
     {
@@ -333,34 +336,9 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DtSygusBoundTypeRule::computeType(NodeManager* nodeManager,
-                                           TNode n,
-                                           bool check)
-{
-  if (check)
-  {
-    if (!n[0].getType().isDatatype())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound takes a datatype");
-    }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound must be a constant");
-    }
-    if (n[1].getConst<Rational>().getNumerator().sgn() == -1)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound must be non-negative");
-    }
-  }
-  return nodeManager->booleanType();
-}
-
-TypeNode DtSyguEvalTypeRule::computeType(NodeManager* nodeManager,
-                                         TNode n,
-                                         bool check)
+TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
+                                          TNode n,
+                                          bool check)
 {
   TypeNode headType = n[0].getType(check);
   if (!headType.isDatatype())

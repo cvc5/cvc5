@@ -85,11 +85,12 @@ void CegGrammarConstructor::collectTerms(
         Node c = cur;
         if (tn.isRealOrInt())
         {
-          c = nm->mkConst(CONST_RATIONAL, c.getConst<Rational>().abs());
+          c = nm->mkConstRealOrInt(tn, c.getConst<Rational>().abs());
         }
         consts[tn].insert(c);
         if (tn.isInteger())
         {
+          c = nm->mkConstReal(c.getConst<Rational>().abs());
           TypeNode rtype = nm->realType();
           consts[rtype].insert(c);
         }
@@ -410,8 +411,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   NodeManager* nm = NodeManager::currentNM();
   if (type.isRealOrInt())
   {
-    ops.push_back(nm->mkConst(CONST_RATIONAL, Rational(0)));
-    ops.push_back(nm->mkConst(CONST_RATIONAL, Rational(1)));
+    ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
+    ops.push_back(nm->mkConstRealOrInt(type, Rational(1)));
   }
   else if (type.isBitVector())
   {
@@ -483,7 +484,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         {
           // get the specialized constructor type, which accounts for
           // parametric datatypes
-          TypeNode ctn = dt[i].getSpecializedConstructorType(range);
+          TypeNode ctn = dt[i].getInstantiatedConstructorType(range);
           std::vector<TypeNode> argTypes = ctn.getArgTypes();
           for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
           {
@@ -556,7 +557,7 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
   Assert(bArgType.isRealOrInt() || bArgType.isBitVector());
   if (bArgType.isRealOrInt())
   {
-    zarg = nm->mkConst(CONST_RATIONAL, Rational(0));
+    zarg = nm->mkConstRealOrInt(bArgType, Rational(0));
   }
   else
   {
@@ -800,7 +801,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
         std::vector<TypeNode> cargsEmpty;
         sdts.back().addConstructor(
-            nm->mkConst(CONST_RATIONAL, Rational(1)), "1", cargsEmpty);
+            nm->mkConstInt(Rational(1)), "1", cargsEmpty);
         /* Add operator PLUS */
         Kind kind = PLUS;
         Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
@@ -1010,12 +1011,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
-        TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
+        TypeNode tspec = dt[l].getInstantiatedConstructorType(types[i]);
         // must specialize if a parametric datatype
         if (dt.isParametric())
         {
-          cop = nm->mkNode(
-              APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cop);
+          cop = dt[l].getInstantiatedConstructor(types[i]);
         }
         if (dt[l].getNumArgs() == 0)
         {
@@ -1151,7 +1151,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
       Node sop = sdc.d_op;
-      bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
+      bool isBuiltinArithOp = (sop.getType().isRealOrInt() && sop.isConst());
       bool hasExternalType = false;
       for (unsigned j = 0, nargs = sdc.d_argTypes.size(); j < nargs; j++)
       {

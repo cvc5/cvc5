@@ -206,6 +206,8 @@ class ArithInstantiator : public Instantiator
                                     Node theta,
                                     Node inf_coeff,
                                     Node delta_coeff);
+  /** Return the rewritten form of the negation of t */
+  Node negate(const Node& t) const;
 };
 
 }  // namespace quantifiers
