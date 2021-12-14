@@ -377,7 +377,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -401,7 +401,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
-  category   = "undocumented"
+  category   = "expert"
   long       = "bvand-integer-granularity=N"
   type       = "uint64_t"
   default    = "1"
@@ -409,7 +409,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "iandMode"
-  category   = "undocumented"
+  category   = "expert"
   long       = "iand-mode=mode"
   type       = "IandMode"
   default    = "VALUE"
@@ -427,7 +427,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -435,7 +435,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
@@ -443,7 +443,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceInterpols"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-interpols=MODE"
   type       = "ProduceInterpols"
   default    = "NONE"
@@ -470,7 +470,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceAbducts"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-abducts"
   type       = "bool"
   default    = "false"

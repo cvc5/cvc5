@@ -30,8 +30,8 @@ namespace strings {
 
 RegExpEntail::RegExpEntail(Rewriter* r) : d_aent(r)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
 }
 
 Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
@@ -746,7 +746,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
           continue;
         }
       }
-      Assert(bc.getKind() == CONST_RATIONAL);
+      Assert(bc.isConst() && bc.getType().isInteger());
       Rational r = bc.getConst<Rational>();
       if (k == REGEXP_CONCAT)
       {
@@ -769,7 +769,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
     // if we were successful and didn't ignore all components
     if (success && !firstTime)
     {
-      ret = nm->mkConst(CONST_RATIONAL, rr);
+      ret = nm->mkConstInt(rr);
     }
   }
   if (ret.isNull() && isLower)
