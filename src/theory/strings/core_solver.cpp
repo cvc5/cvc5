@@ -50,9 +50,9 @@ CoreSolver::CoreSolver(Env& env,
       d_nfPairs(context()),
       d_extDeq(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -776,12 +776,12 @@ Node CoreSolver::getConclusion(Node x,
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(AND,
-                        conc,
-                        sk1.eqNode(emp).negate(),
-                        nm->mkNode(GT,
-                                   nm->mkNode(STRING_LENGTH, sk1),
-                                   nm->mkConst(CONST_RATIONAL, Rational(0))));
+      conc = nm->mkNode(
+          AND,
+          conc,
+          sk1.eqNode(emp).negate(),
+          nm->mkNode(
+              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConstInt(Rational(0))));
     }
   }
   else if (rule == PfRule::CONCAT_CSPLIT)

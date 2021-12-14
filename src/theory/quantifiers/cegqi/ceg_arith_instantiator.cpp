@@ -818,7 +818,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
           // multiply by the coefficient we will isolate for
           if (itv->second.isNull())
           {
-            vts_coeff[t] = ArithMSum::negate(vts_coeff[t]);
+            vts_coeff[t] = negate(vts_coeff[t]);
           }
           else
           {
@@ -833,7 +833,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
             }
             else if (itv->second.getConst<Rational>().sgn() == 1)
             {
-              vts_coeff[t] = ArithMSum::negate(vts_coeff[t]);
+              vts_coeff[t] = negate(vts_coeff[t]);
             }
           }
         }
@@ -1038,6 +1038,13 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     val = rewrite(val);
   }
   return val;
+}
+
+Node ArithInstantiator::negate(const Node& t) const
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return rewrite(
+      nm->mkNode(MULT, nm->mkConstRealOrInt(t.getType(), Rational(-1)), t));
 }
 
 }  // namespace quantifiers

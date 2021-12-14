@@ -405,8 +405,8 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
 
 Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 {
-  return NodeManager::currentNM()->mkConst(
-      CONST_RATIONAL, Rational(static_cast<uint32_t>(tid)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(tid)));
 }
 
 }  // namespace builtin

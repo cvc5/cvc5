@@ -57,18 +57,17 @@ class ArraySolver : protected EnvObj
   void checkArrayConcat();
   /**
    * Perform reasoning about seq.nth and seq.update operations (lazily), which
-   * calls the core array solver for the set of nth/update terms over atomic
+   * calls the core sequences-array solver for the set of nth/update terms over atomic
    * equivalence classes.
    */
   void checkArray();
   /**
-   * Same as above, but called eagerly, and for all nth/update terms, not just
+   * Same as `checkArray`, but called eagerly, and for all nth/update terms, not just
    * those over atomic equivalence classes.
    */
   void checkArrayEager();
 
   /**
-   *
    * @param eqc The sequence equivalence class representative. We can assume
    * the equivalence class of eqc contains no concatenation terms.
    * @return the map corresponding to the model for eqc. The domain of

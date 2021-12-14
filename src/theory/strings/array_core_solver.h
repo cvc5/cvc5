@@ -62,7 +62,7 @@ class ArrayCoreSolver : protected EnvObj
   const std::map<Node, Node>& getWriteModel(Node eqc);
 
   /**
-   * Get connected sequences, see documentation above computeConnected.
+   * Get connected sequences, see documentation of computeConnected.
    * @return a map M such that sequence equivalence class representatives x and
    * y are connected if an only if M[x] = M[y].
    */
