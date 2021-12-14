@@ -234,7 +234,8 @@ class TheoryStrings : public Theory {
    */
   void checkRegisterTermsNormalForms();
   /**
-   * Turn a sequence constant into a skeleton
+   * Turn a sequence constant into a skeleton specifying how to construct
+   * its value.
    * In particular, this means that value:
    *   (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2))
    * becomes:
@@ -248,6 +249,14 @@ class TheoryStrings : public Theory {
    */
   Node mkSkeletonFor(Node value);
   /**
+   * Make the skeleton for the basis of constructing sequence r between
+   * indices currIndex (inclusive) and nextIndex (exclusive). For example, if
+   * currIndex = 2 and nextIndex = 5, then this returns:
+   *   (seq.++ (seq.unit k_{r,2}) (seq.unit k_{r,3}) (seq.unit k_{r,4}))
+   * where k_{r,2}, k_{r,3}, k_{r,4} are Skolem variables of the element type
+   * of r that are unique to the pairs (r,2), (r,3), (r,4). In other words,
+   * these Skolems abstractly represent the element at positions 2, 3, 4 in the
+   * model for r.
    */
   Node mkSkeletonFromBase(Node r, size_t currIndex, size_t nextIndex);
   //-----------------------end inference steps
