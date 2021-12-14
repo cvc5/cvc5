@@ -315,6 +315,7 @@ class CVC5_EXPORT Sort
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
   friend class DatatypeDecl;
+  friend class Datatype;
   friend class Op;
   friend class Solver;
   friend class Grammar;
@@ -434,7 +435,11 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a parametric datatype sort?
+   * Is this a parametric datatype sort? A parametric datatype sort is either
+   * one that is returned by a call to Solver::mkDatatypeSort() or
+   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
+   * datatype sort returned by Sort::instantiate() for parametric datatype
+   * sort `s`.
    * @return true if the sort is a parametric datatype sort
    */
   bool isParametricDatatype() const;
@@ -1993,7 +1998,7 @@ class CVC5_EXPORT DatatypeConstructor
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  Term getSpecializedConstructorTerm(const Sort& retSort) const;
+  Term getInstantiatedConstructorTerm(const Sort& retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.
@@ -2243,6 +2248,12 @@ class CVC5_EXPORT Datatype
 
   /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
+
+  /**
+   * @return the parameters of this datatype, if it is parametric. An exception
+   * is thrown if this datatype is not parametric.
+   */
+  std::vector<Sort> getParameters() const;
 
   /** @return true if this datatype is parametric */
   bool isParametric() const;
@@ -2577,6 +2588,8 @@ class CVC5_EXPORT Grammar
    * each occurrence of non-terminal symbols from the domain of \p ntsToUnres
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
+   *
+   * @note Create unresolved sorts with Solver::mkUninterpretedSort().
    *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
@@ -3140,6 +3153,8 @@ class CVC5_EXPORT Solver
    *
    * When constructing datatypes, unresolved sorts are replaced by the datatype
    * sort constructed for the datatype declaration it is associated with.
+   *
+   * @note Create unresolved sorts with Solver::mkUninterpretedSort().
    *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts

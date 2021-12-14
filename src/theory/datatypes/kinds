@@ -107,10 +107,10 @@ operator DT_SIZE_BOUND 2 "datatypes height bound"
 typerule DT_SIZE_BOUND ::cvc5::theory::datatypes::DtBoundTypeRule
 
 operator DT_SYGUS_BOUND 2 "datatypes sygus bound"
-typerule DT_SYGUS_BOUND ::cvc5::theory::datatypes::DtSygusBoundTypeRule
+typerule DT_SYGUS_BOUND ::cvc5::theory::datatypes::DtBoundTypeRule
 
 operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
-typerule DT_SYGUS_EVAL ::cvc5::theory::datatypes::DtSyguEvalTypeRule
+typerule DT_SYGUS_EVAL ::cvc5::theory::datatypes::DtSygusEvalTypeRule
 
 
 # Kinds for match terms. For example, the match term
