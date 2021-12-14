@@ -105,8 +105,7 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
-    if (options().strings.seqArray
-        == options::SeqArrayMode::EAGER)
+    if (options().strings.seqArray == options::SeqArrayMode::EAGER)
     {
       addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
     }

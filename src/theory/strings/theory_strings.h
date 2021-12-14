@@ -194,10 +194,11 @@ class TheoryStrings : public Theory {
    * the equivalence classes of the given type
    * @return false if a conflict is discovered while doing this assignment.
    */
-  bool collectModelInfoType(TypeNode tn,
-                            std::unordered_set<TypeNode>& toProcess,
-                            const std::map<TypeNode, std::unordered_set<Node> >& repSet,
-                            TheoryModel* m);
+  bool collectModelInfoType(
+      TypeNode tn,
+      std::unordered_set<TypeNode>& toProcess,
+      const std::map<TypeNode, std::unordered_set<Node>>& repSet,
+      TheoryModel* m);
 
   /** assert pending fact
    *

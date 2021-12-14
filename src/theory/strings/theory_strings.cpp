@@ -242,7 +242,6 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
       Node r = d_state.getRepresentative(s);
       repSet[tn].insert(r);
       toProcess.insert(tn);
-
     }
   }
 
@@ -461,7 +460,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           Trace("strings-model")
               << "Write model for " << tn << " is:" << std::endl;
-          std::vector<std::pair<Node, Node> > writes;
+          std::vector<std::pair<Node, Node>> writes;
           std::unordered_set<Node> usedWrites;
           for (const std::pair<const Node, Node>& w : writeModel)
           {
