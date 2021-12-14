@@ -16,8 +16,8 @@ We have the following list of constraints:
 - All relations are nonempty.
 - People is the universe set.
 - Males and females are disjoint sets (i.e., :math:`males \cap females = \phi`).
-- Fathers are males (i.e., :math:`father.people \subseteq males`).
-- Mothers are females (i.e., :math:`mother.people \subseteq females`).
+- Fathers are males (i.e., :math:`father \bowtie people \subseteq males`).
+- Mothers are females (i.e., :math:`mother \bowtie people \subseteq females`).
 - A parent is a father or a mother (i.e., :math:`parent = father \cup mother`).
 - Ancestor relation is the transitive closure of parent (i.e., :math:`ancestor = parent^{+}`).
 - Descendant relation is the transpose of ancestor (i.e., :math:`descendant = ancestor^{-1}`).
