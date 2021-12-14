@@ -47,9 +47,9 @@ IAndSolver::IAndSolver(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
-  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
-  d_two = nm->mkConst(CONST_RATIONAL, Rational(2));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_two = nm->mkConstInt(Rational(2));
 }
 
 IAndSolver::~IAndSolver() {}
@@ -296,7 +296,9 @@ Node IAndSolver::bitwiseLemma(Node i)
       bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j);
       // enforce bitwise equality
       lem = nm->mkNode(
-          AND, lem, rewrite(d_iandUtils.iextract(high_bit, j, i)).eqNode(bitIAnd));
+          AND,
+          lem,
+          rewrite(d_iandUtils.iextract(high_bit, j, i)).eqNode(bitIAnd));
     }
   }
   return lem;

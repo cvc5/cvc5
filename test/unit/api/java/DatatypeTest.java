@@ -248,6 +248,8 @@ class DatatypeTest
     Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
     assertTrue(pairType.getDatatype().isParametric());
+    Sort[] dparams = pairType.getDatatype().getParameters();
+    assertTrue(dparams[0].equals(t1) && dparams[1].equals(t2));
 
     v.clear();
     v.add(d_solver.getIntegerSort());
@@ -562,10 +564,12 @@ class DatatypeTest
 
     AtomicReference<Term> atomicTerm = new AtomicReference<>();
     // get the specialized constructor term for list[Int]
-    assertDoesNotThrow(() -> atomicTerm.set(nilc.getSpecializedConstructorTerm(listInt)));
+    assertDoesNotThrow(
+        () -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
     Term testConsTerm = atomicTerm.get();
     assertNotEquals(testConsTerm, nilc.getConstructorTerm());
     // error to get the specialized constructor term for Int
-    assertThrows(CVC5ApiException.class, () -> nilc.getSpecializedConstructorTerm(isort));
+    assertThrows(CVC5ApiException.class,
+        () -> nilc.getInstantiatedConstructorTerm(isort));
   }
 }

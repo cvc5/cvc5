@@ -19,6 +19,7 @@
 #define CVC5__THEORY__STRINGS__ARRAY_SOLVER_H
 
 #include "context/cdhashset.h"
+#include "theory/strings/array_core_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
@@ -54,6 +55,32 @@ class ArraySolver : protected EnvObj
    * their application to concatenation terms.
    */
   void checkArrayConcat();
+  /**
+   * Perform reasoning about seq.nth and seq.update operations (lazily), which
+   * calls the core sequences-array solver for the set of nth/update terms over atomic
+   * equivalence classes.
+   */
+  void checkArray();
+  /**
+   * Same as `checkArray`, but called eagerly, and for all nth/update terms, not just
+   * those over atomic equivalence classes.
+   */
+  void checkArrayEager();
+
+  /**
+   * @param eqc The sequence equivalence class representative. We can assume
+   * the equivalence class of eqc contains no concatenation terms.
+   * @return the map corresponding to the model for eqc. The domain of
+   * the returned map should be in distinct integer equivalence classes of the
+   * equality engine of strings theory. The model assigned to eqc will be
+   * a skeleton constructed via seq.++ where the components take values from
+   * this map.
+   */
+  const std::map<Node, Node>& getWriteModel(Node eqc);
+  /**
+   * Get connected sequences from the core array solver.
+   */
+  const std::map<Node, Node>& getConnectedSequences();
 
  private:
   /** check terms of given kind */
@@ -72,6 +99,8 @@ class ArraySolver : protected EnvObj
   std::map<Kind, std::vector<Node> > d_currTerms;
   /** Common constants */
   Node d_zero;
+  /** The core array solver */
+  ArrayCoreSolver d_coreSolver;
   /** Equalities we have processed in the current context */
   NodeSet d_eqProc;
 };
