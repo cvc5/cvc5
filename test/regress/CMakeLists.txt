@@ -2532,6 +2532,9 @@ set(regress_1_tests
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
+  regress1/sygus/rand_const.sy
+  regress1/sygus/rand_p_0.sy
+  regress1/sygus/rand_p_1.sy
   regress1/sygus/real-any-const.sy
   regress1/sygus/real-grammar.sy
   regress1/sygus/rec-fun-swap.sy
