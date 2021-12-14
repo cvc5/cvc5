@@ -66,10 +66,10 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   size_t checkCount = 0;
   while (checkCount < 10)
   {
-    Assert(!activeTerms.empty());
     // if we just successfully added a term, do a satisfiability check
     if (addSuccess)
     {
+      Assert(!activeTerms.empty());
       checkCount++;
       // check the current for satisfiability
       currModel.clear();
