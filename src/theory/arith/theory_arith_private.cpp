@@ -1839,7 +1839,6 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
     << " " << effortLevel
     << " " << d_lastContextIntegerAttempted
     << " " << level
-    << " " << hasIntegerModel()
     << endl;
 
   if(d_qflraStatus == Result::UNSAT){ return false; }
@@ -3372,8 +3371,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
   Debug("arith") << "integer? "
        << " conf/split " << emmittedConflictOrSplit
-       << " fulleffort " << Theory::fullEffort(effortLevel)
-       << " hasintmodel " << hasIntegerModel() << endl;
+       << " fulleffort " << Theory::fullEffort(effortLevel) << endl;
 
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel) && !hasIntegerModel()){
     Node possibleConflict = Node::null();
