@@ -68,7 +68,6 @@ class ArraySolver : protected EnvObj
   void checkArrayEager();
 
   /**
-   *
    * @param eqc The sequence equivalence class representative. We can assume
    * the equivalence class of eqc contains no concatenation terms.
    * @return the map corresponding to the model for eqc. The domain of
