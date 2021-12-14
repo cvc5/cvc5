@@ -885,13 +885,17 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
 
   // if we use the internal pow2 operator, the translation does not
   // have any ites
-  if (options().smt.bvToIntUsePow2) {
+  if (options().smt.bvToIntUsePow2)
+  {
     Node pow2Node = d_nm->mkNode(kind::POW2, y);
-    if (isLeftShift) {
-      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, 
-		      d_nm->mkNode(kind::MULT, x, pow2Node),
-		      pow2(bvsize));
-    } else {
+    if (isLeftShift)
+    {
+      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(kind::MULT, x, pow2Node),
+                          pow2(bvsize));
+    }
+    else
+    {
       return d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2Node);
     }
   }
