@@ -83,7 +83,6 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
 {
   if (lit.getKind() == GEQ || lit.getKind() == EQUAL)
   {
-    TypeNode tn = lit[0].getType();
     if (getMonomialSum(lit[0], msum))
     {
       if (lit[1].isConst() && lit[1].getConst<Rational>().isZero())
@@ -97,6 +96,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
         NodeManager* nm = NodeManager::currentNM();
         if (getMonomialSum(lit[1], msum2))
         {
+          TypeNode tn = lit[0].getType();
           for (std::map<Node, Node>::iterator it = msum2.begin();
                it != msum2.end();
                ++it)
