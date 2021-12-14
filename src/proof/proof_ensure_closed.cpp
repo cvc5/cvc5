@@ -42,19 +42,19 @@ void ensureClosedWrtInternal(Node proven,
     // proofs not enabled, do not do check
     return;
   }
-  bool isTraceDebug = Trace.isOn(c);
+  bool isTraceDebug = TraceIsOn(c);
   if (options::proofCheck() != options::ProofCheckMode::EAGER && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;
   }
   std::stringstream sdiag;
-  bool isTraceOn = Trace.isOn(c);
+  bool isTraceOn = TraceIsOn(c);
   if (!isTraceOn)
   {
     sdiag << ", use -t " << c << " for details";
   }
-  bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+  bool dumpProofTraceOn = TraceIsOn("dump-proof-error");
   if (!dumpProofTraceOn)
   {
     sdiag << ", use -t dump-proof-error for details on proof";

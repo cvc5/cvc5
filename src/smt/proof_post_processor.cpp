@@ -122,7 +122,7 @@ bool ProofPostprocessCallback::update(Node res,
       else
       {
         Assert(pfn->getResult() == f);
-        if (Trace.isOn("smt-proof-pp"))
+        if (TraceIsOn("smt-proof-pp"))
         {
           Trace("smt-proof-pp")
               << "=== Connect proof for preprocessing: " << f << std::endl;
@@ -261,7 +261,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
   // order eliminators
   std::sort(eliminators.begin(), eliminators.end());
-  if (Trace.isOn("smt-proof-pp-debug"))
+  if (TraceIsOn("smt-proof-pp-debug"))
   {
     Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
     for (const auto& pair : lastInclusion)
@@ -1068,7 +1068,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
     Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (Trace.isOn("macro::arith"))
+    if (TraceIsOn("macro::arith"))
     {
       for (const auto& child : children)
       {

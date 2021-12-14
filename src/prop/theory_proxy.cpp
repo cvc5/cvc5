@@ -138,7 +138,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::stringstream ss;
     ss << "TheoryProxy::explainPropagation: clause for lit is ";

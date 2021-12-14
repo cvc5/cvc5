@@ -143,7 +143,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   double clSet = 0;
-  if (Trace.isOn("inst-engine"))
+  if (TraceIsOn("inst-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e
@@ -188,7 +188,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   {
     d_quants.clear();
   }
-  if (Trace.isOn("inst-engine"))
+  if (TraceIsOn("inst-engine"))
   {
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("inst-engine") << "Finished instantiation engine, time = "

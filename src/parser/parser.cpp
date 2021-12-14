@@ -297,7 +297,7 @@ void Parser::defineParameterizedType(const std::string& name,
                                      const std::vector<api::Sort>& params,
                                      const api::Sort& type)
 {
-  if (Trace.isOn("parser")) {
+  if (TraceIsOn("parser")) {
     Trace("parser") << "defineParameterizedType(" << name << ", "
                     << params.size() << ", [";
     if (params.size() > 0) {
@@ -500,7 +500,7 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts,
     // no difference
     return range;
   }
-  if (Trace.isOn("parser"))
+  if (TraceIsOn("parser"))
   {
     Trace("parser") << "mkFlatFunctionType: range " << range << " and domains ";
     for (api::Sort t : sorts)

@@ -206,7 +206,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
       InferInfo iiSubsLem(ii.getId());
       iiSubsLem.d_sim = this;
       iiSubsLem.d_conc = eqs;
-      if (Trace.isOn("strings-lemma-debug"))
+      if (TraceIsOn("strings-lemma-debug"))
       {
         Trace("strings-lemma-debug")
             << "Strings::Infer " << iiSubsLem << std::endl;
@@ -217,7 +217,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
       addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSubsLem)));
       return;
     }
-    if (Trace.isOn("strings-lemma-debug"))
+    if (TraceIsOn("strings-lemma-debug"))
     {
       for (const Node& u : unproc)
       {

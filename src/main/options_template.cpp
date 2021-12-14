@@ -123,7 +123,7 @@ void parseInternal(api::Solver& solver,
                    std::vector<std::string>& nonoptions)
 {
   Assert(argv != nullptr);
-  if (Trace.isOn("options"))
+  if (TraceIsOn("options"))
   {
     Trace("options") << "starting a new parseInternal with " << argc
                      << " arguments" << std::endl;
@@ -194,7 +194,7 @@ void parseInternal(api::Solver& solver,
 
     if (c == -1)
     {
-      if (Trace.isOn("options"))
+      if (TraceIsOn("options"))
       {
         Trace("options") << "done with option parsing" << std::endl;
         for (int index = optind; index < argc; ++index)
@@ -266,7 +266,7 @@ std::vector<std::string> parse(api::Solver& solver,
 
   std::vector<std::string> nonoptions;
   parseInternal(solver, argc, argv, nonoptions);
-  if (Trace.isOn("options"))
+  if (TraceIsOn("options"))
   {
     for (const auto& no : nonoptions)
     {

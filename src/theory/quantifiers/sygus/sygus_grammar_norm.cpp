@@ -183,7 +183,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                       claimed.end(),
                       std::back_inserter(difference));
   op_pos = difference;
-  if (Trace.isOn("sygus-grammar-normalize-chain"))
+  if (TraceIsOn("sygus-grammar-normalize-chain"))
   {
     Trace("sygus-grammar-normalize-chain")
         << "OP at " << d_chain_op_pos << "\n"
@@ -244,7 +244,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   /* Creates a type do be added to root representing next step in the chain */
   /* Add + to elems */
   d_elem_pos.push_back(d_chain_op_pos);
-  if (Trace.isOn("sygus-grammar-normalize-chain"))
+  if (TraceIsOn("sygus-grammar-normalize-chain"))
   {
     Trace("sygus-grammar-normalize-chain")
         << "\tCreating type for next entry with sygus_ops ";
@@ -373,7 +373,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Corresponding type node to tn with the given operator positions. To be
    * retrieved (if cached) or defined (otherwise) */
   TypeNode unres_tn;
-  if (Trace.isOn("sygus-grammar-normalize-trie"))
+  if (TraceIsOn("sygus-grammar-normalize-trie"))
   {
     Trace("sygus-grammar-normalize-trie")
         << "\tRecursing on " << tn << " with op_positions ";
@@ -388,7 +388,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   std::sort(op_pos.begin(), op_pos.end());
   if (d_tries[tn].getOrMakeType(tn, unres_tn, op_pos))
   {
-    if (Trace.isOn("sygus-grammar-normalize-trie"))
+    if (TraceIsOn("sygus-grammar-normalize-trie"))
     {
       Trace("sygus-grammar-normalize-trie")
           << "\tTypenode " << tn << " has already been normalized with op_pos ";
@@ -400,7 +400,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     }
     return unres_tn;
   }
-  if (Trace.isOn("sygus-grammar-normalize-trie"))
+  if (TraceIsOn("sygus-grammar-normalize-trie"))
   {
     Trace("sygus-grammar-normalize-trie")
         << "\tTypenode " << tn << " not yet normalized with op_pos ";
@@ -467,7 +467,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     to.addConsInfo(this, dt[oi]);
   }
   /* Build normalize datatype */
-  if (Trace.isOn("sygus-grammar-normalize"))
+  if (TraceIsOn("sygus-grammar-normalize"))
   {
     Trace("sygus-grammar-normalize") << "\nFor positions ";
     for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
@@ -507,7 +507,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   normalizeSygusRec(tn);
   /* Resolve created types */
   Assert(!d_dt_all.empty() && !d_unres_t_all.empty());
-  if (Trace.isOn("sygus-grammar-normalize-build"))
+  if (TraceIsOn("sygus-grammar-normalize-build"))
   {
     Trace("sygus-grammar-normalize-build")
         << "making mutual datatyes with datatypes \n";

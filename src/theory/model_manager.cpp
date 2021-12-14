@@ -94,7 +94,7 @@ bool ModelManager::buildModel()
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
 
-  if (Trace.isOn("model-final"))
+  if (TraceIsOn("model-final"))
   {
     Trace("model-final") << "Final model:" << std::endl;
     Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;

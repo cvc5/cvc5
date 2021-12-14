@@ -200,7 +200,7 @@ void SynthEngine::registerQuantifier(Node q)
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
-  if (Trace.isOn("sygus-engine-debug"))
+  if (TraceIsOn("sygus-engine-debug"))
   {
     conj->debugPrint("sygus-engine-debug");
     Trace("sygus-engine-debug") << std::endl;

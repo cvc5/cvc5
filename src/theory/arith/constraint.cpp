@@ -488,7 +488,7 @@ void Constraint::setAssertedToTheTheory(TNode witness, bool nowInConflict) {
   Assert(negationHasProof() == nowInConflict);
   d_database->pushAssertionOrderWatch(this, witness);
 
-  if(Trace.isOn("constraint::conflictCommit") && nowInConflict ){
+  if(TraceIsOn("constraint::conflictCommit") && nowInConflict ){
     Trace("constraint::conflictCommit") << "inConflict@setAssertedToTheTheory";
     Trace("constraint::conflictCommit") << "\t" << this << std::endl;
     Trace("constraint::conflictCommit") << "\t" << getNegation() << std::endl;
@@ -573,7 +573,7 @@ bool Constraint::hasSimpleFarkasProof() const
     }
 
     // ... otherwise, we do not have a simple Farkas proof.
-    if (Trace.isOn("constraints::hsfp"))
+    if (TraceIsOn("constraints::hsfp"))
     {
       Trace("constraints::hsfp") << "There is no simple Farkas proof b/c there "
                                     "is an antecdent w/ rule ";
@@ -1259,7 +1259,7 @@ void Constraint::setAssumption(bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, AssumeAP));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@setAssumption " << this << std::endl;
   }
 }
@@ -1323,11 +1323,11 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
 
-  if(Trace.isOn("constraints::wffp") && !wellFormedFarkasProof()){
+  if(TraceIsOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Trace("constraints::wffp"), d_produceProofs);
   }
   Assert(wellFormedFarkasProof());
@@ -1349,7 +1349,7 @@ void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInC
   d_database->pushConstraintRule(ConstraintRule(this, TrichotomyAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@impliedByTrichotomy " << this << std::endl;
   }
 }
@@ -1396,14 +1396,14 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, IntHoleAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict impliedByIntHole" << this << std::endl;
   }
 }
 
 void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
   Trace("constraints::pf") << "impliedByIntHole(" << this;
-  if (Trace.isOn("constraints::pf")) {
+  if (TraceIsOn("constraints::pf")) {
     for (const ConstraintCP& p : b)
     {
       Trace("constraints::pf") << ", " << p;
@@ -1425,7 +1425,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, IntHoleAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@impliedByIntHole[vec] " << this << std::endl;
   }
 }
@@ -1440,7 +1440,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
   Trace("constraints::pf") << "impliedByFarkas(" << this;
-  if (Trace.isOn("constraints::pf")) {
+  if (TraceIsOn("constraints::pf")) {
     for (const ConstraintCP& p : a)
     {
       Trace("constraints::pf") << ", " << p;
@@ -1478,10 +1478,10 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@impliedByFarkas " << this << std::endl;
   }
-  if(Trace.isOn("constraints::wffp") && !wellFormedFarkasProof()){
+  if(TraceIsOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Trace("constraints::wffp"), d_produceProofs);
   }
   Assert(wellFormedFarkasProof());
@@ -1498,7 +1498,7 @@ void Constraint::setInternalAssumption(bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, InternalAssumeAP));
 
   Assert(inConflict() == nowInConflict);
-  if(Trace.isOn("constraint::conflictCommit") && inConflict()){
+  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@setInternalAssumption " << this << std::endl;
   }
 }
@@ -1597,7 +1597,7 @@ TrustNode Constraint::externalExplainConflict() const
     {
       lits.push_back(n);
     }
-    if (Trace.isOn("arith::pf::externalExplainConflict"))
+    if (TraceIsOn("arith::pf::externalExplainConflict"))
     {
       Trace("arith::pf::externalExplainConflict") << "Lits:" << std::endl;
       for (const auto& l : lits)
@@ -1611,7 +1611,7 @@ TrustNode Constraint::externalExplainConflict() const
         not2.getKind() == Kind::NOT
             ? d_database->d_pnm->mkNode(PfRule::CONTRA, {pf2, pfNot2}, {})
             : d_database->d_pnm->mkNode(PfRule::CONTRA, {pfNot2, pf2}, {});
-    if (Trace.isOn("arith::pf::tree"))
+    if (TraceIsOn("arith::pf::tree"))
     {
       Trace("arith::pf::tree") << *this << std::endl;
       Trace("arith::pf::tree") << *getNegation() << std::endl;
@@ -1688,7 +1688,7 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
 std::shared_ptr<ProofNode> Constraint::externalExplain(
     NodeBuilder& nb, AssertionOrder order) const
 {
-  if (Trace.isOn("pf::arith::explain"))
+  if (TraceIsOn("pf::arith::explain"))
   {
     this->printProofTree(Trace("arith::pf::tree"));
     Trace("pf::arith::explain") << "Explaining: " << this << " with rule ";

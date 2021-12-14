@@ -392,7 +392,7 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
   sortedRemoved.push_back(INT_MAX);
   std::sort(sortedRemoved.begin(), sortedRemoved.end());
 
-  if(Trace.isOn("approx::nodelog")){
+  if(TraceIsOn("approx::nodelog")){
     Trace("approx::nodelog") << "Removing #" << sortedRemoved.size()<< "...";
     for(unsigned k = 0; k<sortedRemoved.size(); k++){
       Trace("approx::nodelog") << ", " << sortedRemoved[k];

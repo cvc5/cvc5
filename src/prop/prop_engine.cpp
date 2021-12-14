@@ -226,7 +226,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
     }
   }
 
-  if (Trace.isOn("te-lemma"))
+  if (TraceIsOn("te-lemma"))
   {
     Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
     for (const theory::SkolemLemma& lem : ppLemmas)
@@ -413,7 +413,7 @@ Result PropEngine::checkSat() {
     return Result(Result::SAT_UNKNOWN, why);
   }
 
-  if( result == SAT_VALUE_TRUE && Trace.isOn("prop") ) {
+  if( result == SAT_VALUE_TRUE && TraceIsOn("prop") ) {
     printSatisfyingAssignment();
   }
 

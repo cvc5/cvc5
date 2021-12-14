@@ -216,7 +216,7 @@ bool ArithEntail::checkApprox(Node ar)
     {
       return false;
     }
-    if (Trace.isOn("strings-ent-approx"))
+    if (TraceIsOn("strings-ent-approx"))
     {
       Trace("strings-ent-approx")
           << "---- Check arithmetic entailment by under-approximation " << ar

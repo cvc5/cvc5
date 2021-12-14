@@ -150,7 +150,7 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
   Assert(remainingIterations > 0);
 
   while(remainingIterations > 0 && !d_errorSet.focusEmpty()){
-    if(Trace.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
+    if(TraceIsOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
     Assert(d_conflictVariables.empty());
     ArithVar x_i = d_errorSet.topFocusVariable();
 
@@ -217,7 +217,7 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
     int32_t currErrorSize CVC5_UNUSED = d_errorSet.errorSize();
     d_pivots++;
 
-    if(Trace.isOn("arith::dual")){
+    if(TraceIsOn("arith::dual")){
       Trace("arith::dual")
         << "#" << d_pivots
         << " c" << conflict

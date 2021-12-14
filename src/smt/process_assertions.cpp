@@ -437,7 +437,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
 void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 {
-  bool isTraceOn = Trace.isOn(key);
+  bool isTraceOn = TraceIsOn(key);
   if (!isTraceOn)
   {
     return;

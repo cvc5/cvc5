@@ -1629,7 +1629,7 @@ void TheoryArrays::checkStore(TNode a)
 
   Trace("arrays-cri")<<"Arrays::checkStore "<<a<<"\n";
 
-  if(Trace.isOn("arrays-cri")) {
+  if(TraceIsOn("arrays-cri")) {
     d_infoMap.getInfo(a)->print();
   }
   Assert(a.getType().isArray());
@@ -1663,7 +1663,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   Trace("arrays-cri")<<"Arrays::checkRowForIndex "<<a<<"\n";
   Trace("arrays-cri")<<"                   index "<<i<<"\n";
 
-  if(Trace.isOn("arrays-cri")) {
+  if(TraceIsOn("arrays-cri")) {
     d_infoMap.getInfo(a)->print();
   }
   Assert(a.getType().isArray());
@@ -1728,10 +1728,10 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   if (options().arrays.arraysWeakEquivalence) return;
 
   Trace("arrays-crl")<<"Arrays::checkLemmas begin \n"<<a<<"\n";
-  if(Trace.isOn("arrays-crl"))
+  if(TraceIsOn("arrays-crl"))
     d_infoMap.getInfo(a)->print();
   Trace("arrays-crl")<<"  ------------  and "<<b<<"\n";
-  if(Trace.isOn("arrays-crl"))
+  if(TraceIsOn("arrays-crl"))
     d_infoMap.getInfo(b)->print();
 
   const CTNodeList* i_a = d_infoMap.getIndices(a);

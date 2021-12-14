@@ -116,7 +116,7 @@ void Tableau::addRow(ArithVar basic,
   d_rowIndex2basic.set(newRow, basic);
 
 
-  if(Trace.isOn("matrix")){ printMatrix(); }
+  if(TraceIsOn("matrix")){ printMatrix(); }
 
   NoEffectCCCB noeffect;
   NoEffectCCCB* nep = &noeffect;
@@ -139,7 +139,7 @@ void Tableau::addRow(ArithVar basic,
     }
   }
 
-  if(Trace.isOn("matrix")) { printMatrix(); }
+  if(TraceIsOn("matrix")) { printMatrix(); }
 
   Assert(debugNoZeroCoefficients(newRow));
   Assert(debugMatchingCountsForRow(newRow));

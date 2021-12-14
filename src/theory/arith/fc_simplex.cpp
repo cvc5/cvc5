@@ -415,7 +415,7 @@ WitnessImprovement FCSimplexDecisionProcedure::focusUsingSignDisagreements(Arith
   Assert(!d_sgnDisagreements.empty());
   Assert(d_errorSet.focusSize() >= 2);
 
-  if(Trace.isOn("arith::focus")){
+  if(TraceIsOn("arith::focus")){
     d_errorSet.debugPrint(Trace("arith::focus"));
   }
 
@@ -507,7 +507,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     if(d_tableau.isBasic(updated)){
       Assert(!d_variables.assignmentIsConsistent(updated)
              == d_errorSet.inError(updated));
-      if(Trace.isOn("updateAndSignal")){debugPrintSignal(updated);}
+      if(TraceIsOn("updateAndSignal")){debugPrintSignal(updated);}
       if(!d_variables.assignmentIsConsistent(updated)){
         if(checkBasicForConflict(updated)){
           reportConflict(updated);
@@ -524,7 +524,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     }
   }
 
-  if(Trace.isOn("error")){ d_errorSet.debugPrint(Trace("error")); }
+  if(TraceIsOn("error")){ d_errorSet.debugPrint(Trace("error")); }
 
   Assert(
       debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));

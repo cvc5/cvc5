@@ -148,7 +148,7 @@ void CoreSolver::checkCycles()
 void CoreSolver::checkFlatForms()
 {
   // debug print flat forms
-  if (Trace.isOn("strings-ff"))
+  if (TraceIsOn("strings-ff"))
   {
     Trace("strings-ff") << "Flat forms : " << std::endl;
     debugPrintFlatForms("strings-ff");
@@ -364,7 +364,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
               Node lcc = d_state.getLength(bc, lexp2);
               if (d_state.areEqual(lcurr, lcc))
               {
-                if (Trace.isOn("strings-ff-debug"))
+                if (TraceIsOn("strings-ff-debug"))
                 {
                   Trace("strings-ff-debug")
                       << "Infer " << ac << " == " << bc << " since " << lcurr
@@ -590,7 +590,7 @@ void CoreSolver::checkNormalFormsEq()
     Trace("strings-process-debug")
         << "Done verifying normal forms are the same for " << eqc << std::endl;
   }
-  if (Trace.isOn("strings-nf"))
+  if (TraceIsOn("strings-nf"))
   {
     Trace("strings-nf") << "**** Normal forms are : " << std::endl;
     for (std::map<Node, Node>::iterator it = eqc_to_exp.begin();
@@ -914,7 +914,7 @@ void CoreSolver::getNormalForms(Node eqc,
               {
                 for (const Node& nn : nfrv)
                 {
-                  if (Trace.isOn("strings-error"))
+                  if (TraceIsOn("strings-error"))
                   {
                     if (nn.getKind() == STRING_CONCAT)
                     {
@@ -978,7 +978,7 @@ void CoreSolver::getNormalForms(Node eqc,
             {
               for (unsigned i = 0; i < currv.size(); i++)
               {
-                if (Trace.isOn("strings-error"))
+                if (TraceIsOn("strings-error"))
                 {
                   Trace("strings-error") << "Cycle for normal form ";
                   utils::printConcatTrace(currv, "strings-error");
@@ -1026,7 +1026,7 @@ void CoreSolver::getNormalForms(Node eqc,
     nf_triv.init(eqc_non_c);
     normal_forms.push_back(nf_triv);
   }else{
-    if(Trace.isOn("strings-solve")) {
+    if(TraceIsOn("strings-solve")) {
       Trace("strings-solve") << "--- Normal forms for equivalance class " << eqc << " : " << std::endl;
       for (unsigned i = 0, size = normal_forms.size(); i < size; i++)
       {
@@ -2591,7 +2591,7 @@ void CoreSolver::checkNormalFormsDeq()
     for( unsigned i=0; i<cols.size(); i++ ){
       if (cols[i].size() > 1 && !d_im.hasPendingLemma())
       {
-        if (Trace.isOn("strings-solve"))
+        if (TraceIsOn("strings-solve"))
         {
           Trace("strings-solve") << "- Verify disequalities are processed for "
                                  << cols[i][0] << ", normal form : ";
@@ -2611,7 +2611,7 @@ void CoreSolver::checkNormalFormsDeq()
             else if (d_state.areDisequal(cols[i][j], cols[i][k]))
             {
               Assert(!d_state.isInConflict());
-              if (Trace.isOn("strings-solve"))
+              if (TraceIsOn("strings-solve"))
               {
                 Trace("strings-solve") << "- Compare " << cols[i][j] << ", nf ";
                 utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf,
@@ -2654,7 +2654,7 @@ void CoreSolver::checkLengthsEqc() {
     if (ei->d_normalizedLength.get().isNull())
     {
       Node nf = utils::mkNConcat(nfi.d_nf, stype);
-      if (Trace.isOn("strings-process-debug"))
+      if (TraceIsOn("strings-process-debug"))
       {
         Trace("strings-process-debug")
             << "  normal form is " << nf << " from base " << nfi.d_base

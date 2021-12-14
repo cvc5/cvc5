@@ -787,7 +787,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 {
   Trace("fp-collectModelInfo")
       << "TheoryFp::collectModelInfo(): begin" << std::endl;
-  if (Trace.isOn("fp-collectModelInfo")) {
+  if (TraceIsOn("fp-collectModelInfo")) {
     for (std::set<Node>::const_iterator i(relevantTerms.begin());
          i != relevantTerms.end(); ++i) {
       Trace("fp-collectModelInfo")

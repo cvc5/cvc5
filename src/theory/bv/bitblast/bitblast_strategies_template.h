@@ -192,7 +192,7 @@ void DefaultVarBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   Assert(bits.size() == 0);
   bb->makeVariable(node, bits);
 
-  if(Trace.isOn("bitvector-bb")) {
+  if(TraceIsOn("bitvector-bb")) {
     Trace("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
     Trace("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
@@ -213,7 +213,7 @@ void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
       bits.push_back(mkTrue<T>()); 
     }
   }
-  if(Trace.isOn("bitvector-bb")) {
+  if(TraceIsOn("bitvector-bb")) {
     Trace("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
   }
 }
@@ -245,7 +245,7 @@ void DefaultConcatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
     }
   }
   Assert(bits.size() == utils::getSize(node));
-  if(Trace.isOn("bitvector-bb")) {
+  if(TraceIsOn("bitvector-bb")) {
     Trace("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
   }
 }
@@ -388,7 +388,7 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
     shiftAddMultiplier(res, current, newres);
     res = newres;
   }
-  if(Trace.isOn("bitvector-bb")) {
+  if(TraceIsOn("bitvector-bb")) {
     Trace("bitvector-bb") << "with bits: " << toString(res)  << "\n";
   }
 }
@@ -640,7 +640,7 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
     res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
   }
 
-  if (Trace.isOn("bitvector-bb"))
+  if (TraceIsOn("bitvector-bb"))
   {
     Trace("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
@@ -698,7 +698,7 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
     res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
   }
 
-  if (Trace.isOn("bitvector-bb"))
+  if (TraceIsOn("bitvector-bb"))
   {
     Trace("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
@@ -758,7 +758,7 @@ void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
     res[i] = mkIte(b_ult_a_size, prev_res[i], sign_bit);
   }
 
-  if (Trace.isOn("bitvector-bb"))
+  if (TraceIsOn("bitvector-bb"))
   {
     Trace("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
@@ -823,7 +823,7 @@ void DefaultExtractBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   }
   Assert(bits.size() == high - low + 1);
 
-  if(Trace.isOn("bitvector-bb")) {
+  if(TraceIsOn("bitvector-bb")) {
     Trace("bitvector-bb") << "theory::bv::DefaultExtractBB bitblasting " << node << "\n";
     Trace("bitvector-bb") << "                               with bits " << toString(bits); 
   }

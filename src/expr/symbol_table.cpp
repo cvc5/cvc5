@@ -456,7 +456,7 @@ void SymbolTable::Implementation::bindType(const string& name,
                                            api::Sort t,
                                            bool levelZero)
 {
-  if (Trace.isOn("sort")) {
+  if (TraceIsOn("sort")) {
     Trace("sort") << "bindType(" << name << ", [";
     if (params.size() > 0) {
       copy(params.begin(),
@@ -508,7 +508,7 @@ api::Sort SymbolTable::Implementation::lookupType(
     return p.second.instantiate(params);
   }
   bool isSortConstructor = p.second.isSortConstructor();
-  if (Trace.isOn("sort"))
+  if (TraceIsOn("sort"))
   {
     Trace("sort") << "instantiating using a sort "
                   << (isSortConstructor ? "constructor" : "substitution")

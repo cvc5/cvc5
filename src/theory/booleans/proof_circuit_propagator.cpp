@@ -243,7 +243,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkProof(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  if (Trace.isOn("circuit-prop"))
+  if (TraceIsOn("circuit-prop"))
   {
     std::stringstream ss;
     ss << "Constructing (" << rule;

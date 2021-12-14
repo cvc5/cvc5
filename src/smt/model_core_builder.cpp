@@ -32,7 +32,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
     // already computed
     return true;
   }
-  if (Trace.isOn("model-core"))
+  if (TraceIsOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;
     for (const Node& a : assertions)

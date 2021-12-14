@@ -273,7 +273,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   }
   Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
                                << std::endl;
-  if (Trace.isOn("q-ext-rewrite-nf"))
+  if (TraceIsOn("q-ext-rewrite-nf"))
   {
     if (n == ret)
     {
@@ -1334,7 +1334,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   // check subsumptions
   // sort by #atoms
   std::sort(atom_count.begin(), atom_count.end(), sortPairSecond);
-  if (Trace.isOn("ext-rew-eqchain"))
+  if (TraceIsOn("ext-rew-eqchain"))
   {
     for (const std::pair<Node, unsigned>& ac : atom_count)
     {
@@ -1755,7 +1755,7 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
-  if (Trace.isOn("q-ext-rewrite"))
+  if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())
     {

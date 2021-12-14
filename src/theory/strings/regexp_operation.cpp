@@ -820,7 +820,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     d_fset_cache[r] = p;
   }
 
-  if(Trace.isOn("regexp-fset")) {
+  if(TraceIsOn("regexp-fset")) {
     Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
     for (std::set<unsigned>::const_iterator it = pcset.begin();
          it != pcset.end();
@@ -1280,7 +1280,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             Unreachable();
           }
         }
-        if(Trace.isOn("regexp-int-debug")) {
+        if(TraceIsOn("regexp-int-debug")) {
           Trace("regexp-int-debug") << "Try CSET(" << cset.size() << ") = {";
           for (std::vector<unsigned>::const_iterator it = cset.begin();
                it != cset.end();
@@ -1424,7 +1424,7 @@ Node RegExpOpr::removeIntersection(Node r) {
   } while (!visit.empty());
   Assert(visited.find(r) != visited.end());
   Assert(!visited.find(r)->second.isNull());
-  if (Trace.isOn("regexp-intersect"))
+  if (TraceIsOn("regexp-intersect"))
   {
     Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r)
                               << " ) = " << mkString(visited[r]) << std::endl;

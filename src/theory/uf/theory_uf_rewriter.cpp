@@ -73,7 +73,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         {
           subs.push_back(s);
         }
-        if (Trace.isOn("uf-ho-beta"))
+        if (TraceIsOn("uf-ho-beta"))
         {
           Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
                               << " vars into " << subs.size() << " terms :\n";

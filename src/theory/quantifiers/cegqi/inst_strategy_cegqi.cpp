@@ -260,7 +260,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   {
     Assert(!d_qstate.isInConflict());
     double clSet = 0;
-    if( Trace.isOn("cegqi-engine") ){
+    if( TraceIsOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
@@ -283,7 +283,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         break;
       }
     }
-    if( Trace.isOn("cegqi-engine") ){
+    if( TraceIsOn("cegqi-engine") ){
       if (d_qim.numPendingLemmas() > lastWaiting)
       {
         Trace("cegqi-engine")

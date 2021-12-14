@@ -59,7 +59,7 @@ CadSolver::~CadSolver() {}
 void CadSolver::initLastCall(const std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
-  if (Trace.isOn("nl-cad"))
+  if (TraceIsOn("nl-cad"))
   {
     Trace("nl-cad") << "CadSolver::initLastCall" << std::endl;
     Trace("nl-cad") << "* Assertions: " << std::endl;
@@ -79,7 +79,7 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
         Trace("nl-cad") << "Found conflict: " << lem << std::endl;
         return;
     }
-    if (Trace.isOn("nl-cad"))
+    if (TraceIsOn("nl-cad"))
     {
       Trace("nl-cad") << "After simplifications" << std::endl;
       Trace("nl-cad") << "* Assertions: " << std::endl;

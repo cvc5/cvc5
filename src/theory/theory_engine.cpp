@@ -310,7 +310,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
 }
 
 void TheoryEngine::printAssertions(const char* tag) {
-  if (Trace.isOn(tag)) {
+  if (TraceIsOn(tag)) {
 
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
@@ -402,13 +402,13 @@ void TheoryEngine::check(Theory::Effort effort) {
       Trace("theory") << "TheoryEngine::check(" << effort << "): running check" << endl;
 
       Trace("theory::assertions") << endl;
-      if (Trace.isOn("theory::assertions")) {
+      if (TraceIsOn("theory::assertions")) {
         printAssertions("theory::assertions");
       }
 
       if(Theory::fullEffort(effort)) {
         Trace("theory::assertions::fulleffort") << endl;
-        if (Trace.isOn("theory::assertions::fulleffort")) {
+        if (TraceIsOn("theory::assertions::fulleffort")) {
           printAssertions("theory::assertions::fulleffort");
         }
       }
@@ -443,7 +443,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) {
       Trace("theory::assertions-model") << endl;
-      if (Trace.isOn("theory::assertions-model")) {
+      if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
       // reset the model in the combination engine
@@ -1688,7 +1688,7 @@ TrustNode TheoryEngine::getExplanation(
   // build the proof
   if (lcp != nullptr)
   {
-    if (Trace.isOn("te-proof-exp"))
+    if (TraceIsOn("te-proof-exp"))
     {
       Trace("te-proof-exp") << "Explanation is:" << std::endl;
       for (TNode e : exp)

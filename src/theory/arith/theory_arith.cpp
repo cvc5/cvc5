@@ -272,7 +272,7 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
 bool TheoryArith::collectModelValues(TheoryModel* m,
                                      const std::set<Node>& termSet)
 {
-  if (Trace.isOn("arith::model"))
+  if (TraceIsOn("arith::model"))
   {
     Trace("arith::model") << "arithmetic model after pruning" << std::endl;
     for (const auto& p : d_arithModelCache)

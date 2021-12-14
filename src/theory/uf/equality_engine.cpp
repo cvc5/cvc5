@@ -994,7 +994,7 @@ void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned
   d_equalityGraph[t1] = edge;
   d_equalityGraph[t2] = edge | 1;
 
-  if (Trace.isOn("equality::internal")) {
+  if (TraceIsOn("equality::internal")) {
     debugPrintGraph();
   }
 }
@@ -1103,7 +1103,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
 
-  if (Trace.isOn("equality::internal"))
+  if (TraceIsOn("equality::internal"))
   {
     debugPrintGraph();
   }
@@ -1149,7 +1149,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           toExplain.first, toExplain.second, equalities, cache, eqpc.get());
 
       if (eqpc) {
-        if (Trace.isOn("pf::ee"))
+        if (TraceIsOn("pf::ee"))
         {
           Trace("pf::ee") << "Child proof is:" << std::endl;
           eqpc->debug_print("pf::ee", 1);
@@ -1179,7 +1179,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
           if (nullCongruenceFound) {
             eqpc->d_children = orderedChildren;
-            if (Trace.isOn("pf::ee"))
+            if (TraceIsOn("pf::ee"))
             {
               Trace("pf::ee")
                   << "Child proof's children have been reordered. It is now:"
@@ -1246,7 +1246,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         }
       }
 
-      if (Trace.isOn("pf::ee"))
+      if (TraceIsOn("pf::ee"))
       {
         Trace("pf::ee") << "Disequality explanation final proof: " << std::endl;
         eqp->debug_print("pf::ee", 1);
@@ -1263,7 +1263,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
   // Must have the term
   Assert(hasTerm(p));
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
-  if (Trace.isOn("equality::internal"))
+  if (TraceIsOn("equality::internal"))
   {
     debugPrintGraph();
   }
@@ -1443,7 +1443,7 @@ void EqualityEngine::getExplanation(
 
     // Go through the equality edges of this node
     EqualityEdgeId currentEdge = d_equalityGraph[currentNode];
-    if (Trace.isOn("equality")) {
+    if (TraceIsOn("equality")) {
       Trace("equality") << d_name << "::eq::getExplanation(): edgesId =  " << currentEdge << std::endl;
       Trace("equality") << d_name << "::eq::getExplanation(): edges =  " << edgesToString(currentEdge) << std::endl;
     }
@@ -1609,7 +1609,7 @@ void EqualityEngine::getExplanation(
                                eqpcc.get());
                 if( eqpc ) {
                   eqpc->d_children.push_back( eqpcc );
-                  if (Trace.isOn("pf::ee"))
+                  if (TraceIsOn("pf::ee"))
                   {
                     Trace("pf::ee")
                         << "MERGED_THROUGH_CONSTANTS. Dumping the child proof"
@@ -1691,7 +1691,7 @@ void EqualityEngine::getExplanation(
               // EqProof::reduceNestedCongruence for more details.
               buildEqConclusion(t1Id, t2Id, eqp);
             }
-            if (Trace.isOn("pf::ee"))
+            if (TraceIsOn("pf::ee"))
             {
               eqp->debug_print("pf::ee", 1);
             }
@@ -1832,7 +1832,7 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
   d_nodeTriggers[t1classId] = t1NewTriggerId;
   d_nodeTriggers[t2classId] = t2NewTriggerId;
 
-  if (Trace.isOn("equality::internal")) {
+  if (TraceIsOn("equality::internal")) {
     debugPrintGraph();
   }
 
@@ -2452,7 +2452,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
           == getEqualityNode(d_deducedDisequalityReasons[i].second).getFind());
     }
 #endif
-    if (Trace.isOn("equality::disequality")) {
+    if (TraceIsOn("equality::disequality")) {
       for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
       {
         TNode lhs = d_nodes[d_deducedDisequalityReasons[i].first];

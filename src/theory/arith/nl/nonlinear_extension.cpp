@@ -336,7 +336,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
     }
   }
 
-  if (Trace.isOn("nl-ext-debug"))
+  if (TraceIsOn("nl-ext-debug"))
   {
     Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
                           << std::endl;
@@ -442,7 +442,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 {
   ++(d_stats.d_checkRuns);
 
-  if (Trace.isOn("nl-strategy"))
+  if (TraceIsOn("nl-strategy"))
   {
     for (const auto& a : assertions)
     {

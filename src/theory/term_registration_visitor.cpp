@@ -113,7 +113,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
 
   Trace("register") << "PreRegisterVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  if (Trace.isOn("register::internal")) {
+  if (TraceIsOn("register::internal")) {
     Trace("register::internal") << toString() << std::endl;
   }
 
@@ -262,7 +262,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 void SharedTermsVisitor::visit(TNode current, TNode parent) {
 
   Trace("register") << "SharedTermsVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  if (Trace.isOn("register::internal")) {
+  if (TraceIsOn("register::internal")) {
     Trace("register::internal") << toString() << std::endl;
   }
   TheoryIdSet visitedTheories = d_visited[current];

@@ -197,7 +197,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     Node conc = getProofForRewriting(f[0], lpf, d_tcontext);
     if (conc != f)
     {
-      bool debugTraceEnabled = Trace.isOn("tconv-pf-gen-debug");
+      bool debugTraceEnabled = TraceIsOn("tconv-pf-gen-debug");
       Assert(conc.getKind() == EQUAL && conc[0] == f[0]);
       std::stringstream serr;
       serr << "TConvProofGenerator::getProofFor: " << toStringDebug()

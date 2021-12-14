@@ -450,7 +450,7 @@ void BoundedIntegers::checkOwnership(Node f)
     }
   }while( success );
   
-  if( Trace.isOn("bound-int") ){
+  if( TraceIsOn("bound-int") ){
     Trace("bound-int") << "Bounds are : " << std::endl;
     for( unsigned i=0; i<f[0].getNumChildren(); i++) {
       Node v = f[0][i];

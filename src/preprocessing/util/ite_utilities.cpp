@@ -1497,7 +1497,7 @@ Node ITESimplifier::simpITEAtom(TNode atom)
       }
     }
   }
-  if (Trace.isOn("ite::simpite"))
+  if (TraceIsOn("ite::simpite"))
   {
     if (countReachable(atom, kind::ITE) > 0)
     {

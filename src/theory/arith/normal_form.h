@@ -948,7 +948,7 @@ public:
   bool variableMonomialAreStrictlyGreater(const Monomial& m) const;
 
   void printList() const {
-    if(Trace.isOn("normal-form")){
+    if(TraceIsOn("normal-form")){
       Trace("normal-form") << "start list" << std::endl;
       for(iterator i = begin(), oend = end(); i != oend; ++i) {
         const Monomial& m =*i;

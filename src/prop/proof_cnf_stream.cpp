@@ -61,7 +61,7 @@ std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 void ProofCnfStream::normalizeAndRegister(TNode clauseNode)
 {
   Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-  if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+  if (TraceIsOn("cnf") && normClauseNode != clauseNode)
   {
     Trace("cnf") << push
                  << "ProofCnfStream::normalizeAndRegister: steps to normalized "

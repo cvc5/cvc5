@@ -49,7 +49,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                                           const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (Trace.isOn("arith::pf::check"))
+  if (TraceIsOn("arith::pf::check"))
   {
     Trace("arith::pf::check") << "Arith PfRule:" << id << std::endl;
     Trace("arith::pf::check") << "  children: " << std::endl;

@@ -598,7 +598,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       // the helper method evaluateTerm from the entailment check utility.
       Node inst_eval = echeck->evaluateTerm(
           d_q[1], subs, false, options::qcfTConstraint(), true);
-      if( Trace.isOn("qcf-instance-check") ){
+      if( TraceIsOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
           Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
@@ -1418,9 +1418,12 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
 }
 
 bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
-  Trace("qcf-match") << "     Get next match for : " << d_n << ", type = ";
-  debugPrintType( "qcf-match", d_type );
-  Trace("qcf-match") << ", children = " << d_children.size() << ", binding = " << d_binding << std::endl;
+  if (TraceIsOn("qcf-match"))
+  {
+    Trace("qcf-match") << "     Get next match for : " << d_n << ", type = ";
+    debugPrintType( "qcf-match", d_type );
+    Trace("qcf-match") << ", children = " << d_children.size() << ", binding = " << d_binding << std::endl;
+  }
   if( !d_use_children ){
     if( d_child_counter==0 ){
       d_child_counter = -1;
@@ -1464,9 +1467,12 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
       if( d_binding ){
         //also need to create match for each variable we bound
         success = true;
-        Trace("qcf-match-debug") << "     Produce matches for bound variables by " << d_n << ", type = ";
-        debugPrintType( "qcf-match-debug", d_type );
-        Trace("qcf-match-debug") << "..." << std::endl;
+        if (TraceIsOn("qcf-match-debug"))
+        {
+          Trace("qcf-match-debug") << "     Produce matches for bound variables by " << d_n << ", type = ";
+          debugPrintType( "qcf-match-debug", d_type );
+          Trace("qcf-match-debug") << "..." << std::endl;
+        }
 
         while( ( success && d_binding_it!=d_qni_bound.end() ) || doFail ){
           QuantInfo::VarMgMap::const_iterator itm;
@@ -1771,7 +1777,7 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
         qi->d_match_term[d_qni_var_num[0]] = t;
         //set the match terms
         for( std::map< int, int >::iterator it = d_qni_bound.begin(); it != d_qni_bound.end(); ++it ){
-          Trace("qcf-match-debug") << "       position " << it->first << " bounded " << it->second << " / " << qi->d_q[0].getNumChildren() << std::endl;
+          Trace("qcf-match-debug") << "       position " << it->first << " bounded " << it->second << std::endl;
           //if( it->second<(int)qi->d_q[0].getNumChildren() ){   //if it is an actual variable, we are interested in knowing the actual term
           if( it->first>0 ){
             Assert(!qi->d_match[it->second].isNull());
@@ -1870,7 +1876,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   {
     d_quants.push_back( q );
     d_quant_id[q] = d_quants.size();
-    if( Trace.isOn("qcf-qregister") ){
+    if( TraceIsOn("qcf-qregister") ){
       Trace("qcf-qregister") << "Register ";
       debugPrintQuant( "qcf-qregister", q );
       Trace("qcf-qregister") << " : " << q << std::endl;
@@ -1880,7 +1886,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
     d_qinfo[q].initialize( this, q, q[1] );
 
     //debug print
-    if( Trace.isOn("qcf-qregister") ){
+    if( TraceIsOn("qcf-qregister") ){
       Trace("qcf-qregister") << "- Flattened structure is :" << std::endl;
       Trace("qcf-qregister") << "    ";
       debugPrintQuantBody( "qcf-qregister", q, q[1] );
@@ -2009,7 +2015,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   ++(d_statistics.d_inst_rounds);
   double clSet = 0;
   int prevEt = 0;
-  if (Trace.isOn("qcf-engine"))
+  if (TraceIsOn("qcf-engine"))
   {
     prevEt = d_statistics.d_entailment_checks.get();
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
@@ -2021,7 +2027,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   d_irr_func.clear();
   d_irr_quant.clear();
 
-  if (Trace.isOn("qcf-debug"))
+  if (TraceIsOn("qcf-debug"))
   {
     Trace("qcf-debug") << std::endl;
     debugPrint("qcf-debug");
@@ -2065,7 +2071,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   {
     d_conflict.set(true);
   }
-  if (Trace.isOn("qcf-engine"))
+  if (TraceIsOn("qcf-engine"))
   {
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "Finished conflict find engine, time = "
@@ -2101,7 +2107,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     // quantified formula is not properly set up for matching
     return;
   }
-  if (Trace.isOn("qcf-check"))
+  if (TraceIsOn("qcf-check"))
   {
     Trace("qcf-check") << "Check quantified formula ";
     debugPrintQuant("qcf-check", q);
@@ -2128,7 +2134,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
                          << std::endl;
       return;
     }
-    if (Trace.isOn("qcf-inst"))
+    if (TraceIsOn("qcf-inst"))
     {
       Trace("qcf-inst") << "*** Produced match at effort " << d_effort << " : "
                         << std::endl;
@@ -2163,7 +2169,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     {
       // otherwise, we have a conflict/propagating instance
       // for debugging
-      if (Trace.isOn("qcf-check-inst"))
+      if (TraceIsOn("qcf-check-inst"))
       {
         Node inst = qinst->getInstantiation(q, terms);
         Trace("qcf-check-inst")
@@ -2186,7 +2192,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         return;
       }
       Trace("qcf-check") << "   ... Added instantiation" << std::endl;
-      if (Trace.isOn("qcf-inst"))
+      if (TraceIsOn("qcf-inst"))
       {
         Trace("qcf-inst") << "*** Was from effort " << d_effort << " : "
                           << std::endl;

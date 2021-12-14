@@ -388,7 +388,7 @@ Node PseudoBooleanProcessor::applyReplacements(Node pre)
   Node assertion = rewrite(pre);
 
   Node result = d_subCache.apply(assertion);
-  if (Trace.isOn("pbs::rewrites") && result != assertion)
+  if (TraceIsOn("pbs::rewrites") && result != assertion)
   {
     Trace("pbs::rewrites") << "applyReplacements" << assertion << "-> "
                            << result << std::endl;

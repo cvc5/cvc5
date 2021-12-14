@@ -936,7 +936,7 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
     return -1;
   }else{
     //this region must merge with another
-    if( Trace.isOn("uf-ss-check-region") ){
+    if( TraceIsOn("uf-ss-check-region") ){
       Trace("uf-ss-check-region") << "We must combine Region #" << ri << ". " << std::endl;
       d_regions[ri]->debugPrint("uf-ss-check-region");
     }
@@ -959,7 +959,7 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
       }
     }
     if( maxRegion!=-1 ){
-      if( Trace.isOn("uf-ss-check-region") ){
+      if( TraceIsOn("uf-ss-check-region") ){
         Trace("uf-ss-check-region") << "Combine with region #" << maxRegion << ":" << std::endl;
         d_regions[maxRegion]->debugPrint("uf-ss-check-region");
       }
@@ -1029,7 +1029,7 @@ int SortModel::addSplit(Region* r)
         AlwaysAssert(false) << "Bad split " << s << std::endl;
       }
     }
-    if (Trace.isOn("uf-ss-split-si"))
+    if (TraceIsOn("uf-ss-split-si"))
     {
       SortInference* si = d_state.getSortInference();
       if (si != nullptr)
@@ -1098,7 +1098,7 @@ void SortModel::simpleCheckCardinality() {
 }
 
 void SortModel::debugPrint( const char* c ){
-  if( Trace.isOn( c ) ){
+  if( TraceIsOn( c ) ){
     Trace( c ) << "Number of reps = " << d_reps << std::endl;
     Trace( c ) << "Cardinality req = " << d_cardinality << std::endl;
     unsigned debugReps = 0;
@@ -1132,7 +1132,7 @@ bool SortModel::checkLastCall()
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TheoryModel* m = d_state.getModel();
-  if( Trace.isOn("uf-ss-warn") ){
+  if( TraceIsOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
     eq::EqClassesIterator eqcs_i =
         eq::EqClassesIterator(m->getEqualityEngine());
@@ -1425,7 +1425,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
         }
       }
     }else{
-      if( Trace.isOn("uf-ss-warn") ){
+      if( TraceIsOn("uf-ss-warn") ){
         ////FIXME: this is too strict: theory propagations are showing up as isDecision=true, but
         ////       a theory propagation is not a decision.
         if( isDecision ){
@@ -1492,11 +1492,11 @@ void CardinalityExtension::check(Theory::Effort level)
           << "CardinalityExtension: check " << level << std::endl;
       if (level == Theory::EFFORT_FULL)
       {
-        if (Trace.isOn("uf-ss-debug"))
+        if (TraceIsOn("uf-ss-debug"))
         {
           debugPrint("uf-ss-debug");
         }
-        if (Trace.isOn("uf-ss-state"))
+        if (TraceIsOn("uf-ss-state"))
         {
           Trace("uf-ss-state")
               << "CardinalityExtension::check " << level << std::endl;

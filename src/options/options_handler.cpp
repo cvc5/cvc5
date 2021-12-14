@@ -109,7 +109,7 @@ void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
 {
   Debug.setStream(me);
   Warning.setStream(me);
-  Trace.setStream(me);
+  TraceChannel.setStream(me);
 }
 
 Language OptionsHandler::stringToLanguage(const std::string& flag,
@@ -250,7 +250,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   }
   for (const auto& tag: tags)
   {
-    Trace.on(tag);
+    TraceChannel.on(tag);
   }
 }
 
@@ -282,7 +282,7 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
                                         Configuration::getTraceTags()));
   }
   Debug.on(optarg);
-  Trace.on(optarg);
+  TraceChannel.on(optarg);
 }
 
 void OptionsHandler::enableOutputTag(const std::string& flag,
@@ -297,7 +297,7 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
 void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
   Debug.getStream() << Command::printsuccess(value);
-  Trace.getStream() << Command::printsuccess(value);
+  TraceChannel.getStream() << Command::printsuccess(value);
   Warning.getStream() << Command::printsuccess(value);
   *d_options->base.out << Command::printsuccess(value);
 }
@@ -379,7 +379,7 @@ void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
   ioutils::setDefaultNodeDepth(depth);
   ioutils::applyNodeDepth(Debug.getStream(), depth);
-  ioutils::applyNodeDepth(Trace.getStream(), depth);
+  ioutils::applyNodeDepth(TraceChannel.getStream(), depth);
   ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
 
@@ -387,7 +387,7 @@ void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
 {
   ioutils::setDefaultDagThresh(dag);
   ioutils::applyDagThresh(Debug.getStream(), dag);
-  ioutils::applyDagThresh(Trace.getStream(), dag);
+  ioutils::applyDagThresh(TraceChannel.getStream(), dag);
   ioutils::applyDagThresh(Warning.getStream(), dag);
 }
 

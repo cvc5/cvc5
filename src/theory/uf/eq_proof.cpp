@@ -1319,7 +1319,7 @@ Node EqProof::addToProof(CDProof* p,
           << "EqProof::addToProof: New conclusion " << conclusion << "\n";
     }
   }
-  if (Trace.isOn("eqproof-conv"))
+  if (TraceIsOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong of " << conclusion

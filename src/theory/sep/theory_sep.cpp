@@ -639,7 +639,7 @@ void TheorySep::postCheck(Effort level)
     }
   }
   // debug print
-  if (Trace.isOn("sep-process"))
+  if (TraceIsOn("sep-process"))
   {
     Trace("sep-process") << "--- Current spatial assertions : " << std::endl;
     for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
@@ -653,7 +653,7 @@ void TheorySep::postCheck(Effort level)
     }
     Trace("sep-process") << "---" << std::endl;
   }
-  if (Trace.isOn("sep-eqc"))
+  if (TraceIsOn("sep-eqc"))
   {
     Trace("sep-eqc") << d_equalityEngine->debugPrintEqc();
   }
@@ -1376,7 +1376,7 @@ Node TheorySep::instantiateLabel(Node n,
   }
   else
   {
-    if( Trace.isOn("sep-inst") ){
+    if( TraceIsOn("sep-inst") ){
       if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND  || n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_EMP ){
         for( unsigned j=0; j<ind; j++ ){ Trace("sep-inst") << "  "; }
         Trace("sep-inst") << n << "[" << lbl << "] :: " << lbl_v << std::endl;

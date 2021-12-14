@@ -86,7 +86,7 @@ cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
   d_visited.clear();
   d_curThreshold = threshold;
 
-  if(Trace.isOn("justified")) {
+  if(TraceIsOn("justified")) {
     for(JustifiedSet::key_iterator i = d_justified.key_begin();
         i != d_justified.key_end(); ++i) {
       TNode n = *i;
@@ -129,7 +129,7 @@ cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
       curass = curass[0];
     alljustified &= checkJustified(curass);
 
-    if(Trace.isOn("decision")) {
+    if(TraceIsOn("decision")) {
       if(!checkJustified(curass))
         Trace("decision") << "****** Not justified [i="<<i<<"]: "
                           << d_assertions[i] << std::endl;
@@ -445,7 +445,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   // We don't always have a sat literal, so remember that. Will need
   // it for some assertions we make.
   bool litPresent = d_decisionEngine->hasSatLiteral(node);
-  if(Trace.isOn("decision")) {
+  if(TraceIsOn("decision")) {
     if(!litPresent) {
       Trace("decision") << "no sat literal for this node" << std::endl;
     }

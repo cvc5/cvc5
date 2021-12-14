@@ -415,7 +415,7 @@ void PatternTermSelector::collectInternal(
     std::vector<Node> temp;
     temp.insert(temp.begin(), patTerms2.begin(), patTerms2.end());
     filterInstances(temp);
-    if (Trace.isOn("trigger-filter-instance"))
+    if (TraceIsOn("trigger-filter-instance"))
     {
       if (temp.size() != patTerms2.size())
       {

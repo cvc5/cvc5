@@ -1823,7 +1823,7 @@ TNode TheoryDatatypes::getRepresentative( TNode a ){
 }
 
 void TheoryDatatypes::printModelDebug( const char* c ){
-  if(! (Trace.isOn(c))) {
+  if(! (TraceIsOn(c))) {
     return;
   }
 

@@ -418,7 +418,7 @@ expr::NodeValue* NodeBuilder::constructNV()
     nv->d_id = d_nm->next_id++;  // FIXME multithreading
     nv->d_rc = 0;
     setUsed();
-    if (Trace.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
       Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
       nv->printAst(Trace("gc"));
@@ -509,7 +509,7 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      if (Trace.isOn("gc"))
+      if (TraceIsOn("gc"))
       {
         Trace("gc") << "creating node value " << nv << " [" << nv->d_id
                     << "]: ";

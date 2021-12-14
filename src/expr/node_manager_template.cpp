@@ -283,7 +283,7 @@ NodeManager::~NodeManager()
     poolRemove(&expr::NodeValue::null());
   }
 
-  if (Trace.isOn("gc:leaks"))
+  if (TraceIsOn("gc:leaks"))
   {
     Trace("gc:leaks") << "still in pool:" << endl;
     for (NodeValuePool::const_iterator i = d_nodeValuePool.begin(),
@@ -366,7 +366,7 @@ void NodeManager::reclaimZombies()
     // collect ONLY IF still zero
     if (nv->d_rc == 0)
     {
-      if (Trace.isOn("gc"))
+      if (TraceIsOn("gc"))
       {
         Trace("gc") << "deleting node value " << nv << " [" << nv->d_id
                     << "]: ";
@@ -1209,7 +1209,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   new (&nv->d_children) T(val);
 
   poolInsert(nv);
-  if (Trace.isOn("gc"))
+  if (TraceIsOn("gc"))
   {
     Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
     nv->printAst(Trace("gc"));

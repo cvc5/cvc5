@@ -177,7 +177,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
       std::map<Node, Node> msum;
       if (ArithMSum::getMonomialSumLit(n, msum))
       {
-        if (Trace.isOn("quant-vts-debug"))
+        if (TraceIsOn("quant-vts-debug"))
         {
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
           ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");

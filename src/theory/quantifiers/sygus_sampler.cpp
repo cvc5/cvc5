@@ -231,7 +231,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     }
     if (d_samples_trie.add(sample_pt))
     {
-      if (Trace.isOn("sygus-sample"))
+      if (TraceIsOn("sygus-sample"))
       {
         Trace("sygus-sample") << "Sample point #" << i << " : ";
         for (const Node& r : sample_pt)

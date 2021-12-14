@@ -911,7 +911,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // the builtin kind of the overall return expression
   api::Kind kind = api::NULL_EXPR;
   // First phase: process the operator
-  if (Trace.isOn("parser"))
+  if (TraceIsOn("parser"))
   {
     Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();

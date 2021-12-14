@@ -376,7 +376,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
       double clSet = 0;
-      if( Trace.isOn("sg-engine") ){
+      if( TraceIsOn("sg-engine") ){
         clSet = double(clock())/double(CLOCKS_PER_SEC);
         Trace("sg-engine") << "---Conjecture Engine Round, effort = " << e << "---" << std::endl;
       }
@@ -467,7 +467,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       Trace("sg-proc") << "...done determine ground EQC" << std::endl;
 
       //debug printing
-      if( Trace.isOn("sg-gen-eqc") ){
+      if( TraceIsOn("sg-gen-eqc") ){
         for( unsigned i=0; i<eqcs.size(); i++ ){
           TNode r = eqcs[i];
           //print out members
@@ -616,7 +616,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             //check if it is a ground term
             if( git==d_ground_eqc_map.end() ){
               Trace("sg-conjecture") << "ACTIVE : " << q;
-              if( Trace.isOn("sg-gen-eqc") ){
+              if( TraceIsOn("sg-gen-eqc") ){
                 Trace("sg-conjecture") << " { ";
                 for (unsigned k = 0; k < skolems.size(); k++)
                 {
@@ -858,7 +858,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
       }
       Trace("sg-stats") << "Total conjectures considered : " << d_conj_count << std::endl;
-      if( Trace.isOn("thm-ee") ){
+      if( TraceIsOn("thm-ee") ){
         Trace("thm-ee") << "Universal equality engine is : " << std::endl;
         eq::EqClassesIterator ueqcs_i = eq::EqClassesIterator( &d_uequalityEngine );
         while( !ueqcs_i.isFinished() ){
@@ -885,7 +885,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
         Trace("thm-ee") << std::endl;
       }
-      if( Trace.isOn("sg-engine") ){
+      if( TraceIsOn("sg-engine") ){
         double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
         Trace("sg-engine") << "Finished conjecture generator, time = " << (clSet2-clSet) << std::endl;
       }
@@ -1376,7 +1376,7 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
 }
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
-  if( Trace.isOn("sg-cconj-debug") ){
+  if( TraceIsOn("sg-cconj-debug") ){
     Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
       Assert(getRepresentative(it->second) == it->second);
@@ -1460,7 +1460,7 @@ void TermGenerator::reset( TermGenEnv * s, TypeNode tn ) {
 }
 
 bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
-  if( Trace.isOn("sg-gen-tg-debug2") ){
+  if( TraceIsOn("sg-gen-tg-debug2") ){
     Trace("sg-gen-tg-debug2") << this << " getNextTerm depth " << depth << " : status = " << d_status << ", num = " << d_status_num;
     if( d_status==5 ){
       TNode f = s->getTgFunc( d_typ, d_status_num );
@@ -1605,7 +1605,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
   if( d_match_status<0 ){
     return false;
   }
-  if( Trace.isOn("sg-gen-tg-match") ){
+  if( TraceIsOn("sg-gen-tg-match") ){
     Trace("sg-gen-tg-match") << "Matching ";
     debugPrint( s, "sg-gen-tg-match", "sg-gen-tg-match" );
     Trace("sg-gen-tg-match") << " with eqc e" << s->d_cg->d_em[eqc] << "..." << std::endl;

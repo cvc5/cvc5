@@ -318,6 +318,7 @@ extern TraceC TraceChannel CVC5_EXPORT;
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define WarningOnce \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
+#define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
 #define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
 
 #else /* CVC5_MUZZLE */
@@ -335,8 +336,10 @@ extern TraceC TraceChannel CVC5_EXPORT;
       ? ::cvc5::nullStream                                  \
       : ::cvc5::WarningChannel
 #ifdef CVC5_TRACING
-#define Trace ::cvc5::TraceChannel
+#define TraceIsOn ::cvc5::TraceChannel.isOn
+#define Trace(tag) !::cvc5::TraceChannel.isOn(tag) ? ::cvc5::nullStream : ::cvc5::TraceChannel(tag)
 #else /* CVC5_TRACING */
+#define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
 #define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
 #endif /* CVC5_TRACING */
 

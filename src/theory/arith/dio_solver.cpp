@@ -226,7 +226,7 @@ bool DioSolver::anyCoefficientExceedsMaximum(TrailIndex j) const{
   bool result =
     nmonos >= 2 &&
     length > d_maxInputCoefficientLength + MAX_GROWTH_RATE;
-  if(Trace.isOn("arith::dio::max") && result){
+  if(TraceIsOn("arith::dio::max") && result){
 
     const SumPair& eq = d_trail[j].d_eq;
     const Polynomial& proof = d_trail[j].d_proof;

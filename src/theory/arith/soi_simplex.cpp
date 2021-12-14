@@ -351,7 +351,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     if(d_tableau.isBasic(updated)){
       Assert(!d_variables.assignmentIsConsistent(updated)
              == d_errorSet.inError(updated));
-      if(Trace.isOn("updateAndSignal")){debugPrintSignal(updated);}
+      if(TraceIsOn("updateAndSignal")){debugPrintSignal(updated);}
       if(!d_variables.assignmentIsConsistent(updated)){
         if(checkBasicForConflict(updated)){
           reportConflict(updated);
@@ -368,7 +368,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     }
   }
 
-  if(Trace.isOn("error")){ d_errorSet.debugPrint(Trace("error")); }
+  if(TraceIsOn("error")){ d_errorSet.debugPrint(Trace("error")); }
 
   //Assert(debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
 
@@ -599,7 +599,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     addRowSgns(sgns, e, d_errorSet.getSgn(e));
 
     Trace("arith::greedyConflictSubsets") << "basic error var: " << e << endl;
-    if(Trace.isOn("arith::greedyConflictSubsets")){
+    if(TraceIsOn("arith::greedyConflictSubsets")){
       d_tableau.debugPrintIsBasic(e);
       d_tableau.printBasicRow(e, Trace("arith::greedyConflictSubsets"));
     }
@@ -791,7 +791,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   
   Trace("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() start "
                               << instance << ": |E| = " << d_errorSize << endl;
-  if(Trace.isOn("arith::SOIConflict")){
+  if(TraceIsOn("arith::SOIConflict")){
     d_errorSet.debugPrint(cout);
   }
   Trace("arith::SOIConflict") << endl;

@@ -335,7 +335,7 @@ void TheorySetsPrivate::fullEffortCheck()
 
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
 
-    if (Trace.isOn("sets-state"))
+    if (TraceIsOn("sets-state"))
     {
       Trace("sets-state") << "Equivalence class counters:" << std::endl;
       for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
@@ -351,7 +351,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
-    if (Trace.isOn("sets-mem"))
+    if (TraceIsOn("sets-mem"))
     {
       const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)

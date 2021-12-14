@@ -691,7 +691,7 @@ public:
 
     Assert(mergeBufferIsClear());
 
-    if(Trace.isOn("matrix")) { printMatrix(); }
+    if(TraceIsOn("matrix")) { printMatrix(); }
   }
 
   /**  to += mult * buffer. */
@@ -758,7 +758,7 @@ public:
 
     Assert(mergeBufferIsClear());
 
-    if(Trace.isOn("matrix")) { printMatrix(); }
+    if(TraceIsOn("matrix")) { printMatrix(); }
   }
 
   bool mergeBufferIsClear() const{

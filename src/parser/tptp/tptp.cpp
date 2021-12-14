@@ -256,7 +256,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
 
 api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
-  if (Trace.isOn("parser"))
+  if (TraceIsOn("parser"))
   {
     Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();

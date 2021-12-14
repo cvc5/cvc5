@@ -270,7 +270,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   //These will be safe for propagation later as well
   NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
-  if (Trace.isOn("arith::cong"))
+  if (TraceIsOn("arith::cong"))
   {
     eq->printProofTree(Trace("arith::cong"));
   }
@@ -299,7 +299,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
   NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
   auto pf = c->externalExplainByAssertions(nb);
-  if (Trace.isOn("arith::cong::notzero"))
+  if (TraceIsOn("arith::cong::notzero"))
   {
     Trace("arith::cong::notzero") << "  original proof ";
     pf->printDebug(Trace("arith::cong::notzero"));
@@ -573,7 +573,7 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
     {
       setProofFor(lit, pf);
       Trace("arith-pfee") << "Actually asserting" << std::endl;
-      if (Trace.isOn("arith-pfee"))
+      if (TraceIsOn("arith-pfee"))
       {
         Trace("arith-pfee") << "Proof: ";
         pf->printDebug(Trace("arith-pfee"));

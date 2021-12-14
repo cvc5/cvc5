@@ -800,7 +800,7 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
                             << "\t" << *pf << std::endl;
       d_epg->setProofFor(f, std::move(pf));
     }
-    else if (Trace.isOn("circuit-prop"))
+    else if (TraceIsOn("circuit-prop"))
     {
       auto prf = d_epg->getProofFor(f);
       Trace("circuit-prop") << "Ignoring proof\n\t" << *pf

@@ -214,7 +214,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     // should be arguments to SCOPE.
     std::stringstream ss;
 
-    bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+    bool dumpProofTraceOn = TraceIsOn("dump-proof-error");
     if (dumpProofTraceOn)
     {
       ss << "The proof : " << *pf << std::endl;

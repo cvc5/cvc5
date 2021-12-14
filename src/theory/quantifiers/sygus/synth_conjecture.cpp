@@ -354,7 +354,7 @@ bool SynthConjecture::doCheck()
         Assert(d_repair_index < d_cinfo[cprog].d_inst.size());
         fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
       }
-      if (Trace.isOn("sygus-engine"))
+      if (TraceIsOn("sygus-engine"))
       {
         Trace("sygus-engine") << "CegConjuncture : repair previous solution ";
         for (const Node& fc : fail_cvs)
@@ -405,7 +405,7 @@ bool SynthConjecture::doCheck()
     {
       // Must separately compute whether trace is on due to compilation of
       // Trace.isOn.
-      bool traceIsOn = Trace.isOn("sygus-engine");
+      bool traceIsOn = TraceIsOn("sygus-engine");
       if (printDebug || traceIsOn)
       {
         Trace("sygus-engine") << "  * Value is : ";
@@ -430,7 +430,7 @@ bool SynthConjecture::doCheck()
           else
           {
             Trace("sygus-engine") << ss.str() << " ";
-            if (Trace.isOn("sygus-engine-rr"))
+            if (TraceIsOn("sygus-engine-rr"))
             {
               Node bv = d_tds->sygusToBuiltin(nv, tn);
               bv = rewrite(bv);
@@ -478,7 +478,7 @@ bool SynthConjecture::doCheck()
   Node query;
   if (constructed_cand)
   {
-    if (Trace.isOn("cegqi-check"))
+    if (TraceIsOn("cegqi-check"))
     {
       Trace("cegqi-check") << "CegConjuncture : check candidate : "
                            << std::endl;

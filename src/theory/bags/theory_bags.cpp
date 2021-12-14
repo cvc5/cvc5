@@ -190,7 +190,7 @@ void TheoryBags::postCheck(Effort effort)
       // (2) unsuccessfully processed pending lemmas.
       // In either case, we repeat the strategy if we are not in conflict.
       sentLemma = d_im.hasSentLemma();
-      if (Trace.isOn("bags-check"))
+      if (TraceIsOn("bags-check"))
       {
         // TODO: clean this Trace("bags-check") << "  ...finish run strategy: ";
         Trace("bags-check") << (hadPending ? "hadPending " : "");

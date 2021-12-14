@@ -100,7 +100,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
       index = index == 0 ? patsSize - 1 : (index - 1);
     }
     vars.insert(vars.end(), unique_vars.begin(), unique_vars.end());
-    if (Trace.isOn("multi-trigger-cache"))
+    if (TraceIsOn("multi-trigger-cache"))
     {
       Trace("multi-trigger-cache") << "   Index[" << i << "]: ";
       for (uint64_t v : vars)

@@ -120,7 +120,7 @@ void Pow2Solver::checkFullRefine()
     Node valPow2xAbstract = d_model.computeAbstractModelValue(n);
     Node valPow2xConcrete = d_model.computeConcreteModelValue(n);
     Node valXConcrete = d_model.computeConcreteModelValue(n[0]);
-    if (Trace.isOn("pow2-check"))
+    if (TraceIsOn("pow2-check"))
     {
       Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
                           << std::endl;

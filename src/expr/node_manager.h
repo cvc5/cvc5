@@ -249,7 +249,7 @@ class NodeManager
 
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
-    if(Trace.isOn("gc")) {
+    if(TraceIsOn("gc")) {
       Trace("gc") << "zombifying node value " << nv
                   << " [" << nv->d_id << "]: ";
       nv->printAst(Trace("gc"));
@@ -278,7 +278,7 @@ class NodeManager
    */
   inline void markRefCountMaxedOut(expr::NodeValue* nv) {
     Assert(nv->HasMaximizedReferenceCount());
-    if(Trace.isOn("gc")) {
+    if(TraceIsOn("gc")) {
       Trace("gc") << "marking node value " << nv
                   << " [" << nv->d_id << "]: as maxed out" << std::endl;
     }

@@ -301,7 +301,7 @@ void Solver::resizeVars(int newSize) {
     theory.shrink(shrinkSize);
   }
 
-  if (Trace.isOn("minisat::pop")) {
+  if (TraceIsOn("minisat::pop")) {
     for (int i = 0; i < trail.size(); ++ i) {
       Assert(var(trail[i]) < nVars());
     }
@@ -314,7 +314,7 @@ CRef Solver::reason(Var x) {
   // If we already have a reason, just return it
   if (vardata[x].d_reason != CRef_Lazy)
   {
-    if (Trace.isOn("pf::sat"))
+    if (TraceIsOn("pf::sat"))
     {
       Trace("pf::sat") << "  Solver::reason: " << vardata[x].d_reason << ", ";
       if (vardata[x].d_reason == CRef_Undef)
@@ -581,7 +581,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
-    if (Trace.isOn("minisat"))
+    if (TraceIsOn("minisat"))
     {
       Trace("minisat") << "Solver::attachClause(" << c << "): ";
       for (unsigned i = 0, size = c.size(); i < size; ++i)
@@ -601,7 +601,7 @@ void Solver::attachClause(CRef cr) {
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
     Trace("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
-    if (Trace.isOn("minisat"))
+    if (TraceIsOn("minisat"))
     {
       Trace("minisat") << "Solver::detachClause(" << c << "), CRef " << cr
                        << ", clause ";
@@ -629,7 +629,7 @@ void Solver::detachClause(CRef cr, bool strict) {
 
 void Solver::removeClause(CRef cr) {
     Clause& c = ca[cr];
-    if (Trace.isOn("minisat"))
+    if (TraceIsOn("minisat"))
     {
       Trace("minisat") << "Solver::removeClause(" << c << "), CRef " << cr
                        << ", clause ";
@@ -735,7 +735,7 @@ Lit Solver::pickBranchLit()
         decisions++;
 
         // org-mode tracing -- theory decision
-        if (Trace.isOn("dtview"))
+        if (TraceIsOn("dtview"))
         {
           dtviewDecisionHelper(
               d_context->getLevel(),
@@ -743,7 +743,7 @@ Lit Solver::pickBranchLit()
               "THEORY");
         }
 
-        if (Trace.isOn("dtview::prop"))
+        if (TraceIsOn("dtview::prop"))
         {
           dtviewPropagationHeaderHelper(d_context->getLevel());
         }
@@ -778,7 +778,7 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      if (Trace.isOn("dtview"))
+      if (TraceIsOn("dtview"))
       {
         dtviewDecisionHelper(
             d_context->getLevel(),
@@ -786,7 +786,7 @@ Lit Solver::pickBranchLit()
             "DE");
       }
 
-      if (Trace.isOn("dtview::prop"))
+      if (TraceIsOn("dtview::prop"))
       {
         dtviewPropagationHeaderHelper(d_context->getLevel());
       }
@@ -840,7 +840,7 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      if (Trace.isOn("dtview"))
+      if (TraceIsOn("dtview"))
       {
         dtviewDecisionHelper(
             d_context->getLevel(),
@@ -848,7 +848,7 @@ Lit Solver::pickBranchLit()
             "DE");
       }
 
-      if (Trace.isOn("dtview::prop"))
+      if (TraceIsOn("dtview::prop"))
       {
         dtviewPropagationHeaderHelper(d_context->getLevel());
       }
@@ -909,7 +909,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         if (c.removable()) claBumpActivity(c);
       }
 
-        if (Trace.isOn("pf::sat"))
+        if (TraceIsOn("pf::sat"))
         {
           Trace("pf::sat") << "Solver::analyze: conflict clause ";
           for (unsigned i = 0, size = ca[confl].size(); i < size; ++i)
@@ -971,7 +971,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     } while (pathC > 0);
     out_learnt[0] = ~p;
-    if (Trace.isOn("newproof::sat"))
+    if (TraceIsOn("newproof::sat"))
     {
       Trace("newproof::sat") << "finished with learnt clause ";
       for (unsigned i = 0, size = out_learnt.size(); i < size; ++i)
@@ -1141,7 +1141,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
 void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
-  if (Trace.isOn("minisat"))
+  if (TraceIsOn("minisat"))
   {
     Trace("minisat") << "unchecked enqueue of " << p << " ("
                      << trail_index(var(p)) << ") trail size is "
@@ -1233,7 +1233,7 @@ CRef Solver::propagate(TheoryCheckType type)
             }
         } else {
           // if dumping decision tree, print the conflict
-          if (Trace.isOn("dtview::conflict"))
+          if (TraceIsOn("dtview::conflict"))
           {
             if (confl != CRef_Undef)
             {
@@ -1333,7 +1333,7 @@ CRef Solver::propagateBool()
         num_props++;
 
         // if propagation tracing enabled, print boolean propagation
-        if (Trace.isOn("dtview::prop"))
+        if (TraceIsOn("dtview::prop"))
         {
           dtviewBoolPropagationHelper(decisionLevel(), p, d_proxy);
         }

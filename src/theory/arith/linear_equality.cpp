@@ -203,7 +203,7 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
 
   d_variables.setAssignment(x_i, v);
 
-  if(Trace.isOn("paranoid:check_tableau")){  debugCheckTableau(); }
+  if(TraceIsOn("paranoid:check_tableau")){  debugCheckTableau(); }
 }
 
 void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
@@ -253,7 +253,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
     d_basicVariableUpdates(x_j);
   }
 
-  if(Trace.isOn("paranoid:check_tableau")){  debugCheckTableau(); }
+  if(TraceIsOn("paranoid:check_tableau")){  debugCheckTableau(); }
 }
 
 void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& x_i_value){
@@ -263,13 +263,13 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   static int instance = 0;
 
-  if(Trace.isOn("arith::tracking::pre")){
+  if(TraceIsOn("arith::tracking::pre")){
     ++instance;
     Trace("arith::tracking")  << "pre update #" << instance << endl;
     debugCheckTracking();
   }
 
-  if(Trace.isOn("arith::simplex:row")){ debugPivot(x_i, x_j); }
+  if(TraceIsOn("arith::simplex:row")){ debugPivot(x_i, x_j); }
 
   RowIndex ridx = d_tableau.basicToRowIndex(x_i);
   const Tableau::Entry& entry_ij =  d_tableau.findEntry(ridx, x_j);
@@ -282,7 +282,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   updateTracked(x_j, x_j_value);
 
-  if(Trace.isOn("arith::tracking::mid")){
+  if(TraceIsOn("arith::tracking::mid")){
     Trace("arith::tracking")  << "postupdate prepivot #" << instance << endl;
     debugCheckTracking();
   }
@@ -292,14 +292,14 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   d_tableau.pivot(x_i, x_j, d_trackCallback);
 
-  if(Trace.isOn("arith::tracking::post")){
+  if(TraceIsOn("arith::tracking::post")){
     Trace("arith::tracking")  << "postpivot #" << instance << endl;
     debugCheckTracking();
   }
 
   d_basicVariableUpdates(x_j);
 
-  if(Trace.isOn("matrix")){
+  if(TraceIsOn("matrix")){
     d_tableau.printMatrix();
   }
 }
@@ -321,7 +321,7 @@ void LinearEqualityModule::debugCheckTracking(){
     ArithVar basic = *basicIter;
     Trace("arith::tracking") << "arith::tracking row basic: " << basic << endl;
 
-    for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd() && Trace.isOn("arith::tracking"); ++iter){
+    for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd() && TraceIsOn("arith::tracking"); ++iter){
       const Tableau::Entry& entry = *iter;
 
       ArithVar var = entry.getColVar();
@@ -373,8 +373,8 @@ void LinearEqualityModule::debugPivot(ArithVar x_i, ArithVar x_j){
 
 /**
  * This check is quite expensive.
- * It should be wrapped in a Trace.isOn() guard.
- *   if(Trace.isOn("paranoid:check_tableau")){
+ * It should be wrapped in a TraceIsOn() guard.
+ *   if(TraceIsOn("paranoid:check_tableau")){
  *      checkTableau();
  *   }
  */
@@ -544,7 +544,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
            || (!rowUp && a_ij.sgn() > 0 && c->isUpperBound())
            || (!rowUp && a_ij.sgn() < 0 && c->isLowerBound()));
 
-    if(Trace.isOn("arith::propagateRow")){
+    if(TraceIsOn("arith::propagateRow")){
       if(nonbasic == v){
         Trace("arith::propagateRow") << "(target) "
                                      << rowUp << " "
@@ -825,7 +825,7 @@ const Tableau::Entry* LinearEqualityModule::selectSlackEntry(ArithVar x_i, bool 
 void LinearEqualityModule::startTrackingBoundCounts(){
   Assert(!d_areTracking);
   d_areTracking = true;
-  if(Trace.isOn("arith::tracking")){
+  if(TraceIsOn("arith::tracking")){
     debugCheckTracking();
   }
   Assert(d_areTracking);
@@ -834,7 +834,7 @@ void LinearEqualityModule::startTrackingBoundCounts(){
 void LinearEqualityModule::stopTrackingBoundCounts(){
   Assert(d_areTracking);
   d_areTracking = false;
-  if(Trace.isOn("arith::tracking")){
+  if(TraceIsOn("arith::tracking")){
     debugCheckTracking();
   }
   Assert(!d_areTracking);
