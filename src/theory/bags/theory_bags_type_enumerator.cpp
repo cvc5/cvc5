@@ -57,7 +57,7 @@ Node BagEnumerator::operator*()
 BagEnumerator& BagEnumerator::operator++()
 {
   // increase the multiplicity by one
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   TypeNode elementType = d_elementTypeEnumerator.getType();
   Node singleton = d_nodeManager->mkBag(elementType, d_element, one);
   if (d_currentBag.getKind() == kind::BAG_EMPTY)
