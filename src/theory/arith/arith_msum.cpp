@@ -81,7 +81,8 @@ bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 
 bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
 {
-  if (lit.getKind() == GEQ || (lit.getKind() == EQUAL && lit[0].getType().isRealOrInt()))
+  if (lit.getKind() == GEQ
+      || (lit.getKind() == EQUAL && lit[0].getType().isRealOrInt()))
   {
     if (getMonomialSum(lit[0], msum))
     {
@@ -117,7 +118,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
               msum[it->first] = it->second.isNull()
                                     ? nm->mkConstRealOrInt(tn, Rational(-1))
                                     : nm->mkConstRealOrInt(
-                                        tn, -it->second.getConst<Rational>());
+                                          tn, -it->second.getConst<Rational>());
             }
           }
           return true;
