@@ -59,7 +59,9 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
-      d_eagerSolver(env, d_state, d_termReg),
+      d_eagerSolver(options().strings.stringEagerSolver
+                        ? new EagerSolver(env, d_state, d_termReg)
+                        : nullptr),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -651,7 +653,10 @@ void TheoryStrings::notifyFact(TNode atom,
                                TNode fact,
                                bool isInternal)
 {
-  d_eagerSolver.notifyFact(atom, polarity, fact, isInternal);
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->notifyFact(atom, polarity, fact, isInternal);
+  }
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
@@ -769,7 +774,10 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
       ei->d_codeTerm = t[0];
     }
   }
-  d_eagerSolver.eqNotifyNewClass(t);
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->eqNotifyNewClass(t);
+  }
 }
 
 void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
@@ -782,7 +790,10 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   // always create it if e2 was non-null
   EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
 
-  d_eagerSolver.eqNotifyMerge(e1, t1, e2, t2);
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->eqNotifyMerge(e1, t1, e2, t2);
+  }
 
   // add information from e2 to e1
   if (!e2->d_lengthTerm.get().isNull())
