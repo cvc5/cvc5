@@ -1,7 +1,7 @@
 (set-option :print-success false)
 (set-info :smt-lib-version 2.6)
 (set-option :strings-exp true)
-(set-option :strings-seq-update false)
+(set-option :seq-array none)
 (set-option :full-saturate-quant true)
 (set-logic ALL)
 ; done setting options

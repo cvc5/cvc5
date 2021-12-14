@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --strings-exp --strings-seq-update=eager
+; COMMAND-LINE: --incremental --strings-exp --seq-array=eager
 ; EXPECT: unsat
 
 (set-info :smt-lib-version 2.6)

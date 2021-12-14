@@ -160,7 +160,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   else
   {
-    if (options().strings.stringSeqUpdate != options::StringSeqUpdateMode::NONE)
+    if (options().strings.seqArray != options::SeqArrayMode::NONE)
     {
       if (k == SEQ_NTH)
       {

@@ -230,7 +230,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   // Collects representatives by types and orders sequence types by how nested
   // they are
-  std::map<TypeNode, ModelTypeInfo> tinfo;
+  std::map<TypeNode, std::unordered_set<Node>> repSet;
   std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
@@ -240,18 +240,9 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
     if (tn.isStringLike())
     {
       Node r = d_state.getRepresentative(s);
-      tinfo[tn].d_repSet.insert(r);
+      repSet[tn].insert(r);
       toProcess.insert(tn);
-      if (s.getKind() == STRING_UPDATE)
-      {
-        tinfo[tn].d_updateTerms.insert(s);
-      }
-    }
-    if (s.getKind() == SEQ_NTH)
-    {
-      tn = s[0].getType();
-      tinfo[tn].d_nthTerms.insert(s);
-      toProcess.insert(tn);
+
     }
   }
 
@@ -259,7 +250,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   {
     // Pick one of the remaining types to collect model values for
     TypeNode tn = *toProcess.begin();
-    if (!collectModelInfoType(tn, toProcess, tinfo, m))
+    if (!collectModelInfoType(tn, toProcess, repSet, m))
     {
       return false;
     }
@@ -284,7 +275,7 @@ struct SortSeqIndex
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
     std::unordered_set<TypeNode>& toProcess,
-    const std::map<TypeNode, ModelTypeInfo>& tinfo,
+    const std::map<TypeNode, std::unordered_set<Node> >& repSet,
     TheoryModel* m)
 {
   // Make sure that the model values for the element type of sequences are
@@ -293,7 +284,7 @@ bool TheoryStrings::collectModelInfoType(
   {
     TypeNode tnElem = tn.getSequenceElementType();
     if (toProcess.find(tnElem) != toProcess.end()
-        && !collectModelInfoType(tnElem, toProcess, tinfo, m))
+        && !collectModelInfoType(tnElem, toProcess, repSet, m))
     {
       return false;
     }
@@ -306,26 +297,10 @@ bool TheoryStrings::collectModelInfoType(
   // current type
   std::map<TypeNode, std::vector<std::vector<Node> > > colT;
   std::map<TypeNode, std::vector<Node> > ltsT;
-  const ModelTypeInfo& mti = tinfo.at(tn);
-  const std::vector<Node> repVec(mti.d_repSet.begin(), mti.d_repSet.end());
+  const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
   d_state.separateByLength(repVec, colT, ltsT);
   const std::vector<std::vector<Node> >& col = colT[tn];
   const std::vector<Node>& lts = ltsT[tn];
-
-  // process the update terms: organize by eqc?
-  /*
-if (options::stringSeqUpdate())
-{
-  for (size_t i=0; i<2; i++)
-  {
-    const std::unordered_set<Node>& terms = i==0 ? mti.d_updateTerms :
-mti.d_nthTerms; for (const Node& t : terms)
-    {
-
-    }
-  }
-}
-  */
 
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
@@ -383,9 +358,10 @@ mti.d_nthTerms; for (const Node& t : terms)
   // confirmed by calculus invariant, see paper
   Trace("strings-model") << "Assign to equivalence classes..." << std::endl;
   std::map<Node, Node> pure_eq_assign;
+  // if we are using the sequences array solver, get the connected sequences
   const std::map<Node, Node>* conSeq = nullptr;
   std::map<Node, Node>::const_iterator itcs;
-  if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
+  if (options().strings.seqArray != options::SeqArrayMode::NONE)
   {
     conSeq = &d_asolver.getConnectedSequences();
   }
@@ -475,7 +451,7 @@ mti.d_nthTerms; for (const Node& t : terms)
               << "-> assign via str.code: " << assignedValue << std::endl;
         }
       }
-      else if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
+      else if (options().strings.seqArray != options::SeqArrayMode::NONE)
       {
         // determine skeleton based on the write model, if it exists
         const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
@@ -539,18 +515,10 @@ mti.d_nthTerms; for (const Node& t : terms)
               {
                 base = itcs->second;
               }
-              Node cgap = mkSkeletonFromBase(base, currIndex, nextIndex);
-              /*
-              uint32_t gapSize = nextIndex - currIndex;
-              SEnumLen* selGap = sels.getEnumerator(gapSize, tn);
-              Assert(!selGap->isFinished());
-              Node cgap = selGap->getCurrent();
               // use a skeleton for the gap and not a concrete value, as we
               // do not know how which values from the element type are
               // allowable (i.e. unconstrained) to assign to the gap
-              cgap = mkSkeletonFor(cgap);
-              selGap->increment();
-              */
+              Node cgap = mkSkeletonFromBase(base, currIndex, nextIndex);
               cc.push_back(cgap);
             }
             // then take read

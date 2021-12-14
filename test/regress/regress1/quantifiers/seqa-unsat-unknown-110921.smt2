@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-seq-update=eager
+; COMMAND-LINE: --strings-exp --seq-array=eager
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-sort T 0)

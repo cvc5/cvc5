@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-seq-update=eager --no-check-unsat-cores
+; COMMAND-LINE: --seq-array=eager --no-check-unsat-cores
 (set-logic QF_SLIA)
 
 (declare-fun A () (Seq Int))
