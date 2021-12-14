@@ -231,6 +231,7 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
+  ASSERT_THROW(dt.getParameters(), CVC5ApiException);
   ASSERT_EQ(dt.getName(), std::string("list"));
   ASSERT_NO_THROW(dt.getConstructor("nil"));
   ASSERT_NO_THROW(dt["cons"]);
@@ -274,6 +275,8 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
   ASSERT_TRUE(pairType.getDatatype().isParametric());
+  std::vector<Sort> dparams = pairType.getDatatype().getParameters();
+  ASSERT_TRUE(dparams[0] == t1 && dparams[1] == t2);
 
   v.clear();
   v.push_back(d_solver.getIntegerSort());
@@ -576,12 +579,16 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   iargs.push_back(isort);
   Sort listInt = dtsorts[0].instantiate(iargs);
 
+  std::vector<Sort> liparams = listInt.getDatatype().getParameters();
+  // the parameter of the datatype is not instantiated
+  ASSERT_TRUE(liparams.size() == 1 && liparams[0] == x);
+
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
-  ASSERT_NO_THROW(testConsTerm = nilc.getSpecializedConstructorTerm(listInt));
+  ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedConstructorTerm(listInt));
   ASSERT_NE(testConsTerm, nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
-  ASSERT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC5ApiException);
+  ASSERT_THROW(nilc.getInstantiatedConstructorTerm(isort), CVC5ApiException);
 }
 }  // namespace test
 }  // namespace cvc5

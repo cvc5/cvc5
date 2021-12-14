@@ -49,7 +49,7 @@ ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_intZero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 void ExtendedRewriter::setCache(Node n, Node ret) const
@@ -1723,7 +1723,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node node) const
     strings::ArithEntail aent(&d_rew);
     // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
     Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(LT, node[1], tot_len));
-    if (aent.checkWithAssumption(n1_lt_tot_len, d_zero, node[2], false))
+    if (aent.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_START_ENTAILS_ZERO_LEN");
@@ -1731,7 +1731,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node node) const
     }
 
     // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
-    Node non_zero_len = d_rew.rewrite(nm->mkNode(LT, d_zero, node[2]));
+    Node non_zero_len = d_rew.rewrite(nm->mkNode(LT, d_intZero, node[2]));
     if (aent.checkWithAssumption(non_zero_len, node[1], tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
@@ -1739,8 +1739,8 @@ Node ExtendedRewriter::extendedRewriteStrings(Node node) const
       return ret;
     }
     // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
-    Node geq_zero_start = d_rew.rewrite(nm->mkNode(GEQ, node[1], d_zero));
-    if (aent.checkWithAssumption(geq_zero_start, d_zero, tot_len, false))
+    Node geq_zero_start = d_rew.rewrite(nm->mkNode(GEQ, node[1], d_intZero));
+    if (aent.checkWithAssumption(geq_zero_start, d_intZero, tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_GEQ_ZERO_START_ENTAILS_EMP_S");
