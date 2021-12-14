@@ -64,10 +64,10 @@ Option categories
 
 Every option has one of the following categories that influences where and how an option is visible:
 
-* `common`: used for the most common options. All `common` options are shown at the very top in both the online documentation and the output of `--help` on the command line.
-* `regular`: this should be used for most options.
-* `expert`: used for options that should be used with care only. A warning is shown in both the online documentation and the command line help.
-* `undocumented`: such an option is skipped entirely in both the online documentation and the command line help. This should only be used when no user has a (reasonable) use case for this option (e.g. because it stores data that is added via another option like for `output` and `outputTagHolder`).
+* `common`: Used for the most common options. All `common` options are shown at the very top in both the online documentation and the output of `--help` on the command line.
+* `regular`: This should be used for most options.
+* `expert`: This is for options that should be used with care only. A warning is shown in both the online documentation and the command line help.
+* `undocumented`: Such an option is skipped entirely in both the online documentation and the command line help. This should only be used when users don't have a (reasonable) use case for this option (e.g., because it stores data that is added via another option like for `output` and `outputTagHolder`).
 
 Option types
 ------------
