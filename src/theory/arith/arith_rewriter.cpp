@@ -516,7 +516,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           msum.erase(pi);
           if (!msum.empty())
           {
-            rem = ArithMSum::mkNode(msum);
+            rem = ArithMSum::mkNode(t[0].getType(), msum);
           }
         }
       }

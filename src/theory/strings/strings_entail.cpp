@@ -123,7 +123,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(CONST_RATIONAL, cvc5::Rational(0));
+  Node zero = nm->mkConstInt(cvc5::Rational(0));
   bool ret = false;
   bool success = true;
   unsigned sindex = 0;
@@ -145,7 +145,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           Assert(d_arithEntail.check(curr, true));
           Node s = n1[sindex_use];
           size_t slen = Word::getLength(s);
-          Node ncl = nm->mkConst(CONST_RATIONAL, cvc5::Rational(slen));
+          Node ncl = nm->mkConstInt(cvc5::Rational(slen));
           Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
           next_s = d_rr->rewrite(next_s);
           Assert(next_s.isConst());
@@ -461,7 +461,7 @@ bool StringsEntail::componentContainsBase(
               {
                 n1rb = nm->mkNode(STRING_SUBSTR,
                                   n2[0],
-                                  nm->mkConst(CONST_RATIONAL, Rational(0)),
+                                  nm->mkConstInt(Rational(0)),
                                   start_pos);
               }
               if (dir != 1)
@@ -714,7 +714,7 @@ bool StringsEntail::checkNonEmpty(Node a)
 bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(STRING_LENGTH, s);
   len = d_rr->rewrite(len);
   return d_arithEntail.check(one, len)

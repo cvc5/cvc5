@@ -98,7 +98,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
-  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = nm->mkConstInt(Rational(0));
   std::vector<Node> children;
   utils::getConcat(re, children);
 
@@ -252,10 +252,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       if (gap_minsize[i] > 0)
       {
         // the gap to this child is at least gap_minsize[i]
-        prev_end =
-            nm->mkNode(PLUS,
-                       prev_end,
-                       nm->mkConst(CONST_RATIONAL, Rational(gap_minsize[i])));
+        prev_end = nm->mkNode(
+            PLUS, prev_end, nm->mkConstInt(Rational(gap_minsize[i])));
       }
       prev_ends.push_back(prev_end);
       Node sc = sep_children[i];
@@ -280,8 +278,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           }
           // if the gap after this one is strict, we need a non-greedy find
           // thus, we add a symbolic constant
-          Node cacheVal = BoundVarManager::getCacheValue(
-              atom, nm->mkConst(CONST_RATIONAL, Rational(i)));
+          Node cacheVal =
+              BoundVarManager::getCacheValue(atom, nm->mkConstInt(Rational(i)));
           TypeNode intType = nm->integerType();
           Node k =
               bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
@@ -289,8 +287,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
         Node curr = nm->mkNode(STRING_INDEXOF, x, sc, prev_end);
-        Node idofFind =
-            curr.eqNode(nm->mkConst(CONST_RATIONAL, Rational(-1))).negate();
+        Node idofFind = curr.eqNode(nm->mkConstInt(Rational(-1))).negate();
         conj.push_back(idofFind);
         prev_end = nm->mkNode(PLUS, curr, lensc);
       }
@@ -305,7 +302,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       // then the last indexof/substr constraint entails the following
       // constraint, so it is not necessary to add.
       // Below, we may write "A" for (str.to.re "A") and _ for re.allchar:
-      Node cEnd = nm->mkConst(CONST_RATIONAL, Rational(gap_minsize_end));
+      Node cEnd = nm->mkConstInt(Rational(gap_minsize_end));
       if (gap_exact_end)
       {
         Assert(!sep_children.empty());
@@ -477,8 +474,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       }
       else
       {
-        Node cacheVal = BoundVarManager::getCacheValue(
-            atom, nm->mkConst(CONST_RATIONAL, Rational(i)));
+        Node cacheVal =
+            BoundVarManager::getCacheValue(atom, nm->mkConstInt(Rational(i)));
         TypeNode intType = nm->integerType();
         k = bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
         Node bound =
@@ -541,7 +538,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
-  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = nm->mkConstInt(Rational(0));
   // for regular expression star,
   // if the period is a fixed constant, we can turn it into a bounded
   // quantifier
@@ -561,8 +558,8 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   std::vector<Node> char_constraints;
   TypeNode intType = nm->integerType();
   Node index = bvm->mkBoundVar<ReElimStarIndexAttribute>(atom, intType);
-  Node substr_ch = nm->mkNode(
-      STRING_SUBSTR, x, index, nm->mkConst(CONST_RATIONAL, Rational(1)));
+  Node substr_ch =
+      nm->mkNode(STRING_SUBSTR, x, index, nm->mkConstInt(Rational(1)));
   substr_ch = Rewriter::rewrite(substr_ch);
   // handle the case where it is purely characters
   for (const Node& r : disj)

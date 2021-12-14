@@ -64,12 +64,7 @@ class DtBoundTypeRule {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-class DtSygusBoundTypeRule {
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
-class DtSyguEvalTypeRule
+class DtSygusEvalTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
