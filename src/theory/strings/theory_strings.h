@@ -259,7 +259,7 @@ class TheoryStrings : public Theory {
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /** The eager solver */
-  EagerSolver d_eagerSolver;
+  std::unique_ptr<EagerSolver> d_eagerSolver;
   /** The extended theory callback */
   StringsExtfCallback d_extTheoryCb;
   /** The (custom) output channel of the theory of strings */
