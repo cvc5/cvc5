@@ -6,15 +6,16 @@ Basic Array Term Builders
 -------------------------
 
 .. autofunction:: cvc5_z3py_compat.Array
+.. autofunction:: cvc5_z3py_compat.ConstArray
 .. autofunction:: cvc5_z3py_compat.K
 .. autofunction:: cvc5_z3py_compat.ArraySort
 
 Array Operators
 -------------------
 
-.. autofunction:: cvc5_z3py_compat.Update
-.. autofunction:: cvc5_z3py_compat.Store
 .. autofunction:: cvc5_z3py_compat.Select
+.. autofunction:: cvc5_z3py_compat.Store
+.. autofunction:: cvc5_z3py_compat.Update
 
 See the following operator overloads for building other kinds of array
 terms:
@@ -30,6 +31,7 @@ Testers
 .. autofunction:: cvc5_z3py_compat.is_K
 .. autofunction:: cvc5_z3py_compat.is_select
 .. autofunction:: cvc5_z3py_compat.is_store
+.. autofunction:: cvc5_z3py_compat.is_update
 
 
 Classes (with overloads)
