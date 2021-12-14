@@ -39,7 +39,7 @@ struct substitution_stack_element {
   }
 };/* struct substitution_stack_element */
 
-Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
+Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNode>* tracker) {
 
   Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
@@ -70,10 +70,17 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
       Assert(rhs != current);
-      internalSubstitute(rhs, cache);
-      d_substitutions[current] = cache[rhs];
+      internalSubstitute(rhs, cache, tracker);
+      if (tracker == nullptr)
+      {
+        d_substitutions[current] = cache[rhs];
+      }
       cache[current] = cache[rhs];
       toVisit.pop_back();
+      if (tracker != nullptr)
+      {
+        tracker->insert(current);
+      }
       continue;
     }
 
@@ -101,10 +108,14 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
             Assert(rhs != result);
-            internalSubstitute(rhs, cache);
+            internalSubstitute(rhs, cache, tracker);
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
             result = cache[rhs];
+            if (tracker != nullptr)
+            {
+              tracker->insert(result);
+            }
           }
         }
       }
@@ -184,8 +195,8 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-Node SubstitutionMap::apply(TNode t, Rewriter* r)
-{
+Node SubstitutionMap::apply(TNode t, Rewriter* r, std::set<TNode>* tracker) {
+
   Trace("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
@@ -196,7 +207,7 @@ Node SubstitutionMap::apply(TNode t, Rewriter* r)
   }
 
   // Perform the substitution
-  Node result = internalSubstitute(t, d_substitutionCache);
+  Node result = internalSubstitute(t, d_substitutionCache, tracker);
   Trace("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
   if (r != nullptr)

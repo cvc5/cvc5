@@ -59,7 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 TheorySetsPrivate::~TheorySetsPrivate()
@@ -1289,7 +1289,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     case kind::RELATION_JOIN_IMAGE:
     {
       // these are logic exceptions, not type checking exceptions
-      if (node[1].getKind() != kind::CONST_RATIONAL)
+      if (!node[1].isConst())
       {
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");
