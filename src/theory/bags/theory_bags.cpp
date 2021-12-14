@@ -260,18 +260,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     {
       Node key = d_state.getRepresentative(e);
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      context::CDList<TNode>::const_iterator shared_it =
-          std::find(d_sharedTerms.begin(), d_sharedTerms.end(), countTerm);
-      eq::EqClassIterator it =
-          eq::EqClassIterator(r, d_state.getEqualityEngine());
-      while (!it.isFinished() && shared_it == d_sharedTerms.end())
-      {
-        Node bag = *(it);
-        countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, bag);
-        shared_it =
-            std::find(d_sharedTerms.begin(), d_sharedTerms.end(), countTerm);
-        it++;
-      }
       Node value = m->getRepresentative(countTerm);
       elementReps[key] = value;
     }
