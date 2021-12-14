@@ -37,29 +37,60 @@ terms:
 
 * arithmetic
 
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__add__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__sub__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__mul__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__div__`
+  addition (``+``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__add__`
+
+  subtraction (``-``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__sub__`
+
+  multiplication (``*``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__mul__`
+
+  division (``/``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__div__`
 
 * bit-wise
 
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__or__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__and__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__xor__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__invert__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__neg__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__lshift__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__rshift__`
+  or (``|``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__or__`
+
+  and (``&``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__and__`
+
+  xor (``^``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__xor__`
+
+  bit complement (``~``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__invert__`
+
+  negation (``-``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__neg__`
+
+  left shift (``<<``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__lshift__`
+
+  right shift (``>>``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__rshift__`
 
 * comparisons
 
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__gt__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__lt__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__ge__`
-  * :py:meth:`cvc5_z3py_compat.BitVecRef.__le__`
-  * :py:meth:`cvc5_z3py_compat.ExprRef.__eq__`
-  * :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
+  signed greater than (``>``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__gt__`
+
+  signed less than (``<``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__lt__`
+
+  signed greater than or equal to (``>=``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__ge__`
+
+  signed less than or equal to (``<=``)
+    :py:meth:`cvc5_z3py_compat.BitVecRef.__le__`
+
+  equal (``==``)
+    :py:meth:`cvc5_z3py_compat.ExprRef.__eq__`
+
+  not equal (``!=``)
+    :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
 
 Testers
 -------------------

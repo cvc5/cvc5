@@ -31,28 +31,51 @@ Arithmetic Operators
 See the following operator overloads for building other kinds of arithmetic
 terms:
 
-* :py:meth:`cvc5_z3py_compat.ArithRef.__add__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__sub__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__mul__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__div__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__pow__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__neg__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__gt__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__lt__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__ge__`
-* :py:meth:`cvc5_z3py_compat.ArithRef.__le__`
-* :py:meth:`cvc5_z3py_compat.ExprRef.__eq__`
-* :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
+addition (``+``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__add__`
+
+subtraction (``-``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__sub__`
+
+multiplication (``*``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__mul__`
+
+division (``/``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__div__`
+
+power (``**``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__pow__`
+
+negation (``-``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__neg__`
+
+greater than (``>``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__gt__`
+
+less than (``<``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__lt__`
+
+greater than or equal to (``>=``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__ge__`
+
+less than or equal to (``<=``)
+  :py:meth:`cvc5_z3py_compat.ArithRef.__le__`
+
+equal (``==``)
+  :py:meth:`cvc5_z3py_compat.ExprRef.__eq__`
+
+not equal (``!=``)
+  :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
+
 
 Testers
 -------------------
-.. autofunction:: cvc5_z3py_compat.is_arith_sort
 .. autofunction:: cvc5_z3py_compat.is_arith
 .. autofunction:: cvc5_z3py_compat.is_int
 .. autofunction:: cvc5_z3py_compat.is_real
 .. autofunction:: cvc5_z3py_compat.is_int_value
 .. autofunction:: cvc5_z3py_compat.is_rational_value
-.. autofunction:: cvc5_z3py_compat.is_bool_value
+.. autofunction:: cvc5_z3py_compat.is_arith_sort
 .. autofunction:: cvc5_z3py_compat.is_add
 .. autofunction:: cvc5_z3py_compat.is_mul
 .. autofunction:: cvc5_z3py_compat.is_sub

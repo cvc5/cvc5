@@ -43,6 +43,7 @@ for building equality and disequality terms.
 Testers
 -------------------
 .. autofunction:: cvc5_z3py_compat.is_bool
+.. autofunction:: cvc5_z3py_compat.is_bool_value
 .. autofunction:: cvc5_z3py_compat.is_true
 .. autofunction:: cvc5_z3py_compat.is_false
 .. autofunction:: cvc5_z3py_compat.is_and
