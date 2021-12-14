@@ -193,7 +193,7 @@ class CVC5_EXPORT Rational
     }
   }
 
-  bool isIntegral() const { return getDenominator() == 1; }
+  bool isIntegral() const { return cln::denominator(d_value) == 1; }
 
   Integer floor() const { return Integer(cln::floor1(d_value)); }
 
