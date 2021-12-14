@@ -272,7 +272,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
             std::find(d_sharedTerms.begin(), d_sharedTerms.end(), countTerm);
         it++;
       }
-      Node value = d_valuation.getModelValue(countTerm);
+      Node value = m->getRepresentative(countTerm);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
