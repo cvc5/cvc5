@@ -301,6 +301,8 @@ public:
 
   bool isOn(const std::string& tag) const
   {
+    // This is faster than using std::set::find() or sorting the vector and
+    // using std::lower_bound.
     return std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
   }
 

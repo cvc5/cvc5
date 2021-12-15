@@ -62,11 +62,11 @@ TEST_F(TestUtilBlackOutput, output)
 
   Warning() << "bad warning!";
 
-  Trace.on("foo");
+  TraceChannel.on("foo");
   Trace("foo") << "tracing1";
-  Trace.off("foo");
+  TraceChannel.off("foo");
   Trace("foo") << "tracing2";
-  Trace.on("foo");
+  TraceChannel.on("foo");
   Trace("foo") << "tracing3";
 
 #ifdef CVC5_MUZZLE
@@ -141,11 +141,11 @@ TEST_F(TestUtilBlackOutput, simple_print)
   ASSERT_EQ(d_debugStream.str(), std::string());
   d_debugStream.str("");
 
-  Trace.off("yo");
+  TraceChannel.off("yo");
   Trace("yo") << "foobar";
   ASSERT_EQ(d_traceStream.str(), std::string());
   d_traceStream.str("");
-  Trace.on("yo");
+  TraceChannel.on("yo");
   Trace("yo") << "baz foo";
   ASSERT_EQ(d_traceStream.str(), std::string());
   d_traceStream.str("");
@@ -169,11 +169,11 @@ TEST_F(TestUtilBlackOutput, simple_print)
 #endif /* CVC5_DEBUG */
   d_debugStream.str("");
 
-  Trace.off("yo");
+  TraceChannel.off("yo");
   Trace("yo") << "foobar";
   ASSERT_EQ(d_traceStream.str(), std::string());
   d_traceStream.str("");
-  Trace.on("yo");
+  TraceChannel.on("yo");
   Trace("yo") << "baz foo";
 #ifdef CVC5_TRACING
   ASSERT_EQ(d_traceStream.str(), std::string("baz foo"));
