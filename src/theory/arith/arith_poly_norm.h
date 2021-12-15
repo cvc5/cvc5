@@ -40,7 +40,7 @@ class PolyNorm
    */
   void addMonomial(TNode x, const Rational& c, bool isNeg = false);
   /**
-   * Multiply this polynomial by the monomial x*c, where c is a CONST_RATIONAL.
+   * Multiply this polynomial by the monomial x*c, where c is a constant.
    * If x is null, then x*c is treated as c.
    */
   void multiplyMonomial(TNode x, const Rational& c);

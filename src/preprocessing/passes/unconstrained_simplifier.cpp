@@ -531,7 +531,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               // TODO(#2377): could build ITE here
               Node test =
-                  other.eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)));
+                  other.eqNode(nm->mkConstReal(Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;

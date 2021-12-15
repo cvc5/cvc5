@@ -98,8 +98,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull() ? NodeManager::currentNM()->mkConst(
-                        CONST_RATIONAL, Rational(1))
+                c = cc.isNull() ? NodeManager::currentNM()->mkConstInt(Rational(1))
                                 : cc;
               }
               else

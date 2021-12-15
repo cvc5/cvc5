@@ -1020,14 +1020,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       constVal = constVal[0];
     }
     if (constVal.getKind() == api::DIVISION
-        && constVal[0].getKind() == api::CONST_RATIONAL
-        && constVal[1].getKind() == api::CONST_RATIONAL)
+        && isConstIntOrReal(constVal[0])
+        && isConstIntOrReal(constVal[1]))
     {
       std::stringstream sdiv;
       sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
     }
-    else if (constVal.getKind() == api::CONST_RATIONAL && isNeg)
+    else if (isConstIntOrReal(constVal) && isNeg)
     {
       std::stringstream sneg;
       sneg << "-" << constVal;
@@ -1229,7 +1229,7 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
   setLastNamedTerm(expr, name);
 }
 
-api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
+api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
 {
   if (es.size() == 0)
   {
@@ -1239,10 +1239,14 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
   {
     return es[0];
   }
-  else
-  {
-    return d_solver->mkTerm(api::AND, es);
-  }
+  return d_solver->mkTerm(api::AND, es);
+}
+
+bool Smt2::isConstIntOrReal(const api::Term& t)
+{
+  api::Kind k = t.getKind();
+  // !!! Note when arithmetic subtyping is eliminated, this will also include CONST_INTEGER.
+  return k== api::CONST_RATIONAL;
 }
 
 }  // namespace parser

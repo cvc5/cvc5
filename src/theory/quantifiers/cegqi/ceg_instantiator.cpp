@@ -125,6 +125,27 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
   return os;
 }
 
+/** 
+ * Return the result of multiplying constant integer or real nodes c1 and c2.
+ * The returned type is real if either have type real.
+ */
+Node multConstants(const Node& c1, const Node& c2)
+{
+  Assert (!c1.isNull() && c1.isConst());
+  Assert (!c2.isNull() && c2.isConst());
+  NodeManager* nm = NodeManager::currentNM();
+  // real type if either has type real
+  TypeNode tn = c1.getType();
+  if (tn.isInteger())
+  {
+    tn = c2.getType();
+  }
+  Assert (tn.isRealOrInt());
+  return nm->mkConstRealOrInt(tn,
+                        Rational(c1.getConst<Rational>()
+                                  * c2.getConst<Rational>()));
+}
+
 void TermProperties::composeProperty(TermProperties& p)
 {
   if (p.d_coeff.isNull())
@@ -137,10 +158,7 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(CONST_RATIONAL,
-                          Rational(d_coeff.getConst<Rational>()
-                                   * p.d_coeff.getConst<Rational>()));
+    d_coeff = multConstants(d_coeff, p.d_coeff);
   }
 }
 
@@ -163,12 +181,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    Assert(new_theta.isConst());
-    Assert(pv_prop.d_coeff.isConst());
-    NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(CONST_RATIONAL,
-                            Rational(new_theta.getConst<Rational>()
-                                     * pv_prop.d_coeff.getConst<Rational>()));
+    new_theta = multConstants(new_theta, pv_prop.d_coeff);
   }
   d_theta.push_back(new_theta);
 }

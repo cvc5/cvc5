@@ -36,8 +36,8 @@ namespace quantifiers {
 ArithInstantiator::ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc)
     : Instantiator(env, tn), d_vtc(vtc)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
+  d_one = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(1));
 }
 
 void ArithInstantiator::reset(CegInstantiator* ci,
@@ -185,7 +185,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           uval = nm->mkNode(
               PLUS,
               val,
-              nm->mkConst(CONST_RATIONAL,
+              nm->mkConstRealOrInt(d_type,
                           Rational(isUpperBoundCTT(uires) ? 1 : -1)));
           uval = rewrite(uval);
         }
@@ -256,7 +256,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         uval =
             nm->mkNode(PLUS,
                        val,
-                       nm->mkConst(CONST_RATIONAL,
+                       nm->mkConstInt(
                                    Rational(isUpperBoundCTT(uires) ? 1 : -1)));
         uval = rewrite(uval);
       }
@@ -278,8 +278,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
     {
       if (options().quantifiers.cegqiModel)
       {
-        Node delta_coeff = nm->mkConst(
-            CONST_RATIONAL, Rational(isUpperBoundCTT(uires) ? 1 : -1));
+        Node delta_coeff = nm->mkConstRealOrInt(d_type, Rational(isUpperBoundCTT(uires) ? 1 : -1));
         if (vts_coeff_delta.isNull())
         {
           vts_coeff_delta = delta_coeff;
@@ -455,8 +454,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(d_mbp_coeff[rr][j].isConst());
             value[t] = nm->mkNode(
                 MULT,
-                nm->mkConst(
-                    CONST_RATIONAL,
+                nm->mkConstReal(
                     Rational(1) / d_mbp_coeff[rr][j].getConst<Rational>()),
                 value[t]);
             value[t] = rewrite(value[t]);
@@ -614,7 +612,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         val =
             nm->mkNode(MULT,
                        nm->mkNode(PLUS, vals[0], vals[1]),
-                       nm->mkConst(CONST_RATIONAL, Rational(1) / Rational(2)));
+                       nm->mkConstReal(Rational(1) / Rational(2)));
         val = rewrite(val);
       }
     }
@@ -809,7 +807,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
         vts_coeff[t] = itminf->second;
         if (vts_coeff[t].isNull())
         {
-          vts_coeff[t] = nm->mkConst(CONST_RATIONAL, Rational(1));
+          vts_coeff[t] = nm->mkConstRealOrInt(d_type, Rational(1));
         }
         // negate if coefficient on variable is positive
         std::map<Node, Node>::iterator itv = msum.find(pv);
@@ -826,7 +824,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
             {
               vts_coeff[t] = nm->mkNode(
                   MULT,
-                  nm->mkConst(CONST_RATIONAL,
+                  nm->mkConstReal(
                               Rational(-1) / itv->second.getConst<Rational>()),
                   vts_coeff[t]);
               vts_coeff[t] = rewrite(vts_coeff[t]);
@@ -887,7 +885,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       }
     }
     // multiply everything by this coefficient
-    Node rcoeff = nm->mkConst(CONST_RATIONAL, Rational(coeff));
+    Node rcoeff = nm->mkConstInt(Rational(coeff));
     std::vector<Node> real_part;
     for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
          ++it)
