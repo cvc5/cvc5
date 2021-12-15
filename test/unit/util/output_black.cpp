@@ -105,18 +105,18 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
 #endif
   Debug.off("foo");
 
-  Trace.on("foo");
+  TraceChannel.on("foo");
 #ifndef CVC5_TRACING
-  ASSERT_FALSE(Trace.isOn("foo"));
+  ASSERT_FALSE(TraceIsOn("foo"));
   Trace("foo") << failure() << std::endl;
 #else
-  ASSERT_TRUE(Trace.isOn("foo"));
+  ASSERT_TRUE(TraceIsOn("foo"));
 #endif
-  Trace.off("foo");
+  TraceChannel.off("foo");
 
 #ifdef CVC5_MUZZLE
   ASSERT_FALSE(Debug.isOn("foo"));
-  ASSERT_FALSE(Trace.isOn("foo"));
+  ASSERT_FALSE(TraceIsOn("foo"));
   ASSERT_FALSE(Warning.isOn());
 
   cout << "debug" << std::endl;

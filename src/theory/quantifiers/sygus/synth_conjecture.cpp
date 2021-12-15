@@ -404,7 +404,7 @@ bool SynthConjecture::doCheck()
     if (modelSuccess)
     {
       // Must separately compute whether trace is on due to compilation of
-      // Trace.isOn.
+      // TraceIsOn
       bool traceIsOn = TraceIsOn("sygus-engine");
       if (printDebug || traceIsOn)
       {

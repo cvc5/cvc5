@@ -18,12 +18,14 @@
 #ifndef CVC5__OUTPUT_H
 #define CVC5__OUTPUT_H
 
+#include <algorithm>
 #include <cstdio>
 #include <ios>
 #include <iostream>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "cvc5_export.h"
 
@@ -267,14 +269,14 @@ public:
 class TraceC
 {
   std::ostream* d_os;
-  std::set<std::string> d_tags;
+  std::vector<std::string> d_tags;
 
 public:
   explicit TraceC(std::ostream* os) : d_os(os) {}
 
-  Cvc5ostream operator()(std::string tag) const
+  Cvc5ostream operator()(const std::string& tag) const
   {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
+    if (isOn(tag)) {
       return Cvc5ostream(d_os);
     } else {
       return Cvc5ostream();
@@ -283,19 +285,23 @@ public:
 
   bool on(const std::string& tag)
   {
-    d_tags.insert(tag);
+    d_tags.emplace_back(tag);
     return true;
   }
   bool off(const std::string& tag)
   {
-    d_tags.erase(tag);
+    auto it = std::find(d_tags.begin(), d_tags.end(), tag);
+    if (it != d_tags.end())
+    {
+      *it = d_tags.back();
+      d_tags.pop_back();
+    }
     return false;
   }
-  bool off()                { d_tags.clear(); return false; }
 
   bool isOn(const std::string& tag) const
   {
-    return d_tags.find(tag) != d_tags.end();
+    return std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
   }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
@@ -319,7 +325,7 @@ extern TraceC TraceChannel CVC5_EXPORT;
 #define WarningOnce \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
-#define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
+#define Trace(tag) ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel(tag)
 
 #else /* CVC5_MUZZLE */
 
@@ -340,7 +346,7 @@ extern TraceC TraceChannel CVC5_EXPORT;
 #define Trace(tag) !::cvc5::TraceChannel.isOn(tag) ? ::cvc5::nullStream : ::cvc5::TraceChannel(tag)
 #else /* CVC5_TRACING */
 #define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
-#define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
+#define Trace(tag) ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel(tag)
 #endif /* CVC5_TRACING */
 
 #endif /* CVC5_MUZZLE */
