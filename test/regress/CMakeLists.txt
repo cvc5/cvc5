@@ -1156,7 +1156,7 @@ set(regress_0_tests
   # set.universe
   # regress0/bags/nonvar-univ.smt2
   # set.universe
-  regress0/bags/pre-proc-univ.smt2
+  # regress0/bags/pre-proc-univ.smt2
   regress0/bags/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/bags/setel-eq.smt2
   regress0/bags/sets-deq-dd.smt2
