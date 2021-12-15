@@ -113,8 +113,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         // inference that appear in the final proof.
         Trace("im-pf") << "(inference-pf " << id << " " << pn->getResult()
                        << ")" << std::endl;
-        Trace("im-pf-assert") << "(assert " << pn->getResult()
-                       << ") ; " << id << std::endl;
+        Trace("im-pf-assert")
+            << "(assert " << pn->getResult() << ") ; " << id << std::endl;
       }
     }
   }
