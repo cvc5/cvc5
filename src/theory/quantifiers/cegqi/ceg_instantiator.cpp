@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
@@ -125,26 +126,6 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
   return os;
 }
 
-/**
- * Return the result of multiplying constant integer or real nodes c1 and c2.
- * The returned type is real if either have type real.
- */
-Node multConstants(const Node& c1, const Node& c2)
-{
-  Assert(!c1.isNull() && c1.isConst());
-  Assert(!c2.isNull() && c2.isConst());
-  NodeManager* nm = NodeManager::currentNM();
-  // real type if either has type real
-  TypeNode tn = c1.getType();
-  if (tn.isInteger())
-  {
-    tn = c2.getType();
-  }
-  Assert(tn.isRealOrInt());
-  return nm->mkConstRealOrInt(
-      tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
-}
-
 void TermProperties::composeProperty(TermProperties& p)
 {
   if (p.d_coeff.isNull())
@@ -157,7 +138,7 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    d_coeff = multConstants(d_coeff, p.d_coeff);
+    d_coeff = arith::multConstants(d_coeff, p.d_coeff);
   }
 }
 
@@ -180,7 +161,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    new_theta = multConstants(new_theta, pv_prop.d_coeff);
+    new_theta = arith::multConstants(new_theta, pv_prop.d_coeff);
   }
   d_theta.push_back(new_theta);
 }
