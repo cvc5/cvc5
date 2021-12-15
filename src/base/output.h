@@ -303,7 +303,7 @@ public:
   {
     // This is faster than using std::set::find() or sorting the vector and
     // using std::lower_bound.
-    return std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
+    return !d_tags.empty() && std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
   }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
