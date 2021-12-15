@@ -292,7 +292,6 @@ bool TheoryStrings::collectModelInfoType(
   }
   toProcess.erase(tn);
 
-  // TODO: get type enumerator properties
   SEnumLenSet sels;
   // get partition of strings of equal lengths for the representatives of the
   // current type
