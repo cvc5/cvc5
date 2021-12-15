@@ -117,6 +117,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
+    TypeNode tn = current.getType();
+    if (tn.isReal() && !tn.isInteger())
+    {
+      throw TypeCheckingExceptionPrivate(
+          current, string("Cannot translate to BV: ") + current.toString());
+    }
     if (current.getNumChildren() > 0)
     {
       // Not a leaf
@@ -141,20 +147,6 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       kind::Kind_t newKind = current.getKind();
       if (max > 0)
       {
-        // check that no argument has type Real
-        bool hasReal = false;
-        for (Node child : children)
-        {
-          if (child.getType().isReal())
-          {
-            hasReal = true;
-          }
-        }
-        if (hasReal)
-        {
-          throw TypeCheckingExceptionPrivate(
-              current, string("Cannot translate to BV: ") + current.toString());
-        }
         switch (newKind)
         {
           case kind::PLUS:
