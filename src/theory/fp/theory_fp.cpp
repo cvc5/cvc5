@@ -570,8 +570,7 @@ void TheoryFp::registerTerm(TNode node)
     Node z = nm->mkNode(
         kind::IMPLIES,
         nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-        nm->mkNode(
-            kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
+        nm->mkNode(kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -592,8 +591,7 @@ void TheoryFp::registerTerm(TNode node)
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(
-            kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
+        nm->mkNode(kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
         nm->mkNode(kind::EQUAL,
                    node,
                    nm->mkConst(FloatingPoint::makeZero(

@@ -125,14 +125,14 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
   return os;
 }
 
-/** 
+/**
  * Return the result of multiplying constant integer or real nodes c1 and c2.
  * The returned type is real if either have type real.
  */
 Node multConstants(const Node& c1, const Node& c2)
 {
-  Assert (!c1.isNull() && c1.isConst());
-  Assert (!c2.isNull() && c2.isConst());
+  Assert(!c1.isNull() && c1.isConst());
+  Assert(!c2.isNull() && c2.isConst());
   NodeManager* nm = NodeManager::currentNM();
   // real type if either has type real
   TypeNode tn = c1.getType();
@@ -140,10 +140,9 @@ Node multConstants(const Node& c1, const Node& c2)
   {
     tn = c2.getType();
   }
-  Assert (tn.isRealOrInt());
-  return nm->mkConstRealOrInt(tn,
-                        Rational(c1.getConst<Rational>()
-                                  * c2.getConst<Rational>()));
+  Assert(tn.isRealOrInt());
+  return nm->mkConstRealOrInt(
+      tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
 }
 
 void TermProperties::composeProperty(TermProperties& p)

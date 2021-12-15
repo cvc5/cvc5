@@ -186,7 +186,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
               PLUS,
               val,
               nm->mkConstRealOrInt(d_type,
-                          Rational(isUpperBoundCTT(uires) ? 1 : -1)));
+                                   Rational(isUpperBoundCTT(uires) ? 1 : -1)));
           uval = rewrite(uval);
         }
         else
@@ -253,11 +253,10 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       if (d_type.isInteger())
       {
         uires = is_upper ? CEG_TT_LOWER : CEG_TT_UPPER;
-        uval =
-            nm->mkNode(PLUS,
-                       val,
-                       nm->mkConstInt(
-                                   Rational(isUpperBoundCTT(uires) ? 1 : -1)));
+        uval = nm->mkNode(
+            PLUS,
+            val,
+            nm->mkConstInt(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
         uval = rewrite(uval);
       }
       else
@@ -278,7 +277,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
     {
       if (options().quantifiers.cegqiModel)
       {
-        Node delta_coeff = nm->mkConstRealOrInt(d_type, Rational(isUpperBoundCTT(uires) ? 1 : -1));
+        Node delta_coeff = nm->mkConstRealOrInt(
+            d_type, Rational(isUpperBoundCTT(uires) ? 1 : -1));
         if (vts_coeff_delta.isNull())
         {
           vts_coeff_delta = delta_coeff;
@@ -454,8 +454,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(d_mbp_coeff[rr][j].isConst());
             value[t] = nm->mkNode(
                 MULT,
-                nm->mkConstReal(
-                    Rational(1) / d_mbp_coeff[rr][j].getConst<Rational>()),
+                nm->mkConstReal(Rational(1)
+                                / d_mbp_coeff[rr][j].getConst<Rational>()),
                 value[t]);
             value[t] = rewrite(value[t]);
           }
@@ -609,10 +609,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       }
       else
       {
-        val =
-            nm->mkNode(MULT,
-                       nm->mkNode(PLUS, vals[0], vals[1]),
-                       nm->mkConstReal(Rational(1) / Rational(2)));
+        val = nm->mkNode(MULT,
+                         nm->mkNode(PLUS, vals[0], vals[1]),
+                         nm->mkConstReal(Rational(1) / Rational(2)));
         val = rewrite(val);
       }
     }
@@ -824,8 +823,8 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
             {
               vts_coeff[t] = nm->mkNode(
                   MULT,
-                  nm->mkConstReal(
-                              Rational(-1) / itv->second.getConst<Rational>()),
+                  nm->mkConstReal(Rational(-1)
+                                  / itv->second.getConst<Rational>()),
                   vts_coeff[t]);
               vts_coeff[t] = rewrite(vts_coeff[t]);
             }

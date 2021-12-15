@@ -1019,8 +1019,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       isNeg = true;
       constVal = constVal[0];
     }
-    if (constVal.getKind() == api::DIVISION
-        && isConstIntOrReal(constVal[0])
+    if (constVal.getKind() == api::DIVISION && isConstIntOrReal(constVal[0])
         && isConstIntOrReal(constVal[1]))
     {
       std::stringstream sdiv;
@@ -1245,8 +1244,9 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
 bool Smt2::isConstIntOrReal(const api::Term& t)
 {
   api::Kind k = t.getKind();
-  // !!! Note when arithmetic subtyping is eliminated, this will also include CONST_INTEGER.
-  return k== api::CONST_RATIONAL;
+  // !!! Note when arithmetic subtyping is eliminated, this will also include
+  // CONST_INTEGER.
+  return k == api::CONST_RATIONAL;
 }
 
 }  // namespace parser
