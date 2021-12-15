@@ -185,8 +185,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           uval = nm->mkNode(
               PLUS,
               val,
-              nm->mkConstRealOrInt(d_type,
-                                   Rational(isUpperBoundCTT(uires) ? 1 : -1)));
+              nm->mkConstInt(Rational(isUpperBoundCTT(uires) ? 1 : -1));
           uval = rewrite(uval);
         }
         else
