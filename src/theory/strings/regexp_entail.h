@@ -146,8 +146,6 @@ class RegExpEntail
    * computed. Used for getConstantBoundLengthForRegexp.
    */
   static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
-  /** The underlying rewriter */
-  Rewriter* d_rewriter;
   /** Arithmetic entailment module */
   ArithEntail d_aent;
   /** Common constants */
