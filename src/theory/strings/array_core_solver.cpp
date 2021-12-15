@@ -70,7 +70,7 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       // (seq.extract A i l) ^ (<= 0 i) ^ (< i (str.len A)) --> (seq.unit
       // (seq.nth A i))
       std::vector<Node> exp;
-      Node cond1 = nm->mkNode(LEQ, nm->mkConst(Rational(0)), n[1]);
+      Node cond1 = nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), n[1]);
       Node cond2 = nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]));
       Node cond = nm->mkNode(AND, cond1, cond2);
       Node body1 = nm->mkNode(
@@ -115,8 +115,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     // n[2][0]
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
     Node right =
-        nm->mkNode(SEQ_NTH, n[2], nm->mkConst(Rational(0)));  // n[2][0]
-    right = Rewriter::rewrite(right);
+        nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));  // n[2][0]
     Node lem = nm->mkNode(EQUAL, left, right);
     Trace("seq-array-debug") << "enter" << std::endl;
     sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
@@ -211,10 +210,10 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
       Node i = n[1];
       Node sLen = nm->mkNode(STRING_LENGTH, s);
       Node iRev = nm->mkNode(
-          MINUS, sLen, nm->mkNode(PLUS, i, nm->mkConst(Rational(1))));
+          MINUS, sLen, nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
 
       std::vector<Node> nexp;
-      nexp.push_back(nm->mkNode(LEQ, nm->mkConst(Rational(0)), i));
+      nexp.push_back(nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), i));
       nexp.push_back(nm->mkNode(LT, i, sLen));
 
       // 0 <= i ^ i < len(s) => seq.nth(seq.rev(s), i) = seq.nth(s, len(s) - i -

@@ -59,13 +59,15 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
-      d_eagerSolver(env, d_state, d_termReg),
+      d_eagerSolver(options().strings.stringEagerSolver
+                        ? new EagerSolver(env, d_state, d_termReg)
+                        : nullptr),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
       // the checker depends on the cardinality of the alphabet
       d_checker(d_termReg.getAlphabetCardinality()),
-      d_bsolver(env, d_state, d_im),
+      d_bsolver(env, d_state, d_im, d_termReg),
       d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(env,
                 d_state,
@@ -84,9 +86,9 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_termReg.finishInit(&d_im);
 
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -425,7 +427,7 @@ bool TheoryStrings::collectModelInfoType(
           lvalue++;
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
-        lts_values[i] = nm->mkConst(CONST_RATIONAL, Rational(lvalue));
+        lts_values[i] = nm->mkConstInt(Rational(lvalue));
         values_used[lvalue] = Node::null();
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
@@ -588,7 +590,7 @@ bool TheoryStrings::collectModelInfoType(
         Assert(r.isConst() || processed.find(r) != processed.end());
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = utils::mkNConcat(nc, tn);
+      Node cc = d_termReg.mkNConcat(nc, tn);
       Trace("strings-model")
           << "*** Determined constant " << cc << " for " << rn << std::endl;
       processed[rn] = cc;
@@ -651,7 +653,10 @@ void TheoryStrings::notifyFact(TNode atom,
                                TNode fact,
                                bool isInternal)
 {
-  d_eagerSolver.notifyFact(atom, polarity, fact, isInternal);
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->notifyFact(atom, polarity, fact, isInternal);
+  }
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
@@ -769,7 +774,10 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
       ei->d_codeTerm = t[0];
     }
   }
-  d_eagerSolver.eqNotifyNewClass(t);
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->eqNotifyNewClass(t);
+  }
 }
 
 void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
@@ -782,7 +790,10 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   // always create it if e2 was non-null
   EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
 
-  d_eagerSolver.eqNotifyMerge(e1, t1, e2, t2);
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->eqNotifyMerge(e1, t1, e2, t2);
+  }
 
   // add information from e2 to e1
   if (!e2->d_lengthTerm.get().isNull())
@@ -1046,7 +1057,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (lt.isNull())
     {
-      Node c = utils::mkNConcat(nfi.d_nf, eqc.getType());
+      Node c = d_termReg.mkNConcat(nfi.d_nf, eqc.getType());
       d_termReg.registerTerm(c, 3);
     }
   }
@@ -1071,8 +1082,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     SkolemCache* sc = d_termReg.getSkolemCache();
     Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
     Node t = atom[0];
-    Node card = nm->mkConst(CONST_RATIONAL,
-                            Rational(d_termReg.getAlphabetCardinality()));
+    Node card = nm->mkConstInt(Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node emp = Word::mkEmptyWord(atom.getType());
