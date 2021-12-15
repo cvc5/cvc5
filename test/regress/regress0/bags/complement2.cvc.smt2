@@ -1,0 +1,11 @@
+; EXPECT: unsat
+(set-option :incremental false)
+(set-option :sets-ext true)
+(set-logic ALL)
+(declare-sort Atom 0)
+(declare-fun a () (Bag Atom))
+(declare-fun b () (Bag Atom))
+(declare-fun c () Atom)
+(assert (= a (set.complement a)))
+(assert (>= (bag.count c a))
+(check-sat)
