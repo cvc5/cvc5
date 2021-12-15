@@ -67,7 +67,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_extTheory(env, d_extTheoryCb, d_im),
       // the checker depends on the cardinality of the alphabet
       d_checker(d_termReg.getAlphabetCardinality()),
-      d_bsolver(env, d_state, d_im),
+      d_bsolver(env, d_state, d_im, d_termReg),
       d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(env,
                 d_state,
@@ -590,7 +590,7 @@ bool TheoryStrings::collectModelInfoType(
         Assert(r.isConst() || processed.find(r) != processed.end());
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = utils::mkNConcat(nc, tn);
+      Node cc = d_termReg.mkNConcat(nc, tn);
       Trace("strings-model")
           << "*** Determined constant " << cc << " for " << rn << std::endl;
       processed[rn] = cc;
@@ -1057,7 +1057,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (lt.isNull())
     {
-      Node c = utils::mkNConcat(nfi.d_nf, eqc.getType());
+      Node c = d_termReg.mkNConcat(nfi.d_nf, eqc.getType());
       d_termReg.registerTerm(c, 3);
     }
   }
