@@ -1986,6 +1986,15 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
 void CoreSolver::processDeq(Node ni, Node nj)
 {
+  // If using the sequence update solver, we always apply extensionality.
+  // This is required for model soundness currently, although we could
+  // investigate determine cases where the disequality is already
+  // satisfied (for optimization).
+  if (options().strings.seqArray != options::SeqArrayMode::NONE)
+  {
+    processDeqExtensionality(ni, nj);
+    return;
+  }
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
