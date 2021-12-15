@@ -920,10 +920,12 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
-  theory/quantifiers/sygus/sygus_reconstruct.cpp
-  theory/quantifiers/sygus/sygus_reconstruct.h
   theory/quantifiers/sygus/sygus_qe_preproc.cpp
   theory/quantifiers/sygus/sygus_qe_preproc.h
+  theory/quantifiers/sygus/sygus_random_enumerator.cpp
+  theory/quantifiers/sygus/sygus_random_enumerator.h
+  theory/quantifiers/sygus/sygus_reconstruct.cpp
+  theory/quantifiers/sygus/sygus_reconstruct.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
   theory/quantifiers/sygus/sygus_stats.cpp

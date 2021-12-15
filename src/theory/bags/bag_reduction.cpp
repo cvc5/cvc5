@@ -65,8 +65,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
     Node f = node[0];
     Node t = node[1];
     Node A = node[2];
-    Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
-    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+    Node zero = nm->mkConstInt(Rational(0));
+    Node one = nm->mkConstInt(Rational(1));
     // types
     TypeNode bagType = A.getType();
     TypeNode elementType = A.getType().getBagElementType();
