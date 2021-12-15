@@ -184,8 +184,7 @@ bool BagSolver::checkBagMake()
       Node n = (*it);
       if (n.getKind() == BAG_MAKE)
       {
-        Trace("bags::BagSolver::postCheck")
-            << "splitting on node " << std::endl;
+        Trace("bags-check") << "splitting on node " << std::endl;
         InferInfo i = d_ig.bagMake(n);
         sentLemma |= d_im.lemmaTheoryInference(&i);
         // it is enough to split only once per equivalent class

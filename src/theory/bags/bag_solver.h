@@ -55,6 +55,7 @@ class BagSolver : protected EnvObj
    *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
    *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
    * where (Bag E) is the type of the bag term
+   * @return true if a new lemma was successfully sent.
    */
   bool checkBagMake();
 
