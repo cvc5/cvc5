@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
+#include "theory/quantifiers/sygus/sygus_random_enumerator.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_registry.h"
 
@@ -93,6 +94,11 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
           == options::SygusActiveGenMode::ENUM_BASIC)
       {
         d_evg.reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      }
+      else if (options().quantifiers.sygusActiveGenMode
+               == options::SygusActiveGenMode::RANDOM)
+      {
+        d_evg.reset(new SygusRandomEnumerator(d_tds));
       }
       else
       {
