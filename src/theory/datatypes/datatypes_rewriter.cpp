@@ -232,7 +232,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     Node ret = rets[0];
     // notice that due to our type checker, either there is a variable pattern
     // or all constructors are present in the match.
-    for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
+    for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
     {
       ret = nm->mkNode(ITE, cases[i], rets[i], ret);
     }

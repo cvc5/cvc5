@@ -414,7 +414,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
           n, "expected a match case in match expression");
     }
     // get the pattern type
-    unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
+    uint32_t pindex = nck == kind::MATCH_CASE ? 0 : 1;
     TypeNode patType = nc[pindex].getType();
     // should be caught in the above call
     if (!patType.isDatatype())
@@ -436,7 +436,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
         }
         bvs.erase(arg);
       }
-      unsigned ci = utils::indexOf(nc[pindex].getOperator());
+      size_t ci = utils::indexOf(nc[pindex].getOperator());
       patIndices.insert(ci);
     }
     else if (ncpk == kind::BOUND_VARIABLE)
