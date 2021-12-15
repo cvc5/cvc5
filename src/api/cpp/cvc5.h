@@ -4302,8 +4302,11 @@ class CVC5_EXPORT Solver
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
    * @param q a quantified formula of the form
-   *          @f$Q x_1...x_n. P( x_1...x_n, y_1...y_n )@f$ where
-   *          @f$P( x_1...x_n, y_1...y_n )@f$ is a quantifier-free formula
+   *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
+   *          where
+   *          @f$Q\bar{x}@f$ is a set of quantified variables of the form
+   *          @f$Q x_1...x_k@f$ and
+   *          @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
    * @return a formula @f$\phi@f$ such that, given the current set of formulas
    *         @f$A@f$ asserted to this solver:
    *         - @f$(A \wedge q \implies A \wedge \phi)@f$ if @f$Q@f$ is
