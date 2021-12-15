@@ -56,10 +56,6 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
   Assert(n.getKind() == BAG_MAKE);
-  std::cout << "n: " << n << std::endl;
-  std::cout << "n.getType(): " << n.getType() << std::endl;
-  std::cout << "e: " << e << std::endl;
-  std::cout << "e.getType(): " << e.getType() << std::endl;
   Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
 
   /*
