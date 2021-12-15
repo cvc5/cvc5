@@ -43,7 +43,7 @@ InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 {
   Assert(n.getType().isBag());
-  Assert(e.getType() == n.getType().getBagElementType());
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
   Node count = d_nm->mkNode(BAG_COUNT, e, n);
@@ -56,7 +56,11 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
   Assert(n.getKind() == BAG_MAKE);
-  Assert(e.getType() == n.getType().getBagElementType());
+  std::cout << "n: " << n << std::endl;
+  std::cout << "n.getType(): " << n.getType() << std::endl;
+  std::cout << "e: " << e << std::endl;
+  std::cout << "e.getType(): " << e.getType() << std::endl;
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
 
   /*
    * (ite (and (= e x) (>= c 1))
