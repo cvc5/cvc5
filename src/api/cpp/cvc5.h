@@ -1984,13 +1984,21 @@ class CVC5_EXPORT DatatypeConstructor
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
    *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
    *     (declare-datatype List
    *         (par (T) ((nil) (cons (head T) (tail (List T))))))
+   * \endverbatim
    *
    * The type of nil terms need to be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
    *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
    *     (as nil (List Int))
+   * \endverbatim
    *
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
@@ -3699,8 +3707,12 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( declare-const <symbol> <sort> )
-   *     ( declare-fun <symbol> ( ) <sort> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-const <symbol> <sort>)
+   *     (declare-fun <symbol> () <sort>)
+   * \endverbatim
    *
    * @param sort the sort of the constant
    * @param symbol the name of the constant
@@ -3787,7 +3799,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( assert <term> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (assert <term>)
+   * \endverbatim
    *
    * @param term the formula to assert
    */
@@ -3798,7 +3814,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( check-sat )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat)
+   * \endverbatim
    *
    * @return the result of the satisfiability check.
    */
@@ -3809,7 +3829,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( check-sat-assuming ( <prop_literal> ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat-assuming ( <prop_literal> ))
+   * \endverbatim
    *
    * @param assumption the formula to assume
    * @return the result of the satisfiability check.
@@ -3821,7 +3845,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( check-sat-assuming ( <prop_literal>+ ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat-assuming ( <prop_literal>+ ))
+   * \endverbatim
    *
    * @param assumptions the formulas to assume
    * @return the result of the satisfiability check.
@@ -3848,7 +3876,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( declare-datatype <symbol> <datatype_decl> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-datatype <symbol> <datatype_decl>)
+   * \endverbatim
    *
    * @param symbol the name of the datatype sort
    * @param ctors the constructor declarations of the datatype sort
@@ -3862,7 +3894,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-fun <symbol> ( <sort>* ) <sort>)
+   * \endverbatim
    *
    * @param symbol the name of the function
    * @param sorts the sorts of the parameters to this function
@@ -3878,7 +3914,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( declare-sort <symbol> <numeral> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-sort <symbol> <numeral>)
+   * \endverbatim
    *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
@@ -3891,7 +3931,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( define-fun <function_def> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-fun <function_def>)
+   * \endverbatim
    *
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
@@ -3912,7 +3956,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( define-fun-rec <function_def> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-fun-rec <function_def>)
+   * \endverbatim
    *
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
@@ -3933,7 +3981,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( define-fun-rec <function_def> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-fun-rec <function_def>)
+   * \endverbatim
    *
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
@@ -3953,7 +4005,14 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-funs-rec
+   *         ( <function_decl>_1 ... <function_decl>_n )
+   *         ( <term>_1 ... <term>_n )
+   *     )
+   * \endverbatim
    *
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
@@ -3973,7 +4032,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( echo <std::string> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (echo <string>)
+   * \endverbatim
    *
    * @param out the output stream
    * @param str the string to echo
@@ -3985,7 +4048,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-assertions )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-assertions)
+   * \endverbatim
    *
    * @return the list of asserted formulas
    */
@@ -3996,7 +4063,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-info <info_flag> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-info <info_flag>)
+   * \endverbatim
    *
    * @return the info
    */
@@ -4007,7 +4078,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-option <keyword> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-option <keyword>)
+   * \endverbatim
    *
    * @param option the option for which the value is queried
    * @return a string representation of the option value
@@ -4040,9 +4115,15 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-unsat-assumptions )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires to enable option 'produce-unsat-assumptions'.
+   *     (get-unsat-assumptions)
+   *
+   * Requires to enable option
+   * :ref:`produce-unsat-assumptions <lbl-option-produce-unsat-assumptions>`.
+   * \endverbatim
+   *
    * @return the set of unsat assumptions.
    */
   std::vector<Term> getUnsatAssumptions() const;
@@ -4052,9 +4133,15 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-unsat-core )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires to enable option 'produce-unsat-cores'.
+   *     (get-unsat-core)
+   *
+   * Requires to enable option
+   * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   * \endverbatim
+   *
    * @return a set of terms representing the unsatisfiable core
    */
   std::vector<Term> getUnsatCore() const;
@@ -4074,9 +4161,15 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-proof )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires to enable option 'produce-proofs'.
+   *     (get-proof)
+   *
+   * Requires to enable option
+   * :ref:`produce-proofs <lbl-option-produce-proofs>`.
+   * \endverbatim
+   *
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
@@ -4087,7 +4180,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-value ( <term> ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-value ( <term> ))
+   * \endverbatim
    *
    * @param term the term for which the value is queried
    * @return the value of the given term
@@ -4099,7 +4196,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-value ( <term>* ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-value ( <term>* ))
+   * \endverbatim
    *
    * @param terms the terms for which the value is queried
    * @return the values of the given terms
@@ -4120,7 +4221,11 @@ class CVC5_EXPORT Solver
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
-   * the model-cores option has been set.
+   * option
+   * \verbatim:rst:inline
+   * :ref:`model-cores <lbl-option-model-cores>`
+   * \endverbatim
+   * has been set.
    *
    * @param v The term in question
    * @return true if v is a model core symbol
@@ -4132,9 +4237,17 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-model )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires to enable option 'produce-models'.
+   *     (get-model)
+   *
+   * Requires to enable option
+   * :ref:`produce-models <lbl-option-produce-models>`.
+   * \endverbatim
+   *
+   * \endverbatim
+   *
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
    * @param vars The list of free constants that should be printed in the
@@ -4149,7 +4262,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-qe <q> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-qe <q>)
+   * \endverbatim
    *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
@@ -4157,8 +4274,11 @@ class CVC5_EXPORT Solver
    * @note Quantifier Elimination is is only complete for LRA and LIA.
    *
    * @param q a quantified formula of the form
-   *          @f$Q x_1...x_n. P( x_1...x_n, y_1...y_n )@f$ where
-   *          @f$P( x_1...x_n, y_1...y_n )@f$ is a quantifier-free formula
+   *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
+   *          where
+   *          @f$Q\bar{x}@f$ is a set of quantified variables of the form
+   *          @f$Q x_1...x_k@f$ and
+   *          @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
    * @return a formula @f$\phi@f$  such that, given the current set of formulas
    *         @f$A@f$ asserted to this solver:
    *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
@@ -4173,7 +4293,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-qe-disjunct <q> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-qe-disjunct <q>)
+   * \endverbatim
    *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
@@ -4231,7 +4355,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( declare-pool <symbol> <sort> ( <term>* ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-pool <symbol> <sort> ( <term>* ))
+   * \endverbatim
    *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
@@ -4245,7 +4373,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( pop <numeral> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (pop <numeral>)
+   * \endverbatim
    *
    * @param nscopes the number of levels to pop
    */
@@ -4256,9 +4388,15 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-interpol <conj> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires to enable option 'produce-interpols'.
+   *     (get-interpol <conj>)
+   *
+   * Requires to enable option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * \endverbatim
+   *
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -4271,9 +4409,14 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-interpol <conj> <g> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires to enable option 'produce-interpols'.
+   *     (get-interpol <conj> <grammar>)
+   *
+   * Requires to enable option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * \endverbatim
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
@@ -4288,9 +4431,15 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-abduct <conj> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires enabling option 'produce-abducts'
+   *     (get-abduct <conj>)
+   *
+   * Requires to enable option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
+   * \endverbatim
+   *
    * @param conj the conjecture term
    * @param output a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
    *               and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
@@ -4305,9 +4454,14 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-abduct <conj> <g> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires enabling option 'produce-abducts'
+   *     (get-abduct <conj> <grammar>)
+   *
+   * Requires to enable option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
+   * \endverbatim
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct @f$C@f$
@@ -4325,10 +4479,17 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( block-model )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
+   *     (block-model)
+   *
+   * Requires enabling option
+   * :ref:`produce-models <lbl-option-produce-models>`.
+   * 'produce-models' and setting option
+   * :ref:`block-models <lbl-option-block-models>`.
+   * to a mode other than ``none``.
+   * \endverbatim
    */
   void blockModel() const;
 
@@ -4338,10 +4499,17 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( block-model-values ( <terms>+ ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
    *
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
+   *     (block-model-values ( <terms>+ ))
+   *
+   * Requires enabling option
+   * :ref:`produce-models <lbl-option-produce-models>`.
+   * 'produce-models' and setting option
+   * :ref:`block-models <lbl-option-block-models>`.
+   * to a mode other than ``none``.
+   * \endverbatim
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
@@ -4356,7 +4524,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( push <numeral> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (push <numeral>)
+   * \endverbatim
    *
    * @param nscopes the number of levels to push
    */
@@ -4367,7 +4539,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( reset-assertions )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (reset-assertions)
+   * \endverbatim
    *
    */
   void resetAssertions() const;
@@ -4377,7 +4553,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( set-info <attribute> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-info <attribute>)
+   * \endverbatim
    *
    * @param keyword the info flag
    * @param value the value of the info flag
@@ -4389,7 +4569,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( set-logic <symbol> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-logic <symbol>)
+   * \endverbatim
    *
    * @param logic the logic to set
    */
@@ -4400,7 +4584,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( set-option :<option> <value> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-option :<option> <value>)
+   * \endverbatim
    *
    * @param option the option name
    * @param value the option value
@@ -4423,7 +4611,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( declare-var <symbol> <sort> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-var <symbol> <sort>)
+   * \endverbatim
    *
    * @param sort the sort of the universal variable
    * @param symbol the name of the universal variable
@@ -4448,7 +4640,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( synth-fun <symbol> ( <boundVars>* ) <sort> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-fun <symbol> ( <boundVars>* ) <sort>)
+   * \endverbatim
    *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
@@ -4464,7 +4660,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-fun <symbol> ( <boundVars>* ) <sort> <grammar>)
+   * \endverbatim
    *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
@@ -4482,7 +4682,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( synth-inv <symbol> ( <boundVars>* ) )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-inv <symbol> ( <boundVars>* ))
+   * \endverbatim
    *
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
@@ -4496,7 +4700,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( synth-inv <symbol> ( <boundVars>* ) <g> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-inv <symbol> ( <boundVars>* ) <grammar>)
+   * \endverbatim
    *
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
@@ -4512,7 +4720,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( constraint <term> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (constraint <term>)
+   * \endverbatim
    *
    * @param term the formula to add as a constraint
    */
@@ -4523,7 +4735,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( assume <term> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (assume <term>)
+   * \endverbatim
    *
    * @param term the formula to add as an assumption
    */
@@ -4535,7 +4751,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( inv-constraint <inv> <pre> <trans> <post> )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (inv-constraint <inv> <pre> <trans> <post>)
+   * \endverbatim
    *
    * @param inv the function-to-synthesize
    * @param pre the pre-condition
@@ -4551,7 +4771,11 @@ class CVC5_EXPORT Solver
    *
    * SyGuS v2:
    *
-   *     ( check-synth )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-synth)
+   * \endverbatim
    *
    * @return the result of the synthesis conjecture.
    */
@@ -4676,7 +4900,11 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-fun <symbol> ( <boundVars>* ) <sort> <grammar>?)
+   * \endverbatim
    *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
