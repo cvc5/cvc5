@@ -2777,6 +2777,7 @@ TEST_F(TestApiBlackSolver, proj_issue381)
   ASSERT_NO_THROW(d_solver.simplify(t187));
 }
 
+
 TEST_F(TestApiBlackSolver, proj_issue382)
 {
   Sort s1 = d_solver.getBooleanSort();
@@ -2808,6 +2809,31 @@ TEST_F(TestApiBlackSolver, proj_issue382)
       t82.getSort().getDatatype().getSelector("_x19").getSelectorTerm(),
       t82);
   ASSERT_NO_THROW(d_solver.simplify(t325));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue383)
+{
+  d_solver.setOption("produce-models", "true");
+
+  Sort s1 = d_solver.getBooleanSort();
+
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("_x5");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0");
+  dtdecl.addConstructor(ctordecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+
+  ctordecl = d_solver.mkDatatypeConstructorDecl("_x23");
+  ctordecl.addSelectorSelf("_x21");
+  dtdecl = d_solver.mkDatatypeDecl("_x12");
+  dtdecl.addConstructor(ctordecl);
+  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
+  ASSERT_FALSE(s4.getDatatype().isWellFounded());
+
+  Term t3 = d_solver.mkConst(s4, "_x25");
+  Term t13 = d_solver.mkConst(s1, "_x34");
+
+  d_solver.checkEntailed(t13);
+  ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
 }
 
 }  // namespace test

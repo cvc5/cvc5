@@ -223,6 +223,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       std::map< Node, Node > msum;
       if (ArithMSum::getMonomialSumLit(n, msum))
       {
+        NodeManager* nm = NodeManager::currentNM();
         Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
         ArithMSum::debugPrintMonomialSum(msum, "bound-int-debug");
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
@@ -239,11 +240,11 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
                   n1 = veq[1];
                   n2 = veq[0];
                   if( n1.getKind()==BOUND_VARIABLE ){
-                    n2 = ArithMSum::offset(n2, 1);
+                    n2 = nm->mkNode(PLUS, n2, nm->mkConstInt(Rational(1)));
                   }else{
-                    n1 = ArithMSum::offset(n1, -1);
+                    n1 = nm->mkNode(PLUS, n1, nm->mkConstInt(Rational(-1)));
                   }
-                  veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
+                  veq = nm->mkNode(GEQ, n1, n2);
                 }
                 Trace("bound-int-debug") << "Isolated for " << it->first << " : (" << n1 << " >= " << n2 << ")" << std::endl;
                 Node t = n1==it->first ? n2 : n1;
