@@ -42,21 +42,6 @@ namespace cvc5 {
 namespace Minisat {
 
 namespace {
-/*
- * Returns true if the solver should add all clauses at the current assertion
- * level.
- *
- * FIXME: This is a workaround. Currently, our resolution proofs do not
- * handle clauses with a lower-than-assertion-level correctly because the
- * resolution proofs get removed when popping the context but the SAT solver
- * keeps using them.
- */
-bool assertionLevelOnly(const Options& opts)
-{
-  return (opts.smt.produceProofs || opts.smt.unsatCores)
-         && opts.base.incrementalSolving;
-}
-
 //=================================================================================================
 // Helper functions for decision tree tracing
 
@@ -157,6 +142,9 @@ Solver::Solver(Env& env,
       d_context(context),
       assertionLevel(0),
       d_pfManager(nullptr),
+      d_assertionLevelOnly(
+          (options().smt.produceProofs || options().smt.unsatCores)
+          && options().base.incrementalSolving),
       d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
@@ -355,7 +343,7 @@ CRef Solver::reason(Var x) {
 
   // Compute the assertion level for this clause
   int explLevel = 0;
-  if (assertionLevelOnly(options()))
+  if (d_assertionLevelOnly)
   {
     explLevel = assertionLevel;
   }
@@ -430,14 +418,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     Lit p; int i, j;
 
     // Which user-level to assert this clause at
-    int clauseLevel =
-        (removable && !assertionLevelOnly(options())) ? 0 : assertionLevel;
+    int clauseLevel = (removable && !d_assertionLevelOnly) ? 0 : assertionLevel;
 
     // Check the clause for tautologies and similar
     int falseLiteralsCount = 0;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
       // Update the level
-      clauseLevel = assertionLevelOnly(options())
+      clauseLevel = d_assertionLevelOnly
                         ? assertionLevel
                         : std::max(clauseLevel, intro_level(var(ps[i])));
       // Tautologies are ignored
@@ -1573,10 +1560,9 @@ lbool Solver::search(int nof_conflicts)
       }
       else
       {
-        CRef cr =
-            ca.alloc(assertionLevelOnly(options()) ? assertionLevel : max_level,
-                     learnt_clause,
-                     true);
+        CRef cr = ca.alloc(d_assertionLevelOnly ? assertionLevel : max_level,
+                           learnt_clause,
+                           true);
         clauses_removable.push(cr);
         attachClause(cr);
         claBumpActivity(ca[cr]);
@@ -2100,7 +2086,7 @@ CRef Solver::updateLemmas() {
     if (lemma.size() > 1) {
       // If the lemmas is removable, we can compute its level by the level
       int clauseLevel = assertionLevel;
-      if (removable && !assertionLevelOnly(options()))
+      if (removable && !d_assertionLevelOnly)
       {
         clauseLevel = 0;
         for (int k = 0; k < lemma.size(); ++k)
