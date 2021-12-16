@@ -335,7 +335,6 @@ Node multConstants(const Node& c1, const Node& c2)
       tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
 }
 
-
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5
