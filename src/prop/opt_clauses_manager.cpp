@@ -35,7 +35,7 @@ void OptimizedClausesManager::contextNotifyPop()
 {
   int newLvl = d_context->getLevel();
   Trace("sat-proof") << "contextNotifyPop: called with lvl " << newLvl << "\n"
-               << push;
+                     << push;
   // the increment is handled inside the loop, so that we can erase as we go
   for (auto it = d_optProofs.cbegin(); it != d_optProofs.cend();)
   {
@@ -60,7 +60,8 @@ void OptimizedClausesManager::contextNotifyPop()
         }
         else
         {
-          Trace("sat-proof") << "\t..skipped since its proof was already added\n";
+          Trace("sat-proof")
+              << "\t..skipped since its proof was already added\n";
         }
       }
       ++it;
@@ -80,5 +81,5 @@ void OptimizedClausesManager::contextNotifyPop()
   Trace("sat-proof") << pop;
 }
 
-}  // namespace proof
+}  // namespace prop
 }  // namespace cvc5

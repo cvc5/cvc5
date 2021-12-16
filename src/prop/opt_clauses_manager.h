@@ -20,7 +20,6 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-
 #include "proof/proof.h"
 
 namespace cvc5 {
