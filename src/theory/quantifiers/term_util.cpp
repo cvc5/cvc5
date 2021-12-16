@@ -123,22 +123,6 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
   return getRemoveQuantifiers2( n, visited );
 }
 
-//quantified simplify
-Node TermUtil::getQuantSimplify( Node n ) {
-  std::unordered_set<Node> fvs;
-  expr::getFreeVariables(n, fvs);
-  if (fvs.empty())
-  {
-    return Rewriter::rewrite( n );
-  }
-  std::vector<Node> bvs;
-  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
-  NodeManager* nm = NodeManager::currentNM();
-  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
-  q = Rewriter::rewrite(q);
-  return getRemoveQuantifiers(q);
-}
-
 void TermUtil::computeInstConstContains(Node n, std::vector<Node>& ics)
 {
   computeVarContainsInternal(n, INST_CONSTANT, ics);

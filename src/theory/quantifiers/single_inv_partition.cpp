@@ -28,6 +28,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+  
+SingleInvocationPartition::SingleInvocationPartition(Env& env) : EnvObj(env), d_has_input_funcs(false) {}
+  
 bool SingleInvocationPartition::init(Node n)
 {
   // first, get types of arguments for functions
@@ -220,7 +223,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
                                    d_input_funcs.end(),
                                    d_input_func_sks.begin(),
                                    d_input_func_sks.end());
-      cr = TermUtil::getQuantSimplify(cr);
+      cr = getQuantSimplify(cr);
       cr = cr.substitute(d_input_func_sks.begin(),
                          d_input_func_sks.end(),
                          d_input_funcs.begin(),
@@ -612,6 +615,21 @@ void SingleInvocationPartition::debugPrint(const char* c)
     }
   }
   Trace(c) << std::endl;
+}
+
+Node SingleInvocationPartition::getQuantSimplify( Node n ) const {
+  std::unordered_set<Node> fvs;
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
+    return rewrite( n );
+  }
+  std::vector<Node> bvs;
+  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = rewrite(q);
+  return TermUtil::getRemoveQuantifiers(q);
 }
 
 }  // namespace quantifiers
