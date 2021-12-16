@@ -108,13 +108,14 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     d_im.addToExplanation(termProxy, n, exp);
 
     // optimization: add a short cut
-	// t = (seq.update n[0] n[1] n[2])
-	// ---------------------------------------------------------------------
-	// nth(t, n[1]) = (ITE, len(n[0]) > 0, nth(n[2], 0), nth(n[0], n[1]))
+    // t = (seq.update n[0] n[1] n[2])
+    // ---------------------------------------------------------------------
+    // nth(t, n[1]) = (ITE, len(n[0]) > 0, nth(n[2], 0), nth(n[0], n[1]))
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
-	Node cond = nm->mkNode(GT, nm->mkNode(STRING_LENGTH, n[0]), nm->mkConstInt(Rational(0)));
-	Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
-	Node body2 = nm->mkNode(SEQ_NTH, n[0], nm->mkConstInt(Rational(0)));
+    Node cond = nm->mkNode(
+        GT, nm->mkNode(STRING_LENGTH, n[0]), nm->mkConstInt(Rational(0)));
+    Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
+    Node body2 = nm->mkNode(SEQ_NTH, n[0], nm->mkConstInt(Rational(0)));
     Node right = nm->mkNode(ITE, cond, body1, body2);
     Node lem = nm->mkNode(EQUAL, left, right);
     sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_SHORTCUT1);
@@ -129,10 +130,10 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
         for (Node j : indexes)
         {
           // optimization: add a short cut for special case
-		  // n[2] is a unit term
-		  // n[1] != j
-		  // ---------------------------------------------------------------
-		  // nth(t, j) = nth(n[0], j)
+          // n[2] is a unit term
+          // n[1] != j
+          // ---------------------------------------------------------------
+          // nth(t, j) = nth(n[0], j)
           if (n[2].getKind() == SEQ_UNIT)
           {
             left = nm->mkNode(DISTINCT, n[1], j);
@@ -140,8 +141,9 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
             Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
             right = nm->mkNode(EQUAL, nth1, nth2);
             lem = nm->mkNode(IMPLIES, left, right);
-            sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_SHORTCUT2);
-			continue;
+            sendInference(
+                exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_SHORTCUT2);
+            continue;
           }
 
           // normal cases
