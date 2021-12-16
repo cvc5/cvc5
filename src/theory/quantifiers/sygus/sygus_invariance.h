@@ -25,7 +25,7 @@
 
 namespace cvc5 {
 namespace theory {
-  
+
 class Rewriter;
 
 namespace quantifiers {
@@ -248,7 +248,10 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  NegContainsSygusInvarianceTest(Rewriter * r) : d_rewriter(r), d_isUniversal(false) {}
+  NegContainsSygusInvarianceTest(Rewriter* r)
+      : d_rewriter(r), d_isUniversal(false)
+  {
+  }
 
   /** initialize this invariance test
    *  e is the enumerator which we are reasoning about (associated with a synth
@@ -282,7 +285,7 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 
  private:
   /** Pointer to the rewriter */
-  Rewriter * d_rewriter;
+  Rewriter* d_rewriter;
   /** The enumerator whose value we are considering in this invariance test */
   Node d_enum;
   /** The input examples */

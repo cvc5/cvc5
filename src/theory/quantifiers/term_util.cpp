@@ -361,7 +361,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
                                  int32_t offset,
                                  int32_t& status)
 {
-  Assert (val.isConst() && val.getType()==tn);
+  Assert(val.isConst() && val.getType() == tn);
   Node val_o;
   status = -1;
   if (tn.isRealOrInt())
@@ -376,7 +376,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
     BitVector vval = val.getConst<BitVector>();
     uint32_t uv = static_cast<uint32_t>(offset);
     BitVector oval(tn.getConst<BitVectorSize>(), uv);
-    val_o = NodeManager::currentNM()->mkConst( vval + oval );
+    val_o = NodeManager::currentNM()->mkConst(vval + oval);
   }
   return val_o;
 }

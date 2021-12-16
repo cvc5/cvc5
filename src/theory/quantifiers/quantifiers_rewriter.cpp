@@ -513,7 +513,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
             Node nn = nm->mkNode(EQUAL, no, ret[i][j]);
             childrenIte.push_back(nn);
             // check if it will rewrite to a constant
-            if (no==ret[i][j] || (no.isConst() && ret[i][j].isConst()))
+            if (no == ret[i][j] || (no.isConst() && ret[i][j].isConst()))
             {
               doRewrite = true;
             }
