@@ -21,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/rational.h"
 #include "util/string.h"
 
@@ -173,7 +174,6 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           conc.push_back(currMem);
         }
         currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
-        currEnd = Rewriter::rewrite(currEnd);
       }
     }
     Node res = nm->mkNode(AND, conc);
@@ -560,7 +560,6 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   Node index = bvm->mkBoundVar<ReElimStarIndexAttribute>(atom, intType);
   Node substr_ch =
       nm->mkNode(STRING_SUBSTR, x, index, nm->mkConstInt(Rational(1)));
-  substr_ch = Rewriter::rewrite(substr_ch);
   // handle the case where it is purely characters
   for (const Node& r : disj)
   {
@@ -588,8 +587,6 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
     else
     {
       Node regexp_ch = nm->mkNode(STRING_IN_REGEXP, substr_ch, r);
-      regexp_ch = Rewriter::rewrite(regexp_ch);
-      Assert(regexp_ch.getKind() != STRING_IN_REGEXP);
       char_constraints.push_back(regexp_ch);
     }
   }
@@ -617,9 +614,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
       Node s = r[0];
       if (s.isConst())
       {
-        Node lens = nm->mkNode(STRING_LENGTH, s);
-        lens = Rewriter::rewrite(lens);
-        Assert(lens.isConst());
+        Node lens = nm->mkConstInt(Word::getLength(s));
         Assert(lens.getConst<Rational>().sgn() > 0);
         std::vector<Node> conj;
         // lens is a positive constant, so it is safe to use total div/mod here.
