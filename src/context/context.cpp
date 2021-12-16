@@ -142,10 +142,6 @@ void ContextObj::update()
   // Call save() to save the information in the current object
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
 
-  Trace("context") << "in update(" << this << ") with restore "
-                   << pContextObjSaved << ": waypoint 1" << std::endl
-                   << *getContext() << std::endl;
-
   // Check that base class data was saved
   Assert((pContextObjSaved->d_pContextObjNext == d_pContextObjNext
           && pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev
@@ -155,27 +151,10 @@ void ContextObj::update()
 
   // Link the "saved" object in place of this ContextObj in the scope
   // we're moving it FROM.
-  Trace("context") << "in update(" << this
-                   << "): next() == " << next() << std::endl;
   if(next() != NULL) {
-    Trace("context") << "in update(" << this
-                     << "): next()->prev() == " << next()->prev() << std::endl;
     next()->prev() = &pContextObjSaved->next();
-    Trace("context") << "in update(" << this
-                     << "): next()->prev() is now "
-                     << next()->prev() << std::endl;
   }
-  Trace("context") << "in update(" << this
-                   << "): prev() == " << prev() << std::endl;
-  Trace("context") << "in update(" << this
-                   << "): *prev() == " << *prev() << std::endl;
   *prev() = pContextObjSaved;
-  Trace("context") << "in update(" << this
-                   << "): *prev() is now " << *prev() << std::endl;
-
-  Trace("context") << "in update(" << this << ") with restore "
-                   << pContextObjSaved << ": waypoint 3" << std::endl
-                   << *getContext() << std::endl;
 
   // Update Scope pointer to current top Scope
   d_pScope = d_pScope->getContext()->getTopScope();
@@ -262,10 +241,6 @@ void ContextObj::destroy()
     {
       break;
     }
-    Trace("context") << "in destroy " << this << ", restore object is "
-                     << d_pContextObjRestore << " at level "
-                     << d_pContextObjRestore->getLevel() << ":" << std::endl
-                     << *getContext() << std::endl;
     restoreAndContinue();
   }
   Trace("context") << "after destroy " << this << ":" << std::endl

@@ -224,11 +224,6 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
-    Trace("CDInsertHashMap") << "save " << this
-                            << " at level " << this->getContext()->getLevel()
-                            << " size at " << this->d_size
-                            << " d_list is " << this->d_insertMap
-                            << " data:" << data << std::endl;
     return data;
   }
 protected:
@@ -240,10 +235,6 @@ protected:
    */
  void restore(ContextObj* data) override
  {
-   Trace("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " data == " << data << " d_insertMap == " << this->d_insertMap
-       << std::endl;
    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
    size_t oldPushFronts =
        ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_pushFronts;
@@ -254,9 +245,6 @@ protected:
    d_insertMap->pop_to_size(restoreSize);
    d_size = restoreSize;
    Assert(d_insertMap->size() == d_size);
-   Trace("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " size back to " << this->d_size << std::endl;
   }
 public:
 
