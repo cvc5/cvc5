@@ -440,8 +440,6 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
     {
       NodeValue* current = stack.back().second;
       const bool visited_children = stack.back().first;
-      Trace("gc") << "Topological sort " << current << " " << visited_children
-                  << std::endl;
       if (visited_children)
       {
         if (root_set.find(current) != root_set.end())
@@ -475,10 +473,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
-
-  Trace("getType") << this << " getting type for " << &n << " " << n
-                   << ", check=" << check << ", needsCheck = " << needsCheck
-                   << ", hasType = " << hasType << endl;
 
 #ifdef CVC5_DEBUG
   // already did type check eagerly upon creation in node builder
@@ -1203,13 +1197,6 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   new (&nv->d_children) T(val);
 
   poolInsert(nv);
-  if (TraceIsOn("gc"))
-  {
-    Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
-    nv->printAst(Trace("gc"));
-    Trace("gc") << std::endl;
-  }
-
   return NodeClass(nv);
 }
 

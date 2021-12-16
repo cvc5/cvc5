@@ -80,16 +80,13 @@ typedef expr::Attribute<IsConstComputedTag, bool> IsConstComputedAttr;
 template <bool ref_count>
 bool NodeTemplate<ref_count>::isConst() const {
   assertTNodeNotExpired();
-  Trace("isConst") << "Node::isConst() for: " << *this << std::endl;
   if(isNull()) {
     return false;
   }
   switch(getMetaKind()) {
   case kind::metakind::CONSTANT:
-    Trace("isConst") << "Node::isConst() returning true, it's a CONSTANT" << std::endl;
     return true;
   case kind::metakind::VARIABLE:
-    Trace("isConst") << "Node::isConst() returning false, it's a VARIABLE" << std::endl;
     return false;
   default:
     if(getAttribute(IsConstComputedAttr())) {

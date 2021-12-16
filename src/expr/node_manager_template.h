@@ -247,16 +247,6 @@ class NodeManager
   inline void markForDeletion(expr::NodeValue* nv) {
     Assert(nv->d_rc == 0);
 
-    // if d_reclaiming is set, make sure we don't call
-    // reclaimZombies(), because it's already running.
-    if(TraceIsOn("gc")) {
-      Trace("gc") << "zombifying node value " << nv
-                  << " [" << nv->d_id << "]: ";
-      nv->printAst(Trace("gc"));
-      Trace("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
-                  << std::endl;
-    }
-
     // `d_zombies` uses the node id to hash and compare nodes. If `d_zombies`
     // already contains a node value with the same id as `nv`, but the pointers
     // are different, then the wrong `NodeManager` was in scope for one of the
@@ -265,6 +255,8 @@ class NodeManager
 
     d_zombies.insert(nv);
 
+    // if d_reclaiming is set, make sure we don't call
+    // reclaimZombies(), because it's already running.
     if(safeToReclaimZombies()) {
       if(d_zombies.size() > 5000) {
         reclaimZombies();
