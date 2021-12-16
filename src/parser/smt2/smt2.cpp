@@ -1013,20 +1013,22 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // integer constants. We must ensure numerator and denominator are
     // constant and the denominator is non-zero. A similar issue happens for
     // negative integers and reals, with unary minus.
+    // NOTE this should be applied more eagerly when UMINUS/DIVISION is
+    // constructed.
     bool isNeg = false;
     if (constVal.getKind() == api::UMINUS)
     {
       isNeg = true;
       constVal = constVal[0];
     }
-    if (constVal.getKind() == api::DIVISION && isConstIntOrReal(constVal[0])
-        && isConstIntOrReal(constVal[1]))
+    if (constVal.getKind() == api::DIVISION && isConstInt(constVal[0])
+        && isConstInt(constVal[1]))
     {
       std::stringstream sdiv;
       sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
     }
-    else if (isConstIntOrReal(constVal) && isNeg)
+    else if (isConstInt(constVal) && isNeg)
     {
       std::stringstream sneg;
       sneg << "-" << constVal;
@@ -1241,10 +1243,10 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
   return d_solver->mkTerm(api::AND, es);
 }
 
-bool Smt2::isConstIntOrReal(const api::Term& t)
+bool Smt2::isConstInt(const api::Term& t)
 {
   api::Kind k = t.getKind();
-  // !!! Note when arithmetic subtyping is eliminated, this will also include
+  // !!! Note when arithmetic subtyping is eliminated, this will update to
   // CONST_INTEGER.
   return k == api::CONST_RATIONAL;
 }

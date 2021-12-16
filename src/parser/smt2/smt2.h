@@ -424,9 +424,9 @@ class Smt2 : public Parser
    */
   api::Term mkAnd(const std::vector<api::Term>& es) const;
   /**
-   * Is term t a constant integer or real?
+   * Is term t a constant integer?
    */
-  static bool isConstIntOrReal(const api::Term& t);
+  static bool isConstInt(const api::Term& t);
 }; /* class Smt2 */
 
 }  // namespace parser
