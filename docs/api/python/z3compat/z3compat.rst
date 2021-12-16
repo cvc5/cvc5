@@ -12,13 +12,13 @@ z3py compatibility Python API
 
     quickstart
     boolean
-    bitvec
     arith
     array
+    bitvec
+    dt
+    fp
     set
+    quant
     solver
     commands
-    fp
-    dt
-    quant
     internals

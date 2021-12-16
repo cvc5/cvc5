@@ -3,7 +3,7 @@ Arithmetic
 
 
 Basic Arithmetic Term Builders
--------------------
+-------------------------------
 .. autofunction:: cvc5_z3py_compat.Int
 .. autofunction:: cvc5_z3py_compat.Real
 .. autofunction:: cvc5_z3py_compat.IntVal
@@ -20,16 +20,11 @@ Basic Arithmetic Term Builders
 .. autofunction:: cvc5_z3py_compat.RealVector
 
 
-Arithmetic Operators
--------------------
-.. autofunction:: cvc5_z3py_compat.ToReal
-.. autofunction:: cvc5_z3py_compat.ToInt
-.. autofunction:: cvc5_z3py_compat.IsInt
-.. autofunction:: cvc5_z3py_compat.Sqrt
-.. autofunction:: cvc5_z3py_compat.Cbrt
+Arithmetic Overloads
+--------------------
 
-See the following operator overloads for building other kinds of arithmetic
-terms:
+See the following operator overloads for building arithmetic terms. These terms
+can also be built with builder functions listed below.
 
 addition (``+``)
   :py:meth:`cvc5_z3py_compat.ArithRef.__add__`
@@ -67,6 +62,26 @@ equal (``==``)
 not equal (``!=``)
   :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
 
+.. autofunction:: cvc5_z3py_compat.Plus
+.. autofunction:: cvc5_z3py_compat.Mult
+.. autofunction:: cvc5_z3py_compat.Sub
+.. autofunction:: cvc5_z3py_compat.UMinus
+.. autofunction:: cvc5_z3py_compat.Div
+.. autofunction:: cvc5_z3py_compat.Pow
+.. autofunction:: cvc5_z3py_compat.IntsModulus
+.. autofunction:: cvc5_z3py_compat.Leq
+.. autofunction:: cvc5_z3py_compat.Geq
+.. autofunction:: cvc5_z3py_compat.Lt
+.. autofunction:: cvc5_z3py_compat.Gt
+
+Other Arithmetic Operators
+--------------------------
+
+.. autofunction:: cvc5_z3py_compat.ToReal
+.. autofunction:: cvc5_z3py_compat.ToInt
+.. autofunction:: cvc5_z3py_compat.IsInt
+.. autofunction:: cvc5_z3py_compat.Sqrt
+.. autofunction:: cvc5_z3py_compat.Cbrt
 
 Testers
 -------------------
@@ -91,7 +106,7 @@ Testers
 .. autofunction:: cvc5_z3py_compat.is_to_int
 
 Classes (with overloads)
--------------------
+-------------------------
 
 .. autoclass:: cvc5_z3py_compat.ArithSortRef
    :members:
