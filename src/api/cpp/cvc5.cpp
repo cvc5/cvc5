@@ -5723,6 +5723,19 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (arity)
+  {
+    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
+  }
+  return Sort(this, getNodeManager()->mkSort(symbol));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
