@@ -1111,6 +1111,29 @@ bool Sort::operator>=(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Sort::hasSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_type->hasAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Sort::getSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_type->hasAttribute(expr::VarNameAttr()))
+      << "Invalid call to '" << __PRETTY_FUNCTION__
+      << "', expected the sort to have a symbol.";
+  //////// all checks before this line
+  return d_type->getAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;

@@ -59,6 +59,26 @@ def test_operators_comparison(solver):
     solver.getIntegerSort() > Sort(solver)
     solver.getIntegerSort() >= Sort(solver)
 
+def test_has_get_symbol(solver):
+    n = Sort(solver)
+    b = solver.getBooleanSort()
+    s0 = solver.mkParamSort("s0")
+    s1 = solver.mkParamSort("|s1\\|")
+
+    with pytest.raises(RuntimeError):
+        n.hasSymbol()
+    assert not b.hasSymbol()
+    assert s0.hasSymbol()
+    assert s1.hasSymbol()
+
+    with pytest.raises(RuntimeError):
+        n.getSymbol()
+    with pytest.raises(RuntimeError):
+        b.getSymbol()
+    assert s0.getSymbol() == "s0"
+    assert s1.getSymbol() == "|s1\\|"
+
+
 def test_is_null(solver):
    x = Sort(solver)
    assert x.isNull()
