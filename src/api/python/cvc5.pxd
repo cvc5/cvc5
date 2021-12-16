@@ -311,6 +311,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint operator>(const Sort&) except +
         bint operator<=(const Sort&) except +
         bint operator>=(const Sort&) except +
+        bint hasSymbol() except +
+        string getSymbol() except +
         bint isNull() except +
         bint isBoolean() except +
         bint isInteger() except +
