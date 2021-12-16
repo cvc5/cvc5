@@ -692,6 +692,10 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_EXTRACT,
   // nth over update
   STRINGS_ARRAY_NTH_UPDATE,
+  // nth over update special case
+  STRINGS_ARRAY_NTH_UPDATE_SHORTCUT1,
+  // nth over update special case
+  STRINGS_ARRAY_NTH_UPDATE_SHORTCUT2,
   // nth over reverse
   STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
