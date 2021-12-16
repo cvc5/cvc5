@@ -1206,6 +1206,10 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
   return NodeBuilder(this, kind).append(children).constructTypeNode();
 }
 
+// clang-format off
+${metakind_mkConstDelete}
+// clang-format off
+
 }  // namespace cvc5
 
 #endif /* CVC5__NODE_MANAGER_H */

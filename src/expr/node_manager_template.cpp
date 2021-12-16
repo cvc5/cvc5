@@ -1158,12 +1158,6 @@ TNode NodeManager::operatorOf(Kind k)
   return d_operators[k];
 }
 
-template <class T>
-Node NodeManager::mkConst(Kind k, const T& val)
-{
-  return mkConstInternal<Node, T>(k, val);
-}
-
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 {

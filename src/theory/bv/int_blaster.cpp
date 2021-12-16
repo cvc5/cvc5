@@ -882,6 +882,25 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   Node y = children[1];
   // shifting by const is eliminated by the theory rewriter
   Assert(!y.isConst());
+
+  // if we use the internal pow2 operator, the translation does not
+  // have any ites
+  if (options().smt.bvToIntUsePow2)
+  {
+    Node pow2Node = d_nm->mkNode(kind::POW2, y);
+    if (isLeftShift)
+    {
+      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(kind::MULT, x, pow2Node),
+                          pow2(bvsize));
+    }
+    else
+    {
+      return d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2Node);
+    }
+  }
+
+  // if we do not use the internal pow2 operator, we use ites.
   Node ite = d_zero;
   Node body;
   for (uint64_t i = 0; i < bvsize; i++)
