@@ -1,0 +1,50 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Whitebox tests for theory Arithmetic.
+ */
+
+#include "test_api.h"
+
+namespace cvc5 {
+
+using namespace api;
+
+namespace test {
+
+class TestTheoryBlackArithNl : public TestApi
+{
+};
+
+TEST_F(TestTheoryBlackArithNl, cvc5Projects388)
+{
+  Solver slv;
+  slv.setOption("trace", "nl-ext");
+  slv.setOption("trace", "nl-eqs");
+  slv.setOption("nl-cad", "true");
+  slv.setOption("nl-cad-var-elim", "true");
+  slv.setOption("nl-ext", "none");
+  slv.setLogic("QF_NIRA");
+  Sort s = slv.getRealSort();
+  Term t1 = slv.mkConst(s, "a");
+  Term t2 = slv.mkConst(s, "b");
+  Term t3 = slv.mkReal(0);
+  Term t7 = slv.mkTerm(Kind::IS_INTEGER, {t1});
+  Term t4 = slv.mkTerm(Kind::DIVISION, {t2, t1});
+  Term t5 = slv.mkTerm(Kind::DISTINCT, {t3, t4});
+  Term t8 = slv.mkTerm(Kind::OR, {t7, t5});
+  slv.assertFormula(t8);
+  slv.checkSat();
+}
+
+}  // namespace test
+}  // namespace cvc5
