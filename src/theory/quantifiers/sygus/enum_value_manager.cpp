@@ -93,7 +93,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       if (options().quantifiers.sygusActiveGenMode
           == options::SygusActiveGenMode::ENUM_BASIC)
       {
-        d_evg = std::make_unique<EnumValGeneratorBasic>(d_env, d_tds, e.getType());
+        d_evg =
+            std::make_unique<EnumValGeneratorBasic>(d_env, d_tds, e.getType());
       }
       else if (options().quantifiers.sygusActiveGenMode
                == options::SygusActiveGenMode::RANDOM)
@@ -123,12 +124,13 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
-        d_evg = std::make_unique<SygusEnumerator>(d_env,
-                                d_tds,
-                                d_secd.get(),
-                                &d_stats,
-                                false,
-                                options().quantifiers.sygusRepairConst);
+        d_evg = std::make_unique<SygusEnumerator>(
+            d_env,
+            d_tds,
+            d_secd.get(),
+            &d_stats,
+            false,
+            options().quantifiers.sygusRepairConst);
       }
     }
     Trace("sygus-active-gen")

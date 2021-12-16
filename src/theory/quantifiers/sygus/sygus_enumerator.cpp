@@ -57,7 +57,8 @@ void SygusEnumerator::initialize(Node e)
   // allocate the default callback
   if (d_sec == nullptr && options::sygusSymBreakDynamic())
   {
-    d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_stats);
+    d_secd =
+        std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_stats);
     d_sec = d_secd.get();
   }
   d_etype = d_enum.getType();
