@@ -28,8 +28,24 @@ class TestTheoryBlackArithNl : public TestApi
 TEST_F(TestTheoryBlackArithNl, cvc5Projects388)
 {
   Solver slv;
-  slv.setOption("trace", "nl-ext");
-  slv.setOption("trace", "nl-eqs");
+  slv.setLogic("QF_NRA");
+  Sort s = slv.getRealSort();
+  Term t1 = slv.mkConst(s, "a");
+  Term t2 = slv.mkConst(s, "b");
+  Term t3 = slv.mkConst(s, "c");
+  Term t4 = slv.mkTerm(Kind::DIVISION, {t1, t2});
+  Term t5 = slv.mkTerm(Kind::GT, {t4, t3});
+  Term t6 = slv.mkTerm(Kind::DIVISION, {t1, t3});
+  Term t7 = slv.mkTerm(Kind::IS_INTEGER, {t6});
+  Term t8 = slv.mkTerm(Kind::AND, {t5, t7, t5});
+  Term t9 = slv.mkTerm(Kind::NOT, {t8});
+  slv.assertFormula(t9);
+  slv.checkSat();
+}
+
+TEST_F(TestTheoryBlackArithNl, cvc5Projects388Min)
+{
+  Solver slv;
   slv.setOption("nl-cad", "true");
   slv.setOption("nl-cad-var-elim", "true");
   slv.setOption("nl-ext", "none");
