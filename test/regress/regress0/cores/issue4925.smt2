@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: unsat
