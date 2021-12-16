@@ -118,18 +118,17 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             // use the default output for the output of sygusRewVerify
             out = options().base.out;
           }
-          d_secd.reset(new SygusEnumeratorCallbackDefault(
-              d_env, e, &d_stats, d_eec.get(), d_samplerRrV.get(), out));
+          d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
+              d_env, e, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
-        d_evg.reset(
-            new SygusEnumerator(d_env,
+        d_evg = std::make_unique<SygusEnumerator>(d_env,
                                 d_tds,
                                 d_secd.get(),
                                 &d_stats,
                                 false,
-                                options().quantifiers.sygusRepairConst));
+                                options().quantifiers.sygusRepairConst);
       }
     }
     Trace("sygus-active-gen")
