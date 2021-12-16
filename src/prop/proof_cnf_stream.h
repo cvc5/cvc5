@@ -26,6 +26,7 @@
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
+#include "prop/opt_clauses_manager.h"
 #include "prop/sat_proof_manager.h"
 
 namespace cvc5 {
@@ -103,6 +104,14 @@ class ProofCnfStream : public ProofGenerator
    * generator. */
   bool isBlocked(std::shared_ptr<ProofNode> pfn);
 
+  /** Notify that current propagation inserted at lower level than current. */
+  void notifyOptPropagation(int explLevel);
+  /** Notify that and added clause was inserted at lower level than current. */
+  void notifyOptClause(const SatClause& clause, int clLevel);
+
+  /** Return the user context tracked by this class. */
+  context::Context* getContext() { return d_userContext; }
+
  private:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the
@@ -170,6 +179,9 @@ class ProofCnfStream : public ProofGenerator
   ProofNodeManager* d_pnm;
   /** The user-context-dependent proof object. */
   LazyCDProof d_proof;
+
+  /** The user context */
+  context::UserContext* d_userContext;
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
   TheoryProofStepBuffer d_psb;
@@ -178,6 +190,18 @@ class ProofCnfStream : public ProofGenerator
    * These are proof nodes added to this class by external generators. */
   context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
       d_blocked;
+
+  /** The current propagation being processed via this class. */
+  Node d_currPropagationProccessed;
+  /** User-context-dependent map assertion level to proof nodes.
+   *
+   * This map is used to update the internal proof of this class when the
+   * context pops.
+   */
+  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
+  /** Manager for optimized propagations and added clauses inserted at assertion
+   * levels below the current user level. */
+  OptimizedClausesManager d_optClausesManager;
 };
 
 }  // namespace prop

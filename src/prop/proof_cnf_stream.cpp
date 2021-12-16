@@ -30,7 +30,9 @@ ProofCnfStream::ProofCnfStream(context::UserContext* u,
     : d_cnfStream(cnfStream),
       d_satPM(satPM),
       d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_blocked(u)
+      d_userContext(u),
+      d_blocked(u),
+      d_optClausesManager(u, &d_proof, d_optClausesPfs)
 {
 }
 
@@ -77,7 +79,8 @@ void ProofCnfStream::convertAndAssert(TNode node,
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
-               << ", removable = " << (removable ? "true" : "false") << ")\n";
+               << ", removable = " << (removable ? "true" : "false")
+               << "), level " << d_userContext->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
   if (pg)
   {
@@ -590,7 +593,7 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   {
     clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
-  normalizeAndRegister(clauseExp);
+  d_currPropagationProccessed = normalizeAndRegister(clauseExp);
   // consume steps
   if (proofLogging)
   {
@@ -603,6 +606,45 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
 }
 
+void ProofCnfStream::notifyOptPropagation(int explLevel)
+{
+  AlwaysAssert(explLevel < (d_userContext->getLevel() - 1));
+  AlwaysAssert(!d_currPropagationProccessed.isNull());
+  Trace("cnf") << "Need to save curr propagation "
+               << d_currPropagationProccessed << "'s proof in level "
+               << explLevel + 1 << " despite being currently in level "
+               << d_userContext->getLevel() << "\n";
+  // Save into map the proof of the processed propagation. Note that
+  // propagations must be explained eagerly, since their justification depends
+  // on the theory engine and may be different if we only get its proof when the
+  // SAT solver pops the user context. Not doing this may lead to open proofs.
+  //
+  // It's also necessary to copy the proof node, so we prevent unintended
+  // updates to the saved proof. Not doing this may also lead to open proofs.
+  std::shared_ptr<ProofNode> currPropagationProcPf =
+      d_pnm->clone(d_proof.getProofFor(d_currPropagationProccessed));
+  AlwaysAssert(currPropagationProcPf->getRule() != PfRule::ASSUME);
+  Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
+                     << *currPropagationProcPf.get() << "\n";
+  d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
+
+  d_currPropagationProccessed = Node::null();
+}
+
+void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
+{
+  Trace("cnf") << "Need to save clause " << clause << " in level "
+               << clLevel + 1 << " despite being currently in level "
+               << d_userContext->getLevel() << "\n";
+  Node clauseNode = getClauseNode(clause);
+  Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
+  AlwaysAssert(clLevel < (d_userContext->getLevel() - 1));
+  // As above, also justify eagerly.
+  std::shared_ptr<ProofNode> clauseCnfPf =
+      d_pnm->clone(d_proof.getProofFor(clauseNode));
+  AlwaysAssert(clauseCnfPf->getRule() != PfRule::ASSUME);
+  d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+}
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
 {
