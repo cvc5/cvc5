@@ -74,8 +74,9 @@ class Solver : protected EnvObj
   /** The pointer to the proxy that provides interfaces to the SMT engine */
   cvc5::prop::TheoryProxy* d_proxy;
 
-  /** The context from the SMT solver */
+  /** The contexts from the SMT solver */
   cvc5::context::Context* d_context;
+  cvc5::context::UserContext* d_userContext;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -164,6 +165,17 @@ public:
   * SAT proofs are not required for assumption-based unsat cores.
   */
  bool needProof() const;
+
+ /*
+  * Returns true if the solver should add all clauses at the current assertion
+  * level.
+  *
+  * FIXME: This is a workaround. Currently, our resolution proofs do not
+  * handle clauses with a lower-than-assertion-level correctly because the
+  * resolution proofs get removed when popping the context but the SAT solver
+  * keeps using them.
+  */
+ bool assertionLevelOnly() const;
 
  // Less than for literals in a lemma
  struct lemma_lt

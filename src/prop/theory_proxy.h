@@ -75,7 +75,12 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   void theoryCheck(theory::Theory::Effort effort);
 
+  /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
+  /** Notify that current propagation inserted at lower level than current. */
+  void notifyOptPropagation(int explLevel);
+  /** Notify that and added clause was inserted at lower level than current. */
+  void notifyOptClause(const SatClause& clause, int clLevel);
 
   void theoryPropagate(SatClause& output);
 
