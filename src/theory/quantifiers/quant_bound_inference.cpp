@@ -59,7 +59,6 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())
     {
-      Rational card = Rational(c.getFiniteCardinality());
       // check if less than fixed upper bound
       mc = (c.getFiniteCardinality() < Integer(maxCard));
     }
