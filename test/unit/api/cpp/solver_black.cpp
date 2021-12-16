@@ -2777,5 +2777,64 @@ TEST_F(TestApiBlackSolver, proj_issue381)
   ASSERT_NO_THROW(d_solver.simplify(t187));
 }
 
+
+TEST_F(TestApiBlackSolver, proj_issue382)
+{
+  Sort s1 = d_solver.getBooleanSort();
+  Sort psort = d_solver.mkParamSort("_x1");
+  DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x20");
+  ctor.addSelector("_x19", psort);
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", psort);
+  dtdecl.addConstructor(ctor);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s2.instantiate({s1});
+  Term t13 = d_solver.mkVar(s6, "_x58");
+  Term t18 = d_solver.mkConst(s6, "_x63");
+  Term t52 = d_solver.mkVar(s6, "_x70");
+  Term t53 = d_solver.mkTerm(
+      MATCH_BIND_CASE, d_solver.mkTerm(VARIABLE_LIST, t52), t52, t18);
+  Term t73 = d_solver.mkVar(s1, "_x78");
+  Term t81 =
+      d_solver.mkTerm(MATCH_BIND_CASE,
+                      d_solver.mkTerm(VARIABLE_LIST, t73),
+                      d_solver.mkTerm(APPLY_CONSTRUCTOR,
+                                      s6.getDatatype()
+                                          .getConstructor("_x20")
+                                          .getInstantiatedConstructorTerm(s6),
+                                      t73),
+                      t18);
+  Term t82 = d_solver.mkTerm(MATCH, {t13, t53, t53, t53, t81});
+  Term t325 = d_solver.mkTerm(
+      APPLY_SELECTOR,
+      t82.getSort().getDatatype().getSelector("_x19").getSelectorTerm(),
+      t82);
+  ASSERT_NO_THROW(d_solver.simplify(t325));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue383)
+{
+  d_solver.setOption("produce-models", "true");
+
+  Sort s1 = d_solver.getBooleanSort();
+
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("_x5");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0");
+  dtdecl.addConstructor(ctordecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+
+  ctordecl = d_solver.mkDatatypeConstructorDecl("_x23");
+  ctordecl.addSelectorSelf("_x21");
+  dtdecl = d_solver.mkDatatypeDecl("_x12");
+  dtdecl.addConstructor(ctordecl);
+  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
+  ASSERT_FALSE(s4.getDatatype().isWellFounded());
+
+  Term t3 = d_solver.mkConst(s4, "_x25");
+  Term t13 = d_solver.mkConst(s1, "_x34");
+
+  d_solver.checkEntailed(t13);
+  ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
+}
+
 }  // namespace test
 }  // namespace cvc5
