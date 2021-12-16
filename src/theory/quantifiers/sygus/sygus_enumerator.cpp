@@ -33,7 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(Env& env, 
+SygusEnumerator::SygusEnumerator(Env& env,
                                  TermDbSygus* tds,
                                  SygusEnumeratorCallback* sec,
                                  SygusStatistics* s,

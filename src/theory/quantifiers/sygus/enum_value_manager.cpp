@@ -124,7 +124,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
         d_evg.reset(
-            new SygusEnumerator(d_env, 
+            new SygusEnumerator(d_env,
                                 d_tds,
                                 d_secd.get(),
                                 &d_stats,

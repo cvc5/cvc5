@@ -21,8 +21,8 @@
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
 namespace theory {
@@ -82,7 +82,7 @@ class SygusEnumeratorCallback : protected EnvObj
 class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
 {
  public:
-  SygusEnumeratorCallbackDefault(Env& env, 
+  SygusEnumeratorCallbackDefault(Env& env,
                                  Node e,
                                  SygusStatistics* s = nullptr,
                                  ExampleEvalCache* eec = nullptr,

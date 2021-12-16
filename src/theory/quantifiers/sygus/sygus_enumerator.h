@@ -23,10 +23,10 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -72,7 +72,7 @@ class SygusEnumerator : public EnumValGenerator, protected EnvObj
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
    * free variables are the arguments to any-constant constructors.
    */
-  SygusEnumerator(Env& env, 
+  SygusEnumerator(Env& env,
                   TermDbSygus* tds = nullptr,
                   SygusEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
