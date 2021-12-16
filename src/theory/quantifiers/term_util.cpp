@@ -368,15 +368,15 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
   {
     Rational vval = val.getConst<Rational>();
     Rational oval(offset);
-    val_o = NodeManager::currentNM()->mkConstRealOrInt(tn, vval + oval);
     status = 0;
+    return NodeManager::currentNM()->mkConstRealOrInt(tn, vval + oval);
   }
   else if (tn.isBitVector())
   {
     BitVector vval = val.getConst<BitVector>();
     uint32_t uv = static_cast<uint32_t>(offset);
     BitVector oval(tn.getConst<BitVectorSize>(), uv);
-    val_o = NodeManager::currentNM()->mkConst(vval + oval);
+    return NodeManager::currentNM()->mkConst(vval + oval);
   }
   return val_o;
 }

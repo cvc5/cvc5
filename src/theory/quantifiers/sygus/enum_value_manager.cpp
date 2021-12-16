@@ -82,7 +82,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   {
     if (d_tds->isVariableAgnosticEnumerator(e))
     {
-      d_evg.reset(new EnumStreamConcrete(d_env, d_tds));
+      d_evg = std::make_unique<EnumStreamConcrete>(d_env, d_tds);
     }
     else
     {
@@ -93,12 +93,12 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       if (options().quantifiers.sygusActiveGenMode
           == options::SygusActiveGenMode::ENUM_BASIC)
       {
-        d_evg.reset(new EnumValGeneratorBasic(d_env, d_tds, e.getType()));
+        d_evg = std::make_unique<EnumValGeneratorBasic>(d_env, d_tds, e.getType());
       }
       else if (options().quantifiers.sygusActiveGenMode
                == options::SygusActiveGenMode::RANDOM)
       {
-        d_evg.reset(new SygusRandomEnumerator(d_env, d_tds));
+        d_evg = std::make_unique<SygusRandomEnumerator>(d_env, d_tds);
       }
       else
       {

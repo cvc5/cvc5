@@ -619,7 +619,7 @@ void SingleInvocationPartition::debugPrint(const char* c)
   Trace(c) << std::endl;
 }
 
-Node SingleInvocationPartition::getQuantSimplify(Node n) const
+Node SingleInvocationPartition::getQuantSimplify(TNode n) const
 {
   std::unordered_set<Node> fvs;
   expr::getFreeVariables(n, fvs);
@@ -627,8 +627,7 @@ Node SingleInvocationPartition::getQuantSimplify(Node n) const
   {
     return rewrite(n);
   }
-  std::vector<Node> bvs;
-  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  std::vector<Node> bvs(fvs.begin(), fvs.end());
   NodeManager* nm = NodeManager::currentNM();
   Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
   q = rewrite(q);

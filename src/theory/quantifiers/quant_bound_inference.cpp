@@ -61,8 +61,7 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
     {
       Rational card = Rational(c.getFiniteCardinality());
       // check if less than fixed upper bound
-      Rational oth = Rational(maxCard);
-      mc = (card < oth);
+      mc = (c.getFiniteCardinality() < Integer(maxCard));
     }
   }
   return mc;
