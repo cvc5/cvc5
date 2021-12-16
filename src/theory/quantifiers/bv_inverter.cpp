@@ -30,7 +30,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
-  
+
 BvInverter::BvInverter(Rewriter* r) : d_rewriter(r) {}
 
 /*---------------------------------------------------------------------------*/
@@ -56,7 +56,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 
   // condition should be rewritten
   Node new_cond = cond;
-  if (d_rewriter!=nullptr)
+  if (d_rewriter != nullptr)
   {
     new_cond = d_rewriter->rewrite(cond);
     if (new_cond != cond)

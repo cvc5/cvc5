@@ -27,7 +27,7 @@
 
 namespace cvc5 {
 namespace theory {
-  
+
 class Rewriter;
 
 namespace quantifiers {
@@ -126,7 +126,7 @@ class BvInverter
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
   /** (Optional) rewriter used as helper in getInversionNode */
-  Rewriter * d_rewriter;
+  Rewriter* d_rewriter;
   /** Dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
 };

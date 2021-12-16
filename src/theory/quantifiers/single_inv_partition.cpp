@@ -28,9 +28,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-  
-SingleInvocationPartition::SingleInvocationPartition(Env& env) : EnvObj(env), d_has_input_funcs(false) {}
-  
+SingleInvocationPartition::SingleInvocationPartition(Env& env)
+    : EnvObj(env), d_has_input_funcs(false)
+{
+}
+
 bool SingleInvocationPartition::init(Node n)
 {
   // first, get types of arguments for functions
@@ -617,12 +619,13 @@ void SingleInvocationPartition::debugPrint(const char* c)
   Trace(c) << std::endl;
 }
 
-Node SingleInvocationPartition::getQuantSimplify( Node n ) const {
+Node SingleInvocationPartition::getQuantSimplify(Node n) const
+{
   std::unordered_set<Node> fvs;
   expr::getFreeVariables(n, fvs);
   if (fvs.empty())
   {
-    return rewrite( n );
+    return rewrite(n);
   }
   std::vector<Node> bvs;
   bvs.insert(bvs.end(), fvs.begin(), fvs.end());

@@ -290,8 +290,9 @@ class SingleInvocationPartition : protected EnvObj
 
   /** get the and node corresponding to d_conjuncts[index] */
   Node getConjunct(int index);
-  /** Quantified simplify (treat free variables in n as quantified and run rewriter) */
-  Node getQuantSimplify( Node n ) const;
+  /** Quantified simplify (treat free variables in n as quantified and run
+   * rewriter) */
+  Node getQuantSimplify(Node n) const;
 };
 
 }  // namespace quantifiers
