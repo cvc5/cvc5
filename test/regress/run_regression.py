@@ -376,7 +376,7 @@ def run_process(args, cwd, timeout, s_input=None):
     output and the exit code of the process. If the process times out, the
     output and the error output are empty and the exit code is 124."""
 
-    cmd = shlex.join(args) if isinstance(args, list) else args
+    cmd = " ".join([shlex.quote(a) for a in args]) if isinstance(args, list) else args
 
     out = ""
     err = ""
@@ -385,10 +385,10 @@ def run_process(args, cwd, timeout, s_input=None):
         res = subprocess.run(
             cmd,
             cwd=cwd,
-            stdin=subprocess.PIPE,
+            input=s_input,
             timeout=timeout,
             capture_output=True,
-            shell=True
+            shell=True,
         )
         out = res.stdout
         err = res.stderr
