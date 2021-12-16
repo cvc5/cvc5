@@ -285,10 +285,12 @@ bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
 
 Node QuantifiersRewriter::computeElimSymbols(Node body) const
 {
+  // at pre-order traversal, we store preKind and preChildren, which
+  // determine the Kind and the children for the node to reconstruct.
+  std::unordered_map<TNode, Kind> preKind;
+  std::unordered_map<TNode, std::vector<Node>> preChildren;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, std::vector<Node>> preChildren;
-  std::unordered_map<TNode, Kind> preKind;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
