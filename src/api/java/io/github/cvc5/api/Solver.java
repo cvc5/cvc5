@@ -254,6 +254,8 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
+   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @param unresolvedSorts the set of unresolved sorts
