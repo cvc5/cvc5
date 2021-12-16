@@ -285,7 +285,7 @@ bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
 
 Node QuantifiersRewriter::computeElimSymbols(Node body) const
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, std::vector<Node>> preChildren;
   std::unordered_map<TNode, Kind> preKind;
@@ -293,49 +293,70 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(body);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       Kind ok = cur.getKind();
       Kind k = ok;
       bool negAllCh = false;
       bool negCh1 = false;
       TNode ocur = cur;
-      if( ok==IMPLIES ){
+      if (ok == IMPLIES)
+      {
         k = OR;
         negCh1 = true;
-      }else if( ok==XOR ){
+      }
+      else if (ok == XOR)
+      {
         k = EQUAL;
         negCh1 = true;
-      }else if( ok==NOT ){
+      }
+      else if (ok == NOT)
+      {
         // double negation should already be eliminated
-        Assert (cur[0].getKind()!=NOT);
-        if( cur[0].getKind()==OR || cur[0].getKind()==IMPLIES ){
-          k = AND;   
+        Assert(cur[0].getKind() != NOT);
+        if (cur[0].getKind() == OR || cur[0].getKind() == IMPLIES)
+        {
+          k = AND;
           negAllCh = true;
-          negCh1 = cur[0].getKind()==IMPLIES;
+          negCh1 = cur[0].getKind() == IMPLIES;
           cur = cur[0];
-        }else if( cur[0].getKind()==AND ){
+        }
+        else if (cur[0].getKind() == AND)
+        {
           k = OR;
           negAllCh = true;
           cur = cur[0];
-        }else if( cur[0].getKind()==XOR || ( cur[0].getKind()==EQUAL && cur[0][0].getType().isBoolean() ) ){
+        }
+        else if (cur[0].getKind() == XOR
+                 || (cur[0].getKind() == EQUAL
+                     && cur[0][0].getType().isBoolean()))
+        {
           k = EQUAL;
-          negCh1 = ( cur[0].getKind()==EQUAL );
+          negCh1 = (cur[0].getKind() == EQUAL);
           cur = cur[0];
-        }else if( cur[0].getKind()==ITE ){
+        }
+        else if (cur[0].getKind() == ITE)
+        {
           k = cur[0].getKind();
           negAllCh = true;
           negCh1 = true;
           cur = cur[0];
-        }else{
+        }
+        else
+        {
           visited[cur] = cur;
           continue;
         }
-      }else if( ( ok!=EQUAL || !body[0].getType().isBoolean() ) && ok!=ITE && ok!=AND && ok!=OR ){
-        //a literal
+      }
+      else if ((ok != EQUAL || !body[0].getType().isBoolean()) && ok != ITE
+               && ok != AND && ok != OR)
+      {
+        // a literal
         visited[cur] = cur;
         continue;
       }
@@ -343,52 +364,65 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
       visited[ocur] = Node::null();
       visit.push_back(ocur);
       std::vector<Node>& pc = preChildren[ocur];
-      for( size_t i=0, nchild = cur.getNumChildren(); i<nchild; i++ ){
-        Node c = ( i==0 && negCh1 )!=negAllCh ? cur[i].negate() : Node(cur[i]);
+      for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
+      {
+        Node c =
+            (i == 0 && negCh1) != negAllCh ? cur[i].negate() : Node(cur[i]);
         pc.push_back(c);
         visit.push_back(c);
       }
-    } else if (it->second.isNull()) {
+    }
+    else if (it->second.isNull())
+    {
       Kind ok = cur.getKind();
-      Assert (preKind.find(cur)!=preKind.end());
+      Assert(preKind.find(cur) != preKind.end());
       Kind k = preKind[cur];
-      Assert (cur.getMetaKind() != kind::metakind::PARAMETERIZED);
+      Assert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
       bool childChanged = false;
       std::vector<Node> children;
       std::vector<Node>& pc = preChildren[cur];
-      std::map< Node, bool > lit_pol;
+      std::map<Node, bool> lit_pol;
       bool success = true;
-      for (const Node& cn : pc) {
+      for (const Node& cn : pc)
+      {
         it = visited.find(cn);
         Assert(it != visited.end());
         Assert(!it->second.isNull());
         Node c = it->second;
-        if( c.getKind()==k && ( k==OR || k==AND ) ){
-          //flatten
+        if (c.getKind() == k && (k == OR || k == AND))
+        {
+          // flatten
           childChanged = true;
-          for (const Node& cc : c){
-            if( !addCheckElimChild( children, cc, k, lit_pol, childChanged ) ){
+          for (const Node& cc : c)
+          {
+            if (!addCheckElimChild(children, cc, k, lit_pol, childChanged))
+            {
               success = false;
               break;
             }
           }
-        }else{
-          success = addCheckElimChild( children, c, k, lit_pol, childChanged );
         }
-        if( !success ){
+        else
+        {
+          success = addCheckElimChild(children, c, k, lit_pol, childChanged);
+        }
+        if (!success)
+        {
           // tautology
           break;
         }
-        childChanged = childChanged || c!=cn;
+        childChanged = childChanged || c != cn;
       }
       Node ret = cur;
       if (!success)
       {
         Assert(k == OR || k == AND);
-        ret = nm->mkConst( k==OR );
+        ret = nm->mkConst(k == OR);
       }
-      else if( childChanged || k!=ok ){
-        ret = ( children.size()==1 && k!=NOT ) ? children[0] : nm->mkNode( k, children );
+      else if (childChanged || k != ok)
+      {
+        ret = (children.size() == 1 && k != NOT) ? children[0]
+                                                 : nm->mkNode(k, children);
       }
       visited[cur] = ret;
     }
