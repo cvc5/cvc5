@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Gereon Kremer
+ *   Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Whitebox tests for theory Arithmetic.
+ * Blackbox tests using the API targeting nonlinear arithmetic.
  */
 
 #include "test_api.h"
