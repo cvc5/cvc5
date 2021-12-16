@@ -50,7 +50,10 @@ class SygusRandomEnumerator : public EnumValGenerator
    *
    * @param tds pointer to term database sygus.
    */
-  SygusRandomEnumerator(Env& env, TermDbSygus* tds) : EnumValGenerator(env), d_tds(tds){}
+  SygusRandomEnumerator(Env& env, TermDbSygus* tds)
+      : EnumValGenerator(env), d_tds(tds)
+  {
+  }
 
   /** Initialize this class with enumerator `e`. */
   void initialize(Node e) override;

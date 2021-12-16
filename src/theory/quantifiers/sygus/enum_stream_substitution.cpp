@@ -606,8 +606,10 @@ bool EnumStreamSubstitution::CombinationState::getNextCombination()
   return new_comb;
 }
 
-
-EnumStreamConcrete::EnumStreamConcrete(Env& env, TermDbSygus* tds) : EnumValGenerator(env), d_ess(env, tds) {}
+EnumStreamConcrete::EnumStreamConcrete(Env& env, TermDbSygus* tds)
+    : EnumValGenerator(env), d_ess(env, tds)
+{
+}
 
 void EnumStreamConcrete::initialize(Node e) { d_ess.initialize(e.getType()); }
 void EnumStreamConcrete::addValue(Node v)

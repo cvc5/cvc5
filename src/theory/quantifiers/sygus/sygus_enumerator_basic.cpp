@@ -24,7 +24,9 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumValGeneratorBasic::EnumValGeneratorBasic(Env& env, TermDbSygus* tds, TypeNode tn)
+EnumValGeneratorBasic::EnumValGeneratorBasic(Env& env,
+                                             TermDbSygus* tds,
+                                             TypeNode tn)
     : EnumValGenerator(env), d_tds(tds), d_te(tn)
 {
 }
