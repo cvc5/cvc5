@@ -45,10 +45,11 @@ name   = "Parser"
 # overwrite an existing file with malicious content.
 [[option]]
   name       = "filesystemAccess"
-  category   = "undocumented"
+  category   = "expert"
   long       = "filesystem-access"
   type       = "bool"
   default    = "true"
+  help       = "limits the file system access if set to false"
 
 [[option]]
   name       = "forceLogicString"

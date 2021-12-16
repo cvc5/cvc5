@@ -260,18 +260,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     {
       Node key = d_state.getRepresentative(e);
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      context::CDList<TNode>::const_iterator shared_it =
-          std::find(d_sharedTerms.begin(), d_sharedTerms.end(), countTerm);
-      eq::EqClassIterator it =
-          eq::EqClassIterator(r, d_state.getEqualityEngine());
-      while (!it.isFinished() && shared_it == d_sharedTerms.end())
-      {
-        Node bag = *(++it);
-        countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, bag);
-        shared_it =
-            std::find(d_sharedTerms.begin(), d_sharedTerms.end(), countTerm);
-      }
-      Node value = d_valuation.getModelValue(countTerm);
+      Node value = m->getRepresentative(countTerm);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
@@ -289,9 +278,15 @@ Node TheoryBags::getModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
-  Trace("bags::TheoryBags::preRegisterTerm") << n << std::endl;
+  Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {
+    case kind::EQUAL:
+    {
+      // add trigger predicate for equality and membership
+      d_equalityEngine->addTriggerPredicate(n);
+    }
+    break;
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
@@ -300,7 +295,7 @@ void TheoryBags::preRegisterTerm(TNode n)
       ss << "Term of kind " << n.getKind() << " is not supported yet";
       throw LogicException(ss.str());
     }
-    default: break;
+    default: d_equalityEngine->addTerm(n); break;
   }
 }
 
