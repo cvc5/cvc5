@@ -1232,7 +1232,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // Do beta reduction on the operator so that its arguments match the
         // fresh variables of the lambda (op) we are constructing below.
         sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
-        sop = Rewriter::rewrite(sop);
       }
       opCArgs.push_back(unresAnyConst);
       Node coeff = nm->mkBoundVar(types[i]);

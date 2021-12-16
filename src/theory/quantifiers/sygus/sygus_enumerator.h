@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -55,10 +56,11 @@ class SygusPbe;
  * these "shapes". This feature can be enabled by setting enumShapes to true
  * in the constructor below.
  */
-class SygusEnumerator : public EnumValGenerator
+class SygusEnumerator : public EnumValGenerator, protected EnvObj
 {
  public:
   /**
+   * @param env Reference to the environment
    * @param tds Pointer to the term database, required if enumShapes or
    * enumAnyConstHoles is true, or if we want to include symmetry breaking from
    * lemmas stored in the sygus term database,
@@ -70,7 +72,8 @@ class SygusEnumerator : public EnumValGenerator
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
    * free variables are the arguments to any-constant constructors.
    */
-  SygusEnumerator(TermDbSygus* tds = nullptr,
+  SygusEnumerator(Env& env, 
+                  TermDbSygus* tds = nullptr,
                   SygusEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
