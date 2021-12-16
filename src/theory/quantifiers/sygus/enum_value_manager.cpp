@@ -82,7 +82,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   {
     if (d_tds->isVariableAgnosticEnumerator(e))
     {
-      d_evg.reset(new EnumStreamConcrete(d_tds));
+      d_evg.reset(new EnumStreamConcrete(d_env, d_tds));
     }
     else
     {

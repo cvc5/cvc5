@@ -47,6 +47,7 @@ class SynthConjecture;
 class SygusInvarianceTest
 {
  public:
+   SygusInvarianceTest(Rewriter * r) : d_rewriter(r) {}
   virtual ~SygusInvarianceTest() {}
 
   /** Is nvn invariant with respect to this test ?
@@ -72,6 +73,8 @@ class SygusInvarianceTest
   /** set updated term */
   void setUpdatedTerm(Node n) { d_update_nvn = n; }
  protected:
+  /** Pointer to the rewriter */
+  Rewriter* d_rewriter;
   /** result of the node that satisfies this invariant */
   Node d_update_nvn;
   /** check whether nvn[ x ] is invariant */
@@ -101,8 +104,8 @@ class SygusInvarianceTest
 class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EvalSygusInvarianceTest()
-      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
+  EvalSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r), d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
   {
   }
 
@@ -171,7 +174,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 class EquivSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EquivSygusInvarianceTest() : d_conj(nullptr) {}
+  EquivSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r), d_conj(nullptr) {}
 
   /** initialize this invariance test
    * tn is the sygus type for e
@@ -212,7 +215,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  DivByZeroSygusInvarianceTest() {}
+  DivByZeroSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r) {}
 
  protected:
   /** checks whether nvn involves division by zero. */
@@ -249,7 +252,7 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   NegContainsSygusInvarianceTest(Rewriter* r)
-      : d_rewriter(r), d_isUniversal(false)
+      : SygusInvarianceTest(r), d_isUniversal(false)
   {
   }
 
@@ -284,8 +287,6 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
-  /** Pointer to the rewriter */
-  Rewriter* d_rewriter;
   /** The enumerator whose value we are considering in this invariance test */
   Node d_enum;
   /** The input examples */

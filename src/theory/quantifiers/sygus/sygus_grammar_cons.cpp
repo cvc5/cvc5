@@ -153,7 +153,7 @@ Node CegGrammarConstructor::process(Node q,
       sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
       // normalize type, if user-provided
-      SygusGrammarNorm sygus_norm(d_tds);
+      SygusGrammarNorm sygus_norm(d_env, d_tds);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }else{
       sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
