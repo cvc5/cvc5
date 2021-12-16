@@ -23,7 +23,6 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -56,7 +55,7 @@ class SygusPbe;
  * these "shapes". This feature can be enabled by setting enumShapes to true
  * in the constructor below.
  */
-class SygusEnumerator : public EnumValGenerator, protected EnvObj
+class SygusEnumerator : public EnumValGenerator
 {
  public:
   /**

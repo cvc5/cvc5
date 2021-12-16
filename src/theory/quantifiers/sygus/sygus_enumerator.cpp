@@ -39,7 +39,7 @@ SygusEnumerator::SygusEnumerator(Env& env,
                                  SygusStatistics* s,
                                  bool enumShapes,
                                  bool enumAnyConstHoles)
-    : EnvObj(env),
+    : EnumValGenerator(env),
       d_tds(tds),
       d_sec(sec),
       d_stats(s),

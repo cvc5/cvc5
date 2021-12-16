@@ -93,12 +93,12 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       if (options().quantifiers.sygusActiveGenMode
           == options::SygusActiveGenMode::ENUM_BASIC)
       {
-        d_evg.reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+        d_evg.reset(new EnumValGeneratorBasic(d_env, d_tds, e.getType()));
       }
       else if (options().quantifiers.sygusActiveGenMode
                == options::SygusActiveGenMode::RANDOM)
       {
-        d_evg.reset(new SygusRandomEnumerator(d_tds));
+        d_evg.reset(new SygusRandomEnumerator(d_env, d_tds));
       }
       else
       {

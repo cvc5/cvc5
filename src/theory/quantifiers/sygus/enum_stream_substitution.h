@@ -284,7 +284,7 @@ class EnumStreamSubstitution : protected EnvObj
 class EnumStreamConcrete : public EnumValGenerator
 {
  public:
-  EnumStreamConcrete(Env& env, TermDbSygus* tds) : d_ess(env, tds) {}
+  EnumStreamConcrete(Env& env, TermDbSygus* tds);
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
   /** get that value v was enumerated */
