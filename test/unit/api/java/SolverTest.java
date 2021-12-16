@@ -204,7 +204,7 @@ class SolverTest
     Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
         t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getSelectorTerm(),
         t1);
-    assert (dt_sorts[0].instantiate(new Sort[] {d_solver.getBooleanSort()}) == t0.getSort());
+    assertEquals(dt_sorts[0].instantiate(new Sort[] {d_solver.getBooleanSort()}), t0.getSort());
 
     /* Note: More tests are in datatype_api_black. */
   }
