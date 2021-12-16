@@ -1233,7 +1233,7 @@ void DeclareSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
-  if (d_arity==0)
+  if (d_arity == 0)
   {
     sm->addModelDeclarationSort(d_sort);
   }
