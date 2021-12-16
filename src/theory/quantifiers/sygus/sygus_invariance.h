@@ -47,7 +47,7 @@ class SynthConjecture;
 class SygusInvarianceTest
 {
  public:
-   SygusInvarianceTest(Rewriter * r) : d_rewriter(r) {}
+  SygusInvarianceTest(Rewriter* r) : d_rewriter(r) {}
   virtual ~SygusInvarianceTest() {}
 
   /** Is nvn invariant with respect to this test ?
@@ -105,7 +105,9 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   EvalSygusInvarianceTest(Rewriter* r)
-      : SygusInvarianceTest(r), d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
+      : SygusInvarianceTest(r),
+        d_kind(kind::UNDEFINED_KIND),
+        d_is_conjunctive(false)
   {
   }
 
@@ -174,7 +176,10 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 class EquivSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EquivSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r), d_conj(nullptr) {}
+  EquivSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r), d_conj(nullptr)
+  {
+  }
 
   /** initialize this invariance test
    * tn is the sygus type for e

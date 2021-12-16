@@ -69,7 +69,10 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds) : EnvObj(env), d_tds(tds) {}
+SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds)
+{
+}
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
     : d_tn(src_tn),
@@ -282,7 +285,8 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   Trace("sygus-gnorm") << "  #cons = " << op_pos.size() << " / "
                        << dt.getNumConstructors() << std::endl;
   // look for redundant constructors to drop
-  if (options().quantifiers.sygusMinGrammar && dt.getNumConstructors() == op_pos.size())
+  if (options().quantifiers.sygusMinGrammar
+      && dt.getNumConstructors() == op_pos.size())
   {
     SygusRedundantCons src(d_env);
     src.initialize(d_tds, tn);

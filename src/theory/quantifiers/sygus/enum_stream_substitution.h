@@ -19,8 +19,8 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/sygus/enum_val_generator.h"
 
 namespace cvc5 {
 namespace theory {
