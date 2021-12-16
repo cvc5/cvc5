@@ -361,22 +361,22 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
                                  int32_t offset,
                                  int32_t& status)
 {
+  Assert (val.isConst() && val.getType()==tn);
   Node val_o;
-  Node offset_val = mkTypeValue(tn, offset);
   status = -1;
-  if (!offset_val.isNull())
+  if (tn.isRealOrInt())
   {
-    if (tn.isRealOrInt())
-    {
-      val_o = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
-      status = 0;
-    }
-    else if (tn.isBitVector())
-    {
-      val_o = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(BITVECTOR_ADD, val, offset_val));
-    }
+    Rational vval = val.getConst<Rational>();
+    Rational oval(offset);
+    val_o = NodeManager::currentNM()->mkConstRealOrInt(tn, vval + oval);
+    status = 0;
+  }
+  else if (tn.isBitVector())
+  {
+    BitVector vval = val.getConst<BitVector>();
+    uint32_t uv = static_cast<uint32_t>(offset);
+    BitVector oval(tn.getConst<BitVectorSize>(), uv);
+    val_o = NodeManager::currentNM()->mkConst( vval + oval );
   }
   return val_o;
 }
