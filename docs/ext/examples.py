@@ -86,19 +86,20 @@ class APIExamples(SphinxDirective):
 
             for k, v in self.env.config.ex_patterns.items():
                 file = file.replace(k, v)
-            
-            assert file.startswith('/')
-            
-            urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
-            url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
 
             # generate tabs
             content.append(f'    .. tab:: {title}')
             content.append(f'')
-            content.append(f'        .. rst-class:: wy-text-right')
-            content.append(f'        ')
-            content.append(f'        download: `{urlname} <{url}>`_')
-            content.append(f'')
+
+            if file.startswith('/'):
+                # if the file is "absolute", we can provide a download link
+                urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
+                url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
+                content.append(f'        .. rst-class:: wy-text-right')
+                content.append(f'        ')
+                content.append(f'        download: `{urlname} <{url}>`_')
+                content.append(f'')
+
             content.append(f'        .. literalinclude:: {file}')
             content.append(f'            :language: {lang}')
             content.append(f'            :linenos:')
