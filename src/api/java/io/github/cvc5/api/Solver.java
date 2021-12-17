@@ -440,6 +440,20 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkUnresolvedSort(long pointer, String symbol, int arity);
 
   /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
+
+  /**
    * Create a sort constructor sort.
    * @param symbol the symbol of the sort
    * @param arity the arity of the sort
