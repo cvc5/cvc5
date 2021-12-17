@@ -115,7 +115,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getName() except +
         Term getSelectorTerm() except +
         Term getUpdaterTerm() except +
-        Sort getRangeSort() except +
+        Sort getCodomainSort() except +
         bint isNull() except +
         string toString() except +
 
@@ -184,6 +184,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
+        Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
@@ -420,6 +421,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint getBooleanValue() except +
         bint isStringValue() except +
         wstring getStringValue() except +
+        int32_t getRealOrIntegerValueSign() except +
         bint isIntegerValue() except +
         string getIntegerValue() except +
         bint isRealValue() except +

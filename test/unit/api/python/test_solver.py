@@ -145,7 +145,7 @@ def test_mk_datatype_sorts(solver):
         solver.mkDatatypeSorts(throwsDecls, set([]))
 
     # with unresolved sorts
-    unresList = solver.mkUninterpretedSort("ulist")
+    unresList = solver.mkUnresolvedSort("ulist")
     unresSorts = set([unresList])
     ulist = solver.mkDatatypeDecl("ulist")
     ucons = solver.mkDatatypeConstructorDecl("ucons")
@@ -160,6 +160,27 @@ def test_mk_datatype_sorts(solver):
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSorts(udecls, unresSorts)
 
+    # mutually recursive with unresolved parameterized sorts
+    p0 = solver.mkParamSort("p0")
+    p1 = solver.mkParamSort("p1")
+    u0 = solver.mkUnresolvedSort("dt0", 1)
+    u1 = solver.mkUnresolvedSort("dt1", 1)
+    dtdecl0 = solver.mkDatatypeDecl("dt0", p0)
+    dtdecl1 = solver.mkDatatypeDecl("dt1", p1)
+    ctordecl0 = solver.mkDatatypeConstructorDecl("c0")
+    ctordecl0.addSelector("s0", u1.instantiate({p0}))
+    ctordecl1 = solver.mkDatatypeConstructorDecl("c1")
+    ctordecl1.addSelector("s1", u0.instantiate({p1}))
+    dtdecl0.addConstructor(ctordecl0)
+    dtdecl1.addConstructor(ctordecl1)
+    dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1], {u0, u1})
+    isort1 = dt_sorts[1].instantiate({solver.getBooleanSort()})
+    t1 = solver.mkConst(isort1, "t")
+    t0 = solver.mkTerm(
+        Kind.ApplySelector,
+        t1.getSort().getDatatype().getSelector("s1").getSelectorTerm(),
+        t1)
+    assert dt_sorts[0].instantiate({solver.getBooleanSort()}) == t0.getSort()
 
 def test_mk_function_sort(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -269,6 +290,13 @@ def test_mk_sequence_sort(solver):
 def test_mk_uninterpreted_sort(solver):
     solver.mkUninterpretedSort("u")
     solver.mkUninterpretedSort("")
+
+
+def test_mk_unresolved_sort(solver):
+    solver.mkUnresolvedSort("u")
+    solver.mkUnresolvedSort("u", 1)
+    solver.mkUnresolvedSort("")
+    solver.mkUnresolvedSort("", 1)
 
 
 def test_mk_sort_constructor_sort(solver):

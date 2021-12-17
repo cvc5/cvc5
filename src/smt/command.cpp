@@ -1231,8 +1231,12 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 api::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  // mark that it will be printed in the model
-  sm->addModelDeclarationSort(d_sort);
+  // mark that it will be printed in the model, if it is an uninterpreted
+  // sort (arity 0)
+  if (d_arity == 0)
+  {
+    sm->addModelDeclarationSort(d_sort);
+  }
   d_commandStatus = CommandSuccess::instance();
 }
 

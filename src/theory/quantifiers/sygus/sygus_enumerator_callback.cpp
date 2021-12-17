@@ -25,8 +25,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s)
-    : d_enum(e), d_stats(s)
+SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
+                                                 Node e,
+                                                 SygusStatistics* s)
+    : EnvObj(env), d_enum(e), d_stats(s)
 {
   d_tn = e.getType();
 }
@@ -34,7 +36,7 @@ SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s)
 bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
-  Node bnr = Rewriter::callExtendedRewrite(bn);
+  Node bnr = extendedRewrite(bn);
   if (d_stats != nullptr)
   {
     ++(d_stats->d_enumTermsRewrite);
@@ -62,12 +64,16 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 }
 
 SygusEnumeratorCallbackDefault::SygusEnumeratorCallbackDefault(
+    Env& env,
     Node e,
     SygusStatistics* s,
     ExampleEvalCache* eec,
     SygusSampler* ssrv,
     std::ostream* out)
-    : SygusEnumeratorCallback(e, s), d_eec(eec), d_samplerRrV(ssrv), d_out(out)
+    : SygusEnumeratorCallback(env, e, s),
+      d_eec(eec),
+      d_samplerRrV(ssrv),
+      d_out(out)
 {
 }
 void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n,
