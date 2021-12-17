@@ -4870,9 +4870,10 @@ class CVC5_EXPORT Solver
   template <typename T>
   Term mkValHelper(const T& t) const;
   /** Helper for making rational values. */
-  Term mkRationalValHelper(const Rational& r) const;
+  Term mkRationalValHelper(const Rational& r, bool isInt = true) const;
   /** Helper for mkReal functions that take a string as argument. */
-  Term mkRealFromStrHelper(const std::string& s) const;
+  Term mkRealOrIntegerFromStrHelper(const std::string& s,
+                                    bool isInt = true) const;
   /** Helper for mkBitVector functions that take a string as argument. */
   Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
   /**
