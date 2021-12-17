@@ -164,7 +164,7 @@ class Printer
 
   /** Print check-synth command */
   virtual void toStreamCmdCheckSynth(std::ostream& out) const;
-  
+
   /** Print check-synth-next command */
   virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
 

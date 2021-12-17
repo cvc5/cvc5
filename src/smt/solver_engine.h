@@ -455,7 +455,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @param isNext Whether we are asking for the next synthesis solution (if
    * using incremental).
-   * 
+   *
    * @throw Exception
    */
   Result checkSynth(bool isNext = false);

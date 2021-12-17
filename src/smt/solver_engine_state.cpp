@@ -115,7 +115,7 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
 
 void SolverEngineState::notifyCheckSynthResult(Result r)
 {
-  if (r.asSatisfiabilityResult().isSat()==Result::UNSAT)
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     // successfully generated a synthesis solution, update to abduct state
     d_smtMode = SmtMode::SYNTH;

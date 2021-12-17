@@ -901,7 +901,10 @@ void CheckSynthCommand::printResult(std::ostream& out) const
 
 Command* CheckSynthCommand::clone() const { return new CheckSynthCommand(); }
 
-std::string CheckSynthCommand::getCommandName() const { return d_isNext ? "check-synth-next" : "check-synth"; }
+std::string CheckSynthCommand::getCommandName() const
+{
+  return d_isNext ? "check-synth-next" : "check-synth";
+}
 
 void CheckSynthCommand::toStream(std::ostream& out,
                                  int toDepth,

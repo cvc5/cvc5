@@ -821,7 +821,7 @@ class CVC5_EXPORT SygusInvConstraintCommand : public Command
 class CVC5_EXPORT CheckSynthCommand : public Command
 {
  public:
-  CheckSynthCommand(bool isNext = false) : d_isNext(isNext) {};
+  CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
   /** returns the result of the check-synth call */
   api::Result getResult() const;
   /** prints the result of the check-synth-call */

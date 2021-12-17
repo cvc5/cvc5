@@ -940,7 +940,6 @@ Result SolverEngine::checkSynth(bool isNext)
   finishInit();
   if (isNext)
   {
-    
   }
   Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
   d_state->notifyCheckSynthResult(r);
