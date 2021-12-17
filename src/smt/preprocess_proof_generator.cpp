@@ -23,17 +23,14 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "smt/env.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
-                                                   context::Context* c,
-                                                   std::string name,
-                                                   PfRule ra,
-                                                   PfRule rpp)
+PreprocessProofGenerator::PreprocessProofGenerator(
+    Env& env, context::Context* c, std::string name, PfRule ra, PfRule rpp)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),

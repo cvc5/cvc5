@@ -252,7 +252,7 @@ PolyVector requiredCoefficientsLazardModified(
     const poly::Polynomial& p,
     const poly::Assignment& assignment,
     VariableMapper& vm,
-                                              Rewriter * rewriter)
+    Rewriter* rewriter)
 {
   PolyVector res;
   auto lc = poly::leading_coefficient(p);
@@ -275,8 +275,8 @@ PolyVector requiredCoefficientsLazardModified(
         Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  Node rewritten = rewriter->extendedRewrite(
-      NodeManager::currentNM()->mkAnd(conditions));
+  Node rewritten =
+      rewriter->extendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
   if (rewritten.isConst())
   {
     Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);

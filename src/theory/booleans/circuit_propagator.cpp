@@ -768,10 +768,10 @@ TrustNode CircuitPropagator::propagate()
 }
 
 void CircuitPropagator::enableProofs(context::Context* ctx,
-                                 ProofGenerator* defParent)
+                                     ProofGenerator* defParent)
 {
   d_pnm = d_env.getProofNodeManager();
-  Assert (d_pnm!=nullptr);
+  Assert(d_pnm != nullptr);
   d_epg.reset(new EagerProofGenerator(d_pnm, ctx));
   d_proofInternal.reset(new LazyCDProofChain(
       d_pnm, true, ctx, d_epg.get(), true, "CircuitPropInternalLazyChain"));

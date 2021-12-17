@@ -139,8 +139,7 @@ class CircuitPropagator : protected EnvObj
    * If parent is non-null, then it is responsible for the proofs provided
    * to this class.
    */
-  void enableProofs(context::Context* ctx,
-                ProofGenerator* defParent);
+  void enableProofs(context::Context* ctx, ProofGenerator* defParent);
 
  private:
   /** A context-notify object that clears out stale data. */

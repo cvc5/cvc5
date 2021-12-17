@@ -169,7 +169,7 @@ void ExpandDefs::enableProofs()
   // initialize if not done already
   if (d_tpg == nullptr)
   {
-    Assert (d_env.getProofNodeManager()!=nullptr);
+    Assert(d_env.getProofNodeManager() != nullptr);
     d_tpg.reset(new TConvProofGenerator(d_env.getProofNodeManager(),
                                         d_env.getUserContext(),
                                         TConvPolicy::FIXPOINT,

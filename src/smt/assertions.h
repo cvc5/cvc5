@@ -126,11 +126,11 @@ class Assertions : protected EnvObj
   void flipGlobalNegated();
 
   //------------------------------------ for proofs
-  /** 
+  /**
    * Enable proofs for this assertions class. This must be called
    * explicitly since we construct the assertions before we know
    * whether proofs are enabled.
-   * 
+   *
    * @param pppg The preprocess proof generator of the proof manager.
    */
   void enableProofs(smt::PreprocessProofGenerator* pppg);

@@ -102,7 +102,7 @@ class Preprocessor : protected EnvObj
    * Enable proofs for this preprocessor. This must be called
    * explicitly since we construct the preprocessor before we know
    * whether proofs are enabled.
-   * 
+   *
    * @param pppg The preprocess proof generator of the proof manager.
    */
   void enableProofs(PreprocessProofGenerator* pppg);
