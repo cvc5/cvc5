@@ -2634,9 +2634,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynth(JNIEnv* env,
  * Method:    checkSynthNext
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

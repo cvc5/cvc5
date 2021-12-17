@@ -2590,7 +2590,7 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long checkSynth(long pointer);
-  
+
   /**
    * Try to find a next solution for the synthesis conjecture corresponding to
    * the current list of functions-to-synthesize, universal variables and
