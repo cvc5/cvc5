@@ -39,7 +39,7 @@ Node SygusQePreproc::preprocess(Node q)
   SkolemManager* sm = nm->getSkolemManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;
-  quantifiers::SingleInvocationPartition sip;
+  quantifiers::SingleInvocationPartition sip(d_env);
   std::vector<Node> funcs0;
   funcs0.insert(funcs0.end(), q[0].begin(), q[0].end());
   sip.init(funcs0, body);

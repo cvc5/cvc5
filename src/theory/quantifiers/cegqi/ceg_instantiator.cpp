@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
@@ -137,10 +138,7 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(CONST_RATIONAL,
-                          Rational(d_coeff.getConst<Rational>()
-                                   * p.d_coeff.getConst<Rational>()));
+    d_coeff = arith::multConstants(d_coeff, p.d_coeff);
   }
 }
 
@@ -163,12 +161,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    Assert(new_theta.getKind() == CONST_RATIONAL);
-    Assert(pv_prop.d_coeff.getKind() == CONST_RATIONAL);
-    NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(CONST_RATIONAL,
-                            Rational(new_theta.getConst<Rational>()
-                                     * pv_prop.d_coeff.getConst<Rational>()));
+    new_theta = arith::multConstants(new_theta, pv_prop.d_coeff);
   }
   d_theta.push_back(new_theta);
 }
@@ -357,7 +350,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       if (dt.isParametric())
       {
         // if parametric, must instantiate the argument types
-        consType = dt[i].getSpecializedConstructorType(tn);
+        consType = dt[i].getInstantiatedConstructorType(tn);
       }
       else
       {
@@ -1165,8 +1158,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nn = NodeManager::currentNM()->mkNode(
               MULT,
               subs[i],
-              NodeManager::currentNM()->mkConst(
-                  CONST_RATIONAL,
+              NodeManager::currentNM()->mkConstReal(
                   Rational(1) / prop[i].d_coeff.getConst<Rational>()));
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn = rewrite(nn);
@@ -1214,10 +1206,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
-              c_coeff = rewrite(NodeManager::currentNM()->mkConst(
-                  CONST_RATIONAL,
+              c_coeff = rewrite(NodeManager::currentNM()->mkConstReal(
                   pv_prop.d_coeff.getConst<Rational>()
-                      / msum_coeff[it->first].getConst<Rational>()));
+                  / msum_coeff[it->first].getConst<Rational>()));
             }else{
               c_coeff = pv_prop.d_coeff;
             }
@@ -1283,7 +1274,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       }else{
         atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
-        atom_rhs = nm->mkConst(CONST_RATIONAL, Rational(0));
+        atom_rhs = nm->mkConstRealOrInt(atom_lhs.getType(), Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){

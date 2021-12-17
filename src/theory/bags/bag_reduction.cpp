@@ -34,13 +34,26 @@ BagReduction::~BagReduction() {}
 
 /**
  * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
+ * variable used to range over (may be distinct) elements in a bag, used
  * for axiomatizing the behavior of some term.
+ * If there are multiple quantifiers, this variable should be the first one.
  */
-struct IndexVarAttributeId
+struct FirstIndexVarAttributeId
 {
 };
-typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
+typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
+
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over (may be distinct) elements in a bag, used
+ * for axiomatizing the behavior of some term.
+ * This variable should be the second of multiple quantifiers.
+ */
+struct SecondIndexVarAttributeId
+{
+};
+typedef expr::Attribute<SecondIndexVarAttributeId, Node>
+    SecondIndexVarAttribute;
 
 Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
@@ -52,8 +65,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
     Node f = node[0];
     Node t = node[1];
     Node A = node[2];
-    Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
-    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+    Node zero = nm->mkConstInt(Rational(0));
+    Node one = nm->mkConstInt(Rational(1));
     // types
     TypeNode bagType = A.getType();
     TypeNode elementType = A.getType().getBagElementType();
@@ -71,7 +84,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
         SkolemFunId::BAGS_FOLD_COMBINE, combineType, {f, t, A});
 
     BoundVarManager* bvm = nm->getBoundVarManager();
-    Node i = bvm->mkBoundVar<IndexVarAttribute>(node, "i", nm->integerType());
+    Node i =
+        bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
     Node iList = nm->mkNode(BOUND_VAR_LIST, i);
     Node iMinusOne = nm->mkNode(MINUS, i, one);
     Node uf_i = nm->mkNode(APPLY_UF, uf, i);
@@ -112,6 +126,84 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
     return combine_n;
   }
   return Node::null();
+}
+
+Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
+{
+  Assert(node.getKind() == BAG_CARD);
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node A = node[0];
+  Node zero = nm->mkConstInt(Rational(0));
+  Node one = nm->mkConstInt(Rational(1));
+  // types
+  TypeNode bagType = A.getType();
+  TypeNode elementType = A.getType().getBagElementType();
+  TypeNode integerType = nm->integerType();
+  TypeNode ufType = nm->mkFunctionType(integerType, elementType);
+  TypeNode cardinalityType = nm->mkFunctionType(integerType, integerType);
+  TypeNode unionDisjointType = nm->mkFunctionType(integerType, bagType);
+  // skolem functions
+  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, integerType, A);
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, ufType, A);
+  Node unionDisjoint = sm->mkSkolemFunction(
+      SkolemFunId::BAGS_CARD_UNION_DISJOINT, unionDisjointType, A);
+  Node cardinality = sm->mkSkolemFunction(
+      SkolemFunId::BAGS_CARD_CARDINALITY, cardinalityType, A);
+
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  Node i =
+      bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
+  Node j =
+      bvm->mkBoundVar<SecondIndexVarAttribute>(node, "j", nm->integerType());
+  Node iList = nm->mkNode(BOUND_VAR_LIST, i);
+  Node jList = nm->mkNode(BOUND_VAR_LIST, j);
+  Node iMinusOne = nm->mkNode(MINUS, i, one);
+  Node uf_i = nm->mkNode(APPLY_UF, uf, i);
+  Node uf_j = nm->mkNode(APPLY_UF, uf, j);
+  Node cardinality_0 = nm->mkNode(APPLY_UF, cardinality, zero);
+  Node cardinality_iMinusOne = nm->mkNode(APPLY_UF, cardinality, iMinusOne);
+  Node cardinality_i = nm->mkNode(APPLY_UF, cardinality, i);
+  Node cardinality_n = nm->mkNode(APPLY_UF, cardinality, n);
+  Node unionDisjoint_0 = nm->mkNode(APPLY_UF, unionDisjoint, zero);
+  Node unionDisjoint_iMinusOne = nm->mkNode(APPLY_UF, unionDisjoint, iMinusOne);
+  Node unionDisjoint_i = nm->mkNode(APPLY_UF, unionDisjoint, i);
+  Node unionDisjoint_n = nm->mkNode(APPLY_UF, unionDisjoint, n);
+  Node cardinality_0_equal = cardinality_0.eqNode(zero);
+  Node uf_i_multiplicity = nm->mkNode(BAG_COUNT, uf_i, A);
+  Node cardinality_i_equal = cardinality_i.eqNode(
+      nm->mkNode(PLUS, uf_i_multiplicity, cardinality_iMinusOne));
+  Node unionDisjoint_0_equal =
+      unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
+  Node bag = nm->mkBag(elementType, uf_i, uf_i_multiplicity);
+
+  Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
+      nm->mkNode(BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));
+  // 1 <= i <= n
+  Node interval_i =
+      nm->mkNode(AND, nm->mkNode(GEQ, i, one), nm->mkNode(LEQ, i, n));
+
+  // i < j <= n
+  Node interval_j =
+      nm->mkNode(AND, nm->mkNode(LT, i, j), nm->mkNode(LEQ, j, n));
+  // uf(i) != uf(j)
+  Node uf_i_equals_uf_j = nm->mkNode(EQUAL, uf_i, uf_j);
+  Node notEqual = nm->mkNode(EQUAL, uf_i, uf_j).negate();
+  Node body_j = nm->mkNode(OR, interval_j.negate(), notEqual);
+  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node body_i = nm->mkNode(
+      IMPLIES,
+      interval_i,
+      nm->mkNode(AND, cardinality_i_equal, unionDisjoint_i_equal, forAll_j));
+  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node nonNegative = nm->mkNode(GEQ, n, zero);
+  Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
+  asserts.push_back(forAll_i);
+  asserts.push_back(cardinality_0_equal);
+  asserts.push_back(unionDisjoint_0_equal);
+  asserts.push_back(unionDisjoint_n_equal);
+  asserts.push_back(nonNegative);
+  return cardinality_n;
 }
 
 }  // namespace bags

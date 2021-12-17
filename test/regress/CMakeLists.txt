@@ -257,6 +257,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
+  regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -434,6 +435,7 @@ set(regress_0_tests
   regress0/bv/mult-pow2-negative.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
+  regress0/bv/proj-issue343.smt2
   regress0/bv/reset-assertions-assert-input.smt2
   regress0/bv/sizecheck.cvc.smt2
   regress0/bv/smtcompbug.smtv1.smt2
@@ -507,6 +509,7 @@ set(regress_0_tests
   regress0/datatypes/list-update.smt2
   regress0/datatypes/list-update-sat.smt2
   regress0/datatypes/model-subterms-min.smt2
+  regress0/datatypes/mutual-rec-param-dt.smt2
   regress0/datatypes/mutually-recursive.cvc.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
@@ -773,6 +776,7 @@ set(regress_0_tests
   regress0/nl/pow2-native-3.smt2
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
+  regress0/nl/proj-issue-348.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -787,6 +791,7 @@ set(regress_0_tests
   regress0/options/didyoumean.smt2
   regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
+  regress0/options/named_muted.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -801,6 +806,7 @@ set(regress_0_tests
   regress0/parser/define_sort.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
+  regress0/parser/get-model-sort-constructor.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1601,7 +1607,9 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
+  regress1/bags/card2.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -1621,10 +1629,13 @@ set(regress_1_tests
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
-  regress1/bags/map-lazy-lam.smt2
   regress1/bags/map1.smt2
   regress1/bags/map2.smt2
   regress1/bags/map3.smt2
+  regress1/bags/map-lazy-lam.smt2
+  regress1/bags/murxla1.smt2
+  regress1/bags/murxla2.smt2
+  regress1/bags/murxla3.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/union_disjoint.smt2
@@ -1684,6 +1695,7 @@ set(regress_1_tests
   regress1/decision/wishue149-2.smt2
   regress1/decision/wishue149-3.smt2
   regress1/decision/wishue160.smt2
+  regress1/difficulty-polarity.smt2
   regress1/errorcrash.smt2
   regress1/fp/fp_to_real.smt2
   regress1/fp/rti_3_5_bug_report.smt2
@@ -2525,6 +2537,9 @@ set(regress_1_tests
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
+  regress1/sygus/rand_const.sy
+  regress1/sygus/rand_p_0.sy
+  regress1/sygus/rand_p_1.sy
   regress1/sygus/real-any-const.sy
   regress1/sygus/real-grammar.sy
   regress1/sygus/rec-fun-swap.sy
@@ -2624,6 +2639,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
+  regress2/bv_to_int_quantifiers_bvand.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2

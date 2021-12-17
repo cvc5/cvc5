@@ -68,7 +68,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_dtfCounter = 0;
 
   // indicate we are using the default theory state object
@@ -1244,7 +1244,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           for( unsigned i=0; i<pcons.size(); i++ ){
             // must try the infinite ones first
             bool cfinite =
-                d_env.isFiniteType(dt[i].getSpecializedConstructorType(tt));
+                d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

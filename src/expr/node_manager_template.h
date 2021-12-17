@@ -579,6 +579,12 @@ class NodeManager
    */
   Node mkConstInt(const Rational& r);
 
+  /**
+   * Make constant real or int, which calls one of the above methods based
+   * on the type tn.
+   */
+  Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
+
   /** Create a node with children. */
   TypeNode mkTypeNode(Kind kind, TypeNode child1);
   TypeNode mkTypeNode(Kind kind, TypeNode child1, TypeNode child2);
@@ -1199,6 +1205,10 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
                                         const std::vector<TypeNode>& children) {
   return NodeBuilder(this, kind).append(children).constructTypeNode();
 }
+
+// clang-format off
+${metakind_mkConstDelete}
+// clang-format off
 
 }  // namespace cvc5
 
