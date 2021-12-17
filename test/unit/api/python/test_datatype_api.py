@@ -86,8 +86,8 @@ def test_mk_datatype_sorts(solver):
 
     #Make unresolved types as placeholders
     unresTypes = set([])
-    unresTree = solver.mkUninterpretedSort("tree")
-    unresList = solver.mkUninterpretedSort("list")
+    unresTree = solver.mkUnresolvedSort("tree")
+    unresList = solver.mkUnresolvedSort("list")
     unresTypes.add(unresTree)
     unresTypes.add(unresList)
 
@@ -127,8 +127,8 @@ def test_mk_datatype_sorts(solver):
     dtsTreeNodeLeft = dtcTreeNode[0]
     assert dtsTreeNodeLeft.getName() == "left"
     # argument type should have resolved to be recursive
-    assert dtsTreeNodeLeft.getRangeSort().isDatatype()
-    assert dtsTreeNodeLeft.getRangeSort() == dtsorts[0]
+    assert dtsTreeNodeLeft.getCodomainSort().isDatatype()
+    assert dtsTreeNodeLeft.getCodomainSort() == dtsorts[0]
 
     # fails due to empty datatype
     dtdeclsBad = []
@@ -245,7 +245,7 @@ def test_datatype_names(solver):
     # get selector
     dselTail = dcons[1]
     assert dselTail.getName() == "tail"
-    assert dselTail.getRangeSort() == dtypeSort
+    assert dselTail.getCodomainSort() == dtypeSort
 
     # get selector from datatype
     dt.getSelector("head")
@@ -346,9 +346,9 @@ def test_datatype_simply_rec(solver):
 
     # Make unresolved types as placeholders
     unresTypes = set([])
-    unresWList = solver.mkUninterpretedSort("wlist")
-    unresList = solver.mkUninterpretedSort("list")
-    unresNs = solver.mkUninterpretedSort("ns")
+    unresWList = solver.mkUnresolvedSort("wlist")
+    unresList = solver.mkUnresolvedSort("list")
+    unresNs = solver.mkUnresolvedSort("ns")
     unresTypes.add(unresWList)
     unresTypes.add(unresList)
     unresTypes.add(unresNs)
@@ -391,7 +391,7 @@ def test_datatype_simply_rec(solver):
     #   END
 
     unresTypes.clear()
-    unresNs2 = solver.mkUninterpretedSort("ns2")
+    unresNs2 = solver.mkUnresolvedSort("ns2")
     unresTypes.add(unresNs2)
 
     ns2 = solver.mkDatatypeDecl("ns2")
@@ -408,8 +408,8 @@ def test_datatype_simply_rec(solver):
     # this is not well-founded due to non-simple recursion
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().isArray()
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort() \
+    assert dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray()
+    assert dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort() \
         == dtsorts[0]
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[0].getDatatype().hasNestedRecursion()
@@ -421,9 +421,9 @@ def test_datatype_simply_rec(solver):
     #   END
 
     unresTypes.clear()
-    unresNs3 = solver.mkUninterpretedSort("ns3")
+    unresNs3 = solver.mkUnresolvedSort("ns3")
     unresTypes.add(unresNs3)
-    unresList3 = solver.mkUninterpretedSort("list3")
+    unresList3 = solver.mkUnresolvedSort("list3")
     unresTypes.add(unresList3)
 
     list3 = solver.mkDatatypeDecl("list3")
@@ -457,9 +457,9 @@ def test_datatype_simply_rec(solver):
     #     ns4 = elem(ndata: list4)
     #   END
     unresTypes.clear()
-    unresNs4 = solver.mkUninterpretedSort("ns4")
+    unresNs4 = solver.mkUnresolvedSort("ns4")
     unresTypes.add(unresNs4)
-    unresList4 = solver.mkUninterpretedSort("list4")
+    unresList4 = solver.mkUnresolvedSort("list4")
     unresTypes.add(unresList4)
 
     list4 = solver.mkDatatypeDecl("list4")
