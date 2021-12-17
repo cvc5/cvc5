@@ -121,7 +121,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     Node body2 = nm->mkNode(SEQ_NTH, n[0], n[1]);
     Node right = nm->mkNode(ITE, cond, body1, body2);
     Node lem = nm->mkNode(EQUAL, left, right);
-    sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_SHORTCUT1);
+    sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE);
 
     // enumerate possible index
     for (const auto& nth : d_index_map)
@@ -133,10 +133,10 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
         for (Node j : indexes)
         {
           // optimization: add a short cut for special case
+          // t = (seq.update n[0] n[1] n[2])
           // n[2] is a unit term
-          // n[1] != j
-          // ---------------------------------------------------------------
-          // nth(t, j) = nth(n[0], j)
+		  // -----------------------------------------
+          // n[1] != j -> nth(t, j) = nth(n[0], j)
           if (n[2].getKind() == SEQ_UNIT)
           {
             left = nm->mkNode(DISTINCT, n[1], j);
@@ -145,7 +145,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
             right = nm->mkNode(EQUAL, nth1, nth2);
             lem = nm->mkNode(IMPLIES, left, right);
             sendInference(
-                exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_SHORTCUT2);
+                exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT);
             continue;
           }
 
