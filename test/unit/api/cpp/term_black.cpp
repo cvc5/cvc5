@@ -708,6 +708,7 @@ TEST_F(TestApiBlackTerm, getInteger)
               && !int1.isInt64Value() && !int1.isUInt64Value()
               && int1.isIntegerValue());
   ASSERT_EQ(int1.getIntegerValue(), "-18446744073709551616");
+  ASSERT_TRUE(int1.getRealOrIntegerValueSign() == -1);
   ASSERT_TRUE(!int2.isInt32Value() && !int2.isUInt32Value()
               && !int2.isInt64Value() && !int2.isUInt64Value()
               && int2.isIntegerValue());
@@ -735,6 +736,7 @@ TEST_F(TestApiBlackTerm, getInteger)
   ASSERT_EQ(int6.getInt64Value(), 0);
   ASSERT_EQ(int6.getUInt64Value(), 0);
   ASSERT_EQ(int6.getIntegerValue(), "0");
+  ASSERT_TRUE(int6.getRealOrIntegerValueSign() == 0);
   ASSERT_TRUE(int7.isInt32Value() && int7.isUInt32Value() && int7.isInt64Value()
               && int7.isUInt64Value() && int7.isIntegerValue());
   ASSERT_EQ(int7.getInt32Value(), 10);
@@ -742,6 +744,7 @@ TEST_F(TestApiBlackTerm, getInteger)
   ASSERT_EQ(int7.getInt64Value(), 10);
   ASSERT_EQ(int7.getUInt64Value(), 10);
   ASSERT_EQ(int7.getIntegerValue(), "10");
+  ASSERT_TRUE(int7.getRealOrIntegerValueSign() == 1);
   ASSERT_TRUE(!int8.isInt32Value() && int8.isUInt32Value()
               && int8.isInt64Value() && int8.isUInt64Value()
               && int8.isIntegerValue());

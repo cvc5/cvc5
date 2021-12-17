@@ -1341,6 +1341,13 @@ class CVC5_EXPORT Term
   const_iterator end() const;
 
   /**
+   * Get integer or real value sign. Must be called on integer or real values,
+   * or otherwise an exception is thrown.
+   * @return 0 if this term is zero, -1 if this term is a negative real or
+   * integer value, 1 if this term is a positive real or integer value.
+   */
+  int32_t getRealOrIntegerValueSign() const;
+  /**
    * @return true if the term is an integer value that fits within int32_t.
    */
   bool isInt32Value() const;
@@ -4863,9 +4870,10 @@ class CVC5_EXPORT Solver
   template <typename T>
   Term mkValHelper(const T& t) const;
   /** Helper for making rational values. */
-  Term mkRationalValHelper(const Rational& r) const;
+  Term mkRationalValHelper(const Rational& r, bool isInt = true) const;
   /** Helper for mkReal functions that take a string as argument. */
-  Term mkRealFromStrHelper(const std::string& s) const;
+  Term mkRealOrIntegerFromStrHelper(const std::string& s,
+                                    bool isInt = true) const;
   /** Helper for mkBitVector functions that take a string as argument. */
   Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
   /**
