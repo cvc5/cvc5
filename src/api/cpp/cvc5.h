@@ -1344,7 +1344,7 @@ class CVC5_EXPORT Term
    * Get integer or real value sign. Must be called on integer or real values,
    * or otherwise an exception is thrown.
    * @return 0 if this term is zero, -1 if this term is a negative real or
-   * integer value, 1 if this term is a positive real or integer value. 
+   * integer value, 1 if this term is a positive real or integer value.
    */
   int32_t getIntOrRealValueSign() const;
   /**
