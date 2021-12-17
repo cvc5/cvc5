@@ -95,14 +95,10 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     // inference rule is:
     // (seq.update x i a) in TERMS
     // (seq.nth t j) in TERMS
-    // t == (seq.update x i a)
-    // ----------------------------------------------------------------------
+    // t = (seq.update x i a)
+    // ---------------------------------------------------------------------
     // (seq.nth (seq.update x i a) j) =
     //   (ITE, j in range(i, i+len(a)), (seq.nth a (j - i)),  (seq.nth x j))
-
-    // t == (seq.update x i a) =>
-    // (seq.nth t j) = (ITE, j in range(i, i+len(a)), (seq.nth a (j - i)),
-    // (seq.nth x j))
 
     // note that the term could rewrites to a skolem
     // get proxy variable for the update term as t
@@ -111,26 +107,35 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     std::vector<Node> exp;
     d_im.addToExplanation(termProxy, n, exp);
 
-    // optimization: add a short cut t == (seq.update n[0] n[1] n[2]) => t[i] ==
-    // n[2][0]
+    // reasoning about nth(t, n[1]) even if it does not exist.
+    // x = update(s, n, t)
+    // ---------------------------------------------------------------------
+    // nth(x, n) = ite(n in range(0, len(s)), nth(t, 0), nth(s, n))
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
-    Node right =
-        nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));  // n[2][0]
+    Node cond =
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, n[1], nm->mkConstInt(Rational(0))),
+                   nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0])));
+    Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
+    Node body2 = nm->mkNode(SEQ_NTH, n[0], n[1]);
+    Node right = nm->mkNode(ITE, cond, body1, body2);
     Node lem = nm->mkNode(EQUAL, left, right);
-    Trace("seq-array-debug") << "enter" << std::endl;
-    sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
+    sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE);
 
     // enumerate possible index
-    for (auto nth : d_index_map)
+    for (const auto& nth : d_index_map)
     {
       Node seq = nth.first;
       if (d_state.areEqual(seq, n) || d_state.areEqual(seq, n[0]))
       {
-        std::set<Node> indexes = nth.second;
+        const std::set<Node>& indexes = nth.second;
         for (Node j : indexes)
         {
-          // optimization: add a short cut for special case (seq.update n[0]
-          // n[1] (seq.unit e))
+          // optimization: add a short cut for special case
+          // x = update(s, n, unit(t))
+          // y = nth(s, m)
+          // -----------------------------------------
+          // n != m => nth(x, m) = nth(s, m)
           if (n[2].getKind() == SEQ_UNIT)
           {
             left = nm->mkNode(DISTINCT, n[1], j);
@@ -138,20 +143,22 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
             Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
             right = nm->mkNode(EQUAL, nth1, nth2);
             lem = nm->mkNode(IMPLIES, left, right);
-            sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
+            sendInference(
+                exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT);
+            continue;
           }
 
           // normal cases
           left = nm->mkNode(SEQ_NTH, termProxy, j);
-          Node cond = nm->mkNode(
+          cond = nm->mkNode(
               AND,
               nm->mkNode(LEQ, n[1], j),
               nm->mkNode(
                   LT,
                   j,
                   nm->mkNode(PLUS, n[1], nm->mkNode(STRING_LENGTH, n[2]))));
-          Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkNode(MINUS, j, n[1]));
-          Node body2 = nm->mkNode(SEQ_NTH, n[0], j);
+          body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkNode(MINUS, j, n[1]));
+          body2 = nm->mkNode(SEQ_NTH, n[0], j);
           right = nm->mkNode(ITE, cond, body1, body2);
           lem = nm->mkNode(EQUAL, left, right);
           sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
@@ -193,16 +200,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
     Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n
                         << std::endl;
     d_writeModel[r][n[1]] = n;
-    if (d_index_map.find(r) == d_index_map.end())
-    {
-      std::set<Node> indexes;
-      indexes.insert(n[1]);
-      d_index_map[r] = indexes;
-    }
-    else
-    {
-      d_index_map[r].insert(n[1]);
-    }
+    d_index_map[r].insert(n[1]);
 
     if (n[0].getKind() == STRING_REV)
     {
