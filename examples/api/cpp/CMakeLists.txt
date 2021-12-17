@@ -23,6 +23,7 @@ set(CVC5_EXAMPLES_API
   helloworld
   linear_arith
   quickstart
+  relations
   sequences
   sets
   strings

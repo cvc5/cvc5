@@ -767,21 +767,21 @@ TrustNode CircuitPropagator::propagate()
   return d_conflict;
 }
 
-void CircuitPropagator::setProof(ProofNodeManager* pnm,
-                                 context::Context* ctx,
-                                 ProofGenerator* defParent)
+void CircuitPropagator::enableProofs(context::Context* ctx,
+                                     ProofGenerator* defParent)
 {
-  d_pnm = pnm;
-  d_epg.reset(new EagerProofGenerator(pnm, ctx));
+  d_pnm = d_env.getProofNodeManager();
+  Assert(d_pnm != nullptr);
+  d_epg.reset(new EagerProofGenerator(d_pnm, ctx));
   d_proofInternal.reset(new LazyCDProofChain(
-      pnm, true, ctx, d_epg.get(), true, "CircuitPropInternalLazyChain"));
+      d_pnm, true, ctx, d_epg.get(), true, "CircuitPropInternalLazyChain"));
   if (defParent != nullptr)
   {
     // If we provide a parent proof generator (defParent), we want the ASSUME
     // leafs of proofs provided by this class to call the getProofFor method on
     // the parent. To do this, we use a LazyCDProofChain.
     d_proofExternal.reset(new LazyCDProofChain(
-        pnm, true, ctx, defParent, false, "CircuitPropExternalLazyChain"));
+        d_pnm, true, ctx, defParent, false, "CircuitPropExternalLazyChain"));
   }
 }
 

@@ -117,7 +117,7 @@ void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
   replace(i, trn.getNode(), trn.getGenerator());
 }
 
-void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
   d_pppg = pppg;
 }
