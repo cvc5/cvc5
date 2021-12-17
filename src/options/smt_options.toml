@@ -400,6 +400,14 @@ name   = "SMT Layer"
   help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
 
 [[option]]
+  name       = "bvToIntUsePow2"
+  category   = "undocumented"
+  long       = "bv-to-int-use-pow2"
+  type       = "bool"
+  default    = "false"
+  help       = "use internal pow2 operator when translating shift notes"
+
+[[option]]
   name       = "BVAndIntegerGranularity"
   category   = "expert"
   long       = "bvand-integer-granularity=N"

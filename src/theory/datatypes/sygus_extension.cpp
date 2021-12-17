@@ -1052,7 +1052,7 @@ Node SygusExtension::registerSearchValue(Node a,
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
     if( d_tds->involvesDivByZero( bvr ) ){
-      quantifiers::DivByZeroSygusInvarianceTest dbzet;
+      quantifiers::DivByZeroSygusInvarianceTest dbzet(d_env.getRewriter());
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
                                    << bv << std::endl;
       registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), var_count);
@@ -1161,7 +1161,7 @@ Node SygusExtension::registerSearchValue(Node a,
 
         // generalize the explanation for why the analog of bad_val
         // is equivalent to bvr
-        quantifiers::EquivSygusInvarianceTest eset;
+        quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
         eset.init(d_tds, tn, aconj, a, bvr);
 
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;

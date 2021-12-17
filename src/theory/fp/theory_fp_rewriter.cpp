@@ -915,7 +915,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     FloatingPoint::PartialRational res(arg.convertToRational());
 
     if (res.second) {
-      Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, res.first);
+      Node lit = NodeManager::currentNM()->mkConstReal(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -998,14 +998,14 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
       Rational partialValue(node[1].getConst<Rational>());
 
       Rational folded(arg.convertToRationalTotal(partialValue));
-      Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, folded);
+      Node lit = NodeManager::currentNM()->mkConstReal(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialRational res(arg.convertToRational());
 
       if (res.second) {
-        Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, res.first);
+        Node lit = NodeManager::currentNM()->mkConstReal(res.first);
         return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
