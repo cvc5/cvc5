@@ -26,6 +26,7 @@
 #include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace proof {
@@ -568,6 +569,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       pf << h << h << h << cs[0] << cs[1];
     }
     break;
+    case PfRule::INT_TIGHT_UB:
+    case PfRule::INT_TIGHT_LB:
+    {
+      Node res = pn->getResult();
+      Assert(res.getNumChildren() == 2);
+      Assert(res[1].getKind() == CONST_RATIONAL);
+      pf << h << h << d_tproc.convert(res[1]) << cs[0];
+    }
+    break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
@@ -581,6 +591,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::CONCAT_CSPLIT:
       pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
       break;
+    case PfRule::CONCAT_CONFLICT:
+      pf << h << h << args[0].getConst<bool>() << cs[0];
       break;
     case PfRule::RE_UNFOLD_POS:
       if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)
