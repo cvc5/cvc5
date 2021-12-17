@@ -387,7 +387,8 @@ def run_process(args, cwd, timeout, s_input=None):
             cwd=cwd,
             input=s_input,
             timeout=timeout,
-            capture_output=True,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
             shell=True,
         )
         out = res.stdout
