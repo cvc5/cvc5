@@ -107,15 +107,18 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     std::vector<Node> exp;
     d_im.addToExplanation(termProxy, n, exp);
 
-    // optimization: add a short cut
+    // reasoning about nth(t, n[1]) even if it does not exist.
     // t = (seq.update n[0] n[1] n[2])
     // ---------------------------------------------------------------------
-    // nth(t, n[1]) = (ITE, len(n[0]) > 0, nth(n[2], 0), nth(n[0], n[1]))
+    // nth(t, n[1]) = (ITE, n[1] in range(0, len(n[0])), nth(n[2], 0), nth(n[0],
+    // n[1]))
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
-    Node cond = nm->mkNode(
-        GT, nm->mkNode(STRING_LENGTH, n[0]), nm->mkConstInt(Rational(0)));
+    Node cond =
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, n[1], nm->mkConstInt(Rational(0))),
+                   nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0])));
     Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
-    Node body2 = nm->mkNode(SEQ_NTH, n[0], nm->mkConstInt(Rational(0)));
+    Node body2 = nm->mkNode(SEQ_NTH, n[0], n[1]);
     Node right = nm->mkNode(ITE, cond, body1, body2);
     Node lem = nm->mkNode(EQUAL, left, right);
     sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_SHORTCUT1);
