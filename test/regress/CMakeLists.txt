@@ -1094,8 +1094,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
-  regress0/seq/intseq_dt.smt2
   regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1106,6 +1106,15 @@ set(regress_0_tests
   regress0/seq/proj-issue340.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/rev.smt2
+  regress0/seq/seqa-model-unsound-dd.smt2
+  regress0/seq/array/array1.smt2
+  regress0/seq/array/array2.smt2
+  regress0/seq/array/array3.smt2
+  regress0/seq/array/array4.smt2
+  regress0/seq/array/distinct-update.smt2
+  regress0/seq/array/nth-concat.smt2
+  regress0/seq/array/update-fallback.smt2
+  regress0/seq/array/update-word-eq.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1113,13 +1122,6 @@ set(regress_0_tests
   regress0/seq/seq-ex4.smt2
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
-  regress0/seq/seqa-model-unsound-dd.smt2
-  regress0/seq/seqArraySolver/array1.smt2
-  regress0/seq/seqArraySolver/array2.smt2
-  regress0/seq/seqArraySolver/array3.smt2
-  regress0/seq/seqArraySolver/array4.smt2
-  regress0/seq/seqArraySolver/nth-concat.smt2
-  regress0/seq/seqArraySolver/update-fallback.smt2
   regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
   regress0/seq/seq-nth-uf-z.smt2
