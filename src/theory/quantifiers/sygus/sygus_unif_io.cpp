@@ -974,7 +974,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     if (!cmp_indices.empty())
     {
       // we check invariance with respect to a negative contains test
-      NegContainsSygusInvarianceTest ncset;
+      NegContainsSygusInvarianceTest ncset(d_env.getRewriter());
       if (isConditional)
       {
         ncset.setUniversal();
