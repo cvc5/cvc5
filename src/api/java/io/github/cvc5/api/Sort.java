@@ -70,6 +70,27 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int compareTo(long pointer1, long pointer2);
 
   /**
+   * @return true if the sort has a symbol.
+   */
+  public boolean hasSymbol()
+  {
+    return hasSymbol(pointer);
+  }
+
+  private native boolean hasSymbol(long pointer);
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the symbol.
+   */
+  public String getSymbol()
+  {
+    return getSymbol(pointer);
+  }
+
+  private native String getSymbol(long pointer);
+
+  /**
    * @return true if this Sort is a null sort.
    */
   public boolean isNull()
@@ -372,7 +393,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * or return value for any term that is function-like.
    * This is mainly to avoid higher order.
    *
-   * Note that arrays are explicitly not considered function-like here.
+   * @apiNote Arrays are explicitly not considered function-like here.
    *
    * @return true if this is a function-like sort
    */

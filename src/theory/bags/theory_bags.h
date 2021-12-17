@@ -93,8 +93,6 @@ class TheoryBags : public Theory
   /** expand the definition of the bag.choose operator */
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
-  /** expand the definition of bag.card operator */
-  TrustNode expandCardOperator(TNode n, std::vector<SkolemLemma>& lems);
 
   /** The state of the bags solver at full effort */
   SolverState d_state;

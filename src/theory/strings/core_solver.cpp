@@ -50,9 +50,9 @@ CoreSolver::CoreSolver(Env& env,
       d_nfPairs(context()),
       d_extDeq(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -562,7 +562,7 @@ void CoreSolver::checkNormalFormsEq()
       return;
     }
     NormalForm& nfe = getNormalForm(eqc);
-    Node nf_term = utils::mkNConcat(nfe.d_nf, stype);
+    Node nf_term = d_termReg.mkNConcat(nfe.d_nf, stype);
     std::map<Node, Node>::iterator itn = nf_to_eqc.find(nf_term);
     if (itn != nf_to_eqc.end())
     {
@@ -690,7 +690,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
     if (it != d_normal_form.end())
     {
       NormalForm& nf = it->second;
-      Node ret = utils::mkNConcat(nf.d_nf, stype);
+      Node ret = d_termReg.mkNConcat(nf.d_nf, stype);
       nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
       d_im.addToExplanation(x, nf.d_base, nf_exp);
       Trace("strings-debug")
@@ -708,7 +708,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
         Node nc = getNormalString(x[i], nf_exp);
         vec_nodes.push_back(nc);
       }
-      return utils::mkNConcat(vec_nodes, stype);
+      return d_termReg.mkNConcat(vec_nodes, stype);
     }
   }
   return x;
@@ -776,12 +776,12 @@ Node CoreSolver::getConclusion(Node x,
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(AND,
-                        conc,
-                        sk1.eqNode(emp).negate(),
-                        nm->mkNode(GT,
-                                   nm->mkNode(STRING_LENGTH, sk1),
-                                   nm->mkConst(CONST_RATIONAL, Rational(0))));
+      conc = nm->mkNode(
+          AND,
+          conc,
+          sk1.eqNode(emp).negate(),
+          nm->mkNode(
+              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConstInt(Rational(0))));
     }
   }
   else if (rule == PfRule::CONCAT_CSPLIT)
@@ -1090,7 +1090,7 @@ void CoreSolver::processNEqc(Node eqc,
   for (size_t i = 0, nnforms = normal_forms.size(); i < nnforms; i++)
   {
     NormalForm& nfi = normal_forms[i];
-    Node ni = utils::mkNConcat(nfi.d_nf, stype);
+    Node ni = d_termReg.mkNConcat(nfi.d_nf, stype);
     if (nfCache.find(ni) == nfCache.end())
     {
       // If the equivalence class is entailed to be constant, check
@@ -1369,7 +1369,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             eqnc.push_back(nfkv[i]);
           }
         }
-        eqn[r] = utils::mkNConcat(eqnc, stype);
+        eqn[r] = d_termReg.mkNConcat(eqnc, stype);
       }
       Trace("strings-solve-debug")
           << "Endpoint eq check: " << eqn[0] << " " << eqn[1] << std::endl;
@@ -1805,15 +1805,15 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   Trace("strings-loop") << " ... (X)= " << vecoi[index] << std::endl;
   Trace("strings-loop") << " ... T(Y.Z)= ";
   std::vector<Node> vec_t(veci.begin() + index, veci.begin() + loop_index);
-  Node t_yz = utils::mkNConcat(vec_t, stype);
+  Node t_yz = d_termReg.mkNConcat(vec_t, stype);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
   std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
-  Node s_zy = utils::mkNConcat(vec_s, stype);
+  Node s_zy = d_termReg.mkNConcat(vec_s, stype);
   Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
   std::vector<Node> vec_r(veci.begin() + loop_index + 1, veci.end());
-  Node r = utils::mkNConcat(vec_r, stype);
+  Node r = d_termReg.mkNConcat(vec_r, stype);
   Trace("strings-loop") << r << std::endl;
 
   Node emp = Word::mkEmptyWord(stype);
@@ -1907,12 +1907,12 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
         std::vector<Node> v2(vec_r);
         v2.insert(v2.begin(), y);
         v2.insert(v2.begin(), z);
-        restr = utils::mkNConcat(z, y);
-        cc = rewrite(s_zy.eqNode(utils::mkNConcat(v2, stype)));
+        restr = d_termReg.mkNConcat(z, y);
+        cc = rewrite(s_zy.eqNode(d_termReg.mkNConcat(v2, stype)));
       }
       else
       {
-        cc = rewrite(s_zy.eqNode(utils::mkNConcat(z, y)));
+        cc = rewrite(s_zy.eqNode(d_termReg.mkNConcat(z, y)));
       }
       if (cc == d_false)
       {
@@ -1955,13 +1955,13 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     iinfo.d_skolems[LENGTH_GEQ_ONE].push_back(sk_y);
     Node sk_z = skc->mkSkolem("z_loop");
     // t1 * ... * tn = y * z
-    Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));
+    Node conc1 = t_yz.eqNode(d_termReg.mkNConcat(sk_y, sk_z));
     // s1 * ... * sk = z * y * r
     vec_r.insert(vec_r.begin(), sk_y);
     vec_r.insert(vec_r.begin(), sk_z);
-    Node conc2 = s_zy.eqNode(utils::mkNConcat(vec_r, stype));
-    Node conc3 = vecoi[index].eqNode(utils::mkNConcat(sk_y, sk_w));
-    Node restr = r == emp ? s_zy : utils::mkNConcat(sk_z, sk_y);
+    Node conc2 = s_zy.eqNode(d_termReg.mkNConcat(vec_r, stype));
+    Node conc3 = vecoi[index].eqNode(d_termReg.mkNConcat(sk_y, sk_w));
+    Node restr = r == emp ? s_zy : d_termReg.mkNConcat(sk_z, sk_y);
     str_in_re =
         nm->mkNode(kind::STRING_IN_REGEXP,
                    sk_w,
@@ -2653,7 +2653,7 @@ void CoreSolver::checkLengthsEqc() {
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {
-      Node nf = utils::mkNConcat(nfi.d_nf, stype);
+      Node nf = d_termReg.mkNConcat(nfi.d_nf, stype);
       if (Trace.isOn("strings-process-debug"))
       {
         Trace("strings-process-debug")

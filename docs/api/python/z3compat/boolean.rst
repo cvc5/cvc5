@@ -2,7 +2,7 @@ Core & Booleans
 ================
 
 Basic Boolean Term Builders
------------------------------
+---------------------------
 .. autofunction:: cvc5_z3py_compat.Bool
 .. autofunction:: cvc5_z3py_compat.BoolVal
 .. autofunction:: cvc5_z3py_compat.BoolSort
@@ -11,13 +11,13 @@ Basic Boolean Term Builders
 .. autofunction:: cvc5_z3py_compat.BoolVector
 
 Basic Generic Term Builders
------------------------------
+---------------------------
 .. autofunction:: cvc5_z3py_compat.Const
 .. autofunction:: cvc5_z3py_compat.Consts
 .. autofunction:: cvc5_z3py_compat.FreshConst
 
 Boolean Operators
--------------------
+-----------------
 .. autofunction:: cvc5_z3py_compat.And
 .. autofunction:: cvc5_z3py_compat.Or
 .. autofunction:: cvc5_z3py_compat.Not
@@ -26,7 +26,7 @@ Boolean Operators
 .. autofunction:: cvc5_z3py_compat.Xor
 
 Generic Operators
--------------------
+-----------------
 .. autofunction:: cvc5_z3py_compat.If
 .. autofunction:: cvc5_z3py_compat.Distinct
 
@@ -41,7 +41,7 @@ for building equality and disequality terms.
 
 
 Testers
--------------------
+-------
 .. autofunction:: cvc5_z3py_compat.is_bool
 .. autofunction:: cvc5_z3py_compat.is_bool_value
 .. autofunction:: cvc5_z3py_compat.is_true

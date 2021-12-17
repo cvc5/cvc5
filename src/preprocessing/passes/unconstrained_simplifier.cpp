@@ -515,9 +515,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (current.getType().isInteger())
             {
               // div/mult by 1 should have been simplified
-              Assert(other != nm->mkConst(CONST_RATIONAL, Rational(1)));
+              Assert(other != nm->mkConstInt(Rational(1)));
               // div by -1 should have been simplified
-              if (other != nm->mkConst(CONST_RATIONAL, Rational(-1)))
+              if (other != nm->mkConstInt(Rational(-1)))
               {
                 break;
               }
@@ -530,8 +530,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test =
-                  other.eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)));
+              Node test = other.eqNode(nm->mkConstReal(Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;

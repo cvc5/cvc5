@@ -86,12 +86,12 @@ class ICPSolver : protected EnvObj
     std::vector<Node> d_conflict;
 
     /** Initialized the variable bounds with a variable mapper */
-    ICPState(VariableMapper& vm) {}
+    ICPState(Env& env, VariableMapper& vm) : d_bounds(env) {}
 
     /** Reset this state */
     void reset()
     {
-      d_bounds = BoundInference();
+      d_bounds.reset();
       d_candidates.clear();
       d_assignment.clear();
       d_origins = ContractionOriginManager();

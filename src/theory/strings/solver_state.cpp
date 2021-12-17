@@ -34,7 +34,7 @@ SolverState::SolverState(Env& env, Valuation& v)
       d_pendingConflictSet(env.getContext(), false),
       d_pendingConflict(InferenceId::UNKNOWN)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
@@ -77,7 +77,8 @@ TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
 Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
 {
   Assert(areEqual(t, te));
-  Node lt = utils::mkNLength(te);
+  Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, t);
+  lt = rewrite(lt);
   if (hasTerm(lt))
   {
     // use own length if it exists, leads to shorter explanation
@@ -116,7 +117,8 @@ Node SolverState::explainNonEmpty(Node s)
   {
     return s.eqNode(emp).negate();
   }
-  Node sLen = utils::mkNLength(s);
+  Node sLen = NodeManager::currentNM()->mkNode(STRING_LENGTH, s);
+  sLen = rewrite(sLen);
   if (areDisequal(sLen, d_zero))
   {
     return sLen.eqNode(d_zero).negate();
