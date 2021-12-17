@@ -44,7 +44,7 @@ PfManager::PfManager(Env& env)
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
-          d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
+          env, env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(nullptr),
       d_finalProof(nullptr)
 {

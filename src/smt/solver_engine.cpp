@@ -192,9 +192,9 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
     // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(pppg);
+    d_asserts->enableProofs(pppg);
     // enabled proofs in the preprocessor
-    d_smtSolver->getPreprocessor()->setProofGenerator(pppg);
+    d_smtSolver->getPreprocessor()->enableProofs(pppg);
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;

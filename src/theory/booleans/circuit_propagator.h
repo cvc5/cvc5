@@ -139,8 +139,7 @@ class CircuitPropagator : protected EnvObj
    * If parent is non-null, then it is responsible for the proofs provided
    * to this class.
    */
-  void setProof(ProofNodeManager* pnm,
-                context::Context* ctx,
+  void enableProofs(context::Context* ctx,
                 ProofGenerator* defParent);
 
  private:

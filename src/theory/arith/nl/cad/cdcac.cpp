@@ -251,7 +251,8 @@ PolyVector requiredCoefficientsLazard(const poly::Polynomial& p,
 PolyVector requiredCoefficientsLazardModified(
     const poly::Polynomial& p,
     const poly::Assignment& assignment,
-    VariableMapper& vm)
+    VariableMapper& vm,
+                                              Rewriter * rewriter)
 {
   PolyVector res;
   auto lc = poly::leading_coefficient(p);
@@ -274,7 +275,7 @@ PolyVector requiredCoefficientsLazardModified(
         Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  Node rewritten = Rewriter::callExtendedRewrite(
+  Node rewritten = rewriter->extendedRewrite(
       NodeManager::currentNM()->mkAnd(conditions));
   if (rewritten.isConst())
   {
@@ -301,7 +302,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
     Trace("cdcac::projection")
         << "LMod: "
         << requiredCoefficientsLazardModified(
-               p, d_assignment, d_constraints.varMapper())
+               p, d_assignment, d_constraints.varMapper(), d_env.getRewriter())
         << std::endl;
     Trace("cdcac::projection")
         << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
@@ -315,7 +316,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
       return requiredCoefficientsLazard(p, d_assignment);
     case options::NlCadProjectionMode::LAZARDMOD:
       return requiredCoefficientsLazardModified(
-          p, d_assignment, d_constraints.varMapper());
+          p, d_assignment, d_constraints.varMapper(), d_env.getRewriter());
     default:
       Assert(false);
       return requiredCoefficientsOriginal(p, d_assignment);
