@@ -167,19 +167,13 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 |                      | ``(declare-const t (Tuple Int Int))``        | ``Sort s_int = solver.getIntegerSort();``                                          |
 |                      |                                              |                                                                                    |
-|                      |                                              | ``Sort s = solver.mkTypleSort({s_int, s_int});``                                   |
+|                      |                                              | ``Sort s = solver.mkTupleSort({s_int, s_int});``                                   |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkConst(s, "t");``                                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Constructor    | ``(mkTuple <Term_1>, ..., <Term_n>)``        | ``Sort s = solver.mkTypleSort(sorts);``                                            |
-|                      |                                              |                                                                                    |
-|                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
-|                      |                                              |                                                                                    |
-|                      |                                              | ``Term c = dt[0].getConstructor();``                                               |
-|                      |                                              |                                                                                    |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});`` |
+| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({<Sort_1>, ..., <Sort_n>}, {Term_1>, ..., <Term_n>});``  |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Selector       | ``((_ tupSel i) t)``                         | ``Sort s = solver.mkTypleSort(sorts);``                                            |
+| Tuple Selector       | ``((_ tuple_select i) t)``                         | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
 |                      |                                              |                                                                                    |
@@ -187,7 +181,7 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Reation Sort         | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::api::Sort tupleSort);``                          |
+| Relation Sort        | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    | ``Sort s = solver.mkSetSort(cvc5::api::Sort tupleSort);``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Constants            | ``(declare-const X (Set (Tuple Int Int)``    | ``Sort s = solver.mkSetSort(solver.mkTupleSort({s_int, s_int});``                  |
 |                      |                                              |                                                                                    |
