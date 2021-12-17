@@ -96,7 +96,7 @@ void SynthConjecture::presolve()
 {
   // If we previously had a solution, block it. Notice that
   // excludeCurrentSolution in the block below ensures we implement a
-  // policy where a *new* solution is generated for check-synth in the set of
+  // policy where a *new* solution is generated for check-synth if the set of
   // SyGuS constraints has not changed. This call will block solutions for
   // *smart* enumerators only. This behavior makes smart enumeration have
   // a consistent policy with *fast* enumerators, which will generate
