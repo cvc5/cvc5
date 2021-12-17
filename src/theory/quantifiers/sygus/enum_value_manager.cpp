@@ -82,7 +82,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   {
     if (d_tds->isVariableAgnosticEnumerator(e))
     {
-      d_evg.reset(new EnumStreamConcrete(d_tds));
+      d_evg = std::make_unique<EnumStreamConcrete>(d_env, d_tds);
     }
     else
     {
@@ -93,12 +93,13 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       if (options().quantifiers.sygusActiveGenMode
           == options::SygusActiveGenMode::ENUM_BASIC)
       {
-        d_evg.reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+        d_evg =
+            std::make_unique<EnumValGeneratorBasic>(d_env, d_tds, e.getType());
       }
       else if (options().quantifiers.sygusActiveGenMode
                == options::SygusActiveGenMode::RANDOM)
       {
-        d_evg.reset(new SygusRandomEnumerator(d_tds));
+        d_evg = std::make_unique<SygusRandomEnumerator>(d_env, d_tds);
       }
       else
       {
@@ -118,17 +119,18 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             // use the default output for the output of sygusRewVerify
             out = options().base.out;
           }
-          d_secd.reset(new SygusEnumeratorCallbackDefault(
-              e, &d_stats, d_eec.get(), d_samplerRrV.get(), out));
+          d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
+              d_env, e, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
-        d_evg.reset(
-            new SygusEnumerator(d_tds,
-                                d_secd.get(),
-                                &d_stats,
-                                false,
-                                options().quantifiers.sygusRepairConst));
+        d_evg = std::make_unique<SygusEnumerator>(
+            d_env,
+            d_tds,
+            d_secd.get(),
+            &d_stats,
+            false,
+            options().quantifiers.sygusRepairConst);
       }
     }
     Trace("sygus-active-gen")

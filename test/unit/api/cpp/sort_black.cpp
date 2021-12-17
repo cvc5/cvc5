@@ -61,6 +61,24 @@ TEST_F(TestApiBlackSort, operators_comparison)
   ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
 }
 
+TEST_F(TestApiBlackSort, hasGetSymbol)
+{
+  Sort n;
+  Sort b = d_solver.getBooleanSort();
+  Sort s0 = d_solver.mkParamSort("s0");
+  Sort s1 = d_solver.mkParamSort("|s1\\|");
+
+  ASSERT_THROW(n.hasSymbol(), CVC5ApiException);
+  ASSERT_FALSE(b.hasSymbol());
+  ASSERT_TRUE(s0.hasSymbol());
+  ASSERT_TRUE(s1.hasSymbol());
+
+  ASSERT_THROW(n.getSymbol(), CVC5ApiException);
+  ASSERT_THROW(b.getSymbol(), CVC5ApiException);
+  ASSERT_EQ(s0.getSymbol(), "s0");
+  ASSERT_EQ(s1.getSymbol(), "|s1\\|");
+}
+
 TEST_F(TestApiBlackSort, isNull)
 {
   Sort x;

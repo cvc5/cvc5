@@ -1,5 +1,5 @@
 Java API
-======================
+========
 
 The Java API for cvc5 mostly mirrors the :doc:`C++ API <../cpp/cpp>` and supports operator
 overloading, iterators, and exceptions.
@@ -56,7 +56,7 @@ Building cvc5 Java API
        (< (+ a b) 1)
 
 `Package io.github.cvc5.api <io/github/cvc5/api/package-summary.html>`_
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   * class `Datatype <io/github/cvc5/api/Datatype.html>`_
   * class `DatatypeConstructor <io/github/cvc5/api/DatatypeConstructor.html>`_
