@@ -2871,6 +2871,17 @@ bool isUInt64(const Node& node)
 }
 }  // namespace detail
 
+int32_t Term::getIntOrRealValueSign() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  const Rational& r = detail::getRational(*d_node);
+  return static_cast<int32_t>(r.sgn());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Term::isInt32Value() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
