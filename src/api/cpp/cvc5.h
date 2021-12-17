@@ -1722,11 +1722,12 @@ class CVC5_EXPORT DatatypeConstructorDecl
   /**
    * Add datatype selector declaration.
    * @param name the name of the datatype selector declaration to add
-   * @param sort the range sort of the datatype selector declaration to add
+   * @param sort the codomain sort of the datatype selector declaration to add
    */
   void addSelector(const std::string& name, const Sort& sort);
   /**
-   * Add datatype selector declaration whose range type is the datatype itself.
+   * Add datatype selector declaration whose codomain type is the datatype
+   * itself.
    * @param name the name of the datatype selector declaration to add
    */
   void addSelectorSelf(const std::string& name);
@@ -1917,8 +1918,8 @@ class CVC5_EXPORT DatatypeSelector
    */
   Term getUpdaterTerm() const;
 
-  /** @return the range sort of this selector. */
-  Sort getRangeSort() const;
+  /** @return the codomain sort of this selector. */
+  Sort getCodomainSort() const;
 
   /**
    * @return true if this DatatypeSelector is a null object
@@ -2307,8 +2308,8 @@ class CVC5_EXPORT Datatype
    * Does this datatype have nested recursion? This method returns false if a
    * value of this datatype includes a subterm of its type that is nested
    * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with range type (Set T) has
-   * nested recursion.
+   * T containing a constructor having a selector with codomain type (Set T)
+   * has nested recursion.
    *
    * @return true if this datatype has nested recursion
    */
@@ -2613,7 +2614,7 @@ class CVC5_EXPORT Grammar
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
-   * @note Create unresolved sorts with Solver::mkUninterpretedSort().
+   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
    *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
@@ -3178,7 +3179,7 @@ class CVC5_EXPORT Solver
    * When constructing datatypes, unresolved sorts are replaced by the datatype
    * sort constructed for the datatype declaration it is associated with.
    *
-   * @note Create unresolved sorts with Solver::mkUninterpretedSort().
+   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
    *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
@@ -3254,6 +3255,18 @@ class CVC5_EXPORT Solver
    * @return the uninterpreted sort
    */
   Sort mkUninterpretedSort(const std::string& symbol) const;
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
 
   /**
    * Create a sort constructor sort.
