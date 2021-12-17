@@ -323,13 +323,15 @@ cdef class DatatypeConstructorDecl:
             Add datatype selector declaration.
 
             :param name: the name of the datatype selector declaration to add.
-            :param sort: the range sort of the datatype selector declaration to add.
+            :param sort: the codomain sort of the datatype selector declaration
+                         to add.
         """
         self.cddc.addSelector(name.encode(), sort.csort)
 
     def addSelectorSelf(self, str name):
         """
-            Add datatype selector declaration whose range sort is the datatype itself.
+            Add datatype selector declaration whose codomain sort is the
+            datatype itself.
 
             :param name: the name of the datatype selector declaration to add.
         """
@@ -426,12 +428,12 @@ cdef class DatatypeSelector:
         term.cterm = self.cds.getUpdaterTerm()
         return term
 
-    def getRangeSort(self):
+    def getCodomainSort(self):
         """
-            :return: the range sort of this selector.
+            :return: the codomain sort of this selector.
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.cds.getRangeSort()
+        sort.csort = self.cds.getCodomainSort()
         return sort
 
     def isNull(self):

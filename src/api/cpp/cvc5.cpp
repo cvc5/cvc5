@@ -3528,7 +3528,7 @@ void DatatypeConstructorDecl::addSelector(const std::string& name,
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORT(sort);
   CVC5_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
-      << "non-null range sort for selector";
+      << "non-null codomain sort for selector";
   //////// all checks before this line
   d_ctor->addArg(name, *sort.d_type);
   ////////
@@ -3747,7 +3747,7 @@ Term DatatypeSelector::getUpdaterTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort DatatypeSelector::getRangeSort() const
+Sort DatatypeSelector::getCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;

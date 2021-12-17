@@ -131,8 +131,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
   ASSERT_EQ(dtsTreeNodeLeft.getName(), "left");
   // argument type should have resolved to be recursive
-  ASSERT_TRUE(dtsTreeNodeLeft.getRangeSort().isDatatype());
-  ASSERT_EQ(dtsTreeNodeLeft.getRangeSort(), dtsorts[0]);
+  ASSERT_TRUE(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+  ASSERT_EQ(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
 
   // fails due to empty datatype
   std::vector<DatatypeDecl> dtdeclsBad;
@@ -247,7 +247,7 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   // get selector
   DatatypeSelector dselTail = dcons[1];
   ASSERT_EQ(dselTail.getName(), std::string("tail"));
-  ASSERT_EQ(dselTail.getRangeSort(), dtypeSort);
+  ASSERT_EQ(dselTail.getCodomainSort(), dtypeSort);
 
   // get selector from datatype
   ASSERT_NO_THROW(dt.getSelector("head"));
@@ -417,9 +417,10 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   // this is not well-founded due to non-simple recursion
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
-  ASSERT_TRUE(dtsorts[0].getDatatype()[0][0].getRangeSort().isArray());
-  ASSERT_EQ(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort(),
-            dtsorts[0]);
+  ASSERT_TRUE(dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray());
+  ASSERT_EQ(
+      dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort(),
+      dtsorts[0]);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 

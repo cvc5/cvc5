@@ -112,8 +112,8 @@ class DatatypeTest
     DatatypeSelector dtsTreeNodeLeft = dtcTreeNode.getSelector(0);
     assertEquals(dtsTreeNodeLeft.getName(), "left");
     // argument type should have resolved to be recursive
-    assertTrue(dtsTreeNodeLeft.getRangeSort().isDatatype());
-    assertEquals(dtsTreeNodeLeft.getRangeSort(), dtsorts.get(0));
+    assertTrue(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts.get(0));
 
     // fails due to empty datatype
     List<DatatypeDecl> dtdeclsBad = new ArrayList<>();
@@ -225,7 +225,7 @@ class DatatypeTest
     // get selector
     DatatypeSelector dselTail = dcons.getSelector(1);
     assertEquals(dselTail.getName(), "tail");
-    assertEquals(dselTail.getRangeSort(), dtypeSort);
+    assertEquals(dselTail.getCodomainSort(), dtypeSort);
 
     // possible to construct null datatype declarations if not using solver
     assertThrows(CVC5ApiException.class, () -> d_solver.getNullDatatypeDecl().getName());
@@ -391,12 +391,12 @@ class DatatypeTest
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     assertTrue(
-        dtsorts.get(0).getDatatype().getConstructor(0).getSelector(0).getRangeSort().isArray());
+        dtsorts.get(0).getDatatype().getConstructor(0).getSelector(0).getCodomainSort().isArray());
     assertEquals(dtsorts.get(0)
                      .getDatatype()
                      .getConstructor(0)
                      .getSelector(0)
-                     .getRangeSort()
+                     .getCodomainSort()
                      .getArrayElementSort(),
         dtsorts.get(0));
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
