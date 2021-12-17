@@ -36,6 +36,8 @@ make install
 popd
 
 ##### signatures
+
+# The LFSC signatures live in the main cvc5 repository
 SIG_DIR="$BASE_DIR/../proofs/lfsc/signatures"
 
 # install signatures and scripts
