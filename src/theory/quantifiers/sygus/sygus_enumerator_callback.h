@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
@@ -36,10 +37,10 @@ class SygusSampler;
  * provide custom criteria for whether or not enumerated values should be
  * considered.
  */
-class SygusEnumeratorCallback
+class SygusEnumeratorCallback : protected EnvObj
 {
  public:
-  SygusEnumeratorCallback(Node e, SygusStatistics* s = nullptr);
+  SygusEnumeratorCallback(Env& env, Node e, SygusStatistics* s = nullptr);
   virtual ~SygusEnumeratorCallback() {}
   /**
    * Add term, return true if the term should be considered in the enumeration.
@@ -81,7 +82,8 @@ class SygusEnumeratorCallback
 class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
 {
  public:
-  SygusEnumeratorCallbackDefault(Node e,
+  SygusEnumeratorCallbackDefault(Env& env,
+                                 Node e,
                                  SygusStatistics* s = nullptr,
                                  ExampleEvalCache* eec = nullptr,
                                  SygusSampler* ssrv = nullptr,
