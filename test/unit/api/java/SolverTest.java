@@ -2591,9 +2591,9 @@ class SolverTest
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
     d_solver.checkSynth();
-    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f});
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
     d_solver.checkSynthNext();
-    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f});
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
   }
 
   @Test void checkSynthNext2() throws CVC5ApiException
