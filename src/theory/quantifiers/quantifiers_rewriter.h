@@ -26,7 +26,7 @@ namespace cvc5 {
 class Options;
 
 namespace theory {
-  
+
 class Rewriter;
 
 namespace quantifiers {
@@ -66,7 +66,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s);
 class QuantifiersRewriter : public TheoryRewriter
 {
  public:
-  QuantifiersRewriter(Rewriter * r, const Options& opts);
+  QuantifiersRewriter(Rewriter* r, const Options& opts);
   /** Pre-rewrite n */
   RewriteResponse preRewrite(TNode in) override;
   /** Post-rewrite n */
@@ -312,7 +312,7 @@ class QuantifiersRewriter : public TheoryRewriter
                         RewriteStep computeOption,
                         QAttributes& qa) const;
   /** Pointer to rewriter, used for computeExtendedRewrite above */
-  Rewriter * d_rewriter;
+  Rewriter* d_rewriter;
   /** Reference to the options */
   const Options& d_opts;
 }; /* class QuantifiersRewriter */
