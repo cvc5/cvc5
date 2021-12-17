@@ -4811,7 +4811,8 @@ class CVC5_EXPORT Solver
    *     (check-synth)
    * \endverbatim
    *
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   Result checkSynth() const;
 
@@ -4819,7 +4820,7 @@ class CVC5_EXPORT Solver
    * Try to find a next solution for the synthesis conjecture corresponding to
    * the current list of functions-to-synthesize, universal variables and
    * constraints. Must be called immediately after a successful call to
-   * check-synth or check-synth-next.
+   * check-synth or check-synth-next. Requires incremental mode.
    *
    * SyGuS v2:
    *
@@ -4829,7 +4830,8 @@ class CVC5_EXPORT Solver
    *     (check-synth-next)
    * \endverbatim
    *
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   Result checkSynthNext() const;
 
