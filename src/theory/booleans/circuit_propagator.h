@@ -134,7 +134,7 @@ class CircuitPropagator : protected EnvObj
     return false;
   }
   /**
-   * Set proof node manager, context and parent proof generator.
+   * Enable proofs based on context and parent proof generator.
    *
    * If parent is non-null, then it is responsible for the proofs provided
    * to this class.
