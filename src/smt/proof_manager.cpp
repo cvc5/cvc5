@@ -51,7 +51,7 @@ PfManager::PfManager(Env& env)
   d_env.setProofNodeManager(d_pnm.get());
   // now construct preprocess proof generator
   d_pppg = std::make_unique<PreprocessProofGenerator>(
-          env, env.getUserContext(), "smt::PreprocessProofGenerator");
+      env, env.getUserContext(), "smt::PreprocessProofGenerator");
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
