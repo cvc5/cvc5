@@ -115,7 +115,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getName() except +
         Term getSelectorTerm() except +
         Term getUpdaterTerm() except +
-        Sort getRangeSort() except +
+        Sort getCodomainSort() except +
         bint isNull() except +
         string toString() except +
 

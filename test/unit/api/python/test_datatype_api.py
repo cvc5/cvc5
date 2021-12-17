@@ -127,8 +127,8 @@ def test_mk_datatype_sorts(solver):
     dtsTreeNodeLeft = dtcTreeNode[0]
     assert dtsTreeNodeLeft.getName() == "left"
     # argument type should have resolved to be recursive
-    assert dtsTreeNodeLeft.getRangeSort().isDatatype()
-    assert dtsTreeNodeLeft.getRangeSort() == dtsorts[0]
+    assert dtsTreeNodeLeft.getCodomainSort().isDatatype()
+    assert dtsTreeNodeLeft.getCodomainSort() == dtsorts[0]
 
     # fails due to empty datatype
     dtdeclsBad = []
@@ -245,7 +245,7 @@ def test_datatype_names(solver):
     # get selector
     dselTail = dcons[1]
     assert dselTail.getName() == "tail"
-    assert dselTail.getRangeSort() == dtypeSort
+    assert dselTail.getCodomainSort() == dtypeSort
 
     # get selector from datatype
     dt.getSelector("head")
@@ -408,8 +408,8 @@ def test_datatype_simply_rec(solver):
     # this is not well-founded due to non-simple recursion
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().isArray()
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort() \
+    assert dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray()
+    assert dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort() \
         == dtsorts[0]
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[0].getDatatype().hasNestedRecursion()
