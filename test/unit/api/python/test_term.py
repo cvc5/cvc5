@@ -1132,6 +1132,10 @@ def test_is_integer(solver):
     assert int9.getIntegerValue() == 4294967296
     assert int10.getIntegerValue() == 18446744073709551615
     assert int11.getIntegerValue() == 18446744073709551616
+    
+    assert int1.getRealOrIntegerValueSign() == -1
+    assert int6.getRealOrIntegerValueSign() == 0
+    assert int7.getRealOrIntegerValueSign() == 1
 
 
 def test_get_string(solver):
