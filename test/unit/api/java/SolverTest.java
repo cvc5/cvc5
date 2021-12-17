@@ -336,9 +336,9 @@ class SolverTest
 
   @Test void mkUnresolvedSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 0));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 0));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
   }
 
