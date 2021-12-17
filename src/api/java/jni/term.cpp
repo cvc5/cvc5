@@ -462,7 +462,7 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_toString(JNIEnv* env,
  * Method:    getRealOrIntegerValueSign
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL
+JNIEXPORT jint JNICALL
 Java_io_github_cvc5_api_Term_getRealOrIntegerValueSign(JNIEnv* env,
                                                        jobject,
                                                        jlong pointer)
