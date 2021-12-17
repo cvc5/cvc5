@@ -2871,6 +2871,17 @@ bool isUInt64(const Node& node)
 }
 }  // namespace detail
 
+int32_t Term::getRealOrIntegerValueSign() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  const Rational& r = detail::getRational(*d_node);
+  return static_cast<int32_t>(r.sgn());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Term::isInt32Value() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -3528,7 +3539,7 @@ void DatatypeConstructorDecl::addSelector(const std::string& name,
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORT(sort);
   CVC5_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
-      << "non-null range sort for selector";
+      << "non-null codomain sort for selector";
   //////// all checks before this line
   d_ctor->addArg(name, *sort.d_type);
   ////////
@@ -3747,7 +3758,7 @@ Term DatatypeSelector::getUpdaterTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort DatatypeSelector::getRangeSort() const
+Sort DatatypeSelector::getCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -5741,6 +5752,19 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
+  return Sort(this, getNodeManager()->mkSort(symbol));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (arity)
+  {
+    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
+  }
   return Sort(this, getNodeManager()->mkSort(symbol));
   ////////
   CVC5_API_TRY_CATCH_END;

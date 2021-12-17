@@ -422,7 +422,11 @@ class Smt2 : public Parser
    * @return True if `es` is empty, `e` if `es` consists of a single element
    *         `e`, the conjunction of expressions otherwise.
    */
-  api::Term mkAnd(const std::vector<api::Term>& es);
+  api::Term mkAnd(const std::vector<api::Term>& es) const;
+  /**
+   * Is term t a constant integer?
+   */
+  static bool isConstInt(const api::Term& t);
 }; /* class Smt2 */
 
 }  // namespace parser
