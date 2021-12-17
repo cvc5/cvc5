@@ -64,6 +64,9 @@ class SolverState : public TheoryState
   /** return disequal bag terms */
   const std::set<Node>& getDisequalBagTerms();
 
+  void registerCountSkolem(Node n, Node e, Node skolem);
+  Node getCountSkolem(Node n, Node e);
+
  private:
   /** clear all bags data structures */
   void reset();
@@ -87,6 +90,8 @@ class SolverState : public TheoryState
   std::map<Node, std::set<Node>> d_bagElements;
   /** Disequal bag terms */
   std::set<Node> d_deq;
+  /** cache for skolemized count terms */
+  std::map<Node, std::map<Node, Node>> d_countSkolems;
 }; /* class SolverState */
 
 }  // namespace bags

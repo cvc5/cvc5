@@ -52,6 +52,8 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   Node gte = d_nm->mkNode(GEQ, skolem, d_zero);
   inferInfo.d_conclusion = gte;
   inferInfo.d_skolems[skolem] = count;
+  // cache the skolem for the model builder
+  d_state->registerCountSkolem(n, e, skolem);
   return inferInfo;
 }
 

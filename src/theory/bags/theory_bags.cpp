@@ -319,8 +319,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     for (const Node& e : elements)
     {
       Node key = d_state.getRepresentative(e);
-      Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      Node value = m->getRepresentative(countTerm);
+      Node countSkolem = d_state.getCountSkolem(r, key);
+      Node value = m->getRepresentative(countSkolem);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);

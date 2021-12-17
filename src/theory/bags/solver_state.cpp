@@ -132,6 +132,20 @@ void SolverState::collectDisequalBagTerms()
   }
 }
 
+void SolverState::registerCountSkolem(Node n, Node e, Node skolem)
+{
+  Node nRep = getRepresentative(n);
+  Node eRep = getRepresentative(e);
+  d_countSkolems[n][e] = skolem;
+}
+
+Node SolverState::getCountSkolem(Node n, Node e)
+{
+  Node nRep = getRepresentative(n);
+  Node eRep = getRepresentative(e);
+  return d_countSkolems[n][e];
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5
