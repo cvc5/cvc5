@@ -334,7 +334,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    */
   protected native String toString(long pointer);
 
-  
   /**
    * Get integer or real value sign. Must be called on integer or real values,
    * or otherwise an exception is thrown.
@@ -347,7 +346,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native Integer getRealOrIntegerValueSign(long pointer);
-  
+
   /**
    * @return true if the term is an integer value.
    */
