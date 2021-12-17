@@ -260,14 +260,18 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   return true;
 }
 
+/**
+ * Object to sort by the value of pairs in the write model returned by the
+ * sequences array solver.
+ */
 struct SortSeqIndex
 {
   SortSeqIndex() {}
   /** the comparison */
   bool operator()(std::pair<Node, Node> i, std::pair<Node, Node> j)
   {
-    Assert(i.first.getKind() == CONST_RATIONAL
-           && j.first.getKind() == CONST_RATIONAL);
+    Assert(i.first.isConst() && i.first.getType().isInteger()
+           && j.first.isConst() && j.first.getType().isInteger());
     Assert(i.first != j.first);
     return i.first.getConst<Rational>() < j.first.getConst<Rational>();
   }
@@ -292,7 +296,6 @@ bool TheoryStrings::collectModelInfoType(
   }
   toProcess.erase(tn);
 
-  // TODO: get type enumerator properties
   SEnumLenSet sels;
   // get partition of strings of equal lengths for the representatives of the
   // current type
@@ -435,7 +438,8 @@ bool TheoryStrings::collectModelInfoType(
       }
       else if (d_termReg.hasStringCode() && lenValue == d_one)
       {
-        // it has a code and the length of these equivalence classes are one
+        // It has a code and the length of these equivalence classes are one.
+        // Note this code is solely for strings, not sequences.
         EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
         if (eip && !eip->d_codeTerm.get().isNull())
         {
