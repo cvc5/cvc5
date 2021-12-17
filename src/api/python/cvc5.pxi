@@ -3043,6 +3043,16 @@ cdef class Term:
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
 
+    def getRealOrIntegerValueSign(self):
+        """
+        Get integer or real value sign. Must be called on integer or real values,
+        or otherwise an exception is thrown.
+        
+        :return: 0 if this term is zero, -1 if this term is a negative real or
+        integer value, 1 if this term is a positive real or integer value.
+        """
+        return self.cterm.getRealOrIntegerValueSign()
+
     def isIntegerValue(self):
         """:return: True iff this term is an integer value."""
         return self.cterm.isIntegerValue()

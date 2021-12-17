@@ -27,7 +27,7 @@
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
  * not fully agree on what is (in)valid input, which requires extra checks for
- * consistent behavior (see Solver::mkRealFromStrHelper for an example).
+ * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
  */
 
 #include "api/cpp/cvc5.h"
@@ -2871,6 +2871,17 @@ bool isUInt64(const Node& node)
 }
 }  // namespace detail
 
+int32_t Term::getRealOrIntegerValueSign() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  const Rational& r = detail::getRational(*d_node);
+  return static_cast<int32_t>(r.sgn());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Term::isInt32Value() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5077,15 +5088,23 @@ Term Solver::mkValHelper(const T& t) const
   return Term(this, res);
 }
 
-Term Solver::mkRationalValHelper(const Rational& r) const
+Term Solver::mkRationalValHelper(const Rational& r, bool isInt) const
 {
   //////// all checks before this line
-  Node res = getNodeManager()->mkConst(kind::CONST_RATIONAL, r);
+  NodeManager* nm = getNodeManager();
+  Node res = isInt ? nm->mkConstInt(r) : nm->mkConstReal(r);
   (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
+  api::Term t = Term(this, res);
+  // NOTE: this block will be eliminated when arithmetic subtyping is eliminated
+  if (!isInt)
+  {
+    t = ensureRealSort(t);
+  }
+  return t;
 }
 
-Term Solver::mkRealFromStrHelper(const std::string& s) const
+Term Solver::mkRealOrIntegerFromStrHelper(const std::string& s,
+                                          bool isInt) const
 {
   //////// all checks before this line
   try
@@ -5093,7 +5112,7 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
     cvc5::Rational r = s.find('/') != std::string::npos
                            ? cvc5::Rational(s)
                            : cvc5::Rational::fromDecimal(s);
-    return mkRationalValHelper(r);
+    return mkRationalValHelper(r, isInt);
   }
   catch (const std::invalid_argument& e)
   {
@@ -5826,7 +5845,7 @@ Term Solver::mkInteger(const std::string& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
-  Term integer = mkRealFromStrHelper(s);
+  Term integer = mkRealOrIntegerFromStrHelper(s);
   CVC5_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " a string representing an integer";
   //////// all checks before this line
@@ -5855,8 +5874,7 @@ Term Solver::mkReal(const std::string& s) const
   CVC5_API_ARG_CHECK_EXPECTED(s != ".", s)
       << "a string representing a real or rational value.";
   //////// all checks before this line
-  Term rational = mkRealFromStrHelper(s);
-  return ensureRealSort(rational);
+  return mkRealOrIntegerFromStrHelper(s, false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5865,8 +5883,7 @@ Term Solver::mkReal(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkRationalValHelper(cvc5::Rational(val));
-  return ensureRealSort(rational);
+  return mkRationalValHelper(cvc5::Rational(val), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5875,8 +5892,7 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkRationalValHelper(cvc5::Rational(num, den));
-  return ensureRealSort(rational);
+  return mkRationalValHelper(cvc5::Rational(num, den), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
