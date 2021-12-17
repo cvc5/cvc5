@@ -956,6 +956,20 @@ cdef class Solver:
         sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
+    def mkUnresolvedSort(self, str name, size_t arity = 0):
+        """Create an unresolved sort.
+
+        This is for creating yet unresolved sort placeholders for mutually
+        recursive datatypes.
+
+        :param symbol: the name of the sort
+        :param arity: the number of sort parameters of the sort
+        :return: the unresolved sort
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
+        return sort
+
     def mkSortConstructorSort(self, str symbol, size_t arity):
         """Create a sort constructor sort.
 

@@ -55,7 +55,7 @@ class DatatypeTest
     assertDoesNotThrow(() -> nilConstr.getConstructorTerm());
   }
 
-  @Test void mkDatatypeSorts()
+  @Test void mkDatatypeSorts() throws CVC5ApiException
   {
     /* Create two mutual datatypes corresponding to this definition
      * block:
@@ -67,8 +67,8 @@ class DatatypeTest
      */
     // Make unresolved types as placeholders
     Set<Sort> unresTypes = new HashSet<>();
-    Sort unresTree = d_solver.mkUninterpretedSort("tree");
-    Sort unresList = d_solver.mkUninterpretedSort("list");
+    Sort unresTree = d_solver.mkUnresolvedSort("tree", 0);
+    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
     unresTypes.add(unresTree);
     unresTypes.add(unresList);
 
@@ -322,9 +322,9 @@ class DatatypeTest
      */
     // Make unresolved types as placeholders
     Set<Sort> unresTypes = new HashSet<>();
-    Sort unresWList = d_solver.mkUninterpretedSort("wlist");
-    Sort unresList = d_solver.mkUninterpretedSort("list");
-    Sort unresNs = d_solver.mkUninterpretedSort("ns");
+    Sort unresWList = d_solver.mkUnresolvedSort("wlist", 0);
+    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
+    Sort unresNs = d_solver.mkUnresolvedSort("ns", 0);
     unresTypes.add(unresWList);
     unresTypes.add(unresList);
     unresTypes.add(unresNs);
@@ -372,7 +372,7 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresNs2 = d_solver.mkUninterpretedSort("ns2");
+    Sort unresNs2 = d_solver.mkUnresolvedSort("ns2", 0);
     unresTypes.add(unresNs2);
 
     DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
@@ -409,9 +409,9 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresNs3 = d_solver.mkUninterpretedSort("ns3");
+    Sort unresNs3 = d_solver.mkUnresolvedSort("ns3", 0);
     unresTypes.add(unresNs3);
-    Sort unresList3 = d_solver.mkUninterpretedSort("list3");
+    Sort unresList3 = d_solver.mkUnresolvedSort("list3", 0);
     unresTypes.add(unresList3);
 
     DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
@@ -448,9 +448,9 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresNs4 = d_solver.mkUninterpretedSort("ns4");
+    Sort unresNs4 = d_solver.mkUnresolvedSort("ns4", 0);
     unresTypes.add(unresNs4);
-    Sort unresList4 = d_solver.mkUninterpretedSort("list4");
+    Sort unresList4 = d_solver.mkUnresolvedSort("list4", 0);
     unresTypes.add(unresList4);
 
     DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
