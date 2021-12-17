@@ -376,6 +376,17 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
+   * @return true if the sort has a symbol.
+   */
+  bool hasSymbol() const;
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the sort.
+   */
+  std::string getSymbol() const;
+
+  /**
    * @return true if this Sort is a null sort.
    */
   bool isNull() const;

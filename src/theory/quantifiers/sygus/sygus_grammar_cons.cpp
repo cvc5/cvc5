@@ -153,7 +153,7 @@ Node CegGrammarConstructor::process(Node q,
       sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
       // normalize type, if user-provided
-      SygusGrammarNorm sygus_norm(d_tds);
+      SygusGrammarNorm sygus_norm(d_env, d_tds);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }else{
       sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
@@ -1232,7 +1232,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // Do beta reduction on the operator so that its arguments match the
         // fresh variables of the lambda (op) we are constructing below.
         sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
-        sop = Rewriter::rewrite(sop);
       }
       opCArgs.push_back(unresAnyConst);
       Node coeff = nm->mkBoundVar(types[i]);

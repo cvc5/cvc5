@@ -2251,6 +2251,18 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def hasSymbol(self):
+        """:return: True iff this sort has a symbol."""
+        return self.csort.hasSymbol()
+
+    def getSymbol(self):
+        """
+        Asserts :py:meth:`hasSymbol()`.
+
+        :return: the raw symbol of the sort.
+        """
+        return self.csort.getSymbol().decode()
+
     def isNull(self):
         """:return: True if this Sort is a null sort."""
         return self.csort.isNull()
@@ -2897,10 +2909,10 @@ cdef class Term:
 
     def getSymbol(self):
         """
-	   Asserts :py:meth:`hasSymbol()`.
+        Asserts :py:meth:`hasSymbol()`.
 
-	   :return: the raw symbol of the term.
-	"""
+        :return: the raw symbol of the term.
+        """
         return self.cterm.getSymbol().decode()
 
     def isNull(self):

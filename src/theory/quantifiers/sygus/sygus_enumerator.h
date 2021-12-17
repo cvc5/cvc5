@@ -59,6 +59,7 @@ class SygusEnumerator : public EnumValGenerator
 {
  public:
   /**
+   * @param env Reference to the environment
    * @param tds Pointer to the term database, required if enumShapes or
    * enumAnyConstHoles is true, or if we want to include symmetry breaking from
    * lemmas stored in the sygus term database,
@@ -70,7 +71,8 @@ class SygusEnumerator : public EnumValGenerator
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
    * free variables are the arguments to any-constant constructors.
    */
-  SygusEnumerator(TermDbSygus* tds = nullptr,
+  SygusEnumerator(Env& env,
+                  TermDbSygus* tds = nullptr,
                   SygusEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
