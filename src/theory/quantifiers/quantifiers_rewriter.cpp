@@ -553,7 +553,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
   return ret;
 }
 
-Node QuantifiersRewriter::computeExtendedRewrite(Node q, const QAttributes& qa) const
+Node QuantifiersRewriter::computeExtendedRewrite(Node q,
+                                                 const QAttributes& qa) const
 {
   // do not apply to recursive functions
   if (qa.isFunDef())
