@@ -108,10 +108,9 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     d_im.addToExplanation(termProxy, n, exp);
 
     // reasoning about nth(t, n[1]) even if it does not exist.
-    // t = (seq.update n[0] n[1] n[2])
+    // x = update(s, n, t)
     // ---------------------------------------------------------------------
-    // nth(t, n[1]) = (ITE, n[1] in range(0, len(n[0])), nth(n[2], 0), nth(n[0],
-    // n[1]))
+    // nth(x, n) = ite(n in range(0, len(s)), nth(t, 0), nth(s, n))
     Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
     Node cond =
         nm->mkNode(AND,
