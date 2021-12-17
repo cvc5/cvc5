@@ -135,10 +135,6 @@ void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
 
 void ContextObj::update()
 {
-  Trace("context") << "before update(" << this << "):" << std::endl
-                   << "context is " << getContext() << std::endl
-                   << *getContext() << std::endl;
-
   // Call save() to save the information in the current object
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
 
@@ -165,10 +161,6 @@ void ContextObj::update()
   // Insert object into the list of objects that need to be restored when this
   // Scope is popped.
   d_pScope->addToChain(this);
-
-  Trace("context") << "after update(" << this << ") with restore "
-                   << pContextObjSaved << ":" << std::endl
-                   << *getContext() << std::endl;
 }
 
 ContextObj* ContextObj::restoreAndContinue()

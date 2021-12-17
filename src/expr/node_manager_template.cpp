@@ -529,8 +529,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
   /* The check should have happened, if we asked for it. */
   Assert(!check || getAttribute(n, TypeCheckedAttr()));
 
-  Trace("getType") << "type of " << &n << " " << n << " is " << typeNode
-                   << endl;
   return typeNode;
 }
 
