@@ -2603,13 +2603,13 @@ public class Solver implements IPointer, AutoCloseable
    * @return the result of the check, which is UNSAT if the check succeeded,
    * in which case solutions are available via getSynthSolutions.
    */
-  public Result checkNextSynth()
+  public Result checkSynthNext()
   {
-    long resultPointer = checkNextSynth(pointer);
+    long resultPointer = checkSynthNext(pointer);
     return new Result(this, resultPointer);
   }
 
-  private native long checkNextSynth(long pointer);
+  private native long checkSynthNext(long pointer);
 
   /**
    * Get the synthesis solution of the given term. This method should be called
