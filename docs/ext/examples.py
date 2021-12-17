@@ -6,6 +6,7 @@ from docutils.statemachine import StringList
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
+
 class APIExamples(SphinxDirective):
     """Add directive `api-examples` to be used as follows:
 
