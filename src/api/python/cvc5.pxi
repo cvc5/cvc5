@@ -323,15 +323,13 @@ cdef class DatatypeConstructorDecl:
             Add datatype selector declaration.
 
             :param name: the name of the datatype selector declaration to add.
-            :param sort: the codomain sort of the datatype selector declaration
-                         to add.
+            :param sort: the range sort of the datatype selector declaration to add.
         """
         self.cddc.addSelector(name.encode(), sort.csort)
 
     def addSelectorSelf(self, str name):
         """
-            Add datatype selector declaration whose codomain sort is the
-            datatype itself.
+            Add datatype selector declaration whose range sort is the datatype itself.
 
             :param name: the name of the datatype selector declaration to add.
         """
@@ -428,12 +426,12 @@ cdef class DatatypeSelector:
         term.cterm = self.cds.getUpdaterTerm()
         return term
 
-    def getCodomainSort(self):
+    def getRangeSort(self):
         """
-            :return: the codomain sort of this selector.
+            :return: the range sort of this selector.
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.cds.getCodomainSort()
+        sort.csort = self.cds.getRangeSort()
         return sort
 
     def isNull(self):
@@ -956,20 +954,6 @@ cdef class Solver:
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkUninterpretedSort(name.encode())
-        return sort
-
-    def mkUnresolvedSort(self, str name, size_t arity = 0):
-        """Create an unresolved sort.
-
-        This is for creating yet unresolved sort placeholders for mutually
-        recursive datatypes.
-
-        :param symbol: the name of the sort
-        :param arity: the number of sort parameters of the sort
-        :return: the unresolved sort
-        """
-        cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
         return sort
 
     def mkSortConstructorSort(self, str symbol, size_t arity):
@@ -3042,6 +3026,16 @@ cdef class Term:
         cdef Py_ssize_t size
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
+
+    def getRealOrIntegerValueSign(self):
+        """
+        Get integer or real value sign. Must be called on integer or real values,
+        or otherwise an exception is thrown.
+        
+        :return: 0 if this term is zero, -1 if this term is a negative real or
+        integer value, 1 if this term is a positive real or integer value.
+        """
+        return self.cterm.getRealOrIntegerValueSign()
 
     def isIntegerValue(self):
         """:return: True iff this term is an integer value."""

@@ -2871,7 +2871,7 @@ bool isUInt64(const Node& node)
 }
 }  // namespace detail
 
-int32_t Term::getIntOrRealValueSign() const
+int32_t Term::getRealOrIntegerValueSign() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
