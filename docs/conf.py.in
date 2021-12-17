@@ -33,6 +33,8 @@ project = 'cvc5'
 copyright = '2021, the authors of cvc5'
 author = 'The authors of cvc5'
 
+project_base_dir = '${PROJECT_SOURCE_DIR}'
+
 
 # -- General configuration ---------------------------------------------------
 

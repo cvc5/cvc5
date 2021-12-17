@@ -6,7 +6,6 @@ from docutils.statemachine import StringList
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
-
 class APIExamples(SphinxDirective):
     """Add directive `api-examples` to be used as follows:
 
@@ -57,6 +56,8 @@ class APIExamples(SphinxDirective):
     has_content = True
 
     logger = logging.getLogger(__name__)
+    
+    srcdir = None
 
     def run(self):
         self.state.document.settings.env.note_dependency(__file__)
@@ -84,9 +85,18 @@ class APIExamples(SphinxDirective):
 
             for k, v in self.env.config.ex_patterns.items():
                 file = file.replace(k, v)
+            
+            assert file.startswith('/')
+            
+            urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
+            url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
 
             # generate tabs
             content.append(f'    .. tab:: {title}')
+            content.append(f'')
+            content.append(f'        .. rst-class:: wy-text-right')
+            content.append(f'        ')
+            content.append(f'        download: `{urlname} <{url}>`_')
             content.append(f'')
             content.append(f'        .. literalinclude:: {file}')
             content.append(f'            :language: {lang}')
@@ -102,6 +112,7 @@ class APIExamples(SphinxDirective):
 
 
 def setup(app):
+    APIExamples.srcdir = app.srcdir
     app.setup_extension('sphinx_tabs.tabs')
     app.add_config_value('ex_patterns', {}, 'env')
     app.add_directive("api-examples", APIExamples)
