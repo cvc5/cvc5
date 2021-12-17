@@ -1137,20 +1137,22 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     else if (kind == api::MINUS && args.size() == 1)
     {
-      if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign()>0)
+      if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
       {
-        // (- n) denotes a 
+        // (- n) denotes a
         std::stringstream suminus;
         suminus << "-" << constVal;
         api::Term ret = d_solver->mkInteger(suminus.str());
-        Debug("parser") << "applyParseOp: return negative constant " << ret << std::endl;
+        Debug("parser") << "applyParseOp: return negative constant " << ret
+                        << std::endl;
         return ret;
       }
       api::Term ret = d_solver->mkTerm(api::UMINUS, args[0]);
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    else if (kind== api::DIVISION && args.size()==2 && isConstInt(args[0]) && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign()>0)
+    else if (kind == api::DIVISION && args.size() == 2 && isConstInt(args[0])
+             && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign() > 0)
     {
       // (/ m n) or (/ (- m) n) denote values in reals
     }
