@@ -7942,6 +7942,8 @@ Result Solver::checkSynth() const
 Result Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot checkSynthNext when not solving incrementally (use --incremental)";
   //////// all checks before this line
   return d_slv->checkSynth(true);
   ////////
