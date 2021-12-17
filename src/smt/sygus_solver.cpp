@@ -183,10 +183,15 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConjectureStale = true;
 }
 
-Result SygusSolver::checkSynth(Assertions& as)
+Result SygusSolver::checkSynth(Assertions& as, bool isNext)
 {
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
+  if (!isNext)
+  {
+    // if we are not using check-synth-next, we always reconstruct the solver.
+    d_sygusConjectureStale = true;
+  }
   if (usingSygusSubsolver() && d_subsolverCd.get() != d_subsolver.get())
   {
     // this can occur if we backtrack to a place where we were using a different

@@ -4814,6 +4814,24 @@ class CVC5_EXPORT Solver
    * @return the result of the synthesis conjecture.
    */
   Result checkSynth() const;
+  
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-synth-next)
+   * \endverbatim
+   *
+   * @return the result of the synthesis conjecture.
+   */
+  Result checkSynthNext() const;
 
   /**
    * Get the synthesis solution of the given term. This method should be called

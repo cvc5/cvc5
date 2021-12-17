@@ -7939,6 +7939,15 @@ Result Solver::checkSynth() const
   CVC5_API_TRY_CATCH_END;
 }
 
+Result Solver::checkSynthNext() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_slv->checkSynth(true);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::getSynthSolution(Term term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

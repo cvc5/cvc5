@@ -934,11 +934,17 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth()
+Result SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
-  return d_sygusSolver->checkSynth(*d_asserts);
+  if (isNext)
+  {
+    
+  }
+  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  d_state->notifyCheckSynthResult(r);
+  return r;
 }
 
 /*

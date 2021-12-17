@@ -23,6 +23,6 @@
 (constraint (>= (f x y) 0))
 
 (check-synth)
-(check-synth)
-(check-synth)
-(check-synth)
+(check-synth-next)
+(check-synth-next)
+(check-synth-next)
