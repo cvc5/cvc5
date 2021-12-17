@@ -340,12 +340,12 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @return 0 if this term is zero, -1 if this term is a negative real or
    * integer value, 1 if this term is a positive real or integer value.
    */
-  public Integer getRealOrIntegerValueSign()
+  public int getRealOrIntegerValueSign()
   {
     return getRealOrIntegerValueSign(pointer);
   }
 
-  private native Integer getRealOrIntegerValueSign(long pointer);
+  private native int getRealOrIntegerValueSign(long pointer);
 
   /**
    * @return true if the term is an integer value.
