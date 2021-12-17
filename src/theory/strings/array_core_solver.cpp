@@ -135,7 +135,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
           // optimization: add a short cut for special case
           // t = (seq.update n[0] n[1] n[2])
           // n[2] is a unit term
-		  // -----------------------------------------
+          // -----------------------------------------
           // n[1] != j -> nth(t, j) = nth(n[0], j)
           if (n[2].getKind() == SEQ_UNIT)
           {
