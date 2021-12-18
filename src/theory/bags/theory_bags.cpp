@@ -174,7 +174,11 @@ void TheoryBags::postCheck(Effort effort)
       d_im.reset();
       // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
-      d_state.initialize();
+      std::vector<Node> lemmas = d_state.initialize();
+      for (Node lemma : lemmas)
+      {
+        d_im.lemma(lemma, InferenceId::BAGS_COUNT_SKOLEM);
+      }
       runStrategy(effort);
 
       // remember if we had pending facts or lemmas
@@ -212,9 +216,8 @@ void TheoryBags::postCheck(Effort effort)
 
 void TheoryBags::runStrategy(Theory::Effort e)
 {
-  std::vector<std::pair<InferStep, size_t> >::iterator it =
-      d_strat.stepBegin(e);
-  std::vector<std::pair<InferStep, size_t> >::iterator stepEnd =
+  std::vector<std::pair<InferStep, size_t>>::iterator it = d_strat.stepBegin(e);
+  std::vector<std::pair<InferStep, size_t>>::iterator stepEnd =
       d_strat.stepEnd(e);
 
   Trace("bags-process") << "----check, next round---" << std::endl;
@@ -305,21 +308,23 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
     processedBags.insert(r);
 
-    std::set<Node> solverElements = d_state.getElements(r);
-    std::set<Node> elements;
-    // only consider terms in termSet and ignore other elements in the solver
-    std::set_intersection(termSet.begin(),
-                          termSet.end(),
-                          solverElements.begin(),
-                          solverElements.end(),
-                          std::inserter(elements, elements.begin()));
-    Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
-                        << elements << std::endl;
-    std::map<Node, Node> elementReps;
-    for (const Node& e : elements)
+    std::vector<std::pair<Node, Node>> solverElements =
+        d_state.getElementCountPairs(r);
+    std::vector<std::pair<Node, Node>> elements;
+    for (std::pair<Node, Node> pair : solverElements)
     {
-      Node key = d_state.getRepresentative(e);
-      Node countSkolem = d_state.getCountSkolem(r, key);
+      if (termSet.find(pair.first) == termSet.end())
+      {
+        continue;
+      }
+      elements.push_back(pair);
+    }
+
+    std::map<Node, Node> elementReps;
+    for (std::pair<Node, Node> pair : elements)
+    {
+      Node key = d_state.getRepresentative(pair.first);
+      Node countSkolem = pair.second;
       Node value = m->getRepresentative(countSkolem);
       elementReps[key] = value;
     }

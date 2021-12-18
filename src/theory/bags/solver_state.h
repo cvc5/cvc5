@@ -42,9 +42,10 @@ class SolverState : public TheoryState
   /**
    * @param n has the form (bag.count e A)
    * @pre bag A needs is already registered using registerBag(A)
-   * @return a unique skolem for (bag.count e A)
+   * @return a lemma (= skolem (bag.count eRep ARep)) where
+   * eRep, ARep are representatives of e, A respectively
    */
-  void registerCountTerm(TNode n);
+  Node registerCountTerm(TNode n);
   /** get all bag terms that are representatives in the equality engine.
    * This function is valid after the current solver is initialized during
    * postCheck. See SolverState::initialize and BagSolver::postCheck
@@ -58,14 +59,15 @@ class SolverState : public TheoryState
    * (assert (= 0 (bag.count x B)))
    * element x is associated with bag B, albeit x is definitely not in B.
    */
-  const std::set<Node>& getElements(Node B);
+  std::set<Node> getElements(Node B);
   /** initialize bag and count terms */
-  void initialize();
+  std::vector<Node> initialize();
   /** return disequal bag terms */
   const std::set<Node>& getDisequalBagTerms();
-
-  void registerCountSkolem(Node n, Node e, Node skolem);
-  Node getCountSkolem(Node n, Node e);
+  /**
+   * return a list of bag elements and their skolem counts
+   */
+  std::vector<std::pair<Node, Node>> getElementCountPairs(Node n);
 
  private:
   /** clear all bags data structures */
@@ -73,8 +75,9 @@ class SolverState : public TheoryState
   /**
    * collect bags' representatives and all count terms.
    * This function is called during postCheck
+   * @return a list of skolem lemmas to be asserted
    */
-  void collectBagsAndCountTerms();
+  std::vector<Node> collectBagsAndCountTerms();
   /**
    * collect disequal bag terms. This function is called during postCheck.
    */
@@ -87,11 +90,9 @@ class SolverState : public TheoryState
   /** collection of bag representatives */
   std::set<Node> d_bags;
   /** bag -> associated elements */
-  std::map<Node, std::set<Node>> d_bagElements;
+  std::map<Node, std::vector<std::pair<Node, Node>>> d_bagElements;
   /** Disequal bag terms */
   std::set<Node> d_deq;
-  /** cache for skolemized count terms */
-  std::map<Node, std::map<Node, Node>> d_countSkolems;
 }; /* class SolverState */
 
 }  // namespace bags
