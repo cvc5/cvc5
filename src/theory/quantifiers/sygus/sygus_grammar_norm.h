@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -123,10 +124,10 @@ class OpPosTrie
  * These lighweight transformations are always applied, independently of the
  * normalization option being enabled.
  */
-class SygusGrammarNorm
+class SygusGrammarNorm : protected EnvObj
 {
  public:
-  SygusGrammarNorm(TermDbSygus* tds);
+  SygusGrammarNorm(Env& env, TermDbSygus* tds);
   ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *

@@ -254,6 +254,8 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
+   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @param unresolvedSorts the set of unresolved sorts
@@ -417,6 +419,39 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long mkUninterpretedSort(long pointer, String symbol);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUnresolvedSort(pointer, symbol, arity);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUnresolvedSort(long pointer, String symbol, int arity);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
 
   /**
    * Create a sort constructor sort.

@@ -70,6 +70,27 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int compareTo(long pointer1, long pointer2);
 
   /**
+   * @return true if the sort has a symbol.
+   */
+  public boolean hasSymbol()
+  {
+    return hasSymbol(pointer);
+  }
+
+  private native boolean hasSymbol(long pointer);
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the symbol.
+   */
+  public String getSymbol()
+  {
+    return getSymbol(pointer);
+  }
+
+  private native String getSymbol(long pointer);
+
+  /**
    * @return true if this Sort is a null sort.
    */
   public boolean isNull()
