@@ -7655,7 +7655,7 @@ bool Solver::getAbductNext(Term& output) const
       << "Cannot get next abduct unless abducts are enabled (try "
          "--produce-abducts)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "Cannot get next abduct when not solving incrementally (use "
+      << "Cannot get next abduct when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
   Node result;

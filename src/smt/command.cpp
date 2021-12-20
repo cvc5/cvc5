@@ -2101,6 +2101,9 @@ void GetAbductCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    // we must remember the name of the abduct, in case get-abduct-next is
+    // called later.
+    sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
       d_resultStatus = solver->getAbduct(d_conj, d_result);
@@ -2170,6 +2173,8 @@ void GetAbductNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    // Get the name of the abduct from the symbol manager
+    d_name = sm->getLastSynthName();
     d_resultStatus = solver->getAbductNext(d_result);
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2192,7 +2197,7 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
     if (d_resultStatus)
     {
       out << "(define-fun "
-          << "FIXME"
+          << d_name
           << " () Bool " << d_result << ")" << std::endl;
     }
     else
@@ -2204,7 +2209,7 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
 
 Command* GetAbductNextCommand::clone() const
 {
-  GetAbductCommand* c = new GetAbductCommand;
+  GetAbductNextCommand* c = new GetAbductNextCommand;
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;
   return c;

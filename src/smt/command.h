@@ -1128,6 +1128,8 @@ class CVC5_EXPORT GetAbductNextCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 
  protected:
+  /** The name of the abduction predicate */
+  std::string d_name;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */
