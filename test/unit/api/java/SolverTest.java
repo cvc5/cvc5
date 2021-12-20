@@ -1350,7 +1350,7 @@ class SolverTest
     d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
     // Conjecture for abduction: y > 0
     Term conj = d_solver.mkTerm(GT, y, zero);
-    Term output;
+    Term output = d_solver.getNullTerm();
     // Call the abduction api, while the resulting abduct is the output
     assertTrue(d_solver.getAbduct(conj, output));
     // We expect the resulting output to be a boolean formula
@@ -1360,7 +1360,7 @@ class SolverTest
     Sort bsort = d_solver.getBooleanSort();
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
-    Term output2;
+    Term output2  = d_solver.getNullTerm();
     Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
@@ -1382,7 +1382,7 @@ class SolverTest
     d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
     // Conjecture for abduction: y > 0
     Term conj = d_solver.mkTerm(GT, y, zero);
-    Term output;
+    Term output  = d_solver.getNullTerm();
     // Fails due to option not set
     assertThrows(
         CVC5ApiException.class, () -> d_solver.getAbduct(conj, output));
@@ -1403,10 +1403,10 @@ class SolverTest
     d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
     // Conjecture for abduction: y > 0
     Term conj = d_solver.mkTerm(GT, y, zero);
-    Term output;
+    Term output = d_solver.getNullTerm();
     // Call the abduction api, while the resulting abduct is the output
     assertTrue(d_solver.getAbduct(conj, output));
-    Term output2;
+    Term output2 = d_solver.getNullTerm();
     assertTrue(d_solver.getAbductNext(output2));
     // should produce a different output
     assertTrue(output != output2);
