@@ -79,6 +79,13 @@ TEST_F(TestTheoryWhiteArith, assert)
   d_arith->check(d_level);
 }
 
+TEST_F(TestTheoryWhiteArith, large)
+{
+ Node t203 = d_nodeManager->mkConst<Rational>(
+      CONST_RATIONAL, Rational("6135470354240554220207"));
+  ASSERT_THROW(d_slvEngine->simplify(t262), LogicException);
+}
+
 TEST_F(TestTheoryWhiteArith, int_normal_form)
 {
   Node x = d_nodeManager->mkVar(*d_intType);
