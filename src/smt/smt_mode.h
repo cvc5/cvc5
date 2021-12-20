@@ -42,7 +42,9 @@ enum class SmtMode
   // immediately after a successful call to get-abduct
   ABDUCT,
   // immediately after a successful call to get-interpol
-  INTERPOL
+  INTERPOL,
+  // immediately after a successful call to check-synth or check-synth-next
+  SYNTH
 };
 /**
  * Writes a SmtMode to a stream.

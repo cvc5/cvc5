@@ -440,6 +440,20 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkUnresolvedSort(long pointer, String symbol, int arity);
 
   /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
+
+  /**
    * Create a sort constructor sort.
    * @param symbol the symbol of the sort
    * @param arity the arity of the sort
@@ -2580,7 +2594,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   public Result checkSynth()
   {
@@ -2589,6 +2604,26 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long checkSynth(long pointer);
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   * SyGuS v2:
+   * {@code
+   *   ( check-synth-next )
+   * }
+   * @return the result of the check, which is UNSAT if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  public Result checkSynthNext()
+  {
+    long resultPointer = checkSynthNext(pointer);
+    return new Result(this, resultPointer);
+  }
+
+  private native long checkSynthNext(long pointer);
 
   /**
    * Get the synthesis solution of the given term. This method should be called
