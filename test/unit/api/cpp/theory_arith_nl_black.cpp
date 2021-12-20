@@ -28,7 +28,10 @@ class TestTheoryBlackArithNl : public TestApi
 
 TEST_F(TestTheoryBlackArithNl, cvc5Projects388)
 {
-  if (!Configuration::isBuiltWithPoly()) return;
+  if (!Configuration::isBuiltWithPoly())
+  {
+    return;
+  }
   Solver slv;
   slv.setLogic("QF_NRA");
   Sort s = slv.getRealSort();
@@ -47,7 +50,10 @@ TEST_F(TestTheoryBlackArithNl, cvc5Projects388)
 
 TEST_F(TestTheoryBlackArithNl, cvc5Projects388Min)
 {
-  if (!Configuration::isBuiltWithPoly()) return;
+  if (!Configuration::isBuiltWithPoly())
+  {
+    return;
+  }
   Solver slv;
   slv.setOption("nl-cad", "true");
   slv.setOption("nl-cad-var-elim", "true");
