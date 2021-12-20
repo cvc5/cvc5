@@ -821,7 +821,8 @@ void DioSolver::addTrailElementAsLemma(TrailIndex i) {
 Node DioSolver::trailIndexToEquality(TrailIndex i) const {
   const SumPair& sp = d_trail[i].d_eq;
   Node n = sp.getNode();
-  Node zero = NodeManager::currentNM()->mkConstRealOrInt(n.getType(), Rational(0));
+  Node zero =
+      NodeManager::currentNM()->mkConstRealOrInt(n.getType(), Rational(0));
   Node eq = n.eqNode(zero);
   return eq;
 }

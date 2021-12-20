@@ -87,7 +87,7 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
   if (t[0].isConst())
   {
     Rational neg = -(t[0].getConst<Rational>());
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     return RewriteResponse(REWRITE_DONE,
                            nm->mkConstRealOrInt(t[0].getType(), neg));
   }
@@ -749,9 +749,9 @@ RewriteResponse ArithRewriter::preRewrite(TNode t){
 }
 
 Node ArithRewriter::makeUnaryMinusNode(TNode n){
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Rational qNegOne(-1);
-  return nm->mkNode(kind::MULT, nm->mkConstRealOrInt(n.getType(), qNegOne),n);
+  return nm->mkNode(kind::MULT, nm->mkConstRealOrInt(n.getType(), qNegOne), n);
 }
 
 Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
@@ -768,7 +768,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
   Node right = t[1];
   if (right.isConst())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     const Rational& den = right.getConst<Rational>();
 
     if(den.isZero()){
