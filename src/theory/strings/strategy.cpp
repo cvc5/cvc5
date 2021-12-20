@@ -42,6 +42,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
       out << "check_sequences_update_concat_terms";
       break;
     case CHECK_SEQUENCES_ARRAY: out << "check_sequences_array"; break;
+    case CHECK_SEQUENCES_ARRAY_EAGER: out << "check_sequences_array_eager"; break;
     default: out << "?"; break;
   }
   return out;
