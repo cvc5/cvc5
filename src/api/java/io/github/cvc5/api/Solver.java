@@ -2271,13 +2271,12 @@ public class Solver implements IPointer, AutoCloseable
    *        given in the input by conj in the last call to getAbduct.
    * @return true if it gets C successfully, false otherwise
    */
-  public boolean getAbductNext(Term output)
-  {
+  public boolean getAbductNext(Term output) {
     return getAbduct(pointer, output.getPointer());
   }
 
   private native boolean getAbductNext(long pointer, long outputPointer);
-  
+
   /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.

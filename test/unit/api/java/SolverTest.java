@@ -1335,8 +1335,8 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getInfo("asdf"));
   }
 
-  @Test void getAbduct() throws CVC5ApiException
-  {
+  @Test
+  void getAbduct() throws CVC5ApiException {
     d_solver.setLogic("QF_LIA");
     d_solver.setOption("produce-abducts", "true");
     d_solver.setOption("incremental", "false");
@@ -1370,8 +1370,8 @@ class SolverTest
     assertTrue(output2 == truen);
   }
 
-  @Test void getAbduct2() throws CVC5ApiException
-  {
+  @Test
+  void getAbduct2() throws CVC5ApiException {
     d_solver.setLogic("QF_LIA");
     d_solver.setOption("incremental", "false");
     Sort intSort = d_solver.getIntegerSort();
@@ -1384,13 +1384,12 @@ class SolverTest
     Term conj = d_solver.mkTerm(GT, y, zero);
     Term output;
     // Fails due to option not set
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.getAbduct(conj, output));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getAbduct(conj, output));
   }
 
-  @Test void getAbductNext() throws CVC5ApiException
-  {
+  @Test
+  void getAbductNext() throws CVC5ApiException {
     d_solver.setLogic("QF_LIA");
     d_solver.setOption("produce-abducts", "true");
     d_solver.setOption("incremental", "true");
