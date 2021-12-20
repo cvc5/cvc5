@@ -366,7 +366,7 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
       visited[ocur] = Node::null();
       visit.push_back(ocur);
       std::vector<Node>& pc = preChildren[ocur];
-      for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
+      for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; ++i)
       {
         Node c =
             (i == 0 && negCh1) != negAllCh ? cur[i].negate() : Node(cur[i]);
