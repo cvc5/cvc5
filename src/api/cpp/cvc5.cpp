@@ -7651,7 +7651,6 @@ bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
 bool Solver::getAbductNext(Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get next abduct unless abducts are enabled (try "
          "--produce-abducts)";
