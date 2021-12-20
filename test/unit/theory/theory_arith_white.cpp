@@ -18,6 +18,7 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/logic_exception.h"
 #include "test_smt.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers_engine.h"
@@ -83,7 +84,9 @@ TEST_F(TestTheoryWhiteArith, large)
 {
  Node t203 = d_nodeManager->mkConst<Rational>(
       CONST_RATIONAL, Rational("6135470354240554220207"));
-  ASSERT_THROW(d_slvEngine->simplify(t262), LogicException);
+ Node three = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational("3"));
+ Node t204 = d_nodeManager->mkNode(POW, three, t203);
+  ASSERT_THROW(d_slvEngine->simplify(t204), LogicException);
 }
 
 TEST_F(TestTheoryWhiteArith, int_normal_form)
