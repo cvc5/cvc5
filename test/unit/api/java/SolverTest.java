@@ -336,9 +336,9 @@ class SolverTest
 
   @Test void mkUnresolvedSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 0));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 0));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
   }
 
@@ -2583,6 +2583,36 @@ class SolverTest
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getSynthSolutions(new Term[] {x}));
     slv.close();
+  }
+  @Test void checkSynthNext() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+    d_solver.checkSynthNext();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+  }
+
+  @Test void checkSynthNext2() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "false");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
+  }
+
+  @Test void checkSynthNext3() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
   }
 
   @Test void tupleProject() throws CVC5ApiException

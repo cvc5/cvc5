@@ -2589,6 +2589,37 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, checkSynthNext)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  d_solver.checkSynth();
+  ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
+  d_solver.checkSynthNext();
+  ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
+}
+
+TEST_F(TestApiBlackSolver, checkSynthNext2)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "false");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  d_solver.checkSynth();
+  ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, checkSynthNext3)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Sort> sorts = {d_solver.getBooleanSort(),

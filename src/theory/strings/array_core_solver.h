@@ -133,10 +133,12 @@ class ArrayCoreSolver : protected EnvObj
   std::map<Node, Node> d_connectedSeq;
   /** The set of lemmas been sent */
   context::CDHashSet<Node> d_lem;
+  /** Set of updates that have been registered */
+  context::CDHashSet<Node> d_registeredUpdates;
 
   // ========= data structure =========
   /** Map sequence variable to indices that occurred in nth terms */
-  std::map<Node, std::set<Node>> d_index_map;
+  std::map<Node, std::set<Node>> d_indexMap;
 };
 
 }  // namespace strings

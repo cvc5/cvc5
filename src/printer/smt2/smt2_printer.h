@@ -142,6 +142,9 @@ class Smt2Printer : public cvc5::Printer
   /** Print check-synth command */
   void toStreamCmdCheckSynth(std::ostream& out) const override;
 
+  /** Print check-synth-next command */
+  void toStreamCmdCheckSynthNext(std::ostream& out) const override;
+
   /** Print simplify command */
   void toStreamCmdSimplify(std::ostream& out, Node nodes) const override;
 
