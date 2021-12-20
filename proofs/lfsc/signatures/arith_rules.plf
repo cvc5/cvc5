@@ -81,6 +81,9 @@
   (mpq_between_zero_one (mp_add (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))
                                 (mp_neg (mpz_to_mpq (sc_arith_get_mpz c))))))
 
+; Integer tight upper bound rule, which uses the above side condition to
+; compute whether c is the greatest integer less than t. The constant c must
+; be provided to applications of this rule.
 (declare int_tight_ub
   (! s term
   (! t term
@@ -95,6 +98,7 @@
   (mpq_between_zero_one (mp_add (mpz_to_mpq (sc_arith_get_mpz c))
                                 (mp_neg (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))))))
 
+; Similar to int_tight_ub, but for lower bound.
 (declare int_tight_lb
   (! s term
   (! t term
