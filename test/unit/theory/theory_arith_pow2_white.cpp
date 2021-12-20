@@ -17,10 +17,10 @@
 #include <memory>
 #include <vector>
 
+#include "smt/logic_exception.h"
 #include "test_smt.h"
 #include "theory/arith/nl/pow2_solver.h"
 #include "util/rational.h"
-#include "smt/logic_exception.h"
 
 namespace cvc5 {
 
@@ -46,7 +46,8 @@ class TestTheoryWhiteArithPow2 : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteArithPow2, largeConst)
 {
-  Node t203 = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational("6135470354240554220207"));
+  Node t203 = d_nodeManager->mkConst<Rational>(
+      CONST_RATIONAL, Rational("6135470354240554220207"));
   Node two = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational("2"));
   Node t262 = d_nodeManager->mkNode(POW, two, t203);
   ASSERT_THROW(d_slvEngine->simplify(t262), LogicException);

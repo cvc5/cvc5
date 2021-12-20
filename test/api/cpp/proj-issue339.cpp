@@ -14,30 +14,33 @@
  *
  */
 
-#include "api/cpp/cvc5.h"
-
 #include <cassert>
+
+#include "api/cpp/cvc5.h"
 
 using namespace cvc5::api;
 
 int main(void)
 {
-//  Solver slv;
-//  Sort s4 = slv.getIntegerSort();
-//  Term t203 = slv.mkInteger("6135470354240554220207");
-//  Term t262 = slv.mkTerm(POW2, t203);
-//  Term t536 = slv.mkTerm(slv.mkOp(INT_TO_BITVECTOR, 49), t262);
-//  slv.simplify(t536);
-//
-//
+  //  Solver slv;
+  //  Sort s4 = slv.getIntegerSort();
+  //  Term t203 = slv.mkInteger("6135470354240554220207");
+  //  Term t262 = slv.mkTerm(POW2, t203);
+  //  Term t536 = slv.mkTerm(slv.mkOp(INT_TO_BITVECTOR, 49), t262);
+  //  slv.simplify(t536);
+  //
+  //
   Solver slv;
   Sort s4 = slv.getIntegerSort();
   Term t203 = slv.mkInteger("6135470354240554220207");
   Term t204 = slv.mkInteger("2");
   Term t262 = slv.mkTerm(POW, t204, t203);
-  try {
+  try
+  {
     slv.simplify(t262);
-  } catch (LogicException e) {
+  }
+  catch (LogicException e)
+  {
     std::cout << "caught the expected exception" << std::endl;
   }
   assert(false);
