@@ -1361,7 +1361,7 @@ class SolverTest
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
     Term output2;
-    Grammar g = d_solver.mkSygusGrammar({}, {start});
+    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
