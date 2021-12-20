@@ -576,6 +576,12 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       PARSER_STATE->checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
     }
+  | /* check-synth-next */
+    CHECK_SYNTH_NEXT_TOK
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd.reset(new CheckSynthCommand(true));
+    }
   | /* set-feature */
     SET_FEATURE_TOK keyword[name] symbolicExpr[expr]
     {
@@ -2240,6 +2246,7 @@ DECLARE_POOL : 'declare-pool';
 SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';
 SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
+CHECK_SYNTH_NEXT_TOK : { PARSER_STATE->sygus()}?'check-synth-next';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';

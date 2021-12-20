@@ -78,6 +78,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
+      d_asolver(
+          env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_extTheory),
       d_rsolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
@@ -211,7 +213,6 @@ void TheoryStrings::presolve() {
   Debug("strings-presolve") << "Finished presolve" << std::endl;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
@@ -231,7 +232,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   // Collects representatives by types and orders sequence types by how nested
   // they are
-  std::map<TypeNode, std::unordered_set<Node> > repSet;
+  std::map<TypeNode, std::unordered_set<Node>> repSet;
   std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
@@ -259,6 +260,24 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   return true;
 }
 
+/**
+ * Object to sort by the value of pairs in the write model returned by the
+ * sequences array solver.
+ */
+struct SortSeqIndex
+{
+  SortSeqIndex() {}
+  /** the comparison */
+  bool operator()(const std::pair<Node, Node>& i,
+                  const std::pair<Node, Node>& j)
+  {
+    Assert(i.first.isConst() && i.first.getType().isInteger()
+           && j.first.isConst() && j.first.getType().isInteger());
+    Assert(i.first != j.first);
+    return i.first.getConst<Rational>() < j.first.getConst<Rational>();
+  }
+};
+
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
     std::unordered_set<TypeNode>& toProcess,
@@ -278,6 +297,7 @@ bool TheoryStrings::collectModelInfoType(
   }
   toProcess.erase(tn);
 
+  SEnumLenSet sels;
   // get partition of strings of equal lengths for the representatives of the
   // current type
   std::map<TypeNode, std::vector<std::vector<Node> > > colT;
@@ -343,69 +363,25 @@ bool TheoryStrings::collectModelInfoType(
   // confirmed by calculus invariant, see paper
   Trace("strings-model") << "Assign to equivalence classes..." << std::endl;
   std::map<Node, Node> pure_eq_assign;
+  // if we are using the sequences array solver, get the connected sequences
+  const std::map<Node, Node>* conSeq = nullptr;
+  std::map<Node, Node>::const_iterator itcs;
+  if (options().strings.seqArray != options::SeqArrayMode::NONE)
+  {
+    conSeq = &d_asolver.getConnectedSequences();
+  }
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
-    Trace("strings-model") << "The (" << col[i].size()
-                           << ") equivalence classes ";
+    Node lenValue = lts_values[i];
+    Trace("strings-model") << "Considering (" << col[i].size()
+                           << ") equivalence classes for length " << lenValue
+                           << std::endl;
     for (const Node& eqc : col[i])
     {
-      Trace("strings-model") << eqc << " ";
+      Trace("strings-model") << "- eqc: " << eqc << std::endl;
       //check if col[i][j] has only variables
-      if (!eqc.isConst())
-      {
-        NormalForm& nfe = d_csolver.getNormalForm(eqc);
-        if (nfe.d_nf.size() == 1)
-        {
-          // is it an equivalence class with a seq.unit term?
-          if (nfe.d_nf[0].getKind() == SEQ_UNIT)
-          {
-            Node argVal;
-            if (nfe.d_nf[0][0].getType().isStringLike())
-            {
-              // By this point, we should have assigned model values for the
-              // elements of this sequence type because of the check in the
-              // beginning of this method
-              argVal = m->getRepresentative(nfe.d_nf[0][0]);
-            }
-            else
-            {
-              // Otherwise, we use the term itself. We cannot get the model
-              // value of this term, since it might not be available yet, as
-              // it may belong to a theory that has not built its model yet.
-              // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
-              argVal = nfe.d_nf[0][0];
-            }
-            Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-            Node c = rewrite(nm->mkNode(SEQ_UNIT, argVal));
-            pure_eq_assign[eqc] = c;
-            Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
-            m->getEqualityEngine()->addTerm(c);
-          }
-          // does it have a code and the length of these equivalence classes are
-          // one?
-          else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
-          {
-            EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
-            if (eip && !eip->d_codeTerm.get().isNull())
-            {
-              // its value must be equal to its code
-              Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
-              Node ctv = d_valuation.getModelValue(ct);
-              unsigned cvalue =
-                  ctv.getConst<Rational>().getNumerator().toUnsignedInt();
-              Trace("strings-model") << "(code: " << cvalue << ") ";
-              std::vector<unsigned> vec;
-              vec.push_back(cvalue);
-              Node mv = nm->mkConst(String(vec));
-              pure_eq_assign[eqc] = mv;
-              m->getEqualityEngine()->addTerm(mv);
-            }
-          }
-          pure_eq.push_back(eqc);
-        }
-      }
-      else
+      if (eqc.isConst())
       {
         processed[eqc] = eqc;
         // Make sure that constants are asserted to the theory model that we
@@ -414,45 +390,185 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
+        continue;
       }
+      NormalForm& nfe = d_csolver.getNormalForm(eqc);
+      if (nfe.d_nf.size() != 1)
+      {
+        // will be assigned via a concatenation of normal form eqc
+        continue;
+      }
+      // ensure we have decided on length value at this point
+      if (lenValue.isNull())
+      {
+        // start with length two (other lengths have special precendence)
+        size_t lvalue = 2;
+        while (values_used.find(lvalue) != values_used.end())
+        {
+          lvalue++;
+        }
+        Trace("strings-model")
+            << "*** Decide to make length of " << lvalue << std::endl;
+        lenValue = nm->mkConstInt(Rational(lvalue));
+        values_used[lvalue] = Node::null();
+      }
+      // is it an equivalence class with a seq.unit term?
+      Node assignedValue;
+      if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+      {
+        Node argVal;
+        if (nfe.d_nf[0][0].getType().isStringLike())
+        {
+          // By this point, we should have assigned model values for the
+          // elements of this sequence type because of the check in the
+          // beginning of this method
+          argVal = m->getRepresentative(nfe.d_nf[0][0]);
+        }
+        else
+        {
+          // Otherwise, we use the term itself. We cannot get the model
+          // value of this term, since it might not be available yet, as
+          // it may belong to a theory that has not built its model yet.
+          // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
+          argVal = nfe.d_nf[0][0];
+        }
+        Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
+        assignedValue = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        Trace("strings-model")
+            << "-> assign via seq.unit: " << assignedValue << std::endl;
+      }
+      else if (d_termReg.hasStringCode() && lenValue == d_one)
+      {
+        // It has a code and the length of these equivalence classes are one.
+        // Note this code is solely for strings, not sequences.
+        EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
+        if (eip && !eip->d_codeTerm.get().isNull())
+        {
+          // its value must be equal to its code
+          Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
+          Node ctv = d_valuation.getModelValue(ct);
+          unsigned cvalue =
+              ctv.getConst<Rational>().getNumerator().toUnsignedInt();
+          Trace("strings-model") << "(code: " << cvalue << ") ";
+          std::vector<unsigned> vec;
+          vec.push_back(cvalue);
+          assignedValue = nm->mkConst(String(vec));
+          Trace("strings-model")
+              << "-> assign via str.code: " << assignedValue << std::endl;
+        }
+      }
+      else if (options().strings.seqArray != options::SeqArrayMode::NONE)
+      {
+        // determine skeleton based on the write model, if it exists
+        const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
+        Trace("strings-model")
+            << "write model size " << writeModel.size() << std::endl;
+        if (!writeModel.empty())
+        {
+          Trace("strings-model")
+              << "Write model for " << tn << " is:" << std::endl;
+          std::vector<std::pair<Node, Node>> writes;
+          std::unordered_set<Node> usedWrites;
+          for (const std::pair<const Node, Node>& w : writeModel)
+          {
+            Trace("strings-model")
+                << "  " << w.first << " -> " << w.second << std::endl;
+            Node ivalue = d_valuation.getModelValue(w.first);
+            Assert(ivalue.isConst() && ivalue.getType().isInteger());
+            // ignore if out of bounds
+            Rational irat = ivalue.getConst<Rational>();
+            if (irat.sgn() == -1 || irat >= lenValue.getConst<Rational>())
+            {
+              continue;
+            }
+            if (usedWrites.find(ivalue) != usedWrites.end())
+            {
+              continue;
+            }
+            usedWrites.insert(ivalue);
+            Node wsunit = nm->mkNode(SEQ_UNIT, w.second);
+            writes.emplace_back(ivalue, wsunit);
+          }
+          // sort based on index value
+          SortSeqIndex ssi;
+          std::sort(writes.begin(), writes.end(), ssi);
+          std::vector<Node> cc;
+          uint32_t currIndex = 0;
+          for (size_t w = 0, wsize = writes.size(); w <= wsize; w++)
+          {
+            uint32_t nextIndex;
+            if (w == writes.size())
+            {
+              nextIndex =
+                  lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
+            }
+            else
+            {
+              Node windex = writes[w].first;
+              Assert(windex.getConst<Rational>()
+                     <= Rational(String::maxSize()));
+              nextIndex =
+                  windex.getConst<Rational>().getNumerator().toUnsignedInt();
+              Assert(nextIndex >= currIndex);
+            }
+            if (nextIndex > currIndex)
+            {
+              // allocate arbitrary value to fill gap
+              Assert(conSeq != nullptr);
+              Node base = eqc;
+              itcs = conSeq->find(eqc);
+              if (itcs != conSeq->end())
+              {
+                base = itcs->second;
+              }
+              // use a skeleton for the gap and not a concrete value, as we
+              // do not know how which values from the element type are
+              // allowable (i.e. unconstrained) to assign to the gap
+              Node cgap = mkSkeletonFromBase(base, currIndex, nextIndex);
+              cc.push_back(cgap);
+            }
+            // then take read
+            if (w < wsize)
+            {
+              cc.push_back(writes[w].second);
+            }
+            currIndex = nextIndex + 1;
+          }
+          assignedValue = utils::mkConcat(cc, tn);
+          Trace("strings-model")
+              << "-> assign via seq.update/nth eqc: " << assignedValue
+              << std::endl;
+        }
+      }
+      if (!assignedValue.isNull())
+      {
+        pure_eq_assign[eqc] = assignedValue;
+        m->getEqualityEngine()->addTerm(assignedValue);
+      }
+      else
+      {
+        Trace("strings-model") << "-> no assignment" << std::endl;
+      }
+      pure_eq.push_back(eqc);
     }
-    Trace("strings-model") << "have length " << lts_values[i] << std::endl;
 
     //assign a new length if necessary
     if( !pure_eq.empty() ){
-      if( lts_values[i].isNull() ){
-        // start with length two (other lengths have special precendence)
-        std::size_t lvalue = 2;
-        while( values_used.find( lvalue )!=values_used.end() ){
-          lvalue++;
-        }
-        Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
-        lts_values[i] = nm->mkConstInt(Rational(lvalue));
-        values_used[lvalue] = Node::null();
-      }
-      Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
+      Trace("strings-model") << "Need to assign values of length " << lenValue
+                             << " to equivalence classes ";
       for( unsigned j=0; j<pure_eq.size(); j++ ){
         Trace("strings-model") << pure_eq[j] << " ";
       }
       Trace("strings-model") << std::endl;
 
       //use type enumerator
-      Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
+      Assert(lenValue.getConst<Rational>() <= Rational(String::maxSize()))
           << "Exceeded UINT32_MAX in string model";
       uint32_t currLen =
-          lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
-      std::unique_ptr<SEnumLen> sel;
+          lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
       Trace("strings-model") << "Cardinality of alphabet is "
                              << d_termReg.getAlphabetCardinality() << std::endl;
-      if (tn.isString())  // string-only
-      {
-        sel.reset(new StringEnumLen(
-            currLen, currLen, d_termReg.getAlphabetCardinality()));
-      }
-      else
-      {
-        sel.reset(new SeqEnumLen(tn, nullptr, currLen, currLen));
-      }
+      SEnumLen* sel = sels.getEnumerator(currLen, tn);
       for (const Node& eqc : pure_eq)
       {
         Node c;
@@ -505,33 +621,8 @@ bool TheoryStrings::collectModelInfoType(
             if (tn.isSequence()
                 && !d_env.isFiniteType(tn.getSequenceElementType()))
             {
-              // Make a skeleton instead. In particular, this means that
-              // a value:
-              //   (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2))
-              // becomes:
-              //   (seq.++ (seq.unit k_0) (seq.unit k_1) (seq.unit k_2))
-              // where k_0, k_1, k_2 are fresh integer variables. These
-              // variables will be assigned values in the standard way by the
-              // model. This construction is necessary since the strings solver
-              // must constrain the length of the model of an equivalence class
-              // (e.g. in this case to length 3); moreover we cannot assign a
-              // concrete value since it may conflict with other skeletons we
-              // have assigned, e.g. for the case of (seq.unit argVal) above.
-              SkolemManager* sm = nm->getSkolemManager();
-              BoundVarManager* bvm = nm->getBoundVarManager();
-              Assert(c.getKind() == CONST_SEQUENCE);
-              const Sequence& sn = c.getConst<Sequence>();
-              const std::vector<Node>& snvec = sn.getVec();
-              std::vector<Node> skChildren;
-              for (const Node& snv : snvec)
-              {
-                TypeNode etn = snv.getType();
-                Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
-                // use a skolem, not a bound variable
-                Node kv = sm->mkPurifySkolem(v, "smv");
-                skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
-              }
-              c = utils::mkConcat(skChildren, tn);
+              // Make a skeleton instead.
+              c = mkSkeletonFor(c);
             }
             // increment
             sel->increment();
@@ -614,6 +705,49 @@ bool TheoryStrings::collectModelInfoType(
   //Trace("strings-model") << "String Model : Assigned." << std::endl;
   Trace("strings-model") << "String Model : Finished." << std::endl;
   return true;
+}
+
+Node TheoryStrings::mkSkeletonFor(Node c)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  Assert(c.getKind() == CONST_SEQUENCE);
+  const Sequence& sn = c.getConst<Sequence>();
+  const std::vector<Node>& snvec = sn.getVec();
+  std::vector<Node> skChildren;
+  for (const Node& snv : snvec)
+  {
+    TypeNode etn = snv.getType();
+    Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+    // use a skolem, not a bound variable
+    Node kv = sm->mkPurifySkolem(v, "smv");
+    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+  }
+  return utils::mkConcat(skChildren, c.getType());
+}
+
+Node TheoryStrings::mkSkeletonFromBase(Node r,
+                                       size_t currIndex,
+                                       size_t nextIndex)
+{
+  Assert(!r.isNull());
+  Assert(r.getType().isSequence());
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(r);
+  std::vector<Node> skChildren;
+  TypeNode etn = r.getType().getSequenceElementType();
+  for (size_t i = currIndex; i < nextIndex; i++)
+  {
+    cacheVals.push_back(nm->mkConst(CONST_RATIONAL, Rational(currIndex)));
+    Node kv = sm->mkSkolemFunction(
+        SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+    cacheVals.pop_back();
+  }
+  return utils::mkConcat(skChildren, r.getType());
 }
 
 /////////////////////////////////////////////////////////////////////////////

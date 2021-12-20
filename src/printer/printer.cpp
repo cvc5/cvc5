@@ -350,6 +350,10 @@ void Printer::toStreamCmdCheckSynth(std::ostream& out) const
 {
   printUnknownCommand(out, "check-synth");
 }
+void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "check-synth-next");
+}
 
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
