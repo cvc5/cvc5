@@ -1112,6 +1112,7 @@ set(regress_0_tests
   regress0/seq/array/array3.smt2
   regress0/seq/array/array4.smt2
   regress0/seq/array/distinct-update.smt2
+  regress0/seq/array/model-dd-1220.smt2
   regress0/seq/array/nth-concat.smt2
   regress0/seq/array/update-fallback.smt2
   regress0/seq/array/update-word-eq.smt2
