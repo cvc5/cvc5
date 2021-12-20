@@ -73,19 +73,17 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   d_subsolver->setLogic(l);
   // assert the abduction query
   d_subsolver->assertFormula(aconj);
-  return getAbductInternal(axioms, abd);
+  d_axioms = axioms;
+  return getAbductInternal(abd);
 }
 
-bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
-                                const Node& goal,
-                                Node& abd)
+bool AbductionSolver::getAbductNext(Node& abd)
 {
-  TypeNode grammarType;
-  return getAbduct(axioms, goal, grammarType, abd);
+  Assert (d_subsolver!=nullptr);
+  return getAbductInternal(abd);
 }
 
-bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
-                                        Node& abd)
+bool AbductionSolver::getAbductInternal(Node& abd)
 {
   // should have initialized the subsolver by now
   Assert(d_subsolver != nullptr);
@@ -133,7 +131,7 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
       // if check abducts option is set, we check the correctness
       if (options().smt.checkAbducts)
       {
-        checkAbduct(axioms, abd);
+        checkAbduct(abd);
       }
       return true;
     }
@@ -144,13 +142,13 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
   return false;
 }
 
-void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
+void AbductionSolver::checkAbduct(Node a)
 {
   Assert(a.getType().isBoolean());
   Trace("check-abduct") << "SolverEngine::checkAbduct: get expanded assertions"
                         << std::endl;
 
-  std::vector<Node> asserts(axioms.begin(), axioms.end());
+  std::vector<Node> asserts(d_axioms.begin(), d_axioms.end());
   asserts.push_back(a);
 
   // two checks: first, consistent with assertions, second, implies negated goal

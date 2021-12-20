@@ -179,6 +179,9 @@ class Smt2Printer : public cvc5::Printer
                             const std::string& name,
                             Node conj,
                             TypeNode sygusType) const override;
+                            
+  /** Print get-abduct-next command */
+  void toStreamCmdGetAbductNext(std::ostream& out) const override;
 
   /** Print get-quantifier-elimination command */
   void toStreamCmdGetQuantifierElimination(std::ostream& out,

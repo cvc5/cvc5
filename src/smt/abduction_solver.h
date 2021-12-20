@@ -63,23 +63,10 @@ class AbductionSolver : protected EnvObj
                  Node& abd);
 
   /**
-   * Same as above, but without user-provided grammar restrictions. A default
-   * grammar is chosen internally using the sygus grammar constructor utility.
+   * Get the next abduct.
    */
-  bool getAbduct(const std::vector<Node>& axioms, const Node& goal, Node& abd);
+  bool getAbductNext(Node& abd);
 
-  /**
-   * Check that a solution to an abduction conjecture is indeed a solution.
-   *
-   * The check is made by determining that the assertions conjoined with the
-   * solution to the abduction problem (a) is SAT, and the assertions conjoined
-   * with the abduct and the goal is UNSAT. If these criteria are not met, an
-   * internal error is thrown.
-   *
-   * @param axioms The expanded assertions of the parent SMT engine
-   * @param a The abduct to check.
-   */
-  void checkAbduct(const std::vector<Node>& axioms, Node a);
 
  private:
   /**
@@ -91,7 +78,19 @@ class AbductionSolver : protected EnvObj
    * This method assumes d_subsolver has been initialized to do abduction
    * problems.
    */
-  bool getAbductInternal(const std::vector<Node>& axioms, Node& abd);
+  bool getAbductInternal(Node& abd);
+  /**
+   * Check that a solution to an abduction conjecture is indeed a solution.
+   *
+   * The check is made by determining that the assertions conjoined with the
+   * solution to the abduction problem (a) is SAT, and the assertions conjoined
+   * with the abduct and the goal is UNSAT. If these criteria are not met, an
+   * internal error is thrown.
+   *
+   * @param axioms The expanded assertions of the parent SMT engine
+   * @param a The abduct to check.
+   */
+  void checkAbduct(Node a);
   /** The SMT engine subsolver
    *
    * This is a separate copy of the SMT engine which is used for making
@@ -119,6 +118,8 @@ class AbductionSolver : protected EnvObj
    * for. This is used for the get-abduct command.
    */
   Node d_sssf;
+  /** The list of axioms for the abduction query */
+  std::vector<Node> d_axioms;
 };
 
 }  // namespace smt

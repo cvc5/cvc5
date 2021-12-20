@@ -2158,6 +2158,73 @@ void GetAbductCommand::toStream(std::ostream& out,
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* class GetAbductNextCommand                                                     */
+/* -------------------------------------------------------------------------- */
+
+GetAbductNextCommand::GetAbductNextCommand()
+    : d_resultStatus(false)
+{
+}
+
+api::Term GetAbductNextCommand::getResult() const { return d_result; }
+
+void GetAbductNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_resultStatus = solver->getAbductNext(d_result);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetAbductNextCommand::printResult(std::ostream& out) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out);
+  }
+  else
+  {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << "FIXME" << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetAbductNextCommand::clone() const
+{
+  GetAbductCommand* c = new GetAbductCommand;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetAbductNextCommand::getCommandName() const { return "get-abduct-next"; }
+
+void GetAbductNextCommand::toStream(std::ostream& out,
+                                int toDepth,
+                                size_t dag,
+                                Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetAbductNext(
+      out);
+}
+
+
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */
 /* -------------------------------------------------------------------------- */
