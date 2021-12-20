@@ -1335,6 +1335,84 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getInfo("asdf"));
   }
 
+  @Test void getAbduct() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "false");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output;
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj, output));
+    // We expect the resulting output to be a boolean formula
+    assertTrue(!output.isNull() && output.getSort().isBoolean());
+
+    // try with a grammar, a simple grammar admitting true
+    Sort boolean = d_solver.getBooleanSort();
+    Term truen = d_solver.mkBoolean(true);
+    Term start = d_solver.mkVar(boolean);
+    Term output2;
+    Grammar g = d_solver.mkSygusGrammar({}, {start});
+    Term conj2 = d_solver.mkTerm(GT, x, zero);
+    assertDoesNotThrow(() -> g.addRule(start, truen));
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj2, g, output2));
+    // abduct must be true
+    assertTrue(output2 == truen);
+  }
+
+  @Test void getAbduct2() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("incremental", "false");
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output;
+    // Fails due to option not set
+    assertThrows(CVC5ApiException.class,
+        ()
+            -> d_solver.getAbduct(conj, output));
+  }
+
+  @Test void getAbductNext() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "true");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output;
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj, output));
+    Term output2;
+    assertTrue(d_solver.getAbductNext(output2));
+    // should produce a different output
+    assertTrue(output != output2);
+  }
+
   @Test void getInterpolant() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
