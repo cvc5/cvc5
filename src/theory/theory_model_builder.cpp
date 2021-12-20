@@ -132,7 +132,8 @@ bool TheoryEngineModelBuilder::isValue(TNode n)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL)
+  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL
+      || n.getKind() == kind::SEQ_NTH_TOTAL)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)

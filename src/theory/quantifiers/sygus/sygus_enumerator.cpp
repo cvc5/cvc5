@@ -33,12 +33,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
+SygusEnumerator::SygusEnumerator(Env& env,
+                                 TermDbSygus* tds,
                                  SygusEnumeratorCallback* sec,
                                  SygusStatistics* s,
                                  bool enumShapes,
                                  bool enumAnyConstHoles)
-    : d_tds(tds),
+    : EnumValGenerator(env),
+      d_tds(tds),
       d_sec(sec),
       d_stats(s),
       d_enumShapes(enumShapes),
@@ -55,7 +57,8 @@ void SygusEnumerator::initialize(Node e)
   // allocate the default callback
   if (d_sec == nullptr && options::sygusSymBreakDynamic())
   {
-    d_secd.reset(new SygusEnumeratorCallbackDefault(e, d_stats));
+    d_secd =
+        std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_stats);
     d_sec = d_secd.get();
   }
   d_etype = d_enum.getType();
@@ -88,7 +91,7 @@ void SygusEnumerator::initialize(Node e)
     {
       // substitute its active guard by true and rewrite
       Node slem = lem.substitute(agt, truent);
-      slem = Rewriter::rewrite(slem);
+      slem = rewrite(slem);
       // break into conjuncts
       std::vector<Node> sblc;
       if (slem.getKind() == AND)

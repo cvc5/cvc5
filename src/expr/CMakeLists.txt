@@ -47,7 +47,6 @@ libcvc5_add_sources(
   node_builder.h
   node_converter.cpp
   node_converter.h
-  node_manager.h
   node_manager_attributes.h
   node_self_iterator.h
   node_trie.cpp
@@ -104,6 +103,7 @@ libcvc5_add_sources(GENERATED
   metakind.cpp
   metakind.h
   node_manager.cpp
+  node_manager.h
   type_checker.cpp
   type_properties.cpp
   type_properties.h
@@ -178,6 +178,16 @@ add_custom_command(
 )
 
 add_custom_command(
+  OUTPUT node_manager.h
+  COMMAND
+    ${mkmetakind_script}
+    ${CMAKE_CURRENT_LIST_DIR}/node_manager_template.h
+    ${KINDS_FILES}
+    > ${CMAKE_CURRENT_BINARY_DIR}/node_manager.h
+  DEPENDS mkmetakind node_manager_template.h ${KINDS_FILES}
+)
+
+add_custom_command(
   OUTPUT node_manager.cpp
   COMMAND
     ${mkmetakind_script}
@@ -204,6 +214,7 @@ add_custom_target(gen-expr
     metakind.cpp
     metakind.h
     node_manager.cpp
+    node_manager.h
     type_checker.cpp
     type_properties.cpp
     type_properties.h

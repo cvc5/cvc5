@@ -833,7 +833,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->checkSynth();
+    d_result = d_isNext ? solver->checkSynthNext() : solver->checkSynth();
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
@@ -901,14 +901,24 @@ void CheckSynthCommand::printResult(std::ostream& out) const
 
 Command* CheckSynthCommand::clone() const { return new CheckSynthCommand(); }
 
-std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
+std::string CheckSynthCommand::getCommandName() const
+{
+  return d_isNext ? "check-synth-next" : "check-synth";
+}
 
 void CheckSynthCommand::toStream(std::ostream& out,
                                  int toDepth,
                                  size_t dag,
                                  Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSynth(out);
+  if (d_isNext)
+  {
+    Printer::getPrinter(language)->toStreamCmdCheckSynthNext(out);
+  }
+  else
+  {
+    Printer::getPrinter(language)->toStreamCmdCheckSynth(out);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1231,8 +1241,12 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 api::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  // mark that it will be printed in the model
-  sm->addModelDeclarationSort(d_sort);
+  // mark that it will be printed in the model, if it is an uninterpreted
+  // sort (arity 0)
+  if (d_arity == 0)
+  {
+    sm->addModelDeclarationSort(d_sort);
+  }
   d_commandStatus = CommandSuccess::instance();
 }
 
