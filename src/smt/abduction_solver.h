@@ -67,7 +67,6 @@ class AbductionSolver : protected EnvObj
    */
   bool getAbductNext(Node& abd);
 
-
  private:
   /**
    * Get abduct internal.

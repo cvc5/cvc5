@@ -658,10 +658,10 @@ class CVC5_EXPORT SolverEngine
    */
   bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
 
-  /** 
+  /**
    * Get next abduct. This can only be called immediately after a successful
    * call to getAbduct or getAbductNext.
-   * 
+   *
    * Returns true if an abduct was found, and sets abd to the abduct.
    */
   bool getAbductNext(Node& abd);

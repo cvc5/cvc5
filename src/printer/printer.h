@@ -205,7 +205,7 @@ class Printer
                                     const std::string& name,
                                     Node conj,
                                     TypeNode sygusType) const;
-                                    
+
   /** Print get-abduct-next command */
   virtual void toStreamCmdGetAbductNext(std::ostream& out) const;
 

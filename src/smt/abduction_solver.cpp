@@ -79,7 +79,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
 
 bool AbductionSolver::getAbductNext(Node& abd)
 {
-  Assert (d_subsolver!=nullptr);
+  Assert(d_subsolver != nullptr);
   return getAbductInternal(abd);
 }
 

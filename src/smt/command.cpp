@@ -2158,15 +2158,11 @@ void GetAbductCommand::toStream(std::ostream& out,
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
-
 /* -------------------------------------------------------------------------- */
-/* class GetAbductNextCommand                                                     */
+/* class GetAbductNextCommand */
 /* -------------------------------------------------------------------------- */
 
-GetAbductNextCommand::GetAbductNextCommand()
-    : d_resultStatus(false)
-{
-}
+GetAbductNextCommand::GetAbductNextCommand() : d_resultStatus(false) {}
 
 api::Term GetAbductNextCommand::getResult() const { return d_result; }
 
@@ -2195,8 +2191,9 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
     options::ioutils::applyDagThresh(out, 0);
     if (d_resultStatus)
     {
-      out << "(define-fun " << "FIXME" << " () Bool " << d_result << ")"
-          << std::endl;
+      out << "(define-fun "
+          << "FIXME"
+          << " () Bool " << d_result << ")" << std::endl;
     }
     else
     {
@@ -2213,17 +2210,18 @@ Command* GetAbductNextCommand::clone() const
   return c;
 }
 
-std::string GetAbductNextCommand::getCommandName() const { return "get-abduct-next"; }
-
-void GetAbductNextCommand::toStream(std::ostream& out,
-                                int toDepth,
-                                size_t dag,
-                                Language language) const
+std::string GetAbductNextCommand::getCommandName() const
 {
-  Printer::getPrinter(language)->toStreamCmdGetAbductNext(
-      out);
+  return "get-abduct-next";
 }
 
+void GetAbductNextCommand::toStream(std::ostream& out,
+                                    int toDepth,
+                                    size_t dag,
+                                    Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetAbductNext(out);
+}
 
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */

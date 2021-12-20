@@ -7653,13 +7653,14 @@ bool Solver::getAbductNext(Term& output) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
-      << "Cannot get next abduct unless abducts are enabled (try --produce-abducts)";
+      << "Cannot get next abduct unless abducts are enabled (try "
+         "--produce-abducts)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "Cannot get next abduct when not solving incrementally (use --incremental)";
+      << "Cannot get next abduct when not solving incrementally (use "
+         "--incremental)";
   //////// all checks before this line
   Node result;
-  bool success =
-      d_slv->getAbductNext(result);
+  bool success = d_slv->getAbductNext(result);
   if (success)
   {
     output = Term(this, result);
