@@ -81,8 +81,6 @@ class AbstractValues;
 class Assertions;
 class ResourceOutListener;
 class SmtNodeManagerListener;
-class OptionsManager;
-class Preprocessor;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;

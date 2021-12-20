@@ -25,7 +25,7 @@ mkdir -p $LFSC_DIR
 
 # download and unpack LFSC
 version="15f53d6feb84e4ddb41deaf2b5630f5c1303b06d"
-download "https://github.com/CVC4/LFSC/archive/$version.tar.gz" $BASE_DIR/tmp/lfsc.tgz
+download "https://github.com/cvc5/LFSC/archive/$version.tar.gz" $BASE_DIR/tmp/lfsc.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/lfsc.tgz -C $LFSC_DIR
 
 # build and install LFSC
@@ -36,26 +36,22 @@ make install
 popd
 
 ##### signatures
-SIG_DIR="$BASE_DIR/lfsc-signatures"
-mkdir -p $SIG_DIR
 
-# download and unpack signatures
-sig_version="5d72dafd48aded21fd717ef77321e1c88f732d28"
-download "https://github.com/CVC4/signatures/archive/$sig_version.tar.gz" $BASE_DIR/tmp/signatures.tgz
-tar --strip 1 -xzf $BASE_DIR/tmp/signatures.tgz -C $SIG_DIR
+# The LFSC signatures live in the main cvc5 repository
+SIG_DIR="$BASE_DIR/../proofs/lfsc/signatures"
 
 # install signatures and scripts
 mkdir -p $BASE_DIR/share/lfsc
-cp -r $SIG_DIR/lfsc/new/signatures $BASE_DIR/share/lfsc
+cp -r $SIG_DIR $BASE_DIR/share/lfsc
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen_and_check.sh
 cat << EOF > $BASE_DIR/bin/cvc5-lfsc-check.sh
 #!/bin/bash
 
-echo "=== Generate proof: \$@" 
+echo "=== Generate proof: \$@"
 $BASE_DIR/bin/cvc5-proof.sh \$@ > proof.plf
 
-echo "=== Check proof with LFSC" 
+echo "=== Check proof with LFSC"
 $BASE_DIR/bin/lfsc-check.sh proof.plf
 EOF
 chmod +x $BASE_DIR/bin/cvc5-lfsc-check.sh
@@ -81,7 +77,6 @@ SIG_DIR=$BASE_DIR/share/lfsc/signatures
 SIGS="\$SIG_DIR/core_defs.plf \\
     \$SIG_DIR/util_defs.plf \\
     \$SIG_DIR/theory_def.plf \\
-    \$SIG_DIR/type_checking_programs.plf \\
     \$SIG_DIR/nary_programs.plf \\
     \$SIG_DIR/boolean_programs.plf \\
     \$SIG_DIR/boolean_rules.plf \\
