@@ -268,7 +268,8 @@ struct SortSeqIndex
 {
   SortSeqIndex() {}
   /** the comparison */
-  bool operator()(std::pair<Node, Node> i, std::pair<Node, Node> j)
+  bool operator()(const std::pair<Node, Node>& i,
+                  const std::pair<Node, Node>& j)
   {
     Assert(i.first.isConst() && i.first.getType().isInteger()
            && j.first.isConst() && j.first.getType().isInteger());

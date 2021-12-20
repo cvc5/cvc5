@@ -833,7 +833,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->checkSynth();
+    d_result = d_isNext ? solver->checkSynthNext() : solver->checkSynth();
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
@@ -901,14 +901,24 @@ void CheckSynthCommand::printResult(std::ostream& out) const
 
 Command* CheckSynthCommand::clone() const { return new CheckSynthCommand(); }
 
-std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
+std::string CheckSynthCommand::getCommandName() const
+{
+  return d_isNext ? "check-synth-next" : "check-synth";
+}
 
 void CheckSynthCommand::toStream(std::ostream& out,
                                  int toDepth,
                                  size_t dag,
                                  Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSynth(out);
+  if (d_isNext)
+  {
+    Printer::getPrinter(language)->toStreamCmdCheckSynthNext(out);
+  }
+  else
+  {
+    Printer::getPrinter(language)->toStreamCmdCheckSynth(out);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
