@@ -53,6 +53,7 @@ class AbductionSolver : protected EnvObj
    * @param abd This argument is updated to contain the solution C to the
    * abduction problem. Notice that this is a formula whose free symbols
    * are contained in goal + the parent's current assertion stack.
+   * @return true if the abduct was successfully computed
    *
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
@@ -63,7 +64,12 @@ class AbductionSolver : protected EnvObj
                  Node& abd);
 
   /**
-   * Get the next abduct.
+   * Get the next abduct, return true if successful and store the result
+   * in abd if so.
+   * 
+   * @param abd This argument is updated to contain the solution C to the
+   * abduction problem.
+   * @return true if the abduct was successfully computed
    */
   bool getAbductNext(Node& abd);
 
@@ -84,9 +90,9 @@ class AbductionSolver : protected EnvObj
    * The check is made by determining that the assertions conjoined with the
    * solution to the abduction problem (a) is SAT, and the assertions conjoined
    * with the abduct and the goal is UNSAT. If these criteria are not met, an
-   * internal error is thrown.
+   * internal error is thrown. We use the expanded assertions of the parent SMT
+   * engine, which are stored in d_axioms.
    *
-   * @param axioms The expanded assertions of the parent SMT engine
    * @param a The abduct to check.
    */
   void checkAbduct(Node a);

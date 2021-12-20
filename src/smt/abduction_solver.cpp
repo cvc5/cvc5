@@ -79,6 +79,10 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
 
 bool AbductionSolver::getAbductNext(Node& abd)
 {
+  // Since we are using the subsolver's check-sat interface directly, we
+  // simply call getAbductInternal again here. We assert that the subsolver
+  // is already initialized, which must be the case or else we are not in the
+  // proper SMT mode to make this call.
   Assert(d_subsolver != nullptr);
   return getAbductInternal(abd);
 }

@@ -2272,7 +2272,7 @@ public class Solver implements IPointer, AutoCloseable
    * @return true if it gets C successfully, false otherwise
    */
   public boolean getAbductNext(Term output) {
-    return getAbduct(pointer, output.getPointer());
+    return getAbductNext(pointer, output.getPointer());
   }
 
   private native boolean getAbductNext(long pointer, long outputPointer);
