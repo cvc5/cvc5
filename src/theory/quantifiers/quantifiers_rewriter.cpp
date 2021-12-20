@@ -302,22 +302,22 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
     it = visited.find(cur);
     if (it == visited.end())
     {
-      Kind ok = cur.getKind();
-      Kind k = ok;
+      Kind k = cur.getKind();
       bool negAllCh = false;
       bool negCh1 = false;
-      TNode ocur = cur;
-      if (ok == IMPLIES)
+      // the new formula we should traverse
+      TNode ncur = cur;
+      if (k == IMPLIES)
       {
         k = OR;
         negCh1 = true;
       }
-      else if (ok == XOR)
+      else if (k == XOR)
       {
         k = EQUAL;
         negCh1 = true;
       }
-      else if (ok == NOT)
+      else if (k == NOT)
       {
         // double negation should already be eliminated
         Assert(cur[0].getKind() != NOT);
@@ -326,13 +326,11 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
           k = AND;
           negAllCh = true;
           negCh1 = cur[0].getKind() == IMPLIES;
-          cur = cur[0];
         }
         else if (cur[0].getKind() == AND)
         {
           k = OR;
           negAllCh = true;
-          cur = cur[0];
         }
         else if (cur[0].getKind() == XOR
                  || (cur[0].getKind() == EQUAL
@@ -340,36 +338,35 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
         {
           k = EQUAL;
           negCh1 = (cur[0].getKind() == EQUAL);
-          cur = cur[0];
         }
         else if (cur[0].getKind() == ITE)
         {
           k = cur[0].getKind();
           negAllCh = true;
           negCh1 = true;
-          cur = cur[0];
         }
         else
         {
           visited[cur] = cur;
           continue;
         }
+        ncur = cur[0];
       }
-      else if ((ok != EQUAL || !body[0].getType().isBoolean()) && ok != ITE
-               && ok != AND && ok != OR)
+      else if ((k != EQUAL || !body[0].getType().isBoolean()) && k != ITE
+               && k != AND && k != OR)
       {
         // a literal
         visited[cur] = cur;
         continue;
       }
-      preKind[ocur] = k;
-      visited[ocur] = Node::null();
-      visit.push_back(ocur);
-      std::vector<Node>& pc = preChildren[ocur];
-      for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
+      preKind[cur] = k;
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      std::vector<Node>& pc = preChildren[cur];
+      for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; i++)
       {
         Node c =
-            (i == 0 && negCh1) != negAllCh ? cur[i].negate() : Node(cur[i]);
+            (i == 0 && negCh1) != negAllCh ? ncur[i].negate() : Node(ncur[i]);
         pc.push_back(c);
         visit.push_back(c);
       }
