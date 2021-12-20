@@ -38,6 +38,10 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
     case CHECK_MEMBERSHIP: out << "check_membership"; break;
     case CHECK_CARDINALITY: out << "check_cardinality"; break;
+    case CHECK_SEQUENCES_ARRAY_CONCAT:
+      out << "check_sequences_update_concat_terms";
+      break;
+    case CHECK_SEQUENCES_ARRAY: out << "check_sequences_array"; break;
     default: out << "?"; break;
   }
   return out;
@@ -101,6 +105,10 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
+    if (options().strings.seqArray == options::SeqArrayMode::EAGER)
+    {
+      addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
+    }
     // we must check cycles before using flat forms
     addStrategyStep(CHECK_CYCLES);
     if (options().strings.stringFlatForms)
@@ -129,6 +137,11 @@ void Strategy::initializeStrategy()
     if (options().strings.stringEagerLen && options().strings.stringLenNorm)
     {
       addStrategyStep(CHECK_LENGTH_EQC);
+    }
+    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    {
+      addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
+      addStrategyStep(CHECK_SEQUENCES_ARRAY);
     }
     if (options().strings.stringExp)
     {
