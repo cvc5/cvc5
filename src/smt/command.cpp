@@ -2196,9 +2196,8 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
     options::ioutils::applyDagThresh(out, 0);
     if (d_resultStatus)
     {
-      out << "(define-fun "
-          << d_name
-          << " () Bool " << d_result << ")" << std::endl;
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
     }
     else
     {
