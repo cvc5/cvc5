@@ -1357,9 +1357,9 @@ class SolverTest
     assertTrue(!output.isNull() && output.getSort().isBoolean());
 
     // try with a grammar, a simple grammar admitting true
-    Sort boolean = d_solver.getBooleanSort();
+    Sort bsort = d_solver.getBooleanSort();
     Term truen = d_solver.mkBoolean(true);
-    Term start = d_solver.mkVar(boolean);
+    Term start = d_solver.mkVar(bsort);
     Term output2;
     Grammar g = d_solver.mkSygusGrammar({}, {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
