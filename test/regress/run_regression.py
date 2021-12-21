@@ -382,6 +382,9 @@ def run_process(args, cwd, timeout, s_input=None):
     err = ""
     exit_status = STATUS_TIMEOUT
     try:
+        # Instead of setting shell=True, we explicitly call bash. Using
+        # shell=True seems to produce different exit codes on different
+        # platforms under certain circumstances.
         res = subprocess.run(
             ["bash", "-c", cmd],
             cwd=cwd,
