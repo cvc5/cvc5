@@ -1439,11 +1439,11 @@ class SolverTest
     assertTrue(output.getSort().isBoolean());
   }
 
-  @Test void getInterpolant() throws CVC5ApiException
+  @Test void getInterpolantNext() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
     d_solver.setOption("produce-interpols", "default");
-    d_solver.setOption("incremental", "false");
+    d_solver.setOption("incremental", "true");
 
     Sort intSort = d_solver.getIntegerSort();
     Term zero = d_solver.mkInteger(0);
