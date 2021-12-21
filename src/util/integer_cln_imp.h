@@ -207,7 +207,7 @@ class CVC5_EXPORT Integer
    *
    * @param exp the exponent
    */
-  Integer pow(unsigned int exp) const;
+  Integer pow(unsigned long int exp) const;
 
   /** Return the greatest common divisor of this integer with another.  */
   Integer gcd(const Integer& y) const;
