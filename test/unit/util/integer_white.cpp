@@ -51,12 +51,5 @@ TEST_F(TestUtilWhiteInteger, construction)
   ASSERT_EQ(Integer(i), Integer(i));
   ASSERT_EQ(Integer(u), Integer(u));
 }
-
-TEST_F(TestUtilWhiteInteger, pow) {
-  unsigned long int exp = std::numeric_limits<unsigned long int>::max();
-  Integer ithree(3);
-  Integer three_to_exp = ithree.pow(exp);
-}
-
 }  // namespace test
 }  // namespace cvc5
