@@ -7579,9 +7579,9 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols!=options::ProduceInterpols::NONE)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpols=mode)";
   //////// all checks before this line
   Node result;
   TypeNode nullType;
@@ -7601,9 +7601,9 @@ bool Solver::getInterpolant(const Term& conj,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols!=options::ProduceInterpols::NONE)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpols=mode)";
   //////// all checks before this line
   Node result;
   bool success =
@@ -7620,9 +7620,9 @@ bool Solver::getInterpolant(const Term& conj,
 bool Solver::getInterpolantNext(Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols)
-      << "Cannot get next interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols!=options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";

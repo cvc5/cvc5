@@ -36,7 +36,7 @@ InterpolationSolver::InterpolationSolver(Env& env) : EnvObj(env) {}
 
 InterpolationSolver::~InterpolationSolver() {}
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
+bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
                                       const Node& conj,
                                       const TypeNode& grammarType,
                                       Node& interpol)

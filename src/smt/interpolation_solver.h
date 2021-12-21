@@ -62,7 +62,7 @@ class InterpolationSolver : protected EnvObj
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const std::vector<Node>& axioms,
+  bool getInterpolant(const std::vector<Node>& axioms,
                    const Node& conj,
                    const TypeNode& grammarType,
                    Node& interpol);
@@ -73,6 +73,9 @@ class InterpolationSolver : protected EnvObj
    *
    * Returns true if an interpolant was found, and sets interpol to the
    * interpolant.
+   * 
+   * This method reuses the subsolver initialized by the last call to
+   * getInterpolant.
    */
   bool getInterpolantNext(Node& interpol);
 
@@ -89,7 +92,7 @@ class InterpolationSolver : protected EnvObj
                      const Node& conj);
 
   /** The subsolver */
-  std::unique_ptr<quantifiers::SygusInterpol> d_subsolver;
+  std::unique_ptr<theory::quantifiers::SygusInterpol> d_subsolver;
 };
 
 }  // namespace smt

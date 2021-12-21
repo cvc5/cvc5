@@ -4427,8 +4427,9 @@ class CVC5_EXPORT Solver
    *
    *     (get-interpol <conj>)
    *
-   * Requires to enable option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * Requires option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
    *
    * @param conj the conjecture term
@@ -4448,8 +4449,9 @@ class CVC5_EXPORT Solver
    *
    *     (get-interpol <conj> <grammar>)
    *
-   * Requires to enable option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * Requires option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
    *
    * @param conj the conjecture term
@@ -4474,7 +4476,8 @@ class CVC5_EXPORT Solver
    *     (get-interpol-next)
    *
    * Requires to enable incremental mode, and option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
    *
    * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and

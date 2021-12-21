@@ -2007,6 +2007,9 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    // we must remember the name of the interpolant, in case get-interpol-next
+    // is called later.
+    sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
       d_resultStatus = solver->getInterpolant(d_conj, d_result);
@@ -2083,7 +2086,7 @@ void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     // Get the name of the abduct from the symbol manager
     d_name = sm->getLastSynthName();
-    d_resultStatus = solver->getInterpolNext(d_result);
+    d_resultStatus = solver->getInterpolantNext(d_result);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
