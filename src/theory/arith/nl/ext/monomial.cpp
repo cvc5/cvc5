@@ -171,7 +171,7 @@ void MonomialDb::registerMonomial(Node n)
 void MonomialDb::registerMonomialSubset(Node a, Node b)
 {
   Assert(isMonomialSubset(a, b));
-  Assert (a.getType()==b.getType());
+  Assert(a.getType() == b.getType());
 
   const NodeMultiset& a_exponent_map = getMonomialExponentMap(a);
   const NodeMultiset& b_exponent_map = getMonomialExponentMap(b);

@@ -225,23 +225,24 @@ inline Node flattenAnd(Node n){
 // Returns an node that is the identity of a select few kinds.
 inline Node getIdentity(Kind k)
 {
-  if (k==kind::AND)
+  if (k == kind::AND)
   {
     return mkBoolNode(true);
   }
-  Unreachable(); 
+  Unreachable();
   return Node::null();  // silence warning
 }
 
 // Returns an node that is the identity of a select few kinds.
-inline Node getIdentityType(const TypeNode& tn, Kind k){
-  switch(k){
-  case kind::PLUS:
-    return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
-  case kind::MULT:
-  case kind::NONLINEAR_MULT:
-    return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
-  default: Unreachable(); return Node::null();  // silence warning
+inline Node getIdentityType(const TypeNode& tn, Kind k)
+{
+  switch (k)
+  {
+    case kind::PLUS: return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+    case kind::MULT:
+    case kind::NONLINEAR_MULT:
+      return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
+    default: Unreachable(); return Node::null();  // silence warning
   }
 }
 
@@ -268,14 +269,15 @@ inline Node safeConstructNary(Kind k, const std::vector<Node>& children) {
   }
 }
 
-inline Node safeConstructNaryType(const TypeNode& tn, Kind k, const std::vector<Node>& children) {
-  switch (children.size()) {
-    case 0:
-      return getIdentityType(tn, k);
-    case 1:
-      return children[0];
-    default:
-      return NodeManager::currentNM()->mkNode(k, children);
+inline Node safeConstructNaryType(const TypeNode& tn,
+                                  Kind k,
+                                  const std::vector<Node>& children)
+{
+  switch (children.size())
+  {
+    case 0: return getIdentityType(tn, k);
+    case 1: return children[0];
+    default: return NodeManager::currentNM()->mkNode(k, children);
   }
 }
 
