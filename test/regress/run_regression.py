@@ -383,13 +383,12 @@ def run_process(args, cwd, timeout, s_input=None):
     exit_status = STATUS_TIMEOUT
     try:
         res = subprocess.run(
-            cmd,
+            ["bash", "-c", cmd],
             cwd=cwd,
             input=s_input,
             timeout=timeout,
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            shell=True,
         )
         out = res.stdout
         err = res.stderr
