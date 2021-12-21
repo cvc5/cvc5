@@ -19,6 +19,7 @@
 #include "smt/env.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
+#include "theory/relevance_manager.h"
 
 using namespace cvc5::kind;
 
@@ -81,7 +82,7 @@ void DifficultyManager::notifyLemma(Node n)
         << "Check literal: " << atom << ", has reason = " << (!exp.isNull())
         << std::endl;
     // must be an input assertion
-    if (it != rse.end() && d_input.find(exp) != d_input.end())
+    if (!exp.isNull() && d_input.find(exp) != d_input.end())
     {
       incrementDifficulty(exp);
     }

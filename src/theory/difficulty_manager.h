@@ -72,7 +72,7 @@ class DifficultyManager
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
   /** Pointer to the parent relevance manager */
-  RelevanceManager * d_rlvm;
+  RelevanceManager * d_rlv;
   /**
    * The input assertions, tracked to ensure we do not increment difficulty
    * on lemmas.
