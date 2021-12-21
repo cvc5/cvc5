@@ -235,17 +235,6 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
     }
   }
   Assert(negPos < neg.size());
-
-  // Assert(dnconf.getKind() == kind::AND);
-  // Assert(upconf.getKind() == kind::AND);
-  // Assert(dnpos < dnconf.getNumChildren());
-  // Assert(uppos < upconf.getNumChildren());
-  // Assert(equalUpToNegation(dnconf[dnpos], upconf[uppos]));
-
-  // NodeBuilder nb(kind::AND);
-  // dropPosition(nb, dnconf, dnpos);
-  // dropPosition(nb, upconf, uppos);
-  // return safeConstructNary(nb);
 }
 
 TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
@@ -2064,10 +2053,10 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
 
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   Debug("arith::toSumNode") << "toSumNode() begin" << endl;
-  NodeBuilder nb(kind::PLUS);
   NodeManager* nm = NodeManager::currentNM();
   DenseMap<Rational>::const_iterator iter, end;
   iter = sum.begin(), end = sum.end();
+  std::vector<Node> children;
   for(; iter != end; ++iter){
     ArithVar x = *iter;
     if(!vars.hasNode(x)){ return Node::null(); }
@@ -2075,10 +2064,11 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     const Rational& q = sum[x];
     Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
     Debug("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
-    nb << mult;
+    children.push_back(mult);
   }
   Debug("arith::toSumNode") << "toSumNode() end" << endl;
-  return safeConstructNary(nb);
+  // NOTE: real type assumed here
+  return safeConstructNaryType(nm->realType(), kind::PLUS, children);
 }
 
 ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& conflict){

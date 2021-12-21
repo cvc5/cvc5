@@ -171,6 +171,7 @@ void MonomialDb::registerMonomial(Node n)
 void MonomialDb::registerMonomialSubset(Node a, Node b)
 {
   Assert(isMonomialSubset(a, b));
+  Assert (a.getType()==b.getType());
 
   const NodeMultiset& a_exponent_map = getMonomialExponentMap(a);
   const NodeMultiset& b_exponent_map = getMonomialExponentMap(b);
@@ -182,8 +183,9 @@ void MonomialDb::registerMonomialSubset(Node a, Node b)
   d_m_contain_parent[a].push_back(b);
   d_m_contain_children[b].push_back(a);
 
-  Node mult_term = safeConstructNary(MULT, diff_children);
-  Node nlmult_term = safeConstructNary(NONLINEAR_MULT, diff_children);
+  TypeNode tn = a.getType();
+  Node mult_term = safeConstructNaryType(tn, MULT, diff_children);
+  Node nlmult_term = safeConstructNaryType(tn, NONLINEAR_MULT, diff_children);
   d_m_contain_mult[a][b] = mult_term;
   d_m_contain_umult[a][b] = nlmult_term;
   Trace("nl-ext-mindex") << "..." << a << " is a subset of " << b
@@ -325,7 +327,7 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
         << "......rem, now " << inc << " factors of " << v << std::endl;
     children.insert(children.end(), inc, v);
   }
-  Node ret = safeConstructNary(MULT, children);
+  Node ret = safeConstructNaryType(n.getType(), MULT, children);
   Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
   return ret;
 }
