@@ -1408,6 +1408,8 @@ class SolverTest
     assertTrue(d_solver.getAbduct(conj, output));
     Term output2 = d_solver.getNullTerm();
     assertTrue(d_solver.getAbductNext(output2));
+    // should produce a different output
+    assertNotEquals(output, output2);
   }
 
 
