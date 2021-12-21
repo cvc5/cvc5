@@ -246,7 +246,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             }
           }
         }
-        else if (t[0].isConst() && t[1].isConst()
+        else if (t[0].isConst()
                  && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
                         == 2)
         {
@@ -391,13 +391,8 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
   {
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
-    Integer i = t[0].getConst<Rational>().getNumerator();
-    if (i < 0)
-    {
-      return RewriteResponse(REWRITE_DONE, nm->mkConstInt(Rational(0)));
-    }
-    unsigned long k = i.getUnsignedLong();
-    Node ret = nm->mkConstInt(Rational(Integer(2).pow(k)));
+    Node two = nm->mkConstInt(Rational(Integer(2)));
+    Node ret = nm->mkNode(kind::POW, two, t[0]);
     return RewriteResponse(REWRITE_DONE, ret);
   }
   return RewriteResponse(REWRITE_DONE, t);
