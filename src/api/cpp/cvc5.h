@@ -4484,7 +4484,7 @@ class CVC5_EXPORT Solver
    * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
    */
   bool getInterpolantNext(Term& output) const;
-  
+
   /**
    * Get an abduct.
    *

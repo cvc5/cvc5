@@ -1064,7 +1064,8 @@ class CVC5_EXPORT GetInterpolNextCommand : public Command
  public:
   GetInterpolNextCommand();
   /**
-   * Get the result of the query, which is the solution to the interpolation query.
+   * Get the result of the query, which is the solution to the interpolation
+   * query.
    */
   api::Term getResult() const;
 

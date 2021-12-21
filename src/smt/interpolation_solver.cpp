@@ -71,7 +71,7 @@ bool InterpolationSolver::getInterpolantNext(Node& interpol)
 {
   // should already have initialized a subsolver, since we are immediately
   // preceeded by a successful call to get-interpol(-next).
-  Assert (d_subsolver!=nullptr);
+  Assert(d_subsolver != nullptr);
   return d_subsolver->solveInterpolationNext(interpol);
 }
 

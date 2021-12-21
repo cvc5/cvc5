@@ -1633,8 +1633,8 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 }
 
 bool SolverEngine::getInterpolant(const Node& conj,
-                               const TypeNode& grammarType,
-                               Node& interpol)
+                                  const TypeNode& grammarType,
+                                  Node& interpol)
 {
   SolverEngineScope smts(this);
   finishInit();

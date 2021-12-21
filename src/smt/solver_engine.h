@@ -638,17 +638,18 @@ class CVC5_EXPORT SolverEngine
    * corresponding sygus problem for generating such a solution.
    */
   bool getInterpolant(const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
   /**
-   * Get next interpolant. This can only be called immediately after a successful
-   * call to getInterpolant or getInterpolantNext.
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
    *
-   * Returns true if an interpolant was found, and sets interpol to the interpolant.
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
    */
   bool getInterpolantNext(Node& interpol);
-  
+
   /**
    * This method asks this SMT engine to find an abduct with respect to the
    * current assertion stack (call it A) and the conjecture (call it B).

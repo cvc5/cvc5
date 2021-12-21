@@ -1922,7 +1922,6 @@ void Smt2Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
   out << "(get-interpol-next)" << std::endl;
 }
 
-
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
                                        const std::string& name,
                                        Node conj,

@@ -173,7 +173,7 @@ class Smt2Printer : public cvc5::Printer
                               const std::string& name,
                               Node conj,
                               TypeNode sygusType) const override;
-                            
+
   /** Print get-interpol-next command */
   void toStreamCmdGetInterpolNext(std::ostream& out) const override;
 

@@ -2069,7 +2069,6 @@ void GetInterpolCommand::toStream(std::ostream& out,
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class GetInterpolNextCommand */
 /* -------------------------------------------------------------------------- */
@@ -2129,9 +2128,9 @@ std::string GetInterpolNextCommand::getCommandName() const
 }
 
 void GetInterpolNextCommand::toStream(std::ostream& out,
-                                    int toDepth,
-                                    size_t dag,
-                                    Language language) const
+                                      int toDepth,
+                                      size_t dag,
+                                      Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpolNext(out);
 }

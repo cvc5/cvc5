@@ -25,10 +25,10 @@
 namespace cvc5 {
 
 namespace theory {
-namespace quantifiers{
-class SygusInterpol;  
+namespace quantifiers {
+class SygusInterpol;
 }
-}  
+}  // namespace theory
 
 namespace smt {
 
@@ -68,13 +68,15 @@ class InterpolationSolver : protected EnvObj
                    Node& interpol);
 
   /**
-   * Get next interpolant. This can only be called immediately after a successful
-   * call to getInterpolant or getInterpolantNext.
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
    *
-   * Returns true if an interpolant was found, and sets interpol to the interpolant.
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
    */
   bool getInterpolantNext(Node& interpol);
-private:
+
+ private:
   /**
    * Check that a solution to an interpolation problem is indeed a solution.
    *
