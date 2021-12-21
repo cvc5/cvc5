@@ -88,6 +88,11 @@ class SolverEngineState : protected EnvObj
    */
   void notifyCheckSatResult(bool hasAssumptions, Result r);
   /**
+   * Notify that the result of the last check-synth or check-synth-next was r.
+   * @param r The result of the check-synth or check-synth-next call.
+   */
+  void notifyCheckSynthResult(Result r);
+  /**
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above
    * calls for notifying check-sat. In other words, if a get-abduct command

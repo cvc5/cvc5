@@ -301,7 +301,8 @@ void PseudoBooleanProcessor::learn(Node assertion)
 Node PseudoBooleanProcessor::mkGeqOne(Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::GEQ, v, mkRationalNode(Rational(1)));
+  return nm->mkNode(
+      kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
 
 void PseudoBooleanProcessor::learn(const std::vector<Node>& assertions)

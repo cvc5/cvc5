@@ -113,6 +113,20 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   }
 }
 
+void SolverEngineState::notifyCheckSynthResult(Result r)
+{
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    // successfully generated a synthesis solution, update to abduct state
+    d_smtMode = SmtMode::SYNTH;
+  }
+  else
+  {
+    // failed, we revert to the assert state
+    d_smtMode = SmtMode::ASSERT;
+  }
+}
+
 void SolverEngineState::notifyGetAbduct(bool success)
 {
   if (success)
