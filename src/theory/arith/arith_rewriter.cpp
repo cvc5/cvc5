@@ -392,7 +392,6 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
     Integer i = t[0].getConst<Rational>().getNumerator();
-    // pow2 of negative numbers is 0
     if (i < 0)
     {
       return RewriteResponse(REWRITE_DONE, nm->mkConstInt(Rational(0)));
