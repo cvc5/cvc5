@@ -16,6 +16,7 @@
 #include "theory/strings/extf_solver.h"
 
 #include "options/strings_options.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -157,10 +158,28 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // asserted (pol=0).
     return false;
   }
-  else if (effort != 2)
+  else
   {
-    // all other operators reduce at level 2
-    return false;
+    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    {
+      if (k == SEQ_NTH)
+      {
+        // don't need to reduce seq.nth when sequence update solver is used
+        return false;
+      }
+      else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+               && d_termReg.isHandledUpdate(n))
+      {
+        // don't need to reduce certain seq.update
+        // don't need to reduce certain seq.extract with length 1
+        return false;
+      }
+    }
+    if (effort != 2)
+    {
+      // all other operators reduce at level 2
+      return false;
+    }
   }
   Node c_n = pol == -1 ? n.negate() : n;
   Trace("strings-process-debug")
