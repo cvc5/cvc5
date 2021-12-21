@@ -201,13 +201,17 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
     if (minFind == d_minMap.end() || (*minFind).second < min) {
       d_minMap.insert(n, min);
       Node nGeqMin;
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       if (min.getInfinitesimalPart() == 0) {
-        nGeqMin = NodeBuilder(kind::GEQ)
-                  << n << nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart());
+        nGeqMin =
+            NodeBuilder(kind::GEQ)
+            << n
+            << nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart());
       } else {
-        nGeqMin = NodeBuilder(kind::GT)
-                  << n << nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart());
+        nGeqMin =
+            NodeBuilder(kind::GT)
+            << n
+            << nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart());
       }
       learned << nGeqMin;
       Debug("arith::static") << n << " iteConstant"  << nGeqMin << endl;
@@ -223,13 +227,17 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
     if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
       d_maxMap.insert(n, max);
       Node nLeqMax;
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       if (max.getInfinitesimalPart() == 0) {
-        nLeqMax = NodeBuilder(kind::LEQ)
-                  << n << nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart());
+        nLeqMax =
+            NodeBuilder(kind::LEQ)
+            << n
+            << nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart());
       } else {
-        nLeqMax = NodeBuilder(kind::LT)
-                  << n << nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart());
+        nLeqMax =
+            NodeBuilder(kind::LT)
+            << n
+            << nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart());
       }
       learned << nLeqMax;
       Debug("arith::static") << n << " iteConstant"  << nLeqMax << endl;

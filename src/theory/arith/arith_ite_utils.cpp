@@ -114,7 +114,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
       }else{
         newn = n;
       }
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       Polynomial p = Polynomial::parsePolynomial(newn);
       if(p.isConstant()){
         d_constants[n] = newn;
@@ -209,7 +209,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
 Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   if(n.isConst()){
     Assert(n.getType().isRealOrInt());
-    return NodeManager::currentNM()->mkConstRealOrInt(n.getType(), n.getConst<Rational>() * q);
+    return NodeManager::currentNM()->mkConstRealOrInt(
+        n.getType(), n.getConst<Rational>() * q);
   }else{
     Assert(n.getKind() == kind::ITE);
     Assert(n.getType().isInteger());
@@ -224,13 +225,13 @@ Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == kind::ITE);
   Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
-    NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
     d_reduceGcd[n] = newIte;
     return newIte;
   }else if(gcd.isZero()){
-    Node zeroNode = nm->mkConstRealOrInt(n.getType(),Rational(0));
+    Node zeroNode = nm->mkConstRealOrInt(n.getType(), Rational(0));
     d_reduceGcd[n] = zeroNode;
     return zeroNode;
   }else{

@@ -959,7 +959,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
     const DeltaRational drv = getDeltaValue(term);
     const Rational& delta = d_partialModel.getDelta();
     const Rational qmodel = drv.substituteDelta( delta );
-    return NodeManager::currentNM()->mkConstRealOrInt(term.getType(), qmodel );
+    return NodeManager::currentNM()->mkConstRealOrInt(term.getType(), qmodel);
   } catch (DeltaRationalException& dr) {
     return Node::null();
   } catch (ModelException& me) {
@@ -1960,8 +1960,9 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
 
   Assert(k == kind::LEQ || k == kind::GEQ);
 
-  NodeManager * nm = NodeManager::currentNM();
-  Node comparison = nm->mkNode(k, sum, nm->mkConstRealOrInt(sum.getType(), rhs));
+  NodeManager* nm = NodeManager::currentNM();
+  Node comparison =
+      nm->mkNode(k, sum, nm->mkConstRealOrInt(sum.getType(), rhs));
   Node rewritten = rewrite(comparison);
   if(!(Comparison::isNormalAtom(rewritten))){
     return make_pair(NullConstraint, added);
@@ -2578,7 +2579,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
       }
       Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
-      Node leq = nm->mkNode(kind::LEQ, n, nm->mkConstRealOrInt(n.getType(), fl));
+      Node leq =
+          nm->mkNode(kind::LEQ, n, nm->mkConstRealOrInt(n.getType(), fl));
       Node norm = rewrite(leq);
       return norm;
     }
@@ -3892,7 +3894,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 

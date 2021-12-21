@@ -226,7 +226,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           const Rational& exp = t[1].getConst<Rational>();
           TNode base = t[0];
           if(exp.sgn() == 0){
-            return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConstRealOrInt(t.getType(), Rational(1)));
+            return RewriteResponse(REWRITE_DONE,
+                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                       t.getType(), Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
             cvc5::Rational r(expr::NodeValue::MAX_CHILDREN);
             if (exp <= r)

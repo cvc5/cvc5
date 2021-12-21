@@ -335,7 +335,6 @@ public:
   size_t getComplexity() const;
 };/* class Variable */
 
-
 /**
  * Note that this class wraps constant reals only.
  */
