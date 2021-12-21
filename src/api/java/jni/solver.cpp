@@ -2284,10 +2284,10 @@ Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbductNext
- * Signature: (JJJ)Z
+ * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getAbductNext__JJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong outputPointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getAbductNext
+    (JNIEnv * env, jobject, jlong pointer, jlong outputPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
