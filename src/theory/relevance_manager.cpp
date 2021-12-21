@@ -123,24 +123,28 @@ void RelevanceManager::addInputToAtomsMap(TNode input)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(input);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
       if (isBooleanConnective(cur))
       {
         visit.insert(visit.end(), cur.begin(), cur.end());
         continue;
       }
-      Trace("rel-manager-exp-debug") << "Atom " << cur << " is in " << input << std::endl;
-      NodeList * ilist = getInputListFor(cur);
+      Trace("rel-manager-exp-debug")
+          << "Atom " << cur << " is in " << input << std::endl;
+      NodeList* ilist = getInputListFor(cur);
       ilist->push_back(input);
     }
   } while (!visit.empty());
 }
 
-void RelevanceManager::beginRound() { 
+void RelevanceManager::beginRound()
+{
   d_inFullEffortCheck = true;
   d_fullEffortCheckFail = false;
 }
@@ -195,9 +199,8 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
     if (d_inFullEffortCheck)
     {
       std::stringstream serr;
-      serr
-          << "RelevanceManager::computeRelevance: WARNING: failed to justify "
-          << input;
+      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+           << input;
       Trace("rel-manager") << serr.str() << std::endl;
       Assert(false) << serr.str();
       d_fullEffortCheckFail = false;
@@ -444,10 +447,11 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
   {
     lit = lit[0];
   }
-  NodeList * ilist = getInputListFor(lit, false);
+  NodeList* ilist = getInputListFor(lit, false);
   TNode nextInput;
-  size_t ninputs = ilist==nullptr ? 0 : ilist->size();
-  Trace("rel-manager-exp-debug") << "Atom " << lit << " occurs in " << ninputs << " assertions..." << std::endl;
+  size_t ninputs = ilist == nullptr ? 0 : ilist->size();
+  Trace("rel-manager-exp-debug") << "Atom " << lit << " occurs in " << ninputs
+                                 << " assertions..." << std::endl;
   size_t index = 0;
   do
   {
@@ -457,7 +461,7 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
     {
       return exp;
     }
-    if (index<ninputs)
+    if (index < ninputs)
     {
       // justify the next
       nextInput = (*ilist)[index];
@@ -469,9 +473,8 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
     {
       nextInput = TNode::null();
     }
-  }
-  while (!nextInput.isNull());
-    
+  } while (!nextInput.isNull());
+
   return TNode::null();
 }
 
@@ -485,10 +488,11 @@ TNode RelevanceManager::getExplanationForRelevantInternal(TNode atom) const
   return TNode::null();
 }
 
-RelevanceManager::NodeList * RelevanceManager::getInputListFor(TNode atom, bool doMake)
-{  
+RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
+                                                              bool doMake)
+{
   NodeListMap::const_iterator it = d_atomMap.find(atom);
-  if (it==d_atomMap.end())
+  if (it == d_atomMap.end())
   {
     if (!doMake)
     {

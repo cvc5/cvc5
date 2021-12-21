@@ -39,7 +39,7 @@ class DifficultyManager
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(RelevanceManager * rlv, context::Context* c, Valuation val);
+  DifficultyManager(RelevanceManager* rlv, context::Context* c, Valuation val);
   /** Notify input assertions */
   void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
@@ -72,7 +72,7 @@ class DifficultyManager
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
   /** Pointer to the parent relevance manager */
-  RelevanceManager * d_rlv;
+  RelevanceManager* d_rlv;
   /**
    * The input assertions, tracked to ensure we do not increment difficulty
    * on lemmas.

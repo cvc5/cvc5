@@ -17,16 +17,18 @@
 
 #include "options/smt_options.h"
 #include "smt/env.h"
+#include "theory/relevance_manager.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
-#include "theory/relevance_manager.h"
 
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
 
-DifficultyManager::DifficultyManager(RelevanceManager * rlv, context::Context* c, Valuation val)
+DifficultyManager::DifficultyManager(RelevanceManager* rlv,
+                                     context::Context* c,
+                                     Valuation val)
     : d_rlv(rlv), d_input(c), d_val(val), d_dfmap(c)
 {
 }

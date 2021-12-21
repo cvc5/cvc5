@@ -81,7 +81,7 @@ class RelevanceManager : protected EnvObj
   using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
-  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList> >;
+  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList>>;
   using NodeSet = context::CDHashSet<Node>;
   using RlvPairIntMap =
       context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
@@ -154,7 +154,7 @@ class RelevanceManager : protected EnvObj
    * Called when an input assertion is added, this populates d_atomMap.
    */
   void addInputToAtomsMap(TNode input);
-  /** 
+  /**
    * Compute relevance for input assertion input. This returns false and
    * sets d_fullEffortCheckFail to true if we are at full effort and input
    * fails to be computed.
@@ -196,7 +196,7 @@ class RelevanceManager : protected EnvObj
   /** Return the explanation for why atom is relevant, if it exists */
   TNode getExplanationForRelevantInternal(TNode atom) const;
   /** Get the list of assertions that contain atom */
-  NodeList * getInputListFor(TNode atom, bool doMake = true);
+  NodeList* getInputListFor(TNode atom, bool doMake = true);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
