@@ -75,7 +75,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-granularity=MODE"
   type       = "ProofGranularityMode"
-  default    = "OFF"
+  default    = "THEORY_REWRITE"
   help       = "modes for proof granularity"
   help_mode  = "Modes for proof granularity."
 [[option.mode.OFF]]
