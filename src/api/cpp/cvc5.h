@@ -4509,7 +4509,8 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
-   * call to get-abduct or get-abduct-next.
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
    *
    * SMT-LIB:
    *
