@@ -413,6 +413,11 @@ void Printer::toStreamCmdGetAbduct(std::ostream& out,
   printUnknownCommand(out, "get-abduct");
 }
 
+void Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-abduct-next");
+}
+
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
                                                   Node n,
                                                   bool doFull) const

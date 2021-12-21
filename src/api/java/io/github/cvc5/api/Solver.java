@@ -2259,6 +2259,26 @@ public class Solver implements IPointer, AutoCloseable
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
 
   /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   * SMT-LIB:
+   * {@code
+   * ( get-abduct-next )
+   * }
+   * Requires enabling incremental mode and option 'produce-abducts'
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj in the last call to getAbduct.
+   * @return true if it gets C successfully, false otherwise
+   */
+  public boolean getAbductNext(Term output) {
+    return getAbductNext(pointer, output.getPointer());
+  }
+
+  private native boolean getAbductNext(long pointer, long outputPointer);
+
+  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    * SMT-LIB:

@@ -1108,6 +1108,34 @@ class CVC5_EXPORT GetAbductCommand : public Command
   api::Term d_result;
 }; /* class GetAbductCommand */
 
+/** The command (get-abduct-next) */
+class CVC5_EXPORT GetAbductNextCommand : public Command
+{
+ public:
+  GetAbductNextCommand();
+  /**
+   * Get the result of the query, which is the solution to the abduction query.
+   */
+  api::Term getResult() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out) const override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** The name of the abduction predicate */
+  std::string d_name;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  api::Term d_result;
+}; /* class GetAbductCommand */
+
 class CVC5_EXPORT GetQuantifierEliminationCommand : public Command
 {
  protected:

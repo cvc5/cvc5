@@ -206,6 +206,9 @@ class Printer
                                     Node conj,
                                     TypeNode sygusType) const;
 
+  /** Print get-abduct-next command */
+  virtual void toStreamCmdGetAbductNext(std::ostream& out) const;
+
   /** Print get-quantifier-elimination command */
   virtual void toStreamCmdGetQuantifierElimination(std::ostream& out,
                                                    Node n,
