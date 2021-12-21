@@ -339,13 +339,13 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   }
   std::vector<Node> vars_empty;
   d_subSolver->declareSynthFun(d_itp, grammarType, false, vars_empty);
-  Trace("sygus-interpol") << "SygusInterpol::solveInterpolation: made conjecture : "
-                          << d_sygusConj << ", solving for "
-                          << d_sygusConj[0][0] << std::endl;
+  Trace("sygus-interpol")
+      << "SygusInterpol::solveInterpolation: made conjecture : " << d_sygusConj
+      << ", solving for " << d_sygusConj[0][0] << std::endl;
   d_subSolver->assertSygusConstraint(d_sygusConj);
 
-  Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation check synth..."
-                          << std::endl;
+  Trace("sygus-interpol")
+      << "  SygusInterpol::solveInterpolation check synth..." << std::endl;
   Result r = d_subSolver->checkSynth();
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation result: " << r
                           << std::endl;
@@ -356,16 +356,14 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   return false;
 }
 
-bool SygusInterpol::solveInterpolationNext(
-                                       Node& interpol)
+bool SygusInterpol::solveInterpolationNext(Node& interpol)
 {
-
-  Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext check synth..."
-                          << std::endl;
+  Trace("sygus-interpol")
+      << "  SygusInterpol::solveInterpolationNext check synth..." << std::endl;
   // invoke the check-synth with isNext = true.
   Result r = d_subSolver->checkSynth(true);
-  Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: " << r
-                          << std::endl;
+  Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: "
+                          << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);

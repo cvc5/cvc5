@@ -98,6 +98,7 @@ class SygusInterpol : protected EnvObj
    * @interpol the solution to the sygus conjecture.
    */
   bool solveInterpolationNext(Node& interpol);
+
  private:
   /**
    * Collects symbols from axioms (axioms) and conjecture (conj), which are
