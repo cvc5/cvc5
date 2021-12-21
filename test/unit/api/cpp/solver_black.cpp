@@ -1470,7 +1470,7 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
                       d_solver.mkTerm(LT, z, zero));
   Term output;
   d_solver.getInterpolant(conj, output);
-  Term output;
+  Term output2;
   d_solver.getInterpolantNext(output2);
 
   // We expect the next output to be distinct
