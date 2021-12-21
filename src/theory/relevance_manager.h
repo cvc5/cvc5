@@ -118,7 +118,13 @@ class RelevanceManager : protected EnvObj
    * with "sat". This means that theories can query this during FULL or
    * LAST_CALL efforts, through the Valuation class.
    */
-  bool isRelevant(Node lit);
+  bool isRelevant(TNode lit);
+  /**
+   * Get the explanation for literal lit is relevant. This returns the
+   * preprocessed assertion that was the reason why the literal was relevant
+   * in the current context. It returns null if the literal is not relevant.
+   */
+  TNode getExplanationForRelevant(TNode lit);
   /**
    * Get the current relevant selection (see above). This computes this set
    * if not already done so. This call is valid during a full effort check in

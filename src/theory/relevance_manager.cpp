@@ -372,7 +372,7 @@ int32_t RelevanceManager::justify(TNode n)
   return d_jcache[ci];
 }
 
-bool RelevanceManager::isRelevant(Node lit)
+bool RelevanceManager::isRelevant(TNode lit)
 {
   Assert(d_inFullEffortCheck);
   computeRelevance();
@@ -387,6 +387,12 @@ bool RelevanceManager::isRelevant(Node lit)
     lit = lit[0];
   }
   return d_rset.find(lit) != d_rset.end();
+}
+
+TNode RelevanceManager::getExplanationForRelevant(TNode lit)
+{
+  
+  return TNode::null();
 }
 
 std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
