@@ -218,19 +218,11 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
     CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n);
     if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
       d_maxMap.insert(n, max);
-      Node nLeqMax;
       NodeManager* nm = NodeManager::currentNM();
-      if (max.getInfinitesimalPart() == 0) {
-        nLeqMax =
-            NodeBuilder(kind::LEQ)
-            << n
-            << nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart());
-      } else {
-        nLeqMax =
-            NodeBuilder(kind::LT)
-            << n
-            << nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart());
-      }
+      Node nLeqMax = nm->mkNode(
+          min.getInfinitesimalPart() == 0 ? kind::LEQ : kind::LT,
+          n,
+          nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
       learned << nLeqMax;
       Debug("arith::static") << n << " iteConstant"  << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);
