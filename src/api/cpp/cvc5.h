@@ -4483,7 +4483,7 @@ class CVC5_EXPORT Solver
    * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        the last call to getAbduct.
+   *        the last call to getInterpolant.
    * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
    */
   bool getInterpolantNext(Term& output) const;
