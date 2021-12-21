@@ -308,7 +308,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
     processedBags.insert(r);
 
-    std::vector<std::pair<Node, Node>> solverElements =
+    const std::vector<std::pair<Node, Node>>& solverElements =
         d_state.getElementCountPairs(r);
     std::vector<std::pair<Node, Node>> elements;
     for (std::pair<Node, Node> pair : solverElements)

@@ -67,7 +67,7 @@ class SolverState : public TheoryState
   /**
    * return a list of bag elements and their skolem counts
    */
-  std::vector<std::pair<Node, Node>> getElementCountPairs(Node n);
+  const std::vector<std::pair<Node, Node>>& getElementCountPairs(Node n);
 
  private:
   /** clear all bags data structures */

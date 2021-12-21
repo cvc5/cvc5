@@ -65,14 +65,11 @@ std::set<Node> SolverState::getElements(Node B)
   return elements;
 }
 
-std::vector<std::pair<Node, Node>> SolverState::getElementCountPairs(Node n)
+const std::vector<std::pair<Node, Node>>& SolverState::getElementCountPairs(
+    Node n)
 {
   Node bag = getRepresentative(n);
-  if (d_bagElements.find(bag) != d_bagElements.end())
-  {
-    return d_bagElements[bag];
-  }
-  return {};
+  return d_bagElements[bag];
 }
 
 const std::set<Node>& SolverState::getDisequalBagTerms() { return d_deq; }
