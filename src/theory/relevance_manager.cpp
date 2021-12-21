@@ -135,8 +135,6 @@ void RelevanceManager::addInputToAtomsMap(TNode input)
         visit.insert(visit.end(), cur.begin(), cur.end());
         continue;
       }
-      Trace("rel-manager-exp-debug")
-          << "Atom " << cur << " is in " << input << std::endl;
       NodeList* ilist = getInputListFor(cur);
       ilist->push_back(input);
     }
@@ -466,8 +464,8 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
       // justify the next
       nextInput = (*ilist)[index];
       index++;
-      // justify the next input
-      justify(nextInput);
+      // justify the next input that the atom occurs in
+      computeRelevanceFor(nextInput);
     }
     else
     {
