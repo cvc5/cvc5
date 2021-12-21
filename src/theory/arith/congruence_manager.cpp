@@ -636,7 +636,8 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   ArithVar x = c->getVariable();
   Node xAsNode = d_avariables.asNode(x);
-  Node asRational = mkRationalNode(c->getValue().getNoninfinitesimalPart());
+  NodeManager * nm = NodeManager::currentNM();
+  Node asRational = nm->mkConstRealOrInt(xAsNode.getType(), c->getValue().getNoninfinitesimalPart());
 
   // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!
@@ -667,8 +668,9 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   auto pfUb = ub->externalExplainByAssertions(nb);
   Node reason = safeConstructNary(nb);
 
-  Node xAsNode = d_avariables.asNode(x);
-  Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());
+  Node xAsNode = d_avariables.asNode(x); 
+  NodeManager * nm = NodeManager::currentNM();
+  Node asRational = nm->mkConstRealOrInt(xAsNode.getType(), lb->getValue().getNoninfinitesimalPart());
 
   // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!

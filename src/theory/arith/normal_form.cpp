@@ -30,7 +30,7 @@ namespace theory {
 namespace arith {
 
 Constant Constant::mkConstant(const Rational& rat) {
-  return Constant(mkRationalNode(rat));
+  return Constant(NodeManager::currentNM()->mkConstReal(rat));
 }
 
 size_t Variable::getComplexity() const{
