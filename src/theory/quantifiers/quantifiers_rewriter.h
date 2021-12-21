@@ -26,6 +26,9 @@ namespace cvc5 {
 class Options;
 
 namespace theory {
+
+class Rewriter;
+
 namespace quantifiers {
 
 struct QAttributes;
@@ -63,7 +66,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s);
 class QuantifiersRewriter : public TheoryRewriter
 {
  public:
-  QuantifiersRewriter(const Options& opts);
+  QuantifiersRewriter(Rewriter* r, const Options& opts);
   /** Pre-rewrite n */
   RewriteResponse preRewrite(TNode in) override;
   /** Post-rewrite n */
@@ -295,7 +298,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * This returns the result of applying the extended rewriter on the body
    * of quantified formula q with attributes qa.
    */
-  static Node computeExtendedRewrite(Node q, const QAttributes& qa);
+  Node computeExtendedRewrite(TNode q, const QAttributes& qa) const;
   //------------------------------------- end extended rewrite
   /**
    * Return true if we should do operation computeOption on quantified formula
@@ -308,6 +311,8 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeOperation(Node q,
                         RewriteStep computeOption,
                         QAttributes& qa) const;
+  /** Pointer to rewriter, used for computeExtendedRewrite above */
+  Rewriter* d_rewriter;
   /** Reference to the options */
   const Options& d_opts;
 }; /* class QuantifiersRewriter */
