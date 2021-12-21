@@ -246,7 +246,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             }
           }
         }
-        else if (t[0].isConst() && t[1].isConst() 
+        else if (t[0].isConst() && t[1].isConst()
                  && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
                         == 2)
         {
@@ -398,7 +398,7 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     }
     unsigned long k = i.getUnsignedLong();
     Node ret = nm->mkConstInt(Rational(Integer(2).pow(k)));
-      return RewriteResponse(REWRITE_DONE, ret);
+    return RewriteResponse(REWRITE_DONE, ret);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
