@@ -201,7 +201,7 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
            << input;
       Trace("rel-manager") << serr.str() << std::endl;
       Assert(false) << serr.str();
-      d_fullEffortCheckFail = false;
+      d_fullEffortCheckFail = true;
       return false;
     }
   }
