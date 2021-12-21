@@ -30,6 +30,7 @@ class TestApiBlackSolver : public TestApi
 
 TEST_F(TestApiBlackSolver, pow2Large1)
 {
+  // Based on https://github.com/cvc5/cvc5-projects/issues/371
   Sort s1 = d_solver.getStringSort();
   Sort s2 = d_solver.getIntegerSort();
   Sort s4 = d_solver.mkArraySort(s1, s2);
@@ -53,6 +54,7 @@ TEST_F(TestApiBlackSolver, pow2Large1)
 
 TEST_F(TestApiBlackSolver, pow2Large2)
 {
+  // Based on https://github.com/cvc5/cvc5-projects/issues/333
   Term t1 = d_solver.mkBitVector(63, ~(((uint64_t)1) << 62));
   Term t2 = d_solver.mkTerm(Kind::BITVECTOR_TO_NAT, t1);
   Term t3 = d_solver.mkTerm(Kind::POW2, t2);
@@ -62,6 +64,7 @@ TEST_F(TestApiBlackSolver, pow2Large2)
 
 TEST_F(TestApiBlackSolver, pow2Large3)
 {
+  // Based on https://github.com/cvc5/cvc5-projects/issues/339
   Sort s4 = d_solver.getIntegerSort();
   Term t203 = d_solver.mkInteger("6135470354240554220207");
   Term t262 = d_solver.mkTerm(POW2, t203);

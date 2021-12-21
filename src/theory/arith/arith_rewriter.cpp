@@ -246,7 +246,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             }
           }
         }
-        else if (t[0].isConst()
+        else if (t[0].isConst() && t[1].isConst() 
                  && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
                         == 2)
         {
@@ -396,24 +396,9 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     {
       return RewriteResponse(REWRITE_DONE, nm->mkConstInt(Rational(0)));
     }
-    if (i <= std::numeric_limits<unsigned int>::max())
-    {
-      unsigned int k = i.getUnsignedInt();
-      Node ret =
-          nm->mkConst(CONST_RATIONAL, Rational(Integer(2).pow(k), Integer(1)));
+    unsigned long k = i.getUnsignedLong();
+    Node ret = nm->mkConstInt(Rational(Integer(2).pow(k)));
       return RewriteResponse(REWRITE_DONE, ret);
-      return RewriteResponse(REWRITE_DONE, ret);
-    }
-    else
-    {
-      std::stringstream ss;
-      ss << "The argument of the POW2 operator can only be a positive "
-         << "integral constant below "
-         << (std::numeric_limits<unsigned long int>::max()) << ".";
-      ss << "Exception occurred in:" << std::endl;
-      ss << "  " << t;
-      throw LogicException(ss.str());
-    }
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
