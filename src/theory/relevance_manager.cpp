@@ -424,6 +424,8 @@ int32_t RelevanceManager::justify(TNode n)
 bool RelevanceManager::isRelevant(TNode lit)
 {
   Assert(d_inFullEffortCheck);
+  // since this is used in full effort, and typically for all asserted literals,
+  // we just ensure relevance is fully computed here
   computeRelevance();
   if (!d_success)
   {
@@ -445,11 +447,9 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
   {
     lit = lit[0];
   }
-  NodeList* ilist = getInputListFor(lit, false);
+  NodeList* ilist = nullptr;
   TNode nextInput;
-  size_t ninputs = ilist == nullptr ? 0 : ilist->size();
-  Trace("rel-manager-exp-debug") << "Atom " << lit << " occurs in " << ninputs
-                                 << " assertions..." << std::endl;
+  size_t ninputs = 0;
   size_t index = 0;
   do
   {
@@ -458,6 +458,17 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
     if (!exp.isNull())
     {
       return exp;
+    }
+    // if the first time, we get the list of input formulas the atom occurs in
+    if (index==0)
+    {
+      ilist = getInputListFor(lit, false);
+      if (ilist!=nullptr)
+      {
+        ninputs = ilist->size();
+      }
+      Trace("rel-manager-exp-debug") << "Atom " << lit << " occurs in " << ninputs
+                                    << " assertions..." << std::endl;
     }
     if (index < ninputs)
     {
