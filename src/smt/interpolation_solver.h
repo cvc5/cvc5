@@ -63,9 +63,9 @@ class InterpolationSolver : protected EnvObj
    * corresponding sygus problem for generating such a solution.
    */
   bool getInterpolant(const std::vector<Node>& axioms,
-                   const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+                      const Node& conj,
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
   /**
    * Get next interpolant. This can only be called immediately after a
@@ -73,7 +73,7 @@ class InterpolationSolver : protected EnvObj
    *
    * Returns true if an interpolant was found, and sets interpol to the
    * interpolant.
-   * 
+   *
    * This method reuses the subsolver initialized by the last call to
    * getInterpolant.
    */

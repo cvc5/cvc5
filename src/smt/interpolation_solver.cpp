@@ -37,9 +37,9 @@ InterpolationSolver::InterpolationSolver(Env& env) : EnvObj(env) {}
 InterpolationSolver::~InterpolationSolver() {}
 
 bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      const TypeNode& grammarType,
-                                      Node& interpol)
+                                         const Node& conj,
+                                         const TypeNode& grammarType,
+                                         Node& interpol)
 {
   if (options().smt.produceInterpols == options::ProduceInterpols::NONE)
   {
