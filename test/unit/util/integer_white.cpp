@@ -53,7 +53,7 @@ TEST_F(TestUtilWhiteInteger, construction)
 }
 
 TEST_F(TestUtilWhiteInteger, pow) {
-  unsigned int exp = std::numeric_limits<unsigned int>::max();
+  unsigned long int exp = std::numeric_limits<unsigned long int>::max();
   Integer ithree(3);
   Integer three_to_exp = ithree.pow(exp);
 }
