@@ -2468,6 +2468,7 @@ set(regress_1_tests
   regress1/sygus/icfp_14_12_diff_types.sy
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
+  regress1/sygus/incremental-stream-ex.sy
   regress1/sygus/int-any-const.sy
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
