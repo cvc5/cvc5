@@ -201,7 +201,10 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
     if (minFind == d_minMap.end() || (*minFind).second < min) {
       d_minMap.insert(n, min);
       NodeManager* nm = NodeManager::currentNM();
-      Node nGeqMin = nm->mkNode( min.getInfinitesimalPart() == 0 ? kind::GEQ : kind::GT, n, nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
+      Node nGeqMin = nm->mkNode(
+          min.getInfinitesimalPart() == 0 ? kind::GEQ : kind::GT,
+          n,
+          nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
       learned << nGeqMin;
       Debug("arith::static") << n << " iteConstant"  << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
