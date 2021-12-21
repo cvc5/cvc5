@@ -1,5 +1,14 @@
 ; depends: theory_def.plf
 
+
+; get the mpq from the real constant term c
+(program sc_arith_get_mpq ((c term)) mpq
+  (match c ((real q) q)))
+
+; get the mpz from the integer constant term c
+(program sc_arith_get_mpz ((c term)) mpz
+  (match c ((int z) z)))
+
 ; get the relation symbol from f, for example for (a.>= t1 t2), return a.>=
 (program sc_arith_get_rel ((f term)) term
   (match f ((apply f1 f2) (match f1 ((apply f11 f12) f11)))))

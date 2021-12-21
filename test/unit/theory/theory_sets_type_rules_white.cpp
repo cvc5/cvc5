@@ -19,10 +19,9 @@
 #include "theory/sets/singleton_op.h"
 #include "util/rational.h"
 
-namespace cvc5 {
-
 using namespace cvc5::api;
 
+namespace cvc5 {
 namespace test {
 
 class TestTheoryWhiteSetsTypeRuleApi : public TestApi
@@ -68,8 +67,9 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
       d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->integerType()));
   Node singletonReal =
       d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->realType()));
-  Node intConstant = d_nodeManager->mkConst(Rational(1));
-  Node realConstant = d_nodeManager->mkConst(Rational(1, 5));
+  Node intConstant = d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1));
+  Node realConstant =
+      d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1, 5));
   // (singleton (singleton_op Real) 1)
   ASSERT_NO_THROW(
       d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant));

@@ -25,6 +25,8 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -33,8 +35,7 @@ namespace nl {
 FactoringCheck::FactoringCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,
@@ -153,7 +154,8 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
               poly.size() == 1 ? poly[0] : nm->mkNode(Kind::PLUS, poly);
           Trace("nl-ext-factor")
               << "...factored polynomial : " << polyn << std::endl;
-          Node conc_lit = nm->mkNode(atom.getKind(), polyn, d_zero);
+          Node zero = nm->mkConstRealOrInt(polyn.getType(), Rational(0));
+          Node conc_lit = nm->mkNode(atom.getKind(), polyn, zero);
           conc_lit = rewrite(conc_lit);
           if (!polarity)
           {

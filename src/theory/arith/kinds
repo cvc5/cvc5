@@ -54,22 +54,29 @@ constant DIVISIBLE_OP \
 sort REAL_TYPE \
     Cardinality::REALS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(Rational(0))" \
+        "NodeManager::currentNM()->mkConstReal(Rational(0))" \
         "expr/node_manager.h" \
     "real type"
 sort INTEGER_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(Rational(0))" \
+        "NodeManager::currentNM()->mkConstInt(Rational(0))" \
         "expr/node_manager.h" \
     "integer type"
 
 constant CONST_RATIONAL \
     class \
-    Rational \
+    Rational+ \
     ::cvc5::RationalHashFunction \
     "util/rational.h" \
     "a multiple-precision rational constant; payload is an instance of the cvc5::Rational class"
+
+constant CONST_INTEGER \
+    class \
+    Rational+ \
+    ::cvc5::RationalHashFunction \
+    "util/rational.h" \
+    "a multiple-precision integer constant; payload is an instance of the cvc5::Rational class"
 
 enumerator REAL_TYPE \
     "::cvc5::theory::arith::RationalEnumerator" \
@@ -112,11 +119,12 @@ typerule DIVISION ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
 
 typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
+typerule CONST_INTEGER ::cvc5::theory::arith::ArithConstantTypeRule
 
-typerule LT "SimpleTypeRule<RBool, AReal, AReal>"
-typerule LEQ "SimpleTypeRule<RBool, AReal, AReal>"
-typerule GT "SimpleTypeRule<RBool, AReal, AReal>"
-typerule GEQ "SimpleTypeRule<RBool, AReal, AReal>"
+typerule LT ::cvc5::theory::arith::ArithRelationTypeRule
+typerule LEQ ::cvc5::theory::arith::ArithRelationTypeRule
+typerule GT ::cvc5::theory::arith::ArithRelationTypeRule
+typerule GEQ ::cvc5::theory::arith::ArithRelationTypeRule
 
 typerule INDEXED_ROOT_PREDICATE_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule INDEXED_ROOT_PREDICATE ::cvc5::theory::arith::IndexedRootPredicateTypeRule

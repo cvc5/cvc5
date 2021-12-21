@@ -31,6 +31,7 @@
 #include "util/floatingpoint.h"
 
 using namespace std;
+using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
@@ -363,7 +364,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
         Node realValueOfAbstract =
             rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                abstractValue,
-                               nm->mkConst(Rational(0U))));
+                               nm->mkConstReal(Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -566,10 +567,10 @@ void TheoryFp::registerTerm(TNode node)
                    nm->mkNode(kind::EQUAL, node, node[1]));
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
-    Node z =
-        nm->mkNode(kind::IMPLIES,
-                   nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-                   nm->mkNode(kind::EQUAL, node, nm->mkConst(Rational(0U))));
+    Node z = nm->mkNode(
+        kind::IMPLIES,
+        nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
+        nm->mkNode(kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -590,7 +591,7 @@ void TheoryFp::registerTerm(TNode node)
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(kind::EQUAL, node[1], nm->mkConst(Rational(0U))),
+        nm->mkNode(kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
         nm->mkNode(kind::EQUAL,
                    node,
                    nm->mkConst(FloatingPoint::makeZero(
@@ -681,8 +682,6 @@ void TheoryFp::postCheck(Effort level)
     Trace("fp-abstraction")
         << "TheoryFp::check(): checking abstractions" << std::endl;
     TheoryModel* m = getValuation().getModel();
-    bool lemmaAdded = false;
-
     for (const auto& [abstract, concrete] : d_abstractionMap)
     {
       Trace("fp-abstraction")
@@ -691,7 +690,7 @@ void TheoryFp::postCheck(Effort level)
       {  // Is actually used in the model
         Trace("fp-abstraction")
             << "TheoryFp::check(): ... relevant" << std::endl;
-        lemmaAdded |= refineAbstraction(m, abstract, concrete);
+        refineAbstraction(m, abstract, concrete);
       }
       else
       {

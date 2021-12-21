@@ -43,7 +43,7 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
-  Node element = getRepresentative(n[0]);
+  Node element = n[0];
   Node bag = getRepresentative(n[1]);
   d_bagElements[bag].insert(element);
 }
@@ -91,7 +91,7 @@ void SolverState::collectBagsAndCountTerms()
       Node n = (*it);
       Trace("bags-eqc") << (*it) << " ";
       Kind k = n.getKind();
-      if (k == MK_BAG)
+      if (k == BAG_MAKE)
       {
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))

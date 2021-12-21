@@ -145,12 +145,14 @@ class ScopedBool
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(cvc5::prop::TheoryProxy* proxy,
+Solver::Solver(Env& env,
+               cvc5::prop::TheoryProxy* proxy,
                cvc5::context::Context* context,
                cvc5::context::UserContext* userContext,
                ProofNodeManager* pnm,
                bool enableIncremental)
-    : d_proxy(proxy),
+    : EnvObj(env),
+      d_proxy(proxy),
       d_context(context),
       assertionLevel(0),
       d_pfManager(nullptr),
@@ -355,66 +357,67 @@ CRef Solver::reason(Var x) {
   if (assertionLevelOnly())
   {
     explLevel = assertionLevel;
-    }
-    else
+  }
+  else
+  {
+    int i, j;
+    Lit prev = lit_Undef;
+    for (i = 0, j = 0; i < explanation.size(); ++i)
     {
-      int i, j;
-      Lit prev = lit_Undef;
-      for (i = 0, j = 0; i < explanation.size(); ++i)
+      // This clause is valid theory propagation, so its level is the level of
+      // the top literal
+      explLevel = std::max(explLevel, intro_level(var(explanation[i])));
+
+      Assert(value(explanation[i]) != l_Undef);
+      Assert(i == 0
+             || trail_index(var(explanation[0]))
+                    > trail_index(var(explanation[i])));
+
+      // Always keep the first literal
+      if (i == 0)
       {
-        // This clause is valid theory propagation, so its level is the level of
-        // the top literal
-        explLevel = std::max(explLevel, intro_level(var(explanation[i])));
-
-        Assert(value(explanation[i]) != l_Undef);
-        Assert(i == 0
-               || trail_index(var(explanation[0]))
-                      > trail_index(var(explanation[i])));
-
-        // Always keep the first literal
-        if (i == 0)
-        {
-          prev = explanation[j++] = explanation[i];
-          continue;
-        }
-        // Ignore duplicate literals
-        if (explanation[i] == prev)
-        {
-          continue;
-        }
-        // Ignore zero level literals
-        if (level(var(explanation[i])) == 0
-            && user_level(var(explanation[i]) == 0))
-        {
-          continue;
-        }
-        // Keep this literal
         prev = explanation[j++] = explanation[i];
+        continue;
       }
-      explanation.shrink(i - j);
-
-      Trace("pf::sat") << "Solver::reason: explanation = ";
-      for (int k = 0; k < explanation.size(); ++k)
+      // Ignore duplicate literals
+      if (explanation[i] == prev)
       {
-        Trace("pf::sat") << explanation[k] << " ";
+        continue;
       }
-      Trace("pf::sat") << std::endl;
-
-      // We need an explanation clause so we add a fake literal
-      if (j == 1)
+      // Ignore zero level literals
+      if (level(var(explanation[i])) == 0
+          && user_level(var(explanation[i]) == 0))
       {
-        // Add not TRUE to the clause
-        explanation.push(mkLit(varTrue, true));
+        continue;
       }
+      // Keep this literal
+      prev = explanation[j++] = explanation[i];
     }
+    explanation.shrink(i - j);
 
-    // Construct the reason
-    CRef real_reason = ca.alloc(explLevel, explanation, true);
-    vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
-    clauses_removable.push(real_reason);
-    attachClause(real_reason);
+    Trace("pf::sat") << "Solver::reason: explanation = ";
+    for (int k = 0; k < explanation.size(); ++k)
+    {
+      Trace("pf::sat") << explanation[k] << " ";
+    }
+    Trace("pf::sat") << std::endl;
 
-    return real_reason;
+    // We need an explanation clause so we add a fake literal
+    if (j == 1)
+    {
+      // Add not TRUE to the clause
+      explanation.push(mkLit(varTrue, true));
+    }
+  }
+
+  // Construct the reason
+  CRef real_reason = ca.alloc(explLevel, explanation, true);
+  vardata[x] = VarData(
+      real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
+  clauses_removable.push(real_reason);
+  attachClause(real_reason);
+
+  return real_reason;
 }
 
 bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
@@ -453,7 +456,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // If a literal is false at 0 level (both sat and user level) we also
       // ignore it, unless we are tracking the SAT solver's reasoning
       if (value(ps[i]) == l_False) {
-        if (!options::unsatCores() && !needProof() && level(var(ps[i])) == 0
+        if (!options().smt.unsatCores && !needProof() && level(var(ps[i])) == 0
             && user_level(var(ps[i])) == 0)
         {
           continue;
@@ -488,7 +491,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if (options::unsatCores() || needProof())
+        if (options().smt.unsatCores || needProof())
         {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
@@ -519,7 +522,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         clauses_persistent.push(cr);
         attachClause(cr);
 
-        if (options::unsatCores() || needProof())
+        if (options().smt.unsatCores || needProof())
         {
           if (ps.size() == falseLiteralsCount)
           {
@@ -2042,7 +2045,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!options::unsatCores() && !needProof());
+        Assert(!options().smt.unsatCores && !needProof());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2188,8 +2191,8 @@ bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
 bool Solver::needProof() const
 {
   return isProofEnabled()
-         && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
-         && options::unsatCoresMode() != options::UnsatCoresMode::PP_ONLY;
+         && options().smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
+         && options().smt.unsatCoresMode != options::UnsatCoresMode::PP_ONLY;
 }
 
 }  // namespace Minisat

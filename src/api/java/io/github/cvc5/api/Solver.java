@@ -254,6 +254,8 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
+   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @param unresolvedSorts the set of unresolved sorts
@@ -417,6 +419,39 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long mkUninterpretedSort(long pointer, String symbol);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUnresolvedSort(pointer, symbol, arity);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUnresolvedSort(long pointer, String symbol, int arity);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
 
   /**
    * Create a sort constructor sort.
@@ -639,10 +674,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
-   *   (e.g. BITVECTOR_EXTRACT)
-   * Note: in this case, the Op simply wraps the Kind.
-   * The Kind can be used in mkTerm directly without
-   *   creating an op first.
+   *   (e.g. BITVECTOR_EXTRACT).
+   * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
+   *          in mkTerm directly without creating an op first.
    * @param kind the kind to wrap
    */
   public Op mkOp(Kind kind)
@@ -851,28 +885,40 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkReal(long pointer, long num, long den);
 
   /**
-   * Create a regular expression empty term.
-   * @return the empty term
+   * Create a regular expression none (re.none) term.
+   * @return the none term
    */
-  public Term mkRegexpEmpty()
+  public Term mkRegexpNone()
   {
-    long termPointer = mkRegexpEmpty(pointer);
+    long termPointer = mkRegexpNone(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpEmpty(long pointer);
+  private native long mkRegexpNone(long pointer);
 
   /**
-   * Create a regular expression sigma term.
-   * @return the sigma term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  public Term mkRegexpSigma()
+  public Term mkRegexpAll()
   {
-    long termPointer = mkRegexpSigma(pointer);
+    long termPointer = mkRegexpAll(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpSigma(long pointer);
+  private native long mkRegexpAll(long pointer);
+
+  /**
+   * Create a regular expression allchar (re.allchar) term.
+   * @return the allchar term
+   */
+  public Term mkRegexpAllchar()
+  {
+    long termPointer = mkRegexpAllchar(pointer);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkRegexpAllchar(long pointer);
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -1005,7 +1051,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a bit-vector constant of given size and value.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @apiNote The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -1025,7 +1071,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @apiNote The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
@@ -2343,9 +2389,10 @@ public class Solver implements IPointer, AutoCloseable
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * If needed, convert this term to a given sort. Note that the sort of the
-   * term must be convertible into the target sort. Currently only Int to Real
-   * conversions are supported.
+   * If needed, convert this term to a given sort.
+   *
+   * @apiNote The sort of the term must be convertible into the target sort.
+   *          Currently only Int to Real conversions are supported.
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
@@ -2547,7 +2594,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   public Result checkSynth()
   {
@@ -2556,6 +2604,26 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long checkSynth(long pointer);
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   * SyGuS v2:
+   * {@code
+   *   ( check-synth-next )
+   * }
+   * @return the result of the check, which is UNSAT if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  public Result checkSynthNext()
+  {
+    long resultPointer = checkSynthNext(pointer);
+    return new Result(this, resultPointer);
+  }
+
+  private native long checkSynthNext(long pointer);
 
   /**
    * Get the synthesis solution of the given term. This method should be called

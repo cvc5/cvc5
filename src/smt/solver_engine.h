@@ -81,8 +81,6 @@ class AbstractValues;
 class Assertions;
 class ResourceOutListener;
 class SmtNodeManagerListener;
-class OptionsManager;
-class Preprocessor;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
@@ -453,9 +451,12 @@ class CVC5_EXPORT SolverEngine
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    *
+   * @param isNext Whether we are asking for the next synthesis solution (if
+   * using incremental).
+   *
    * @throw Exception
    */
-  Result checkSynth();
+  Result checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -563,6 +564,16 @@ class CVC5_EXPORT SolverEngine
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& solMap);
+  /**
+   * Same as above, but used for getting synthesis solutions from a "subsolver"
+   * that has been initialized to assert the synthesis conjecture as a
+   * normal assertion.
+   *
+   * This method returns true if we are in a state immediately preceded by
+   * a successful call to checkSat, where this SolverEngine has an asserted
+   * synthesis conjecture.
+   */
+  bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
   /**
    * Do quantifier elimination.
@@ -1025,6 +1036,12 @@ class CVC5_EXPORT SolverEngine
    * changes.
    */
   std::vector<Node> getAssertionsInternal();
+
+  /**
+   * Return a reference to options like for `EnvObj`.
+   */
+  const Options& options() const;
+
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */

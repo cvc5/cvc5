@@ -41,14 +41,17 @@ PfManager::PfManager(Env& env)
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
           options().proof.proofPedantic)),
-      d_pnm(new ProofNodeManager(env.getRewriter(), d_pchecker.get())),
-      d_pppg(new PreprocessProofGenerator(
-          d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
+      d_pnm(new ProofNodeManager(
+          env.getOptions(), env.getRewriter(), d_pchecker.get())),
+      d_pppg(nullptr),
       d_pfpp(nullptr),
       d_finalProof(nullptr)
 {
   // enable proof support in the environment/rewriter
   d_env.setProofNodeManager(d_pnm.get());
+  // now construct preprocess proof generator
+  d_pppg = std::make_unique<PreprocessProofGenerator>(
+      env, env.getUserContext(), "smt::PreprocessProofGenerator");
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
@@ -66,11 +69,11 @@ PfManager::PfManager(Env& env)
   // be inferred from A, it was updated). This shape is problematic for
   // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
-  d_pfpp.reset(new ProofPostproccess(
+  d_pfpp = std::make_unique<ProofPostproccess>(
       env,
       d_pppg.get(),
       nullptr,
-      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE));
+      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
@@ -150,8 +153,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
-  // proof are the assertions.
-  d_finalProof = d_pnm->mkScope(pfn, assertions);
+  // proof are the assertions. If we are pruning the input, we will try to
+  // minimize the used assertions.
+  d_finalProof =
+      d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
   Trace("smt-proof") << "SolverEngine::setFinalProof(): finished.\n";
 }
 
@@ -231,6 +236,9 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   {
     Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
                         << ppa.first << std::endl;
+    // The difficulty manager should only report difficulty for preprocessed
+    // assertions, or we will get an open proof below. This is ensured
+    // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
   // assume a SAT refutation from all input assertions that were marked

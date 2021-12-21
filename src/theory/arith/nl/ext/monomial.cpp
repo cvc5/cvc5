@@ -124,7 +124,7 @@ void MonomialIndex::addTerm(Node n,
 
 MonomialDb::MonomialDb()
 {
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 void MonomialDb::registerMonomial(Node n)
@@ -326,7 +326,6 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
     children.insert(children.end(), inc, v);
   }
   Node ret = safeConstructNary(MULT, children);
-  ret = Rewriter::rewrite(ret);
   Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
   return ret;
 }

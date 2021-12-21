@@ -400,7 +400,7 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  wget https://github.com/CVC4/CVC4/archive/<commit-sha>.tar.gz
+  wget https://github.com/cvc5/cvc5/archive/<commit-sha>.tar.gz
 
 4. Extract the source code
 

@@ -192,9 +192,9 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
     // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(pppg);
+    d_asserts->enableProofs(pppg);
     // enabled proofs in the preprocessor
-    d_smtSolver->getPreprocessor()->setProofGenerator(pppg);
+    d_smtSolver->getPreprocessor()->enableProofs(pppg);
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
@@ -799,20 +799,10 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (d_env->getOptions().smt.checkProofs
-        || d_env->getOptions().proof.proofCheck
-               == options::ProofCheckMode::EAGER)
+    if (d_env->getOptions().smt.checkProofs)
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        if ((d_env->getOptions().smt.checkProofs
-             || d_env->getOptions().proof.proofCheck
-                    == options::ProofCheckMode::EAGER)
-            && !d_env->getOptions().smt.produceProofs)
-        {
-          throw ModalException(
-              "Cannot check-proofs because proofs were disabled.");
-        }
         checkProof();
       }
     }
@@ -944,11 +934,19 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth()
+Result SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
-  return d_sygusSolver->checkSynth(*d_asserts);
+  if (isNext && d_state->getMode() != SmtMode::SYNTH)
+  {
+    throw RecoverableModalException(
+        "Cannot check-synth-next unless immediately preceded by a successful "
+        "call to check-synth.");
+  }
+  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  d_state->notifyCheckSynthResult(r);
+  return r;
 }
 
 /*
@@ -1203,6 +1201,8 @@ std::vector<Node> SolverEngine::getAssertionsInternal()
   return res;
 }
 
+const Options& SolverEngine::options() const { return d_env->getOptions(); }
+
 std::vector<Node> SolverEngine::getExpandedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
@@ -1280,7 +1280,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   Assert(pe != nullptr);
 
   std::shared_ptr<ProofNode> pepf;
-  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
     pepf = pe->getRefutation();
   }
@@ -1292,7 +1292,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
-  if (options::minimalUnsatCores())
+  if (options().smt.minimalUnsatCores)
   {
     core = reduceUnsatCore(core);
   }
@@ -1301,7 +1301,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
 
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
-  Assert(options::unsatCores())
+  Assert(options().smt.unsatCores)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
@@ -1396,7 +1396,7 @@ void SolverEngine::checkUnsatCore()
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
-    Node assertionAfterExpansion = tls.apply(*i, false);
+    Node assertionAfterExpansion = tls.apply(*i);
     d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
                       << *i << ", expanded to " << assertionAfterExpansion
                       << std::endl;
@@ -1442,7 +1442,7 @@ void SolverEngine::checkModel(bool hardFailure)
   Assert(m != nullptr);
 
   // check the model with the theory engine for debugging
-  if (options::debugCheckModels())
+  if (options().smt.debugCheckModels)
   {
     TheoryEngine* te = getTheoryEngine();
     Assert(te != nullptr);
@@ -1537,8 +1537,8 @@ void SolverEngine::printInstantiations(std::ostream& out)
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
-    getRelevantInstantiationTermVectors(rinsts,
-                                        options::dumpInstantiationsDebug());
+    getRelevantInstantiationTermVectors(
+        rinsts, options().driver.dumpInstantiationsDebug);
   }
   else
   {
@@ -1609,6 +1609,13 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
   SolverEngineScope smts(this);
   finishInit();
   return d_sygusSolver->getSynthSolutions(solMap);
+}
+
+bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
+{
+  SolverEngineScope smts(this);
+  finishInit();
+  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)

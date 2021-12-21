@@ -108,6 +108,18 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native int getNumConstructors(long pointer);
 
+  /**
+   * @return the parameters of this datatype, if it is parametric. An exception
+   * is thrown if this datatype is not parametric.
+   */
+  public Sort[] getParameters() {
+    long[] sortPointers = getParameters(pointer);
+    Sort[] sorts = Utils.getSorts(solver, sortPointers);
+    return sorts;
+  }
+
+  private native long[] getParameters(long pointer);
+
   /** @return true if this datatype is parametric */
   public boolean isParametric()
   {
@@ -166,8 +178,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * Does this datatype have nested recursion? This method returns false if a
    * value of this datatype includes a subterm of its type that is nested
    * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with range type (Set T) has
-   * nested recursion.
+   * T containing a constructor having a selector with codomain type (Set T)
+   * has nested recursion.
    *
    * @return true if this datatype has nested recursion
    */

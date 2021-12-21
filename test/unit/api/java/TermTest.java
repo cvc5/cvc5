@@ -219,6 +219,21 @@ class TermTest
     Term nilOpTerm = list.getConstructorTerm("nil");
   }
 
+  @Test void hasGetSymbol() throws CVC5ApiException
+  {
+    Term n = d_solver.getNullTerm();
+    Term t = d_solver.mkBoolean(true);
+    Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasSymbol());
+    assertFalse(t.hasSymbol());
+    assertTrue(c.hasSymbol());
+
+    assertThrows(CVC5ApiException.class, () -> n.getSymbol());
+    assertThrows(CVC5ApiException.class, () -> t.getSymbol());
+    assertEquals(c.getSymbol(), "|\\|");
+  }
+
   @Test void isNull() throws CVC5ApiException
   {
     Term x = d_solver.getNullTerm();
@@ -698,6 +713,7 @@ class TermTest
 
     assertTrue(int1.isIntegerValue());
     assertEquals(int1.getIntegerValue().toString(), "-18446744073709551616");
+    assertEquals(int1.getRealOrIntegerValueSign(), -1);
     assertTrue(int2.isIntegerValue());
     assertEquals(int2.getIntegerValue().toString(), "-18446744073709551615");
     assertTrue(int3.isIntegerValue());
@@ -714,10 +730,12 @@ class TermTest
     assertEquals(int6.getIntegerValue().intValue(), 0);
     assertEquals(int6.getIntegerValue().intValue(), 0);
     assertEquals(int6.getIntegerValue().toString(), "0");
+    assertEquals(int6.getRealOrIntegerValueSign(), 0);
     assertTrue(int7.isIntegerValue());
     assertEquals(int7.getIntegerValue().intValue(), 10);
     assertEquals(int7.getIntegerValue().intValue(), 10);
     assertEquals(int7.getIntegerValue().toString(), "10");
+    assertEquals(int7.getRealOrIntegerValueSign(), 1);
     assertTrue(int8.isIntegerValue());
     assertEquals(int8.getIntegerValue().longValue(), 4294967295L);
     assertEquals(int8.getIntegerValue().toString(), "4294967295");

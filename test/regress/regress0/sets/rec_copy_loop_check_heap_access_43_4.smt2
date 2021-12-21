@@ -66,7 +66,7 @@
 
 (assert (! (= sk_?X_36$0 FP$0) :named precondition_of_rec_copy_loop_34_11_18))
 
-(assert (! (= (as set.empty SetLoc) (set.intersection sk_?X_38$0 sk_?X_37$0))
+(assert (! (= (as set.empty SetLoc) (set.inter sk_?X_38$0 sk_?X_37$0))
    :named precondition_of_rec_copy_loop_34_11_19))
 
 (assert (! (= old_cp_2$0 cp$0) :named assign_41_4))

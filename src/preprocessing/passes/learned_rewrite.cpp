@@ -61,7 +61,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   NodeManager* nm = NodeManager::currentNM();
-  arith::BoundInference binfer;
+  arith::BoundInference binfer(d_env);
   std::vector<Node> learnedLits = d_preprocContext->getLearnedLiterals();
   std::unordered_set<Node> llrw;
   std::unordered_map<TNode, Node> visited;
@@ -309,7 +309,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
       // could also do num + k*den checks
     }
   }
-  else if (k == GEQ || (k == EQUAL && nr[0].getType().isReal()))
+  else if (k == GEQ || (k == EQUAL && nr[0].getType().isRealOrInt()))
   {
     std::map<Node, Node> msum;
     if (ArithMSum::getMonomialSumLit(nr, msum))

@@ -68,7 +68,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_dtfCounter = 0;
 
   // indicate we are using the default theory state object
@@ -1007,10 +1007,11 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       // uninterpreted sorts and arrays, where the solver does not fully
       // handle values of the sort. The call to mkGroundTerm does not introduce
       // values for these sorts.
-      rrs = r.getType().mkGroundTerm();
+      NodeManager* nm = NodeManager::currentNM();
+      rrs = nm->mkGroundTerm(r.getType());
       Trace("datatypes-wrong-sel")
           << "Bad apply " << r << " term = " << rrs
-          << ", value = " << r.getType().mkGroundValue() << std::endl;
+          << ", value = " << nm->mkGroundValue(r.getType()) << std::endl;
     }
     else
     {
@@ -1243,7 +1244,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           for( unsigned i=0; i<pcons.size(); i++ ){
             // must try the infinite ones first
             bool cfinite =
-                d_env.isFiniteType(dt[i].getSpecializedConstructorType(tt));
+                d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

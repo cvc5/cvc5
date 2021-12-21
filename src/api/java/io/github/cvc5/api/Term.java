@@ -190,7 +190,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return the Op used to create this term
-   * Note: This is safe to call when hasOp() returns true.
+   * @apiNote This is safe to call when hasOp() returns true.
    */
   public Op getOp()
   {
@@ -199,6 +199,27 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native long getOp(long pointer);
+
+  /**
+   * @return true if the term has a symbol.
+   */
+  public boolean hasSymbol()
+  {
+    return hasSymbol(pointer);
+  }
+
+  private native boolean hasSymbol(long pointer);
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the term.
+   */
+  public String getSymbol()
+  {
+    return getSymbol(pointer);
+  }
+
+  private native String getSymbol(long pointer);
 
   /**
    * @return true if this Term is a null term
@@ -314,6 +335,19 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   protected native String toString(long pointer);
 
   /**
+   * Get integer or real value sign. Must be called on integer or real values,
+   * or otherwise an exception is thrown.
+   * @return 0 if this term is zero, -1 if this term is a negative real or
+   * integer value, 1 if this term is a positive real or integer value.
+   */
+  public int getRealOrIntegerValueSign()
+  {
+    return getRealOrIntegerValueSign(pointer);
+  }
+
+  private native int getRealOrIntegerValueSign(long pointer);
+
+  /**
    * @return true if the term is an integer value.
    */
   public boolean isIntegerValue()
@@ -346,10 +380,11 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return the stored string constant.
-   * <p>
-   * Note: This method is not to be confused with toString() which returns the
-   * term in some string representation, whatever data it may hold.
+   *
    * Asserts isString().
+   *
+   * @apiNote This method is not to be confused with toString() which returns
+   *          the term in some string representation, whatever data it may hold.
    */
   public String getStringValue()
   {
@@ -602,9 +637,9 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isSequenceValue().
-   * Note that it is usually necessary for sequences to call
-   * `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
-   * concatenation of unit sequences, into a sequence value.
+   * @apiNote It is usually necessary for sequences to call
+   *          `Solver::simplify()` to turn a sequence that is constructed by,
+   *          e.g., concatenation of unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.
    */
   public Term[] getSequenceValue()

@@ -153,6 +153,18 @@ cdef class Datatype:
         """
         return self.cd.getNumConstructors()
 
+    def getParameters(self):
+        """
+            :return: the parameters of this datatype, if it is parametric. An
+            exception is thrown if this datatype is not parametric.
+        """
+        param_sorts = []
+        for s in self.cd.getParameters():
+            sort = Sort(self.solver)
+            sort.csort = s
+            param_sorts.append(sort)
+        return param_sorts
+
     def isParametric(self):
         """:return: True if this datatype is parametric."""
         return self.cd.isParametric()
@@ -233,15 +245,17 @@ cdef class DatatypeConstructor:
         term.cterm = self.cdc.getConstructorTerm()
         return term
 
-    def getSpecializedConstructorTerm(self, Sort retSort):
+    def getInstantiatedConstructorTerm(self, Sort retSort):
         """
-            Specialized method for parametric datatypes (see :cpp:func:`DatatypeConstructor::getSpecializedConstructorTerm() <cvc5::api::DatatypeConstructor::getSpecializedConstructorTerm>`).
+            Specialized method for parametric datatypes (see
+            :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm()
+            <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
 
             :param retSort: the desired return sort of the constructor
             :return: the constructor operator as a term.
         """
         cdef Term term = Term(self.solver)
-        term.cterm = self.cdc.getSpecializedConstructorTerm(retSort.csort)
+        term.cterm = self.cdc.getInstantiatedConstructorTerm(retSort.csort)
         return term
 
     def getTesterTerm(self):
@@ -309,13 +323,15 @@ cdef class DatatypeConstructorDecl:
             Add datatype selector declaration.
 
             :param name: the name of the datatype selector declaration to add.
-            :param sort: the range sort of the datatype selector declaration to add.
+            :param sort: the codomain sort of the datatype selector declaration
+                         to add.
         """
         self.cddc.addSelector(name.encode(), sort.csort)
 
     def addSelectorSelf(self, str name):
         """
-            Add datatype selector declaration whose range sort is the datatype itself.
+            Add datatype selector declaration whose codomain sort is the
+            datatype itself.
 
             :param name: the name of the datatype selector declaration to add.
         """
@@ -412,12 +428,12 @@ cdef class DatatypeSelector:
         term.cterm = self.cds.getUpdaterTerm()
         return term
 
-    def getRangeSort(self):
+    def getCodomainSort(self):
         """
-            :return: the range sort of this selector.
+            :return: the codomain sort of this selector.
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.cds.getRangeSort()
+        sort.csort = self.cds.getCodomainSort()
         return sort
 
     def isNull(self):
@@ -464,7 +480,7 @@ cdef class Op:
         """
             :return: the kind of this operator.
         """
-        return kind(<int> self.cop.getKind())
+        return Kind(<int> self.cop.getKind())
 
     def isIndexed(self):
         """
@@ -942,6 +958,20 @@ cdef class Solver:
         sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
+    def mkUnresolvedSort(self, str name, size_t arity = 0):
+        """Create an unresolved sort.
+
+        This is for creating yet unresolved sort placeholders for mutually
+        recursive datatypes.
+
+        :param symbol: the name of the sort
+        :param arity: the number of sort parameters of the sort
+        :return: the unresolved sort
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
+        return sort
+
     def mkSortConstructorSort(self, str symbol, size_t arity):
         """Create a sort constructor sort.
 
@@ -982,7 +1012,7 @@ cdef class Solver:
         cdef vector[c_Term] v
 
         op = kind_or_op
-        if isinstance(kind_or_op, kind):
+        if isinstance(kind_or_op, Kind):
             op = self.mkOp(kind_or_op)
 
         if len(args) == 0:
@@ -1012,7 +1042,7 @@ cdef class Solver:
         return result
 
     @expand_list_arg(num_req_args=0)
-    def mkOp(self, kind k, *args):
+    def mkOp(self, k, *args):
         """
         Supports the following uses:
 
@@ -1027,27 +1057,27 @@ cdef class Solver:
         cdef vector[uint32_t] v
 
         if len(args) == 0:
-            op.cop = self.csolver.mkOp(k.k)
+            op.cop = self.csolver.mkOp(<c_Kind> k.value)
         elif len(args) == 1:
             if isinstance(args[0], str):
-                op.cop = self.csolver.mkOp(k.k,
+                op.cop = self.csolver.mkOp(<c_Kind> k.value,
                                            <const string &>
                                            args[0].encode())
             elif isinstance(args[0], int):
-                op.cop = self.csolver.mkOp(k.k, <int?> args[0])
+                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int?> args[0])
             elif isinstance(args[0], list):
                 for a in args[0]:
                     if a < 0 or a >= 2 ** 31:
                         raise ValueError("Argument {} must fit in a uint32_t".format(a))
 
                     v.push_back((<uint32_t?> a))
-                op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)
+                op.cop = self.csolver.mkOp(<c_Kind> k.value, <const vector[uint32_t]&> v)
             else:
                 raise ValueError("Unsupported signature"
                                  " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
         elif len(args) == 2:
             if isinstance(args[0], int) and isinstance(args[1], int):
-                op.cop = self.csolver.mkOp(k.k, <int> args[0], <int> args[1])
+                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int> args[0], <int> args[1])
             else:
                 raise ValueError("Unsupported signature"
                                  " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
@@ -1107,8 +1137,8 @@ cdef class Solver:
     def mkReal(self, val, den=None):
         """Create a real constant.
 
-        :param: `val` the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
-        :param: `den` if not None, the value is `val`/`den`
+        :param val: the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
+        :param den: if not None, the value is `val`/`den`
         :return: a real term with literal value
 
         Can be used in various forms:
@@ -1130,22 +1160,31 @@ cdef class Solver:
             term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
         return term
 
-    def mkRegexpEmpty(self):
-        """Create a regular expression empty term.
+    def mkRegexpAll(self):
+        """Create a regular expression all (re.all) term.
 
-        :return: the empty term
+        :return: the all term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpEmpty()
+        term.cterm = self.csolver.mkRegexpAll()
         return term
 
-    def mkRegexpSigma(self):
-        """Create a regular expression sigma term.
+    def mkRegexpAllchar(self):
+        """Create a regular expression allchar (re.allchar) term.
 
-        :return: the sigma term
+        :return: the allchar term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpSigma()
+        term.cterm = self.csolver.mkRegexpAllchar()
+        return term
+
+    def mkRegexpNone(self):
+        """Create a regular expression none (re.none) term.
+
+        :return: the none term
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkRegexpNone()
         return term
 
     def mkEmptySet(self, Sort s):
@@ -1236,9 +1275,9 @@ cdef class Solver:
         - ``Term mkBitVector(int size, string val, int base)``
 
         :return: a bit-vector literal term
-        :param: `size` an integer size.
-        :param: `val` an integer representating the value, in the first form. In the second form, a string representing the value.
-        :param: `base` the base of the string representation (second form only)
+        :param size: an integer size.
+        :param val: an integer representating the value, in the first form. In the second form, a string representing the value.
+        :param base: the base of the string representation (second form only)
         """
         cdef Term term = Term(self)
         if len(args) == 0:
@@ -1444,7 +1483,7 @@ cdef class Solver:
     def mkDatatypeConstructorDecl(self, str name):
         """
         :return: a datatype constructor declaration
-        :param: `name` the constructor's name
+        :param name: the constructor's name
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
@@ -1653,6 +1692,26 @@ cdef class Solver:
         """
         cdef Result r = Result()
         r.cr = self.csolver.checkSynth()
+        return r
+
+    def checkSynthNext(self):
+        """
+        Try to find a next solution for the synthesis conjecture corresponding
+        to the current list of functions-to-synthesize, universal variables and
+        constraints. Must be called immediately after a successful call to
+        check-synth or check-synth-next. Requires incremental mode.
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
+
+            ( check-synth )
+
+        :return: the result of the check, which is unsat if the check succeeded,
+        in which case solutions are available via getSynthSolutions.
+        """
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSynthNext()
         return r
 
     def getSynthSolution(self, Term term):
@@ -2214,6 +2273,18 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def hasSymbol(self):
+        """:return: True iff this sort has a symbol."""
+        return self.csort.hasSymbol()
+
+    def getSymbol(self):
+        """
+        Asserts :py:meth:`hasSymbol()`.
+
+        :return: the raw symbol of the sort.
+        """
+        return self.csort.getSymbol().decode()
+
     def isNull(self):
         """:return: True if this Sort is a null sort."""
         return self.csort.isNull()
@@ -2430,16 +2501,16 @@ cdef class Sort:
 
     def isFunctionLike(self):
         """
-            Is this a function-LIKE sort?
+        Is this a function-LIKE sort?
 
-            Anything function-like except arrays (e.g., datatype selectors) is
-            considered a function here. Function-like terms can not be the argument
-            or return value for any term that is function-like.
-            This is mainly to avoid higher order.
+        Anything function-like except arrays (e.g., datatype selectors) is
+        considered a function here. Function-like terms can not be the argument
+        or return value for any term that is function-like.
+        This is mainly to avoid higher order.
 
-            Note that arrays are explicitly not considered function-like here.
+        .. note:: Arrays are explicitly not considered function-like here.
 
-            :return: True if this is a function-like sort
+        :return: True if this is a function-like sort
         """
         return self.csort.isFunctionLike()
 
@@ -2697,7 +2768,14 @@ cdef class Sort:
 
     def getDatatypeParamSorts(self):
         """
-            :return: the parameter sorts of a datatype sort
+             Return the parameters of a parametric datatype sort. If this sort
+             is a non-instantiated parametric datatype, this returns the
+             parameter sorts of the underlying datatype. If this sort is an
+             instantiated parametric datatype, then this returns the sort
+             parameters that were used to construct the sort via
+             :py:meth:`instantiate()`.
+
+             :return: the parameter sorts of a parametric datatype sort
         """
         param_sorts = []
         for s in self.csort.getDatatypeParamSorts():
@@ -2731,6 +2809,10 @@ cdef class Sort:
 
 
 cdef class Term:
+    """
+    A cvc5 Term.
+    Wrapper class for :cpp:class:`cvc5::api::Term`.
+    """
     cdef c_Term cterm
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -2779,20 +2861,27 @@ cdef class Term:
         return ctermhash(self.cterm)
 
     def getNumChildren(self):
+        """:return: the number of children of this term."""
         return self.cterm.getNumChildren()
 
     def getId(self):
+        """:return: the id of this term."""
         return self.cterm.getId()
 
     def getKind(self):
-        return kind(<int> self.cterm.getKind())
+        """:return: the :py:class:`pycvc5.Kind` of this term."""
+        return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
+        """:return: the :py:class:`pycvc5.Sort` of this term."""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
         return sort
 
     def substitute(self, term_or_list_1, term_or_list_2):
+        """
+	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
+	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -2823,109 +2912,253 @@ cdef class Term:
         return term
 
     def hasOp(self):
+        """:return: True iff this term has an operator."""
         return self.cterm.hasOp()
 
     def getOp(self):
+        """
+        .. note:: This is safe to call when :py:meth:`hasOp()` returns True.
+
+        :return: the :py:class:`pycvc5.Op` used to create this Term.
+        """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
         return op
 
+    def hasSymbol(self):
+        """:return: True iff this term has a symbol."""
+        return self.cterm.hasSymbol()
+
+    def getSymbol(self):
+        """
+        Asserts :py:meth:`hasSymbol()`.
+
+        :return: the raw symbol of the term.
+        """
+        return self.cterm.getSymbol().decode()
+
     def isNull(self):
+        """:return: True iff this term is a null term."""
         return self.cterm.isNull()
 
     def notTerm(self):
+        """
+	   Boolean negation.
+
+	   :return: the Boolean negation of this term.
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.notTerm()
         return term
 
     def andTerm(self, Term t):
+        """
+	   Boolean and.
+
+           :param t: a Boolean term
+	   :return: the conjunction of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.andTerm((<Term> t).cterm)
         return term
 
     def orTerm(self, Term t):
+        """
+	   Boolean or.
+
+           :param t: a Boolean term
+	   :return: the disjunction of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.orTerm(t.cterm)
         return term
 
     def xorTerm(self, Term t):
+        """
+	   Boolean exclusive or.
+
+           :param t: a Boolean term
+	   :return: the exclusive disjunction of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.xorTerm(t.cterm)
         return term
 
     def eqTerm(self, Term t):
+        """
+	   Equality
+
+           :param t: a Boolean term
+	   :return: the Boolean equivalence of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.eqTerm(t.cterm)
         return term
 
     def impTerm(self, Term t):
+        """
+	   Boolean Implication.
+
+           :param t: a Boolean term
+	   :return: the implication of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.impTerm(t.cterm)
         return term
 
     def iteTerm(self, Term then_t, Term else_t):
+        """
+	   If-then-else with this term as the Boolean condition.
+
+           :param then_t: the `then` term
+           :param else_t: the `else` term
+	   :return: the if-then-else term with this term as the Boolean condition
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
 
     def isConstArray(self):
+        """:return: True iff this term is a constant array."""
         return self.cterm.isConstArray()
 
     def getConstArrayBase(self):
+        """
+	   Asserts :py:meth:`isConstArray()`.
+
+	   :return: the base (element stored at all indicies) of this constant array
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getConstArrayBase()
         return term
 
     def isBooleanValue(self):
+        """:return: True iff this term is a Boolean value."""
         return self.cterm.isBooleanValue()
 
     def getBooleanValue(self):
+        """
+	   Asserts :py:meth:`isBooleanValue()`
+
+	   :return: the representation of a Boolean value as a native Boolean value.
+	"""
         return self.cterm.getBooleanValue()
 
     def isStringValue(self):
+        """:return: True iff this term is a string value."""
         return self.cterm.isStringValue()
 
     def getStringValue(self):
+        """
+        Asserts :py:meth:`isStringValue()`.
+
+        .. note::
+           This method is not to be confused with :py:meth:`__str__()` which
+           returns the term in some string representation, whatever data it
+           may hold.
+
+        :return: the string term as a native string value.
+        """
         cdef Py_ssize_t size
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
 
+    def getRealOrIntegerValueSign(self):
+        """
+        Get integer or real value sign. Must be called on integer or real values,
+        or otherwise an exception is thrown.
+        
+        :return: 0 if this term is zero, -1 if this term is a negative real or
+        integer value, 1 if this term is a positive real or integer value.
+        """
+        return self.cterm.getRealOrIntegerValueSign()
+
     def isIntegerValue(self):
+        """:return: True iff this term is an integer value."""
         return self.cterm.isIntegerValue()
+    
+    def getIntegerValue(self):
+        """
+	   Asserts :py:meth:`isIntegerValue()`.
+	   
+	   :return: the integer term as a native python integer.
+	"""
+        return int(self.cterm.getIntegerValue().decode())
+
     def isAbstractValue(self):
+        """:return: True iff this term is an abstract value."""
         return self.cterm.isAbstractValue()
 
     def getAbstractValue(self):
+        """
+	   Asserts :py:meth:`isAbstractValue()`.
+
+	   :return: the representation of an abstract value as a string.
+	"""
         return self.cterm.getAbstractValue().decode()
 
     def isFloatingPointPosZero(self):
+        """:return: True iff the term is the floating-point value for positive zero."""
         return self.cterm.isFloatingPointPosZero()
 
     def isFloatingPointNegZero(self):
+        """:return: True iff the term is the floating-point value for negative zero."""
         return self.cterm.isFloatingPointNegZero()
 
     def isFloatingPointPosInf(self):
+        """:return: True iff the term is the floating-point value for positive infinity."""
         return self.cterm.isFloatingPointPosInf()
 
     def isFloatingPointNegInf(self):
+        """:return: True iff the term is the floating-point value for negative infinity."""
         return self.cterm.isFloatingPointNegInf()
 
     def isFloatingPointNaN(self):
+        """:return: True iff the term is the floating-point value for not a number."""
         return self.cterm.isFloatingPointNaN()
 
     def isFloatingPointValue(self):
+        """:return: True iff this term is a floating-point value."""
         return self.cterm.isFloatingPointValue()
 
     def getFloatingPointValue(self):
+        """
+	   Asserts :py:meth:`isFloatingPointValue()`.
+
+	   :return: the representation of a floating-point value as a tuple of the exponent width, the significand width and a bit-vector value.
+	"""
         cdef c_tuple[uint32_t, uint32_t, c_Term] t = self.cterm.getFloatingPointValue()
         cdef Term term = Term(self.solver)
         term.cterm = get2(t)
         return (get0(t), get1(t), term)
 
     def isSetValue(self):
+        """
+        A term is a set value if it is considered to be a (canonical) constant
+        set value.  A canonical set value is one whose AST is:
+
+        .. code::
+
+            (union
+                (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+
+        where ``c1 ... cn`` are values ordered by id such that
+        ``c1 > ... > cn`` (see also :cpp:func:`cvc5::api::Term::operator>()`).
+
+        .. note::
+            A universe set term ``(kind SET_UNIVERSE)`` is not considered to be
+            a set value.
+
+        :return: True if the term is a set value.
+        """
         return self.cterm.isSetValue()
 
     def getSetValue(self):
+        """
+	   Asserts :py:meth:`isSetValue()`.
+
+	   :return: the representation of a set value as a set of terms.
+	"""
         elems = set()
         for e in self.cterm.getSetValue():
             term = Term(self.solver)
@@ -2934,9 +3167,20 @@ cdef class Term:
         return elems
 
     def isSequenceValue(self):
+        """:return: True iff this term is a sequence value."""
         return self.cterm.isSequenceValue()
 
     def getSequenceValue(self):
+        """
+        Asserts :py:meth:`isSequenceValue()`.
+
+        .. note::
+            It is usually necessary for sequences to call
+            :py:meth:`Solver.simplify()` to turn a sequence that is constructed
+            by, e.g., concatenation of unit sequences, into a sequence value.
+
+        :return: the representation of a sequence value as a vector of terms.
+        """
         elems = []
         for e in self.cterm.getSequenceValue():
             term = Term(self.solver)
@@ -2945,9 +3189,15 @@ cdef class Term:
         return elems
 
     def isUninterpretedValue(self):
+        """:return: True iff this term is a value from an uninterpreted sort."""
         return self.cterm.isUninterpretedValue()
 
     def getUninterpretedValue(self):
+        """
+	   Asserts :py:meth:`isUninterpretedValue()`.
+
+	   :return: the representation of an uninterpreted value as a pair of its sort and its index.
+	"""
         cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
         cdef Sort sort = Sort(self.solver)
         sort.csort = p.first
@@ -2955,9 +3205,15 @@ cdef class Term:
         return (sort, i)
 
     def isTupleValue(self):
+        """:return: True iff this term is a tuple value."""
         return self.cterm.isTupleValue()
 
     def getTupleValue(self):
+        """
+	   Asserts :py:meth:`isTupleValue()`.
+
+	   :return: the representation of a tuple value as a vector of terms.
+	"""
         elems = []
         for e in self.cterm.getTupleValue():
             term = Term(self.solver)
@@ -2965,21 +3221,33 @@ cdef class Term:
             elems.append(term)
         return elems
 
-    def getIntegerValue(self):
-        return int(self.cterm.getIntegerValue().decode())
-
     def isRealValue(self):
+        """
+	    .. note:: A term of kind PI is not considered to be a real value.
+
+	    :return: True iff this term is a rational value.
+        """
         return self.cterm.isRealValue()
 
     def getRealValue(self):
-        """Returns the value of a real term as a Fraction"""
+        """
+	   Asserts :py:meth:`isRealValue()`.
+
+	   :return: the representation of a rational value as a python Fraction.
+	"""
         return Fraction(self.cterm.getRealValue().decode())
 
     def isBitVectorValue(self):
+        """:return: True iff this term is a bit-vector value."""
         return self.cterm.isBitVectorValue()
 
     def getBitVectorValue(self, base = 2):
-        """Returns the value of a bit-vector term as a 0/1 string"""
+        """
+	   Asserts :py:meth:`isBitVectorValue()`.
+	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
+
+	   :return: the representation of a bit-vector value in string representation. 
+	"""
         return self.cterm.getBitVectorValue(base).decode()
 
     def toPythonObj(self):
@@ -2987,13 +3255,14 @@ cdef class Term:
         Converts a constant value Term to a Python object.
 
         Currently supports:
-          Boolean -- returns a Python bool
-          Int     -- returns a Python int
-          Real    -- returns a Python Fraction
-          BV      -- returns a Python int (treats BV as unsigned)
-          String  -- returns a Python Unicode string
-          Array   -- returns a Python dict mapping indices to values
-                  -- the constant base is returned as the default value
+
+          - Boolean -- returns a Python bool
+          - Int     -- returns a Python int
+          - Real    -- returns a Python Fraction
+          - BV      -- returns a Python int (treats BV as unsigned)
+          - String  -- returns a Python Unicode string
+          - Array   -- returns a Python dict mapping indices to values. the constant base is returned as the default value
+
         """
 
         if self.isBooleanValue():
@@ -3016,13 +3285,13 @@ cdef class Term:
             # on a constant array
             while to_visit:
                 t = to_visit.pop()
-                if t.getKind() == kinds.Store:
+                if t.getKind().value == c_Kind.STORE:
                     # save the mappings
                     keys.append(t[1].toPythonObj())
                     values.append(t[2].toPythonObj())
                     to_visit.append(t[0])
                 else:
-                    assert t.getKind() == kinds.ConstArray
+                    assert t.getKind().value == c_Kind.CONST_ARRAY
                     base_value = t.getConstArrayBase().toPythonObj()
 
             assert len(keys) == len(values)

@@ -19,7 +19,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -28,6 +27,11 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+
+SingleInvocationPartition::SingleInvocationPartition(Env& env)
+    : EnvObj(env), d_has_input_funcs(false)
+{
+}
 
 bool SingleInvocationPartition::init(Node n)
 {
@@ -221,7 +225,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
                                    d_input_funcs.end(),
                                    d_input_func_sks.begin(),
                                    d_input_func_sks.end());
-      cr = TermUtil::getQuantSimplify(cr);
+      cr = getQuantSimplify(cr);
       cr = cr.substitute(d_input_func_sks.begin(),
                          d_input_func_sks.end(),
                          d_input_funcs.begin(),
@@ -336,7 +340,6 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         cr = cr.substitute(
             termsNs.begin(), termsNs.end(), subsNs.begin(), subsNs.end());
       }
-      cr = Rewriter::rewrite(cr);
       Trace("si-prt") << ".....got si=" << singleInvocation
                       << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back(cr);
@@ -349,7 +352,6 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Assert(si_terms.size() == si_subs.size());
         cr = cr.substitute(
             si_terms.begin(), si_terms.end(), si_subs.begin(), si_subs.end());
-        cr = Rewriter::rewrite(cr);
         Trace("si-prt") << ".....si version=" << cr << std::endl;
         d_conjuncts[0].push_back(cr);
       }
@@ -615,6 +617,21 @@ void SingleInvocationPartition::debugPrint(const char* c)
     }
   }
   Trace(c) << std::endl;
+}
+
+Node SingleInvocationPartition::getQuantSimplify(TNode n) const
+{
+  std::unordered_set<Node> fvs;
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
+    return rewrite(n);
+  }
+  std::vector<Node> bvs(fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = rewrite(q);
+  return TermUtil::getRemoveQuantifiers(q);
 }
 
 }  // namespace quantifiers

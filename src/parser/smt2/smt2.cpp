@@ -145,9 +145,7 @@ void Smt2::addDatatypesOperators()
 }
 
 void Smt2::addStringOperators() {
-  defineVar(
-      "re.all",
-      getSolver()->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma()));
+  defineVar("re.all", getSolver()->mkRegexpAll());
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
@@ -594,7 +592,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
               d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
     addOperator(api::SET_UNION, "set.union");
-    addOperator(api::SET_INTERSECTION, "set.intersection");
+    addOperator(api::SET_INTER, "set.inter");
     addOperator(api::SET_MINUS, "set.minus");
     addOperator(api::SET_SUBSET, "set.subset");
     addOperator(api::SET_MEMBER, "set.member");
@@ -604,6 +602,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::SET_COMPLEMENT, "set.complement");
     addOperator(api::SET_CHOOSE, "set.choose");
     addOperator(api::SET_IS_SINGLETON, "set.is_singleton");
+    addOperator(api::SET_MAP, "set.map");
     addOperator(api::RELATION_JOIN, "rel.join");
     addOperator(api::RELATION_PRODUCT, "rel.product");
     addOperator(api::RELATION_TRANSPOSE, "rel.transpose");
@@ -614,30 +613,31 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
   {
-    defineVar("emptybag", d_solver->mkEmptyBag(d_solver->getNullSort()));
-    addOperator(api::UNION_MAX, "union_max");
-    addOperator(api::UNION_DISJOINT, "union_disjoint");
-    addOperator(api::INTERSECTION_MIN, "intersection_min");
-    addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
-    addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::SUBBAG, "subbag");
+    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    addOperator(api::BAG_UNION_MAX, "bag.union_max");
+    addOperator(api::BAG_UNION_DISJOINT, "bag.union_disjoint");
+    addOperator(api::BAG_INTER_MIN, "bag.inter_min");
+    addOperator(api::BAG_DIFFERENCE_SUBTRACT, "bag.difference_subtract");
+    addOperator(api::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
+    addOperator(api::BAG_SUBBAG, "bag.subbag");
     addOperator(api::BAG_COUNT, "bag.count");
-    addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
-    addOperator(api::MK_BAG, "bag");
+    addOperator(api::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
+    addOperator(api::BAG_MAKE, "bag");
     addOperator(api::BAG_CARD, "bag.card");
     addOperator(api::BAG_CHOOSE, "bag.choose");
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
     addOperator(api::BAG_FROM_SET, "bag.from_set");
     addOperator(api::BAG_TO_SET, "bag.to_set");
     addOperator(api::BAG_MAP, "bag.map");
+    addOperator(api::BAG_FOLD, "bag.fold");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort(), true, true);
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    defineVar("re.none", d_solver->mkRegexpEmpty());
-    defineVar("re.allchar", d_solver->mkRegexpSigma());
+    defineVar("re.none", d_solver->mkRegexpNone());
+    defineVar("re.allchar", d_solver->mkRegexpAllchar());
 
     // Boolean is a placeholder
     defineVar("seq.empty",
@@ -880,7 +880,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 
 api::Term Smt2::parseOpToExpr(ParseOp& p)
 {
-  Debug("parser") << "parseOpToExpr: " << p << std::endl;
+  Trace("parser") << "parseOpToExpr: " << p << std::endl;
   api::Term expr;
   if (p.d_kind != api::NULL_EXPR || !p.d_type.isNull())
   {
@@ -1011,12 +1011,32 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // resulting rational here. This also is applied for integral real values
     // like 5.0 which are converted to (/ 5 1) to distinguish them from
     // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero.
-    if (constVal.getKind() == api::DIVISION)
+    // constant and the denominator is non-zero. A similar issue happens for
+    // negative integers and reals, with unary minus.
+    // NOTE this should be applied more eagerly when UMINUS/DIVISION is
+    // constructed.
+    bool isNeg = false;
+    if (constVal.getKind() == api::UMINUS)
+    {
+      isNeg = true;
+      constVal = constVal[0];
+    }
+    if (constVal.getKind() == api::DIVISION && isConstInt(constVal[0])
+        && isConstInt(constVal[1]))
     {
       std::stringstream sdiv;
-      sdiv << constVal[0] << "/" << constVal[1];
+      sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
+    }
+    else if (isConstInt(constVal) && isNeg)
+    {
+      std::stringstream sneg;
+      sneg << "-" << constVal;
+      constVal = d_solver->mkInteger(sneg.str());
+    }
+    else
+    {
+      constVal = args[0];
     }
 
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
@@ -1210,7 +1230,7 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
   setLastNamedTerm(expr, name);
 }
 
-api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
+api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
 {
   if (es.size() == 0)
   {
@@ -1220,10 +1240,15 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
   {
     return es[0];
   }
-  else
-  {
-    return d_solver->mkTerm(api::AND, es);
-  }
+  return d_solver->mkTerm(api::AND, es);
+}
+
+bool Smt2::isConstInt(const api::Term& t)
+{
+  api::Kind k = t.getKind();
+  // !!! Note when arithmetic subtyping is eliminated, this will update to
+  // CONST_INTEGER.
+  return k == api::CONST_RATIONAL;
 }
 
 }  // namespace parser

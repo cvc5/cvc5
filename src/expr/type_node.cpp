@@ -96,7 +96,7 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::FINITE;
   }
-  else if (isString() || isRegExp() || isSequence() || isReal() || isBag())
+  else if (isString() || isRegExp() || isSequence() || isRealOrInt() || isBag())
   {
     ret = CardinalityClass::INFINITE;
   }
@@ -264,17 +264,11 @@ bool TypeNode::isWellFounded() const {
   return kind::isWellFounded(*this);
 }
 
-Node TypeNode::mkGroundTerm() const {
-  return kind::mkGroundTerm(*this);
-}
-
-Node TypeNode::mkGroundValue() const
-{
-  theory::TypeEnumerator te(*this);
-  return *te;
-}
-
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }
+
+// !!! Note that this will change to isReal() || isInteger() when subtyping is
+// eliminated
+bool TypeNode::isRealOrInt() const { return isReal(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
@@ -556,47 +550,6 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   }
 }
 
-Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
-  TypeNode ntn = n.getType();
-  Assert(ntn.isComparableTo(tn));
-  if( !ntn.isSubtypeOf( tn ) ){
-    if( tn.isInteger() ){
-      if( tn.isSubtypeOf( ntn ) ){
-        return NodeManager::currentNM()->mkNode( kind::IS_INTEGER, n );
-      }
-    }else if( tn.isDatatype() && ntn.isDatatype() ){
-      if( tn.isTuple() && ntn.isTuple() ){
-        const DType& dt1 = tn.getDType();
-        const DType& dt2 = ntn.getDType();
-        NodeManager* nm = NodeManager::currentNM();
-        if( dt1[0].getNumArgs()==dt2[0].getNumArgs() ){
-          std::vector< Node > conds;
-          for( unsigned i=0; i<dt2[0].getNumArgs(); i++ ){
-            Node s = nm->mkNode(
-                kind::APPLY_SELECTOR_TOTAL, dt2[0][i].getSelector(), n);
-            Node etc = getEnsureTypeCondition(s, dt1[0][i].getRangeType());
-            if( etc.isNull() ){
-              return Node::null();
-            }else{
-              conds.push_back( etc );
-            }
-          }
-          if( conds.empty() ){
-            return nm->mkConst(true);
-          }else if( conds.size()==1 ){
-            return conds[0];
-          }else{
-            return nm->mkNode(kind::AND, conds);
-          }
-        }
-      }
-    }
-    return Node::null();
-  }else{
-    return NodeManager::currentNM()->mkConst( true );
-  }
-}
-
 /** Is this a sort kind */
 bool TypeNode::isSort() const {
   return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
@@ -656,9 +609,7 @@ bool TypeNode::isSygusDatatype() const
 
 std::string TypeNode::toString() const {
   std::stringstream ss;
-  Language outlang =
-      (this == &s_null) ? Language::LANG_AUTO : options::outputLanguage();
-  d_nv->toStream(ss, -1, 0, outlang);
+  d_nv->toStream(ss, -1, 0);
   return ss.str();
 }
 
@@ -694,6 +645,17 @@ uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();
+}
+
+TypeNode TypeNode::getRangeType() const
+{
+  if (isTester())
+  {
+    return NodeManager::currentNM()->booleanType();
+  }
+  Assert(isFunction() || isConstructor() || isSelector())
+      << "Cannot get range type of " << *this;
+  return (*this)[getNumChildren() - 1];
 }
 
 }  // namespace cvc5

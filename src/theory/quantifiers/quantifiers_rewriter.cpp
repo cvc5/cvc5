@@ -443,7 +443,7 @@ Node QuantifiersRewriter::computeProcessTerms(Node body,
     {
       Node r = computeProcessTerms2(fbody, cache, new_vars, new_conds);
       Assert(new_vars.size() == h.getNumChildren());
-      return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
+      return NodeManager::currentNM()->mkNode(EQUAL, h, r);
     }
     // It can happen that we can't infer the shape of the function definition,
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
@@ -511,9 +511,9 @@ Node QuantifiersRewriter::computeProcessTerms2(
           {
             // check if it rewrites to a constant
             Node nn = nm->mkNode(EQUAL, no, ret[i][j]);
-            nn = Rewriter::rewrite(nn);
             childrenIte.push_back(nn);
-            if (nn.isConst())
+            // check if it will rewrite to a constant
+            if (no == ret[i][j] || (no.isConst() && ret[i][j].isConst()))
             {
               doRewrite = true;
             }
@@ -723,7 +723,7 @@ Node QuantifiersRewriter::getVarElimEq(Node lit,
   Assert(lit.getKind() == EQUAL);
   Node slv;
   TypeNode tt = lit[0].getType();
-  if (tt.isReal())
+  if (tt.isRealOrInt())
   {
     slv = getVarElimEqReal(lit, args, var);
   }
@@ -906,9 +906,9 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       // take into account if parametric
       if (dt.isParametric())
       {
-        tspec = c.getSpecializedConstructorType(lit[0].getType());
-        cons = nm->mkNode(
-            APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cons);
+        TypeNode ltn = lit[0].getType();
+        tspec = c.getInstantiatedConstructorType(ltn);
+        cons = c.getInstantiatedConstructor(ltn);
       }
       else
       {
@@ -920,7 +920,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = tspec[j];
-        Node rn = nm->mkConst(Rational(j));
+        Node rn = nm->mkConstInt(Rational(j));
         Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
         Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
         newChildren.push_back(v);
@@ -1028,12 +1028,11 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              std::vector<Node>& subs) const
 {
   Kind nk = n.getKind();
-  if (nk == NOT)
+  while (nk == NOT)
   {
     n = n[0];
     pol = !pol;
     nk = n.getKind();
-    Assert(nk != NOT);
   }
   if ((nk == AND && pol) || (nk == OR && !pol))
   {
@@ -1098,7 +1097,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
                                   << ", pol = " << pol << "..." << std::endl;
     bool canSolve =
         lit.getKind() == GEQ
-        || (lit.getKind() == EQUAL && lit[0].getType().isReal() && !pol);
+        || (lit.getKind() == EQUAL && lit[0].getType().isRealOrInt() && !pol);
     if (!canSolve)
     {
       continue;
@@ -1326,7 +1325,6 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
       // remake with eliminated nodes
       body =
           body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      body = Rewriter::rewrite(body);
       if (!qa.d_ipl.isNull())
       {
         qa.d_ipl = qa.d_ipl.substitute(

@@ -67,7 +67,17 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SK_FIRST_MATCH: return "SK_FIRST_MATCH";
     case SkolemFunId::SK_FIRST_MATCH_POST: return "SK_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
+    case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
+    case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
+    case SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
+    case SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
+    case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
+      return "BAGS_CARD_UNION_DISJOINT";
     case SkolemFunId::BAGS_CHOOSE: return "BAGS_CHOOSE";
+    case SkolemFunId::BAGS_FOLD_CARD: return "BAGS_FOLD_CARD";
+    case SkolemFunId::BAGS_FOLD_COMBINE: return "BAGS_FOLD_COMBINE";
+    case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
+    case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
     case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";

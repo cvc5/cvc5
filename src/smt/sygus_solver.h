@@ -18,6 +18,7 @@
 #ifndef CVC5__SMT__SYGUS_SOLVER_H
 #define CVC5__SMT__SYGUS_SOLVER_H
 
+#include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -27,7 +28,7 @@
 
 namespace cvc5 {
 
-class OutputManager;
+class SolverEngine;
 
 namespace smt {
 
@@ -37,13 +38,28 @@ class SmtSolver;
  * A solver for sygus queries.
  *
  * This class is responsible for responding to check-synth commands. It calls
- * check satisfiability using an underlying SmtSolver object.
+ * check satisfiability using a separate SolverEngine "subsolver".
  *
- * It also maintains a reference to a preprocessor for implementing
- * checkSynthSolution.
+ * This solver operates in two modes.
+ *
+ * If in incremental mode, then the "main" SolverEngine for SyGuS inputs only
+ * maintains a (user-context) dependent state of SyGuS assertions, as well as
+ * assertions corresponding to (recursive) function definitions. The subsolver
+ * that solves SyGuS conjectures may be called to checkSat multiple times,
+ * however, push/pop (which impact SyGuS constraints) impacts only the main
+ * solver. This means that the conjecture being handled by the subsolver is
+ * reconstructed when the SyGuS conjecture is updated. The key property that
+ * this enables is that the subsolver does *not* get calls to push/pop,
+ * although it may receive multiple check-sat if the sygus functions and
+ * constraints are not updated between check-sat calls.
+ *
+ * If not in incremental mode, then the internal SyGuS conjecture is asserted
+ * to the "main" SolverEngine.
  */
 class SygusSolver : protected EnvObj
 {
+  using NodeList = context::CDList<Node>;
+
  public:
   SygusSolver(Env& env, SmtSolver& sms);
   ~SygusSolver();
@@ -115,7 +131,7 @@ class SygusSolver : protected EnvObj
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    */
-  Result checkSynth(Assertions& as);
+  Result checkSynth(Assertions& as, bool isNext);
   /**
    * Get synth solution.
    *
@@ -134,6 +150,16 @@ class SygusSolver : protected EnvObj
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& sol_map);
+  /**
+   * Same as above, but used for getting synthesis solutions from a "subsolver"
+   * that has been initialized to assert the synthesis conjecture as a
+   * normal assertion.
+   *
+   * This method returns true if we are in a state immediately preceded by
+   * a successful call to checkSat, where this SolverEngine has an asserted
+   * synthesis conjecture.
+   */
+  bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
  private:
   /**
@@ -143,21 +169,13 @@ class SygusSolver : protected EnvObj
    * conjecture in which the functions-to-synthesize have been replaced by the
    * synthesized solutions, which is a quantifier-free formula, is
    * unsatisfiable. If not, then the found solutions are wrong.
-   */
-  void checkSynthSolution(Assertions& as);
-  /**
-   * Set sygus conjecture is stale. The sygus conjecture is stale if either:
-   * (1) no sygus conjecture has been added as an assertion to this SMT engine,
-   * (2) there is a sygus conjecture that has been added as an assertion
-   * internally to this SMT engine, and there have been further calls such that
-   * the asserted conjecture is no longer up-to-date.
    *
-   * This method should be called when new sygus constraints are asserted and
-   * when functions-to-synthesize are declared. This function pops a user
-   * context if we are in incremental mode and the sygus conjecture was
-   * previously not stale.
+   * @param as The background assertions, which may include define-fun and
+   * define-fun-rec,
+   * @param sol_map Map from functions-to-synthesize to their solution (of the
+   * same type) for the asserted synthesis conjecture.
    */
-  void setSygusConjectureStale();
+  void checkSynthSolution(Assertions& as, const std::map<Node, Node>& solMap);
   /**
    * Expand definitions in sygus datatype tn, which ensures that all
    * sygus constructors that are used to build values of sygus datatype
@@ -170,7 +188,19 @@ class SygusSolver : protected EnvObj
    * expansion.
    */
   void expandDefinitionsSygusDt(TypeNode tn) const;
-  /** The SMT solver, which is used during checkSynth. */
+  /** List to vector helper */
+  static std::vector<Node> listToVector(const NodeList& list);
+  /**
+   * Initialize SyGuS subsolver based on the assertions from the "main" solver.
+   * This is used for check-synth using a subsolver, and for check-synth-sol.
+   * This constructs a subsolver se, and makes calls to add all define-fun
+   * and auxilary assertions.
+   */
+  void initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
+                                Assertions& as);
+  /** Are we using a subsolver for the SyGuS query? */
+  bool usingSygusSubsolver() const;
+  /** The SMT solver. */
   SmtSolver& d_smtSolver;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
@@ -178,17 +208,41 @@ class SygusSolver : protected EnvObj
    * The SyGuS semantics for declared variables is that they are implicitly
    * universally quantified in the constraints.
    */
-  std::vector<Node> d_sygusVars;
+  NodeList d_sygusVars;
   /** sygus constraints */
-  std::vector<Node> d_sygusConstraints;
+  NodeList d_sygusConstraints;
   /** sygus assumptions */
-  std::vector<Node> d_sygusAssumps;
+  NodeList d_sygusAssumps;
   /** functions-to-synthesize */
-  std::vector<Node> d_sygusFunSymbols;
+  NodeList d_sygusFunSymbols;
+  /** The current sygus conjecture */
+  Node d_conj;
   /**
    * Whether we need to reconstruct the sygus conjecture.
+   *
+   * The sygus conjecture is stale if either:
+   * (1) no sygus conjecture has been added as an assertion to this SMT engine,
+   * (2) there is a sygus conjecture that has been added as an assertion
+   * internally to this SMT engine, and there have been further calls such that
+   * the asserted conjecture is no longer up-to-date.
+   *
+   * This flag should be set to true when new sygus constraints are asserted and
+   * when functions-to-synthesize are declared.
    */
   context::CDO<bool> d_sygusConjectureStale;
+  /**
+   * The (context-dependent) pointer to the subsolver we have constructed.
+   * This is used to verify if the current subsolver is current, in case
+   * user-context dependent pop has a occurred. If this pointer does not match
+   * d_subsolver, then d_subsolver must be reconstructed in this context.
+   */
+  context::CDO<SolverEngine*> d_subsolverCd;
+  /**
+   * The subsolver we are using. This is a separate copy of the SolverEngine
+   * which has the asserted synthesis conjecture, i.e. a formula returned by
+   * quantifiers::SygusUtils::mkSygusConjecture.
+   */
+  std::unique_ptr<SolverEngine> d_subsolver;
 };
 
 }  // namespace smt

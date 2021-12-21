@@ -30,6 +30,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+SynthConjectureProcessFun::SynthConjectureProcessFun(Env& env) : EnvObj(env) {}
+
 void SynthConjectureProcessFun::init(Node f)
 {
   d_synth_fun = f;
@@ -67,8 +69,8 @@ bool SynthConjectureProcessFun::checkMatch(
   }
   Node cn_subs =
       cn.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-  cn_subs = Rewriter::rewrite(cn_subs);
-  n = Rewriter::rewrite(n);
+  cn_subs = rewrite(cn_subs);
+  n = rewrite(n);
   return cn_subs == n;
 }
 
@@ -511,7 +513,7 @@ void SynthConjectureProcessFun::getIrrelevantArgs(
   }
 }
 
-SynthConjectureProcess::SynthConjectureProcess() {}
+SynthConjectureProcess::SynthConjectureProcess(Env& env) : EnvObj(env) {}
 SynthConjectureProcess::~SynthConjectureProcess() {}
 Node SynthConjectureProcess::preSimplify(Node q)
 {
@@ -524,7 +526,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
 
-  if (options::sygusArgRelevant())
+  if (options().quantifiers.sygusArgRelevant)
   {
     // initialize the information about each function to synthesize
     for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
@@ -532,7 +534,9 @@ Node SynthConjectureProcess::postSimplify(Node q)
       Node f = q[0][i];
       if (f.getType().isFunction())
       {
-        d_sf_info[f].init(f);
+        std::pair<std::map<Node, SynthConjectureProcessFun>::iterator, bool>
+            it = d_sf_info.emplace(f, d_env);
+        it.first->second.init(f);
       }
     }
 
@@ -582,7 +586,7 @@ void SynthConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 
 bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
 {
-  if (!options::sygusArgRelevant())
+  if (!options().quantifiers.sygusArgRelevant)
   {
     return true;
   }

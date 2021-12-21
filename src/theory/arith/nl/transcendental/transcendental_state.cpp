@@ -22,22 +22,24 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalState::TranscendentalState(InferenceManager& im,
-                                         NlModel& model,
-                                         Env& env)
-    : d_im(im), d_model(model), d_env(env)
+TranscendentalState::TranscendentalState(Env& env,
+                                         InferenceManager& im,
+                                         NlModel& model)
+    : EnvObj(env), d_im(im), d_model(model)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstReal(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(new CDProofSet<CDProof>(
@@ -178,7 +180,7 @@ void TranscendentalState::ensureCongruence(TNode a,
     if (mvaa != mvaaa)
     {
       std::vector<Node> exp;
-      for (unsigned j = 0, size = a.getNumChildren(); j < size; j++)
+      for (uint64_t j = 0, size = a.getNumChildren(); j < size; j++)
       {
         exp.push_back(a[j].eqNode(aa[j]));
       }
@@ -202,15 +204,15 @@ void TranscendentalState::mkPi()
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-    d_pi_2 = Rewriter::rewrite(
-        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(1) / Rational(2))));
-    d_pi_neg_2 = Rewriter::rewrite(
-        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1) / Rational(2))));
-    d_pi_neg = Rewriter::rewrite(
-        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1))));
+    d_pi_2 = rewrite(nm->mkNode(
+        Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
+    d_pi_neg_2 = rewrite(nm->mkNode(
+        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
+    d_pi_neg =
+        rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
     // initialize bounds
-    d_pi_bound[0] = nm->mkConst(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConst(Rational(104348) / Rational(33215));
+    d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
+    d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
   }
 }
 
@@ -234,16 +236,20 @@ std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
                                                                   TNode center,
                                                                   unsigned d)
 {
+  auto spit = d_secant_points[e].find(d);
+  if (spit == d_secant_points[e].end())
+  {
+    spit = d_secant_points[e].emplace(d, d_env.getUserContext()).first;
+  }
   // bounds are the minimum and maximum previous secant points
   // should not repeat secant points: secant lemmas should suffice to
   // rule out previous assignment
-  Assert(std::find(
-             d_secant_points[e][d].begin(), d_secant_points[e][d].end(), center)
-         == d_secant_points[e][d].end());
+  Assert(std::find(spit->second.begin(), spit->second.end(), center)
+         == spit->second.end());
   // Insert into the (temporary) vector. We do not update this vector
   // until we are sure this secant plane lemma has been processed. We do
   // this by mapping the lemma to a side effect below.
-  std::vector<Node> spoints = d_secant_points[e][d];
+  std::vector<Node> spoints{spit->second.begin(), spit->second.end()};
   spoints.push_back(center);
 
   // sort
@@ -262,7 +268,7 @@ Node TranscendentalState::mkSecantPlane(
 {
   NodeManager* nm = NodeManager::currentNM();
   // Figure 3: S_l( x ), S_u( x ) for s = 0,1
-  Node rcoeff_n = Rewriter::rewrite(nm->mkNode(Kind::MINUS, lower, upper));
+  Node rcoeff_n = rewrite(nm->mkNode(Kind::MINUS, lower, upper));
   Assert(rcoeff_n.isConst());
   Rational rcoeff = rcoeff_n.getConst<Rational>();
   Assert(rcoeff.sgn() != 0);
@@ -279,7 +285,7 @@ Node TranscendentalState::mkSecantPlane(
   Trace("nl-trans") << "\tfrom ( " << lower << " ; " << lval << " ) to ( "
                     << upper << " ; " << uval << " )" << std::endl;
   Trace("nl-trans") << "\t" << res << std::endl;
-  Trace("nl-trans") << "\trewritten: " << Rewriter::rewrite(res) << std::endl;
+  Trace("nl-trans") << "\trewritten: " << rewrite(res) << std::endl;
   return res;
 }
 
@@ -319,9 +325,6 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       antec_n,
       nm->mkNode(
           convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
-  Trace("nl-trans-lemma") << "*** Secant plane lemma (pre-rewrite) : " << lem
-                          << std::endl;
-  lem = Rewriter::rewrite(lem);
   Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
   CDProof* proof = nullptr;
@@ -332,43 +335,37 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
     {
       if (csign == 1)
       {
-        proof->addStep(
-            lem,
-            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
-            {},
-            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+                       {},
+                       {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
       else
       {
-        proof->addStep(
-            lem,
-            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
-            {},
-            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+                       {},
+                       {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
     }
     else if (tf.getKind() == Kind::SINE)
     {
       if (convexity == Convexity::CONCAVE)
       {
-        proof->addStep(lem,
-                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
-                       {},
-                       {nm->mkConst<Rational>(2 * actual_d),
-                        tf[0],
-                        lower,
-                        upper,
-                        lapprox,
-                        uapprox
+        proof->addStep(
+            lem,
+            PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+            {},
+            {nm->mkConstInt(2 * actual_d), tf[0], lower, upper, lapprox, uapprox
 
-                       });
+            });
       }
       else
       {
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
                        {},
-                       {nm->mkConst<Rational>(2 * actual_d),
+                       {nm->mkConstInt(2 * actual_d),
                         tf[0],
                         lower,
                         upper,
@@ -403,8 +400,8 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
   if (lower != center)
   {
     // Figure 3 : P(l), P(u), for s = 0
-    Node lval = Rewriter::rewrite(
-        poly_approx.substitute(d_taylor.getTaylorVariable(), lower));
+    Node lval =
+        rewrite(poly_approx.substitute(d_taylor.getTaylorVariable(), lower));
     Node splane = mkSecantPlane(tf[0], lower, center, lval, cval);
     NlLemma nlem = mkSecantLemma(
         lower, center, lval, cval, csign, convexity, tf, splane, actual_d);
@@ -422,8 +419,8 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
   if (center != upper)
   {
     // Figure 3 : P(l), P(u), for s = 1
-    Node uval = Rewriter::rewrite(
-        poly_approx.substitute(d_taylor.getTaylorVariable(), upper));
+    Node uval =
+        rewrite(poly_approx.substitute(d_taylor.getTaylorVariable(), upper));
     Node splane = mkSecantPlane(tf[0], center, upper, cval, uval);
     NlLemma nlem = mkSecantLemma(
         center, upper, cval, uval, csign, convexity, tf, splane, actual_d);

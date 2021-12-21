@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -535,7 +534,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == api::EMPTYBAG)
+  else if (k == api::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
@@ -584,7 +583,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       // lookup by name
       api::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getSpecializedConstructorTerm(s);
+      t = dc.getInstantiatedConstructorTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.

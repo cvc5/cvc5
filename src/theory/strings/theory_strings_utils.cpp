@@ -140,32 +140,10 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
   return NodeManager::currentNM()->mkNode(k, c);
 }
 
-Node mkNConcat(Node n1, Node n2)
-{
-  return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
-}
-
-Node mkNConcat(Node n1, Node n2, Node n3)
-{
-  return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
-}
-
-Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
-{
-  return Rewriter::rewrite(mkConcat(c, tn));
-}
-
-Node mkNLength(Node t)
-{
-  return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
-}
-
 Node mkPrefix(Node t, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
+  return nm->mkNode(STRING_SUBSTR, t, nm->mkConstInt(Rational(0)), n);
 }
 
 Node mkSuffix(Node t, Node n)
@@ -285,7 +263,7 @@ bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {
   size_t i = start;
-  while (i < rs.size() && rs[i].getKind() == REGEXP_SIGMA)
+  while (i < rs.size() && rs[i].getKind() == REGEXP_ALLCHAR)
   {
     i++;
   }
@@ -295,7 +273,7 @@ bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
     return false;
   }
 
-  return rs[i].getKind() == REGEXP_STAR && rs[i][0].getKind() == REGEXP_SIGMA;
+  return rs[i].getKind() == REGEXP_STAR && rs[i][0].getKind() == REGEXP_ALLCHAR;
 }
 
 bool isSimpleRegExp(Node r)
@@ -313,8 +291,9 @@ bool isSimpleRegExp(Node r)
         return false;
       }
     }
-    else if (n.getKind() != REGEXP_SIGMA
-             && (n.getKind() != REGEXP_STAR || n[0].getKind() != REGEXP_SIGMA))
+    else if (n.getKind() != REGEXP_ALLCHAR
+             && (n.getKind() != REGEXP_STAR
+                 || n[0].getKind() != REGEXP_ALLCHAR))
     {
       return false;
     }
@@ -376,7 +355,7 @@ bool isStringKind(Kind k)
 
 bool isRegExpKind(Kind k)
 {
-  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
+  return k == REGEXP_NONE || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
          || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV

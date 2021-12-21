@@ -54,7 +54,7 @@ bool TriggerTermInfo::isAtomicTriggerKind(Kind k)
   // where these two things require those kinds respectively.
   return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
          || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL
-         || k == APPLY_TESTER || k == SET_UNION || k == SET_INTERSECTION
+         || k == APPLY_TESTER || k == SET_UNION || k == SET_INTER
          || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
          || k == SET_SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
          || k == INT_TO_BITVECTOR || k == HO_APPLY || k == STRING_LENGTH
@@ -94,7 +94,7 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n,
     lit = lit[0];
   }
   // is it a relational trigger?
-  if ((lit.getKind() == EQUAL && lit[0].getType().isReal())
+  if ((lit.getKind() == EQUAL && lit[0].getType().isRealOrInt())
       || lit.getKind() == GEQ)
   {
     // if one side of the relation is a variable and the other side is a ground

@@ -167,7 +167,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(throwsDecls));
 
     /* with unresolved sorts */
-    Sort unresList = d_solver.mkUninterpretedSort("ulist");
+    Sort unresList = d_solver.mkUnresolvedSort("ulist", 1);
     Set<Sort> unresSorts = new HashSet<>();
     unresSorts.add(unresList);
     DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
@@ -183,6 +183,28 @@ class SolverTest
     assertThrows(
         CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
     slv.close();
+
+    /* mutually recursive with unresolved parameterized sorts */
+    Sort p0 = d_solver.mkParamSort("p0");
+    Sort p1 = d_solver.mkParamSort("p1");
+    Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
+    Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+    DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
+    DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+    DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
+    ctordecl0.addSelector("s0", u1.instantiate(new Sort[] {p0}));
+    DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
+    ctordecl1.addSelector("s1", u0.instantiate(new Sort[] {p1}));
+    dtdecl0.addConstructor(ctordecl0);
+    dtdecl1.addConstructor(ctordecl1);
+    Sort[] dt_sorts =
+        d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1}, new Sort[] {u0, u1});
+    Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
+    Term t1 = d_solver.mkConst(isort1, "t");
+    Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
+        t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getSelectorTerm(),
+        t1);
+    assertEquals(dt_sorts[0].instantiate(new Sort[] {d_solver.getBooleanSort()}), t0.getSort());
 
     /* Note: More tests are in datatype_api_black. */
   }
@@ -310,6 +332,14 @@ class SolverTest
   {
     assertDoesNotThrow(() -> d_solver.mkUninterpretedSort("u"));
     assertDoesNotThrow(() -> d_solver.mkUninterpretedSort(""));
+  }
+
+  @Test void mkUnresolvedSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
   }
 
   @Test void mkSortConstructorSort() throws CVC5ApiException
@@ -632,18 +662,25 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkReal(val4, val4));
   }
 
-  @Test void mkRegexpEmpty()
+  @Test void mkRegexpNone()
   {
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
-    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
   }
 
-  @Test void mkRegexpSigma()
+  @Test void mkRegexpAll()
   {
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
-    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAll()));
+  }
+
+  @Test void mkRegexpAllchar()
+  {
+    Sort strSort = d_solver.getStringSort();
+    Term s = d_solver.mkConst(strSort, "s");
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
   }
 
   @Test void mkSepEmp()
@@ -683,8 +720,8 @@ class SolverTest
 
     // mkTerm(Kind kind) const
     assertDoesNotThrow(() -> d_solver.mkTerm(PI));
-    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_EMPTY));
-    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_SIGMA));
+    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_NONE));
+    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_ALLCHAR));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(CONST_BITVECTOR));
 
     // mkTerm(Kind kind, Term child) const
@@ -1421,16 +1458,18 @@ class SolverTest
     }
     {
       // mode option
-      OptionInfo info = d_solver.getOptionInfo("output");
+      OptionInfo info = d_solver.getOptionInfo("simplification");
       assertions.clear();
-      assertions.add(() -> assertEquals("output", info.getName()));
+      assertions.add(() -> assertEquals("simplification", info.getName()));
       assertions.add(
-          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+          () -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
-      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
-      assertions.add(() -> assertEquals("none", modeInfo.getCurrentValue()));
-      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+      assertions.add(() -> assertEquals("batch", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("batch", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertEquals(2, modeInfo.getModes().length));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
     }
     assertAll(assertions);
   }
@@ -1638,7 +1677,7 @@ class SolverTest
     Term x = d_solver.mkVar(uSort, "x");
     Term y = d_solver.mkVar(uSort, "y");
     Term eq = d_solver.mkTerm(EQUAL, x, y);
-    Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, x, y);
     Term f = d_solver.mkTerm(FORALL, bvl, eq);
     d_solver.assertFormula(f);
     d_solver.checkSat();
@@ -1706,9 +1745,8 @@ class SolverTest
   @Test void getQuantifierElimination()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.getQuantifierElimination(d_solver.getNullTerm()));
     Solver slv = new Solver();
@@ -1722,9 +1760,8 @@ class SolverTest
   @Test void getQuantifierEliminationDisjunct()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.getQuantifierEliminationDisjunct(d_solver.getNullTerm()));
 
@@ -2546,6 +2583,36 @@ class SolverTest
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getSynthSolutions(new Term[] {x}));
     slv.close();
+  }
+  @Test void checkSynthNext() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+    d_solver.checkSynthNext();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+  }
+
+  @Test void checkSynthNext2() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "false");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
+  }
+
+  @Test void checkSynthNext3() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
   }
 
   @Test void tupleProject() throws CVC5ApiException

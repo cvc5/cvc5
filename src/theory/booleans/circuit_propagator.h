@@ -134,14 +134,12 @@ class CircuitPropagator : protected EnvObj
     return false;
   }
   /**
-   * Set proof node manager, context and parent proof generator.
+   * Enable proofs based on context and parent proof generator.
    *
    * If parent is non-null, then it is responsible for the proofs provided
    * to this class.
    */
-  void setProof(ProofNodeManager* pnm,
-                context::Context* ctx,
-                ProofGenerator* defParent);
+  void enableProofs(context::Context* ctx, ProofGenerator* defParent);
 
  private:
   /** A context-notify object that clears out stale data. */

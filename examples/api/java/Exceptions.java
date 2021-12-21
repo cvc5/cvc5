@@ -10,9 +10,9 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Catching CVC4 exceptions via the Java API.
+ * Catching cvc5 exceptions via the Java API.
  *
- * A simple demonstration of catching CVC4 execptions via the Java API.
+ * A simple demonstration of catching cvc5 execptions via the Java API.
  */
 
 import io.github.cvc5.api.*;

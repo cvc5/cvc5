@@ -21,6 +21,8 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace test {
 
@@ -69,8 +71,9 @@ TEST_F(TestUtilBlackDatatype, enumeration)
   ASSERT_TRUE(colorsType.getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << colorsType.getDType().getName()
                        << std::endl
-                       << "  is " << colorsType.mkGroundTerm() << std::endl;
-  ASSERT_EQ(colorsType.mkGroundTerm().getType(), colorsType);
+                       << "  is " << d_nodeManager->mkGroundTerm(colorsType)
+                       << std::endl;
+  ASSERT_EQ(d_nodeManager->mkGroundTerm(colorsType).getType(), colorsType);
 }
 
 TEST_F(TestUtilBlackDatatype, nat)
@@ -101,8 +104,9 @@ TEST_F(TestUtilBlackDatatype, nat)
   ASSERT_TRUE(natType.getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << natType.getDType().getName()
                        << std::endl
-                       << "  is " << natType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(natType.mkGroundTerm().getType() == natType);
+                       << "  is " << d_nodeManager->mkGroundTerm(natType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(natType).getType() == natType);
 }
 
 TEST_F(TestUtilBlackDatatype, tree)
@@ -133,8 +137,9 @@ TEST_F(TestUtilBlackDatatype, tree)
   ASSERT_TRUE(treeType.getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << treeType.getDType().getName()
                        << std::endl
-                       << "  is " << treeType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(treeType.mkGroundTerm().getType() == treeType);
+                       << "  is " << d_nodeManager->mkGroundTerm(treeType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(treeType).getType() == treeType);
 }
 
 TEST_F(TestUtilBlackDatatype, list_int)
@@ -164,8 +169,9 @@ TEST_F(TestUtilBlackDatatype, list_int)
   ASSERT_TRUE(listType.getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << listType.getDType().getName()
                        << std::endl
-                       << "  is " << listType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+                       << "  is " << d_nodeManager->mkGroundTerm(listType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(listType).getType() == listType);
 }
 
 TEST_F(TestUtilBlackDatatype, list_real)
@@ -194,8 +200,9 @@ TEST_F(TestUtilBlackDatatype, list_real)
   ASSERT_TRUE(listType.getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << listType.getDType().getName()
                        << std::endl
-                       << "  is " << listType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+                       << "  is " << d_nodeManager->mkGroundTerm(listType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(listType).getType() == listType);
 }
 
 TEST_F(TestUtilBlackDatatype, list_boolean)
@@ -224,8 +231,9 @@ TEST_F(TestUtilBlackDatatype, list_boolean)
   ASSERT_TRUE(listType.getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << listType.getDType().getName()
                        << std::endl
-                       << "  is " << listType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+                       << "  is " << d_nodeManager->mkGroundTerm(listType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(listType).getType() == listType);
 }
 
 TEST_F(TestUtilBlackDatatype, listIntUpdate)
@@ -246,8 +254,8 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   TypeNode listType = d_nodeManager->mkDatatypeType(list);
   const DType& ldt = listType.getDType();
   Node updater = ldt[0][0].getUpdater();
-  Node gt = listType.mkGroundTerm();
-  Node zero = d_nodeManager->mkConst(Rational(0));
+  Node gt = d_nodeManager->mkGroundTerm(listType);
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
   Node truen = d_nodeManager->mkConst(true);
   // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);
@@ -320,8 +328,9 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   ASSERT_TRUE(dtts[0].getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << dtts[0].getDType().getName()
                        << std::endl
-                       << "  is " << dtts[0].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts[0].mkGroundTerm().getType() == dtts[0]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts[0])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts[0]).getType() == dtts[0]);
 
   ASSERT_FALSE(dtts[1].getDType().isFinite());
   ASSERT_TRUE(dtts[1].getDType().getCardinality().compare(Cardinality::INTEGERS)
@@ -329,8 +338,9 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   ASSERT_TRUE(dtts[1].getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << dtts[1].getDType().getName()
                        << std::endl
-                       << "  is " << dtts[1].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts[1].mkGroundTerm().getType() == dtts[1]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts[1])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts[1]).getType() == dtts[1]);
 }
 
 TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
@@ -386,8 +396,9 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
   ASSERT_TRUE(dtts2[0].getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << dtts2[0].getDType().getName()
                        << std::endl
-                       << "  is " << dtts2[0].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts2[0].mkGroundTerm().getType() == dtts2[0]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts2[0])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts2[0]).getType() == dtts2[0]);
 
   ASSERT_FALSE(dtts2[1].getDType().isParametric());
   ASSERT_FALSE(dtts2[1].getDType().isFinite());
@@ -397,8 +408,9 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
   ASSERT_TRUE(dtts2[1].getDType().isWellFounded());
   Debug("groundterms") << "ground term of " << dtts2[1].getDType().getName()
                        << std::endl
-                       << "  is " << dtts2[1].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts2[1].mkGroundTerm().getType() == dtts2[1]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts2[1])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts2[1]).getType() == dtts2[1]);
 }
 
 TEST_F(TestUtilBlackDatatype, not_so_well_founded)
@@ -421,7 +433,7 @@ TEST_F(TestUtilBlackDatatype, not_so_well_founded)
       treeType.getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_FALSE(treeType.getDType().isWellFounded());
-  ASSERT_TRUE(treeType.mkGroundTerm().isNull());
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(treeType).isNull());
   ASSERT_TRUE(treeType.getDType().mkGroundTerm(treeType).isNull());
 }
 

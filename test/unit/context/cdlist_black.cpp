@@ -20,7 +20,6 @@
 
 #include "base/exception.h"
 #include "context/cdlist.h"
-#include "memory.h"
 #include "test_context.h"
 
 namespace cvc5 {
@@ -133,25 +132,6 @@ TEST_F(TestContextBlackCDList, empty_iterator)
   CDList<int>* list = new (true) CDList<int>(d_context.get());
   ASSERT_EQ(list->begin(), list->end());
   list->deleteSelf();
-}
-
-TEST_F(TestContextBlackCDList, out_of_memory)
-{
-#ifndef CVC5_MEMORY_LIMITING_DISABLED
-  CDList<uint32_t> list(d_context.get());
-  test::WithLimitedMemory wlm(1);
-
-  ASSERT_THROW(
-      {
-        // We cap it at UINT32_MAX, preferring to terminate with a
-        // failure than run indefinitely.
-        for (uint32_t i = 0; i < UINT32_MAX; ++i)
-        {
-          list.push_back(i);
-        }
-      },
-      std::bad_alloc);
-#endif
 }
 
 TEST_F(TestContextBlackCDList, pop_below_level_created)

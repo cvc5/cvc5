@@ -23,6 +23,8 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace bv {
@@ -465,7 +467,7 @@ Node eliminateBv2Nat(TNode node)
 {
   const unsigned size = utils::getSize(node[0]);
   NodeManager* const nm = NodeManager::currentNM();
-  const Node z = nm->mkConst(Rational(0));
+  const Node z = nm->mkConstInt(Rational(0));
   const Node bvone = utils::mkOne(1);
 
   Integer i = 1;
@@ -477,7 +479,7 @@ Node eliminateBv2Nat(TNode node)
                    nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]),
                    bvone);
     children.push_back(
-        nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z));
+        nm->mkNode(kind::ITE, cond, nm->mkConstInt(Rational(i)), z));
   }
   // avoid plus with one child
   return children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
@@ -496,8 +498,9 @@ Node eliminateInt2Bv(TNode node)
   {
     Node cond = nm->mkNode(
         kind::GEQ,
-        nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))),
-        nm->mkConst(Rational(i, 2)));
+        nm->mkNode(
+            kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+        nm->mkConstInt(Rational(i, 2)));
     v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }

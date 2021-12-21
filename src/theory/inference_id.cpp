@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 
@@ -104,19 +106,20 @@ const char* toString(InferenceId i)
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
-    case InferenceId::BAGS_MK_BAG_DIFFERENT_ELEMENT: return "BAGS_MK_BAG_DIFFERENT_ELEMENT";
-    case InferenceId::BAGS_MK_BAG_SAME_ELEMENT: return "BAGS_MK_BAG_SAME_ELEMENT";
-    case InferenceId::BAGS_MK_BAG: return "BAGS_MK_BAG";
+    case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
     case InferenceId::BAGS_UNION_DISJOINT: return "BAGS_UNION_DISJOINT";
     case InferenceId::BAGS_UNION_MAX: return "BAGS_UNION_MAX";
     case InferenceId::BAGS_INTERSECTION_MIN: return "BAGS_INTERSECTION_MIN";
-    case InferenceId::BAGS_DIFFERENCE_SUBTRACT: return "BAGS_DIFFERENCE_SUBTRACT";
+    case InferenceId::BAGS_DIFFERENCE_SUBTRACT:
+      return "BAGS_DIFFERENCE_SUBTRACT";
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP: return "BAGS_MAP";
+    case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
+    case InferenceId::BAGS_CARD: return "BAGS_CARD";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -227,12 +230,6 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
-    case InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED:
-      return "QUANTIFIERS_SYGUS_SI_SOLVED";
-    case InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED:
-      return "QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED";
-    case InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED:
-      return "QUANTIFIERS_SYGUS_VERIFY_SOLVED";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB:
@@ -410,6 +407,15 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_ARRAY_NTH_UNIT: return "STRINGS_ARRAY_NTH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_CONCAT:
       return "STRINGS_ARRAY_NTH_CONCAT";
+    case InferenceId::STRINGS_ARRAY_NTH_EXTRACT:
+      return "STRINGS_ARRAY_NTH_EXTRACT";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE:
+      return "STRINGS_ARRAY_NTH_UPDATE";
+    case InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE:
+      return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
+      return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
+    case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
     case InferenceId::STRINGS_RE_UNFOLD_NEG: return "STRINGS_RE_UNFOLD_NEG";
@@ -453,6 +459,8 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_MODEL_APP_ENCODE: return "UF_HO_MODEL_APP_ENCODE";
     case InferenceId::UF_HO_MODEL_EXTENSIONALITY:
       return "UF_HO_MODEL_EXTENSIONALITY";
+    case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
+    case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
 
     default: return "?";
   }
@@ -466,7 +474,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

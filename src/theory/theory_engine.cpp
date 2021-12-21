@@ -155,7 +155,7 @@ void TheoryEngine::finishInit()
   // create the relevance filter if any option requires it
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
-    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
+    d_relManager.reset(new RelevanceManager(d_env, Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -391,7 +391,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       // to indicate that its information must be recomputed.
       if (d_relManager != nullptr)
       {
-        d_relManager->resetRound();
+        d_relManager->beginRound();
       }
       d_tc->resetRound();
     }
@@ -486,10 +486,18 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
-    if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      // Do post-processing of model from the theories (e.g. used for THEORY_SEP
-      // to construct heap model)
-      d_tc->postProcessModel(d_incomplete.get());
+    if (Theory::fullEffort(effort))
+    {
+      if (d_relManager != nullptr)
+      {
+        d_relManager->endRound();
+      }
+      if (!d_inConflict && !needCheck())
+      {
+        // Do post-processing of model from the theories (e.g. used for
+        // THEORY_SEP to construct heap model)
+        d_tc->postProcessModel(d_incomplete.get());
+      }
     }
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
@@ -771,7 +779,7 @@ void TheoryEngine::notifyPreprocessedAssertions(
   }
   if (d_relManager != nullptr)
   {
-    d_relManager->notifyPreprocessedAssertions(assertions);
+    d_relManager->notifyPreprocessedAssertions(assertions, true);
   }
 }
 
@@ -1071,14 +1079,14 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
-    bool& success)
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
 {
   // if we are not in SAT mode, or there is no relevance manager, we fail
   if (!d_inSatMode || d_relManager == nullptr)
   {
     success = false;
-    return d_emptyRelevantSet;
+    // return empty set
+    return std::unordered_set<TNode>();
   }
   return d_relManager->getRelevantAssertions(success);
 }
@@ -1089,13 +1097,19 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_relManager->getDifficultyMap(dmap);
 }
 
+theory::IncompleteId TheoryEngine::getIncompleteId() const
+{
+  return d_incompleteId.get();
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
     // the model value of a constant must be itself
     return var;
   }
-  Assert(d_sharedSolver->isShared(var));
+  Assert(d_sharedSolver->isShared(var))
+      << "node " << var << " is not shared" << std::endl;
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
@@ -1311,10 +1325,10 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (isLemmaPropertyNeedsJustify(p))
+    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
-      d_relManager->notifyPreprocessedAssertion(retLemma);
-      d_relManager->notifyPreprocessedAssertions(skAsserts);
+      d_relManager->notifyPreprocessedAssertion(retLemma, false);
+      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
   }
@@ -1790,6 +1804,8 @@ TrustNode TheoryEngine::getExplanation(
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
+  bool hasFailure = false;
+  std::stringstream serror;
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1816,7 +1832,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             if (val == d_false)
             {
               // Always an error if it is false
-              InternalError() << ss.str();
+              hasFailure = true;
+              serror << ss.str();
             }
             else
             {
@@ -1830,6 +1847,10 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         }
       }
     }
+  }
+  if (hasFailure)
+  {
+    InternalError() << serror.str();
   }
 }
 

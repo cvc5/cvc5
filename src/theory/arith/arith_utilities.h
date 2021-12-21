@@ -44,7 +44,7 @@ typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;
 typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){
-  return NodeManager::currentNM()->mkConst<Rational>(q);
+  return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
 }
 
 inline Node mkBoolNode(bool b){
@@ -331,6 +331,12 @@ Rational greatestIntLessThan(const Rational&);
 
 /** Negates a node in arithmetic proof normal form. */
 Node negateProofLiteral(TNode n);
+
+/**
+ * Return the result of multiplying constant integer or real nodes c1 and c2.
+ * The returned type is real if either have type real.
+ */
+Node multConstants(const Node& c1, const Node& c2);
 
 }  // namespace arith
 }  // namespace theory

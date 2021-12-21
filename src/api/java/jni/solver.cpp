@@ -462,6 +462,26 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUninterpretedSort(
 
 /*
  * Class:     io_github_cvc5_api_Solver
+ * Method:    mkUnresolvedSort
+ * Signature: (JLjava/lang/String;I)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUnresolvedSort(
+    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  Sort* retPointer = new Sort(solver->mkUnresolvedSort(cSymbol, (size_t)arity));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return reinterpret_cast<jlong>(retPointer);
+
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
  * Method:    mkSortConstructorSort
  * Signature: (JLjava/lang/String;I)J
  */
@@ -977,30 +997,45 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkReal__JJJ(
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkRegexpEmpty
+ * Method:    mkRegexpNone
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpEmpty(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpNone(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkRegexpEmpty());
+  Term* retPointer = new Term(solver->mkRegexpNone());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkRegexpSigma
+ * Method:    mkRegexpAll
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpSigma(
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Solver_mkRegexpAll(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* retPointer = new Term(solver->mkRegexpAll());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
+ * Method:    mkRegexpAllchar
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpAllchar(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkRegexpSigma());
+  Term* retPointer = new Term(solver->mkRegexpAllchar());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2590,6 +2625,21 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynth(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Result* retPointer = new Result(solver->checkSynth());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
+ * Method:    checkSynthNext
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Result* retPointer = new Result(solver->checkSynthNext());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

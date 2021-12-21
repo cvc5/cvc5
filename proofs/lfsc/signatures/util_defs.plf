@@ -30,6 +30,13 @@
   (mp_ifzero (mp_add (mp_neg v1) v2) t s)
 )
 
+; Returns true if 0 <= c <= 1
+(program mpq_between_zero_one ((c mpq)) Ok
+  (mp_ifneg c
+    (fail Ok)
+    (let c2 (mp_add c (mp_neg 1/1))
+      (mp_ifneg c2 ok (mp_ifzero c2 ok (fail Ok))))))
+
 ;; ---- Side conditions
 
 ; Get the argument from an f-application t, fail if t is not an f-application.

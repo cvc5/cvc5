@@ -121,7 +121,8 @@ void MinisatSatSolver::initialize(context::Context* context,
 
   // Create the solver
   d_minisat =
-      new Minisat::SimpSolver(theoryProxy,
+      new Minisat::SimpSolver(d_env,
+                              theoryProxy,
                               d_context,
                               userContext,
                               pnm,

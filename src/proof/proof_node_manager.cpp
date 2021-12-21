@@ -28,8 +28,10 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-ProofNodeManager::ProofNodeManager(theory::Rewriter* rr, ProofChecker* pc)
-    : d_rewriter(rr), d_checker(pc)
+ProofNodeManager::ProofNodeManager(const Options& opts,
+                                   theory::Rewriter* rr,
+                                   ProofChecker* pc)
+    : d_opts(opts), d_rewriter(rr), d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // we always allocate a proof checker, regardless of the proof checking mode
@@ -329,8 +331,8 @@ Node ProofNodeManager::checkInternal(
   // a proof checking mode that does not eagerly check rule applications
   if (!expected.isNull())
   {
-    if (options::proofCheck() == options::ProofCheckMode::LAZY
-        || options::proofCheck() == options::ProofCheckMode::NONE)
+    if (d_opts.proof.proofCheck == options::ProofCheckMode::LAZY
+        || d_opts.proof.proofCheck == options::ProofCheckMode::NONE)
     {
       return expected;
     }
@@ -403,12 +405,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
 
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
+  // processed is almost always size <= 1
+  std::vector<ProofNode*> processed;
   while (pn->getRule() == PfRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
     if (pnc->getRule() == PfRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
+      if (std::find(processed.begin(), processed.end(), pn) != processed.end())
+      {
+        Unreachable()
+            << "Cyclic proof encountered when cancelling double symmetry";
+      }
+      processed.push_back(pn);
     }
     else
     {
@@ -427,7 +437,7 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  if (options::proofCheck() == options::ProofCheckMode::EAGER)
+  if (d_opts.proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     std::unordered_set<const ProofNode*> visited;
     for (const std::shared_ptr<ProofNode>& cpc : children)
