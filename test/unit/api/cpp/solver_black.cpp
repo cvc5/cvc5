@@ -1448,7 +1448,6 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   ASSERT_TRUE(output.getSort().isBoolean());
 }
 
-
 TEST_F(TestApiBlackSolver, getInterpolantNext)
 {
   d_solver.setLogic("QF_LIA");
@@ -1473,9 +1472,9 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
   d_solver.getInterpolant(conj, output);
   Term output;
   d_solver.getInterpolantNext(output2);
-  
+
   // We expect the next output to be distinct
-  ASSERT_TRUE(output!=output2);
+  ASSERT_TRUE(output != output2);
 }
 
 TEST_F(TestApiBlackSolver, declarePool)

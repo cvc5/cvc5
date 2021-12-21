@@ -2243,14 +2243,13 @@ Java_io_github_cvc5_api_Solver_getInterpolant__JJJJ(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
-
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolantNext
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext
-    (JNIEnv * env, jobject, jlong pointer, jlong outputPointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
+    JNIEnv* env, jobject, jlong pointer, jlong outputPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

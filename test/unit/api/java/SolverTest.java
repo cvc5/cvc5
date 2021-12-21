@@ -1463,7 +1463,7 @@ class SolverTest
     // We expect the next output to be distinct
     assertNotEquals(output, output2);
   }
-  
+
   @Test void getOp() throws CVC5ApiException
   {
     Sort bv32 = d_solver.mkBitVectorSort(32);

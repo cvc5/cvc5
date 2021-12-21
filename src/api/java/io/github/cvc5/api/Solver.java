@@ -2217,7 +2217,6 @@ public class Solver implements IPointer, AutoCloseable
   private native boolean getInterpolant(
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
 
-
   /**
    * Get the next interpolant. Can only be called immediately after a successful
    * call to get-interpol or get-interpol-next. Is guaranteed to produce a
@@ -2241,7 +2240,8 @@ public class Solver implements IPointer, AutoCloseable
    *        the last call to getInterpolant.
    * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
    */
-  public boolean getInterpolantNext(Term output) {
+  public boolean getInterpolantNext(Term output)
+  {
     return getInterpolantNext(pointer, output.getPointer());
   }
 
