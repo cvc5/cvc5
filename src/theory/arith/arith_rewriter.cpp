@@ -386,6 +386,7 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == kind::POW2);
   NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
   if (t[0].isConst())
   {
     // pow2 is only supported for integers
