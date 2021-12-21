@@ -192,9 +192,9 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
     // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(pppg);
+    d_asserts->enableProofs(pppg);
     // enabled proofs in the preprocessor
-    d_smtSolver->getPreprocessor()->setProofGenerator(pppg);
+    d_smtSolver->getPreprocessor()->enableProofs(pppg);
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
@@ -934,11 +934,19 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth()
+Result SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
-  return d_sygusSolver->checkSynth(*d_asserts);
+  if (isNext && d_state->getMode() != SmtMode::SYNTH)
+  {
+    throw RecoverableModalException(
+        "Cannot check-synth-next unless immediately preceded by a successful "
+        "call to check-synth(-next).");
+  }
+  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  d_state->notifyCheckSynthResult(r);
+  return r;
 }
 
 /*
@@ -1653,16 +1661,26 @@ bool SolverEngine::getAbduct(const Node& conj,
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
-  // notify the state of whether the get-abduct call was successfuly, which
+  // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
   return success;
 }
 
-bool SolverEngine::getAbduct(const Node& conj, Node& abd)
+bool SolverEngine::getAbductNext(Node& abd)
 {
-  TypeNode grammarType;
-  return getAbduct(conj, grammarType, abd);
+  SolverEngineScope smts(this);
+  finishInit();
+  if (d_state->getMode() != SmtMode::ABDUCT)
+  {
+    throw RecoverableModalException(
+        "Cannot get-abduct-next unless immediately preceded by a successful "
+        "call to get-abduct(-next).");
+  }
+  bool success = d_abductSolver->getAbductNext(abd);
+  // notify the state of whether the get-abduct-next call was successful
+  d_state->notifyGetAbduct(success);
+  return success;
 }
 
 void SolverEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)

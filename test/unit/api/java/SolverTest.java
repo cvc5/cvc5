@@ -336,9 +336,9 @@ class SolverTest
 
   @Test void mkUnresolvedSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 0));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
-    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 0));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
   }
 
@@ -1334,6 +1334,84 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.getInfo("name"));
     assertThrows(CVC5ApiException.class, () -> d_solver.getInfo("asdf"));
   }
+
+  @Test void getAbduct() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "false");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output = d_solver.getNullTerm();
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj, output));
+    // We expect the resulting output to be a boolean formula
+    assertTrue(!output.isNull() && output.getSort().isBoolean());
+
+    // try with a grammar, a simple grammar admitting true
+    Sort bsort = d_solver.getBooleanSort();
+    Term truen = d_solver.mkBoolean(true);
+    Term start = d_solver.mkVar(bsort);
+    Term output2  = d_solver.getNullTerm();
+    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Term conj2 = d_solver.mkTerm(GT, x, zero);
+    assertDoesNotThrow(() -> g.addRule(start, truen));
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj2, g, output2));
+    // abduct must be true
+    assertEquals(output2, truen);
+  }
+
+  @Test void getAbduct2() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("incremental", "false");
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output  = d_solver.getNullTerm();
+    // Fails due to option not set
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getAbduct(conj, output));
+  }
+
+  @Test void getAbductNext() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "true");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output = d_solver.getNullTerm();
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj, output));
+    Term output2 = d_solver.getNullTerm();
+    assertTrue(d_solver.getAbductNext(output2));
+    // should produce a different output
+    assertNotEquals(output, output2);
+  }
+
 
   @Test void getInterpolant() throws CVC5ApiException
   {
@@ -2583,6 +2661,36 @@ class SolverTest
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getSynthSolutions(new Term[] {x}));
     slv.close();
+  }
+  @Test void checkSynthNext() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+    d_solver.checkSynthNext();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+  }
+
+  @Test void checkSynthNext2() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "false");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
+  }
+
+  @Test void checkSynthNext3() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
   }
 
   @Test void tupleProject() throws CVC5ApiException

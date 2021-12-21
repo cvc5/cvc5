@@ -2283,6 +2283,21 @@ Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Solver
+ * Method:    getAbductNext
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getAbductNext
+    (JNIEnv * env, jobject, jlong pointer, jlong outputPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* output = reinterpret_cast<Term*>(outputPointer);
+  return (jboolean)solver->getAbductNext(*output);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
  * Method:    blockModel
  * Signature: (J)V
  */
@@ -2625,6 +2640,21 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynth(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Result* retPointer = new Result(solver->checkSynth());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
+ * Method:    checkSynthNext
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Result* retPointer = new Result(solver->checkSynthNext());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

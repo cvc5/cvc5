@@ -1899,6 +1899,11 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
   out << "(check-synth)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
+{
+  out << "(check-synth-next)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          const std::string& name,
                                          Node conj,
@@ -1927,6 +1932,11 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
     out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  out << "(get-abduct-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,

@@ -508,7 +508,7 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter qrew(options());
+    QuantifiersRewriter qrew(d_env.getRewriter(), options());
     qrew.getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())
