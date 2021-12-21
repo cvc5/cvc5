@@ -82,7 +82,9 @@ bool AbductionSolver::getAbductNext(Node& abd)
   // Since we are using the subsolver's check-sat interface directly, we
   // simply call getAbductInternal again here. We assert that the subsolver
   // is already initialized, which must be the case or else we are not in the
-  // proper SMT mode to make this call.
+  // proper SMT mode to make this call. Due to the default behavior of
+  // subsolvers having synthesis conjectures, this is guaranteed to produce
+  // a new solution.
   Assert(d_subsolver != nullptr);
   return getAbductInternal(abd);
 }
