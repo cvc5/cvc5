@@ -2067,8 +2067,16 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     children.push_back(mult);
   }
   Debug("arith::toSumNode") << "toSumNode() end" << endl;
-  // NOTE: real type assumed here
-  return safeConstructNaryType(nm->realType(), kind::PLUS, children);
+  if (children.empty())
+  {
+    // NOTE: real type assumed here
+    return nm->mkConstReal(Rational(0));
+  }
+  else if (children.size()==1)
+  {
+    return children[0];
+  }
+  return nm->mkNode(kind::PLUS, children);
 }
 
 ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& conflict){
@@ -3670,6 +3678,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
     }
   }
 
+  NodeManager * nm = NodeManager::currentNM();
   while(d_congruenceManager.hasMorePropagations()){
     TNode toProp = d_congruenceManager.getNextPropagation();
 
@@ -3689,7 +3698,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
       Node notNormalized = normalized.negate();
       std::vector<Node> ants(exp.getNode().begin(), exp.getNode().end());
       ants.push_back(notNormalized);
-      Node lp = safeConstructNary(kind::AND, ants);
+      Node lp = nm->mkAnd(ants);
       Debug("arith::prop") << "propagate conflict" <<  lp << endl;
       if (proofsEnabled())
       {

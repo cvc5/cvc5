@@ -223,17 +223,6 @@ inline Node flattenAnd(Node n){
 }
 
 // Returns an node that is the identity of a select few kinds.
-inline Node getIdentity(Kind k)
-{
-  if (k == kind::AND)
-  {
-    return mkBoolNode(true);
-  }
-  Unreachable();
-  return Node::null();  // silence warning
-}
-
-// Returns an node that is the identity of a select few kinds.
 inline Node getIdentityType(const TypeNode& tn, Kind k)
 {
   switch (k)
@@ -246,26 +235,16 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
   }
 }
 
-inline Node safeConstructNary(NodeBuilder& nb)
+inline Node mkAndFromBuilder(NodeBuilder& nb)
 {
+  Assert (nb.getKind()==kind::AND);
   switch (nb.getNumChildren()) {
     case 0:
-      return getIdentity(nb.getKind());
+      return mkBoolNode(true);
     case 1:
       return nb[0];
     default:
       return (Node)nb;
-  }
-}
-
-inline Node safeConstructNary(Kind k, const std::vector<Node>& children) {
-  switch (children.size()) {
-    case 0:
-      return getIdentity(k);
-    case 1:
-      return children[0];
-    default:
-      return NodeManager::currentNM()->mkNode(k, children);
   }
 }
 

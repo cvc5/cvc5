@@ -238,7 +238,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   NodeBuilder reasonBuilder(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
-  Node reason = safeConstructNary(reasonBuilder);
+  Node reason = mkAndFromBuilder(reasonBuilder);
   std::shared_ptr<ProofNode> pf{};
   if (isProofEnabled())
   {
@@ -280,7 +280,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
     pf = d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
   }
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason, pf);
@@ -305,7 +305,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     pf->printDebug(Debug("arith::cong::notzero"));
     Debug("arith::cong::notzero") << std::endl;
   }
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
   if (isProofEnabled())
   {
     if (c->getType() == ConstraintType::Disequality)
@@ -647,7 +647,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   NodeBuilder nb(Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
@@ -667,7 +667,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   NodeBuilder nb(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(nb);
   auto pfUb = ub->externalExplainByAssertions(nb);
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
 
   Node xAsNode = d_avariables.asNode(x);
   NodeManager* nm = NodeManager::currentNM();
