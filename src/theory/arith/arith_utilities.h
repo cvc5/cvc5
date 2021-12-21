@@ -237,10 +237,9 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
 
 inline Node mkAndFromBuilder(NodeBuilder& nb)
 {
-  Assert (nb.getKind()==kind::AND);
+  Assert(nb.getKind() == kind::AND);
   switch (nb.getNumChildren()) {
-    case 0:
-      return mkBoolNode(true);
+    case 0: return mkBoolNode(true);
     case 1:
       return nb[0];
     default:

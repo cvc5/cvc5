@@ -2072,7 +2072,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     // NOTE: real type assumed here
     return nm->mkConstReal(Rational(0));
   }
-  else if (children.size()==1)
+  else if (children.size() == 1)
   {
     return children[0];
   }
@@ -3678,7 +3678,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
     }
   }
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   while(d_congruenceManager.hasMorePropagations()){
     TNode toProp = d_congruenceManager.getNextPropagation();
 
