@@ -959,7 +959,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
     const DeltaRational drv = getDeltaValue(term);
     const Rational& delta = d_partialModel.getDelta();
     const Rational qmodel = drv.substituteDelta( delta );
-    return mkRationalNode( qmodel );
+    return NodeManager::currentNM()->mkConstRealOrInt(term.getType(), qmodel );
   } catch (DeltaRationalException& dr) {
     return Node::null();
   } catch (ModelException& me) {
@@ -1960,7 +1960,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
 
   Assert(k == kind::LEQ || k == kind::GEQ);
 
-  Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
+  NodeManager * nm = NodeManager::currentNM();
+  Node comparison = nm->mkNode(k, sum, nm->mkConstRealOrInt(sum.getType(), rhs));
   Node rewritten = rewrite(comparison);
   if(!(Comparison::isNormalAtom(rewritten))){
     return make_pair(NullConstraint, added);
@@ -2059,15 +2060,6 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
 
   return replayGetConstraint(lhs, k, rhs, ci.getKlass() == BranchCutKlass);
 }
-
-// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv,
-// Kind k){
-//   NodeManager* nm = NodeManager::currentNM();
-//   Node sumLhs = toSumNode(vars, dv.lhs);
-//   Node ineq = nm->mkNode(k, sumLhs, mkRationalNode(dv.rhs) );
-//   Node lit = rewrite(ineq);
-//   return lit;
-// }
 
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   Debug("arith::toSumNode") << "toSumNode() begin" << endl;
@@ -2586,7 +2578,7 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
       }
       Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
-      Node leq = nm->mkNode(kind::LEQ, n, mkRationalNode(fl));
+      Node leq = nm->mkNode(kind::LEQ, n, nm->mkConstRealOrInt(n.getType(), fl));
       Node norm = rewrite(leq);
       return norm;
     }
@@ -2600,11 +2592,10 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
   const DenseMap<Rational>& lhs = ci.getReconstruction().lhs;
   Node sum = toSumNode(d_partialModel, lhs);
   if(!sum.isNull()){
+    NodeManager* nm = NodeManager::currentNM();
     Kind k = ci.getKind();
     Assert(k == kind::LEQ || k == kind::GEQ);
-    Node rhs = mkRationalNode(ci.getReconstruction().rhs);
-
-    NodeManager* nm = NodeManager::currentNM();
+    Node rhs = nm->mkConstRealOrInt(sum.getType(), ci.getReconstruction().rhs);
     Node ineq = nm->mkNode(k, sum, rhs);
     return rewrite(ineq);
   }
@@ -3901,6 +3892,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
+  NodeManager * nm = NodeManager::currentNM();
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -3913,7 +3905,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
 
-        Node qNode = mkRationalNode(qmodel);
+        Node qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
         // Add to the map
         arithModel[term] = qNode;
