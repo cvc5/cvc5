@@ -386,15 +386,20 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == kind::POW2);
   NodeManager* nm = NodeManager::currentNM();
-  // if t is constant, we eliminate pow2 by rewriting
-  // (pow2 t) to (pow 2 t).
   if (t[0].isConst())
   {
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
+    Integer i = t[0].getConst<Rational>().getNumerator();
+    // pow2 of negative numbers is 0
+    if (i < 0)
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstInt(Rational(0)));
+    }
+    // (pow2 t) ---> (pow 2 t) and continue rewriting to eliminate pow
     Node two = nm->mkConstInt(Rational(Integer(2)));
     Node ret = nm->mkNode(kind::POW, two, t[0]);
-    return RewriteResponse(REWRITE_DONE, ret);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
