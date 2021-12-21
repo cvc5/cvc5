@@ -23,6 +23,13 @@
 #include "smt/env_obj.h"
 
 namespace cvc5 {
+
+namespace theory {
+namespace quantifiers{
+class SygusInterpol;  
+}
+}  
+
 namespace smt {
 
 /**
@@ -61,13 +68,13 @@ class InterpolationSolver : protected EnvObj
                    Node& interpol);
 
   /**
-   * Same as above, but without user-provided grammar restrictions. A default
-   * grammar is chosen internally using the sygus grammar constructor utility.
+   * Get next interpolant. This can only be called immediately after a successful
+   * call to getInterpolant or getInterpolantNext.
+   *
+   * Returns true if an interpolant was found, and sets interpol to the interpolant.
    */
-  bool getInterpol(const std::vector<Node>& axioms,
-                   const Node& conj,
-                   Node& interpol);
-
+  bool getInterpolantNext(Node& interpol);
+private:
   /**
    * Check that a solution to an interpolation problem is indeed a solution.
    *
@@ -78,6 +85,9 @@ class InterpolationSolver : protected EnvObj
   void checkInterpol(Node interpol,
                      const std::vector<Node>& easserts,
                      const Node& conj);
+
+  /** The subsolver */
+  std::unique_ptr<quantifiers::SygusInterpol> d_subsolver;
 };
 
 }  // namespace smt

@@ -4461,6 +4461,31 @@ class CVC5_EXPORT Solver
   bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
+   * Get the next interpolant. Can only be called immediately after a successful
+   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned interpolant if
+   * successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol-next)
+   *
+   * Requires to enable incremental mode, and option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * \endverbatim
+   *
+   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
+   *        the current set of assertions and @f$B@f$ is given in the input by
+   *        the last call to getAbduct.
+   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   */
+  bool getInterpolantNext(Term& output) const;
+  
+  /**
    * Get an abduct.
    *
    * SMT-LIB:

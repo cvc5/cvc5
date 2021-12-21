@@ -2069,6 +2069,73 @@ void GetInterpolCommand::toStream(std::ostream& out,
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* class GetInterpolNextCommand */
+/* -------------------------------------------------------------------------- */
+
+GetInterpolNextCommand::GetInterpolNextCommand() : d_resultStatus(false) {}
+
+api::Term GetInterpolNextCommand::getResult() const { return d_result; }
+
+void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    // Get the name of the abduct from the symbol manager
+    d_name = sm->getLastSynthName();
+    d_resultStatus = solver->getInterpolNext(d_result);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetInterpolNextCommand::printResult(std::ostream& out) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out);
+  }
+  else
+  {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetInterpolNextCommand::clone() const
+{
+  GetInterpolNextCommand* c = new GetInterpolNextCommand;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetInterpolNextCommand::getCommandName() const
+{
+  return "get-interpol-next";
+}
+
+void GetInterpolNextCommand::toStream(std::ostream& out,
+                                    int toDepth,
+                                    size_t dag,
+                                    Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetInterpolNext(out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetAbductCommand                                                     */
 /* -------------------------------------------------------------------------- */
