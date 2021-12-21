@@ -396,9 +396,10 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     {
       return RewriteResponse(REWRITE_DONE, nm->mkConstInt(Rational(0)));
     }
-    unsigned long k = i.getUnsignedLong();
-    Node ret = nm->mkConstInt(Rational(Integer(2).pow(k)));
-    return RewriteResponse(REWRITE_DONE, ret);
+    // (pow2 t) ---> (pow 2 t) and continue rewriting to eliminate pow
+    Node two = nm->mkConstInt(Rational(Integer(2)));
+    Node ret = nm->mkNode(kind::POW, two, t[0]);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
