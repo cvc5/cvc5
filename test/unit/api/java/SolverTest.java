@@ -1366,6 +1366,8 @@ class SolverTest
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
     assertTrue(d_solver.getAbduct(conj2, g, output2));
+    // abduct must be true
+    assertEquals(output2, truen);
   }
 
   @Test void getAbduct2() throws CVC5ApiException
