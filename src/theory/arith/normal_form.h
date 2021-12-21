@@ -335,9 +335,6 @@ public:
   size_t getComplexity() const;
 };/* class Variable */
 
-/**
- * Note that this class wraps constant reals only.
- */
 class Constant : public NodeWrapper {
 public:
  Constant(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
