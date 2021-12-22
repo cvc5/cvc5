@@ -339,15 +339,9 @@ bool Integer::isNegativeOne() const
   return mpz_cmp_si(d_value.get_mpz_t(), -1) == 0;
 }
 
-Integer Integer::pow(unsigned long int exp) const
+Integer Integer::pow(uint32_t exp) const
 {
   mpz_class result;
-  if (exp > std::numeric_limits<unsigned int>::max())
-  {
-    throw Exception(
-        "Exponent must be smaller than the maximal unsigned int. For larger "
-        "exponents, use cln.");
-  }
   mpz_pow_ui(result.get_mpz_t(), d_value.get_mpz_t(), exp);
   return Integer(result);
 }
