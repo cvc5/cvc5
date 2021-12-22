@@ -37,12 +37,13 @@ SmtSolver::SmtSolver(Env& env,
                      SolverEngineState& state,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
-    : d_env(env),
+    : EnvObj(env),
       d_state(state),
       d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
-      d_propEngine(nullptr)
+      d_propEngine(nullptr),
+      d_rconsAsserts(env, abs)
 {
 }
 
@@ -237,6 +238,20 @@ void SmtSolver::processAssertions(Assertions& as)
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
     d_propEngine->assertInputFormulas(assertions, ism);
+    
+    if (options().smt.deepRestart)
+    {
+      preprocessing::AssertionPipeline& apr = d_rconsAsserts.getAssertionPipeline();
+      for (const Node& a : assertions)
+      {
+        apr.push_back(a);
+      }
+      preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
+      for (const std::pair<const size_t, Node>& k : ism)
+      {
+        ismr[k.first] = k.second;
+      }
+    }
   }
 
   // clear the current assertions

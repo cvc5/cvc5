@@ -499,3 +499,11 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "checks whether produced solutions to get-abduct are correct"
+
+[[option]]
+  name       = "deepRestart"
+  category   = "regular"
+  long       = "deep-restart"
+  type       = "bool"
+  default    = "false"
+  help       = "use deep restart strategy"
