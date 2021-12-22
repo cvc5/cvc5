@@ -88,12 +88,13 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     // check if at level zero
     if (!d_nonZeroAssert.get())
     {
-      if (d_levelZeroAsserts.find(assertion)==d_levelZeroAsserts.end())
+      if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
       {
         int32_t alevel = d_propEngine->getDecisionLevel(assertion);
-        if (alevel==0)
+        if (alevel == 0)
         {
-          Trace("level-zero-assert") << "Level zero assert: " << assertion << std::endl;
+          Trace("level-zero-assert")
+              << "Level zero assert: " << assertion << std::endl;
           d_levelZeroAsserts.insert(assertion);
         }
         else

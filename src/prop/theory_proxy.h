@@ -171,7 +171,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
-  
+
   /** Set of assertions at level 0 */
   NodeSet d_levelZeroAsserts;
 
