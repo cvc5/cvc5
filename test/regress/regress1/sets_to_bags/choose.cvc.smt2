@@ -5,6 +5,6 @@
 (declare-fun A () (Bag Int))
 (declare-fun a () Int)
 (assert (not (= A (as bag.empty (Bag Int)))))
-(assert (= (set.choose A) 10))
-(assert (= (set.choose A) a))
+(assert (= (bag.choose A) 10))
+(assert (= (bag.choose A) a))
 (check-sat)

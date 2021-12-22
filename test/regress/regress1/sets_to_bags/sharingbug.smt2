@@ -2,7 +2,7 @@
 (set-info :smt-lib-version 2.6)
 (set-info :category "random")
 (set-info :status sat)
-(set-logic QF_UFLIAFS)
+(set-logic ALL)
 (define-sort Element () Int)
 (declare-fun f0 ( Int Int Int) Int)
 (declare-fun f1 ( (Bag Element)) (Bag Element))

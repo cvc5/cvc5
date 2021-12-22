@@ -1,4 +1,4 @@
-(set-logic QF_UFLIAFS)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-sort E 0)
 (declare-fun A () (Bag E))
