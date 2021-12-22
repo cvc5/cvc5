@@ -302,6 +302,8 @@ class PropEngine : protected EnvObj
   /** Return the prop engine proof for assumption-based unsat cores. */
   std::shared_ptr<ProofNode> getRefutation();
 
+  /** Get the zero-level assertions */
+  const context::CDHashSet<Node>& getZeroLevelLiterals() const;
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();

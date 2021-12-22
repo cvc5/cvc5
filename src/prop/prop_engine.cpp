@@ -691,5 +691,10 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   return cdp.getProofFor(fnode);
 }
 
+const context::CDHashSet<Node>& PropEngine::getZeroLevelLiterals() const
+{
+  return d_theoryProxy->getZeroLevelLiterals();
+}
+
 }  // namespace prop
 }  // namespace cvc5

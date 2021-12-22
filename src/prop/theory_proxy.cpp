@@ -257,5 +257,10 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
+const context::CDHashSet<Node>& TheoryProxy::getZeroLevelLiterals() const
+{
+  return d_levelZeroAsserts;
+}
+
 }  // namespace prop
 }  // namespace cvc5

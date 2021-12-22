@@ -138,6 +138,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Preregister term */
   void preRegister(Node n) override;
 
+  /** Get the zero-level assertions */
+  const context::CDHashSet<Node>& getZeroLevelLiterals() const;
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
