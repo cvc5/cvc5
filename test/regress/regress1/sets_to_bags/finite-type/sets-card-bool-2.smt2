@@ -1,0 +1,10 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :produce-models true)
+(set-option :sets-ext true)
+(declare-fun A () (Bag Bool))
+(declare-fun universe () (Bag Bool))
+(assert (= (bag.card A) 2))
+(assert (= universe (as set.universe (Bag Bool))))
+(check-sat)
+

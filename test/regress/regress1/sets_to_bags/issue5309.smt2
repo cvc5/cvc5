@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-const zero Int)
+(declare-fun A () (Bag Int))
+(assert (exists ((x Int)) (= A (set.singleton x))))
+(assert (bag.count (- zero) A))
+(check-sat)

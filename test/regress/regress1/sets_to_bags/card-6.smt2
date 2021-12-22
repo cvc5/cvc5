@@ -1,0 +1,17 @@
+(set-logic QF_UFLIAFS)
+(set-info :status unsat)
+(declare-sort E 0)
+(declare-fun A () (Bag E))
+(declare-fun B () (Bag E))
+(declare-fun C () (Bag E))
+(assert
+  (and
+    (= (as bag.empty (Bag E))
+       (bag.inter_min A B))
+    (bag.subbag C (bag.union_disjoint A B))
+    (>= (bag.card C) 5)
+    (<= (bag.card A) 2)
+    (<= (bag.card B) 2)
+  )
+)
+(check-sat)
