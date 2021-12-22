@@ -20,6 +20,7 @@
 
 #include <unordered_set>
 
+#include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
@@ -50,6 +51,8 @@ class SkolemDefManager;
  */
 class TheoryProxy : protected EnvObj, public Registrar
 {
+  using NodeSet = context::CDHashSet<Node>;
+
  public:
   TheoryProxy(Env& env,
               PropEngine* propEngine,
@@ -168,6 +171,12 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
+  
+  /** Set of assertions at level 0 */
+  NodeSet d_levelZeroAsserts;
+
+  /** Whether we have seen an assertion level > 0 */
+  context::CDO<bool> d_nonZeroAssert;
 }; /* class TheoryProxy */
 
 }  // namespace prop

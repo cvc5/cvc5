@@ -46,7 +46,9 @@ TheoryProxy::TheoryProxy(Env& env,
       d_theoryEngine(theoryEngine),
       d_queue(env.getContext()),
       d_tpp(env, *theoryEngine),
-      d_skdm(skdm)
+      d_skdm(skdm),
+      d_levelZeroAsserts(userContext()),
+      d_nonZeroAssert(context(), false)
 {
 }
 
@@ -83,6 +85,23 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
+    // check if at level zero
+    if (!d_nonZeroAssert.get())
+    {
+      if (d_levelZeroAsserts.find(assertion)==d_levelZeroAsserts.end())
+      {
+        int32_t alevel = d_propEngine->getDecisionLevel(assertion);
+        if (alevel==0)
+        {
+          Trace("level-zero-assert") << "Level zero assert: " << assertion << std::endl;
+          d_levelZeroAsserts.insert(assertion);
+        }
+        else
+        {
+          d_nonZeroAssert = true;
+        }
+      }
+    }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
     if (d_dmNeedsActiveDefs)
