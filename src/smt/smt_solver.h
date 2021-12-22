@@ -21,11 +21,11 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/assertions.h"
+#include "smt/env_obj.h"
 #include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
-#include "smt/assertions.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 

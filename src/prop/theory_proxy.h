@@ -140,6 +140,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get the zero-level assertions */
   const context::CDHashSet<Node>& getZeroLevelLiterals() const;
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;

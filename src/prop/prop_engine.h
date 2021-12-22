@@ -304,6 +304,7 @@ class PropEngine : protected EnvObj
 
   /** Get the zero-level assertions */
   const context::CDHashSet<Node>& getZeroLevelLiterals() const;
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();

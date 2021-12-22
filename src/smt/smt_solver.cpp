@@ -238,10 +238,11 @@ void SmtSolver::processAssertions(Assertions& as)
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
     d_propEngine->assertInputFormulas(assertions, ism);
-    
+
     if (options().smt.deepRestart)
     {
-      preprocessing::AssertionPipeline& apr = d_rconsAsserts.getAssertionPipeline();
+      preprocessing::AssertionPipeline& apr =
+          d_rconsAsserts.getAssertionPipeline();
       for (const Node& a : assertions)
       {
         apr.push_back(a);
