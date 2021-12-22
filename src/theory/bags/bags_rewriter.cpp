@@ -177,13 +177,12 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
     // (bag.count x bag.empty) = 0
     return BagsRewriteResponse(d_zero, Rewrite::COUNT_EMPTY);
   }
-  if (n[1].getKind() == BAG_MAKE && n[0] == n[1][0])
+  if (n[1].getKind() == BAG_MAKE && n[0] == n[1][0] && n[1][1].isConst()
+      && n[1][1].getConst<Rational>() > Rational(0))
   {
-    // (bag.count x (bag x c)) = (ite (>= c 1) c 0)
+    // (bag.count x (bag x c)) = c, c > 0 is a constant
     Node c = n[1][1];
-    Node geq = d_nm->mkNode(GEQ, c, d_one);
-    Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
-    return BagsRewriteResponse(ite, Rewrite::COUNT_BAG_MAKE);
+    return BagsRewriteResponse(c, Rewrite::COUNT_BAG_MAKE);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }

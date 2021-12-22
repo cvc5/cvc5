@@ -821,7 +821,7 @@ class CVC5_EXPORT SygusInvConstraintCommand : public Command
 class CVC5_EXPORT CheckSynthCommand : public Command
 {
  public:
-  CheckSynthCommand(){};
+  CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
   /** returns the result of the check-synth call */
   api::Result getResult() const;
   /** prints the result of the check-synth-call */
@@ -846,6 +846,8 @@ class CVC5_EXPORT CheckSynthCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 
  protected:
+  /** Whether this is a check-synth-next call */
+  bool d_isNext;
   /** result of the check-synth call */
   api::Result d_result;
   /** string stream that stores the output of the solution */
@@ -1100,6 +1102,34 @@ class CVC5_EXPORT GetAbductCommand : public Command
   api::Term d_conj;
   /** The (optional) grammar of the abduction query */
   api::Grammar* d_sygus_grammar;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  api::Term d_result;
+}; /* class GetAbductCommand */
+
+/** The command (get-abduct-next) */
+class CVC5_EXPORT GetAbductNextCommand : public Command
+{
+ public:
+  GetAbductNextCommand();
+  /**
+   * Get the result of the query, which is the solution to the abduction query.
+   */
+  api::Term getResult() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out) const override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** The name of the abduction predicate */
+  std::string d_name;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */

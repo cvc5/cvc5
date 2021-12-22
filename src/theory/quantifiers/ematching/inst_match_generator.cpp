@@ -364,8 +364,8 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     {
       if (pat.getKind() == GT)
       {
-        t_match =
-            nm->mkNode(MINUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
+        t_match = nm->mkNode(
+            MINUS, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }else{
         t_match = t;
       }
@@ -374,20 +374,21 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     {
       if (pat.getKind() == EQUAL)
       {
-        if (t.getType().isBoolean())
+        TypeNode tn = t.getType();
+        if (tn.isBoolean())
         {
           t_match = nm->mkConst(!d_qstate.areEqual(nm->mkConst(true), t));
         }
         else
         {
-          Assert(t.getType().isRealOrInt());
-          t_match =
-              nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
+          Assert(tn.isRealOrInt());
+          t_match = nm->mkNode(PLUS, t, nm->mkConstRealOrInt(tn, Rational(1)));
         }
       }
       else if (pat.getKind() == GEQ)
       {
-        t_match = nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
+        t_match =
+            nm->mkNode(PLUS, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }
       else if (pat.getKind() == GT)
       {

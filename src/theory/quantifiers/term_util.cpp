@@ -123,22 +123,6 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
   return getRemoveQuantifiers2( n, visited );
 }
 
-//quantified simplify
-Node TermUtil::getQuantSimplify( Node n ) {
-  std::unordered_set<Node> fvs;
-  expr::getFreeVariables(n, fvs);
-  if (fvs.empty())
-  {
-    return Rewriter::rewrite( n );
-  }
-  std::vector<Node> bvs;
-  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
-  NodeManager* nm = NodeManager::currentNM();
-  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
-  q = Rewriter::rewrite(q);
-  return getRemoveQuantifiers(q);
-}
-
 void TermUtil::computeInstConstContains(Node n, std::vector<Node>& ics)
 {
   computeVarContainsInternal(n, INST_CONSTANT, ics);
@@ -377,22 +361,22 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
                                  int32_t offset,
                                  int32_t& status)
 {
+  Assert(val.isConst() && val.getType() == tn);
   Node val_o;
-  Node offset_val = mkTypeValue(tn, offset);
   status = -1;
-  if (!offset_val.isNull())
+  if (tn.isRealOrInt())
   {
-    if (tn.isRealOrInt())
-    {
-      val_o = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
-      status = 0;
-    }
-    else if (tn.isBitVector())
-    {
-      val_o = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(BITVECTOR_ADD, val, offset_val));
-    }
+    Rational vval = val.getConst<Rational>();
+    Rational oval(offset);
+    status = 0;
+    return NodeManager::currentNM()->mkConstRealOrInt(tn, vval + oval);
+  }
+  else if (tn.isBitVector())
+  {
+    BitVector vval = val.getConst<BitVector>();
+    uint32_t uv = static_cast<uint32_t>(offset);
+    BitVector oval(tn.getConst<BitVectorSize>(), uv);
+    return NodeManager::currentNM()->mkConst(vval + oval);
   }
   return val_o;
 }

@@ -2085,13 +2085,15 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     }
   }
 
-  if (s.getKind() == STRING_REV)
+  if (s.getKind() == STRING_REV && d_stringsEntail.checkLengthOne(x))
   {
+    // str.update(str.rev(s), n, t) --->
+    //   str.rev(str.update(s, len(s) - (n + 1), t))
     NodeManager* nm = NodeManager::currentNM();
     Node idx = nm->mkNode(MINUS,
                           nm->mkNode(STRING_LENGTH, s),
-                          nm->mkNode(PLUS, i, nm->mkConst(Rational(1))));
-    Node ret = nm->mkNode(STRING_REV, nm->mkNode(STRING_UPDATE, s, idx, x));
+                          nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
+    Node ret = nm->mkNode(STRING_REV, nm->mkNode(STRING_UPDATE, s[0], idx, x));
     return returnRewrite(node, ret, Rewrite::UPD_REV);
   }
 

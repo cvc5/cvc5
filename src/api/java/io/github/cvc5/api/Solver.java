@@ -254,6 +254,8 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
+   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @param unresolvedSorts the set of unresolved sorts
@@ -417,6 +419,39 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long mkUninterpretedSort(long pointer, String symbol);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUnresolvedSort(pointer, symbol, arity);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUnresolvedSort(long pointer, String symbol, int arity);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
 
   /**
    * Create a sort constructor sort.
@@ -2224,6 +2259,26 @@ public class Solver implements IPointer, AutoCloseable
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
 
   /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   * SMT-LIB:
+   * {@code
+   * ( get-abduct-next )
+   * }
+   * Requires enabling incremental mode and option 'produce-abducts'
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj in the last call to getAbduct.
+   * @return true if it gets C successfully, false otherwise
+   */
+  public boolean getAbductNext(Term output) {
+    return getAbductNext(pointer, output.getPointer());
+  }
+
+  private native boolean getAbductNext(long pointer, long outputPointer);
+
+  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    * SMT-LIB:
@@ -2559,7 +2614,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   public Result checkSynth()
   {
@@ -2568,6 +2624,26 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long checkSynth(long pointer);
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   * SyGuS v2:
+   * {@code
+   *   ( check-synth-next )
+   * }
+   * @return the result of the check, which is UNSAT if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  public Result checkSynthNext()
+  {
+    long resultPointer = checkSynthNext(pointer);
+    return new Result(this, resultPointer);
+  }
+
+  private native long checkSynthNext(long pointer);
 
   /**
    * Get the synthesis solution of the given term. This method should be called

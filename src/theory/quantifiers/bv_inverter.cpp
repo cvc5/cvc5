@@ -31,6 +31,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+BvInverter::BvInverter(Rewriter* r) : d_rewriter(r) {}
+
 /*---------------------------------------------------------------------------*/
 
 Node BvInverter::getSolveVariable(TypeNode tn)
@@ -53,12 +55,16 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   TNode solve_var = getSolveVariable(tn);
 
   // condition should be rewritten
-  Node new_cond = Rewriter::rewrite(cond);
-  if (new_cond != cond)
+  Node new_cond = cond;
+  if (d_rewriter != nullptr)
   {
-    Trace("cegqi-bv-skvinv-debug")
-        << "Condition " << cond << " was rewritten to " << new_cond
-        << std::endl;
+    new_cond = d_rewriter->rewrite(cond);
+    if (new_cond != cond)
+    {
+      Trace("cegqi-bv-skvinv-debug")
+          << "Condition " << cond << " was rewritten to " << new_cond
+          << std::endl;
+    }
   }
   // optimization : if condition is ( x = solve_var ) should just return
   // solve_var and not introduce a Skolem this can happen when we ask for

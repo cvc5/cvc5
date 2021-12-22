@@ -39,7 +39,7 @@ namespace quantifiers {
 CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
     : EnvObj(env),
       d_isSolved(false),
-      d_sip(new SingleInvocationPartition),
+      d_sip(new SingleInvocationPartition(env)),
       d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_single_invocation(false),
       d_treg(tr)
@@ -508,7 +508,7 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter qrew(options());
+    QuantifiersRewriter qrew(d_env.getRewriter(), options());
     qrew.getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())

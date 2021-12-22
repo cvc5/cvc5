@@ -24,8 +24,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumValGeneratorBasic::EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn)
-    : d_tds(tds), d_te(tn)
+EnumValGeneratorBasic::EnumValGeneratorBasic(Env& env,
+                                             TermDbSygus* tds,
+                                             TypeNode tn)
+    : EnumValGenerator(env), d_tds(tds), d_te(tn)
 {
 }
 
@@ -38,10 +40,10 @@ bool EnumValGeneratorBasic::increment()
     return false;
   }
   d_currTerm = *d_te;
-  if (options::sygusSymBreakDynamic())
+  if (options().datatypes.sygusSymBreakDynamic)
   {
     Node nextb = d_tds->sygusToBuiltin(d_currTerm);
-    nextb = Rewriter::callExtendedRewrite(nextb);
+    nextb = extendedRewrite(nextb);
     if (d_cache.find(nextb) == d_cache.end())
     {
       d_cache.insert(nextb);

@@ -34,7 +34,7 @@ void RConsTypeInfo::initialize(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
-  d_enumerator.reset(new SygusEnumerator(tds, nullptr, &s, true));
+  d_enumerator = std::make_unique<SygusEnumerator>(env, tds, nullptr, &s, true);
   d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(env, true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set

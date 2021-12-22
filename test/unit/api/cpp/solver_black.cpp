@@ -28,6 +28,50 @@ class TestApiBlackSolver : public TestApi
 {
 };
 
+TEST_F(TestApiBlackSolver, pow2Large1)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/371
+  Sort s1 = d_solver.getStringSort();
+  Sort s2 = d_solver.getIntegerSort();
+  Sort s4 = d_solver.mkArraySort(s1, s2);
+  Sort s7 = d_solver.mkArraySort(s2, s1);
+  Term t10 = d_solver.mkInteger("68038927088685865242724985643");
+  Term t74 = d_solver.mkInteger("8416288636405");
+  std::vector<DatatypeConstructorDecl> ctors;
+  ctors.push_back(d_solver.mkDatatypeConstructorDecl("_x109"));
+  ctors.back().addSelector("_x108", s7);
+  ctors.push_back(d_solver.mkDatatypeConstructorDecl("_x113"));
+  ctors.back().addSelector("_x110", s4);
+  ctors.back().addSelector("_x111", s2);
+  ctors.back().addSelector("_x112", s7);
+  Sort s11 = d_solver.declareDatatype("_x107", ctors);
+  Term t82 = d_solver.mkConst(s11, "_x114");
+  Term t180 = d_solver.mkTerm(POW2, t10);
+  Term t258 = d_solver.mkTerm(GEQ, t74, t180);
+  d_solver.assertFormula(t258);
+  ASSERT_THROW(d_solver.simplify(t82), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, pow2Large2)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/333
+  Term t1 = d_solver.mkBitVector(63, ~(((uint64_t)1) << 62));
+  Term t2 = d_solver.mkTerm(Kind::BITVECTOR_TO_NAT, t1);
+  Term t3 = d_solver.mkTerm(Kind::POW2, t2);
+  Term t4 = d_solver.mkTerm(Kind::DISTINCT, t3, t2);
+  ASSERT_THROW(d_solver.checkSatAssuming({t4}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, pow2Large3)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/339
+  Sort s4 = d_solver.getIntegerSort();
+  Term t203 = d_solver.mkInteger("6135470354240554220207");
+  Term t262 = d_solver.mkTerm(POW2, t203);
+  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, 49), t262);
+  ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, recoverableException)
 {
   d_solver.setOption("produce-models", "true");
@@ -153,7 +197,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(throwsDecls), CVC5ApiException);
 
   /* with unresolved sorts */
-  Sort unresList = d_solver.mkUninterpretedSort("ulist");
+  Sort unresList = d_solver.mkUnresolvedSort("ulist");
   std::set<Sort> unresSorts = {unresList};
   DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
   DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
@@ -166,6 +210,29 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls, unresSorts));
 
   ASSERT_THROW(slv.mkDatatypeSorts(udecls, unresSorts), CVC5ApiException);
+
+  /* mutually recursive with unresolved parameterized sorts */
+  Sort p0 = d_solver.mkParamSort("p0");
+  Sort p1 = d_solver.mkParamSort("p1");
+  Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
+  Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+  DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
+  DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+  DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
+  ctordecl0.addSelector("s0", u1.instantiate({p0}));
+  DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
+  ctordecl1.addSelector("s1", u0.instantiate({p1}));
+  dtdecl0.addConstructor(ctordecl0);
+  dtdecl1.addConstructor(ctordecl1);
+  std::vector<Sort> dt_sorts =
+      d_solver.mkDatatypeSorts({dtdecl0, dtdecl1}, {u0, u1});
+  Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
+  Term t1 = d_solver.mkConst(isort1, "t");
+  Term t0 = d_solver.mkTerm(
+      APPLY_SELECTOR,
+      t1.getSort().getDatatype().getSelector("s1").getSelectorTerm(),
+      t1);
+  ASSERT_EQ(dt_sorts[0].instantiate({d_solver.getBooleanSort()}), t0.getSort());
 
   /* Note: More tests are in datatype_api_black. */
 }
@@ -284,6 +351,14 @@ TEST_F(TestApiBlackSolver, mkUninterpretedSort)
 {
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort("u"));
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort(""));
+}
+
+TEST_F(TestApiBlackSolver, mkUnresolvedSort)
+{
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u"));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(""));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
 }
 
 TEST_F(TestApiBlackSolver, mkSortConstructorSort)
@@ -1318,6 +1393,30 @@ TEST_F(TestApiBlackSolver, getAbduct2)
   Term output;
   // Fails due to option not set
   ASSERT_THROW(d_solver.getAbduct(conj, output), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getAbductNext)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-abducts", "true");
+  d_solver.setOption("incremental", "true");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+
+  // Assumptions for abduction: x > 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+  // Conjecture for abduction: y > 0
+  Term conj = d_solver.mkTerm(GT, y, zero);
+  Term output;
+  // Call the abduction api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  Term output2;
+  ASSERT_TRUE(d_solver.getAbductNext(output2));
+  // should produce a different output
+  ASSERT_TRUE(output != output2);
 }
 
 TEST_F(TestApiBlackSolver, getInterpolant)
@@ -2558,6 +2657,37 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, checkSynthNext)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  d_solver.checkSynth();
+  ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
+  d_solver.checkSynthNext();
+  ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
+}
+
+TEST_F(TestApiBlackSolver, checkSynthNext2)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "false");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  d_solver.checkSynth();
+  ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, checkSynthNext3)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Sort> sorts = {d_solver.getBooleanSort(),
@@ -2775,6 +2905,40 @@ TEST_F(TestApiBlackSolver, proj_issue381)
                               t26,
                               t5);
   ASSERT_NO_THROW(d_solver.simplify(t187));
+}
+
+
+TEST_F(TestApiBlackSolver, proj_issue382)
+{
+  Sort s1 = d_solver.getBooleanSort();
+  Sort psort = d_solver.mkParamSort("_x1");
+  DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x20");
+  ctor.addSelector("_x19", psort);
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", psort);
+  dtdecl.addConstructor(ctor);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s2.instantiate({s1});
+  Term t13 = d_solver.mkVar(s6, "_x58");
+  Term t18 = d_solver.mkConst(s6, "_x63");
+  Term t52 = d_solver.mkVar(s6, "_x70");
+  Term t53 = d_solver.mkTerm(
+      MATCH_BIND_CASE, d_solver.mkTerm(VARIABLE_LIST, t52), t52, t18);
+  Term t73 = d_solver.mkVar(s1, "_x78");
+  Term t81 =
+      d_solver.mkTerm(MATCH_BIND_CASE,
+                      d_solver.mkTerm(VARIABLE_LIST, t73),
+                      d_solver.mkTerm(APPLY_CONSTRUCTOR,
+                                      s6.getDatatype()
+                                          .getConstructor("_x20")
+                                          .getInstantiatedConstructorTerm(s6),
+                                      t73),
+                      t18);
+  Term t82 = d_solver.mkTerm(MATCH, {t13, t53, t53, t53, t81});
+  Term t325 = d_solver.mkTerm(
+      APPLY_SELECTOR,
+      t82.getSort().getDatatype().getSelector("_x19").getSelectorTerm(),
+      t82);
+  ASSERT_NO_THROW(d_solver.simplify(t325));
 }
 
 TEST_F(TestApiBlackSolver, proj_issue383)

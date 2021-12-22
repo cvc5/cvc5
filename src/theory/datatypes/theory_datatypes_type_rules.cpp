@@ -398,67 +398,64 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
   for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
   {
     Node nc = n[i];
-    if (check)
+    Kind nck = nc.getKind();
+    std::unordered_set<Node> bvs;
+    if (nck == kind::MATCH_BIND_CASE)
     {
-      Kind nck = nc.getKind();
-      std::unordered_set<Node> bvs;
-      if (nck == kind::MATCH_BIND_CASE)
+      for (const Node& v : nc[0])
       {
-        for (const Node& v : nc[0])
+        Assert(v.getKind() == kind::BOUND_VARIABLE);
+        bvs.insert(v);
+      }
+    }
+    else if (nck != kind::MATCH_CASE)
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expected a match case in match expression");
+    }
+    // get the pattern type
+    uint32_t pindex = nck == kind::MATCH_CASE ? 0 : 1;
+    TypeNode patType = nc[pindex].getType();
+    // should be caught in the above call
+    if (!patType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting datatype pattern in match");
+    }
+    Kind ncpk = nc[pindex].getKind();
+    if (ncpk == kind::APPLY_CONSTRUCTOR)
+    {
+      for (const Node& arg : nc[pindex])
+      {
+        if (bvs.find(arg) == bvs.end())
         {
-          Assert(v.getKind() == kind::BOUND_VARIABLE);
-          bvs.insert(v);
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "expecting distinct bound variable as argument to "
+              "constructor in pattern of match");
         }
+        bvs.erase(arg);
       }
-      else if (nck != kind::MATCH_CASE)
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expected a match case in match expression");
-      }
-      // get the pattern type
-      unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
-      TypeNode patType = nc[pindex].getType();
-      // should be caught in the above call
-      if (!patType.isDatatype())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expecting datatype pattern in match");
-      }
-      Kind ncpk = nc[pindex].getKind();
-      if (ncpk == kind::APPLY_CONSTRUCTOR)
-      {
-        for (const Node& arg : nc[pindex])
-        {
-          if (bvs.find(arg) == bvs.end())
-          {
-            throw TypeCheckingExceptionPrivate(
-                n,
-                "expecting distinct bound variable as argument to "
-                "constructor in pattern of match");
-          }
-          bvs.erase(arg);
-        }
-        unsigned ci = utils::indexOf(nc[pindex].getOperator());
-        patIndices.insert(ci);
-      }
-      else if (ncpk == kind::BOUND_VARIABLE)
-      {
-        patHasVariable = true;
-      }
-      else
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "unexpected kind of term in pattern in match");
-      }
-      const DType& pdt = patType.getDType();
-      // compare datatypes instead of the types to catch parametric case,
-      // where the pattern has parametric type.
-      if (hdt.getTypeNode() != pdt.getTypeNode())
-      {
-        std::stringstream ss;
-        ss << "pattern of a match case does not match the head type in match";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
+      size_t ci = utils::indexOf(nc[pindex].getOperator());
+      patIndices.insert(ci);
+    }
+    else if (ncpk == kind::BOUND_VARIABLE)
+    {
+      patHasVariable = true;
+    }
+    else
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "unexpected kind of term in pattern in match");
+    }
+    const DType& pdt = patType.getDType();
+    // compare datatypes instead of the types to catch parametric case,
+    // where the pattern has parametric type.
+    if (hdt.getTypeNode() != pdt.getTypeNode())
+    {
+      std::stringstream ss;
+      ss << "pattern of a match case does not match the head type in match";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     TypeNode currType = nc.getType(check);
     if (i == 1)
@@ -475,13 +472,11 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
       }
     }
   }
-  if (check)
+  // it is mandatory to check this here to ensure the match is exhaustive
+  if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
   {
-    if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "cases for match term are not exhaustive");
-    }
+    throw TypeCheckingExceptionPrivate(
+        n, "cases for match term are not exhaustive");
   }
   return retType;
 }

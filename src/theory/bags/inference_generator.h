@@ -49,6 +49,15 @@ class InferenceGenerator
 
   /**
    * @param n is (bag x c) of type (Bag E)
+   * @return an inference that represents the following lemma:
+   * (or
+   *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
+   *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
+   */
+  InferInfo bagMake(Node n);
+
+  /**
+   * @param n is (bag x c) of type (Bag E)
    * @param e is a node of type E
    * @return an inference that represents the following lemma:
    * (ite (and (= e x) (>= c 1))

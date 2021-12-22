@@ -117,6 +117,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
+    TypeNode tn = current.getType();
+    if (tn.isReal() && !tn.isInteger())
+    {
+      throw TypeCheckingExceptionPrivate(
+          current, string("Cannot translate to BV: ") + current.toString());
+    }
     if (current.getNumChildren() > 0)
     {
       // Not a leaf

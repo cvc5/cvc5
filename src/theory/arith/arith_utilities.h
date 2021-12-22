@@ -332,6 +332,12 @@ Rational greatestIntLessThan(const Rational&);
 /** Negates a node in arithmetic proof normal form. */
 Node negateProofLiteral(TNode n);
 
+/**
+ * Return the result of multiplying constant integer or real nodes c1 and c2.
+ * The returned type is real if either have type real.
+ */
+Node multConstants(const Node& c1, const Node& c2);
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5

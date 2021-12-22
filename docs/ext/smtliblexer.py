@@ -16,16 +16,18 @@ class SmtLibLexer(RegexLexer):
     name = 'smtlib'
 
     COMMANDS = [
-        'assert', 'check-sat', 'check-sat-assuming', 'declare-const',
-        'declare-datatype', 'declare-datatypes', 'declare-codatatypes',
-        'declare-fun', 'declare-sort', 'define-fun', 'define-fun-rec',
-        'define-funs-rec', 'define-sort', 'echo', 'exit', 'get-assertions',
-        'get-assignment', 'get-info', 'get-model', 'get-option', 'get-proof',
+        'assert', 'block-model', 'block-model-values', 'check-sat',
+        'check-sat-assuming', 'declare-const', 'declare-datatype',
+        'declare-datatypes', 'declare-codatatypes', 'declare-fun',
+        'declare-sort', 'define-fun', 'define-fun-rec', 'define-funs-rec',
+        'define-sort', 'echo', 'exit', 'get-abduct', 'get-assertions',
+        'get-assignment', 'get-info', 'get-interpol', 'get-model',
+        'get-option', 'get-proof', 'get-qe', 'get-qe-disjunct',
         'get-unsat-assumptions', 'get-unsat-core', 'get-value', 'pop', 'push',
         'reset', 'reset-assertions', 'set-info', 'set-logic', 'set-option',
         # SyGuS v2
-        'declare-var', 'constraint', 'inv-constraint', 'synth-fun',
-        'check-synth', 'synth-inv', 'declare-pool',
+        'assume', 'check-synth', 'constraint', 'declare-var', 'inv-constraint',
+        'synth-fun', 'synth-inv', 'declare-pool',
     ]
     SORTS = [
         'Array', 'BitVec', 'Bool', 'FloatingPoint', 'Float[0-9]+', 'Int',

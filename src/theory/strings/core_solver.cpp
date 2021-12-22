@@ -102,27 +102,6 @@ void CoreSolver::debugPrintFlatForms( const char * tc ){
   Trace( tc ) << std::endl;
 }
 
-struct sortConstLength {
-  std::map< Node, unsigned > d_const_length;
-  bool operator() (Node i, Node j) {
-    std::map< Node, unsigned >::iterator it_i = d_const_length.find( i );
-    std::map< Node, unsigned >::iterator it_j = d_const_length.find( j );
-    if( it_i==d_const_length.end() ){
-      if( it_j==d_const_length.end() ){
-        return i<j;
-      }else{
-        return false;
-      }
-    }else{
-      if( it_j==d_const_length.end() ){
-        return true;
-      }else{
-        return it_i->second<it_j->second;
-      }
-    }
-  }
-};
-
 void CoreSolver::checkCycles()
 {
   // first check for cycles, while building ordering of equivalence classes
@@ -1986,6 +1965,15 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
 void CoreSolver::processDeq(Node ni, Node nj)
 {
+  // If using the sequence update solver, we always apply extensionality.
+  // This is required for model soundness currently, although we could
+  // investigate determining cases where the disequality is already
+  // satisfied (for optimization).
+  if (options().strings.seqArray != options::SeqArrayMode::NONE)
+  {
+    processDeqExtensionality(ni, nj);
+    return;
+  }
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);

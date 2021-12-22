@@ -152,6 +152,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   else if (kind == MATCH)
   {
     Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
+    // ensure we've type checked
+    TypeNode tin = in.getType();
     Node h = in[0];
     std::vector<Node> cases;
     std::vector<Node> rets;
@@ -228,8 +230,9 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::reverse(cases.begin(), cases.end());
     std::reverse(rets.begin(), rets.end());
     Node ret = rets[0];
-    AlwaysAssert(cases[0].isConst() || cases.size() == dt.getNumConstructors());
-    for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
+    // notice that due to our type checker, either there is a variable pattern
+    // or all constructors are present in the match.
+    for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
     {
       ret = nm->mkNode(ITE, cases[i], rets[i], ret);
     }

@@ -43,13 +43,15 @@ PfManager::PfManager(Env& env)
           options().proof.proofPedantic)),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
-      d_pppg(new PreprocessProofGenerator(
-          d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
+      d_pppg(nullptr),
       d_pfpp(nullptr),
       d_finalProof(nullptr)
 {
   // enable proof support in the environment/rewriter
   d_env.setProofNodeManager(d_pnm.get());
+  // now construct preprocess proof generator
+  d_pppg = std::make_unique<PreprocessProofGenerator>(
+      env, env.getUserContext(), "smt::PreprocessProofGenerator");
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
@@ -67,11 +69,11 @@ PfManager::PfManager(Env& env)
   // be inferred from A, it was updated). This shape is problematic for
   // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
-  d_pfpp.reset(new ProofPostproccess(
+  d_pfpp = std::make_unique<ProofPostproccess>(
       env,
       d_pppg.get(),
       nullptr,
-      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE));
+      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
