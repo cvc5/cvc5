@@ -1658,7 +1658,7 @@ bool SolverEngine::getInterpolantNext(Node& interpol)
         "call to get-interpol(-next).");
   }
   bool success = d_interpolSolver->getInterpolantNext(interpol);
-  // notify the state of whether the get-abduct-next call was successful
+  // notify the state of whether the get-interpolant-next call was successful
   d_state->notifyGetInterpol(success);
   return success;
 }

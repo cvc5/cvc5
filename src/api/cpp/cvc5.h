@@ -4465,7 +4465,7 @@ class CVC5_EXPORT Solver
   /**
    * Get the next interpolant. Can only be called immediately after a successful
    * call to get-interpol or get-interpol-next. Is guaranteed to produce a
-   * syntactically different abduct wrt the last returned interpolant if
+   * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
    * SMT-LIB:

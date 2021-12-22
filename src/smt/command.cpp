@@ -2084,7 +2084,7 @@ void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    // Get the name of the abduct from the symbol manager
+    // Get the name of the interpolant from the symbol manager
     d_name = sm->getLastSynthName();
     d_resultStatus = solver->getInterpolantNext(d_result);
     d_commandStatus = CommandSuccess::instance();
