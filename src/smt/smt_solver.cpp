@@ -303,7 +303,7 @@ Assertions& SmtSolver::computeDeepRestartAssertions()
   size_t learnedCount = 0;
   for (const Node& lit : zll)
   {
-    TNode atom = lit.getKind() == NOT ? lit[0] : lit;
+    TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
     if (ppLits.find(atom) != ppLits.end())
     {
       Trace("deep-restart-debug")
