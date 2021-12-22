@@ -1816,8 +1816,8 @@ void SolverEngine::deepRestart()
   d_state->notifyResetAssertions();
   // push the state to maintain global context around everything
   d_state->setup();
-  
-  // we start with the deep restart assertions 
+
+  // we start with the deep restart assertions
   d_smtSolver->computeDeepRestartAssertions(*d_asserts.get());
 
   // reset SmtSolver, which will construct a new prop engine

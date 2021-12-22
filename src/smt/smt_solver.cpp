@@ -278,7 +278,7 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
 {
   Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
   Assert(options().smt.deepRestart);
-  
+
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly
   // Also, compute the set of literals in the preprocessed assertions
