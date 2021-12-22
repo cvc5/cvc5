@@ -2183,7 +2183,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-interpol <conj> )
    * }
-   * Requires `produce-interpols` to be set to a mode different from `none`.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -2202,7 +2202,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-interpol <conj> <g> )
    * }
-   * Requires `produce-interpols` to be set to a mode different from `none`.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
@@ -2230,14 +2230,13 @@ public class Solver implements IPointer, AutoCloseable
    *
    *     (get-interpol-next)
    *
-   * Requires to enable incremental mode, and option `produce-interpols` to be
-   * set to a mode different from `none`.
+   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * set to a mode different from 'none'.
    * \endverbatim
    *
-   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
-   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
-   *        the current set of assertions and @f$B@f$ is given in the input by
-   *        the last call to getInterpolant.
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid,
+   *        where A is the current set of assertions and B is given in the input
+   *        by conj on the last call to getInterpolant.
    * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
    */
   public boolean getInterpolantNext(Term output)
