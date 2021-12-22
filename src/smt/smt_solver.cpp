@@ -241,6 +241,9 @@ void SmtSolver::processAssertions(Assertions& as)
 
     if (options().smt.deepRestart)
     {
+      // remember the initial learned literals
+      d_ppLearnedLits = d_pp.getLearnedLiterals();
+      // remember the assertions and Skolem mapping
       d_ppAssertions = assertions;
       d_ppSkolemMap = ism;
     }
@@ -301,13 +304,21 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   for (const Node& lit : zll)
   {
     TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
-    if (ppLits.find(atom) != ppLits.end())
+    if (ppLits.find(atom) == ppLits.end())
     {
-      Trace("deep-restart-debug")
-          << "Restart learned lit: " << lit << std::endl;
-      apr.push_back(lit);
-      learnedCount++;
+      // not a literal in the input, don't learn
+      continue;
     }
+    if (std::find(d_ppLearnedLits.begin(), d_ppLearnedLits.end(), lit)!=d_ppLearnedLits.end())
+    {
+      // already learned
+      continue;
+    }
+    Trace("deep-restart-debug")
+        << "Restart learned lit: " << lit << std::endl;
+    apr.push_back(lit);
+    learnedCount++;
+    
   }
   Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size()
                         << " learned literals" << std::endl;
