@@ -86,7 +86,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     // check if at level zero
-    if (!d_nonZeroAssert.get())
+    if (options().smt.deepRestart && !d_nonZeroAssert.get())
     {
       if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
       {
@@ -117,6 +117,13 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       // notify the decision engine of the skolem definitions that have become
       // active due to the assertion.
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+    }
+  }
+  if (effort==theory::Theory::EFFORT_FULL)
+  {
+    if (options().smt.deepRestart)
+    {
+      Trace("ajr-temp") << "FULL effort check" << std::endl;
     }
   }
   d_theoryEngine->check(effort);
