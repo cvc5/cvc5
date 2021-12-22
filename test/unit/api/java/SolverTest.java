@@ -1439,6 +1439,31 @@ class SolverTest
     assertTrue(output.getSort().isBoolean());
   }
 
+  @Test void getInterpolantNext() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-interpols", "default");
+    d_solver.setOption("incremental", "true");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    Term z = d_solver.mkConst(intSort, "z");
+
+    d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+    d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+    Term conj = d_solver.mkTerm(
+        OR, d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero), d_solver.mkTerm(LT, z, zero));
+    Term output = d_solver.getNullTerm();
+    d_solver.getInterpolant(conj, output);
+    Term output2 = d_solver.getNullTerm();
+    d_solver.getInterpolantNext(output2);
+
+    // We expect the next output to be distinct
+    assertNotEquals(output, output2);
+  }
+
   @Test void getOp() throws CVC5ApiException
   {
     Sort bv32 = d_solver.mkBitVectorSort(32);

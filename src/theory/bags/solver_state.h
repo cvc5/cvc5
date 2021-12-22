@@ -60,7 +60,10 @@ class SolverState : public TheoryState
    * element x is associated with bag B, albeit x is definitely not in B.
    */
   std::set<Node> getElements(Node B);
-  /** initialize bag and count terms */
+  /**
+   * initialize bag and count terms
+   * @return a list of skolem lemmas to be asserted
+   * */
   std::vector<Node> initialize();
   /** return disequal bag terms */
   const std::set<Node>& getDisequalBagTerms();
@@ -89,7 +92,11 @@ class SolverState : public TheoryState
   NodeManager* d_nm;
   /** collection of bag representatives */
   std::set<Node> d_bags;
-  /** bag -> associated elements */
+  /**
+   * This cache maps bag representatives to pairs of elements and multiplicity
+   * skolems which are used for model building.
+   * This map is cleared and initialized at the start of each full effort check.
+   */
   std::map<Node, std::vector<std::pair<Node, Node>>> d_bagElements;
   /** Disequal bag terms */
   std::set<Node> d_deq;

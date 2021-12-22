@@ -2183,7 +2183,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-interpol <conj> )
    * }
-   * Requires to enable option 'produce-interpols'.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -2202,7 +2202,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-interpol <conj> <g> )
    * }
-   * Requires to enable option 'produce-interpols'.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
@@ -2216,6 +2216,35 @@ public class Solver implements IPointer, AutoCloseable
 
   private native boolean getInterpolant(
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
+
+  /**
+   * Get the next interpolant. Can only be called immediately after a successful
+   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * syntactically different interpolant wrt the last returned interpolant if
+   * successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol-next)
+   *
+   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * set to a mode different from 'none'.
+   * \endverbatim
+   *
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid,
+   *        where A is the current set of assertions and B is given in the input
+   *        by conj on the last call to getInterpolant.
+   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   */
+  public boolean getInterpolantNext(Term output)
+  {
+    return getInterpolantNext(pointer, output.getPointer());
+  }
+
+  private native boolean getInterpolantNext(long pointer, long outputPointer);
 
   /**
    * Get an abduct.
