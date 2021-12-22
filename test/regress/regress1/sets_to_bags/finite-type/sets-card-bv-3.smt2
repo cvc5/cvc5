@@ -12,8 +12,8 @@
 (assert (= (bag.card (bag.inter_min A B)) 1))
 (assert (= (bag.card (bag.difference_remove A B)) 2))
 (assert (= (bag.card (bag.difference_remove B A)) 2))
-(assert (not (bag.count x A)))
-(assert (not (bag.count x B)))
+(assert (not (>= (bag.count x A) 1)))
+(assert (not (>= (bag.count x B) 1)))
 (assert (= universe (as set.universe (Bag (_ BitVec 3)))))
 (check-sat)
 
