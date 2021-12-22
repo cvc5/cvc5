@@ -99,7 +99,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     std::vector<Node> exp;
     d_im.addToExplanation(termProxy, n, exp);
 
-   if (d_registeredUpdates.find(n) == d_registeredUpdates.end())
+    if (d_registeredUpdates.find(n) == d_registeredUpdates.end())
     {
       Trace("seq-array-core-debug") << "... registering" << std::endl;
       d_registeredUpdates.insert(n);
