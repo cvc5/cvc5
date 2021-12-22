@@ -15,6 +15,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "expr/node_algorithm.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
@@ -27,7 +28,6 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 
@@ -260,7 +260,9 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-void getLiterals(TNode a, std::unordered_set<TNode>& visited, std::unordered_set<TNode>& ppLits)
+void getLiterals(TNode a,
+                 std::unordered_set<TNode>& visited,
+                 std::unordered_set<TNode>& ppLits)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -285,10 +287,9 @@ void getLiterals(TNode a, std::unordered_set<TNode>& visited, std::unordered_set
 Assertions& SmtSolver::computeDeepRestartAssertions()
 {
   Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
-  Assert (options().smt.deepRestart);
+  Assert(options().smt.deepRestart);
   // compute the set of literals in the preprocessed assertions
-  preprocessing::AssertionPipeline& apr =
-      d_rconsAsserts.getAssertionPipeline();
+  preprocessing::AssertionPipeline& apr = d_rconsAsserts.getAssertionPipeline();
   const std::vector<Node>& assertions = apr.ref();
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode> ppLits;
@@ -296,22 +297,24 @@ Assertions& SmtSolver::computeDeepRestartAssertions()
   {
     getLiterals(a, visited, ppLits);
   }
-  
+
   // get the set of literals we learned at top-level
   const context::CDHashSet<Node>& zll = d_propEngine->getZeroLevelLiterals();
   size_t learnedCount = 0;
   for (const Node& lit : zll)
   {
-    TNode atom = lit.getKind()==NOT ? lit[0] : lit;
-    if (ppLits.find(atom)!=ppLits.end())
+    TNode atom = lit.getKind() == NOT ? lit[0] : lit;
+    if (ppLits.find(atom) != ppLits.end())
     {
-      Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
+      Trace("deep-restart-debug")
+          << "Restart learned lit: " << lit << std::endl;
       apr.push_back(lit);
       learnedCount++;
     }
   }
-  Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size() << " learned literals" << std::endl;
-  
+  Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size()
+                        << " learned literals" << std::endl;
+
   return d_rconsAsserts;
 }
 
