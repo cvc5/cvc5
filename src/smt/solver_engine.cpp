@@ -942,7 +942,7 @@ Result SolverEngine::checkSynth(bool isNext)
   {
     throw RecoverableModalException(
         "Cannot check-synth-next unless immediately preceded by a successful "
-        "call to check-synth.");
+        "call to check-synth(-next).");
   }
   Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
   d_state->notifyCheckSynthResult(r);
@@ -1661,16 +1661,26 @@ bool SolverEngine::getAbduct(const Node& conj,
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
-  // notify the state of whether the get-abduct call was successfuly, which
+  // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
   return success;
 }
 
-bool SolverEngine::getAbduct(const Node& conj, Node& abd)
+bool SolverEngine::getAbductNext(Node& abd)
 {
-  TypeNode grammarType;
-  return getAbduct(conj, grammarType, abd);
+  SolverEngineScope smts(this);
+  finishInit();
+  if (d_state->getMode() != SmtMode::ABDUCT)
+  {
+    throw RecoverableModalException(
+        "Cannot get-abduct-next unless immediately preceded by a successful "
+        "call to get-abduct(-next).");
+  }
+  bool success = d_abductSolver->getAbductNext(abd);
+  // notify the state of whether the get-abduct-next call was successful
+  d_state->notifyGetAbduct(success);
+  return success;
 }
 
 void SolverEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)

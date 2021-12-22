@@ -1934,6 +1934,11 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
   out << ')' << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  out << "(get-abduct-next)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
                                                       Node n,
                                                       bool doFull) const

@@ -4508,6 +4508,30 @@ class CVC5_EXPORT Solver
   bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-abduct-next)
+   *
+   * Requires to enable incremental mode, and option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
+   * \endverbatim
+   *
+   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
+   *        the current set of assertions and @f$B@f$ is given in the input by
+   *        the last call to getAbduct.
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   */
+  bool getAbductNext(Term& output) const;
+
+  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    *
