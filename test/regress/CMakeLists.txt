@@ -2476,7 +2476,9 @@ set(regress_1_tests
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/interpol1.smt2
+  regress1/sygus/interpol1-push-pop.smt2 
   regress1/sygus/interpol3.smt2
+  regress1/sygus/interpol3-next.smt2
   regress1/sygus/interpol_arr1.smt2
   regress1/sygus/interpol_arr2.smt2
   regress1/sygus/interpol_cosa_1.smt2

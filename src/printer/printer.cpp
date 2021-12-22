@@ -405,6 +405,11 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
   printUnknownCommand(out, "get-interpol");
 }
 
+void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-interpol-next");
+}
+
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
                                    const std::string& name,
                                    Node conj,
