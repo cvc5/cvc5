@@ -350,6 +350,10 @@ void Printer::toStreamCmdCheckSynth(std::ostream& out) const
 {
   printUnknownCommand(out, "check-synth");
 }
+void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "check-synth-next");
+}
 
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
@@ -407,6 +411,11 @@ void Printer::toStreamCmdGetAbduct(std::ostream& out,
                                    TypeNode sygusType) const
 {
   printUnknownCommand(out, "get-abduct");
+}
+
+void Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-abduct-next");
 }
 
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,

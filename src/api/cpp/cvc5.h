@@ -4508,6 +4508,30 @@ class CVC5_EXPORT Solver
   bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-abduct-next)
+   *
+   * Requires to enable incremental mode, and option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
+   * \endverbatim
+   *
+   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
+   *        the current set of assertions and @f$B@f$ is given in the input by
+   *        the last call to getAbduct.
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   */
+  bool getAbductNext(Term& output) const;
+
+  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    *
@@ -4811,9 +4835,29 @@ class CVC5_EXPORT Solver
    *     (check-synth)
    * \endverbatim
    *
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   Result checkSynth() const;
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-synth-next)
+   * \endverbatim
+   *
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  Result checkSynthNext() const;
 
   /**
    * Get the synthesis solution of the given term. This method should be called

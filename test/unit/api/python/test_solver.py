@@ -1960,6 +1960,32 @@ def test_get_synth_solution(solver):
     with pytest.raises(RuntimeError):
         slv.getSynthSolution(f)
 
+def test_check_synth_next(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "true")
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+
+    solver.checkSynth()
+    solver.getSynthSolutions([f])
+
+    solver.checkSynthNext()
+    solver.getSynthSolutions([f])
+
+def test_check_synth_next2(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "false")
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+
+    solver.checkSynth()
+    with pytest.raises(RuntimeError):
+        solver.checkSynthNext()
+
+def test_check_synth_next3(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "true")
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+    with pytest.raises(RuntimeError):
+        solver.checkSynthNext()
 
 def test_declare_pool(solver):
     intSort = solver.getIntegerSort()

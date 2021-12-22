@@ -122,8 +122,8 @@ Node OperatorElim::eliminateOperators(Node node,
       // 0 <= node[0] - toIntSkolem < 1
       Node v =
           bvm->mkBoundVar<ToIntWitnessVarAttribute>(node[0], nm->integerType());
-      Node one = mkRationalNode(1);
-      Node zero = mkRationalNode(0);
+      Node one = nm->mkConstReal(Rational(1));
+      Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(MINUS, node[0], v);
       Node lem = mkInRange(diff, zero, one);
       Node toIntSkolem =
