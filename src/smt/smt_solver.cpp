@@ -43,8 +43,7 @@ SmtSolver::SmtSolver(Env& env,
       d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
-      d_propEngine(nullptr),
-      d_rconsAsserts(env, abs)
+      d_propEngine(nullptr)
 {
 }
 
@@ -242,17 +241,8 @@ void SmtSolver::processAssertions(Assertions& as)
 
     if (options().smt.deepRestart)
     {
-      preprocessing::AssertionPipeline& apr =
-          d_rconsAsserts.getAssertionPipeline();
-      for (const Node& a : assertions)
-      {
-        apr.push_back(a);
-      }
-      preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
-      for (const std::pair<const size_t, Node>& k : ism)
-      {
-        ismr[k.first] = k.second;
-      }
+      d_ppAssertions = assertions;
+      d_ppSkolemMap = ism;
     }
   }
 
@@ -284,18 +274,26 @@ void getLiterals(TNode a,
   } while (!visit.empty());
 }
 
-Assertions& SmtSolver::computeDeepRestartAssertions()
+void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
 {
   Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
   Assert(options().smt.deepRestart);
-  // compute the set of literals in the preprocessed assertions
-  preprocessing::AssertionPipeline& apr = d_rconsAsserts.getAssertionPipeline();
+  
+  preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   const std::vector<Node>& assertions = apr.ref();
+  // Copy the preprocessed assertions and skolem map information directly
+  // Also, compute the set of literals in the preprocessed assertions
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode> ppLits;
-  for (const Node& a : assertions)
+  for (const Node& a : d_ppAssertions)
   {
+    apr.push_back(a);
     getLiterals(a, visited, ppLits);
+  }
+  preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
+  for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
+  {
+    ismr[k.first] = k.second;
   }
 
   // get the set of literals we learned at top-level
@@ -314,8 +312,6 @@ Assertions& SmtSolver::computeDeepRestartAssertions()
   }
   Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size()
                         << " learned literals" << std::endl;
-
-  return d_rconsAsserts;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

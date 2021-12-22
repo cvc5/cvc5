@@ -116,7 +116,7 @@ class SmtSolver : protected EnvObj
   /**
    * Compute deep restart assertions.
    */
-  Assertions& computeDeepRestartAssertions();
+  void computeDeepRestartAssertions(Assertions& as);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -140,7 +140,8 @@ class SmtSolver : protected EnvObj
   /** The propositional engine */
   std::unique_ptr<prop::PropEngine> d_propEngine;
   /** Reconstructed asserted */
-  Assertions d_rconsAsserts;
+  std::vector<Node> d_ppAssertions;
+  std::unordered_map<size_t, Node> d_ppSkolemMap;
 };
 
 }  // namespace smt
