@@ -119,7 +119,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
-  if (effort==theory::Theory::EFFORT_FULL)
+  if (effort == theory::Theory::EFFORT_FULL)
   {
     if (options().smt.deepRestart)
     {

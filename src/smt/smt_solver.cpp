@@ -309,16 +309,15 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
       // not a literal in the input, don't learn
       continue;
     }
-    if (std::find(d_ppLearnedLits.begin(), d_ppLearnedLits.end(), lit)!=d_ppLearnedLits.end())
+    if (std::find(d_ppLearnedLits.begin(), d_ppLearnedLits.end(), lit)
+        != d_ppLearnedLits.end())
     {
       // already learned
       continue;
     }
-    Trace("deep-restart-debug")
-        << "Restart learned lit: " << lit << std::endl;
+    Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
     learnedCount++;
-    
   }
   Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size()
                         << " learned literals" << std::endl;

@@ -107,7 +107,7 @@ void Preprocessor::clearLearnedLiterals()
 
 std::vector<Node> Preprocessor::getLearnedLiterals() const
 {
-  if (d_ppContext==nullptr)
+  if (d_ppContext == nullptr)
   {
     std::vector<Node> emptyVec;
     return emptyVec;
