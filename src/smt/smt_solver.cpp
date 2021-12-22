@@ -27,6 +27,7 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 
@@ -257,6 +258,61 @@ void SmtSolver::processAssertions(Assertions& as)
 
   // clear the current assertions
   as.clearCurrent();
+}
+
+void getLiterals(TNode a, std::unordered_set<TNode>& visited, std::unordered_set<TNode>& ppLits)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(a);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (expr::isBooleanConnective(cur))
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+        continue;
+      }
+      ppLits.insert(cur);
+    }
+  } while (!visit.empty());
+}
+
+Assertions& SmtSolver::computeDeepRestartAssertions()
+{
+  Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
+  Assert (options().smt.deepRestart);
+  // compute the set of literals in the preprocessed assertions
+  preprocessing::AssertionPipeline& apr =
+      d_rconsAsserts.getAssertionPipeline();
+  const std::vector<Node>& assertions = apr.ref();
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode> ppLits;
+  for (const Node& a : assertions)
+  {
+    getLiterals(a, visited, ppLits);
+  }
+  
+  // get the set of literals we learned at top-level
+  const context::CDHashSet<Node>& zll = d_propEngine->getZeroLevelLiterals();
+  size_t learnedCount = 0;
+  for (const Node& lit : zll)
+  {
+    TNode atom = lit.getKind()==NOT ? lit[0] : lit;
+    if (ppLits.find(atom)!=ppLits.end())
+    {
+      Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
+      apr.push_back(lit);
+      learnedCount++;
+    }
+  }
+  Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size() << " learned literals" << std::endl;
+  
+  return d_rconsAsserts;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

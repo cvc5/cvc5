@@ -113,6 +113,10 @@ class SmtSolver : protected EnvObj
    * into the SMT solver, and clears the buffer.
    */
   void processAssertions(Assertions& as);
+  /**
+   * Compute deep restart assertions.
+   */
+  Assertions& computeDeepRestartAssertions();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
