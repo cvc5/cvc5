@@ -1632,25 +1632,35 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
       *d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
-bool SolverEngine::getInterpol(const Node& conj,
-                               const TypeNode& grammarType,
-                               Node& interpol)
+bool SolverEngine::getInterpolant(const Node& conj,
+                                  const TypeNode& grammarType,
+                                  Node& interpol)
 {
   SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success =
-      d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
   return success;
 }
 
-bool SolverEngine::getInterpol(const Node& conj, Node& interpol)
+bool SolverEngine::getInterpolantNext(Node& interpol)
 {
-  TypeNode grammarType;
-  return getInterpol(conj, grammarType, interpol);
+  SolverEngineScope smts(this);
+  finishInit();
+  if (d_state->getMode() != SmtMode::INTERPOL)
+  {
+    throw RecoverableModalException(
+        "Cannot get-interpol-next unless immediately preceded by a successful "
+        "call to get-interpol(-next).");
+  }
+  bool success = d_interpolSolver->getInterpolantNext(interpol);
+  // notify the state of whether the get-interpolant-next call was successful
+  d_state->notifyGetInterpol(success);
+  return success;
 }
 
 bool SolverEngine::getAbduct(const Node& conj,

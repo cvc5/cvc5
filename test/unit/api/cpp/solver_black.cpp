@@ -1448,6 +1448,35 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   ASSERT_TRUE(output.getSort().isBoolean());
 }
 
+TEST_F(TestApiBlackSolver, getInterpolantNext)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("incremental", "true");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term z = d_solver.mkConst(intSort, "z");
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  d_solver.assertFormula(
+      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  Term conj =
+      d_solver.mkTerm(OR,
+                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(LT, z, zero));
+  Term output;
+  d_solver.getInterpolant(conj, output);
+  Term output2;
+  d_solver.getInterpolantNext(output2);
+
+  // We expect the next output to be distinct
+  ASSERT_TRUE(output != output2);
+}
+
 TEST_F(TestApiBlackSolver, declarePool)
 {
   Sort intSort = d_solver.getIntegerSort();
