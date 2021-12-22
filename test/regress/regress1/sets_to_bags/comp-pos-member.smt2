@@ -5,15 +5,15 @@
 
 (declare-fun x () (Bag Int))
 
-(assert (bag.subbag (set.comprehension ((z Int)) (>= z 0) (* 3 z)) x))
+(assert (bag.subbag (bag.comprehension ((z Int)) (>= z 0) (* 3 z)) x))
 
 (declare-fun a () Int)
 (declare-fun b () Int)
 (declare-fun c () Int)
 
-(assert (not (bag.count a x)))
-(assert (not (bag.count b x)))
-(assert (not (bag.count c x)))
+(assert (not (>= (bag.count a x) 1)))
+(assert (not (>= (bag.count b x) 1)))
+(assert (not (>= (bag.count c x) 1)))
 (assert (<= 0 a))
 (assert (<= a b))
 (assert (<= b c))

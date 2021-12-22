@@ -10,7 +10,7 @@
 (declare-fun x () (Bag U))
 
 
-(assert (bag.subbag x (set.comprehension ((z U)) (not (= z a)) z)))
+(assert (bag.subbag x (bag.comprehension ((z U)) (not (= z a)) z)))
 
 (assert (not (bag.count b x)))
 (assert (bag.count c x))

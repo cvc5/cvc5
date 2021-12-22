@@ -5,8 +5,8 @@
 
 (declare-fun x () (Bag Int))
 
-(assert (bag.subbag x (set.comprehension ((z Int)) (> z 0) z)))
+(assert (bag.subbag x (bag.comprehension ((z Int)) (> z 0) z)))
 
-(assert (bag.count 0 x))
+(assert (>= (bag.count 0 x) 1))
 
 (check-sat)

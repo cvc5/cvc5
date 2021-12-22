@@ -5,12 +5,12 @@
 
 (declare-fun x () (Bag Int))
 
-(assert (bag.subbag x (set.comprehension ((z Int)) true (* 2 z))))
+(assert (bag.subbag x (bag.comprehension ((z Int)) true (* 2 z))))
 
 (declare-fun a () Int)
 (declare-fun b () Int)
 
 (assert (= a (+ (* 8 b) 1)))
-(assert (bag.count a x))
+(assert (>= (bag.count a x) 1))
 
 (check-sat)
