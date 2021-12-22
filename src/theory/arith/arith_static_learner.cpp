@@ -220,7 +220,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
       d_maxMap.insert(n, max);
       NodeManager* nm = NodeManager::currentNM();
       Node nLeqMax = nm->mkNode(
-          min.getInfinitesimalPart() == 0 ? kind::LEQ : kind::LT,
+          max.getInfinitesimalPart() == 0 ? kind::LEQ : kind::LT,
           n,
           nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
       learned << nLeqMax;
