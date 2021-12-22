@@ -658,8 +658,13 @@ class CVC5_EXPORT SolverEngine
    */
   bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getAbduct(const Node& conj, Node& abd);
+  /**
+   * Get next abduct. This can only be called immediately after a successful
+   * call to getAbduct or getAbductNext.
+   *
+   * Returns true if an abduct was found, and sets abd to the abduct.
+   */
+  bool getAbductNext(Node& abd);
 
   /**
    * Get list of quantified formulas that were instantiated on the last call

@@ -1007,6 +1007,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name, e, g));
     }
+  | GET_ABDUCT_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetAbductNextCommand);
+    }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
     }
@@ -2238,6 +2242,7 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
+GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
 GET_INTERPOL_TOK : 'get-interpol';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
