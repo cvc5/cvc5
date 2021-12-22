@@ -1797,6 +1797,33 @@ void SolverEngine::resetAssertions()
   d_smtSolver->resetAssertions();
 }
 
+void SolverEngine::deepRestart()
+{
+  SolverEngineScope smts(this);
+
+  if (!d_state->isFullyInited())
+  {
+    // We're still in Start Mode, nothing asserted yet, do nothing.
+    // (see solver execution modes in the SMT-LIB standard)
+    Assert(getContext()->getLevel() == 0);
+    Assert(getUserContext()->getLevel() == 0);
+    return;
+  }
+
+  Trace("smt") << "SMT deepRestart()" << endl;
+
+  d_asserts->clearCurrent();
+  d_state->notifyResetAssertions();
+  // push the state to maintain global context around everything
+  d_state->setup();
+  
+  // we start with the deep restart assertions 
+  d_smtSolver->computeDeepRestartAssertions(*d_asserts.get());
+
+  // reset SmtSolver, which will construct a new prop engine
+  d_smtSolver->resetAssertions();
+}
+
 void SolverEngine::interrupt()
 {
   if (!d_state->isFullyInited())

@@ -280,7 +280,6 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   Assert(options().smt.deepRestart);
   
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
-  const std::vector<Node>& assertions = apr.ref();
   // Copy the preprocessed assertions and skolem map information directly
   // Also, compute the set of literals in the preprocessed assertions
   std::unordered_set<TNode> visited;

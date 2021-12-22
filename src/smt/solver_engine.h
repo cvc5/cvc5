@@ -743,6 +743,12 @@ class CVC5_EXPORT SolverEngine
 
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
+  
+  /**
+   * Deep restart
+   */
+  void deepRestart();
+
 
   /**
    * Interrupt a running query.  This can be called from another thread
