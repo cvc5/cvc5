@@ -9,7 +9,7 @@
 (and (bag.count x c)
       (<= (bag.card (bag.difference_remove alloc1 alloc0)) 1)
       (<= (bag.card (bag.difference_remove alloc2 alloc1))
-          (bag.card (bag.difference_remove c (set.singleton x))))
+          (bag.card (bag.difference_remove c (bag x))))
       (> (bag.card (bag.difference_remove alloc2 alloc0)) (bag.card c))
 ))
 (check-sat)

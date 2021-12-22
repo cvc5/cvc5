@@ -6,8 +6,8 @@
 (declare-fun x () (Bag Bool))
 (declare-fun y () (Bag Bool))
 (declare-fun z () (Bag Bool))
-(assert (= x (set.singleton true)))
-(assert (= y (set.singleton false)))
+(assert (= x (bag true 1)))
+(assert (= y (bag false 1)))
 (push 1)
 
 (assert (= z (set.complement y)))

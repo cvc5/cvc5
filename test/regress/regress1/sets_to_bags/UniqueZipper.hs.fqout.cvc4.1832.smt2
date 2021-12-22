@@ -4,7 +4,7 @@
 (define-sort mySet () (Bag Elt ))
 (define-fun smt_set_emp () mySet (as bag.empty mySet))
 (define-fun smt_set_mem ((x Elt) (s mySet)) Bool (bag.count x s))
-(define-fun smt_set_add ((s mySet) (x Elt)) mySet (bag.union_disjoint s (set.singleton x)))
+(define-fun smt_set_add ((s mySet) (x Elt)) mySet (bag.union_disjoint s (bag x)))
 (define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (bag.union_disjoint s1 s2))
 (define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (bag.inter_min s1 s2))
 ;(define-fun smt_set_com ((s mySet)) mySet ((_ map not) s))

@@ -36,7 +36,7 @@
 (let ((e16 (f1 e14 v1 v4)))
 (let ((e17 (bag.inter_min e16 e15)))
 (let ((e18 (f1 v4 e15 v2)))
-(let ((e19 (ite (p1 e13) (set.singleton 1) (set.singleton 0))))
+(let ((e19 (ite (p1 e13) (bag 1) (bag 0))))
 (let ((e20 (bag.count v0 e17)))
 (let ((e21 (bag.count e7 e16)))
 (let ((e22 (bag.count e10 e16)))

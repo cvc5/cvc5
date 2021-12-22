@@ -67,7 +67,7 @@
 
 (assert (! (= cp_2$0 res_1$0) :named assign_32_4))
 
-(assert (! (= FP_1$0 (bag.union_disjoint FP$0 (set.singleton tmp_2$0))) :named assign_31_11))
+(assert (! (= FP_1$0 (bag.union_disjoint FP$0 (bag tmp_2$0))) :named assign_31_11))
 
 (assert (! (or (and (Btwn$0 next$0 lst$0 null$0 null$0) Axiom_1$0)
        (not (slseg_struct$0 sk_?X_4$0 data$0 next$0 lst$0 null$0)))
@@ -99,7 +99,7 @@
 
 (assert (! (= FP_Caller_1$0 (bag.difference_remove FP_Caller$0 FP$0)) :named assign_26_2_1))
 
-(assert (! (= Alloc_1$0 (bag.union_disjoint Alloc$0 (set.singleton tmp_2$0))) :named assign_31_11_1))
+(assert (! (= Alloc_1$0 (bag.union_disjoint Alloc$0 (bag tmp_2$0))) :named assign_31_11_1))
 
 (assert (! (forall ((?x Loc)) (Btwn$0 next$0 ?x ?x ?x)) :named btwn_refl_1))
 

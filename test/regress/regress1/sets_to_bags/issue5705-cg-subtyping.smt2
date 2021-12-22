@@ -3,5 +3,5 @@
 (declare-fun s () (Bag Real))
 (declare-fun t3 () (Bag Real))
 (assert (or (bag.count 1.0 t3) (bag.count 0.0 s)))
-(assert (not (= t3 (bag.difference_remove s (set.singleton 1.0)))))
+(assert (not (= t3 (bag.difference_remove s (bag 1.0)))))
 (check-sat)
