@@ -171,7 +171,6 @@ void MonomialDb::registerMonomial(Node n)
 void MonomialDb::registerMonomialSubset(Node a, Node b)
 {
   Assert(isMonomialSubset(a, b));
-  Assert(a.getType() == b.getType());
 
   const NodeMultiset& a_exponent_map = getMonomialExponentMap(a);
   const NodeMultiset& b_exponent_map = getMonomialExponentMap(b);
@@ -183,7 +182,8 @@ void MonomialDb::registerMonomialSubset(Node a, Node b)
   d_m_contain_parent[a].push_back(b);
   d_m_contain_children[b].push_back(a);
 
-  TypeNode tn = a.getType();
+  // currently use real type here
+  TypeNode tn = NodeManager::currentNM()->realType();
   Node mult_term = safeConstructNaryType(tn, MULT, diff_children);
   Node nlmult_term = safeConstructNaryType(tn, NONLINEAR_MULT, diff_children);
   d_m_contain_mult[a][b] = mult_term;
