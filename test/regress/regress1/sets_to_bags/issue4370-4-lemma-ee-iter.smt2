@@ -1,8 +1,15 @@
 (set-logic ALL)
+
 (set-info :status unsat)
+
 (declare-fun st3 () (Bag String))
 (declare-fun st9 () (Bag String))
+
+(define-fun bag.is_singleton ((B (Bag String))) Bool
+  (exists ((x String)) (= B (bag x1))))
+
 (assert (bag.is_singleton (bag.inter_min st3 st9)))
 (assert (< 1 (bag.card (bag.inter_min st3 st9))))
 (assert (bag.is_singleton st9))
+
 (check-sat)

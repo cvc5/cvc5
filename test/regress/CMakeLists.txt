@@ -2374,8 +2374,8 @@ set(regress_1_tests
   regress1/sets_to_bags/issue4391-card-lasso.smt2
   regress1/sets_to_bags/issue5271.smt2
   regress1/sets_to_bags/issue5309.smt2
-  regress1/sets_to_bags/issue5342.smt2
-  regress1/sets_to_bags/issue5342_difference_version.smt2
+  # regress1/sets_to_bags/issue5342.smt2 (bag.comprehension)
+  # regress1/sets_to_bags/issue5342_difference_version.smt2 (bag.universe)
   regress1/sets_to_bags/issue5942-witness.smt2
   regress1/sets_to_bags/lemmabug-ListElts317minimized.smt2
   regress1/sets_to_bags/proj-issue164.smt2
