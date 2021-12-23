@@ -90,7 +90,10 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
   return out;
 }
 
-QuantifiersRewriter::QuantifiersRewriter(const Options& opts) : d_opts(opts) {}
+QuantifiersRewriter::QuantifiersRewriter(Rewriter* r, const Options& opts)
+    : d_rewriter(r), d_opts(opts)
+{
+}
 
 bool QuantifiersRewriter::isLiteral( Node n ){
   switch( n.getKind() ){
@@ -550,7 +553,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
   return ret;
 }
 
-Node QuantifiersRewriter::computeExtendedRewrite(Node q, const QAttributes& qa)
+Node QuantifiersRewriter::computeExtendedRewrite(TNode q,
+                                                 const QAttributes& qa) const
 {
   // do not apply to recursive functions
   if (qa.isFunDef())
@@ -559,7 +563,7 @@ Node QuantifiersRewriter::computeExtendedRewrite(Node q, const QAttributes& qa)
   }
   Node body = q[1];
   // apply extended rewriter
-  Node bodyr = Rewriter::callExtendedRewrite(body);
+  Node bodyr = d_rewriter->extendedRewrite(body);
   if (body != bodyr)
   {
     std::vector<Node> children;
