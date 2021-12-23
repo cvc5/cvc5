@@ -1,13 +1,22 @@
 ; COMMAND-LINE: --sets-infer-as-lemmas --simplification=none
 ; EXPECT: sat
 (set-logic ALL)
+
 (declare-fun b () (Bag (Tuple String Int)))
 (declare-fun c () (Bag (Tuple Int String)))
 (declare-fun d () (Bag (Tuple String String)))
 (declare-fun f () (Bag Int))
-(declare-fun e () Int) 
-(assert (= b (set.insert (tuple "" 1)  (tuple "" 2) (bag (tuple "" 4)))))
-(assert (= c (set.insert (tuple 1 "1") (tuple 2 "2") (bag (tuple 7 "")))))
-(assert (= d (rel.join b c)))    
+(declare-fun e () Int)
+
+(assert
+ (= b
+    (bag.union_disjoint (bag (tuple "" 1) 1)
+                        (bag.union_disjoint (bag (tuple "" 2) 1) (bag (tuple "" 4) 1)))))
+(assert
+ (= c
+    (bag.union_disjoint (bag (tuple 1 "1") 1)
+                        (bag.union_disjoint (bag (tuple 2 "2") 1) (bag (tuple 7 "") 1)))))
+(assert (= d (rel.join b c)))
 (assert (= e (bag.card f)))
+
 (check-sat)

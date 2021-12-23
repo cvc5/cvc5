@@ -10,7 +10,7 @@
 (declare-fun s () (Bag Int))
 (declare-fun u () Unit)
 
-(assert (= s (set.insert y s)))
+(assert (= s (bag.union_max (bag y 1) s)))
 (assert (=> b (= uu u)))
 
 (push 1)
