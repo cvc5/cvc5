@@ -4,7 +4,7 @@
 (declare-fun c () (Bag (Tuple Int Int)))
 (declare-fun d () (Bag (Tuple Int Int)))
 (declare-fun e () Int)
-(assert (distinct c (set.insert (tuple 0 0) (bag (tuple 1 1)))))
+(assert (distinct c (bag.union_disjoint (bag (tuple 0 0) 1) (bag (tuple 1 1) 1))))
 (assert (distinct d (rel.tclosure c)))
 (assert (distinct e (bag.card b)))
 (check-sat)
