@@ -2,6 +2,7 @@
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
+(set-option :fmf-bound true)
 (declare-fun t () (Bag Int))
 (declare-fun s () (Bag Int))
 (declare-const v Bool)

@@ -2378,7 +2378,7 @@ set(regress_1_tests
   # regress1/sets_to_bags/issue5342_difference_version.smt2 (bag.universe)
   regress1/sets_to_bags/issue5942-witness.smt2
   regress1/sets_to_bags/lemmabug-ListElts317minimized.smt2
-  regress1/sets_to_bags/proj-issue164.smt2
+  # regress1/sets_to_bags/proj-issue164.smt2 (relational operator)
   regress1/sets_to_bags/proj-issue178.smt2
   regress1/sets_to_bags/remove_check_free_31_6.smt2
   regress1/sets_to_bags/sets-disequal.smt2
