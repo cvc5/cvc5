@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-option :fmf-bound true)
 (set-info :status unsat)
 (declare-sort E 0)
 (declare-fun A () (Bag E))

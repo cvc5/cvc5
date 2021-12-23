@@ -1,5 +1,6 @@
 (set-logic ALL)
-;(set-info :status unsat)
+(set-option :fmf-bound true)
+(set-info :status unsat)
 (set-option :produce-models true)
 (set-option :sets-ext true)
 (declare-datatype Color ((Red) (Green) (Blue)))

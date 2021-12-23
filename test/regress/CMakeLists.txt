@@ -2327,7 +2327,7 @@ set(regress_1_tests
   regress1/sets_to_bags/UniqueZipper.hs.1030minimized2.cvc4.smt2
   regress1/sets_to_bags/UniqueZipper.hs.fqout.cvc4.10.smt2
   regress1/sets_to_bags/UniqueZipper.hs.fqout.cvc4.1832.smt2
-  regress1/sets_to_bags/arjun-set-univ.cvc.smt2
+  # regress1/sets_to_bags/arjun-set-univ.cvc.smt2 (set.complement)
   regress1/sets_to_bags/card-3.smt2
   regress1/sets_to_bags/card-4.smt2
   regress1/sets_to_bags/card-5.smt2
@@ -2335,40 +2335,40 @@ set(regress_1_tests
   regress1/sets_to_bags/card-7.smt2
   regress1/sets_to_bags/card-vc6-minimized.smt2
   regress1/sets_to_bags/comp-intersect.smt2
-  regress1/sets_to_bags/comp-odd.smt2
-  regress1/sets_to_bags/comp-positive.smt2
-  regress1/sets_to_bags/comp-pos-member.smt2
+  # regress1/sets_to_bags/comp-odd.smt2 (bag.comprehension)
+  # regress1/sets_to_bags/comp-positive.smt2 (bag.comprehension)
+  # regress1/sets_to_bags/comp-pos-member.smt2 (bag.comprehension)
   regress1/sets_to_bags/copy_check_heap_access_33_4.smt2
   regress1/sets_to_bags/deepmeas0.hs.fqout.cvc4.41.smt2
   regress1/sets_to_bags/finite-type/bug3663.smt2
   regress1/sets_to_bags/finite-type/sets-card-arrcolor.smt2
   regress1/sets_to_bags/finite-type/sets-card-arrunit.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bool-1.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bool-2.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bool-3.smt2
+  # regress1/sets_to_bags/finite-type/sets-card-bool-1.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-bool-2.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-bool-3.smt2 (bag.universe)
   regress1/sets_to_bags/finite-type/sets-card-bool-4.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bool-rec.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bv-1.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bv-2.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bv-3.smt2
-  regress1/sets_to_bags/finite-type/sets-card-bv-4.smt2
+  # regress1/sets_to_bags/finite-type/sets-card-bool-rec.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-bv-1.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-bv-2.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-bv-3.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-bv-4.smt2 (bag.universe)
   regress1/sets_to_bags/finite-type/sets-card-color.smt2
   regress1/sets_to_bags/finite-type/sets-card-color-sat.smt2
-  regress1/sets_to_bags/finite-type/sets-card-datatype-1.smt2
-  regress1/sets_to_bags/finite-type/sets-card-datatype-2.smt2
+  # regress1/sets_to_bags/finite-type/sets-card-datatype-1.smt2 (bag.universe)
+  # regress1/sets_to_bags/finite-type/sets-card-datatype-2.smt2 (bag.universe)
   regress1/sets_to_bags/finite-type/sets-card-neg-mem-union-1.smt2
   regress1/sets_to_bags/fuzz14418.smt2
   regress1/sets_to_bags/fuzz15201.smt2
   regress1/sets_to_bags/fuzz31811.smt2
-  regress1/sets_to_bags/infinite-type/sets-card-array-int-1.smt2
-  regress1/sets_to_bags/infinite-type/sets-card-array-int-2.smt2
-  regress1/sets_to_bags/infinite-type/sets-card-int-1.smt2
-  regress1/sets_to_bags/infinite-type/sets-card-int-2.smt2
+  # regress1/sets_to_bags/infinite-type/sets-card-array-int-1.smt2 (bag.universe)
+  # regress1/sets_to_bags/infinite-type/sets-card-array-int-2.smt2 (bag.universe)
+  # regress1/sets_to_bags/infinite-type/sets-card-int-1.smt2 (bag.universe)
+  # regress1/sets_to_bags/infinite-type/sets-card-int-2.smt2 (bag.universe)
   regress1/sets_to_bags/insert_invariant_37_2.smt2
   regress1/sets_to_bags/is_singleton1.smt2
   regress1/sets_to_bags/issue2568.smt2
   regress1/sets_to_bags/issue2904.smt2
-  regress1/sets_to_bags/issue4124-need-check.smt2
+  # regress1/sets_to_bags/issue4124-need-check.smt2 (relational operator)
   regress1/sets_to_bags/issue4370-2-lemma-ee-iter.smt2
   regress1/sets_to_bags/issue4370-4-lemma-ee-iter.smt2
   regress1/sets_to_bags/issue4391-card-lasso.smt2

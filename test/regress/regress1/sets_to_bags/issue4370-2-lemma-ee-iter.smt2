@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-option :fmf-bound true)
 (set-info :status unsat)
 (declare-fun st1 () (Bag Int))
 (declare-fun st7 () (Bag Int))

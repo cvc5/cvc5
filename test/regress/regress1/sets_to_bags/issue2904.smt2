@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-option :fmf-bound true)
 (set-info :status unsat)
 ; conjecture set nonempty(~b & ~c)
 

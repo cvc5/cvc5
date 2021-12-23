@@ -1,5 +1,6 @@
 ; EXPECT: unsat
 (set-logic ALL)
+(set-option :fmf-bound true)
 (declare-fun x () Int)
 (declare-fun c () (Bag Int))
 (declare-fun alloc0 () (Bag Int))
