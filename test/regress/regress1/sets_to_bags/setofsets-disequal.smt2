@@ -1,62 +1,122 @@
 ; On a production build (as of 2014-05-16), takes several minutes
 ; to finish (2967466 decisions).
 
-(set-logic QF_BVFS)
+(set-logic ALL)
+
 (set-info :status unsat)
 
 (define-sort myset () (Bag (Bag (_ BitVec 1))))
+
 (declare-fun S () myset)
 
 ; 0 elements
 (assert (not (= S (as bag.empty myset))))
 
 ; 1 element is S
-(assert (not (= S (bag (as bag.empty (Bag (_ BitVec 1)))))))
-(assert (not (= S (bag (bag (_ bv0 1)) ))))
-(assert (not (= S (bag (bag (_ bv1 1)) ))))
-(assert (not (= S (bag (bag.union_disjoint (bag (_ bv0 1))
-                                  (bag (_ bv1 1)))))))
+(assert (not (= S (bag (as bag.empty (Bag (_ BitVec 1))) 1))))
+(assert (not (= S (bag (bag (_ bv0 1) 1) 1))))
+(assert (not (= S (bag (bag (_ bv1 1) 1) 1))))
+(assert
+ (not
+  (= S
+     (bag
+      (bag.union_disjoint (bag (_ bv0 1) 1)
+                          (bag (_ bv1 1) 1))
+      1))))
 
 ; 2 elements in S
-(assert (not (= S (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                         (bag (bag (_ bv0 1)))) )))
-(assert (not (= S (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                         (bag (bag (_ bv1 1)))))))
-(assert (not (= S (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                         (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))))))
-(assert (not (= S (bag.union_disjoint (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))
-                         (bag (bag (_ bv0 1)))) )))
-(assert (not (= S (bag.union_disjoint (bag (bag (_ bv0 1)))
-                         (bag (bag (_ bv1 1))))   )))
-(assert (not (= S (bag.union_disjoint (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))
-                         (bag (bag (_ bv1 1)))))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                         (bag (bag (_ bv0 1) 1) 1)))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                         (bag (bag (_ bv1 1) 1) 1)))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                         (bag
+                          (bag.union_disjoint (bag (_ bv0 1) 1)
+                                              (bag (_ bv1 1) 1))
+                          1)))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint
+      (bag
+       (bag.union_disjoint (bag (_ bv0 1) 1)
+                           (bag (_ bv1 1) 1))
+       1)
+      (bag (bag (_ bv0 1) 1) 1)))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint (bag (bag (_ bv0 1) 1) 1)
+                         (bag (bag (_ bv1 1) 1) 1)))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint
+      (bag
+       (bag.union_disjoint (bag (_ bv0 1) 1)
+                           (bag (_ bv1 1) 1))
+       1)
+      (bag (bag (_ bv1 1) 1) 1)))))
 
 ; 3 elements in S
-(assert (not (= S (bag.union_disjoint (bag (bag (_ bv1 1)))
-                         (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                                (bag (bag (_ bv0 1)))))  )))
-(assert (not (= S (bag.union_disjoint (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))
-                         (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                                (bag (bag (_ bv1 1)))))  )))
-(assert (not (= S (bag.union_disjoint (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))
-                         (bag.union_disjoint (bag (bag (_ bv0 1)))
-                                (bag (bag (_ bv1 1)))))  )))
-(assert (not (= S (bag.union_disjoint (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))
-                         (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                                (bag (bag (_ bv0 1)))))  )))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint (bag (bag (_ bv1 1) 1) 1)
+                         (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                                             (bag (bag (_ bv0 1) 1) 1))))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint
+      (bag
+       (bag.union_disjoint (bag (_ bv0 1) 1)
+                           (bag (_ bv1 1) 1))
+       1)
+      (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                          (bag (bag (_ bv1 1) 1) 1))))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint
+      (bag
+       (bag.union_disjoint (bag (_ bv0 1) 1)
+                           (bag (_ bv1 1) 1))
+       1)
+      (bag.union_disjoint (bag (bag (_ bv0 1) 1) 1)
+                          (bag (bag (_ bv1 1) 1) 1))))))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint
+      (bag
+       (bag.union_disjoint (bag (_ bv0 1) 1)
+                           (bag (_ bv1 1) 1))
+       1)
+      (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                          (bag (bag (_ bv0 1) 1) 1))))))
 
 ; 4 elements in S
-(assert (not (= S (bag.union_disjoint (bag (bag.union_disjoint (bag (_ bv0 1))
-                                         (bag (_ bv1 1))))
-                         (bag.union_disjoint (bag (bag (_ bv1 1)))
-                                (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))))
-                                       (bag (bag (_ bv0 1))))))  )))
+(assert
+ (not
+  (= S
+     (bag.union_disjoint
+      (bag
+       (bag.union_disjoint (bag (_ bv0 1) 1)
+                           (bag (_ bv1 1) 1))
+       1)
+      (bag.union_disjoint (bag (bag (_ bv1 1) 1) 1)
+                          (bag.union_disjoint (bag (as bag.empty (Bag (_ BitVec 1))) 1)
+                                              (bag (bag (_ bv0 1) 1) 1)))))))
 
 (check-sat)
 
