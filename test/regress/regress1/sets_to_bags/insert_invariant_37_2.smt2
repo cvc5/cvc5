@@ -61,14 +61,14 @@
 (assert (! (forall ((l1 Loc) (l2 Loc))
            (or (not Axiom$0)
                (or (= l1 l2) (< (read$0 data$0 l1) (read$0 data$0 l2))
-                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (bag.count l1 sk_?X$0))
-                   (not (bag.count l2 sk_?X$0)))))
+                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (>= (bag.count l1 sk_?X$0) 1))
+                   (not (>= (bag.count l2 sk_?X$0) 1)))))
    :named strict_sortedness))
 
 (assert (! (forall ((l1 Loc))
            (or (= l1 null$0)
-               (bag.count (read$0 data$0 l1)
-                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
+               (>= (bag.count (read$0 data$0 l1)
+                 (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1)
                (not (Btwn$0 next$0 lst$0 l1 null$0))))
    :named sorted_set_1))
 
@@ -78,21 +78,21 @@
               (witness$0 (read$0 data$0 curr_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 curr_2$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+         (>= (bag.count (read$0 data$0 curr_2$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 curr_2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 curr_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+             (>= (bag.count
                    (witness$0 (read$0 data$0 curr_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 curr_2$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+             (>= (bag.count (read$0 data$0 curr_2$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2))
 
 (assert (! (and
@@ -101,21 +101,21 @@
               (witness$0 (read$0 data$0 prev_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 prev_2$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+         (>= (bag.count (read$0 data$0 prev_2$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 prev_2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 prev_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+             (>= (bag.count
                    (witness$0 (read$0 data$0 prev_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 prev_2$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+             (>= (bag.count (read$0 data$0 prev_2$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1)) ))
    :named sorted_set_2_1))
 
 (assert (! (and
@@ -124,21 +124,21 @@
               (witness$0 (read$0 data$0 sk_l1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l1$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+         (>= (bag.count (read$0 data$0 sk_l1$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+             (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l1$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+             (>= (bag.count (read$0 data$0 sk_l1$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2_2))
 
 (assert (! (and
@@ -147,21 +147,21 @@
               (witness$0 (read$0 data$0 sk_l1_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l1_1$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+         (>= (bag.count (read$0 data$0 sk_l1_1$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l1_1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+             (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l1_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l1_1$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+             (>= (bag.count (read$0 data$0 sk_l1_1$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2_3))
 
 (assert (! (and
@@ -170,21 +170,21 @@
               (witness$0 (read$0 data$0 sk_l2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l2$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+            (>= (bag.count (read$0 data$0 sk_l2$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l2$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l2$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2_4))
 
 (assert (! (and
@@ -193,21 +193,21 @@
               (witness$0 (read$0 data$0 sk_l2_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l2_1$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+            (>= (bag.count (read$0 data$0 sk_l2_1$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l2_1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l2_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l2_1$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l2_1$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2_5))
 
 (assert (! (and
@@ -215,18 +215,18 @@
             (=
               (witness$0 sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+            (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= sk_?e$0
                    (read$0 data$0
                      (witness$0 sk_?e$0
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 sk_?e$0
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
-            (not (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
+            (not (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2_6))
 
 (assert (! (and
@@ -235,31 +235,31 @@
               (witness$0 sk_?e_3$0
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+            (>= (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))
         (or
             (and
                  (= sk_?e_3$0
                    (read$0 data$0
                      (witness$0 sk_?e_3$0
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 sk_?e_3$0
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
-            (not (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1))
+            (not (>= (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)) 1))))
    :named sorted_set_2_7))
 
 (assert (! (forall ((l1 Loc))
            (or (= l1 null$0)
-               (bag.count (read$0 data$0 l1)
-                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
+               (>= (bag.count (read$0 data$0 l1)
+                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1)
                (not (Btwn$0 next$0 curr_2$0 l1 null$0))))
    :named sorted_set_1_1))
 
 (assert (! (forall ((l1 Loc))
            (or (= l1 curr_2$0)
-               (bag.count (read$0 data$0 l1)
-                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
+               (>= (bag.count (read$0 data$0 l1)
+                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1)
                (not (Btwn$0 next$0 lst$0 l1 curr_2$0))))
    :named sorted_set_1_2))
 
@@ -269,21 +269,21 @@
               (witness$0 (read$0 data$0 curr_2$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 curr_2$0)
-              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count (read$0 data$0 curr_2$0)
+              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 curr_2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 curr_2$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 curr_2$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 curr_2$0)
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 curr_2$0)
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_8))
 
 (assert (! (and
@@ -292,21 +292,21 @@
               (witness$0 (read$0 data$0 prev_2$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 prev_2$0)
-              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count (read$0 data$0 prev_2$0)
+              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 prev_2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 prev_2$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 prev_2$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 prev_2$0)
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 prev_2$0)
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_9))
 
 (assert (! (and
@@ -315,21 +315,21 @@
               (witness$0 (read$0 data$0 sk_l1$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l1$0)
-              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count (read$0 data$0 sk_l1$0)
+              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l1$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l1$0)
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l1$0)
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_10))
 
 (assert (! (and
@@ -338,21 +338,21 @@
               (witness$0 (read$0 data$0 sk_l1_1$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l1_1$0)
-              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count (read$0 data$0 sk_l1_1$0)
+              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l1_1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1_1$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l1_1$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l1_1$0)
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l1_1$0)
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_11))
 
 (assert (! (and
@@ -361,21 +361,21 @@
               (witness$0 (read$0 data$0 sk_l2$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l2$0)
-              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count (read$0 data$0 sk_l2$0)
+              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l2$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l2$0)
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l2$0)
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_12))
 
 (assert (! (and
@@ -384,21 +384,21 @@
               (witness$0 (read$0 data$0 sk_l2_1$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l2_1$0)
-              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count (read$0 data$0 sk_l2_1$0)
+              (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l2_1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2_1$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l2_1$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l2_1$0)
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l2_1$0)
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_13))
 
 (assert (! (and
@@ -407,18 +407,18 @@
               (witness$0 sk_?e$0
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= sk_?e$0
                    (read$0 data$0
                      (witness$0 sk_?e$0
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 sk_?e$0
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
-            (not (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
+            (not (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_14))
 
 (assert (! (and
@@ -427,20 +427,20 @@
               (witness$0 sk_?e_3$0
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (>= (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))
         (or
             (and
                  (= sk_?e_3$0
                    (read$0 data$0
                      (witness$0 sk_?e_3$0
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 sk_?e_3$0
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
+                   (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1))
             (not
-                 (bag.count sk_?e_3$0
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+                 (>= (bag.count sk_?e_3$0
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1))))
    :named sorted_set_2_15))
 
 (assert (! (and
@@ -449,21 +449,21 @@
               (witness$0 (read$0 data$0 curr_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count (read$0 data$0 curr_2$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count (read$0 data$0 curr_2$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= (read$0 data$0 curr_2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 curr_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 curr_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count (read$0 data$0 curr_2$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count (read$0 data$0 curr_2$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_16))
 
 (assert (! (and
@@ -472,21 +472,21 @@
               (witness$0 (read$0 data$0 prev_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count (read$0 data$0 prev_2$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count (read$0 data$0 prev_2$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= (read$0 data$0 prev_2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 prev_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 prev_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count (read$0 data$0 prev_2$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count (read$0 data$0 prev_2$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_17))
 
 (assert (! (and
@@ -495,21 +495,21 @@
               (witness$0 (read$0 data$0 sk_l1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l1$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count (read$0 data$0 sk_l1$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l1$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l1$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_18))
 
 (assert (! (and
@@ -518,21 +518,21 @@
               (witness$0 (read$0 data$0 sk_l1_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l1_1$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count (read$0 data$0 sk_l1_1$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l1_1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l1_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l1_1$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l1_1$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_19))
 
 (assert (! (and
@@ -541,21 +541,21 @@
               (witness$0 (read$0 data$0 sk_l2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l2$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count (read$0 data$0 sk_l2$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l2$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l2$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l2$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_20))
 
 (assert (! (and
@@ -564,21 +564,21 @@
               (witness$0 (read$0 data$0 sk_l2_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count (read$0 data$0 sk_l2_1$0)
-              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count (read$0 data$0 sk_l2_1$0)
+              (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= (read$0 data$0 sk_l2_1$0)
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 (read$0 data$0 sk_l2_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count (read$0 data$0 sk_l2_1$0)
-                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count (read$0 data$0 sk_l2_1$0)
+                   (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_21))
 
 (assert (! (and
@@ -587,18 +587,18 @@
               (witness$0 sk_?e$0
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= sk_?e$0
                    (read$0 data$0
                      (witness$0 sk_?e$0
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 sk_?e$0
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
-            (not (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
+            (not (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_22))
 
 (assert (! (and
@@ -607,19 +607,19 @@
               (witness$0 sk_?e_3$0
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (>= (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))
         (or
             (and
                  (= sk_?e_3$0
                    (read$0 data$0
                      (witness$0 sk_?e_3$0
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (set.member
+                 (>= (bag.count
                    (witness$0 sk_?e_3$0
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
+                   (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1))
             (not
-                 (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (>= (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1))))
    :named sorted_set_2_23))
 
 (assert (! (= (read$1 next$0 null$0) null$0) :named read_null))
@@ -627,26 +627,26 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 null$0)
-                    (bag.count l1 (sorted_set_domain$0 data$0 next$0 lst$0 null$0))
+                    (>= (bag.count l1 (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1)
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 lst$0 l1 null$0)))
                     (not
-                         (bag.count l1
-                           (sorted_set_domain$0 data$0 next$0 lst$0 null$0))))))
+                         (>= (bag.count l1
+                           (sorted_set_domain$0 data$0 next$0 lst$0 null$0)) 1)))))
    :named sorted_set_footprint))
 
-(assert (! (or (bag.count sk_?e_3$0 c2_2$0)
-       (and (bag.count sk_?e_2$0 sk_FP_1$0) (not (bag.count sk_?e_2$0 FP$0)))
-       (and (bag.count sk_?e_3$0 (bag.union_disjoint c1_2$0 c2_2$0))
-            (not (bag.count sk_?e_3$0 content$0)))
-       (and (bag.count sk_?e_3$0 c1_2$0)
+(assert (! (or (>= (bag.count sk_?e_3$0 c2_2$0) 1)
+       (and (>= (bag.count sk_?e_2$0 sk_FP_1$0) 1) (not (>= (bag.count sk_?e_2$0 FP$0) 1)))
+       (and (>= (bag.count sk_?e_3$0 (bag.union_disjoint c1_2$0 c2_2$0)) 1)
+            (not (>= (bag.count sk_?e_3$0 content$0) 1)))
+       (and (>= (bag.count sk_?e_3$0 c1_2$0) 1)
             (not
-                 (bag.count sk_?e_3$0
-                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-       (and (bag.count sk_?e_3$0 content$0)
-            (not (bag.count sk_?e_3$0 (bag.union_disjoint c1_2$0 c2_2$0))))
-       (and (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-            (not (bag.count sk_?e_3$0 c1_2$0)))
+                 (>= (bag.count sk_?e_3$0
+                   (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1)))
+       (and (>= (bag.count sk_?e_3$0 content$0) 1)
+            (not (>= (bag.count sk_?e_3$0 (bag.union_disjoint c1_2$0 c2_2$0)) 1)))
+       (and (>= (bag.count sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1)
+            (not (>= (bag.count sk_?e_3$0 c1_2$0) 1)))
        (and (not (= curr_2$0 null$0)) (not (= prev_2$0 null$0))
             (not (< (read$0 data$0 prev_2$0) (read$0 data$0 curr_2$0))))
        (not (= curr_2$0 lst$0)) (not (= prev_2$0 null$0))
@@ -685,8 +685,8 @@
 
 (assert (! (or (sorted_set_struct$0 sk_?X_3$0 data$0 next$0 curr_2$0 null$0 c1_2$0)
        (not (Btwn$0 next$0 curr_2$0 null$0 null$0))
-       (! (and (Btwn$0 next$0 sk_l1$0 sk_l2$0 null$0) (bag.count sk_l1$0 sk_?X_3$0)
-               (bag.count sk_l2$0 sk_?X_3$0) (not (= sk_l1$0 sk_l2$0))
+       (! (and (Btwn$0 next$0 sk_l1$0 sk_l2$0 null$0) (>= (bag.count sk_l1$0 sk_?X_3$0) 1)
+               (>= (bag.count sk_l2$0 sk_?X_3$0) 1) (not (= sk_l1$0 sk_l2$0))
                (not (< (read$0 data$0 sk_l1$0) (read$0 data$0 sk_l2$0))))
           :named strict_sortedness_1))
    :named unnamed_1))
@@ -694,47 +694,47 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 curr_2$0)
-                    (bag.count l1
-                      (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0))
+                    (>= (bag.count l1
+                      (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1)
                     (not (= l1 curr_2$0)))
                (and
                     (or (= l1 curr_2$0)
                         (not (Btwn$0 next$0 lst$0 l1 curr_2$0)))
                     (not
-                         (bag.count l1
-                           (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0))))))
+                         (>= (bag.count l1
+                           (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)) 1)))))
    :named sorted_set_footprint_1))
 
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 curr_2$0 l1 null$0)
-                    (bag.count l1
-                      (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0))
+                    (>= (bag.count l1
+                      (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)) 1)
                     (not (= l1 null$0)))
                (and
                     (or (= l1 null$0)
                         (not (Btwn$0 next$0 curr_2$0 l1 null$0)))
                     (not
-                         (bag.count l1
+                         (>= (bag.count l1
                            (sorted_set_domain$0 data$0 next$0 curr_2$0
-                             null$0))))))
+                             null$0)) 1)))))
    :named sorted_set_footprint_2))
 
-(assert (! (not (bag.count null$0 Alloc$0)) :named initial_footprint_of_insert_27_11_1))
+(assert (! (not (>= (bag.count null$0 Alloc$0) 1)) :named initial_footprint_of_insert_27_11_1))
 
 (assert (! (or (= prev_2$0 curr_2$0)
-       (bag.count sk_?e_1$0 (bag.inter_min sk_?X_4$0 sk_?X_3$0))
-       (and (bag.count sk_?e_1$0 sk_FP$0) (not (bag.count sk_?e_1$0 FP$0)))
-       (and (bag.count sk_?e$0 (bag.union_disjoint c1_2$0 c2_2$0)) (not (bag.count sk_?e$0 content$0)))
-       (and (bag.count sk_?e$0 c1_2$0)
-            (not (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-       (and (bag.count sk_?e$0 c2_2$0)
-            (not (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-       (and (bag.count sk_?e$0 content$0) (not (bag.count sk_?e$0 (bag.union_disjoint c1_2$0 c2_2$0))))
-       (and (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-            (not (bag.count sk_?e$0 c1_2$0)))
-       (and (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-            (not (bag.count sk_?e$0 c2_2$0)))
+       (>= (bag.count sk_?e_1$0 (bag.inter_min sk_?X_4$0 sk_?X_3$0)) 1)
+       (and (>= (bag.count sk_?e_1$0 sk_FP$0) 1) (not (>= (bag.count sk_?e_1$0 FP$0) 1)))
+       (and (>= (bag.count sk_?e$0 (bag.union_disjoint c1_2$0 c2_2$0)) 1) (not (>= (bag.count sk_?e$0 content$0) 1)))
+       (and (>= (bag.count sk_?e$0 c1_2$0) 1)
+            (not (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1)))
+       (and (>= (bag.count sk_?e$0 c2_2$0) 1)
+            (not (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1)))
+       (and (>= (bag.count sk_?e$0 content$0) 1) (not (>= (bag.count sk_?e$0 (bag.union_disjoint c1_2$0 c2_2$0)) 1)))
+       (and (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)) 1)
+            (not (>= (bag.count sk_?e$0 c1_2$0) 1)))
+       (and (>= (bag.count sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)) 1)
+            (not (>= (bag.count sk_?e$0 c2_2$0) 1)))
        (and (not (= curr_2$0 null$0)) (not (= prev_2$0 null$0))
             (not (< (read$0 data$0 prev_2$0) (read$0 data$0 curr_2$0))))
        (not (= (read$1 next$0 prev_2$0) curr_2$0))
@@ -772,7 +772,7 @@
 (assert (! (or (sorted_set_struct$0 sk_?X_5$0 data$0 next$0 lst$0 curr_2$0 c2_2$0)
        (not (Btwn$0 next$0 lst$0 curr_2$0 curr_2$0))
        (! (and (Btwn$0 next$0 sk_l1_1$0 sk_l2_1$0 curr_2$0)
-               (bag.count sk_l1_1$0 sk_?X_5$0) (bag.count sk_l2_1$0 sk_?X_5$0)
+               (>= (bag.count sk_l1_1$0 sk_?X_5$0) 1) (>= (bag.count sk_l2_1$0 sk_?X_5$0) 1)
                (not (= sk_l1_1$0 sk_l2_1$0))
                (not (< (read$0 data$0 sk_l1_1$0) (read$0 data$0 sk_l2_1$0))))
           :named strict_sortedness_2))
