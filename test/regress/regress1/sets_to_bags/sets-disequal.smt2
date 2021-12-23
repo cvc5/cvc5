@@ -3,7 +3,7 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXIT: 0
-(set-logic QF_BVFS)
+(set-logic ALL)
 (declare-fun S1 () (Bag (_ BitVec 1)))
 (declare-fun S2 () (Bag (_ BitVec 1)))
 (declare-fun S3 () (Bag (_ BitVec 1)))
