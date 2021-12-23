@@ -1,5 +1,5 @@
 (set-option :print-success false)
-(set-logic AUFLIAFS)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-sort Loc 0)
 (define-sort SetLoc () (Bag Loc))

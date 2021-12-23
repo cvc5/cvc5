@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-option :print-success false)
-(set-logic AUFLIAFS)
+(set-logic ALL)
 (set-info :status unsat)
 (declare-sort Loc 0)
 (define-sort SetLoc () (Bag Loc))
@@ -46,15 +46,15 @@
 (assert (! (forall ((l1 Loc) (l2 Loc))
            (or (not Axiom_1$0)
                (or (<= (read$0 data$0 l1) (read$0 data$0 l2))
-                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (bag.count l1 sk_?X_4$0))
-                   (not (bag.count l2 sk_?X_4$0)))))
+                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (>= (bag.count l1 sk_?X_4$0) 1))
+                   (not (>= (bag.count l2 sk_?X_4$0) 1)))))
    :named sortedness_3))
 
 (assert (! (= (read$1 next$0 null$0) null$0) :named read_null_1))
 
-(assert (! (not (bag.count tmp_2$0 Alloc$0)) :named new_31_11))
+(assert (! (not (>= (bag.count tmp_2$0 Alloc$0) 1)) :named new_31_11))
 
-(assert (! (not (bag.count null$0 Alloc$0)) :named initial_footprint_of_copy_23_11_2))
+(assert (! (not (>= (bag.count null$0 Alloc$0) 1)) :named initial_footprint_of_copy_23_11_2))
 
 (assert (! (not (= lst$0 null$0)) :named if_else_26_6))
 
@@ -67,7 +67,7 @@
 
 (assert (! (= cp_2$0 res_1$0) :named assign_32_4))
 
-(assert (! (= FP_1$0 (bag.union_disjoint FP$0 (bag tmp_2$0))) :named assign_31_11))
+(assert (! (= FP_1$0 (bag.union_disjoint FP$0 (bag tmp_2$0 1))) :named assign_31_11))
 
 (assert (! (or (and (Btwn$0 next$0 lst$0 null$0 null$0) Axiom_1$0)
        (not (slseg_struct$0 sk_?X_4$0 data$0 next$0 lst$0 null$0)))
@@ -76,13 +76,13 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 null$0)
-                    (bag.count l1 (slseg_domain$0 data$0 next$0 lst$0 null$0))
+                    (>= (bag.count l1 (slseg_domain$0 data$0 next$0 lst$0 null$0)) 1)
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 lst$0 l1 null$0)))
-                    (not (bag.count l1 (slseg_domain$0 data$0 next$0 lst$0 null$0))))))
+                    (not (>= (bag.count l1 (slseg_domain$0 data$0 next$0 lst$0 null$0)) 1)))))
    :named slseg_footprint_2))
 
-(assert (! (not (bag.count curr_2$0 FP_1$0)) :named check_heap_access_33_4))
+(assert (! (not (>= (bag.count curr_2$0 FP_1$0) 1)) :named check_heap_access_33_4))
 
 (assert (! (not (= tmp_2$0 null$0)) :named new_31_11_1))
 
@@ -99,7 +99,7 @@
 
 (assert (! (= FP_Caller_1$0 (bag.difference_remove FP_Caller$0 FP$0)) :named assign_26_2_1))
 
-(assert (! (= Alloc_1$0 (bag.union_disjoint Alloc$0 (bag tmp_2$0))) :named assign_31_11_1))
+(assert (! (= Alloc_1$0 (bag.union_disjoint Alloc$0 (bag tmp_2$0 1))) :named assign_31_11_1))
 
 (assert (! (forall ((?x Loc)) (Btwn$0 next$0 ?x ?x ?x)) :named btwn_refl_1))
 
