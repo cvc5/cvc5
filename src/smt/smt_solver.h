@@ -142,6 +142,8 @@ class SmtSolver : protected EnvObj
   /** Reconstructed asserted */
   std::vector<Node> d_ppAssertions;
   std::unordered_map<size_t, Node> d_ppSkolemMap;
+  /** All learned literals TEMPORARY */
+  std::unordered_set<TNode> d_allLearnedLits;
 };
 
 }  // namespace smt

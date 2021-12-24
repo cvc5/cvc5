@@ -127,10 +127,6 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions,
                                       bool isEntailmentCheck)
 {
-  // update the state to indicate we are about to run a check-sat
-  bool hasAssumptions = !assumptions.empty();
-  d_state.notifyCheckSat(hasAssumptions);
-
   // then, initialize the assertions
   as.initializeCheckSat(assumptions, isEntailmentCheck);
 
@@ -200,12 +196,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   }
 
   // set the filename on the result
-  Result r = Result(result, filename);
-
-  // notify our state of the check-sat result
-  d_state.notifyCheckSatResult(hasAssumptions, r);
-
-  return r;
+  return Result(result, filename);
 }
 
 void getLiterals(TNode a,
@@ -306,10 +297,12 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
     ismr[k.first] = k.second;
   }
 
-  for (const Node& lit : zll)
+  for (TNode lit : zll)
   {
     Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
+    AlwaysAssert (d_allLearnedLits.find(lit)==d_allLearnedLits.end()) << "Relearned: " << lit << std::endl;
+    d_allLearnedLits.insert(lit);
   }
   return true;
 }

@@ -782,6 +782,11 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
     Trace("smt") << "SolverEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
+
+    // update the state to indicate we are about to run a check-sat
+    bool hasAssumptions = !assumptions.empty();
+    d_state->notifyCheckSat(hasAssumptions);
+  
     // check the satisfiability with the solver object
     Result r;
     bool checkAgain;
@@ -805,6 +810,9 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << (isEntailmentCheck ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
 
+    // notify our state of the check-sat result
+    d_state->notifyCheckSatResult(hasAssumptions, r);
+  
     // Check that SAT results generate a model correctly.
     if (d_env->getOptions().smt.checkModels)
     {
