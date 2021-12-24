@@ -29,6 +29,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
+#include "expr/node_algorithm.h"
 
 namespace cvc5 {
 namespace prop {
@@ -48,6 +49,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_levelZeroAsserts(userContext()),
+      d_levelZeroAssertsLearned(userContext()),
       d_nonZeroAssert(context(), false)
 {
 }
@@ -64,6 +66,80 @@ void TheoryProxy::presolve()
   d_theoryEngine->presolve();
 }
 
+void getLiterals(TNode a,
+                 std::unordered_set<TNode>& visited,
+                 std::unordered_set<TNode>& ppLits)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(a);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (expr::isBooleanConnective(cur))
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+        continue;
+      }
+      ppLits.insert(cur);
+    }
+  } while (!visit.empty());
+}
+
+
+void TheoryProxy::notifyInputFormulas(const std::vector<Node>& assertions,
+                          std::unordered_map<size_t, Node>& skolemMap,
+                          const std::vector<Node>& ppl
+                        )
+{
+  // notify the theory engine of preprocessed assertions
+  d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  // Now, notify the theory proxy of the assertions and skolem definitions.
+  // Notice we do this before asserting the formulas to the CNF stream below,
+  // since (preregistration) lemmas may occur during calls to assertInternal.
+  // These lemmas we want to be notified about after the theory proxy has
+  // been notified about all input assertions.
+  std::unordered_map<size_t, Node>::iterator it;
+  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
+  {
+    // is the assertion a skolem definition?
+    it = skolemMap.find(i);
+    Node skolem;
+    if (it != skolemMap.end())
+    {
+      skolem = it->second;
+    }
+    notifyAssertion(assertions[i], skolem, false);
+  }
+  
+  // get the set of atoms that
+  if (options().smt.deepRestart)
+  {
+    d_ppnLits.clear();
+    // Copy the preprocessed assertions and skolem map information directly
+    // Also, compute the set of literals in the preprocessed assertions
+    std::unordered_set<TNode> visited;
+    // learned literals and d_ppnLits are disjoint
+    visited.insert(ppl.begin(), ppl.end());
+    for (const Node& a : assertions)
+    {
+      getLiterals(a, visited, d_ppnLits);
+    }
+
+    Trace("deep-restart") << "Preprocess status:" << std::endl;
+    Trace("deep-restart") << "#Non-learned lits = " << d_ppnLits.size() << std::endl;
+    Trace("deep-restart")
+        << "#Learned lits = " << ppl.size() << std::endl;
+    Trace("deep-restart")
+        << "#Top level subs = "
+        << d_env.getTopLevelSubstitutions().get().size() << std::endl;
+  }
+}
+  
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())
@@ -93,9 +169,15 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         int32_t alevel = d_propEngine->getDecisionLevel(assertion);
         if (alevel == 0)
         {
+          TNode aatom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
+          bool learnable = d_ppnLits.find(aatom)!=d_ppnLits.end();
           Trace("level-zero-assert")
-              << "Level zero assert: " << assertion << std::endl;
+              << "Level zero assert: " << assertion << ", learnable=" << learnable << std::endl;
           d_levelZeroAsserts.insert(assertion);
+          if (learnable)
+          {
+            d_levelZeroAssertsLearned.insert(assertion);
+          }
         }
         else
         {
@@ -264,9 +346,9 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-const context::CDHashSet<Node>& TheoryProxy::getZeroLevelLiterals() const
+const context::CDHashSet<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
 {
-  return d_levelZeroAsserts;
+  return d_levelZeroAssertsLearned;
 }
 
 }  // namespace prop

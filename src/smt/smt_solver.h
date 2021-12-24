@@ -140,7 +140,6 @@ class SmtSolver : protected EnvObj
   /** The propositional engine */
   std::unique_ptr<prop::PropEngine> d_propEngine;
   /** Reconstructed asserted */
-  std::vector<Node> d_ppLearnedLits;
   std::vector<Node> d_ppAssertions;
   std::unordered_map<size_t, Node> d_ppSkolemMap;
 };

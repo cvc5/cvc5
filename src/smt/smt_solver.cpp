@@ -15,7 +15,6 @@
 
 #include "smt/smt_solver.h"
 
-#include "expr/node_algorithm.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
@@ -257,37 +256,18 @@ void SmtSolver::processAssertions(Assertions& as)
   {
     d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
+    const std::vector<Node>& ppl = d_pp.getLearnedLiterals();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    d_propEngine->assertInputFormulas(assertions, ism);
+    d_propEngine->assertInputFormulas(assertions, ism, ppl);
 
     if (options().smt.deepRestart)
     {
-      // remember the initial learned literals
-      d_ppLearnedLits = d_pp.getLearnedLiterals();
       // remember the assertions and Skolem mapping
       d_ppAssertions = assertions;
       d_ppSkolemMap = ism;
-      // Copy the preprocessed assertions and skolem map information directly
-      // Also, compute the set of literals in the preprocessed assertions
-      std::unordered_set<TNode> visited;
-      // learned literals and ppLits are disjoint
-      visited.insert(d_ppLearnedLits.begin(), d_ppLearnedLits.end());
-      std::unordered_set<TNode> ppLits;
-      for (const Node& a : d_ppAssertions)
-      {
-        getLiterals(a, visited, ppLits);
-      }
-
-      Trace("deep-restart") << "Preprocess status:" << std::endl;
-      Trace("deep-restart") << "#Lits = " << ppLits.size() << std::endl;
-      Trace("deep-restart")
-          << "#Learned lits = " << d_ppLearnedLits.size() << std::endl;
-      Trace("deep-restart")
-          << "#Top level subs = "
-          << d_env.getTopLevelSubstitutions().get().size() << std::endl;
     }
   }
 
@@ -317,28 +297,12 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   }
 
   // get the set of literals we learned at top-level
-  const context::CDHashSet<Node>& zll = d_propEngine->getZeroLevelLiterals();
-  size_t learnedCount = 0;
+  const context::CDHashSet<Node>& zll = d_propEngine->getLearnedZeroLevelLiterals();
   for (const Node& lit : zll)
   {
-    TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
-    if (ppLits.find(atom) == ppLits.end())
-    {
-      // not a literal in the input, don't learn
-      continue;
-    }
-    if (std::find(d_ppLearnedLits.begin(), d_ppLearnedLits.end(), lit)
-        != d_ppLearnedLits.end())
-    {
-      // already learned
-      continue;
-    }
     Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
-    learnedCount++;
   }
-  Trace("deep-restart") << "...kept " << learnedCount << " / " << zll.size()
-                        << " learned literals" << std::endl;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

@@ -68,6 +68,10 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
 
+  void notifyInputFormulas(const std::vector<Node>& assertions,
+                           std::unordered_map<size_t, Node>& skolemMap,
+                           const std::vector<Node>& ppl
+                          );
   /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
    * definition.
@@ -139,7 +143,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  const context::CDHashSet<Node>& getZeroLevelLiterals() const;
+  const context::CDHashSet<Node>& getLearnedZeroLevelLiterals() const;
 
  private:
   /** The prop engine we are using. */
@@ -177,9 +181,15 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Set of assertions at level 0 */
   NodeSet d_levelZeroAsserts;
+  
+  /** Set of assertions at level 0 */
+  NodeSet d_levelZeroAssertsLearned;
 
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;
+  
+  /** Preprocessed literals that are not learned */
+  std::unordered_set<TNode> d_ppnLits;
 }; /* class TheoryProxy */
 
 }  // namespace prop
