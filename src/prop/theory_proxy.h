@@ -188,7 +188,13 @@ class TheoryProxy : protected EnvObj, public Registrar
   context::CDO<bool> d_nonZeroAssert;
 
   /** Preprocessed literals that are not learned */
-  std::unordered_set<TNode> d_ppnLits;
+  std::unordered_set<TNode> d_ppnAtoms;
+  
+  /** Already learned TEMPORARY */
+  std::unordered_set<TNode> d_pplAtoms;
+  
+  /** Current counter of assertions */
+  size_t d_assertNoLearnCount;
 }; /* class TheoryProxy */
 
 }  // namespace prop

@@ -745,11 +745,6 @@ class CVC5_EXPORT SolverEngine
   void resetAssertions();
 
   /**
-   * Deep restart
-   */
-  void deepRestart();
-
-  /**
    * Interrupt a running query.  This can be called from another thread
    * or from a signal handler.  Throws a ModalException if the SolverEngine
    * isn't currently in a query.
@@ -981,6 +976,11 @@ class CVC5_EXPORT SolverEngine
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
+  /**
+   * Deep restart
+   */
+  bool deepRestart();
+  
   // --------------------------------------- callbacks from the state
   /**
    * Notify push pre, which is called just before the user context of the state

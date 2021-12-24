@@ -275,10 +275,18 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
+bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
 {
   Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
   Assert(options().smt.deepRestart);
+
+  // get the set of literals we learned at top-level
+  const context::CDHashSet<Node>& zll =
+      d_propEngine->getLearnedZeroLevelLiterals();
+  if (zll.empty())
+  {
+    return false;
+  }
 
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly
@@ -296,14 +304,12 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
     ismr[k.first] = k.second;
   }
 
-  // get the set of literals we learned at top-level
-  const context::CDHashSet<Node>& zll =
-      d_propEngine->getLearnedZeroLevelLiterals();
   for (const Node& lit : zll)
   {
     Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
   }
+  return true;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

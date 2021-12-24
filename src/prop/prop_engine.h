@@ -31,7 +31,6 @@
 
 namespace cvc5 {
 
-class Env;
 class ResourceManager;
 class ProofNodeManager;
 class TheoryEngine;

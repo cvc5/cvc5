@@ -116,7 +116,7 @@ class SmtSolver : protected EnvObj
   /**
    * Compute deep restart assertions.
    */
-  void computeDeepRestartAssertions(Assertions& as);
+  bool computeDeepRestartAssertions(Assertions& as);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();

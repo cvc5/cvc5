@@ -783,9 +783,20 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
     // check the satisfiability with the solver object
-    Result r = d_smtSolver->checkSatisfiability(
-        *d_asserts.get(), assumptions, isEntailmentCheck);
-
+    Result r;
+    bool checkAgain;
+    do 
+    {
+      checkAgain = false;
+      r = d_smtSolver->checkSatisfiability(
+          *d_asserts.get(), assumptions, isEntailmentCheck);
+      if (options().smt.deepRestart && r.asSatisfiabilityResult().isSat() == Result::UNKNOWN)
+      {
+        Trace("deep-restart") << "Deep restart?" << std::endl;
+        checkAgain = deepRestart();
+        Trace("deep-restart") << "Deep restart returned " << checkAgain << std::endl;
+      }
+    }while(checkAgain);
     Trace("smt") << "SolverEngine::"
                  << (isEntailmentCheck ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
@@ -1797,7 +1808,7 @@ void SolverEngine::resetAssertions()
   d_smtSolver->resetAssertions();
 }
 
-void SolverEngine::deepRestart()
+bool SolverEngine::deepRestart()
 {
   SolverEngineScope smts(this);
 
@@ -1807,7 +1818,7 @@ void SolverEngine::deepRestart()
     // (see solver execution modes in the SMT-LIB standard)
     Assert(getContext()->getLevel() == 0);
     Assert(getUserContext()->getLevel() == 0);
-    return;
+    return true;
   }
 
   Trace("smt") << "SMT deepRestart()" << endl;
@@ -1818,10 +1829,17 @@ void SolverEngine::deepRestart()
   d_state->setup();
 
   // we start with the deep restart assertions
-  d_smtSolver->computeDeepRestartAssertions(*d_asserts.get());
+  if (!d_smtSolver->computeDeepRestartAssertions(*d_asserts.get()))
+  {
+    return false;
+  }
 
-  // reset SmtSolver, which will construct a new prop engine
+  // reset SmtSolver, which will construct a new prop engine. We must do
+  // this after the above call, since prop engine owns the dynamically learned
+  // literals.
   d_smtSolver->resetAssertions();
+  
+  return true;
 }
 
 void SolverEngine::interrupt()

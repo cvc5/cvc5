@@ -50,7 +50,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_levelZeroAsserts(userContext()),
       d_levelZeroAssertsLearned(userContext()),
-      d_nonZeroAssert(context(), false)
+      d_nonZeroAssert(context(), false),
+      d_assertNoLearnCount(0)
 {
 }
 
@@ -66,7 +67,7 @@ void TheoryProxy::presolve()
   d_theoryEngine->presolve();
 }
 
-void getLiterals(TNode a,
+void getAtoms(TNode a,
                  std::unordered_set<TNode>& visited,
                  std::unordered_set<TNode>& ppLits)
 {
@@ -118,19 +119,25 @@ void TheoryProxy::notifyInputFormulas(
   // get the set of atoms that
   if (options().smt.deepRestart)
   {
-    d_ppnLits.clear();
+    d_assertNoLearnCount = 0;
+    d_ppnAtoms.clear();
     // Copy the preprocessed assertions and skolem map information directly
     // Also, compute the set of literals in the preprocessed assertions
     std::unordered_set<TNode> visited;
-    // learned literals and d_ppnLits are disjoint
-    visited.insert(ppl.begin(), ppl.end());
+    // learned literals and d_ppnAtoms are disjoint
+    for (const Node& lit : ppl)
+    {
+      TNode atom = lit.getKind()==kind::NOT ? lit[0] : lit;
+      visited.insert(atom);
+      d_pplAtoms.insert(atom);
+    }
     for (const Node& a : assertions)
     {
-      getLiterals(a, visited, d_ppnLits);
+      getAtoms(a, visited, d_ppnAtoms);
     }
 
     Trace("deep-restart") << "Preprocess status:" << std::endl;
-    Trace("deep-restart") << "#Non-learned lits = " << d_ppnLits.size()
+    Trace("deep-restart") << "#Non-learned lits = " << d_ppnAtoms.size()
                           << std::endl;
     Trace("deep-restart") << "#Learned lits = " << ppl.size() << std::endl;
     Trace("deep-restart") << "#Top level subs = "
@@ -161,29 +168,44 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     // check if at level zero
-    if (options().smt.deepRestart && !d_nonZeroAssert.get())
+    if (options().smt.deepRestart)
     {
-      if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
+      if (d_nonZeroAssert.get())
+      {
+        d_assertNoLearnCount++;
+      }
+      else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
       {
         int32_t alevel = d_propEngine->getDecisionLevel(assertion);
         if (alevel == 0)
         {
           TNode aatom =
               assertion.getKind() == kind::NOT ? assertion[0] : assertion;
-          bool learnable = d_ppnLits.find(aatom) != d_ppnLits.end();
+          bool learnable = d_ppnAtoms.find(aatom) != d_ppnAtoms.end();
           Trace("level-zero-assert")
               << "Level zero assert: " << assertion
-              << ", learnable=" << learnable << std::endl;
+              << ", learnable=" << learnable << ", already learned=" << (d_pplAtoms.find(aatom)!=d_pplAtoms.end()) << std::endl;
           d_levelZeroAsserts.insert(assertion);
           if (learnable)
           {
+            d_assertNoLearnCount = 0;
             d_levelZeroAssertsLearned.insert(assertion);
+            Trace("level-zero-assert") << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
+          }
+          else
+          {
+            d_assertNoLearnCount++;
           }
         }
         else
         {
+          d_assertNoLearnCount++;
           d_nonZeroAssert = true;
         }
+      }
+      if (d_assertNoLearnCount%1000==0)
+      {
+        Trace("level-zero-assert") << "#asserts without learning = " << d_assertNoLearnCount << " (#atoms is " << d_ppnAtoms.size() << ")" << std::endl;
       }
     }
     // now, assert to theory engine

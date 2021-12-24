@@ -1,0 +1,144 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Learner for literals asserted at level zero.
+ */
+#include "prop/zero_level_learner.h"
+
+#include "context/context.h"
+#include "expr/node_algorithm.h"
+#include "options/smt_options.h"
+#include "smt/env.h"
+#include "smt/smt_statistics_registry.h"
+
+namespace cvc5 {
+namespace prop {
+
+ZeroLevelLearner::ZeroLevelLearner(Env& env,
+                         PropEngine* propEngine)
+    : EnvObj(env),
+      d_propEngine(propEngine),
+      d_levelZeroAsserts(userContext()),
+      d_levelZeroAssertsLearned(userContext()),
+      d_nonZeroAssert(context(), false),
+      d_assertNoLearnCount(0)
+{
+}
+
+ZeroLevelLearner::~ZeroLevelLearner() {
+}
+
+
+void ZeroLevelLearner::getAtoms(TNode a,
+                 std::unordered_set<TNode>& visited,
+                 std::unordered_set<TNode>& ppLits)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(a);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (expr::isBooleanConnective(cur))
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+        continue;
+      }
+      ppLits.insert(cur);
+    }
+  } while (!visit.empty());
+}
+
+void ZeroLevelLearner::notifyInputFormulas(
+    const std::vector<Node>& assertions,
+    std::unordered_map<size_t, Node>& skolemMap,
+    const std::vector<Node>& ppl)
+{
+  d_assertNoLearnCount = 0;
+  d_ppnAtoms.clear();
+  // Copy the preprocessed assertions and skolem map information directly
+  // Also, compute the set of literals in the preprocessed assertions
+  std::unordered_set<TNode> visited;
+  // learned literals and d_ppnAtoms are disjoint
+  for (const Node& lit : ppl)
+  {
+    TNode atom = lit.getKind()==kind::NOT ? lit[0] : lit;
+    visited.insert(atom);
+    d_pplAtoms.insert(atom);
+  }
+  for (const Node& a : assertions)
+  {
+    getAtoms(a, visited, d_ppnAtoms);
+  }
+
+  Trace("deep-restart") << "Preprocess status:" << std::endl;
+  Trace("deep-restart") << "#Non-learned lits = " << d_ppnAtoms.size()
+                        << std::endl;
+  Trace("deep-restart") << "#Learned lits = " << ppl.size() << std::endl;
+  Trace("deep-restart") << "#Top level subs = "
+                        << d_env.getTopLevelSubstitutions().get().size()
+                        << std::endl;
+}
+
+void ZeroLevelLearner::notifyAsserted(TNode assertion)
+{
+  // check if at level zero
+  if (d_nonZeroAssert.get())
+  {
+    d_assertNoLearnCount++;
+  }
+  else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
+  {
+    int32_t alevel = d_propEngine->getDecisionLevel(assertion);
+    if (alevel == 0)
+    {
+      TNode aatom =
+          assertion.getKind() == kind::NOT ? assertion[0] : assertion;
+      bool learnable = d_ppnAtoms.find(aatom) != d_ppnAtoms.end();
+      Trace("level-zero-assert")
+          << "Level zero assert: " << assertion
+          << ", learnable=" << learnable << ", already learned=" << (d_pplAtoms.find(aatom)!=d_pplAtoms.end()) << std::endl;
+      d_levelZeroAsserts.insert(assertion);
+      if (learnable)
+      {
+        d_assertNoLearnCount = 0;
+        d_levelZeroAssertsLearned.insert(assertion);
+        Trace("level-zero-assert") << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
+      }
+      else
+      {
+        d_assertNoLearnCount++;
+      }
+    }
+    else
+    {
+      d_assertNoLearnCount++;
+      d_nonZeroAssert = true;
+    }
+  }
+  if (d_assertNoLearnCount%1000==0)
+  {
+    Trace("level-zero-assert") << "#asserts without learning = " << d_assertNoLearnCount << " (#atoms is " << d_ppnAtoms.size() << ")" << std::endl;
+  }
+}
+
+const context::CDHashSet<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
+{
+  return d_levelZeroAssertsLearned;
+}
+
+}  // namespace prop
+}  // namespace cvc5
