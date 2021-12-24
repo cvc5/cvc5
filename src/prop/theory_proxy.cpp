@@ -19,6 +19,7 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "expr/node_algorithm.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
@@ -29,7 +30,6 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
-#include "expr/node_algorithm.h"
 
 namespace cvc5 {
 namespace prop {
@@ -90,11 +90,10 @@ void getLiterals(TNode a,
   } while (!visit.empty());
 }
 
-
-void TheoryProxy::notifyInputFormulas(const std::vector<Node>& assertions,
-                          std::unordered_map<size_t, Node>& skolemMap,
-                          const std::vector<Node>& ppl
-                        )
+void TheoryProxy::notifyInputFormulas(
+    const std::vector<Node>& assertions,
+    std::unordered_map<size_t, Node>& skolemMap,
+    const std::vector<Node>& ppl)
 {
   // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
@@ -115,7 +114,7 @@ void TheoryProxy::notifyInputFormulas(const std::vector<Node>& assertions,
     }
     notifyAssertion(assertions[i], skolem, false);
   }
-  
+
   // get the set of atoms that
   if (options().smt.deepRestart)
   {
@@ -131,15 +130,15 @@ void TheoryProxy::notifyInputFormulas(const std::vector<Node>& assertions,
     }
 
     Trace("deep-restart") << "Preprocess status:" << std::endl;
-    Trace("deep-restart") << "#Non-learned lits = " << d_ppnLits.size() << std::endl;
-    Trace("deep-restart")
-        << "#Learned lits = " << ppl.size() << std::endl;
-    Trace("deep-restart")
-        << "#Top level subs = "
-        << d_env.getTopLevelSubstitutions().get().size() << std::endl;
+    Trace("deep-restart") << "#Non-learned lits = " << d_ppnLits.size()
+                          << std::endl;
+    Trace("deep-restart") << "#Learned lits = " << ppl.size() << std::endl;
+    Trace("deep-restart") << "#Top level subs = "
+                          << d_env.getTopLevelSubstitutions().get().size()
+                          << std::endl;
   }
 }
-  
+
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())
@@ -169,10 +168,12 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         int32_t alevel = d_propEngine->getDecisionLevel(assertion);
         if (alevel == 0)
         {
-          TNode aatom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
-          bool learnable = d_ppnLits.find(aatom)!=d_ppnLits.end();
+          TNode aatom =
+              assertion.getKind() == kind::NOT ? assertion[0] : assertion;
+          bool learnable = d_ppnLits.find(aatom) != d_ppnLits.end();
           Trace("level-zero-assert")
-              << "Level zero assert: " << assertion << ", learnable=" << learnable << std::endl;
+              << "Level zero assert: " << assertion
+              << ", learnable=" << learnable << std::endl;
           d_levelZeroAsserts.insert(assertion);
           if (learnable)
           {

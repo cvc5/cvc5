@@ -70,8 +70,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   void notifyInputFormulas(const std::vector<Node>& assertions,
                            std::unordered_map<size_t, Node>& skolemMap,
-                           const std::vector<Node>& ppl
-                          );
+                           const std::vector<Node>& ppl);
   /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
    * definition.
@@ -181,13 +180,13 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Set of assertions at level 0 */
   NodeSet d_levelZeroAsserts;
-  
+
   /** Set of assertions at level 0 */
   NodeSet d_levelZeroAssertsLearned;
 
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;
-  
+
   /** Preprocessed literals that are not learned */
   std::unordered_set<TNode> d_ppnLits;
 }; /* class TheoryProxy */

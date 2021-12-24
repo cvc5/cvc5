@@ -297,7 +297,8 @@ void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   }
 
   // get the set of literals we learned at top-level
-  const context::CDHashSet<Node>& zll = d_propEngine->getLearnedZeroLevelLiterals();
+  const context::CDHashSet<Node>& zll =
+      d_propEngine->getLearnedZeroLevelLiterals();
   for (const Node& lit : zll)
   {
     Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
