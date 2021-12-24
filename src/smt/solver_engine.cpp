@@ -786,7 +786,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
     // update the state to indicate we are about to run a check-sat
     bool hasAssumptions = !assumptions.empty();
     d_state->notifyCheckSat(hasAssumptions);
-  
+
     // check the satisfiability with the solver object
     Result r;
     bool checkAgain;
@@ -797,7 +797,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
           *d_asserts.get(), assumptions, isEntailmentCheck);
       if (options().smt.deepRestart)
       {
-        Trace("deep-restart") << "Deep restart (result " << r << ")?" << std::endl;
+        Trace("deep-restart")
+            << "Deep restart (result " << r << ")?" << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
         {
           checkAgain = deepRestart();
@@ -812,7 +813,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
 
     // notify our state of the check-sat result
     d_state->notifyCheckSatResult(hasAssumptions, r);
-  
+
     // Check that SAT results generate a model correctly.
     if (d_env->getOptions().smt.checkModels)
     {

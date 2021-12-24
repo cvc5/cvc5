@@ -128,13 +128,15 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   {
     Trace("level-zero-assert")
         << "#asserts without learning = " << d_assertNoLearnCount
-        << " (#atoms is " << d_ppnAtoms.size() << ", #learned = " << d_levelZeroAssertsLearned.size() << ")" << std::endl;
+        << " (#atoms is " << d_ppnAtoms.size()
+        << ", #learned = " << d_levelZeroAssertsLearned.size() << ")"
+        << std::endl;
   }
   // request a deep restart?
   if (!d_levelZeroAssertsLearned.empty())
   {
     // if non-empty and non-learned atoms have been asserted average >1.0
-    if (d_assertNoLearnCount>d_ppnAtoms.size())
+    if (d_assertNoLearnCount > d_ppnAtoms.size())
     {
       Trace("level-zero") << "DEEP RESTART" << std::endl;
       return false;

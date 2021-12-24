@@ -408,6 +408,7 @@ class TheoryEngine : protected EnvObj
    * Called by the theories to notify that the current branch is incomplete.
    */
   void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
+
  private:
   typedef context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>

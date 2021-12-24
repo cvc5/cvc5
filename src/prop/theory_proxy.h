@@ -181,7 +181,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
-  
+
   /** Whether a deep restart has been requested */
   context::CDO<bool> d_deepRestart;
 }; /* class TheoryProxy */

@@ -179,7 +179,8 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   }
   if (d_deepRestart.get())
   {
-    d_theoryEngine->setIncomplete(theory::THEORY_LAST, theory::IncompleteId::DEEP_RESTART);
+    d_theoryEngine->setIncomplete(theory::THEORY_LAST,
+                                  theory::IncompleteId::DEEP_RESTART);
     return;
   }
   d_theoryEngine->check(effort);
@@ -333,7 +334,8 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-const std::unordered_set<TNode>& TheoryProxy::getLearnedZeroLevelLiterals() const
+const std::unordered_set<TNode>& TheoryProxy::getLearnedZeroLevelLiterals()
+    const
 {
   Assert(d_zll != nullptr);
   return d_zll->getLearnedZeroLevelLiterals();

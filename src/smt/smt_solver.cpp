@@ -279,7 +279,8 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
     Trace("deep-restart") << "No learned literals" << std::endl;
     return false;
   }
-  Trace("deep-restart") << "Have #" << zll.size() << " zero level learned literals" << std::endl;
+  Trace("deep-restart") << "Have #" << zll.size()
+                        << " zero level learned literals" << std::endl;
 
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly
@@ -301,7 +302,8 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   {
     Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
-    AlwaysAssert (d_allLearnedLits.find(lit)==d_allLearnedLits.end()) << "Relearned: " << lit << std::endl;
+    AlwaysAssert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
+        << "Relearned: " << lit << std::endl;
     d_allLearnedLits.insert(lit);
   }
   return true;
