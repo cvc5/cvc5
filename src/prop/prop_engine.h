@@ -304,7 +304,7 @@ class PropEngine : protected EnvObj
   std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions */
-  const context::CDHashSet<Node>& getLearnedZeroLevelLiterals() const;
+  const std::unordered_set<TNode>& getLearnedZeroLevelLiterals() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

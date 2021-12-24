@@ -281,12 +281,14 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   Assert(options().smt.deepRestart);
 
   // get the set of literals we learned at top-level
-  const context::CDHashSet<Node>& zll =
+  const std::unordered_set<TNode>& zll =
       d_propEngine->getLearnedZeroLevelLiterals();
   if (zll.empty())
   {
+    Trace("deep-restart") << "No learned literals" << std::endl;
     return false;
   }
+  Trace("deep-restart") << "Have #" << zll.size() << " zero level learned literals" << std::endl;
 
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly

@@ -143,7 +143,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  const context::CDHashSet<Node>& getLearnedZeroLevelLiterals() const;
+  const std::unordered_set<TNode>& getLearnedZeroLevelLiterals() const;
 
  private:
   /** The prop engine we are using. */
@@ -181,6 +181,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+  
+  /** Whether a deep restart has been requested */
+  context::CDO<bool> d_deepRestart;
 }; /* class TheoryProxy */
 
 }  // namespace prop

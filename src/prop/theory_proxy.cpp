@@ -46,10 +46,11 @@ TheoryProxy::TheoryProxy(Env& env,
       d_decisionEngine(decisionEngine),
       d_dmNeedsActiveDefs(d_decisionEngine->needsActiveSkolemDefs()),
       d_theoryEngine(theoryEngine),
-      d_queue(env.getContext()),
+      d_queue(context()),
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
-      d_zll(nullptr)
+      d_zll(nullptr),
+      d_deepRestart(false, userContext())
 {
   if (options().smt.deepRestart)
   {
@@ -67,6 +68,7 @@ void TheoryProxy::presolve()
 {
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
+  d_deepRestart = false;
 }
 
 void getAtoms(TNode a,
@@ -149,7 +151,15 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     // check if at level zero
     if (d_zll != nullptr)
     {
-      d_zll->notifyAsserted(assertion);
+      if (d_deepRestart.get())
+      {
+        break;
+      }
+      else if (!d_zll->notifyAsserted(assertion))
+      {
+        d_deepRestart = true;
+        break;
+      }
     }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
@@ -167,17 +177,19 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
-  if (effort == theory::Theory::EFFORT_FULL)
+  if (d_deepRestart.get())
   {
-    if (options().smt.deepRestart)
-    {
-      Trace("ajr-temp") << "FULL effort check" << std::endl;
-    }
+    d_theoryEngine->setIncomplete(theory::THEORY_LAST, theory::IncompleteId::DEEP_RESTART);
+    return;
   }
   d_theoryEngine->check(effort);
 }
 
 void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
+  if (d_deepRestart.get())
+  {
+    return;
+  }
   // Get the propagated literals
   std::vector<TNode> outputNodes;
   d_theoryEngine->getPropagatedLiterals(outputNodes);
@@ -241,6 +253,11 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
+  if (d_deepRestart.get())
+  {
+    stopSearch = true;
+    return undefSatLiteral;
+  }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
     Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
@@ -249,6 +266,10 @@ SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
 }
 
 bool TheoryProxy::theoryNeedCheck() const {
+  if (d_deepRestart.get())
+  {
+    return false;
+  }
   return d_theoryEngine->needCheck();
 }
 
@@ -269,7 +290,7 @@ void TheoryProxy::spendResource(Resource r)
 bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
-  return d_decisionEngine->isDone();
+  return d_decisionEngine->isDone() || d_deepRestart.get();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
@@ -312,7 +333,7 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-const context::CDHashSet<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
+const std::unordered_set<TNode>& TheoryProxy::getLearnedZeroLevelLiterals() const
 {
   Assert(d_zll != nullptr);
   return d_zll->getLearnedZeroLevelLiterals();

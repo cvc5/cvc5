@@ -48,10 +48,10 @@ class ZeroLevelLearner : protected EnvObj
   /**
    * Notify the given literal was asserted
    */
-  void notifyAsserted(TNode assertion);
+  bool notifyAsserted(TNode assertion);
 
   /** Get the zero-level assertions */
-  const context::CDHashSet<Node>& getLearnedZeroLevelLiterals() const;
+  const std::unordered_set<TNode>& getLearnedZeroLevelLiterals() const;
 
  private:
   static void getAtoms(TNode a,
@@ -62,10 +62,10 @@ class ZeroLevelLearner : protected EnvObj
   PropEngine* d_propEngine;
 
   /** Set of assertions at level 0 */
-  NodeSet d_levelZeroAsserts;
+  std::unordered_set<TNode> d_levelZeroAsserts;
 
   /** Set of assertions at level 0 */
-  NodeSet d_levelZeroAssertsLearned;
+  std::unordered_set<TNode> d_levelZeroAssertsLearned;
 
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;

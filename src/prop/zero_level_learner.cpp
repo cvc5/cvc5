@@ -28,8 +28,6 @@ namespace prop {
 ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
     : EnvObj(env),
       d_propEngine(propEngine),
-      d_levelZeroAsserts(userContext()),
-      d_levelZeroAssertsLearned(userContext()),
       d_nonZeroAssert(context(), false),
       d_assertNoLearnCount(0)
 {
@@ -92,7 +90,7 @@ void ZeroLevelLearner::notifyInputFormulas(
                       << std::endl;
 }
 
-void ZeroLevelLearner::notifyAsserted(TNode assertion)
+bool ZeroLevelLearner::notifyAsserted(TNode assertion)
 {
   // check if at level zero
   if (d_nonZeroAssert.get())
@@ -117,27 +115,35 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
         d_levelZeroAssertsLearned.insert(assertion);
         Trace("level-zero-assert")
             << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
-      }
-      else
-      {
-        d_assertNoLearnCount++;
+        return true;
       }
     }
     else
     {
-      d_assertNoLearnCount++;
       d_nonZeroAssert = true;
     }
+    d_assertNoLearnCount++;
   }
   if (d_assertNoLearnCount % 1000 == 0)
   {
     Trace("level-zero-assert")
         << "#asserts without learning = " << d_assertNoLearnCount
-        << " (#atoms is " << d_ppnAtoms.size() << ")" << std::endl;
+        << " (#atoms is " << d_ppnAtoms.size() << ", #learned = " << d_levelZeroAssertsLearned.size() << ")" << std::endl;
   }
+  // request a deep restart?
+  if (!d_levelZeroAssertsLearned.empty())
+  {
+    // if non-empty and non-learned atoms have been asserted average >1.0
+    if (d_assertNoLearnCount>d_ppnAtoms.size())
+    {
+      Trace("level-zero") << "DEEP RESTART" << std::endl;
+      return false;
+    }
+  }
+  return true;
 }
 
-const context::CDHashSet<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
+const std::unordered_set<TNode>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
     const
 {
   return d_levelZeroAssertsLearned;
