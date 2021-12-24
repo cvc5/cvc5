@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
@@ -57,7 +58,11 @@ class ZeroLevelLearner : protected EnvObj
  private:
   static void getAtoms(TNode a,
                   std::unordered_set<TNode>& visited,
-                  std::unordered_set<TNode>& ppLits)
+                  std::unordered_set<TNode>& ppLits);
+  
+  /** The prop engine we are using. */
+  PropEngine* d_propEngine;
+  
   /** Set of assertions at level 0 */
   NodeSet d_levelZeroAsserts;
 

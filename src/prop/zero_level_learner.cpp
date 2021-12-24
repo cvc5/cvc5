@@ -19,6 +19,8 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/trust_substitutions.h"
+#include "prop/prop_engine.h"
 
 namespace cvc5 {
 namespace prop {
@@ -84,11 +86,11 @@ void ZeroLevelLearner::notifyInputFormulas(
     getAtoms(a, visited, d_ppnAtoms);
   }
 
-  Trace("deep-restart") << "Preprocess status:" << std::endl;
-  Trace("deep-restart") << "#Non-learned lits = " << d_ppnAtoms.size()
+  Trace("level-zero") << "Preprocess status:" << std::endl;
+  Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                         << std::endl;
-  Trace("deep-restart") << "#Learned lits = " << ppl.size() << std::endl;
-  Trace("deep-restart") << "#Top level subs = "
+  Trace("level-zero") << "#Learned lits = " << ppl.size() << std::endl;
+  Trace("level-zero") << "#Top level subs = "
                         << d_env.getTopLevelSubstitutions().get().size()
                         << std::endl;
 }
@@ -135,7 +137,7 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
   }
 }
 
-const context::CDHashSet<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
+const context::CDHashSet<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals() const
 {
   return d_levelZeroAssertsLearned;
 }

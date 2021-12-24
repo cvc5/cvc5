@@ -30,6 +30,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
+#include "prop/zero_level_learner.h"
 
 namespace cvc5 {
 namespace prop {
@@ -48,11 +49,12 @@ TheoryProxy::TheoryProxy(Env& env,
       d_queue(env.getContext()),
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
-      d_levelZeroAsserts(userContext()),
-      d_levelZeroAssertsLearned(userContext()),
-      d_nonZeroAssert(context(), false),
-      d_assertNoLearnCount(0)
+      d_zll(nullptr)
 {
+  if (options().smt.deepRestart)
+  {
+    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
+  }
 }
 
 TheoryProxy::~TheoryProxy() {
@@ -117,32 +119,9 @@ void TheoryProxy::notifyInputFormulas(
   }
 
   // get the set of atoms that
-  if (options().smt.deepRestart)
+  if (d_zll!=nullptr)
   {
-    d_assertNoLearnCount = 0;
-    d_ppnAtoms.clear();
-    // Copy the preprocessed assertions and skolem map information directly
-    // Also, compute the set of literals in the preprocessed assertions
-    std::unordered_set<TNode> visited;
-    // learned literals and d_ppnAtoms are disjoint
-    for (const Node& lit : ppl)
-    {
-      TNode atom = lit.getKind()==kind::NOT ? lit[0] : lit;
-      visited.insert(atom);
-      d_pplAtoms.insert(atom);
-    }
-    for (const Node& a : assertions)
-    {
-      getAtoms(a, visited, d_ppnAtoms);
-    }
-
-    Trace("deep-restart") << "Preprocess status:" << std::endl;
-    Trace("deep-restart") << "#Non-learned lits = " << d_ppnAtoms.size()
-                          << std::endl;
-    Trace("deep-restart") << "#Learned lits = " << ppl.size() << std::endl;
-    Trace("deep-restart") << "#Top level subs = "
-                          << d_env.getTopLevelSubstitutions().get().size()
-                          << std::endl;
+    d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
   }
 }
 
@@ -168,45 +147,9 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     // check if at level zero
-    if (options().smt.deepRestart)
+    if (d_zll!=nullptr)
     {
-      if (d_nonZeroAssert.get())
-      {
-        d_assertNoLearnCount++;
-      }
-      else if (d_levelZeroAsserts.find(assertion) == d_levelZeroAsserts.end())
-      {
-        int32_t alevel = d_propEngine->getDecisionLevel(assertion);
-        if (alevel == 0)
-        {
-          TNode aatom =
-              assertion.getKind() == kind::NOT ? assertion[0] : assertion;
-          bool learnable = d_ppnAtoms.find(aatom) != d_ppnAtoms.end();
-          Trace("level-zero-assert")
-              << "Level zero assert: " << assertion
-              << ", learnable=" << learnable << ", already learned=" << (d_pplAtoms.find(aatom)!=d_pplAtoms.end()) << std::endl;
-          d_levelZeroAsserts.insert(assertion);
-          if (learnable)
-          {
-            d_assertNoLearnCount = 0;
-            d_levelZeroAssertsLearned.insert(assertion);
-            Trace("level-zero-assert") << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
-          }
-          else
-          {
-            d_assertNoLearnCount++;
-          }
-        }
-        else
-        {
-          d_assertNoLearnCount++;
-          d_nonZeroAssert = true;
-        }
-      }
-      if (d_assertNoLearnCount%1000==0)
-      {
-        Trace("level-zero-assert") << "#asserts without learning = " << d_assertNoLearnCount << " (#atoms is " << d_ppnAtoms.size() << ")" << std::endl;
-      }
+      d_zll->notifyAsserted(assertion);
     }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
@@ -371,7 +314,8 @@ void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 const context::CDHashSet<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
 {
-  return d_levelZeroAssertsLearned;
+  Assert (d_zll!=nullptr);
+  return d_zll->getLearnedZeroLevelLiterals();
 }
 
 }  // namespace prop

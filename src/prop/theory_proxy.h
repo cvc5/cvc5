@@ -45,6 +45,7 @@ namespace prop {
 class PropEngine;
 class CnfStream;
 class SkolemDefManager;
+class ZeroLevelLearner;
 
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
@@ -178,27 +179,11 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
 
-  /** Set of assertions at level 0 */
-  NodeSet d_levelZeroAsserts;
-
-  /** Set of assertions at level 0 */
-  NodeSet d_levelZeroAssertsLearned;
-
-  /** Whether we have seen an assertion level > 0 */
-  context::CDO<bool> d_nonZeroAssert;
-
-  /** Preprocessed literals that are not learned */
-  std::unordered_set<TNode> d_ppnAtoms;
-  
-  /** Already learned TEMPORARY */
-  std::unordered_set<TNode> d_pplAtoms;
-  
-  /** Current counter of assertions */
-  size_t d_assertNoLearnCount;
+  /** The zero level learner */
+  std::unique_ptr<ZeroLevelLearner> d_zll;
 }; /* class TheoryProxy */
 
 }  // namespace prop
-
 }  // namespace cvc5
 
-#endif /* CVC5__PROP__SAT_H */
+#endif

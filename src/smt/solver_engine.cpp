@@ -790,7 +790,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
       checkAgain = false;
       r = d_smtSolver->checkSatisfiability(
           *d_asserts.get(), assumptions, isEntailmentCheck);
-      if (options().smt.deepRestart && r.asSatisfiabilityResult().isSat() == Result::UNKNOWN)
+      if (options().smt.deepRestart && r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
       {
         Trace("deep-restart") << "Deep restart?" << std::endl;
         checkAgain = deepRestart();
