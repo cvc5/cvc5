@@ -209,7 +209,6 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   return r;
 }
 
-
 void getLiterals(TNode a,
                  std::unordered_set<TNode>& visited,
                  std::unordered_set<TNode>& ppLits)
@@ -281,11 +280,14 @@ void SmtSolver::processAssertions(Assertions& as)
       {
         getLiterals(a, visited, ppLits);
       }
-      
+
       Trace("deep-restart") << "Preprocess status:" << std::endl;
       Trace("deep-restart") << "#Lits = " << ppLits.size() << std::endl;
-      Trace("deep-restart") << "#Learned lits = " << d_ppLearnedLits.size() << std::endl;
-      Trace("deep-restart") << "#Top level subs = " << d_env.getTopLevelSubstitutions().get().size() << std::endl;
+      Trace("deep-restart")
+          << "#Learned lits = " << d_ppLearnedLits.size() << std::endl;
+      Trace("deep-restart")
+          << "#Top level subs = "
+          << d_env.getTopLevelSubstitutions().get().size() << std::endl;
     }
   }
 
