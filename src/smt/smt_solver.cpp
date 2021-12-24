@@ -209,6 +209,31 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   return r;
 }
 
+
+void getLiterals(TNode a,
+                 std::unordered_set<TNode>& visited,
+                 std::unordered_set<TNode>& ppLits)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(a);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (expr::isBooleanConnective(cur))
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+        continue;
+      }
+      ppLits.insert(cur);
+    }
+  } while (!visit.empty());
+}
+
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
@@ -246,35 +271,26 @@ void SmtSolver::processAssertions(Assertions& as)
       // remember the assertions and Skolem mapping
       d_ppAssertions = assertions;
       d_ppSkolemMap = ism;
+      // Copy the preprocessed assertions and skolem map information directly
+      // Also, compute the set of literals in the preprocessed assertions
+      std::unordered_set<TNode> visited;
+      // learned literals and ppLits are disjoint
+      visited.insert(d_ppLearnedLits.begin(), d_ppLearnedLits.end());
+      std::unordered_set<TNode> ppLits;
+      for (const Node& a : d_ppAssertions)
+      {
+        getLiterals(a, visited, ppLits);
+      }
+      
+      Trace("deep-restart") << "Preprocess status:" << std::endl;
+      Trace("deep-restart") << "#Lits = " << ppLits.size() << std::endl;
+      Trace("deep-restart") << "#Learned lits = " << d_ppLearnedLits.size() << std::endl;
+      Trace("deep-restart") << "#Top level subs = " << d_env.getTopLevelSubstitutions().get().size() << std::endl;
     }
   }
 
   // clear the current assertions
   as.clearCurrent();
-}
-
-void getLiterals(TNode a,
-                 std::unordered_set<TNode>& visited,
-                 std::unordered_set<TNode>& ppLits)
-{
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(a);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      if (expr::isBooleanConnective(cur))
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-        continue;
-      }
-      ppLits.insert(cur);
-    }
-  } while (!visit.empty());
 }
 
 void SmtSolver::computeDeepRestartAssertions(Assertions& asr)
