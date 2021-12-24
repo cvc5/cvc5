@@ -17,16 +17,15 @@
 #include "context/context.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
+#include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/trust_substitutions.h"
-#include "prop/prop_engine.h"
 
 namespace cvc5 {
 namespace prop {
 
-ZeroLevelLearner::ZeroLevelLearner(Env& env,
-                         PropEngine* propEngine)
+ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
     : EnvObj(env),
       d_propEngine(propEngine),
       d_levelZeroAsserts(userContext()),
@@ -36,13 +35,11 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
 {
 }
 
-ZeroLevelLearner::~ZeroLevelLearner() {
-}
-
+ZeroLevelLearner::~ZeroLevelLearner() {}
 
 void ZeroLevelLearner::getAtoms(TNode a,
-                 std::unordered_set<TNode>& visited,
-                 std::unordered_set<TNode>& ppLits)
+                                std::unordered_set<TNode>& visited,
+                                std::unordered_set<TNode>& ppLits)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -77,7 +74,7 @@ void ZeroLevelLearner::notifyInputFormulas(
   // learned literals and d_ppnAtoms are disjoint
   for (const Node& lit : ppl)
   {
-    TNode atom = lit.getKind()==kind::NOT ? lit[0] : lit;
+    TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
     visited.insert(atom);
     d_pplAtoms.insert(atom);
   }
@@ -88,11 +85,11 @@ void ZeroLevelLearner::notifyInputFormulas(
 
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
-                        << std::endl;
+                      << std::endl;
   Trace("level-zero") << "#Learned lits = " << ppl.size() << std::endl;
   Trace("level-zero") << "#Top level subs = "
-                        << d_env.getTopLevelSubstitutions().get().size()
-                        << std::endl;
+                      << d_env.getTopLevelSubstitutions().get().size()
+                      << std::endl;
 }
 
 void ZeroLevelLearner::notifyAsserted(TNode assertion)
@@ -107,18 +104,19 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
     int32_t alevel = d_propEngine->getDecisionLevel(assertion);
     if (alevel == 0)
     {
-      TNode aatom =
-          assertion.getKind() == kind::NOT ? assertion[0] : assertion;
+      TNode aatom = assertion.getKind() == kind::NOT ? assertion[0] : assertion;
       bool learnable = d_ppnAtoms.find(aatom) != d_ppnAtoms.end();
       Trace("level-zero-assert")
-          << "Level zero assert: " << assertion
-          << ", learnable=" << learnable << ", already learned=" << (d_pplAtoms.find(aatom)!=d_pplAtoms.end()) << std::endl;
+          << "Level zero assert: " << assertion << ", learnable=" << learnable
+          << ", already learned="
+          << (d_pplAtoms.find(aatom) != d_pplAtoms.end()) << std::endl;
       d_levelZeroAsserts.insert(assertion);
       if (learnable)
       {
         d_assertNoLearnCount = 0;
         d_levelZeroAssertsLearned.insert(assertion);
-        Trace("level-zero-assert") << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
+        Trace("level-zero-assert")
+            << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
       }
       else
       {
@@ -131,13 +129,16 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
       d_nonZeroAssert = true;
     }
   }
-  if (d_assertNoLearnCount%1000==0)
+  if (d_assertNoLearnCount % 1000 == 0)
   {
-    Trace("level-zero-assert") << "#asserts without learning = " << d_assertNoLearnCount << " (#atoms is " << d_ppnAtoms.size() << ")" << std::endl;
+    Trace("level-zero-assert")
+        << "#asserts without learning = " << d_assertNoLearnCount
+        << " (#atoms is " << d_ppnAtoms.size() << ")" << std::endl;
   }
 }
 
-const context::CDHashSet<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals() const
+const context::CDHashSet<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
+    const
 {
   return d_levelZeroAssertsLearned;
 }

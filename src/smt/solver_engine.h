@@ -980,7 +980,7 @@ class CVC5_EXPORT SolverEngine
    * Deep restart
    */
   bool deepRestart();
-  
+
   // --------------------------------------- callbacks from the state
   /**
    * Notify push pre, which is called just before the user context of the state

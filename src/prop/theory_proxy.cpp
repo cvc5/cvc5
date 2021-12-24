@@ -25,12 +25,12 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
+#include "prop/zero_level_learner.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
-#include "prop/zero_level_learner.h"
 
 namespace cvc5 {
 namespace prop {
@@ -70,8 +70,8 @@ void TheoryProxy::presolve()
 }
 
 void getAtoms(TNode a,
-                 std::unordered_set<TNode>& visited,
-                 std::unordered_set<TNode>& ppLits)
+              std::unordered_set<TNode>& visited,
+              std::unordered_set<TNode>& ppLits)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -119,7 +119,7 @@ void TheoryProxy::notifyInputFormulas(
   }
 
   // get the set of atoms that
-  if (d_zll!=nullptr)
+  if (d_zll != nullptr)
   {
     d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
   }
@@ -147,7 +147,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     // check if at level zero
-    if (d_zll!=nullptr)
+    if (d_zll != nullptr)
     {
       d_zll->notifyAsserted(assertion);
     }
@@ -314,7 +314,7 @@ void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 const context::CDHashSet<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
 {
-  Assert (d_zll!=nullptr);
+  Assert(d_zll != nullptr);
   return d_zll->getLearnedZeroLevelLiterals();
 }
 

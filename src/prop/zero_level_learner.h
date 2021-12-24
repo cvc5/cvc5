@@ -36,12 +36,11 @@ class PropEngine;
 class ZeroLevelLearner : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
+
  public:
-  ZeroLevelLearner(Env& env,
-              PropEngine* propEngine);
+  ZeroLevelLearner(Env& env, PropEngine* propEngine);
 
   ~ZeroLevelLearner();
-
 
   void notifyInputFormulas(const std::vector<Node>& assertions,
                            std::unordered_map<size_t, Node>& skolemMap,
@@ -51,18 +50,17 @@ class ZeroLevelLearner : protected EnvObj
    */
   void notifyAsserted(TNode assertion);
 
-
   /** Get the zero-level assertions */
   const context::CDHashSet<Node>& getLearnedZeroLevelLiterals() const;
 
  private:
   static void getAtoms(TNode a,
-                  std::unordered_set<TNode>& visited,
-                  std::unordered_set<TNode>& ppLits);
-  
+                       std::unordered_set<TNode>& visited,
+                       std::unordered_set<TNode>& ppLits);
+
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
-  
+
   /** Set of assertions at level 0 */
   NodeSet d_levelZeroAsserts;
 
@@ -74,10 +72,10 @@ class ZeroLevelLearner : protected EnvObj
 
   /** Preprocessed literals that are not learned */
   std::unordered_set<TNode> d_ppnAtoms;
-  
+
   /** Already learned TEMPORARY */
   std::unordered_set<TNode> d_pplAtoms;
-  
+
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
 }; /* class ZeroLevelLearner */

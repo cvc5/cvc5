@@ -785,18 +785,20 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
     // check the satisfiability with the solver object
     Result r;
     bool checkAgain;
-    do 
+    do
     {
       checkAgain = false;
       r = d_smtSolver->checkSatisfiability(
           *d_asserts.get(), assumptions, isEntailmentCheck);
-      if (options().smt.deepRestart && r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
+      if (options().smt.deepRestart
+          && r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
       {
         Trace("deep-restart") << "Deep restart?" << std::endl;
         checkAgain = deepRestart();
-        Trace("deep-restart") << "Deep restart returned " << checkAgain << std::endl;
+        Trace("deep-restart")
+            << "Deep restart returned " << checkAgain << std::endl;
       }
-    }while(checkAgain);
+    } while (checkAgain);
     Trace("smt") << "SolverEngine::"
                  << (isEntailmentCheck ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
@@ -1838,7 +1840,7 @@ bool SolverEngine::deepRestart()
   // this after the above call, since prop engine owns the dynamically learned
   // literals.
   d_smtSolver->resetAssertions();
-  
+
   return true;
 }
 
