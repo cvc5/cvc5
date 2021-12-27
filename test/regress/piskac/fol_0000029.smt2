@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; |~f| - 0 >= (n + 3t + 1) / 2 or (n + 3t + 1) / 2 <= 0
 

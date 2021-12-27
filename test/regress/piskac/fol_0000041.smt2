@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall c_r:C. c_r + |UNIVERALSET| - n >= n or n <= 0
 

@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall nonempty_s:nonempty. nonempty_s + |UNIVERALSET| - n >= n or n <= 0
 

@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall c_cf:C. forall b_ce:B. c_cf + 2b_ce + |~f| - 3n >= 1 or 1 <= 0
 

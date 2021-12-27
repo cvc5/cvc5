@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall a_ds:A. 3a_ds + |~f| - 3n >= 1 or 1 <= 0
 

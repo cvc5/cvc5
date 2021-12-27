@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall c_cq:C. forall b_cp:B. c_cq + b_cp + |~f| - 2n >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0
 

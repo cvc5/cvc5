@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall nonempty_m:nonempty. nonempty_m + |UNIVERALSET| - n >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0
 

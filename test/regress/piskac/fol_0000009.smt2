@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; (n - t + 1) / 2 = (n + 3t + 1) / 2
 

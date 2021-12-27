@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall b_bj:B. forall a_bi:A. b_bj + a_bi + |~f| - 2n >= (n + 3t + 1) / 2 or (n + 3t + 1) / 2 <= 0
 

@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall b_bp:B. forall a_bo:A. b_bp + 2a_bo + |UNIVERALSET| - 3n >= n or n <= 0
 

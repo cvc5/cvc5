@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall a_bq:A. a_bq + |~f| - n >= n - t or n - t <= 0
 
