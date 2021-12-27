@@ -26,6 +26,6 @@
 (assert (>= a_ec (- n t)))
 
 
-(assert (and (< (- (+ (+ (* 2 b_ed) (* 2 a_ec)) (set.card (intersection f (set.minus UNIVERALSET f)))) (* 4 n)) 1) (> 1 0)))
+(assert (and (< (- (+ (+ (* 2 b_ed) (* 2 a_ec)) (set.card (set.inter f (set.minus UNIVERALSET f)))) (* 4 n)) 1) (> 1 0)))
 
 (check-sat)

@@ -26,6 +26,6 @@
 (assert (>= (* 2 b_ci) (+ (+ n (* 3 t)) 1)))
 
 
-(assert (and (< (- (+ (+ c_cj b_ci) (set.card (intersection f (set.minus UNIVERALSET f)))) (* 2 n)) 1) (> 1 0)))
+(assert (and (< (- (+ (+ c_cj b_ci) (set.card (set.inter f (set.minus UNIVERALSET f)))) (* 2 n)) 1) (> 1 0)))
 
 (check-sat)

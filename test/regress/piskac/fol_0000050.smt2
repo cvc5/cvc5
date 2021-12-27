@@ -26,6 +26,6 @@
 (assert (>= a_bc (- n t)))
 
 
-(assert (and (< (* 2 (- (+ (+ b_bd a_bc) (set.card (intersection f (set.minus UNIVERALSET f)))) (* 2 n))) (+ (- n t) 1)) (> (+ (- n t) 1) (* 2 0))))
+(assert (and (< (* 2 (- (+ (+ b_bd a_bc) (set.card (set.inter f (set.minus UNIVERALSET f)))) (* 2 n))) (+ (- n t) 1)) (> (+ (- n t) 1) (* 2 0))))
 
 (check-sat)
