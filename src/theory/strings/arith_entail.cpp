@@ -32,7 +32,7 @@ namespace strings {
 
 ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 Node ArithEntail::rewrite(Node a) { return d_rr->rewrite(a); }
@@ -76,11 +76,10 @@ bool ArithEntail::check(Node a, bool strict)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
 
-  Node ar = strict ? NodeManager::currentNM()->mkNode(
-                kind::MINUS,
-                a,
-                NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1)))
-                   : a;
+  Node ar =
+      strict ? NodeManager::currentNM()->mkNode(
+          kind::MINUS, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
+             : a;
   ar = d_rr->rewrite(ar);
 
   if (ar.getAttribute(StrCheckEntailArithComputedAttr()))
@@ -133,7 +132,7 @@ bool ArithEntail::checkApprox(Node ar)
         << "Get approximations " << v << "..." << std::endl;
     if (v.isNull())
     {
-      Node mn = c.isNull() ? nm->mkConst(CONST_RATIONAL, Rational(1)) : c;
+      Node mn = c.isNull() ? nm->mkConstInt(Rational(1)) : c;
       aarSum.push_back(mn);
     }
     else
@@ -496,8 +495,8 @@ void ArithEntail::getArithApproximations(Node a,
           {
             // x >= 0 implies
             //   x+1 >= len( int.to.str( x ) )
-            approx.push_back(nm->mkNode(
-                PLUS, nm->mkConst(CONST_RATIONAL, Rational(1)), a[0][0]));
+            approx.push_back(
+                nm->mkNode(PLUS, nm->mkConstInt(Rational(1)), a[0][0]));
           }
         }
       }
@@ -507,7 +506,7 @@ void ArithEntail::getArithApproximations(Node a,
         {
           // x >= 0 implies
           //   len( int.to.str( x ) ) >= 1
-          approx.push_back(nm->mkConst(CONST_RATIONAL, Rational(1)));
+          approx.push_back(nm->mkConstInt(Rational(1)));
         }
         // other crazy things are possible here, e.g.
         // len( int.to.str( len( y ) + 10 ) ) >= 2
@@ -541,7 +540,7 @@ void ArithEntail::getArithApproximations(Node a,
       // ...hard to test, runs risk of non-termination
 
       // -1 <= indexof( x, y, n )
-      approx.push_back(nm->mkConst(CONST_RATIONAL, Rational(-1)));
+      approx.push_back(nm->mkConstInt(Rational(-1)));
     }
   }
   else if (ak == STRING_STOI)
@@ -556,7 +555,7 @@ void ArithEntail::getArithApproximations(Node a,
     else
     {
       // -1 <= str.to.int( x )
-      approx.push_back(nm->mkConst(CONST_RATIONAL, Rational(-1)));
+      approx.push_back(nm->mkConstInt(Rational(-1)));
     }
   }
   Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
@@ -661,9 +660,8 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       // (not (>= s t)) --> (>= (t - 1) s)
       Assert(assumption.getKind() == kind::NOT
              && assumption[0].getKind() == kind::GEQ);
-      x = nm->mkNode(kind::MINUS,
-                     assumption[0][1],
-                     nm->mkConst(CONST_RATIONAL, Rational(1)));
+      x = nm->mkNode(
+          kind::MINUS, assumption[0][1], nm->mkConstInt(Rational(1)));
       y = assumption[0][0];
     }
 
@@ -866,7 +864,7 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
   if (s.isConst())
   {
     size_t len = Word::getLength(s);
-    ret = nm->mkConst(CONST_RATIONAL, Rational(len));
+    ret = nm->mkConstInt(Rational(len));
   }
   else if (s.getKind() == STRING_CONCAT)
   {
@@ -885,12 +883,12 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
         success = false;
         break;
       }
-      Assert(b.getKind() == CONST_RATIONAL);
+      Assert(b.isConst());
       sum = sum + b.getConst<Rational>();
     }
     if (success && (!isLower || sum.sgn() != 0))
     {
-      ret = nm->mkConst(CONST_RATIONAL, sum);
+      ret = nm->mkConstInt(sum);
     }
   }
   if (ret.isNull() && isLower)

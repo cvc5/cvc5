@@ -3,27 +3,30 @@ name   = "Base"
 
 [[option]]
   name       = "err"
-  category   = "undocumented"
+  category   = "regular"
   long       = "err=erroutput"
   type       = "ManagedErr"
   alias      = ["diagnostic-output-channel"]
   predicates = ["setErrStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Writes to stderr for \"stderr\" or \"--\", stdout for \"stdout\" or the given filename otherwise."
 
 [[option]]
   name       = "in"
-  category   = "undocumented"
+  category   = "regular"
   long       = "in=input"
   type       = "ManagedIn"
   includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
 
 [[option]]
   name       = "out"
-  category   = "undocumented"
+  category   = "regular"
   long       = "out=output"
   type       = "ManagedOut"
   alias      = ["regular-output-channel"]
   includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
 
 [[option]]
   name       = "inputLanguage"
@@ -139,7 +142,7 @@ name   = "Base"
   long       = "trace=TAG"
   type       = "std::string"
   predicates = ["enableTraceTag"]
-  help       = "trace something (e.g. -t pushpop), can repeat"
+  help       = "trace something (e.g. -t pushpop), can repeat and may contain wildcards like (e.g. -t theory::*)"
 
 [[option]]
   category   = "regular"

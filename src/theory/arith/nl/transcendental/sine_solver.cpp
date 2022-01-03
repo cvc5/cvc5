@@ -45,10 +45,9 @@ namespace {
  */
 inline Node mkValidPhase(TNode a, TNode pi)
 {
+  NodeManager* nm = NodeManager::currentNM();
   return mkBounded(
-      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
-      a,
-      pi);
+      nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi), a, pi);
 }
 }  // namespace
 
@@ -75,13 +74,12 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
       nm->mkNode(Kind::ITE,
                  mkValidPhase(a[0], d_data->d_pi),
                  a[0].eqNode(y),
-                 a[0].eqNode(nm->mkNode(
-                     Kind::PLUS,
-                     y,
-                     nm->mkNode(Kind::MULT,
-                                nm->mkConst(CONST_RATIONAL, Rational(2)),
-                                shift,
-                                d_data->d_pi)))),
+                 a[0].eqNode(nm->mkNode(Kind::PLUS,
+                                        y,
+                                        nm->mkNode(Kind::MULT,
+                                                   nm->mkConstReal(Rational(2)),
+                                                   shift,
+                                                   d_data->d_pi)))),
       new_a.eqNode(a));
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())
@@ -409,7 +407,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         regionToLowerBound(region),
@@ -420,7 +418,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         c,
@@ -434,7 +432,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         regionToLowerBound(region),
@@ -445,7 +443,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         c,

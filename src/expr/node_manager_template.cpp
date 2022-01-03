@@ -1158,12 +1158,6 @@ TNode NodeManager::operatorOf(Kind k)
   return d_operators[k];
 }
 
-template <class T>
-Node NodeManager::mkConst(Kind k, const T& val)
-{
-  return mkConstInternal<Node, T>(k, val);
-}
-
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
 {
@@ -1296,6 +1290,17 @@ Node NodeManager::mkConstInt(const Rational& r)
 {
   // !!!! Note will update to CONST_INTEGER.
   return mkConst(kind::CONST_RATIONAL, r);
+}
+
+Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
+{
+  Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
+                           << tn;
+  if (tn.isReal())
+  {
+    return mkConstReal(r);
+  }
+  return mkConstInt(r);
 }
 
 }  // namespace cvc5

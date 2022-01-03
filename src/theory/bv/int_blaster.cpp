@@ -48,8 +48,7 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
-                       uint64_t granularity,
-                       bool introduceFreshIntVars)
+                       uint64_t granularity)
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
@@ -57,12 +56,11 @@ IntBlaster::IntBlaster(Env& env,
       d_bitwiseAssertions(userContext()),
       d_mode(mode),
       d_granularity(granularity),
-      d_context(userContext()),
-      d_introduceFreshIntVars(introduceFreshIntVars)
+      d_context(userContext())
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = d_nm->mkConstInt(0);
+  d_one = d_nm->mkConstInt(1);
 };
 
 IntBlaster::~IntBlaster() {}
@@ -108,18 +106,18 @@ Node IntBlaster::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst(CONST_RATIONAL, max_value);
+  return d_nm->mkConstInt(max_value);
 }
 
 Node IntBlaster::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst(CONST_RATIONAL, intpow2(k));
+  return d_nm->mkConstInt(intpow2(k));
 }
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst(CONST_RATIONAL, intpow2(exponent));
+  Node p2 = d_nm->mkConstInt(intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -593,7 +591,7 @@ Node IntBlaster::uts(Node x, uint64_t bvsize)
 {
   Node powNode = pow2(bvsize - 1);
   Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
-  Node two = d_nm->mkConst(CONST_RATIONAL, Rational(2));
+  Node two = d_nm->mkConstInt(Rational(2));
   Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
   return d_nm->mkNode(kind::MINUS, twoTimesNode, x);
 }
@@ -620,7 +618,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
       Rational max_of_amount = intpow2(amount) - 1;
       Rational mul = max_of_amount * intpow2(bvsize);
       Rational sum = mul + c;
-      returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
+      returnNode = d_nm->mkConstInt(sum);
     }
   }
   else
@@ -632,7 +630,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
     else
     {
       Rational twoToKMinusOne(intpow2(bvsize - 1));
-      Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
+      Node minSigned = d_nm->mkConstInt(twoToKMinusOne);
       /* condition checks whether the msb is 1.
        * This holds when the integer value is smaller than
        * 100...0, which is 2^{bvsize-1}.
@@ -678,38 +676,18 @@ Node IntBlaster::translateNoChildren(Node original,
       }
       else
       {
-        // original is a bit-vector variable (symbolic constant).
-        // Either we translate it to a fresh integer variable,
-        // or we translate it to (bv2nat original).
-        // In the former case, we must include range lemmas, while in the
-        // latter we don't.
-        // This is determined by the option bv-to-int-fresh-vars.
-        // The variables intCast and bvCast are used for models:
-        // even if we introduce a fresh variable,
-        // it is associated with intCast (which is (bv2nat original)).
-        // bvCast is either ( (_ nat2bv k) original) or just original.
         Node intCast = castToType(original, d_nm->integerType());
         Node bvCast;
-        if (d_introduceFreshIntVars)
-        {
-          // we introduce a fresh variable, add range constraints, and save the
-          // connection between original and the new variable via intCast
-          translation = d_nm->getSkolemManager()->mkPurifySkolem(
-              intCast,
-              "__intblast__var",
-              "Variable introduced in intblasting for " + original.toString());
-          uint64_t bvsize = original.getType().getBitVectorSize();
-          addRangeConstraint(translation, bvsize, lemmas);
-          // put new definition of old variable in skolems
-          bvCast = castToType(translation, original.getType());
-        }
-        else
-        {
-          // we just translate original to (bv2nat original)
-          translation = intCast;
-          // no need to do any casting back to bit-vector in this case.
-          bvCast = original;
-        }
+        // we introduce a fresh variable, add range constraints, and save the
+        // connection between original and the new variable via intCast
+        translation = d_nm->getSkolemManager()->mkPurifySkolem(
+            intCast,
+            "__intblast__var",
+            "Variable introduced in intblasting for " + original.toString());
+        uint64_t bvsize = original.getType().getBitVectorSize();
+        addRangeConstraint(translation, bvsize, lemmas);
+        // put new definition of old variable in skolems
+        bvCast = castToType(translation, original.getType());
 
         // add bvCast to skolems if it is not already there.
         if (skolems.find(original) == skolems.end())
@@ -742,7 +720,7 @@ Node IntBlaster::translateNoChildren(Node original,
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
       Rational r = Rational(c, Integer(1));
-      translation = d_nm->mkConst(CONST_RATIONAL, r);
+      translation = d_nm->mkConstInt(r);
     }
     else
     {
@@ -904,6 +882,25 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   Node y = children[1];
   // shifting by const is eliminated by the theory rewriter
   Assert(!y.isConst());
+
+  // if we use the internal pow2 operator, the translation does not
+  // have any ites
+  if (options().smt.bvToIntUsePow2)
+  {
+    Node pow2Node = d_nm->mkNode(kind::POW2, y);
+    if (isLeftShift)
+    {
+      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(kind::MULT, x, pow2Node),
+                          pow2(bvsize));
+    }
+    else
+    {
+      return d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2Node);
+    }
+  }
+
+  // if we do not use the internal pow2 operator, we use ites.
   Node ite = d_zero;
   Node body;
   for (uint64_t i = 0; i < bvsize; i++)
@@ -921,9 +918,7 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
     ite = d_nm->mkNode(
         kind::ITE,
         d_nm->mkNode(
-            kind::EQUAL,
-            y,
-            d_nm->mkConst(CONST_RATIONAL, Rational(Integer(i), Integer(1)))),
+            kind::EQUAL, y, d_nm->mkConstInt(Rational(Integer(i), Integer(1)))),
         body,
         ite);
   }

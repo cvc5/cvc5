@@ -213,6 +213,22 @@ class TermRegistry : protected EnvObj
    */
   void removeProxyEqs(Node n, std::vector<Node>& unproc) const;
   //---------------------------- end proxy variables
+  /**
+   * Returns the rewritten form of the string concatenation of n1 and n2.
+   */
+  Node mkNConcat(Node n1, Node n2) const;
+
+  /**
+   * Returns the rewritten form of the string concatenation of n1, n2 and n3.
+   */
+  Node mkNConcat(Node n1, Node n2, Node n3) const;
+
+  /**
+   * Returns the rewritten form of the concatentation from vector c of
+   * (string-like) type tn.
+   */
+  Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;
+
  private:
   /** Common constants */
   Node d_zero;

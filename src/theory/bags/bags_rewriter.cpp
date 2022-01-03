@@ -45,8 +45,8 @@ BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = d_nm->mkConstInt(Rational(0));
+  d_one = d_nm->mkConstInt(Rational(1));
 }
 
 RewriteResponse BagsRewriter::postRewrite(TNode n)

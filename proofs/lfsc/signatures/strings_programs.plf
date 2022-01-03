@@ -231,7 +231,6 @@
         ((char n) t12))))
     (emptystr t)))
 
-
 ; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten

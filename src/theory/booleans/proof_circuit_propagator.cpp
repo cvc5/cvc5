@@ -31,9 +31,9 @@ namespace {
 
 /** Shorthand to create a Node from a constant number */
 template <typename T>
-Node mkRat(T val)
+Node mkInt(T val)
 {
-  return NodeManager::currentNM()->mkConst<Rational>(CONST_RATIONAL, val);
+  return NodeManager::currentNM()->mkConstInt(Rational(val));
 }
 
 /**
@@ -356,7 +356,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
     return nullptr;
   }
   return mkProof(
-      PfRule::AND_ELIM, {assume(d_parent)}, {mkRat(i - d_parent.begin())});
+      PfRule::AND_ELIM, {assume(d_parent)}, {mkInt(i - d_parent.begin())});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
@@ -368,7 +368,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
   }
   return mkNot(mkProof(PfRule::NOT_OR_ELIM,
                        {assume(d_parent.notNode())},
-                       {mkRat(i - d_parent.begin())}));
+                       {mkInt(i - d_parent.begin())}));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
@@ -463,7 +463,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andOneFalse()
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
   return mkResolution(
       mkProof(
-          PfRule::CNF_AND_POS, {}, {d_parent, mkRat(it - d_parent.begin())}),
+          PfRule::CNF_AND_POS, {}, {d_parent, mkInt(it - d_parent.begin())}),
       d_child,
       true);
 }
@@ -476,7 +476,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orOneTrue()
   }
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
   return mkNot(mkResolution(
-      mkProof(PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
+      mkProof(PfRule::CNF_OR_NEG, {}, {d_parent, mkInt(it - d_parent.begin())}),
       d_child,
       false));
 }

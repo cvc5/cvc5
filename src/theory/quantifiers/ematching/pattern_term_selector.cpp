@@ -678,8 +678,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
           Assert(nc.isConst());
           if (x.getType().isInteger())
           {
-            Node coeff =
-                nm->mkConst(CONST_RATIONAL, nc.getConst<Rational>().abs());
+            Node coeff = nm->mkConstInt(nc.getConst<Rational>().abs());
             if (!nc.getConst<Rational>().abs().isOne())
             {
               x = nm->mkNode(INTS_DIVISION_TOTAL, x, coeff);
@@ -691,8 +690,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
           }
           else
           {
-            Node coeff = nm->mkConst(CONST_RATIONAL,
-                                     Rational(1) / nc.getConst<Rational>());
+            Node coeff = nm->mkConstReal(Rational(1) / nc.getConst<Rational>());
             x = nm->mkNode(MULT, x, coeff);
           }
         }

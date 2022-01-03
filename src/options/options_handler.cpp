@@ -18,6 +18,7 @@
 #include <cerrno>
 #include <iostream>
 #include <ostream>
+#include <regex>
 #include <string>
 
 #include "base/check.h"
@@ -64,6 +65,40 @@ std::string suggestTags(const std::vector<std::string>& validTags,
   didYouMean.addWords(validTags);
   didYouMean.addWords(additionalTags);
   return didYouMean.getMatchAsString(inputTag);
+}
+
+/**
+ * Select all tags from validTags that match the given (globbing) pattern.
+ * The pattern may contain `*` as wildcards. These are internally converted to
+ * `.*` and matched using std::regex. If no wildcards are present, regular
+ * string comparisons are used.
+ */
+std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
+{
+  bool isRegex = false;
+  size_t pos = 0;
+  while ((pos = pattern.find('*', pos)) != std::string::npos)
+  {
+    pattern.replace(pos, 1, ".*");
+    pos += 2;
+    isRegex = true;
+  }
+  std::vector<std::string> results;
+  if (isRegex)
+  {
+    std::regex re(pattern);
+    std::copy_if(validTags.begin(), validTags.end(), std::back_inserter(results),
+      [&re](const auto& tag){ return std::regex_match(tag, re); }
+    );
+  }
+  else
+  {
+    if (std::find(validTags.begin(), validTags.end(), pattern) != validTags.end())
+    {
+      results.emplace_back(pattern);
+    }
+  }
+  return results;
 }
 
 }  // namespace
@@ -199,7 +234,8 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if (!Configuration::isTraceTag(optarg))
+  auto tags = selectTags(Configuration::getTraceTags(), optarg);
+  if (tags.empty())
   {
     if (optarg == "help")
     {
@@ -209,10 +245,13 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
     }
 
     throw OptionException(
-        std::string("trace tag ") + optarg + std::string(" not available.")
+        std::string("no trace tag matching ") + optarg + std::string(" was found.")
         + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
-  Trace.on(optarg);
+  for (const auto& tag: tags)
+  {
+    Trace.on(tag);
+  }
 }
 
 void OptionsHandler::enableDebugTag(const std::string& flag,

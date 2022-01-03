@@ -48,7 +48,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_model(),
+      d_model(env),
       d_trSlv(d_env, d_im, d_model),
       d_extState(d_im, d_model, d_env),
       d_factoringSlv(d_env, &d_extState),
@@ -122,7 +122,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   }
   Valuation v = d_containing.getValuation();
 
-  BoundInference bounds;
+  BoundInference bounds(d_env);
 
   std::unordered_set<Node> init_assertions;
 
@@ -353,45 +353,6 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
   }
 
   // compute whether shared terms have correct values
-  unsigned num_shared_wrong_value = 0;
-  std::vector<Node> shared_term_value_splits;
-  // must ensure that shared terms are equal to their concrete value
-  Trace("nl-ext-mv") << "Shared terms : " << std::endl;
-  for (context::CDList<TNode>::const_iterator its =
-           d_containing.shared_terms_begin();
-       its != d_containing.shared_terms_end();
-       ++its)
-  {
-    TNode shared_term = *its;
-    // compute its value in the model, and its evaluation in the model
-    Node stv0 = d_model.computeConcreteModelValue(shared_term);
-    Node stv1 = d_model.computeAbstractModelValue(shared_term);
-    d_model.printModelValue("nl-ext-mv", shared_term);
-    if (stv0 != stv1)
-    {
-      num_shared_wrong_value++;
-      Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
-                         << std::endl;
-      if (shared_term != stv0)
-      {
-        // split on the value, this is non-terminating in general, TODO :
-        // improve this
-        Node eq = shared_term.eqNode(stv0);
-        shared_term_value_splits.push_back(eq);
-      }
-      else
-      {
-        // this can happen for transcendental functions
-        // the problem is that we cannot evaluate transcendental functions
-        // (they don't have a rewriter that returns constants)
-        // thus, the actual value in their model can be themselves, hence we
-        // have no reference point to rule out the current model.  In this
-        // case, we may set incomplete below.
-      }
-    }
-  }
-  Trace("nl-ext-debug") << "     " << num_shared_wrong_value
-                        << " shared terms with wrong model value." << std::endl;
   bool needsRecheck;
   do
   {
@@ -402,9 +363,9 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
     int complete_status = 1;
     // We require a check either if an assertion is false or a shared term has
     // a wrong value
-    if (!false_asserts.empty() || num_shared_wrong_value > 0)
+    if (!false_asserts.empty())
     {
-      complete_status = num_shared_wrong_value > 0 ? -1 : 0;
+      complete_status = 0;
       runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
@@ -445,40 +406,6 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
         return Result::Sat::UNSAT;
-      }
-      // resort to splitting on shared terms with their model value
-      // if we did not add any lemmas
-      if (num_shared_wrong_value > 0)
-      {
-        complete_status = -1;
-        if (!shared_term_value_splits.empty())
-        {
-          for (const Node& eq : shared_term_value_splits)
-          {
-            Node req = rewrite(eq);
-            Node literal = d_containing.getValuation().ensureLiteral(req);
-            d_containing.getOutputChannel().requirePhase(literal, true);
-            Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
-            Node split = literal.orNode(literal.negate());
-            d_im.addPendingLemma(split,
-                                 InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT,
-                                 nullptr,
-                                 true);
-          }
-          if (d_im.hasWaitingLemma())
-          {
-            d_im.flushWaitingLemmas();
-            Trace("nl-ext") << "...added " << d_im.numPendingLemmas()
-                            << " shared term value split lemmas." << std::endl;
-            return Result::Sat::UNSAT;
-          }
-        }
-        else
-        {
-          // this can happen if we are trying to do theory combination with
-          // trancendental functions
-          // since their model value cannot even be computed exactly
-        }
       }
 
       // we are incomplete

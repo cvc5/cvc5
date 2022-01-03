@@ -54,13 +54,13 @@ constant DIVISIBLE_OP \
 sort REAL_TYPE \
     Cardinality::REALS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0))" \
+        "NodeManager::currentNM()->mkConstReal(Rational(0))" \
         "expr/node_manager.h" \
     "real type"
 sort INTEGER_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0))" \
+        "NodeManager::currentNM()->mkConstInt(Rational(0))" \
         "expr/node_manager.h" \
     "integer type"
 
@@ -73,7 +73,7 @@ constant CONST_RATIONAL \
 
 constant CONST_INTEGER \
     class \
-    Rational \
+    Rational+ \
     ::cvc5::RationalHashFunction \
     "util/rational.h" \
     "a multiple-precision integer constant; payload is an instance of the cvc5::Rational class"

@@ -27,7 +27,7 @@
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
  * not fully agree on what is (in)valid input, which requires extra checks for
- * consistent behavior (see Solver::mkRealFromStrHelper for an example).
+ * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
  */
 
 #include "api/cpp/cvc5.h"
@@ -1107,6 +1107,29 @@ bool Sort::operator>=(const Sort& s) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type >= *s.d_type;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Sort::hasSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_type->hasAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Sort::getSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_type->hasAttribute(expr::VarNameAttr()))
+      << "Invalid call to '" << __PRETTY_FUNCTION__
+      << "', expected the sort to have a symbol.";
+  //////// all checks before this line
+  return d_type->getAttribute(expr::VarNameAttr());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2848,6 +2871,17 @@ bool isUInt64(const Node& node)
 }
 }  // namespace detail
 
+int32_t Term::getRealOrIntegerValueSign() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  const Rational& r = detail::getRational(*d_node);
+  return static_cast<int32_t>(r.sgn());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Term::isInt32Value() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -3505,7 +3539,7 @@ void DatatypeConstructorDecl::addSelector(const std::string& name,
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORT(sort);
   CVC5_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
-      << "non-null range sort for selector";
+      << "non-null codomain sort for selector";
   //////// all checks before this line
   d_ctor->addArg(name, *sort.d_type);
   ////////
@@ -3724,7 +3758,7 @@ Term DatatypeSelector::getUpdaterTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort DatatypeSelector::getRangeSort() const
+Sort DatatypeSelector::getCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3804,7 +3838,7 @@ Term DatatypeConstructor::getConstructorTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeConstructor::getSpecializedConstructorTerm(
+Term DatatypeConstructor::getInstantiatedConstructorTerm(
     const Sort& retSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -3815,13 +3849,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   //////// all checks before this line
-
-  NodeManager* nm = d_solver->getNodeManager();
-  Node ret =
-      nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                 nm->mkConst(AscriptionType(
-                     d_ctor->getSpecializedConstructorType(*retSort.d_type))),
-                 d_ctor->getConstructor());
+  Node ret = d_ctor->getInstantiatedConstructor(*retSort.d_type);
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
   Term sctor = api::Term(d_solver, ret);
@@ -4111,6 +4139,18 @@ size_t Datatype::getNumConstructors() const
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_dtype->getNumConstructors();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Sort> Datatype::getParameters() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isParametric()) << "Expected parametric datatype";
+  //////// all checks before this line
+  std::vector<cvc5::TypeNode> params = d_dtype->getParameters();
+  return Sort::typeNodeVectorToSorts(d_solver, params);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5048,15 +5088,23 @@ Term Solver::mkValHelper(const T& t) const
   return Term(this, res);
 }
 
-Term Solver::mkRationalValHelper(const Rational& r) const
+Term Solver::mkRationalValHelper(const Rational& r, bool isInt) const
 {
   //////// all checks before this line
-  Node res = getNodeManager()->mkConst(kind::CONST_RATIONAL, r);
+  NodeManager* nm = getNodeManager();
+  Node res = isInt ? nm->mkConstInt(r) : nm->mkConstReal(r);
   (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
+  api::Term t = Term(this, res);
+  // NOTE: this block will be eliminated when arithmetic subtyping is eliminated
+  if (!isInt)
+  {
+    t = ensureRealSort(t);
+  }
+  return t;
 }
 
-Term Solver::mkRealFromStrHelper(const std::string& s) const
+Term Solver::mkRealOrIntegerFromStrHelper(const std::string& s,
+                                          bool isInt) const
 {
   //////// all checks before this line
   try
@@ -5064,7 +5112,7 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
     cvc5::Rational r = s.find('/') != std::string::npos
                            ? cvc5::Rational(s)
                            : cvc5::Rational::fromDecimal(s);
-    return mkRationalValHelper(r);
+    return mkRationalValHelper(r, isInt);
   }
   catch (const std::invalid_argument& e)
   {
@@ -5717,6 +5765,19 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (arity)
+  {
+    return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
+  }
+  return Sort(this, getNodeManager()->mkSort(symbol));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
@@ -5784,7 +5845,7 @@ Term Solver::mkInteger(const std::string& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
-  Term integer = mkRealFromStrHelper(s);
+  Term integer = mkRealOrIntegerFromStrHelper(s);
   CVC5_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " a string representing an integer";
   //////// all checks before this line
@@ -5813,8 +5874,7 @@ Term Solver::mkReal(const std::string& s) const
   CVC5_API_ARG_CHECK_EXPECTED(s != ".", s)
       << "a string representing a real or rational value.";
   //////// all checks before this line
-  Term rational = mkRealFromStrHelper(s);
-  return ensureRealSort(rational);
+  return mkRealOrIntegerFromStrHelper(s, false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5823,8 +5883,7 @@ Term Solver::mkReal(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkRationalValHelper(cvc5::Rational(val));
-  return ensureRealSort(rational);
+  return mkRationalValHelper(cvc5::Rational(val), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5833,8 +5892,7 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkRationalValHelper(cvc5::Rational(num, den));
-  return ensureRealSort(rational);
+  return mkRationalValHelper(cvc5::Rational(num, den), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7306,6 +7364,9 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_RECOVERABLE_CHECK(term.getSort().isFirstClass())
       << "Cannot get value of a term that is not first class.";
+  CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
+                             || term.getSort().getDatatype().isWellFounded())
+      << "Cannot get value of a term of non-well-founded datatype sort.";
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7324,6 +7385,9 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   {
     CVC5_API_RECOVERABLE_CHECK(t.getSort().isFirstClass())
         << "Cannot get value of a term that is not first class.";
+    CVC5_API_RECOVERABLE_CHECK(!t.getSort().isDatatype()
+                               || t.getSort().getDatatype().isWellFounded())
+        << "Cannot get value of a term of non-well-founded datatype sort.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   //////// all checks before this line
@@ -7515,9 +7579,14 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
+                 != options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
   //////// all checks before this line
   Node result;
-  bool success = d_slv->getInterpol(*conj.d_node, result);
+  TypeNode nullType;
+  bool success = d_slv->getInterpolant(*conj.d_node, nullType, result);
   if (success)
   {
     output = Term(this, result);
@@ -7533,10 +7602,36 @@ bool Solver::getInterpolant(const Term& conj,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
+                 != options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
   //////// all checks before this line
   Node result;
   bool success =
-      d_slv->getInterpol(*conj.d_node, *grammar.resolve().d_type, result);
+      d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type, result);
+  if (success)
+  {
+    output = Term(this, result);
+  }
+  return success;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::getInterpolantNext(Term& output) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
+                 != options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot get next interpolant when not solving incrementally (try "
+         "--incremental)";
+  //////// all checks before this line
+  Node result;
+  bool success = d_slv->getInterpolantNext(result);
   if (success)
   {
     output = Term(this, result);
@@ -7554,7 +7649,8 @@ bool Solver::getAbduct(const Term& conj, Term& output) const
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
   Node result;
-  bool success = d_slv->getAbduct(*conj.d_node, result);
+  TypeNode nullType;
+  bool success = d_slv->getAbduct(*conj.d_node, nullType, result);
   if (success)
   {
     output = Term(this, result);
@@ -7574,6 +7670,27 @@ bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
   Node result;
   bool success =
       d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type, result);
+  if (success)
+  {
+    output = Term(this, result);
+  }
+  return success;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::getAbductNext(Term& output) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
+      << "Cannot get next abduct unless abducts are enabled (try "
+         "--produce-abducts)";
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot get next abduct when not solving incrementally (try "
+         "--incremental)";
+  //////// all checks before this line
+  Node result;
+  bool success = d_slv->getAbductNext(result);
   if (success)
   {
     output = Term(this, result);
@@ -7876,6 +7993,18 @@ Result Solver::checkSynth() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_slv->checkSynth();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Result Solver::checkSynthNext() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot checkSynthNext when not solving incrementally (use "
+         "--incremental)";
+  //////// all checks before this line
+  return d_slv->checkSynth(true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

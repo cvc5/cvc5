@@ -275,8 +275,9 @@ class CVC5_EXPORT Result
 
   /**
    * The interal result wrapped by this result.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::Result is
-   *       not ref counted.
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::Result`` is not ref counted.
    */
   std::shared_ptr<cvc5::Result> d_result;
 };
@@ -314,6 +315,7 @@ class CVC5_EXPORT Sort
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
   friend class DatatypeDecl;
+  friend class Datatype;
   friend class Op;
   friend class Solver;
   friend class Grammar;
@@ -372,6 +374,17 @@ class CVC5_EXPORT Sort
    * @return true if this sort is greater than or equal to s
    */
   bool operator>=(const Sort& s) const;
+
+  /**
+   * @return true if the sort has a symbol.
+   */
+  bool hasSymbol() const;
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the sort.
+   */
+  std::string getSymbol() const;
 
   /**
    * @return true if this Sort is a null sort.
@@ -433,7 +446,11 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a parametric datatype sort?
+   * Is this a parametric datatype sort? A parametric datatype sort is either
+   * one that is returned by a call to Solver::mkDatatypeSort() or
+   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
+   * datatype sort returned by Sort::instantiate() for parametric datatype
+   * sort `s`.
    * @return true if the sort is a parametric datatype sort
    */
   bool isParametricDatatype() const;
@@ -544,7 +561,7 @@ class CVC5_EXPORT Sort
    * or return value for any term that is function-like.
    * This is mainly to avoid higher order.
    *
-   * Note that arrays are explicitly not considered function-like here.
+   * @note Arrays are explicitly not considered function-like here.
    *
    * @return true if this is a function-like sort
    */
@@ -751,7 +768,7 @@ class CVC5_EXPORT Sort
    * non-instantiated parametric datatype, this returns the parameter sorts of
    * the underlying datatype. If this sort is an instantiated parametric
    * datatype, then this returns the sort parameters that were used to
-   * construct the sort via ``Sort::instantiate``.
+   * construct the sort via Sort::instantiate().
    *
    * @return the parameter sorts of a parametric datatype sort.
    */
@@ -808,9 +825,10 @@ class CVC5_EXPORT Sort
 
   /**
    * The internal type wrapped by this sort.
-   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (cvc5::Type is already ref counted, so this
-   *       could be a unique_ptr instead).
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
+   *       avoid overhead due to memory allocation (``cvc5::Type`` is already
+   *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
   std::shared_ptr<cvc5::TypeNode> d_type;
 };
@@ -957,9 +975,11 @@ class CVC5_EXPORT Op
   bool isNullHelper() const;
 
   /**
-   * Note: An indexed operator has a non-null internal node, d_node
-   * Note 2: We use a helper method to avoid having API functions call
-   *         other API functions (we need to call this internally)
+   * @note An indexed operator has a non-null internal node (``d_node``).
+   *
+   * @note We use a helper method to avoid having API functions call other API
+   *       functions (we need to call this internally).
+   *
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
@@ -987,9 +1007,10 @@ class CVC5_EXPORT Op
 
   /**
    * The internal node wrapped by this operator.
-   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (cvc5::Node is already ref counted, so this
-   *       could be a unique_ptr instead).
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
+   *       avoid overhead due to memory allocation (``cvc5::Node`` is already
+   *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
   std::shared_ptr<cvc5::Node> d_node;
 };
@@ -1133,8 +1154,9 @@ class CVC5_EXPORT Term
   bool hasOp() const;
 
   /**
+   * @note This is safe to call when hasOp() returns true.
+   *
    * @return the Op used to create this term
-   * Note: This is safe to call when hasOp() returns true.
    */
   Op getOp() const;
 
@@ -1210,9 +1232,9 @@ class CVC5_EXPORT Term
 
   /**
    * Iterator for the children of a Term.
-   * Note: This treats uninterpreted functions as Term just like any other term
-   *       for example, the term f(x, y) will have Kind APPLY_UF and three
-   *       children: f, x, and y
+   * @note This treats uninterpreted functions as Term just like any other term
+   *       for example, the term ``f(x, y)`` will have Kind ``APPLY_UF`` and
+   *       three children: ``f``, ``x``, and ``y``
    */
   class CVC5_EXPORT const_iterator
   {
@@ -1246,7 +1268,7 @@ class CVC5_EXPORT Term
     /**
      * Constructor
      * @param slv the associated solver object
-     * @param e a shared pointer to the node that we're iterating over
+     * @param e a ``std::shared pointer`` to the node that we're iterating over
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
@@ -1319,6 +1341,13 @@ class CVC5_EXPORT Term
   const_iterator end() const;
 
   /**
+   * Get integer or real value sign. Must be called on integer or real values,
+   * or otherwise an exception is thrown.
+   * @return 0 if this term is zero, -1 if this term is a negative real or
+   * integer value, 1 if this term is a positive real or integer value.
+   */
+  int32_t getRealOrIntegerValueSign() const;
+  /**
    * @return true if the term is an integer value that fits within int32_t.
    */
   bool isInt32Value() const;
@@ -1369,9 +1398,9 @@ class CVC5_EXPORT Term
    */
   bool isStringValue() const;
   /**
-   * Note: This method is not to be confused with toString() which returns
-   * the term in some string representation, whatever data it may hold. Asserts
-   * isStringValue().
+   * Asserts isStringValue().
+   * @note This method is not to be confused with toString(), which returns
+   *       some string representation of the term, whatever data it may hold.
    * @return the string term as a native string value.
    */
   std::wstring getStringValue() const;
@@ -1399,9 +1428,8 @@ class CVC5_EXPORT Term
    */
   std::pair<int64_t, uint64_t> getReal64Value() const;
   /**
+   * @note A term of kind PI is not considered to be a real value.
    * @return true if the term is a rational value.
-   *
-   * Note that a term of kind PI is not considered to be a real value.
    */
   bool isRealValue() const;
   /**
@@ -1500,14 +1528,14 @@ class CVC5_EXPORT Term
    *
    * A term is a set value if it is considered to be a (canonical) constant set
    * value.  A canonical set value is one whose AST is:
-   * ```
-   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
-   * ```
+   *
+   *     (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   *
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * Note that a universe set term (kind SET_UNIVERSE) is not considered to be
-   * a set value.
+   * @note A universe set term `(kind SET_UNIVERSE)` is not considered to be
+   *       a set value.
    */
   bool isSetValue() const;
   /**
@@ -1522,9 +1550,9 @@ class CVC5_EXPORT Term
   bool isSequenceValue() const;
   /**
    * Asserts isSequenceValue().
-   * Note that it is usually necessary for sequences to call
-   * `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
-   * concatenation of unit sequences, into a sequence value.
+   * @note It is usually necessary for sequences to call Solver::simplify()
+   *       to turn a sequence that is constructed by, e.g., concatenation of
+   *       unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
@@ -1592,9 +1620,9 @@ class CVC5_EXPORT Term
   bool isCastedReal() const;
   /**
    * The internal node wrapped by this term.
-   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (cvc5::Node is already ref counted, so this
-   *       could be a unique_ptr instead).
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
+   *       avoid overhead due to memory allocation (``cvc5::Node`` is already
+   *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
   std::shared_ptr<cvc5::Node> d_node;
 };
@@ -1701,11 +1729,12 @@ class CVC5_EXPORT DatatypeConstructorDecl
   /**
    * Add datatype selector declaration.
    * @param name the name of the datatype selector declaration to add
-   * @param sort the range sort of the datatype selector declaration to add
+   * @param sort the codomain sort of the datatype selector declaration to add
    */
   void addSelector(const std::string& name, const Sort& sort);
   /**
-   * Add datatype selector declaration whose range type is the datatype itself.
+   * Add datatype selector declaration whose codomain type is the datatype
+   * itself.
    * @param name the name of the datatype selector declaration to add
    */
   void addSelectorSelf(const std::string& name);
@@ -1749,8 +1778,8 @@ class CVC5_EXPORT DatatypeConstructorDecl
   /**
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
-   * Note: This is a shared_ptr rather than a unique_ptr since
-   *       cvc5::DTypeConstructor is not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DTypeConstructor`` is not ref counted.
    */
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
@@ -1855,8 +1884,8 @@ class CVC5_EXPORT DatatypeDecl
   /**
    * The internal (intermediate) datatype wrapped by this datatype
    * declaration.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DType> d_dtype;
 };
@@ -1896,8 +1925,8 @@ class CVC5_EXPORT DatatypeSelector
    */
   Term getUpdaterTerm() const;
 
-  /** @return the range sort of this selector. */
-  Sort getRangeSort() const;
+  /** @return the codomain sort of this selector. */
+  Sort getCodomainSort() const;
 
   /**
    * @return true if this DatatypeSelector is a null object
@@ -1931,8 +1960,8 @@ class CVC5_EXPORT DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DTypeSelector> d_stor;
 };
@@ -1973,22 +2002,35 @@ class CVC5_EXPORT DatatypeConstructor
    *
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
-   *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-datatype List
+   *         (par (T) ((nil) (cons (head T) (tail (List T))))))
+   * \endverbatim
+   *
    * The type of nil terms need to be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
-   *   (as nil (List Int))
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (as nil (List Int))
+   * \endverbatim
+   *
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
-   * (List Int).
+   * ``(List Int)``.
    *
-   * Furthermore note that the returned constructor term t is an operator,
-   * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
-   * (nullary) application of nil.
+   * @note the returned constructor term ``t`` is an operator, while
+   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
+   *       above (nullary) application of nil.
    *
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  Term getSpecializedConstructorTerm(const Sort& retSort) const;
+  Term getInstantiatedConstructorTerm(const Sort& retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.
@@ -2176,8 +2218,8 @@ class CVC5_EXPORT DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
@@ -2239,6 +2281,12 @@ class CVC5_EXPORT Datatype
   /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
+  /**
+   * @return the parameters of this datatype, if it is parametric. An exception
+   * is thrown if this datatype is not parametric.
+   */
+  std::vector<Sort> getParameters() const;
+
   /** @return true if this datatype is parametric */
   bool isParametric() const;
 
@@ -2267,8 +2315,8 @@ class CVC5_EXPORT Datatype
    * Does this datatype have nested recursion? This method returns false if a
    * value of this datatype includes a subterm of its type that is nested
    * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with range type (Set T) has
-   * nested recursion.
+   * T containing a constructor having a selector with codomain type (Set T)
+   * has nested recursion.
    *
    * @return true if this datatype has nested recursion
    */
@@ -2433,8 +2481,8 @@ class CVC5_EXPORT Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DType> d_dtype;
 };
@@ -2572,6 +2620,8 @@ class CVC5_EXPORT Grammar
    * each occurrence of non-terminal symbols from the domain of \p ntsToUnres
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
+   *
+   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
    *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
@@ -3136,6 +3186,8 @@ class CVC5_EXPORT Solver
    * When constructing datatypes, unresolved sorts are replaced by the datatype
    * sort constructed for the datatype declaration it is associated with.
    *
+   * @note Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
    * @return the datatype sorts
@@ -3210,6 +3262,18 @@ class CVC5_EXPORT Solver
    * @return the uninterpreted sort
    */
   Sort mkUninterpretedSort(const std::string& symbol) const;
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
 
   /**
    * Create a sort constructor sort.
@@ -3340,12 +3404,13 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create an operator for a builtin Kind
+   * Create an operator for a builtin Kind.
+   *
    * The Kind may not be the Kind for an indexed operator
-   *   (e.g. BITVECTOR_EXTRACT)
-   * Note: in this case, the Op simply wraps the Kind.
-   * The Kind can be used in mkTerm directly without
-   *   creating an op first.
+   * (e.g. BITVECTOR_EXTRACT).
+   *
+   * @note In this case, the ``Op`` simply wraps the ``Kind``.  The Kind can be
+   *       used in ``Solver::mkTerm`` directly without creating an ``Op`` first.
    * @param kind the kind to wrap
    */
   Op mkOp(Kind kind) const;
@@ -3551,7 +3616,7 @@ class CVC5_EXPORT Solver
   /**
    * Create a bit-vector constant of given size and value.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @note The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -3563,7 +3628,7 @@ class CVC5_EXPORT Solver
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @note The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
@@ -3670,10 +3735,14 @@ class CVC5_EXPORT Solver
 
   /**
    * Create (first-order) constant (0-arity function symbol).
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-const <symbol> <sort> )
-   *   ( declare-fun <symbol> ( ) <sort> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-const <symbol> <sort>)
+   *     (declare-fun <symbol> () <sort>)
    * \endverbatim
    *
    * @param sort the sort of the constant
@@ -3758,30 +3827,45 @@ class CVC5_EXPORT Solver
 
   /**
    * Assert a formula.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( assert <term> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (assert <term>)
    * \endverbatim
+   *
    * @param term the formula to assert
    */
   void assertFormula(const Term& term) const;
 
   /**
    * Check satisfiability.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( check-sat )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat)
    * \endverbatim
+   *
    * @return the result of the satisfiability check.
    */
   Result checkSat() const;
 
   /**
    * Check satisfiability assuming the given formula.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( check-sat-assuming ( <prop_literal> ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat-assuming ( <prop_literal> ))
    * \endverbatim
+   *
    * @param assumption the formula to assume
    * @return the result of the satisfiability check.
    */
@@ -3789,10 +3873,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Check satisfiability assuming the given formulas.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( check-sat-assuming ( <prop_literal>+ ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat-assuming ( <prop_literal>+ ))
    * \endverbatim
+   *
    * @param assumptions the formulas to assume
    * @return the result of the satisfiability check.
    */
@@ -3815,10 +3904,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Create datatype sort.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-datatype <symbol> <datatype_decl> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-datatype <symbol> <datatype_decl>)
    * \endverbatim
+   *
    * @param symbol the name of the datatype sort
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort
@@ -3828,10 +3922,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Declare n-ary function symbol.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-fun <symbol> ( <sort>* ) <sort>)
    * \endverbatim
+   *
    * @param symbol the name of the function
    * @param sorts the sorts of the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3843,10 +3942,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Declare uninterpreted sort.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-sort <symbol> <numeral> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-sort <symbol> <numeral>)
    * \endverbatim
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -3855,10 +3959,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Define n-ary function.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( define-fun <function_def> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-fun <function_def>)
    * \endverbatim
+   *
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3875,10 +3984,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Define recursive function.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( define-fun-rec <function_def> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-fun-rec <function_def>)
    * \endverbatim
+   *
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3895,10 +4009,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Define recursive function.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( define-fun-rec <function_def> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-fun-rec <function_def>)
    * \endverbatim
+   *
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
@@ -3914,10 +4033,18 @@ class CVC5_EXPORT Solver
 
   /**
    * Define recursive functions.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (define-funs-rec
+   *         ( <function_decl>_1 ... <function_decl>_n )
+   *         ( <term>_1 ... <term>_n )
+   *     )
    * \endverbatim
+   *
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
@@ -3933,10 +4060,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Echo a given string to the given output stream.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( echo <std::string> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (echo <string>)
    * \endverbatim
+   *
    * @param out the output stream
    * @param str the string to echo
    */
@@ -3944,27 +4076,45 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the list of asserted formulas.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-assertions )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-assertions)
    * \endverbatim
+   *
    * @return the list of asserted formulas
    */
   std::vector<Term> getAssertions() const;
 
   /**
    * Get info from the solver.
-   * SMT-LIB: \verbatim( get-info <info_flag> )\endverbatim
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-info <info_flag>)
+   * \endverbatim
+   *
    * @return the info
    */
   std::string getInfo(const std::string& flag) const;
 
   /**
    * Get the value of a given option.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-option <keyword> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-option <keyword>)
    * \endverbatim
+   *
    * @param option the option for which the value is queried
    * @return a string representation of the option value
    */
@@ -3993,22 +4143,36 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the set of unsat ("failed") assumptions.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-unsat-assumptions )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-assumptions)
+   *
+   * Requires to enable option
+   * :ref:`produce-unsat-assumptions <lbl-option-produce-unsat-assumptions>`.
    * \endverbatim
-   * Requires to enable option 'produce-unsat-assumptions'.
+   *
    * @return the set of unsat assumptions.
    */
   std::vector<Term> getUnsatAssumptions() const;
 
   /**
    * Get the unsatisfiable core.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-unsat-core )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core)
+   *
+   * Requires to enable option
+   * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
    * \endverbatim
-   * Requires to enable option 'produce-unsat-cores'.
+   *
    * @return a set of terms representing the unsatisfiable core
    */
   std::vector<Term> getUnsatCore() const;
@@ -4018,18 +4182,25 @@ class CVC5_EXPORT Solver
    * intended to be called immediately after any response to a checkSat.
    *
    * @return a map from (a subset of) the input assertions to a real value that
-   * is an estimate of how difficult each assertion was to solve. Unmentioned
-   * assertions can be assumed to have zero difficulty.
+   *         is an estimate of how difficult each assertion was to solve.
+   *         Unmentioned assertions can be assumed to have zero difficulty.
    */
   std::map<Term, Term> getDifficulty() const;
 
   /**
    * Get the refutation proof
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-proof )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-proof)
+   *
+   * Requires to enable option
+   * :ref:`produce-proofs <lbl-option-produce-proofs>`.
    * \endverbatim
-   * Requires to enable option 'produce-proofs'.
+   *
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
@@ -4037,10 +4208,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the value of the given term in the current model.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-value ( <term> ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-value ( <term> ))
    * \endverbatim
+   *
    * @param term the term for which the value is queried
    * @return the value of the given term
    */
@@ -4048,10 +4224,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the values of the given terms in the current model.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-value ( <term>+ ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-value ( <term>* ))
    * \endverbatim
+   *
    * @param terms the terms for which the value is queried
    * @return the values of the given terms
    */
@@ -4071,7 +4252,11 @@ class CVC5_EXPORT Solver
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
-   * the model-cores option has been set.
+   * option
+   * \verbatim:rst:inline
+   * :ref:`model-cores <lbl-option-model-cores>`
+   * \endverbatim
+   * has been set.
    *
    * @param v The term in question
    * @return true if v is a model core symbol
@@ -4080,11 +4265,20 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the model
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-model )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-model)
+   *
+   * Requires to enable option
+   * :ref:`produce-models <lbl-option-produce-models>`.
    * \endverbatim
-   * Requires to enable option 'produce-models'.
+   *
+   * \endverbatim
+   *
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
    * @param vars The list of free constants that should be printed in the
@@ -4096,49 +4290,76 @@ class CVC5_EXPORT Solver
 
   /**
    * Do quantifier elimination.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-qe <q> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-qe <q>)
    * \endverbatim
+   *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
-   * @param q a quantified formula of the form:
-   *   Q x1...xn. P( x1...xn, y1...yn )
-   * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @return a formula ret such that, given the current set of formulas A
-   * asserted to this solver:
-   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
-   *   - ret is quantifier-free formula containing only free variables in
-   *     y1...yn.
+   *
+   * @note Quantifier Elimination is is only complete for LRA and LIA.
+   *
+   * @param q a quantified formula of the form
+   *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
+   *          where
+   *          @f$Q\bar{x}@f$ is a set of quantified variables of the form
+   *          @f$Q x_1...x_k@f$ and
+   *          @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
+   * @return a formula @f$\phi@f$  such that, given the current set of formulas
+   *         @f$A@f$ asserted to this solver:
+   *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
+   *         - @f$\phi@f$ is quantifier-free formula containing only free
+   *           variables in @f$y_1...y_n@f$.
    */
   Term getQuantifierElimination(const Term& q) const;
 
   /**
    * Do partial quantifier elimination, which can be used for incrementally
    * computing the result of a quantifier elimination.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-qe-disjunct <q> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-qe-disjunct <q>)
    * \endverbatim
+   *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
-   * @param q a quantified formula of the form:
-   *   Q x1...xn. P( x1...xn, y1...yn )
-   * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @return a formula ret such that, given the current set of formulas A
-   * asserted to this solver:
-   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
-   *     exists,
-   *   - ret is quantifier-free formula containing only free variables in
-   *     y1...yn,
-   *   - If Q is exists, let A^Q_n be the formula
-   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
-   *     where for each i=1,...n, formula ret^Q_i is the result of calling
-   *     getQuantifierEliminationDisjunct for q with the set of assertions
-   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
-   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
-   *     where ret^Q_i is the same as above. In either case, we have
-   *     that ret^Q_j will eventually be true or false, for some finite j.
+   * @param q a quantified formula of the form
+   *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
+   *          where
+   *          @f$Q\bar{x}@f$ is a set of quantified variables of the form
+   *          @f$Q x_1...x_k@f$ and
+   *          @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
+   * @return a formula @f$\phi@f$ such that, given the current set of formulas
+   *         @f$A@f$ asserted to this solver:
+   *         - @f$(A \wedge q \implies A \wedge \phi)@f$ if @f$Q@f$ is
+   *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
+   *           @f$Q@f$ is @f$\exists@f$
+   *         - @f$\phi@f$ is quantifier-free formula containing only free
+   *           variables in @f$y_1...y_n@f$
+   *         - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
+   *           formula
+   *           @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge
+   *           \neg (\phi \wedge Q_n))@f$
+   *           where for each @f$i = 1...n@f$,
+   *           formula @f$(\phi \wedge Q_i)@f$ is the result of calling
+   *           Solver::getQuantifierEliminationDisjunct() for @f$q@f$ with the
+   *           set of assertions @f$(A \wedge Q_{i-1})@f$.
+   *           Similarly, if @f$Q@f$ is @f$\forall@f$, then let
+   *           @f$(A \wedge Q_n)@f$ be
+   *           @f$(A \wedge (\phi \wedge Q_1) \wedge ... \wedge (\phi \wedge
+   *           Q_n))@f$
+   *           where @f$(\phi \wedge Q_i)@f$ is the same as above.
+   *           In either case, we have that @f$(\phi \wedge Q_j)@f$ will
+   *           eventually be true or false, for some finite j.
    */
   Term getQuantifierEliminationDisjunct(const Term& q) const;
 
@@ -4165,10 +4386,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( declare-pool <symbol> <sort> ( <term>* ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-pool <symbol> <sort> ( <term>* ))
    * \endverbatim
+   *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
@@ -4178,21 +4404,34 @@ class CVC5_EXPORT Solver
                    const std::vector<Term>& initValue) const;
   /**
    * Pop (a) level(s) from the assertion stack.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( pop <numeral> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (pop <numeral>)
    * \endverbatim
+   *
    * @param nscopes the number of levels to pop
    */
   void pop(uint32_t nscopes = 1) const;
 
   /**
    * Get an interpolant
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-interpol <conj> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol <conj>)
+   *
+   * Requires option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
-   * Requires to enable option 'produce-interpols'.
+   *
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -4202,11 +4441,19 @@ class CVC5_EXPORT Solver
 
   /**
    * Get an interpolant
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-interpol <conj> <g> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol <conj> <grammar>)
+   *
+   * Requires option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
-   * Requires to enable option 'produce-interpols'.
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -4216,57 +4463,138 @@ class CVC5_EXPORT Solver
   bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
-   * Get an abduct.
+   * Get the next interpolant. Can only be called immediately after a successful
+   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * syntactically different interpolant wrt the last returned interpolant if
+   * successful.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-abduct <conj> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol-next)
+   *
+   * Requires to enable incremental mode, and option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
-   * Requires enabling option 'produce-abducts'
+   *
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj
+   *        on the last call to getInterpolant.
+   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   */
+  bool getInterpolantNext(Term& output) const;
+
+  /**
+   * Get an abduct.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-abduct <conj>)
+   *
+   * Requires to enable option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
+   * \endverbatim
+   *
    * @param conj the conjecture term
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   * @param output a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
+   *               and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
+   *               @f$A@f$ is the current set of assertions and @f$B@f$ is
+   *               given in the input by ``conj``.
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
    */
   bool getAbduct(const Term& conj, Term& output) const;
 
   /**
    * Get an abduct.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-abduct <conj> <g> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-abduct <conj> <grammar>)
+   *
+   * Requires to enable option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
    * \endverbatim
-   * Requires enabling option 'produce-abducts'
+   *
    * @param conj the conjecture term
-   * @param grammar the grammar for the abduct C
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   * @param grammar the grammar for the abduct @f$C@f$
+   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
+   *        the current set of assertions and @f$B@f$ is given in the input by
+   *        ``conj``
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
    */
   bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-abduct-next)
+   *
+   * Requires to enable incremental mode, and option
+   * :ref:`produce-abducts <lbl-option-produce-abducts>`.
+   * \endverbatim
+   *
+   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
+   *        the current set of assertions and @f$B@f$ is given in the input by
+   *        the last call to getAbduct.
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   */
+  bool getAbductNext(Term& output) const;
+
+  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( block-model )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (block-model)
+   *
+   * Requires enabling option
+   * :ref:`produce-models <lbl-option-produce-models>`.
+   * 'produce-models' and setting option
+   * :ref:`block-models <lbl-option-block-models>`.
+   * to a mode other than ``none``.
    * \endverbatim
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
    */
   void blockModel() const;
 
   /**
    * Block the current model values of (at least) the values in terms. Can be
    * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( block-model-values ( <terms>+ ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (block-model-values ( <terms>+ ))
+   *
+   * Requires enabling option
+   * :ref:`produce-models <lbl-option-produce-models>`.
+   * 'produce-models' and setting option
+   * :ref:`block-models <lbl-option-block-models>`.
+   * to a mode other than ``none``.
    * \endverbatim
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
@@ -4278,29 +4606,44 @@ class CVC5_EXPORT Solver
 
   /**
    * Push (a) level(s) to the assertion stack.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( push <numeral> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (push <numeral>)
    * \endverbatim
+   *
    * @param nscopes the number of levels to push
    */
   void push(uint32_t nscopes = 1) const;
 
   /**
    * Remove all assertions.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( reset-assertions )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (reset-assertions)
    * \endverbatim
+   *
    */
   void resetAssertions() const;
 
   /**
    * Set info.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( set-info <attribute> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-info <attribute>)
    * \endverbatim
+   *
    * @param keyword the info flag
    * @param value the value of the info flag
    */
@@ -4308,29 +4651,40 @@ class CVC5_EXPORT Solver
 
   /**
    * Set logic.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( set-logic <symbol> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-logic <symbol>)
    * \endverbatim
+   *
    * @param logic the logic to set
    */
   void setLogic(const std::string& logic) const;
 
   /**
    * Set option.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( set-option <option> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-option :<option> <value>)
    * \endverbatim
+   *
    * @param option the option name
    * @param value the option value
    */
   void setOption(const std::string& option, const std::string& value) const;
 
   /**
-   * If needed, convert this term to a given sort. Note that the sort of the
-   * term must be convertible into the target sort. Currently only Int to Real
-   * conversions are supported.
+   * If needed, convert this term to a given sort.
+   *
+   * @note The sort of the term must be convertible into the target sort.
+   *       Currently only Int to Real conversions are supported.
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
@@ -4339,10 +4693,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Append \p symbol to the current list of universal variables.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( declare-var <symbol> <sort> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-var <symbol> <sort>)
    * \endverbatim
+   *
    * @param sort the sort of the universal variable
    * @param symbol the name of the universal variable
    * @return the universal variable
@@ -4363,10 +4722,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize n-ary function.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-fun <symbol> ( <boundVars>* ) <sort>)
    * \endverbatim
+   *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -4378,10 +4742,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-fun <symbol> ( <boundVars>* ) <sort> <grammar>)
    * \endverbatim
+   *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -4395,10 +4764,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize invariant.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-inv <symbol> ( <boundVars>* ) )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-inv <symbol> ( <boundVars>* ))
    * \endverbatim
+   *
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @return the invariant
@@ -4408,10 +4782,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize invariant following specified syntactic constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-inv <symbol> ( <boundVars>* ) <grammar>)
    * \endverbatim
+   *
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @param grammar the syntactic constraints
@@ -4423,20 +4802,30 @@ class CVC5_EXPORT Solver
 
   /**
    * Add a forumla to the set of Sygus constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( constraint <term> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (constraint <term>)
    * \endverbatim
+   *
    * @param term the formula to add as a constraint
    */
   void addSygusConstraint(const Term& term) const;
 
   /**
    * Add a forumla to the set of Sygus assumptions.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( assume <term> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (assume <term>)
    * \endverbatim
+   *
    * @param term the formula to add as an assumption
    */
   void addSygusAssume(const Term& term) const;
@@ -4444,10 +4833,15 @@ class CVC5_EXPORT Solver
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( inv-constraint <inv> <pre> <trans> <post> )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (inv-constraint <inv> <pre> <trans> <post>)
    * \endverbatim
+   *
    * @param inv the function-to-synthesize
    * @param pre the pre-condition
    * @param trans the transition relation
@@ -4459,13 +4853,38 @@ class CVC5_EXPORT Solver
    * Try to find a solution for the synthesis conjecture corresponding to the
    * current list of functions-to-synthesize, universal variables and
    * constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( check-synth )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-synth)
    * \endverbatim
-   * @return the result of the synthesis conjecture.
+   *
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   Result checkSynth() const;
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-synth-next)
+   * \endverbatim
+   *
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  Result checkSynthNext() const;
 
   /**
    * Get the synthesis solution of the given term. This method should be called
@@ -4522,9 +4941,10 @@ class CVC5_EXPORT Solver
   template <typename T>
   Term mkValHelper(const T& t) const;
   /** Helper for making rational values. */
-  Term mkRationalValHelper(const Rational& r) const;
+  Term mkRationalValHelper(const Rational& r, bool isInt = true) const;
   /** Helper for mkReal functions that take a string as argument. */
-  Term mkRealFromStrHelper(const std::string& s) const;
+  Term mkRealOrIntegerFromStrHelper(const std::string& s,
+                                    bool isInt = true) const;
   /** Helper for mkBitVector functions that take a string as argument. */
   Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
   /**
@@ -4583,10 +5003,15 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (synth-fun <symbol> ( <boundVars>* ) <sort> <grammar>?)
    * \endverbatim
+   *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function

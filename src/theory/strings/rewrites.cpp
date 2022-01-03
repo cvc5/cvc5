@@ -154,6 +154,7 @@ const char* toString(Rewrite r)
     case Rewrite::UPD_CONST_INDEX_MAX_OOB: return "UPD_CONST_INDEX_MAX_OOB";
     case Rewrite::UPD_CONST_INDEX_NEG: return "UPD_CONST_INDEX_NEG";
     case Rewrite::UPD_CONST_INDEX_OOB: return "UPD_CONST_INDEX_OOB";
+    case Rewrite::UPD_REV: return "UPD_REV";
     case Rewrite::STOI_CONCAT_NONNUM: return "STOI_CONCAT_NONNUM";
     case Rewrite::STOI_EVAL: return "STOI_EVAL";
     case Rewrite::STR_CONV_CONST: return "STR_CONV_CONST";
@@ -223,6 +224,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";
     case Rewrite::SEQ_NTH_TOTAL_OOB: return "SEQ_NTH_TOTAL_OOB";
+    case Rewrite::SEQ_NTH_UNIT: return "SEQ_NTH_UNIT";
     default: return "?";
   }
 }

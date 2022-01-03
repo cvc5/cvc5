@@ -61,7 +61,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   NodeManager* nm = NodeManager::currentNM();
-  arith::BoundInference binfer;
+  arith::BoundInference binfer(d_env);
   std::vector<Node> learnedLits = d_preprocContext->getLearnedLiterals();
   std::unordered_set<Node> llrw;
   std::unordered_map<TNode, Node> visited;

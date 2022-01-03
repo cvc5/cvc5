@@ -42,8 +42,8 @@ BagSolver::BagSolver(Env& env,
       d_termReg(tr),
       d_mapCache(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -89,7 +89,7 @@ void BagSolver::postCheck()
   {
     for (const Node& e : d_state.getElements(n))
     {
-      checkNonNegativeCountTerms(n, e);
+      checkNonNegativeCountTerms(n, d_state.getRepresentative(e));
     }
   }
 }
@@ -115,7 +115,7 @@ void BagSolver::checkEmpty(const Node& n)
   Assert(n.getKind() == BAG_EMPTY);
   for (const Node& e : d_state.getElements(n))
   {
-    InferInfo i = d_ig.empty(n, e);
+    InferInfo i = d_ig.empty(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -126,7 +126,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.unionDisjoint(n, e);
+    InferInfo i = d_ig.unionDisjoint(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -137,7 +137,7 @@ void BagSolver::checkUnionMax(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.unionMax(n, e);
+    InferInfo i = d_ig.unionMax(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -148,7 +148,7 @@ void BagSolver::checkIntersectionMin(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.intersection(n, e);
+    InferInfo i = d_ig.intersection(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -159,7 +159,7 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.differenceSubtract(n, e);
+    InferInfo i = d_ig.differenceSubtract(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -172,7 +172,7 @@ void BagSolver::checkBagMake(const Node& n)
       << " are: " << d_state.getElements(n) << std::endl;
   for (const Node& e : d_state.getElements(n))
   {
-    InferInfo i = d_ig.bagMake(n, e);
+    InferInfo i = d_ig.bagMake(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -188,7 +188,7 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.differenceRemove(n, e);
+    InferInfo i = d_ig.differenceRemove(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -205,7 +205,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.duplicateRemoval(n, e);
+    InferInfo i = d_ig.duplicateRemoval(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -224,8 +224,9 @@ void BagSolver::checkMap(Node n)
   Assert(n.getKind() == BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& y : downwards)
+  for (const Node& z : downwards)
   {
+    Node y = d_state.getRepresentative(z);
     if (d_mapCache.count(n) && d_mapCache[n].get()->contains(y))
     {
       continue;

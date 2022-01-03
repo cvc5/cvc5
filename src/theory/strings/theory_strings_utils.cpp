@@ -140,33 +140,10 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
   return NodeManager::currentNM()->mkNode(k, c);
 }
 
-Node mkNConcat(Node n1, Node n2)
-{
-  return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
-}
-
-Node mkNConcat(Node n1, Node n2, Node n3)
-{
-  return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
-}
-
-Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
-{
-  return Rewriter::rewrite(mkConcat(c, tn));
-}
-
-Node mkNLength(Node t)
-{
-  return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
-}
-
 Node mkPrefix(Node t, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(
-      STRING_SUBSTR, t, nm->mkConst(CONST_RATIONAL, Rational(0)), n);
+  return nm->mkNode(STRING_SUBSTR, t, nm->mkConstInt(Rational(0)), n);
 }
 
 Node mkSuffix(Node t, Node n)

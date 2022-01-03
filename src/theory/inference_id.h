@@ -181,6 +181,7 @@ enum class InferenceId
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
   BAGS_FOLD,
+  BAGS_CARD,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -687,6 +688,16 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation
   STRINGS_ARRAY_NTH_CONCAT,
+  // nth over extract
+  STRINGS_ARRAY_NTH_EXTRACT,
+  // nth over update
+  STRINGS_ARRAY_NTH_UPDATE,
+  // reasoning about the nth term from update term
+  STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+  // nth over update when updated with an unit term
+  STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
+  // nth over reverse
+  STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false

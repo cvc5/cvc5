@@ -55,11 +55,11 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       std::vector<TypeNode> datatypeBlock;
       for (const TypeNode& ctn : connectedTypes)
       {
-        if (stc.isSort())
+        if (ctn.isSort())
         {
-          d_printer->toStreamCmdDeclareType(out, stc);
+          d_printer->toStreamCmdDeclareType(out, ctn);
         }
-        else if (stc.isDatatype())
+        else if (ctn.isDatatype())
         {
           datatypeBlock.push_back(ctn);
         }

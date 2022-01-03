@@ -90,7 +90,10 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
   return out;
 }
 
-QuantifiersRewriter::QuantifiersRewriter(const Options& opts) : d_opts(opts) {}
+QuantifiersRewriter::QuantifiersRewriter(Rewriter* r, const Options& opts)
+    : d_rewriter(r), d_opts(opts)
+{
+}
 
 bool QuantifiersRewriter::isLiteral( Node n ){
   switch( n.getKind() ){
@@ -511,9 +514,9 @@ Node QuantifiersRewriter::computeProcessTerms2(
           {
             // check if it rewrites to a constant
             Node nn = nm->mkNode(EQUAL, no, ret[i][j]);
-            nn = Rewriter::rewrite(nn);
             childrenIte.push_back(nn);
-            if (nn.isConst())
+            // check if it will rewrite to a constant
+            if (no == ret[i][j] || (no.isConst() && ret[i][j].isConst()))
             {
               doRewrite = true;
             }
@@ -550,7 +553,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
   return ret;
 }
 
-Node QuantifiersRewriter::computeExtendedRewrite(Node q, const QAttributes& qa)
+Node QuantifiersRewriter::computeExtendedRewrite(TNode q,
+                                                 const QAttributes& qa) const
 {
   // do not apply to recursive functions
   if (qa.isFunDef())
@@ -559,7 +563,7 @@ Node QuantifiersRewriter::computeExtendedRewrite(Node q, const QAttributes& qa)
   }
   Node body = q[1];
   // apply extended rewriter
-  Node bodyr = Rewriter::callExtendedRewrite(body);
+  Node bodyr = d_rewriter->extendedRewrite(body);
   if (body != bodyr)
   {
     std::vector<Node> children;
@@ -906,9 +910,9 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       // take into account if parametric
       if (dt.isParametric())
       {
-        tspec = c.getSpecializedConstructorType(lit[0].getType());
-        cons = nm->mkNode(
-            APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cons);
+        TypeNode ltn = lit[0].getType();
+        tspec = c.getInstantiatedConstructorType(ltn);
+        cons = c.getInstantiatedConstructor(ltn);
       }
       else
       {
@@ -920,7 +924,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = tspec[j];
-        Node rn = nm->mkConst(CONST_RATIONAL, Rational(j));
+        Node rn = nm->mkConstInt(Rational(j));
         Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
         Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
         newChildren.push_back(v);

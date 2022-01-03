@@ -115,7 +115,7 @@ bool RegExpSolver::checkInclInter(
     std::vector<Node> mems2 = mr.second;
     Trace("regexp-process")
         << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if (!checkEqcInclusion(mems2))
+    if (options().strings.stringRegexpInclusion && !checkEqcInclusion(mems2))
     {
       // conflict discovered, return
       return true;

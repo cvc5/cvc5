@@ -132,7 +132,8 @@ bool TheoryEngineModelBuilder::isValue(TNode n)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL)
+  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL
+      || n.getKind() == kind::SEQ_NTH_TOTAL || n.getKind() == kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -1034,7 +1035,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     if (!repSet.empty())
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
-                             << ", first = " << *(repSet.begin()) << endl;
+                             << ", repSet = " << repSet << endl;
       Assert(false);
     }
   }

@@ -43,7 +43,7 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
-  Node element = getRepresentative(n[0]);
+  Node element = n[0];
   Node bag = getRepresentative(n[1]);
   d_bagElements[bag].insert(element);
 }

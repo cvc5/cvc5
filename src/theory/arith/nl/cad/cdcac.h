@@ -29,6 +29,7 @@
 #include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/cad/lazard_evaluation.h"
 #include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 
@@ -194,6 +195,20 @@ class CDCAC : protected EnvObj
    * Additionally makes sure to prune proofs for removed intervals.
    */
   void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
+
+  /**
+   * Prepare the lazard evaluation object with the current assignment, if the
+   * lazard lifting is enabled. Otherwise, this function does nothing.
+   */
+  void prepareRootIsolation(LazardEvaluation& le, size_t cur_variable) const;
+
+  /**
+   * Isolates the real roots of the polynomial `p`. If the lazard lifting is
+   * enabled, this function uses `le.isolateRealRoots()`, otherwise uses the
+   * regular `poly::isolate_real_roots()`.
+   */
+  std::vector<poly::Value> isolateRealRoots(LazardEvaluation& le,
+                                            const poly::Polynomial& p) const;
 
   /**
    * The current assignment. When the method terminates with SAT, it contains a

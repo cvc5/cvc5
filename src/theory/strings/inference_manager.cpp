@@ -51,8 +51,8 @@ InferenceManager::InferenceManager(Env& env,
                  : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
