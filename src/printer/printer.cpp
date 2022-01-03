@@ -405,12 +405,22 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
   printUnknownCommand(out, "get-interpol");
 }
 
+void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-interpol-next");
+}
+
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
                                    const std::string& name,
                                    Node conj,
                                    TypeNode sygusType) const
 {
   printUnknownCommand(out, "get-abduct");
+}
+
+void Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-abduct-next");
 }
 
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
