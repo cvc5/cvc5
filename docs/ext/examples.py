@@ -95,9 +95,9 @@ class APIExamples(SphinxDirective):
                 # if the file is "absolute", we can provide a download link
                 urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
                 url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
-                content.append(f'        .. rst-class:: wy-text-right')
+                content.append(f'        .. rst-class:: fa fa-download icon-margin')
                 content.append(f'        ')
-                content.append(f'        download: `{urlname} <{url}>`_')
+                content.append(f'        `{urlname} <{url}>`_')
                 content.append(f'')
 
             content.append(f'        .. literalinclude:: {file}')
