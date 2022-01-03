@@ -1273,6 +1273,7 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
+  regress0/strings/proj-issue390-update-rev-rewrite.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1533,23 +1534,25 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abduction_1255.corecstrs.readable.smt2
+  regress1/abduction/abduction_streq.readable.smt2
+  regress1/abduction/abduction-no-pbe-sym-break.smt2
+  regress1/abduction/abduct-dt.smt2
   regress1/abduction/abd-real-const.smt2
-  regress1/abduction/sygus-abduct-test-user.smt2
-  regress1/abduction/issue5848-4.smt2
+  regress1/abduction/abd-simple-conj-4.smt2
   regress1/abduction/issue5848-2.smt2
+  regress1/abduction/issue5848-3-trivial-no-abduct.smt2
+  regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848.smt2
   regress1/abduction/issue6605-1.smt2
-  regress1/abduction/abduct-dt.smt2
-  regress1/abduction/sygus-abduct-test-ccore.smt2
-  regress1/abduction/sygus-abduct-test.smt2
-  regress1/abduction/abd-simple-conj-4.smt2
-  regress1/abduction/abduction_streq.readable.smt2
-  regress1/abduction/yoni-true-sol.smt2
-  regress1/abduction/uf-abduct.smt2
-  regress1/abduction/abduction_1255.corecstrs.readable.smt2
-  regress1/abduction/abduction-no-pbe-sym-break.smt2
-  regress1/abduction/issue5848-3-trivial-no-abduct.smt2
+  regress1/abduction/simple-incremental.smt2
+  regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
+  regress1/abduction/sygus-abduct-test.smt2
+  regress1/abduction/sygus-abduct-test-ccore.smt2
+  regress1/abduction/sygus-abduct-test-user.smt2
+  regress1/abduction/uf-abduct.smt2
+  regress1/abduction/yoni-true-sol.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
@@ -2467,12 +2470,15 @@ set(regress_1_tests
   regress1/sygus/icfp_14_12_diff_types.sy
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
+  regress1/sygus/incremental-stream-ex.sy
   regress1/sygus/int-any-const.sy
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/interpol1.smt2
+  regress1/sygus/interpol1-push-pop.smt2 
   regress1/sygus/interpol3.smt2
+  regress1/sygus/interpol3-next.smt2
   regress1/sygus/interpol_arr1.smt2
   regress1/sygus/interpol_arr2.smt2
   regress1/sygus/interpol_cosa_1.smt2

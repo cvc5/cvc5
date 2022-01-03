@@ -576,6 +576,12 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       PARSER_STATE->checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
     }
+  | /* check-synth-next */
+    CHECK_SYNTH_NEXT_TOK
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd.reset(new CheckSynthCommand(true));
+    }
   | /* set-feature */
     SET_FEATURE_TOK keyword[name] symbolicExpr[expr]
     {
@@ -1001,6 +1007,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name, e, g));
     }
+  | GET_ABDUCT_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetAbductNextCommand);
+    }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
     }
@@ -1011,6 +1021,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     )?
     {
       cmd->reset(new GetInterpolCommand(name, e, g));
+    }
+  | GET_INTERPOL_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetInterpolNextCommand);
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
@@ -2232,7 +2246,9 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
+GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
 GET_INTERPOL_TOK : 'get-interpol';
+GET_INTERPOL_NEXT_TOK : 'get-interpol-next';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
 
@@ -2240,6 +2256,7 @@ DECLARE_POOL : 'declare-pool';
 SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';
 SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
+CHECK_SYNTH_NEXT_TOK : { PARSER_STATE->sygus()}?'check-synth-next';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';

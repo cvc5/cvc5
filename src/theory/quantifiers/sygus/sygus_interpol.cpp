@@ -323,36 +323,50 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   createVariables(itpGType.isNull());
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
 
-  Node itp = mkPredicate(name);
-  mkSygusConjecture(itp, axioms, conj);
+  d_itp = mkPredicate(name);
+  mkSygusConjecture(d_itp, axioms, conj);
 
-  std::unique_ptr<SolverEngine> subSolver;
-  initializeSubsolver(subSolver, d_env);
+  initializeSubsolver(d_subSolver, d_env);
   // get the logic
-  LogicInfo l = subSolver->getLogicInfo().getUnlockedCopy();
+  LogicInfo l = d_subSolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
   l.enableSygus();
-  subSolver->setLogic(l);
+  d_subSolver->setLogic(l);
 
   for (const Node& var : d_vars)
   {
-    subSolver->declareSygusVar(var);
+    d_subSolver->declareSygusVar(var);
   }
   std::vector<Node> vars_empty;
-  subSolver->declareSynthFun(itp, grammarType, false, vars_empty);
-  Trace("sygus-interpol") << "SolverEngine::getInterpol: made conjecture : "
-                          << d_sygusConj << ", solving for "
-                          << d_sygusConj[0][0] << std::endl;
-  subSolver->assertSygusConstraint(d_sygusConj);
+  d_subSolver->declareSynthFun(d_itp, grammarType, false, vars_empty);
+  Trace("sygus-interpol")
+      << "SygusInterpol::solveInterpolation: made conjecture : " << d_sygusConj
+      << ", solving for " << d_sygusConj[0][0] << std::endl;
+  d_subSolver->assertSygusConstraint(d_sygusConj);
 
-  Trace("sygus-interpol") << "  SolverEngine::getInterpol check sat..."
-                          << std::endl;
-  Result r = subSolver->checkSynth();
-  Trace("sygus-interpol") << "  SolverEngine::getInterpol result: " << r
+  Trace("sygus-interpol")
+      << "  SygusInterpol::solveInterpolation check synth..." << std::endl;
+  Result r = d_subSolver->checkSynth();
+  Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    return findInterpol(subSolver.get(), interpol, itp);
+    return findInterpol(d_subSolver.get(), interpol, d_itp);
+  }
+  return false;
+}
+
+bool SygusInterpol::solveInterpolationNext(Node& interpol)
+{
+  Trace("sygus-interpol")
+      << "  SygusInterpol::solveInterpolationNext check synth..." << std::endl;
+  // invoke the check-synth with isNext = true.
+  Result r = d_subSolver->checkSynth(true);
+  Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: "
+                          << r << std::endl;
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    return findInterpol(d_subSolver.get(), interpol, d_itp);
   }
   return false;
 }

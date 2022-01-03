@@ -111,11 +111,11 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
             internalSubstitute(rhs, cache, tracker);
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
-            result = cache[rhs];
             if (tracker != nullptr)
             {
               tracker->insert(result);
             }
+            result = cache[rhs];
           }
         }
       }

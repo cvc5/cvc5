@@ -1013,21 +1013,22 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // integer constants. We must ensure numerator and denominator are
     // constant and the denominator is non-zero. A similar issue happens for
     // negative integers and reals, with unary minus.
+    // NOTE this should be applied more eagerly when UMINUS/DIVISION is
+    // constructed.
     bool isNeg = false;
     if (constVal.getKind() == api::UMINUS)
     {
       isNeg = true;
       constVal = constVal[0];
     }
-    if (constVal.getKind() == api::DIVISION
-        && constVal[0].getKind() == api::CONST_RATIONAL
-        && constVal[1].getKind() == api::CONST_RATIONAL)
+    if (constVal.getKind() == api::DIVISION && isConstInt(constVal[0])
+        && isConstInt(constVal[1]))
     {
       std::stringstream sdiv;
       sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
     }
-    else if (constVal.getKind() == api::CONST_RATIONAL && isNeg)
+    else if (isConstInt(constVal) && isNeg)
     {
       std::stringstream sneg;
       sneg << "-" << constVal;
@@ -1229,7 +1230,7 @@ void Smt2::notifyNamedExpression(api::Term& expr, std::string name)
   setLastNamedTerm(expr, name);
 }
 
-api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
+api::Term Smt2::mkAnd(const std::vector<api::Term>& es) const
 {
   if (es.size() == 0)
   {
@@ -1239,10 +1240,15 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
   {
     return es[0];
   }
-  else
-  {
-    return d_solver->mkTerm(api::AND, es);
-  }
+  return d_solver->mkTerm(api::AND, es);
+}
+
+bool Smt2::isConstInt(const api::Term& t)
+{
+  api::Kind k = t.getKind();
+  // !!! Note when arithmetic subtyping is eliminated, this will update to
+  // CONST_INTEGER.
+  return k == api::CONST_RATIONAL;
 }
 
 }  // namespace parser

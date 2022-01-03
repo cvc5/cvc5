@@ -459,6 +459,22 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_toString(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Term
+ * Method:    getRealOrIntegerValueSign
+ * Signature: (J)Z
+ */
+JNIEXPORT jint JNICALL
+Java_io_github_cvc5_api_Term_getRealOrIntegerValueSign(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getRealOrIntegerValueSign());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jint>(0));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
  * Method:    isIntegerValue
  * Signature: (J)Z
  */
