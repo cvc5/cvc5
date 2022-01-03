@@ -1468,10 +1468,6 @@ std::string Sort::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_solver != nullptr)
-  {
-    return d_type->toString();
-  }
   return d_type->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
