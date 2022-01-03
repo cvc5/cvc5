@@ -1126,5 +1126,7 @@ TEST_F(TestApiBlackTerm, termScopedToString)
   Solver solver2;
   ASSERT_EQ(x.toString(), "x");
 }
+
+TEST_F(TestApiBlackTerm, toString) { ASSERT_NO_THROW(Term().toString()); }
 }  // namespace test
 }  // namespace cvc5

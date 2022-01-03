@@ -2679,10 +2679,6 @@ std::string Term::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_solver != nullptr)
-  {
-    return d_node->toString();
-  }
   return d_node->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
