@@ -628,8 +628,7 @@ TEST_F(TestApiBlackSort, sortScopedToString)
 
 TEST_F(TestApiBlackSort, toString)
 {
-  Sort sort;
-  ASSERT_NO_THROW(sort.toString());
+  ASSERT_NO_THROW(Sort().toString());
 }
 
 }  // namespace test
