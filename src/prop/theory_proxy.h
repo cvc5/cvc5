@@ -146,7 +146,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  const std::unordered_set<TNode>& getLearnedZeroLevelLiterals() const;
+  const std::unordered_set<Node>& getLearnedZeroLevelLiterals() const;
 
  private:
   /** The prop engine we are using. */

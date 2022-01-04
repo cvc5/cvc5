@@ -248,7 +248,7 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
   Assert(options().smt.deepRestart);
 
   // get the set of literals we learned at top-level
-  const std::unordered_set<TNode>& zll =
+  const std::unordered_set<Node>& zll =
       d_propEngine->getLearnedZeroLevelLiterals();
   if (zll.empty())
   {

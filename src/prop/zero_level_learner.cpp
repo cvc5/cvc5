@@ -145,7 +145,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   return true;
 }
 
-const std::unordered_set<TNode>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
+const std::unordered_set<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
     const
 {
   return d_levelZeroAssertsLearned;
