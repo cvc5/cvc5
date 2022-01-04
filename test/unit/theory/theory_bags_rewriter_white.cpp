@@ -189,7 +189,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
   ASSERT_TRUE(response1.d_status == REWRITE_AGAIN_FULL
               && response1.d_node == zero);
 
-  // (bag.count x (bag x c) = (ite (>= c 1) c 0)
+  // (bag.count x (bag x c) = c, c > 0 is a constant
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), skolem, three);
   Node n2 = d_nodeManager->mkNode(BAG_COUNT, skolem, bag);
   RewriteResponse response2 = d_rewriter->postRewrite(n2);
@@ -197,7 +197,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
   Node geq = d_nodeManager->mkNode(GEQ, three, one);
   Node ite = d_nodeManager->mkNode(ITE, geq, three, zero);
   ASSERT_TRUE(response2.d_status == REWRITE_AGAIN_FULL
-              && response2.d_node == ite);
+              && response2.d_node == three);
 }
 
 TEST_F(TestTheoryWhiteBagsRewriter, duplicate_removal)

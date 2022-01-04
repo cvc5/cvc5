@@ -207,7 +207,8 @@ bool solverInvoke(api::Solver* solver,
   // commands. We invoke define-fun commands because they add function names
   // to the symbol table.
   if (solver->getOptionInfo("parse-only").boolValue()
-      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr)
+      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
+      && dynamic_cast<ResetCommand*>(cmd) == nullptr)
   {
     return true;
   }
