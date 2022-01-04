@@ -1005,41 +1005,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term constVal = args[0];
 
-    // To parse array constants taking reals whose values are specified by
-    // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
-    // the fact that (/ 1 3) is the division of constants 1 and 3, and not
-    // the resulting constant rational value. Thus, we must construct the
-    // resulting rational here. This also is applied for integral real values
-    // like 5.0 which are converted to (/ 5 1) to distinguish them from
-    // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero. A similar issue happens for
-    // negative integers and reals, with unary minus.
-    // NOTE this should be applied more eagerly when UMINUS/DIVISION is
-    // constructed.
-    bool isNeg = false;
-    if (constVal.getKind() == api::UMINUS)
-    {
-      isNeg = true;
-      constVal = constVal[0];
-    }
-    if (constVal.getKind() == api::DIVISION && isConstInt(constVal[0])
-        && isConstInt(constVal[1]))
-    {
-      std::stringstream sdiv;
-      sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
-      constVal = d_solver->mkReal(sdiv.str());
-    }
-    else if (isConstInt(constVal) && isNeg)
-    {
-      std::stringstream sneg;
-      sneg << "-" << constVal;
-      constVal = d_solver->mkInteger(sneg.str());
-    }
-    else
-    {
-      constVal = args[0];
-    }
-
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
     {
       std::stringstream ss;
