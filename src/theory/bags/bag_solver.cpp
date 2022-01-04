@@ -15,6 +15,7 @@
 
 #include "theory/bags/bag_solver.h"
 
+#include "expr/emptybag.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/normal_form.h"
@@ -50,10 +51,8 @@ BagSolver::BagSolver(Env& env,
 
 BagSolver::~BagSolver() {}
 
-void BagSolver::postCheck()
+void BagSolver::checkBasicOperations()
 {
-  d_state.initialize();
-
   checkDisequalBagTerms();
 
   // At this point, all bag and count representatives should be in the solver
@@ -162,6 +161,39 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
     InferInfo i = d_ig.differenceSubtract(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
+}
+
+bool BagSolver::checkBagMake()
+{
+  bool sentLemma = false;
+  for (const Node& bag : d_state.getBags())
+  {
+    TypeNode bagType = bag.getType();
+    NodeManager* nm = NodeManager::currentNM();
+    Node empty = nm->mkConst(EmptyBag(bagType));
+    if (d_state.areEqual(empty, bag) || d_state.areDisequal(empty, bag))
+    {
+      continue;
+    }
+
+    // look for BAG_MAKE terms in the equivalent class
+    eq::EqClassIterator it =
+        eq::EqClassIterator(bag, d_state.getEqualityEngine());
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      if (n.getKind() == BAG_MAKE)
+      {
+        Trace("bags-check") << "splitting on node " << std::endl;
+        InferInfo i = d_ig.bagMake(n);
+        sentLemma |= d_im.lemmaTheoryInference(&i);
+        // it is enough to split only once per equivalent class
+        break;
+      }
+      it++;
+    }
+  }
+  return sentLemma;
 }
 
 void BagSolver::checkBagMake(const Node& n)
