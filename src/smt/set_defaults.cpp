@@ -1012,6 +1012,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   opts.quantifiers.globalNegate = false;
   opts.quantifiers.cegqiNestedQE = false;
   opts.arith.arithMLTrick = false;
+  opts.smt.deepRestart = false;
 
   return false;
 }

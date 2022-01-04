@@ -219,14 +219,29 @@ void SmtSolver::processAssertions(Assertions& as)
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    d_propEngine->assertInputFormulas(assertions, ism, ppl);
-
     if (options().smt.deepRestart)
     {
+      theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
+      std::vector<size_t> elimSkolems;
+      for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
+      {
+        if (sm.hasSubstitution(k.second))
+        {
+          Trace("deep-restart-ism") << "SKOLEM:" << k.second << " was eliminated during preprocessing" << std::endl;
+          elimSkolems.push_back(k.first);
+          continue;
+        }
+        Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for " << assertions[k.first] << std::endl;
+      }
+      for (size_t i : elimSkolems)
+      {
+        ism.erase(i);
+      }
       // remember the assertions and Skolem mapping
       d_ppAssertions = assertions;
       d_ppSkolemMap = ism;
     }
+    d_propEngine->assertInputFormulas(assertions, ism, ppl);
   }
 
   // clear the current assertions
@@ -256,8 +271,11 @@ bool SmtSolver::deepRestart(Assertions& asr)
     apr.push_back(a);
   }
   preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
+  theory::SubstitutionMap& tll = d_env.getTopLevelSubstitutions().get();
   for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
   {
+    // carry the entire skolem map, which should align with the order of
+    // assertions passed into the new assertions pipeline
     ismr[k.first] = k.second;
   }
 

@@ -71,30 +71,6 @@ void TheoryProxy::presolve()
   d_deepRestart = false;
 }
 
-void getAtoms(TNode a,
-              std::unordered_set<TNode>& visited,
-              std::unordered_set<TNode>& ppLits)
-{
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(a);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      if (expr::isBooleanConnective(cur))
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-        continue;
-      }
-      ppLits.insert(cur);
-    }
-  } while (!visit.empty());
-}
-
 void TheoryProxy::notifyInputFormulas(
     const std::vector<Node>& assertions,
     std::unordered_map<size_t, Node>& skolemMap,
@@ -120,7 +96,8 @@ void TheoryProxy::notifyInputFormulas(
     notifyAssertion(assertions[i], skolem, false);
   }
 
-  // get the set of atoms that
+  // the zero-level learner needs to be notified of the input assertions, to
+  // determine what is learnable
   if (d_zll != nullptr)
   {
     d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
@@ -148,9 +125,9 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
-    // check if at level zero
     if (d_zll != nullptr)
     {
+      // check if this corresponds to a zero-level asserted literal
       if (d_deepRestart.get())
       {
         break;
