@@ -508,7 +508,7 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
     {
       return nullptr;
     }
-    d_atomMap[atom] = std::shared_ptr<NodeList>(userContext());
+    d_atomMap[atom] = std::make_shared<NodeList>(userContext());
     it = d_atomMap.find(atom);
   }
   return it->second.get();
