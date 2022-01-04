@@ -103,8 +103,7 @@ class SubstitutionMap
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
-  /** Size
-   */
+  /** Size of the substitutions */
   size_t size() const { return d_substitutions.size(); }
   /**
    * Returns true iff x is in the substitution map
