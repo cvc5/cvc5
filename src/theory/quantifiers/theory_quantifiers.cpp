@@ -34,7 +34,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
                                      Valuation valuation)
     : Theory(THEORY_QUANTIFIERS, env, out, valuation),
-      d_rewriter(env.getOptions()),
+      d_rewriter(env.getRewriter(), options()),
       d_qstate(env, valuation, logicInfo()),
       d_qreg(env),
       d_treg(env, d_qstate, d_qreg),

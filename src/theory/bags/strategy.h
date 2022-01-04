@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Strategy of the theory of strings.
+ * Strategy of the theory of bags.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__STRINGS__STRATEGY_H
-#define CVC5__THEORY__STRINGS__STRATEGY_H
+#ifndef CVC5__THEORY__BAGS__STRATEGY_H
+#define CVC5__THEORY__BAGS__STRATEGY_H
 
 #include <map>
 #include <vector>
@@ -25,11 +25,11 @@
 
 namespace cvc5 {
 namespace theory {
-namespace strings {
+namespace bags {
 
 /** inference steps
  *
- * Corresponds to a step in the overall strategy of the strings solver. For
+ * Corresponds to a step in the overall strategy of the bags solver. For
  * details on the individual steps, see documentation on the inference schemas
  * within Strategy.
  */
@@ -39,59 +39,33 @@ enum InferStep
   BREAK,
   // check initial
   CHECK_INIT,
-  // check constant equivalence classes
-  CHECK_CONST_EQC,
-  // check extended function evaluation
-  CHECK_EXTF_EVAL,
-  // check cycles
-  CHECK_CYCLES,
-  // check flat forms
-  CHECK_FLAT_FORMS,
-  // check register terms pre-normal forms
-  CHECK_REGISTER_TERMS_PRE_NF,
-  // check normal forms equalities
-  CHECK_NORMAL_FORMS_EQ,
-  // check normal forms disequalities
-  CHECK_NORMAL_FORMS_DEQ,
-  // check codes
-  CHECK_CODES,
-  // check lengths for equivalence classes
-  CHECK_LENGTH_EQC,
-  // check register terms for normal forms
-  CHECK_REGISTER_TERMS_NF,
-  // check extended function reductions
-  CHECK_EXTF_REDUCTION,
-  // check regular expression memberships
-  CHECK_MEMBERSHIP,
-  // check cardinality
-  CHECK_CARDINALITY,
-  // check sequence updates wrt concat
-  CHECK_SEQUENCES_ARRAY_CONCAT,
-  // check sequence array-like reasoning
-  CHECK_SEQUENCES_ARRAY,
-  // check sequence
-  CHECK_SEQUENCES_ARRAY_EAGER,
+  // check bag operator
+  CHECK_BAG_MAKE,
+  // check basic operations
+  CHECK_BASIC_OPERATIONS
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 
 /**
- * The strategy of theory of strings.
+ * The strategy of theory of bags.
  *
  * This stores a sequence of the above enum that indicates the calls to
- * runInferStep to make on the theory of strings, given by parent.
+ * runInferStep to make on the theory of bags, given by parent.
  */
-class Strategy : protected EnvObj
+class Strategy
 {
  public:
-  Strategy(Env& env);
+  Strategy();
   ~Strategy();
   /** is this strategy initialized? */
   bool isStrategyInit() const;
   /** do we have a strategy for effort e? */
   bool hasStrategyEffort(Theory::Effort e) const;
   /** begin and end iterators for effort e */
-  std::vector<std::pair<InferStep, int> >::iterator stepBegin(Theory::Effort e);
-  std::vector<std::pair<InferStep, int> >::iterator stepEnd(Theory::Effort e);
+  std::vector<std::pair<InferStep, size_t> >::iterator stepBegin(
+      Theory::Effort e);
+  std::vector<std::pair<InferStep, size_t> >::iterator stepEnd(
+      Theory::Effort e);
   /** initialize the strategy
    *
    * This initializes the above information based on the options. This makes
@@ -111,13 +85,13 @@ class Strategy : protected EnvObj
   /** is strategy initialized */
   bool d_strategy_init;
   /** the strategy */
-  std::vector<std::pair<InferStep, int> > d_infer_steps;
+  std::vector<std::pair<InferStep, size_t> > d_infer_steps;
   /** the range (begin, end) of steps to run at given efforts */
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> > d_strat_steps;
+  std::map<Theory::Effort, std::pair<size_t, size_t> > d_strat_steps;
 }; /* class Strategy */
 
-}  // namespace strings
+}  // namespace bags
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__STRINGS__STRATEGY_H */
+#endif /* CVC5__THEORY__BAGS__STRATEGY_H */
