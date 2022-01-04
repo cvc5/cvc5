@@ -621,6 +621,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
     addOperator(api::BAG_SUBBAG, "bag.subbag");
     addOperator(api::BAG_COUNT, "bag.count");
+    addOperator(api::BAG_MEMBER, "bag.member");
     addOperator(api::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
     addOperator(api::BAG_MAKE, "bag");
     addOperator(api::BAG_CARD, "bag.card");

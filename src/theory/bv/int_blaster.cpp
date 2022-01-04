@@ -215,12 +215,16 @@ Node IntBlaster::intBlast(Node n,
           std::vector<Node> translated_children;
           if (current.getKind() == kind::APPLY_UF)
           {
+            Assert(d_intblastCache.find(current.getOperator())
+                   != d_intblastCache.end());
             translated_children.push_back(
                 d_intblastCache[current.getOperator()]);
           }
-          for (uint64_t i = 0; i < currentNumChildren; i++)
+          for (const Node& cc : current)
           {
-            translated_children.push_back(d_intblastCache[current[i]]);
+            Node ccb = makeBinary(cc);
+            Assert(d_intblastCache.find(ccb) != d_intblastCache.end());
+            translated_children.push_back(d_intblastCache[ccb]);
           }
           translation =
               translateWithChildren(current, translated_children, lemmas);
@@ -234,6 +238,7 @@ Node IntBlaster::intBlast(Node n,
       }
     }
   }
+  Assert(d_intblastCache.find(n) != d_intblastCache.end());
   return d_intblastCache[n].get();
 }
 
