@@ -81,7 +81,7 @@ class RelevanceManager : protected EnvObj
   using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
-  using NodeListMap = context::CDHashMap<Node, std::unique_ptr<NodeList>>;
+  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList>>;
   using NodeSet = context::CDHashSet<Node>;
   using RlvPairIntMap =
       context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
