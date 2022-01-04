@@ -237,6 +237,8 @@ libcvc5_add_sources(
   prop/cryptominisat.h
   prop/kissat.cpp
   prop/kissat.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
   prop/proof_cnf_stream.cpp
   prop/proof_cnf_stream.h
   prop/minisat/core/Dimacs.h

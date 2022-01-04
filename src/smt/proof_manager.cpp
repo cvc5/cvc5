@@ -77,7 +77,7 @@ PfManager::PfManager(Env& env)
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
-      != options::ProofGranularityMode::OFF)
+      != options::ProofGranularityMode::MACRO)
   {
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
