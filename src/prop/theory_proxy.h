@@ -93,7 +93,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   SatLiteral getNextDecisionEngineRequest(bool& stopSearch);
 
   bool theoryNeedCheck() const;
-  
+
   /** Is incomplete */
   bool isIncomplete() const;
 
