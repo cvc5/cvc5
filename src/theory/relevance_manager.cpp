@@ -460,15 +460,16 @@ TNode RelevanceManager::getExplanationForRelevant(TNode lit)
       return exp;
     }
     // if the first time, we get the list of input formulas the atom occurs in
-    if (index==0)
+    if (index == 0)
     {
       ilist = getInputListFor(lit, false);
-      if (ilist!=nullptr)
+      if (ilist != nullptr)
       {
         ninputs = ilist->size();
       }
-      Trace("rel-manager-exp-debug") << "Atom " << lit << " occurs in " << ninputs
-                                    << " assertions..." << std::endl;
+      Trace("rel-manager-exp-debug")
+          << "Atom " << lit << " occurs in " << ninputs << " assertions..."
+          << std::endl;
     }
     if (index < ninputs)
     {
