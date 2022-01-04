@@ -28,6 +28,8 @@ configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 add_custom_target(
   docs
   DEPENDS docs-cpp docs-java docs-python gen-options cvc5-bin
+  # remove existing .doctrees directory
+  COMMAND ${CMAKE_COMMAND} -E remove_directory ${SPHINX_OUTPUT_DIR}/.doctrees
   COMMAND
     ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
