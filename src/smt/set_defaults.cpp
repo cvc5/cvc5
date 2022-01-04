@@ -449,10 +449,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
-      opts.smt.simplificationMode = (qf_sat && !opts.smt.deepRestart) ? options::SimplificationMode::NONE
-                                           : options::SimplificationMode::BATCH;
+      opts.smt.simplificationMode = (qf_sat && !opts.smt.deepRestart)
+                                        ? options::SimplificationMode::NONE
+                                        : options::SimplificationMode::BATCH;
     }
-    if (opts.smt.simplificationMode==options::SimplificationMode::NONE)
+    if (opts.smt.simplificationMode == options::SimplificationMode::NONE)
     {
       std::stringstream ss;
       ss << "Deep restart requires non-clausal simplification";
@@ -1045,8 +1046,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     if (opts.smt.deepRestart)
     {
       verbose(1) << "SolverEngine: turning off deep restart to support unsat "
-                  "cores"
-               << std::endl;
+                    "cores"
+                 << std::endl;
       opts.smt.deepRestart = false;
     }
   }

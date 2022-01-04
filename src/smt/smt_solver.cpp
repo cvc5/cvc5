@@ -227,11 +227,14 @@ void SmtSolver::processAssertions(Assertions& as)
       {
         if (sm.hasSubstitution(k.second))
         {
-          Trace("deep-restart-ism") << "SKOLEM:" << k.second << " was eliminated during preprocessing" << std::endl;
+          Trace("deep-restart-ism")
+              << "SKOLEM:" << k.second << " was eliminated during preprocessing"
+              << std::endl;
           elimSkolems.push_back(k.first);
           continue;
         }
-        Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for " << assertions[k.first] << std::endl;
+        Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
+                                  << assertions[k.first] << std::endl;
       }
       for (size_t i : elimSkolems)
       {
