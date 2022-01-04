@@ -54,6 +54,11 @@ RealAlgebraicNumber evaluate(TNode expr, const std::map<Node, RealAlgebraicNumbe
 bool isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model)
 {
     // Substitute constants and rewrite
+    expr = env.getRewriter()->rewrite(expr);
+    if (expr.isConst())
+    {
+        return expr.getConst<Rational>().isZero();
+    }
     std::map<Node, RealAlgebraicNumber> rans;
     std::vector<TNode> nodes;
     std::vector<TNode> repls;
@@ -69,9 +74,12 @@ bool isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model)
             rans.emplace(node, nl::node_to_ran(repl, node));
         }
     }
-    expr = env.getRewriter()->rewrite(expr);
     expr = expr.substitute(nodes.begin(), nodes.end(), repls.begin(), repls.end());
     expr = env.getRewriter()->rewrite(expr);
+    if (expr.isConst())
+    {
+        return expr.getConst<Rational>().isZero();
+    }
     return isZero(evaluate(expr, rans));
 }
 
