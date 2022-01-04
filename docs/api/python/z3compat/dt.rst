@@ -8,6 +8,9 @@ Datatypes
 
 Classes
 ------------------------
+.. autoclass:: cvc5_z3py_compat.Datatype
+  :members:
+  :special-members:
 .. autoclass:: cvc5_z3py_compat.DatatypeSortRef
   :members:
   :special-members:
