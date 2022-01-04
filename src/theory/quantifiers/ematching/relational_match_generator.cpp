@@ -97,7 +97,7 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
       s = nm->mkNode(
           PLUS,
           s,
-          nm->mkConst(CONST_RATIONAL, Rational(d_rel == GEQ ? -1 : 1)));
+          nm->mkConstRealOrInt(s.getType(), Rational(d_rel == GEQ ? -1 : 1)));
     }
     d_counter++;
     Trace("relational-match-gen")

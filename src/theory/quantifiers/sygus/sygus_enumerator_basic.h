@@ -39,7 +39,7 @@ namespace quantifiers {
 class EnumValGeneratorBasic : public EnumValGenerator
 {
  public:
-  EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn);
+  EnumValGeneratorBasic(Env& env, TermDbSygus* tds, TypeNode tn);
   ~EnumValGeneratorBasic() {}
   /** initialize (do nothing) */
   void initialize(Node e) override {}

@@ -72,6 +72,24 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(d_solver.getNullSort()));
   }
 
+  @Test void hasGetSymbol() throws CVC5ApiException
+  {
+    Sort n = d_solver.getNullSort();
+    Sort b = d_solver.getBooleanSort();
+    Sort s0 = d_solver.mkParamSort("s0");
+    Sort s1 = d_solver.mkParamSort("|s1\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasSymbol());
+    assertFalse(b.hasSymbol());
+    assertTrue(s0.hasSymbol());
+    assertTrue(s1.hasSymbol());
+
+    assertThrows(CVC5ApiException.class, () -> n.getSymbol());
+    assertThrows(CVC5ApiException.class, () -> b.getSymbol());
+    assertEquals(s0.getSymbol(), "s0");
+    assertEquals(s1.getSymbol(), "|s1\\|");
+  }
+
   @Test void isBoolean()
   {
     assertTrue(d_solver.getBooleanSort().isBoolean());

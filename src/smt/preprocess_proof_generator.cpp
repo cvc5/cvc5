@@ -23,22 +23,19 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "smt/env.h"
 #include "theory/quantifiers/extended_rewrite.h"
-#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
-                                                   context::Context* c,
-                                                   std::string name,
-                                                   PfRule ra,
-                                                   PfRule rpp)
-    : d_pnm(pnm),
+PreprocessProofGenerator::PreprocessProofGenerator(
+    Env& env, context::Context* c, std::string name, PfRule ra, PfRule rpp)
+    : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
-      d_helperProofs(pnm, d_ctx),
-      d_inputPf(pnm, c, "InputProof"),
+      d_helperProofs(env.getProofNodeManager(), d_ctx),
+      d_inputPf(env.getProofNodeManager(), c, "InputProof"),
       d_name(name),
       d_ra(ra),
       d_rpp(rpp)
@@ -131,7 +128,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // make CDProof to construct the proof below
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env.getProofNodeManager());
 
   Node curr = f;
   std::vector<Node> transChildren;
@@ -180,7 +177,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         if (!proofStepProcessed)
         {
           // maybe its just an (extended) rewrite?
-          Node pr = theory::Rewriter::callExtendedRewrite(proven[0]);
+          Node pr = extendedRewrite(proven[0]);
           if (proven[1] == pr)
           {
             Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
@@ -244,8 +241,6 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   return cdp.getProofFor(f);
 }
 
-ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
-
 LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
   return d_helperProofs.allocateProof(nullptr, d_ctx);
@@ -259,7 +254,7 @@ void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
-    ProofChecker* pc = d_pnm->getChecker();
+    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
     std::stringstream serr;
     if (pc->isPedanticFailure(r, serr))
     {

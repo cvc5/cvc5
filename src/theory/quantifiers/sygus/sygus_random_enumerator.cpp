@@ -62,7 +62,7 @@ bool SygusRandomEnumerator::increment()
     // Generate the next sygus term.
     n = incrementH();
     bn = d_tds->sygusToBuiltin(n);
-    bn = Rewriter::callExtendedRewrite(bn);
+    bn = extendedRewrite(bn);
     // Ensure that the builtin counterpart is unique (up to rewriting).
   } while (d_cache.find(bn) != d_cache.cend());
   d_cache.insert(bn);
@@ -174,7 +174,7 @@ Node SygusRandomEnumerator::getMin(Node n)
 {
   TypeNode tn = n.getType();
   Node bn = d_tds->sygusToBuiltin(n);
-  bn = Rewriter::callExtendedRewrite(bn);
+  bn = extendedRewrite(bn);
   // Did we calculate the size of `n` before?
   if (d_size.find(n) == d_size.cend())
   {

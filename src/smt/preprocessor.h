@@ -99,9 +99,13 @@ class Preprocessor : protected EnvObj
   /** Same as above, for a list of assertions, updating in place */
   void expandDefinitions(std::vector<Node>& ns);
   /**
-   * Set proof node manager. Enables proofs in this preprocessor.
+   * Enable proofs for this preprocessor. This must be called
+   * explicitly since we construct the preprocessor before we know
+   * whether proofs are enabled.
+   *
+   * @param pppg The preprocess proof generator of the proof manager.
    */
-  void setProofGenerator(PreprocessProofGenerator* pppg);
+  void enableProofs(PreprocessProofGenerator* pppg);
 
  private:
   /** Reference to the abstract values utility */
@@ -123,8 +127,6 @@ class Preprocessor : protected EnvObj
    * passes.
    */
   ProcessAssertions d_processor;
-  /** Proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace smt

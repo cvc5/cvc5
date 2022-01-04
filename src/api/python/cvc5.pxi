@@ -323,13 +323,15 @@ cdef class DatatypeConstructorDecl:
             Add datatype selector declaration.
 
             :param name: the name of the datatype selector declaration to add.
-            :param sort: the range sort of the datatype selector declaration to add.
+            :param sort: the codomain sort of the datatype selector declaration
+                         to add.
         """
         self.cddc.addSelector(name.encode(), sort.csort)
 
     def addSelectorSelf(self, str name):
         """
-            Add datatype selector declaration whose range sort is the datatype itself.
+            Add datatype selector declaration whose codomain sort is the
+            datatype itself.
 
             :param name: the name of the datatype selector declaration to add.
         """
@@ -426,12 +428,12 @@ cdef class DatatypeSelector:
         term.cterm = self.cds.getUpdaterTerm()
         return term
 
-    def getRangeSort(self):
+    def getCodomainSort(self):
         """
-            :return: the range sort of this selector.
+            :return: the codomain sort of this selector.
         """
         cdef Sort sort = Sort(self.solver)
-        sort.csort = self.cds.getRangeSort()
+        sort.csort = self.cds.getCodomainSort()
         return sort
 
     def isNull(self):
@@ -954,6 +956,20 @@ cdef class Solver:
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkUninterpretedSort(name.encode())
+        return sort
+
+    def mkUnresolvedSort(self, str name, size_t arity = 0):
+        """Create an unresolved sort.
+
+        This is for creating yet unresolved sort placeholders for mutually
+        recursive datatypes.
+
+        :param symbol: the name of the sort
+        :param arity: the number of sort parameters of the sort
+        :return: the unresolved sort
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
         return sort
 
     def mkSortConstructorSort(self, str symbol, size_t arity):
@@ -1678,6 +1694,26 @@ cdef class Solver:
         r.cr = self.csolver.checkSynth()
         return r
 
+    def checkSynthNext(self):
+        """
+        Try to find a next solution for the synthesis conjecture corresponding
+        to the current list of functions-to-synthesize, universal variables and
+        constraints. Must be called immediately after a successful call to
+        check-synth or check-synth-next. Requires incremental mode.
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
+
+            ( check-synth )
+
+        :return: the result of the check, which is unsat if the check succeeded,
+        in which case solutions are available via getSynthSolutions.
+        """
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSynthNext()
+        return r
+
     def getSynthSolution(self, Term term):
         """
         Get the synthesis solution of the given term. This method should be
@@ -2199,6 +2235,117 @@ cdef class Solver:
         """
         self.csolver.setOption(option.encode(), value.encode())
 
+    def getInterpolant(self, Term conj, *args):
+        """Get an interpolant.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-interpol <conj> )
+            ( get-interpol <conj> <grammar> )
+
+        Requires option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+
+        Supports the following variants:
+
+        - ``bool getInteprolant(Term conj, Term output)``
+        - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+        
+        :param conj: the conjecture term
+        :param output: the term where the result will be stored
+        :param grammar: a grammar for the inteprolant
+        :return: True iff an interpolant was found
+        """
+        result = False
+        if len(args) == 1:
+            assert isinstance(args[0], Term)
+            result = self.csolver.getInterpolant(conj.cterm, (<Term ?> args[0]).cterm)
+        else:
+            assert len(args) == 2
+            assert isinstance(args[0], Grammar)
+            assert isinstance(args[1], Term)
+            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+        return result
+
+
+    def getInterpolantNext(self, Term output):
+        """
+        Get the next interpolant. Can only be called immediately after
+        a succesful call to get-interpol or get-interpol-next. 
+        Is guaranteed to produce a syntactically different interpolant wrt the
+        last returned interpolant if successful.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-interpol-next )
+
+        Requires to enable incremental mode, and 
+        option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+
+        :param output: the term where the result will be stored
+        :return: True iff an interpolant was found
+        """
+        result = self.csolver.getInterpolantNext(output.cterm)
+        return result
+        
+    def getAbduct(self, Term conj, *args):
+        """Get an abduct.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-abduct <conj> )
+            ( get-abduct <conj> <grammar> )
+
+        Requires to enable option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+
+        Supports the following variants:
+
+        - ``bool getAbduct(Term conj, Term output)``
+        - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+        
+        :param conj: the conjecture term
+        :param output: the term where the result will be stored
+        :param grammar: a grammar for the abduct 
+        :return: True iff an abduct was found
+        """
+        result = False
+        if len(args) == 1:
+            assert isinstance(args[0], Term)
+            result = self.csolver.getAbduct(conj.cterm, (<Term ?> args[0]).cterm)
+        else:
+            assert len(args) == 2
+            assert isinstance(args[0], Grammar)
+            assert isinstance(args[1], Term)
+            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+        return result
+
+    def getAbductNext(self, Term output):
+        """
+        Get the next abduct. Can only be called immediately after
+        a succesful call to get-abduct or get-abduct-next. 
+        Is guaranteed to produce a syntactically different abduct wrt the 
+        last returned abduct if successful.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-abduct-next )
+
+        Requires to enable incremental mode, and 
+        option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+        :param output: the term where the result will be stored
+        :return: True iff an abduct was found
+        """
+        result = self.csolver.getAbductNext(output.cterm)
+        return result
+
+
 
 cdef class Sort:
     """
@@ -2236,6 +2383,18 @@ cdef class Sort:
 
     def __hash__(self):
         return csorthash(self.csort)
+
+    def hasSymbol(self):
+        """:return: True iff this sort has a symbol."""
+        return self.csort.hasSymbol()
+
+    def getSymbol(self):
+        """
+        Asserts :py:meth:`hasSymbol()`.
+
+        :return: the raw symbol of the sort.
+        """
+        return self.csort.getSymbol().decode()
 
     def isNull(self):
         """:return: True if this Sort is a null sort."""
@@ -2883,10 +3042,10 @@ cdef class Term:
 
     def getSymbol(self):
         """
-	   Asserts :py:meth:`hasSymbol()`.
+        Asserts :py:meth:`hasSymbol()`.
 
-	   :return: the raw symbol of the term.
-	"""
+        :return: the raw symbol of the term.
+        """
         return self.cterm.getSymbol().decode()
 
     def isNull(self):
@@ -3014,6 +3173,16 @@ cdef class Term:
         cdef Py_ssize_t size
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
+
+    def getRealOrIntegerValueSign(self):
+        """
+        Get integer or real value sign. Must be called on integer or real values,
+        or otherwise an exception is thrown.
+        
+        :return: 0 if this term is zero, -1 if this term is a negative real or
+        integer value, 1 if this term is a positive real or integer value.
+        """
+        return self.cterm.getRealOrIntegerValueSign()
 
     def isIntegerValue(self):
         """:return: True iff this term is an integer value."""

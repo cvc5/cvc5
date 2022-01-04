@@ -177,7 +177,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
         }
         else
         {
-          EvalSygusInvarianceTest esit;
+          EvalSygusInvarianceTest esit(d_env.getRewriter());
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);

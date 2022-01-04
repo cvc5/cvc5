@@ -12,7 +12,7 @@
 # #############################################################################
 #
 # A simple demonstration of the solving capabilities of the cvc5 sets solver
-# through the Python API. This is a direct translation of sets-new.cpp.
+# through the Python API. This is a direct translation of sets.cpp.
 ##
 
 import pycvc5

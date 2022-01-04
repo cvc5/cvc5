@@ -145,7 +145,7 @@ def test_mk_datatype_sorts(solver):
         solver.mkDatatypeSorts(throwsDecls, set([]))
 
     # with unresolved sorts
-    unresList = solver.mkUninterpretedSort("ulist")
+    unresList = solver.mkUnresolvedSort("ulist")
     unresSorts = set([unresList])
     ulist = solver.mkDatatypeDecl("ulist")
     ucons = solver.mkDatatypeConstructorDecl("ucons")
@@ -160,6 +160,27 @@ def test_mk_datatype_sorts(solver):
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSorts(udecls, unresSorts)
 
+    # mutually recursive with unresolved parameterized sorts
+    p0 = solver.mkParamSort("p0")
+    p1 = solver.mkParamSort("p1")
+    u0 = solver.mkUnresolvedSort("dt0", 1)
+    u1 = solver.mkUnresolvedSort("dt1", 1)
+    dtdecl0 = solver.mkDatatypeDecl("dt0", p0)
+    dtdecl1 = solver.mkDatatypeDecl("dt1", p1)
+    ctordecl0 = solver.mkDatatypeConstructorDecl("c0")
+    ctordecl0.addSelector("s0", u1.instantiate({p0}))
+    ctordecl1 = solver.mkDatatypeConstructorDecl("c1")
+    ctordecl1.addSelector("s1", u0.instantiate({p1}))
+    dtdecl0.addConstructor(ctordecl0)
+    dtdecl1.addConstructor(ctordecl1)
+    dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1], {u0, u1})
+    isort1 = dt_sorts[1].instantiate({solver.getBooleanSort()})
+    t1 = solver.mkConst(isort1, "t")
+    t0 = solver.mkTerm(
+        Kind.ApplySelector,
+        t1.getSort().getDatatype().getSelector("s1").getSelectorTerm(),
+        t1)
+    assert dt_sorts[0].instantiate({solver.getBooleanSort()}) == t0.getSort()
 
 def test_mk_function_sort(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -269,6 +290,13 @@ def test_mk_sequence_sort(solver):
 def test_mk_uninterpreted_sort(solver):
     solver.mkUninterpretedSort("u")
     solver.mkUninterpretedSort("")
+
+
+def test_mk_unresolved_sort(solver):
+    solver.mkUnresolvedSort("u")
+    solver.mkUnresolvedSort("u", 1)
+    solver.mkUnresolvedSort("")
+    solver.mkUnresolvedSort("", 1)
 
 
 def test_mk_sort_constructor_sort(solver):
@@ -1931,6 +1959,130 @@ def test_get_synth_solution(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.getSynthSolution(f)
+
+def test_check_synth_next(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "true")
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+
+    solver.checkSynth()
+    solver.getSynthSolutions([f])
+
+    solver.checkSynthNext()
+    solver.getSynthSolutions([f])
+
+def test_check_synth_next2(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "false")
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+
+    solver.checkSynth()
+    with pytest.raises(RuntimeError):
+        solver.checkSynthNext()
+
+def test_check_synth_next3(solver):
+    solver.setOption("lang", "sygus2")
+    solver.setOption("incremental", "true")
+    f = solver.synthFun("f", [], solver.getBooleanSort())
+    with pytest.raises(RuntimeError):
+        solver.checkSynthNext()
+
+def test_get_abduct(solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("produce-abducts", "true")
+    solver.setOption("incremental", "false")
+
+    intSort = solver.getIntegerSort()
+    zero = solver.mkInteger(0)
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+
+    solver.assertFormula(solver.mkTerm(Kind.Gt, x, zero))
+    conj = solver.mkTerm(Kind.Gt, y, zero)
+    output = pycvc5.Term(solver)
+    assert solver.getAbduct(conj, output)
+    assert not output.isNull() and output.getSort().isBoolean()
+
+    boolean = solver.getBooleanSort()
+    truen = solver.mkBoolean(True)
+    start = solver.mkVar(boolean)
+    output2 = pycvc5.Term(solver)
+    g = solver.mkSygusGrammar([], [start])
+    conj2 = solver.mkTerm(Kind.Gt, x, zero)
+    g.addRule(start, truen)
+    assert solver.getAbduct(conj2, g, output2)
+    assert output2 == truen
+
+def test_get_abduct2(solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("incremental", "false")
+    intSort = solver.getIntegerSort()
+    zero = solver.mkInteger(0)
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    solver.assertFormula(solver.mkTerm(Kind.Gt, x, zero))
+    conj = solver.mkTerm(Kind.Gt, y, zero)
+    output = pycvc5.Term(solver)
+    with pytest.raises(RuntimeError):
+        solver.getAbduct(conj, output)
+
+def test_get_abduct_next(solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("produce-abducts", "true")
+    solver.setOption("incremental", "true")
+
+    intSort = solver.getIntegerSort()
+    zero = solver.mkInteger(0)
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+
+    solver.assertFormula(solver.mkTerm(Kind.Gt, x, zero))
+    conj = solver.mkTerm(Kind.Gt, y, zero)
+    output = pycvc5.Term(solver)
+    assert solver.getAbduct(conj, output)
+    output2 = pycvc5.Term(solver)
+    assert solver.getAbductNext(output2)
+    assert output != output2
+
+
+def test_get_interpolant(solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("produce-interpols", "default")
+    solver.setOption("incremental", "false")
+
+    intSort = solver.getIntegerSort()
+    zero = solver.mkInteger(0)
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    z = solver.mkConst(intSort, "z")
+
+    solver.assertFormula(solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, x, y), zero))
+    solver.assertFormula(solver.mkTerm(Kind.Lt, x, zero))
+    conj = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, y, z), zero), solver.mkTerm(Kind.Lt, z, zero))
+    output = pycvc5.Term(solver)
+    solver.getInterpolant(conj, output)
+    assert output.getSort().isBoolean()
+
+def test_get_interpolant_next(solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("produce-interpols", "default")
+    solver.setOption("incremental", "true")
+
+    intSort = solver.getIntegerSort()
+    zero = solver.mkInteger(0)
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    z = solver.mkConst(intSort, "z")
+
+    solver.assertFormula(solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, x, y), zero))
+    solver.assertFormula(solver.mkTerm(Kind.Lt, x, zero))
+    conj = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, y, z), zero), solver.mkTerm(Kind.Lt, z, zero))
+    output = pycvc5.Term(solver)
+    solver.getInterpolant(conj, output)
+    output2 = pycvc5.Term(solver)
+    solver.getInterpolantNext(output2)
+
+    assert output != output2
 
 
 def test_declare_pool(solver):
