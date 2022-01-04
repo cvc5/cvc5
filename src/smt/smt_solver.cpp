@@ -199,30 +199,6 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   return Result(result, filename);
 }
 
-void getLiterals(TNode a,
-                 std::unordered_set<TNode>& visited,
-                 std::unordered_set<TNode>& ppLits)
-{
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(a);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      if (expr::isBooleanConnective(cur))
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-        continue;
-      }
-      ppLits.insert(cur);
-    }
-  } while (!visit.empty());
-}
-
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
@@ -284,13 +260,9 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
 
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly
-  // Also, compute the set of literals in the preprocessed assertions
-  std::unordered_set<TNode> visited;
-  std::unordered_set<TNode> ppLits;
   for (const Node& a : d_ppAssertions)
   {
     apr.push_back(a);
-    getLiterals(a, visited, ppLits);
   }
   preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
   for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
@@ -300,12 +272,13 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
 
   for (TNode lit : zll)
   {
-    Trace("deep-restart-debug") << "Restart learned lit: " << lit << std::endl;
+    Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
     AlwaysAssert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
         << "Relearned: " << lit << std::endl;
     d_allLearnedLits.insert(lit);
   }
+  Trace("deep-restart") << "Finished compute deep restart" << std::endl;
   return true;
 }
 
