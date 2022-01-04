@@ -1005,6 +1005,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
+  if (logic.isTheoryEnabled(THEORY_SEP))
+  {
+    reason << "separation logic";
+    return true;
+  }
 
   // disable modes not supported by incremental
   opts.smt.sortInference = false;
