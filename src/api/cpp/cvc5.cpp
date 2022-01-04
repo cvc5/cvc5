@@ -27,7 +27,7 @@
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
  * not fully agree on what is (in)valid input, which requires extra checks for
- * consistent behavior (see Solver::mkRealFromStrHelper for an example).
+ * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
  */
 
 #include "api/cpp/cvc5.h"
@@ -304,6 +304,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE},
     {BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG},
     {BAG_COUNT, cvc5::Kind::BAG_COUNT},
+    {BAG_MEMBER, cvc5::Kind::BAG_MEMBER},
     {BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL},
     {BAG_MAKE, cvc5::Kind::BAG_MAKE},
     {BAG_EMPTY, cvc5::Kind::BAG_EMPTY},
@@ -616,6 +617,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
         {cvc5::Kind::BAG_SUBBAG, BAG_SUBBAG},
         {cvc5::Kind::BAG_COUNT, BAG_COUNT},
+        {cvc5::Kind::BAG_MEMBER, BAG_MEMBER},
         {cvc5::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
         {cvc5::Kind::BAG_MAKE, BAG_MAKE},
         {cvc5::Kind::BAG_EMPTY, BAG_EMPTY},
@@ -1468,10 +1470,6 @@ std::string Sort::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_solver != nullptr)
-  {
-    return d_type->toString();
-  }
   return d_type->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -2683,10 +2681,6 @@ std::string Term::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_solver != nullptr)
-  {
-    return d_node->toString();
-  }
   return d_node->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5088,15 +5082,23 @@ Term Solver::mkValHelper(const T& t) const
   return Term(this, res);
 }
 
-Term Solver::mkRationalValHelper(const Rational& r) const
+Term Solver::mkRationalValHelper(const Rational& r, bool isInt) const
 {
   //////// all checks before this line
-  Node res = getNodeManager()->mkConst(kind::CONST_RATIONAL, r);
+  NodeManager* nm = getNodeManager();
+  Node res = isInt ? nm->mkConstInt(r) : nm->mkConstReal(r);
   (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
+  api::Term t = Term(this, res);
+  // NOTE: this block will be eliminated when arithmetic subtyping is eliminated
+  if (!isInt)
+  {
+    t = ensureRealSort(t);
+  }
+  return t;
 }
 
-Term Solver::mkRealFromStrHelper(const std::string& s) const
+Term Solver::mkRealOrIntegerFromStrHelper(const std::string& s,
+                                          bool isInt) const
 {
   //////// all checks before this line
   try
@@ -5104,7 +5106,7 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
     cvc5::Rational r = s.find('/') != std::string::npos
                            ? cvc5::Rational(s)
                            : cvc5::Rational::fromDecimal(s);
-    return mkRationalValHelper(r);
+    return mkRationalValHelper(r, isInt);
   }
   catch (const std::invalid_argument& e)
   {
@@ -5837,7 +5839,7 @@ Term Solver::mkInteger(const std::string& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
-  Term integer = mkRealFromStrHelper(s);
+  Term integer = mkRealOrIntegerFromStrHelper(s);
   CVC5_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " a string representing an integer";
   //////// all checks before this line
@@ -5866,8 +5868,7 @@ Term Solver::mkReal(const std::string& s) const
   CVC5_API_ARG_CHECK_EXPECTED(s != ".", s)
       << "a string representing a real or rational value.";
   //////// all checks before this line
-  Term rational = mkRealFromStrHelper(s);
-  return ensureRealSort(rational);
+  return mkRealOrIntegerFromStrHelper(s, false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5876,8 +5877,7 @@ Term Solver::mkReal(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkRationalValHelper(cvc5::Rational(val));
-  return ensureRealSort(rational);
+  return mkRationalValHelper(cvc5::Rational(val), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5886,8 +5886,7 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkRationalValHelper(cvc5::Rational(num, den));
-  return ensureRealSort(rational);
+  return mkRationalValHelper(cvc5::Rational(num, den), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7574,9 +7573,14 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
+                 != options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
   //////// all checks before this line
   Node result;
-  bool success = d_slv->getInterpol(*conj.d_node, result);
+  TypeNode nullType;
+  bool success = d_slv->getInterpolant(*conj.d_node, nullType, result);
   if (success)
   {
     output = Term(this, result);
@@ -7592,10 +7596,36 @@ bool Solver::getInterpolant(const Term& conj,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
+                 != options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
   //////// all checks before this line
   Node result;
   bool success =
-      d_slv->getInterpol(*conj.d_node, *grammar.resolve().d_type, result);
+      d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type, result);
+  if (success)
+  {
+    output = Term(this, result);
+  }
+  return success;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::getInterpolantNext(Term& output) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
+                 != options::ProduceInterpols::NONE)
+      << "Cannot get interpolant unless interpolants are enabled (try "
+         "--produce-interpols=mode)";
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot get next interpolant when not solving incrementally (try "
+         "--incremental)";
+  //////// all checks before this line
+  Node result;
+  bool success = d_slv->getInterpolantNext(result);
   if (success)
   {
     output = Term(this, result);
@@ -7613,7 +7643,8 @@ bool Solver::getAbduct(const Term& conj, Term& output) const
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
   Node result;
-  bool success = d_slv->getAbduct(*conj.d_node, result);
+  TypeNode nullType;
+  bool success = d_slv->getAbduct(*conj.d_node, nullType, result);
   if (success)
   {
     output = Term(this, result);
@@ -7633,6 +7664,27 @@ bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
   Node result;
   bool success =
       d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type, result);
+  if (success)
+  {
+    output = Term(this, result);
+  }
+  return success;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::getAbductNext(Term& output) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
+      << "Cannot get next abduct unless abducts are enabled (try "
+         "--produce-abducts)";
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot get next abduct when not solving incrementally (try "
+         "--incremental)";
+  //////// all checks before this line
+  Node result;
+  bool success = d_slv->getAbductNext(result);
   if (success)
   {
     output = Term(this, result);
@@ -7935,6 +7987,18 @@ Result Solver::checkSynth() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_slv->checkSynth();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Result Solver::checkSynthNext() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
+      << "Cannot checkSynthNext when not solving incrementally (use "
+         "--incremental)";
+  //////// all checks before this line
+  return d_slv->checkSynth(true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

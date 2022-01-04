@@ -107,6 +107,8 @@ const char* toString(InferenceId i)
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
     case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
+    case InferenceId::BAGS_BAG_MAKE_SPLIT: return "BAGS_BAG_MAKE_SPLIT";
+    case InferenceId::BAGS_COUNT_SKOLEM: return "BAGS_COUNT_SKOLEM";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
@@ -411,6 +413,10 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_NTH_EXTRACT";
     case InferenceId::STRINGS_ARRAY_NTH_UPDATE:
       return "STRINGS_ARRAY_NTH_UPDATE";
+    case InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE:
+      return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
+      return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";

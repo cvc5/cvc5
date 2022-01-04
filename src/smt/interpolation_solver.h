@@ -23,6 +23,13 @@
 #include "smt/env_obj.h"
 
 namespace cvc5 {
+
+namespace theory {
+namespace quantifiers {
+class SygusInterpol;
+}
+}  // namespace theory
+
 namespace smt {
 
 /**
@@ -55,19 +62,24 @@ class InterpolationSolver : protected EnvObj
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const std::vector<Node>& axioms,
-                   const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+  bool getInterpolant(const std::vector<Node>& axioms,
+                      const Node& conj,
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
   /**
-   * Same as above, but without user-provided grammar restrictions. A default
-   * grammar is chosen internally using the sygus grammar constructor utility.
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
+   *
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
+   *
+   * This method reuses the subsolver initialized by the last call to
+   * getInterpolant.
    */
-  bool getInterpol(const std::vector<Node>& axioms,
-                   const Node& conj,
-                   Node& interpol);
+  bool getInterpolantNext(Node& interpol);
 
+ private:
   /**
    * Check that a solution to an interpolation problem is indeed a solution.
    *
@@ -78,6 +90,9 @@ class InterpolationSolver : protected EnvObj
   void checkInterpol(Node interpol,
                      const std::vector<Node>& easserts,
                      const Node& conj);
+
+  /** The subsolver */
+  std::unique_ptr<theory::quantifiers::SygusInterpol> d_subsolver;
 };
 
 }  // namespace smt

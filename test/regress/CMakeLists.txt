@@ -810,6 +810,7 @@ set(regress_0_tests
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
+  regress0/parser/issue7860-parse-only-reset.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1273,6 +1274,7 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
+  regress0/strings/proj-issue390-update-rev-rewrite.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1533,23 +1535,25 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abduction_1255.corecstrs.readable.smt2
+  regress1/abduction/abduction_streq.readable.smt2
+  regress1/abduction/abduction-no-pbe-sym-break.smt2
+  regress1/abduction/abduct-dt.smt2
   regress1/abduction/abd-real-const.smt2
-  regress1/abduction/sygus-abduct-test-user.smt2
-  regress1/abduction/issue5848-4.smt2
+  regress1/abduction/abd-simple-conj-4.smt2
   regress1/abduction/issue5848-2.smt2
+  regress1/abduction/issue5848-3-trivial-no-abduct.smt2
+  regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848.smt2
   regress1/abduction/issue6605-1.smt2
-  regress1/abduction/abduct-dt.smt2
-  regress1/abduction/sygus-abduct-test-ccore.smt2
-  regress1/abduction/sygus-abduct-test.smt2
-  regress1/abduction/abd-simple-conj-4.smt2
-  regress1/abduction/abduction_streq.readable.smt2
-  regress1/abduction/yoni-true-sol.smt2
-  regress1/abduction/uf-abduct.smt2
-  regress1/abduction/abduction_1255.corecstrs.readable.smt2
-  regress1/abduction/abduction-no-pbe-sym-break.smt2
-  regress1/abduction/issue5848-3-trivial-no-abduct.smt2
+  regress1/abduction/simple-incremental.smt2
+  regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
+  regress1/abduction/sygus-abduct-test.smt2
+  regress1/abduction/sygus-abduct-test-ccore.smt2
+  regress1/abduction/sygus-abduct-test-user.smt2
+  regress1/abduction/uf-abduct.smt2
+  regress1/abduction/yoni-true-sol.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
@@ -1607,6 +1611,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/bag_member.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
@@ -1623,6 +1628,7 @@ set(regress_1_tests
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
   regress1/bags/fuzzy3.smt2
+  regress1/bags/fuzzy3b.smt2
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
   regress1/bags/fuzzy6.smt2
@@ -1642,6 +1648,7 @@ set(regress_1_tests
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
   regress1/bv2int-isabelle.smt2
+  regress1/bv2int-make-binary.smt2
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
@@ -2467,12 +2474,15 @@ set(regress_1_tests
   regress1/sygus/icfp_14_12_diff_types.sy
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
+  regress1/sygus/incremental-stream-ex.sy
   regress1/sygus/int-any-const.sy
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/interpol1.smt2
+  regress1/sygus/interpol1-push-pop.smt2 
   regress1/sygus/interpol3.smt2
+  regress1/sygus/interpol3-next.smt2
   regress1/sygus/interpol_arr1.smt2
   regress1/sygus/interpol_arr2.smt2
   regress1/sygus/interpol_cosa_1.smt2

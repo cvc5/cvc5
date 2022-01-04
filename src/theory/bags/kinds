@@ -48,6 +48,7 @@ operator BAG_DIFFERENCE_REMOVE 2  "bag difference remove (removes shared element
 
 operator BAG_SUBBAG            2  "inclusion predicate for bags (less than or equal multiplicities)"
 operator BAG_COUNT             2  "multiplicity of an element in a bag"
+operator BAG_MEMBER            2  "bag membership predicate; is first parameter a member of second?"
 operator BAG_DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
 
 constant BAG_MAKE_OP \
@@ -91,6 +92,7 @@ typerule BAG_DIFFERENCE_SUBTRACT ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_DIFFERENCE_REMOVE   ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_SUBBAG              ::cvc5::theory::bags::SubBagTypeRule
 typerule BAG_COUNT               ::cvc5::theory::bags::CountTypeRule
+typerule BAG_MEMBER              ::cvc5::theory::bags::MemberTypeRule
 typerule BAG_DUPLICATE_REMOVAL   ::cvc5::theory::bags::DuplicateRemovalTypeRule
 typerule BAG_MAKE_OP             "SimpleTypeRule<RBuiltinOperator>"
 typerule BAG_MAKE                ::cvc5::theory::bags::BagMakeTypeRule

@@ -4,10 +4,10 @@ Core & Booleans
 Basic Boolean Term Builders
 ---------------------------
 .. autofunction:: cvc5_z3py_compat.Bool
-.. autofunction:: cvc5_z3py_compat.Bools
 .. autofunction:: cvc5_z3py_compat.BoolVal
 .. autofunction:: cvc5_z3py_compat.BoolSort
 .. autofunction:: cvc5_z3py_compat.FreshBool
+.. autofunction:: cvc5_z3py_compat.Bools
 .. autofunction:: cvc5_z3py_compat.BoolVector
 
 Basic Generic Term Builders
@@ -43,6 +43,7 @@ for building equality and disequality terms.
 Testers
 -------
 .. autofunction:: cvc5_z3py_compat.is_bool
+.. autofunction:: cvc5_z3py_compat.is_bool_value
 .. autofunction:: cvc5_z3py_compat.is_true
 .. autofunction:: cvc5_z3py_compat.is_false
 .. autofunction:: cvc5_z3py_compat.is_and
@@ -54,8 +55,8 @@ Testers
 .. autofunction:: cvc5_z3py_compat.is_const
 
 
-Classes
--------
+Classes (with overloads)
+----------------------------
 .. autoclass:: cvc5_z3py_compat.ExprRef
    :members:
    :special-members:
