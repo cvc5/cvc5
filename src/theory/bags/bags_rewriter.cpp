@@ -117,6 +117,7 @@ RewriteResponse BagsRewriter::preRewrite(TNode n)
   {
     case EQUAL: response = preRewriteEqual(n); break;
     case BAG_SUBBAG: response = rewriteSubBag(n); break;
+    case BAG_MEMBER: response = rewriteMember(n); break;
     default: response = BagsRewriteResponse(n, Rewrite::NONE);
   }
 
@@ -156,6 +157,16 @@ BagsRewriteResponse BagsRewriter::rewriteSubBag(const TNode& n) const
   return BagsRewriteResponse(equal, Rewrite::SUB_BAG);
 }
 
+BagsRewriteResponse BagsRewriter::rewriteMember(const TNode& n) const
+{
+  Assert(n.getKind() == BAG_MEMBER);
+
+  // - (bag.member x A) = (>= (bag.count x A) 1)
+  Node count = d_nm->mkNode(BAG_COUNT, n[0], n[1]);
+  Node geq = d_nm->mkNode(GEQ, count, d_one);
+  return BagsRewriteResponse(geq, Rewrite::MEMBER);
+}
+
 BagsRewriteResponse BagsRewriter::rewriteMakeBag(const TNode& n) const
 {
   Assert(n.getKind() == BAG_MAKE);
@@ -177,13 +188,12 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
     // (bag.count x bag.empty) = 0
     return BagsRewriteResponse(d_zero, Rewrite::COUNT_EMPTY);
   }
-  if (n[1].getKind() == BAG_MAKE && n[0] == n[1][0])
+  if (n[1].getKind() == BAG_MAKE && n[0] == n[1][0] && n[1][1].isConst()
+      && n[1][1].getConst<Rational>() > Rational(0))
   {
-    // (bag.count x (bag x c)) = (ite (>= c 1) c 0)
+    // (bag.count x (bag x c)) = c, c > 0 is a constant
     Node c = n[1][1];
-    Node geq = d_nm->mkNode(GEQ, c, d_one);
-    Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
-    return BagsRewriteResponse(ite, Rewrite::COUNT_BAG_MAKE);
+    return BagsRewriteResponse(c, Rewrite::COUNT_BAG_MAKE);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }

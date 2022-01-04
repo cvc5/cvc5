@@ -40,19 +40,35 @@ void SolverState::registerBag(TNode n)
   d_bags.insert(n);
 }
 
-void SolverState::registerCountTerm(TNode n)
+Node SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
-  Node element = n[0];
+  Node element = getRepresentative(n[0]);
   Node bag = getRepresentative(n[1]);
-  d_bagElements[bag].insert(element);
+  Node count = d_nm->mkNode(BAG_COUNT, element, bag);
+  Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(count, "bag.count");
+  d_bagElements[bag].push_back(std::make_pair(element, skolem));
+  return count.eqNode(skolem);
 }
 
 const std::set<Node>& SolverState::getBags() { return d_bags; }
 
-const std::set<Node>& SolverState::getElements(Node B)
+std::set<Node> SolverState::getElements(Node B)
 {
   Node bag = getRepresentative(B);
+  std::set<Node> elements;
+  std::vector<std::pair<Node, Node>> pairs = d_bagElements[bag];
+  for (std::pair<Node, Node> pair : pairs)
+  {
+    elements.insert(pair.first);
+  }
+  return elements;
+}
+
+const std::vector<std::pair<Node, Node>>& SolverState::getElementCountPairs(
+    Node n)
+{
+  Node bag = getRepresentative(n);
   return d_bagElements[bag];
 }
 
@@ -65,15 +81,17 @@ void SolverState::reset()
   d_deq.clear();
 }
 
-void SolverState::initialize()
+std::vector<Node> SolverState::initialize()
 {
   reset();
-  collectBagsAndCountTerms();
   collectDisequalBagTerms();
+  return collectBagsAndCountTerms();
 }
 
-void SolverState::collectBagsAndCountTerms()
+std::vector<Node> SolverState::collectBagsAndCountTerms()
 {
+  std::vector<Node> lemmas;
+
   eq::EqClassesIterator repIt = eq::EqClassesIterator(d_ee);
   while (!repIt.isFinished())
   {
@@ -96,14 +114,16 @@ void SolverState::collectBagsAndCountTerms()
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))
         Node count = d_nm->mkNode(BAG_COUNT, n[0], n);
-        registerCountTerm(count);
+        Node lemma = registerCountTerm(count);
+        lemmas.push_back(lemma);
         Trace("SolverState::collectBagsAndCountTerms")
             << "registered " << count << endl;
       }
       if (k == BAG_COUNT)
       {
         // this takes care of all count terms in each equivalent class
-        registerCountTerm(n);
+        Node lemma = registerCountTerm(n);
+        lemmas.push_back(lemma);
         Trace("SolverState::collectBagsAndCountTerms")
             << "registered " << n << endl;
       }
@@ -114,7 +134,7 @@ void SolverState::collectBagsAndCountTerms()
   }
 
   Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
-  Trace("bags-eqc") << "bag elements: " << d_bagElements << endl;
+  return lemmas;
 }
 
 void SolverState::collectDisequalBagTerms()
