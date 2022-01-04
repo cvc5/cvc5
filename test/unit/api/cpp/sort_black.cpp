@@ -626,5 +626,10 @@ TEST_F(TestApiBlackSort, sortScopedToString)
   ASSERT_EQ(uninterp_sort.toString(), name);
 }
 
+TEST_F(TestApiBlackSort, toString)
+{
+  ASSERT_NO_THROW(Sort().toString());
+}
+
 }  // namespace test
 }  // namespace cvc5
