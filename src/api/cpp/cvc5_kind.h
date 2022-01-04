@@ -2447,6 +2447,17 @@ enum Kind : int32_t
    */
   BAG_COUNT,
   /**
+   * Bag membership predicate.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort (Bag E), is [1] of type E an element of [2]
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_MEMBER,
+  /**
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
    *
