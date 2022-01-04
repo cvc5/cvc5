@@ -2440,4 +2440,3 @@ def test_tuple_project(solver):
 
         assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
             projection)
-
