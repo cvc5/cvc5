@@ -529,7 +529,7 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
   return rset;
 }
 
-void RelevanceManager::notifyLemma(Node n)
+void RelevanceManager::notifyLemma(TNode n)
 {
   // notice that we may be in FULL or STANDARD effort here.
   if (d_dman != nullptr)

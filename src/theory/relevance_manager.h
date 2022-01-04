@@ -81,7 +81,7 @@ class RelevanceManager : protected EnvObj
   using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
-  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList>>;
+  using NodeListMap = context::CDHashMap<Node, std::unique_ptr<NodeList>>;
   using NodeSet = context::CDHashSet<Node>;
   using RlvPairIntMap =
       context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
@@ -141,7 +141,7 @@ class RelevanceManager : protected EnvObj
    */
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
-  void notifyLemma(Node n);
+  void notifyLemma(TNode n);
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m);
   /**
