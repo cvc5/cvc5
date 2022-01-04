@@ -87,8 +87,6 @@ class TheoryStrings : public Theory {
   TrustNode explain(TNode literal) override;
   /** presolve */
   void presolve() override;
-  /** shutdown */
-  void shutdown() override {}
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   //--------------------------------- standard check
