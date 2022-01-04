@@ -404,11 +404,6 @@ class TheoryEngine : protected EnvObj
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
 
-  /**
-   * Called by the theories to notify that the current branch is incomplete.
-   */
-  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
-
  private:
   typedef context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
@@ -425,6 +420,11 @@ class TheoryEngine : protected EnvObj
 
   /** set in conflict */
   void markInConflict();
+
+  /**
+   * Called by the theories to notify that the current branch is incomplete.
+   */
+  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Called by the output channel to propagate literals and facts
