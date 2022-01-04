@@ -73,15 +73,6 @@ class PropEngine : protected EnvObj
   void finishInit();
 
   /**
-   * This is called by SolverEngine, at shutdown time, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between some parts of the system (notably between
-   * PropEngine and Theory).  For now, there's nothing to do here in
-   * the PropEngine.
-   */
-  void shutdown() {}
-
-  /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
    * rewriting node. New lemmas and skolems are added to ppLemmas and
    * ppSkolems respectively.
