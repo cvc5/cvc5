@@ -67,7 +67,6 @@ enum class IncompleteId
   // UF+cardinality solver used in an incomplete mode
   UF_CARD_MODE,
 
-  DEEP_RESTART,
   //-------------------------------------- unknown
   UNKNOWN
 };

@@ -401,7 +401,7 @@ Result PropEngine::checkSat() {
   }
 
   Debug("prop") << "PropEngine::checkSat() => " << result << std::endl;
-  if(result == SAT_VALUE_TRUE && d_theoryEngine->isIncomplete()) {
+  if(result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete()) {
     return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);

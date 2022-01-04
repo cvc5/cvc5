@@ -177,12 +177,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
-  if (d_deepRestart.get())
-  {
-    d_theoryEngine->setIncomplete(theory::THEORY_LAST,
-                                  theory::IncompleteId::DEEP_RESTART);
-    return;
-  }
   d_theoryEngine->check(effort);
 }
 
@@ -272,6 +266,11 @@ bool TheoryProxy::theoryNeedCheck() const {
     return false;
   }
   return d_theoryEngine->needCheck();
+}
+
+bool TheoryProxy::isIncomplete() const
+{
+  return d_deepRestart.get() || d_theoryEngine->isIncomplete();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {
