@@ -277,7 +277,7 @@ bool SmtSolver::deepRestart(Assertions& asr)
   {
     Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
-    AlwaysAssert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
+    Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
         << "Relearned: " << lit << std::endl;
     d_allLearnedLits.insert(lit);
   }

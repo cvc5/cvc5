@@ -177,7 +177,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
-  d_theoryEngine->check(effort);
+  if (!d_deepRestart.get())
+  {
+    d_theoryEngine->check(effort);
+  }
 }
 
 void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
