@@ -1141,7 +1141,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         // (- n) denotes a
         std::stringstream suminus;
-        suminus << "-" << constVal;
+        suminus << "-" << args[0].getIntegerValue();
         api::Term ret = d_solver->mkInteger(suminus.str());
         Debug("parser") << "applyParseOp: return negative constant " << ret
                         << std::endl;
@@ -1155,6 +1155,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
              && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign() > 0)
     {
       // (/ m n) or (/ (- m) n) denote values in reals
+      std::stringstream sdiv;
+      sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
+      api::Term ret = d_solver->mkReal(sdiv.str());
+      Debug("parser") << "applyParseOp: return rational constant " << ret
+                      << std::endl;
+      return ret;
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
     {
@@ -1263,7 +1269,7 @@ bool Smt2::isConstInt(const api::Term& t)
   api::Kind k = t.getKind();
   // !!! Note when arithmetic subtyping is eliminated, this will update to
   // CONST_INTEGER.
-  return k == api::CONST_RATIONAL;
+  return k == api::CONST_RATIONAL && t.getSort().isInteger();
 }
 
 }  // namespace parser
