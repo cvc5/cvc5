@@ -204,6 +204,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
         Result checkSynth() except +
+        Result checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
@@ -295,6 +296,12 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
         void setOption(const string& option, const string& value) except +
+        bint getInterpolant(const Term& conj, Term& output) except +
+        bint getInterpolant(const Term& conj, Grammar& grammar, Term& output) except +
+        bint getInterpolantNext(const Term& conj) except +
+        bint getAbduct(const Term& conj, Term& output) except +
+        bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
+        bint getAbductNext(const Term& conj) except +
 
     cdef cppclass Grammar:
         Grammar() except +

@@ -370,33 +370,34 @@ def print_diff(actual, expected):
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
     arguments to execute, `cwd` is the working directory and `s_input` is the
-    input to be sent to the process over stdin. Returns the output, the error
+    input to be sent to the process over stdin. If `args` is a list, the
+    arguments are escaped and concatenated. If `args` is a string, it is
+    executed as-is (without additional escaping. Returns the output, the error
     output and the exit code of the process. If the process times out, the
     output and the error output are empty and the exit code is 124."""
 
-    proc = subprocess.Popen(
-        args,
-        cwd=cwd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    cmd = " ".join([shlex.quote(a) for a in args]) if isinstance(args, list) else args
 
     out = ""
     err = ""
     exit_status = STATUS_TIMEOUT
     try:
-        if timeout:
-            timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
-            timer.start()
-        out, err = proc.communicate(input=s_input)
-        exit_status = proc.returncode
-    finally:
-        if timeout:
-            # The timer killed the process and is not active anymore.
-            if exit_status == -9 and not timer.is_alive():
-                exit_status = STATUS_TIMEOUT
-            timer.cancel()
+        # Instead of setting shell=True, we explicitly call bash. Using
+        # shell=True seems to produce different exit codes on different
+        # platforms under certain circumstances.
+        res = subprocess.run(
+            ["bash", "-c", cmd],
+            cwd=cwd,
+            input=s_input,
+            timeout=timeout,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        out = res.stdout
+        err = res.stderr
+        exit_status = res.returncode
+    except subprocess.TimeoutExpired:
+        exit_status = STATUS_TIMEOUT
 
     return out, err, exit_status
 
@@ -446,14 +447,14 @@ def run_benchmark(benchmark_info):
     # If a scrubber command has been specified then apply it to the output.
     if benchmark_info.scrubber:
         output, _, _ = run_process(
-            shlex.split(benchmark_info.scrubber),
+            benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
     if benchmark_info.error_scrubber:
         error, _, _ = run_process(
-            shlex.split(benchmark_info.error_scrubber),
+            benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,

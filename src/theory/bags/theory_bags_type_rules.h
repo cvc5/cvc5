@@ -58,6 +58,15 @@ struct CountTypeRule
 }; /* struct CountTypeRule */
 
 /**
+ * Type rule for binary operator bag.member to check the sort of the first
+ * argument matches the element sort of the given bag.
+ */
+struct MemberTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
  * Type rule for bag.duplicate_removal to check the argument is of a bag.
  */
 struct DuplicateRemovalTypeRule

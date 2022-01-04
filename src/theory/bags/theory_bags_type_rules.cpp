@@ -120,6 +120,35 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+{
+  Assert(n.getKind() == kind::BAG_MEMBER);
+  TypeNode bagType = n[1].getType(check);
+  if (check)
+  {
+    if (!bagType.isBag())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "checking for membership in a non-bag");
+    }
+    TypeNode elementType = n[0].getType(check);
+    // e.g. (bag.member 1 (bag 1.0 1)) is true whereas
+    // (bag.member 1.0 (bag 1 1)) throws a typing error
+    if (!elementType.isSubtypeOf(bagType.getBagElementType()))
+    {
+      std::stringstream ss;
+      ss << "member operating on bags of different types:\n"
+         << "child type:  " << elementType << "\n"
+         << "not subtype: " << bagType.getBagElementType() << "\n"
+         << "in term : " << n;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return nodeManager->booleanType();
+}
+
 TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check)
