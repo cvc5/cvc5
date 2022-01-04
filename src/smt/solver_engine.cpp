@@ -1818,7 +1818,7 @@ void SolverEngine::resetAssertions()
   d_state->setup();
 
   // reset SmtSolver, which will construct a new prop engine
-  d_smtSolver->resetAssertions();
+  d_smtSolver->finishInit();
 }
 
 bool SolverEngine::deepRestart()
@@ -1841,17 +1841,10 @@ bool SolverEngine::deepRestart()
   // push the state to maintain global context around everything
   d_state->setup();
 
-  // we start with the deep restart assertions
-  if (!d_smtSolver->computeDeepRestartAssertions(*d_asserts.get()))
+  if (!d_smtSolver->deepRestart(*d_asserts.get()))
   {
     return false;
   }
-
-  // reset SmtSolver, which will construct a new prop engine. We must do
-  // this after the above call, since prop engine owns the dynamically learned
-  // literals.
-  d_smtSolver->resetAssertions();
-
   return true;
 }
 

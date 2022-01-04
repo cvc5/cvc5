@@ -109,6 +109,8 @@ class ProofChecker
                uint32_t pclevel = 0,
                rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
+  /** Reset, which clears the rule checkers */
+  void reset();
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not
    * well-formed. If expected is non-null, then we return null if pn does not

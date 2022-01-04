@@ -93,6 +93,12 @@ ProofChecker::ProofChecker(bool eagerCheck,
 {
 }
 
+void ProofChecker::reset()
+{
+  d_checker.clear();
+  d_plevel.clear();
+}
+
 Node ProofChecker::check(ProofNode* pn, Node expected)
 {
   return check(pn->getRule(), pn->getChildren(), pn->getArguments(), expected);

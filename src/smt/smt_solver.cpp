@@ -64,6 +64,9 @@ void SmtSolver::finishInit()
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm)
   {
+    // reset the rule checkers
+    pnm->getChecker()->reset();
+    // add rule checkers from the theory engine
     d_theoryEngine->initializeProofChecker(pnm->getChecker());
   }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -242,7 +245,7 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
+bool SmtSolver::deepRestart(Assertions& asr)
 {
   Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
   Assert(options().smt.deepRestart);
@@ -279,6 +282,10 @@ bool SmtSolver::computeDeepRestartAssertions(Assertions& asr)
     d_allLearnedLits.insert(lit);
   }
   Trace("deep-restart") << "Finished compute deep restart" << std::endl;
+  
+  // we now finish init to reconstruct prop engine and theory engine
+  finishInit();
+  
   return true;
 }
 
