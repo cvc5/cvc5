@@ -271,7 +271,6 @@ bool SmtSolver::deepRestart(Assertions& asr)
     apr.push_back(a);
   }
   preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
-  theory::SubstitutionMap& tll = d_env.getTopLevelSubstitutions().get();
   for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
   {
     // carry the entire skolem map, which should align with the order of

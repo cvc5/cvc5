@@ -449,8 +449,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
-      opts.smt.simplificationMode = qf_sat ? options::SimplificationMode::NONE
+      opts.smt.simplificationMode = (qf_sat && !opts.smt.deepRestart) ? options::SimplificationMode::NONE
                                            : options::SimplificationMode::BATCH;
+    }
+    if (opts.smt.simplificationMode==options::SimplificationMode::NONE)
+    {
+      std::stringstream ss;
+      ss << "Deep restart requires non-clausal simplification";
+      throw OptionException(ss.str());
     }
   }
 
@@ -1005,6 +1011,13 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
+  if (opts.smt.deepRestart)
+  {
+    verbose(1) << "SolverEngine: turning off deep restarts to support "
+                  "incremental solving"
+               << std::endl;
+    opts.smt.deepRestart = false;
+  }
 
   // disable modes not supported by incremental
   opts.smt.sortInference = false;
@@ -1012,8 +1025,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   opts.quantifiers.globalNegate = false;
   opts.quantifiers.cegqiNestedQE = false;
   opts.arith.arithMLTrick = false;
-  opts.smt.deepRestart = false;
-
   return false;
 }
 
@@ -1031,6 +1042,13 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
                   "cores"
                << std::endl;
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
+    if (opts.smt.deepRestart)
+    {
+      verbose(1) << "SolverEngine: turning off deep restart to support unsat "
+                  "cores"
+               << std::endl;
+      opts.smt.deepRestart = false;
+    }
   }
 
   if (opts.smt.learnedRewrite)
