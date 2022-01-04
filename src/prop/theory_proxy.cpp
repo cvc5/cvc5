@@ -333,8 +333,7 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-const std::unordered_set<Node>& TheoryProxy::getLearnedZeroLevelLiterals()
-    const
+const std::unordered_set<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
 {
   Assert(d_zll != nullptr);
   return d_zll->getLearnedZeroLevelLiterals();

@@ -282,10 +282,10 @@ bool SmtSolver::deepRestart(Assertions& asr)
     d_allLearnedLits.insert(lit);
   }
   Trace("deep-restart") << "Finished compute deep restart" << std::endl;
-  
+
   // we now finish init to reconstruct prop engine and theory engine
   finishInit();
-  
+
   return true;
 }
 
