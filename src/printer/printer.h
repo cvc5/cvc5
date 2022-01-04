@@ -200,11 +200,17 @@ class Printer
                                       Node conj,
                                       TypeNode sygusType) const;
 
+  /** Print get-interpol-next command */
+  virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
+
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
                                     const std::string& name,
                                     Node conj,
                                     TypeNode sygusType) const;
+
+  /** Print get-abduct-next command */
+  virtual void toStreamCmdGetAbductNext(std::ostream& out) const;
 
   /** Print get-quantifier-elimination command */
   virtual void toStreamCmdGetQuantifierElimination(std::ostream& out,

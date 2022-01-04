@@ -1703,23 +1703,6 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
   }
 }
 
-// Node explainSet(const set<ConstraintP>& inp){
-//   Assert(!inp.empty());
-//   NodeBuilder nb(kind::AND);
-//   set<ConstraintP>::const_iterator iter, end;
-//   for(iter = inp.begin(), end = inp.end(); iter != end; ++iter){
-//     const ConstraintP c = *iter;
-//     Assert(c != NullConstraint);
-//     c->explainForConflict(nb);
-//   }
-//   Node ret = safeConstructNary(nb);
-//   Node rew = rewrite(ret);
-//   if(rew.getNumChildren() < ret.getNumChildren()){
-//     //Debug("approx::") << "explainSet " << ret << " " << rew << endl;
-//   }
-//   return rew;
-// }
-
 DeltaRational sumConstraints(const DenseMap<Rational>& xs, const DenseMap<ConstraintP>& cs, bool* anyinf){
   if(anyinf != NULL){
     *anyinf = false;

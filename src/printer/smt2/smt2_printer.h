@@ -174,11 +174,17 @@ class Smt2Printer : public cvc5::Printer
                               Node conj,
                               TypeNode sygusType) const override;
 
+  /** Print get-interpol-next command */
+  void toStreamCmdGetInterpolNext(std::ostream& out) const override;
+
   /** Print get-abduct command */
   void toStreamCmdGetAbduct(std::ostream& out,
                             const std::string& name,
                             Node conj,
                             TypeNode sygusType) const override;
+
+  /** Print get-abduct-next command */
+  void toStreamCmdGetAbductNext(std::ostream& out) const override;
 
   /** Print get-quantifier-elimination command */
   void toStreamCmdGetQuantifierElimination(std::ostream& out,
