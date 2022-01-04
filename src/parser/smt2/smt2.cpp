@@ -1105,7 +1105,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
       {
-        // (- n) denotes a
+        // (- n) denotes a negative value
         std::stringstream suminus;
         suminus << "-" << args[0].getIntegerValue();
         api::Term ret = d_solver->mkInteger(suminus.str());
