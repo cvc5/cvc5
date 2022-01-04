@@ -41,7 +41,8 @@ class SymbolManager::Implementation
         d_declareSorts(&d_context),
         d_declareTerms(&d_context),
         d_funToSynth(&d_context),
-        d_hasPushedScope(&d_context, false)
+        d_hasPushedScope(&d_context, false),
+        d_lastSynthName(&d_context)
   {
     // use an outermost push, to be able to clear all definitions
     d_context.push();
@@ -84,6 +85,10 @@ class SymbolManager::Implementation
   void popScope();
   /** Have we pushed a scope (e.g. let or quantifier) in the current context? */
   bool hasPushedScope() const;
+  /** Set the last abduct-to-synthesize had the given name. */
+  void setLastSynthName(const std::string& name);
+  /** Get the name of the last abduct-to-synthesize */
+  const std::string& getLastSynthName() const;
 
  private:
   /** The context manager for the scope maps. */
@@ -102,6 +107,8 @@ class SymbolManager::Implementation
    * Have we pushed a scope (e.g. a let or quantifier) in the current context?
    */
   CDO<bool> d_hasPushedScope;
+  /** The last abduct or interpolant to synthesize name */
+  CDO<std::string> d_lastSynthName;
 };
 
 NamingResult SymbolManager::Implementation::setExpressionName(
@@ -256,6 +263,16 @@ bool SymbolManager::Implementation::hasPushedScope() const
   return d_hasPushedScope.get();
 }
 
+void SymbolManager::Implementation::setLastSynthName(const std::string& name)
+{
+  d_lastSynthName = name;
+}
+
+const std::string& SymbolManager::Implementation::getLastSynthName() const
+{
+  return d_lastSynthName.get();
+}
+
 void SymbolManager::Implementation::reset()
 {
   Trace("sym-manager") << "SymbolManager: reset" << std::endl;
@@ -386,6 +403,16 @@ void SymbolManager::setGlobalDeclarations(bool flag)
 bool SymbolManager::getGlobalDeclarations() const
 {
   return d_globalDeclarations;
+}
+
+void SymbolManager::setLastSynthName(const std::string& name)
+{
+  d_implementation->setLastSynthName(name);
+}
+
+const std::string& SymbolManager::getLastSynthName() const
+{
+  return d_implementation->getLastSynthName();
 }
 
 void SymbolManager::reset()

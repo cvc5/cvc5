@@ -57,6 +57,8 @@ class APIExamples(SphinxDirective):
     has_content = True
 
     logger = logging.getLogger(__name__)
+    
+    srcdir = None
 
     def run(self):
         self.state.document.settings.env.note_dependency(__file__)
@@ -88,6 +90,16 @@ class APIExamples(SphinxDirective):
             # generate tabs
             content.append(f'    .. tab:: {title}')
             content.append(f'')
+
+            if file.startswith('/'):
+                # if the file is "absolute", we can provide a download link
+                urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
+                url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
+                content.append(f'        .. rst-class:: fa fa-download icon-margin')
+                content.append(f'        ')
+                content.append(f'        `{urlname} <{url}>`_')
+                content.append(f'')
+
             content.append(f'        .. literalinclude:: {file}')
             content.append(f'            :language: {lang}')
             content.append(f'            :linenos:')
@@ -102,6 +114,7 @@ class APIExamples(SphinxDirective):
 
 
 def setup(app):
+    APIExamples.srcdir = app.srcdir
     app.setup_extension('sphinx_tabs.tabs')
     app.add_config_value('ex_patterns', {}, 'env')
     app.add_directive("api-examples", APIExamples)

@@ -226,7 +226,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           const Rational& exp = t[1].getConst<Rational>();
           TNode base = t[0];
           if(exp.sgn() == 0){
-            return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(1)));
+            return RewriteResponse(REWRITE_DONE,
+                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                       t.getType(), Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
             cvc5::Rational r(expr::NodeValue::MAX_CHILDREN);
             if (exp <= r)
@@ -536,7 +538,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         Rational r = pi_factor.getConst<Rational>();
         Rational r_abs = r.abs();
         Rational rone = Rational(1);
-        Node ntwo = mkRationalNode(Rational(2));
+        Node ntwo = nm->mkConstInt(Rational(2));
         if (r_abs > rone)
         {
           //add/substract 2*pi beyond scope
@@ -880,7 +882,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     if (k == kind::INTS_MODULUS_TOTAL)
     {
       // (mod x 1) --> 0
-      return returnRewrite(t, mkRationalNode(0), Rewrite::MOD_BY_ONE);
+      return returnRewrite(t, nm->mkConstInt(0), Rewrite::MOD_BY_ONE);
     }
     Assert(k == kind::INTS_DIVISION_TOTAL);
     // (div x 1) --> x

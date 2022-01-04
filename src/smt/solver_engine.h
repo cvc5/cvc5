@@ -637,12 +637,18 @@ class CVC5_EXPORT SolverEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+  bool getInterpolant(const Node& conj,
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Node& conj, Node& interpol);
+  /**
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
+   *
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
+   */
+  bool getInterpolantNext(Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -658,8 +664,13 @@ class CVC5_EXPORT SolverEngine
    */
   bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getAbduct(const Node& conj, Node& abd);
+  /**
+   * Get next abduct. This can only be called immediately after a successful
+   * call to getAbduct or getAbductNext.
+   *
+   * Returns true if an abduct was found, and sets abd to the abduct.
+   */
+  bool getAbductNext(Node& abd);
 
   /**
    * Get list of quantified formulas that were instantiated on the last call

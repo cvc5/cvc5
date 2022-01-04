@@ -1395,6 +1395,30 @@ TEST_F(TestApiBlackSolver, getAbduct2)
   ASSERT_THROW(d_solver.getAbduct(conj, output), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getAbductNext)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-abducts", "true");
+  d_solver.setOption("incremental", "true");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+
+  // Assumptions for abduction: x > 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+  // Conjecture for abduction: y > 0
+  Term conj = d_solver.mkTerm(GT, y, zero);
+  Term output;
+  // Call the abduction api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  Term output2;
+  ASSERT_TRUE(d_solver.getAbductNext(output2));
+  // should produce a different output
+  ASSERT_TRUE(output != output2);
+}
+
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
@@ -1422,6 +1446,35 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
+}
+
+TEST_F(TestApiBlackSolver, getInterpolantNext)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("incremental", "true");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term z = d_solver.mkConst(intSort, "z");
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  d_solver.assertFormula(
+      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  Term conj =
+      d_solver.mkTerm(OR,
+                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(LT, z, zero));
+  Term output;
+  d_solver.getInterpolant(conj, output);
+  Term output2;
+  d_solver.getInterpolantNext(output2);
+
+  // We expect the next output to be distinct
+  ASSERT_TRUE(output != output2);
 }
 
 TEST_F(TestApiBlackSolver, declarePool)
