@@ -82,13 +82,6 @@ class SmtSolver
    */
   void interrupt();
   /**
-   * This is called by the destructor of SolverEngine, just before destroying
-   * the PropEngine, TheoryEngine, and DecisionEngine (in that order).  It is
-   * important because there are destruction ordering issues between PropEngine
-   * and Theory.
-   */
-  void shutdown();
-  /**
    * Check satisfiability (used to check satisfiability and entailment)
    * in SolverEngine. This is done via adding assumptions (when necessary) to
    * assertions as, preprocessing and pushing assertions into the prop engine
