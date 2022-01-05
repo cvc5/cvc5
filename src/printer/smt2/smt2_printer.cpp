@@ -1090,6 +1090,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
   case kind::BAG_SUBBAG: return "bag.subbag";
   case kind::BAG_COUNT: return "bag.count";
+  case kind::BAG_MEMBER: return "bag.member";
   case kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
   case kind::BAG_MAKE: return "bag";
   case kind::BAG_CARD: return "bag.card";
@@ -1915,6 +1916,11 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
     out << ' ' << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  out << "(get-interpol-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,

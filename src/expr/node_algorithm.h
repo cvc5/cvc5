@@ -257,6 +257,9 @@ void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types);
  */
 bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 
+/** Is the top symbol of cur a Boolean connective? */
+bool isBooleanConnective(TNode cur);
+
 }  // namespace expr
 }  // namespace cvc5
 
