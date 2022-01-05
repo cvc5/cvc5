@@ -75,12 +75,12 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-granularity=MODE"
   type       = "ProofGranularityMode"
-  default    = "THEORY_REWRITE"
+  default    = "MACRO"
   help       = "modes for proof granularity"
   help_mode  = "Modes for proof granularity."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Do not improve the granularity of proofs."
+[[option.mode.MACRO]]
+  name = "macro"
+  help = "Allow macros. Do not improve the granularity of proofs."
 [[option.mode.REWRITE]]
   name = "rewrite"
   help = "Allow rewrite or substitution steps, expand macros."

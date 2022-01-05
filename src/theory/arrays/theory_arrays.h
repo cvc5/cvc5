@@ -261,7 +261,6 @@ class TheoryArrays : public Theory {
 
 
   void presolve() override;
-  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER

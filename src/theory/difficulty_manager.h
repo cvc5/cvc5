@@ -27,6 +27,7 @@ namespace cvc5 {
 namespace theory {
 
 class TheoryModel;
+class RelevanceManager;
 
 /**
  * Difficulty manager, which tracks an estimate of the difficulty of each
@@ -38,7 +39,7 @@ class DifficultyManager
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(context::Context* c, Valuation val);
+  DifficultyManager(RelevanceManager* rlv, context::Context* c, Valuation val);
   /** Notify input assertions */
   void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
@@ -58,7 +59,7 @@ class DifficultyManager
    * the reason why that literal was relevant in the current context
    * @param lem The lemma
    */
-  void notifyLemma(const context::CDHashMap<Node, Node>& rse, Node lem);
+  void notifyLemma(Node lem);
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
@@ -70,6 +71,8 @@ class DifficultyManager
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
+  /** Pointer to the parent relevance manager */
+  RelevanceManager* d_rlv;
   /**
    * The input assertions, tracked to ensure we do not increment difficulty
    * on lemmas.
