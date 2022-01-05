@@ -1,0 +1,46 @@
+V addsygusassume
+V blockmodel1
+V blockmodel2
+V blockmodel3
+V blockmodel4
+V blockmodelvalues1
+V blockmodelvalues2
+V blockmodelvalues3
+V blockmodelvalues4
+V blockmodelvalues5
+V declaredatatype
+V definefunrecglobal
+definefunsrec
+definefunsrecglobal
+definefunsrecwronglogic
+getdatatypearity
+getdifficulty
+getdifficulty2
+getdifficulty3
+getmodel
+getmodel2
+getmodel3
+getmodeldomainelements2
+getoptioninfo
+getoptionnames
+getquantifierelimination
+getquantifiereliminationdisjunct
+getunsatcore3
+getunsatcoreandproof
+Helper
+mknan
+mknan{assert_no_throw(d_solver.mknan(3
+mkpi
+mkpi{assert_no_throw(d_solver.mkpi(;}
+mksepemp
+mksepemp{assert_no_throw(d_solver.mksepemp(;}
+output
+pow2large1
+pow2large2
+pow2large3
+proj_issue373
+proj_issue378
+proj_issue379
+proj_issue381
+proj_issue382
+proj_issue383

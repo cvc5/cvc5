@@ -1002,6 +1002,43 @@ def test_mk_const_array(solver):
         slv.mkConstArray(arrSort, zero2)
 
 
+def test_declare_datatype(solver):
+  lin = solver.mkDatatypeConstructorDecl("lin")
+  ctors0 = [lin]
+  solver.declareDatatype("", ctors0)
+
+  nil = solver.mkDatatypeConstructorDecl("nil")
+  ctors1 = [nil]
+  solver.declareDatatype("a", ctors1)
+
+  cons = solver.mkDatatypeConstructorDecl("cons")
+  nil2 = solver.mkDatatypeConstructorDecl("nil")
+  ctors2 = [cons, nil2]
+  solver.declareDatatype("b", ctors2)
+
+  cons2 = solver.mkDatatypeConstructorDecl("cons")
+  nil3 = solver.mkDatatypeConstructorDecl("nil")
+  ctors3 = [cons2, nil3]
+  solver.declareDatatype("", ctors3)
+
+  # must have at least one constructor
+  ctors4 = []
+  with pytest.raises(RuntimeError):
+      solver.declareDatatype("C", ctors4)
+  
+  # constructors may not be reused
+  ctor1 = solver.mkDatatypeConstructorDecl("_x21")
+  ctor2 = solver.mkDatatypeConstructorDecl("_x31")
+  Sort s3 = solver.declareDatatype("_x17", [ctor1, ctor2])
+  with pytest.raises(RuntimeError):
+      solver.declareDatatype("_x86", [ctor1, ctor2])
+  
+  # constructor belongs to different solver instance
+  slv = pycvc5.Solver()
+  with pytest.raises(RuntimeError):
+      solver.declareDatatype("a", ctors1)
+
+
 def test_declare_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -1133,6 +1170,29 @@ def test_define_fun_rec_wrong_logic(solver):
         solver.defineFunRec("f", [], bvSort, v)
     with pytest.raises(RuntimeError):
         solver.defineFunRec(f, [b, b], v)
+
+def test_define_fun_rec_global(solver):
+  bSort = solver.getBooleanSort()
+  fSort = solver.mkFunctionSort(bSort, bSort)
+
+  solver.push()
+  bTrue = solver.mkBoolean(True)
+  # (define-fun f () Bool true)
+  f = solver.defineFunRec("f", [], bSort, bTrue, True)
+  b = solver.mkVar(bSort, "b")
+  gSym = solver.mkConst(fSort, "g")
+  # (define-fun g (b Bool) Bool b)
+  g = solver.defineFunRec(gSym, [b], b, True)
+
+  # (assert (or (not f) (not (g true))))
+  solver.assertFormula(solver.mkTerm(
+      Kind.Or, f.notTerm(), solver.mkTerm(Kind.ApplyUf, g, bTrue).notTerm()))
+  assert solver.checkSat().isUnsat()
+  solver.pop()
+  # (assert (or (not f) (not (g true))))
+  solver.assertFormula(solver.mkTerm(
+      Kind.Or, f.notTerm(), solver.mkTerm(Kind.ApplyUf, g, bTrue).notTerm()))
+  solver.checkSat().isUnsat()
 
 
 def test_uf_iteration(solver):
@@ -1492,6 +1552,85 @@ def test_pop3(solver):
     with pytest.raises(RuntimeError):
         solver.pop(1)
 
+def test_block_model1(solver):
+    solver.setOption("produce-models", "true")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModel()
+
+def test_block_model2(solver):
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModel()
+
+
+def test_block_model3(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    with pytest.raises(RuntimeError):
+        solver.blockModel()
+
+
+def test_block_model4(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    solver.blockModel()
+
+
+def test_block_model_values1(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues({})
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues({Term()})
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues({pycvc5.Solver().mkBoolean(false)})
+
+def test_block_model_values2(solver):
+    solver.setOption("produce-models", "true")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues({x})
+
+def test_block_model_values3(solver):
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues({x})
+
+def test_block_model_values4(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues({x})
+
+def test_block_model_values5(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.mkBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    solver.blockModelValues({x})
 
 def test_set_info(solver):
     with pytest.raises(RuntimeError):
@@ -1864,6 +2003,19 @@ def test_add_sygus_constraint(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.addSygusConstraint(boolTerm)
+
+def test_add_sygus_assume(solver):
+    nullTerm = pycvc5.Term()
+    boolTerm = solver.mkBoolean(false)
+    intTerm = solver.mkInteger(1)
+    solver.addSygusAssume(boolTerm)
+    with pytest.raises(RuntimeError):
+        solver.addSygusAssume(nullTerm)
+    with pytest.raises(RuntimeError):
+        solver.addSygusAssume(intTerm)
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.addSygusAssume(boolTerm)
 
 
 def test_add_sygus_inv_constraint(solver):
