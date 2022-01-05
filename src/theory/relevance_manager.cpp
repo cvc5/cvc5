@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/node_algorithm.h"
 #include "expr/term_context_stack.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
@@ -208,13 +209,6 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
   return true;
 }
 
-bool RelevanceManager::isBooleanConnective(TNode cur)
-{
-  Kind k = cur.getKind();
-  return k == NOT || k == IMPLIES || k == AND || k == OR || k == ITE || k == XOR
-         || (k == EQUAL && cur[0].getType().isBoolean());
-}
-
 bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
                                               std::vector<int32_t>& childrenJustify)
 {
@@ -223,7 +217,7 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
   // compute the next child, in this case we push the status of the current
   // child to childrenJustify.
   size_t nchildren = cur.first.getNumChildren();
-  Assert(isBooleanConnective(cur.first));
+  Assert(expr::isBooleanConnective(cur.first));
   size_t index = childrenJustify.size();
   Assert(index < nchildren);
   Kind k = cur.first.getKind();
@@ -356,7 +350,7 @@ int32_t RelevanceManager::justify(TNode n)
     if (itc == childJustify.end())
     {
       // are we not a Boolean connective (including NOT)?
-      if (isBooleanConnective(cur.first))
+      if (expr::isBooleanConnective(cur.first))
       {
         // initialize its children justify vector as empty
         childJustify[cur].clear();
