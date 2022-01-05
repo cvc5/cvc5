@@ -738,6 +738,7 @@ set(regress_0_tests
   regress0/named-expr-use.smt2
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
+  regress0/nl/combined-uf.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
