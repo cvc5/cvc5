@@ -176,7 +176,6 @@ void TheoryArith::postCheck(Effort level)
         d_im.doPendingPhaseRequirements();
         return;
       }
-      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }
@@ -290,6 +289,13 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (termSet.find(p.first) == termSet.end())
     {
       continue;
+    }
+    if (d_nonlinearExtension != nullptr)
+    {
+      if (d_nonlinearExtension->assertModel(m, p.first))
+      {
+        continue;
+      }
     }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
