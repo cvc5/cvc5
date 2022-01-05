@@ -339,15 +339,15 @@ def test_is_finite(solver):
     ctordecl = solver.mkDatatypeConstructorDecl("cons")
     ctordecl.addSelector("sel", solver.getBooleanSort())
     dtypedecl.addConstructor(ctordecl)
-    dtype = d_solver.mkDatatypeSort(dtypedecl)
+    dtype = solver.mkDatatypeSort(dtypedecl)
     assert dtype.getDatatype().isFinite()
 
     p = solver.mkParamSort("p1")
     pdtypedecl = solver.mkDatatypeDecl("dt", [p])
-    pctordecl = d_solver.mkDatatypeConstructorDecl("cons")
+    pctordecl = solver.mkDatatypeConstructorDecl("cons")
     pctordecl.addSelector("sel", p)
     pdtypedecl.addConstructor(pctordecl)
-    pdtype = d_solver.mkDatatypeSort(pdtypedecl)
+    pdtype = solver.mkDatatypeSort(pdtypedecl)
     with pytest.raises(RuntimeError):
         pdtype.getDatatype().isFinite()
 
