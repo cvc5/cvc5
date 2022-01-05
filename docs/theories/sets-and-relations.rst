@@ -165,7 +165,7 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({<Sort_1>, ..., <Sort_n>}, {Term_1>, ..., <Term_n>});``  |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Selector       | ``((_ tuple_select i) t)``                         | ``Sort s = solver.mkTupleSort(sorts);``                                            |
+| Tuple Selector       | ``((_ tuple_select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
 |                      |                                              |                                                                                    |
