@@ -201,10 +201,6 @@ bool ProcessAssertions::apply(Assertions& as)
     applyPass("foreign-theory-rewrite", as);
   }
 
-  // Since this pass is not robust for the information tracking necessary for
-  // unsat cores, it's only applied if we are not doing unsat core computation
-  applyPass("apply-substs", as);
-
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", as);
 
