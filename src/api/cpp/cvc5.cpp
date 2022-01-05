@@ -4193,6 +4193,8 @@ bool Datatype::isFinite() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(!d_dtype->isParametric())
+      << "Invalid call to 'isFinite()', expected non-parametric Datatype";
   //////// all checks before this line
   // we assume that finite model finding is disabled by passing false as the
   // second argument
