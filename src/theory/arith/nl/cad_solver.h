@@ -82,6 +82,9 @@ class CadSolver: protected EnvObj
   bool constructModelIfAvailable(std::vector<Node>& assertions);
 
  private:
+
+  void addToModel(TNode var, TNode value) const;
+
   /**
    * The variable used to encode real algebraic numbers to nodes.
    */
