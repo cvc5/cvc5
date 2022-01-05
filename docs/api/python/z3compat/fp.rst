@@ -82,11 +82,11 @@ See the following operator overloads for building basic floating-point terms:
 Testers
 -------------------
 .. autofunction:: cvc5_z3py_compat.is_fp_sort
+.. autofunction:: cvc5_z3py_compat.is_fp
+.. autofunction:: cvc5_z3py_compat.is_fp_value
 .. autofunction:: cvc5_z3py_compat.is_fprm_sort
 .. autofunction:: cvc5_z3py_compat.is_fprm
 .. autofunction:: cvc5_z3py_compat.is_fprm_value
-.. autofunction:: cvc5_z3py_compat.is_fp
-.. autofunction:: cvc5_z3py_compat.is_fp_value
 
 
 FP Rounding Modes
