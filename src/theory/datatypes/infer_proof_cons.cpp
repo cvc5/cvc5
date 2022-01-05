@@ -233,7 +233,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_PURIFY:
     {
-      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {});
+      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {conc});
       success = true;
     }
     break;
