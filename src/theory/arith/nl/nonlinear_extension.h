@@ -111,10 +111,8 @@ class NonlinearExtension : EnvObj
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
 
-  /**
-   * Finalize the given model by adding approximations and witnesses.
-   */
-  void finalizeModel(TheoryModel* tm);
+  Node getModelValue(TNode var) const;
+  bool assertModel(TheoryModel* tm, TNode var) const;
 
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
