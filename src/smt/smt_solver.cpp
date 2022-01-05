@@ -111,18 +111,6 @@ void SmtSolver::interrupt()
   }
 }
 
-void SmtSolver::shutdown()
-{
-  if (d_propEngine != nullptr)
-  {
-    d_propEngine->shutdown();
-  }
-  if (d_theoryEngine != nullptr)
-  {
-    d_theoryEngine->shutdown();
-  }
-}
-
 Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions,
                                       bool isEntailmentCheck)

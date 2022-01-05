@@ -170,6 +170,8 @@ enum class InferenceId
   // ---------------------------------- bags theory
   BAGS_NON_NEGATIVE_COUNT,
   BAGS_BAG_MAKE,
+  BAGS_BAG_MAKE_SPLIT,
+  BAGS_COUNT_SKOLEM,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
