@@ -4,17 +4,8 @@ Theory Reference: Sets and Relations
 Finite Sets
 -----------
 
-cvc5 supports the theory of finite sets.
-The simplest way to get a sense of the syntax is to look at an example:
-
-.. api-examples::
-    <examples>/api/cpp/sets.cpp
-    <examples>/api/java/Sets.java
-    <examples>/api/python/sets.py
-    <examples>/api/smtlib/sets.smt2
-
-Below is a short summary of the sorts, constants, functions and
-predicates.  More details can be found in :cite:`BansalBRT17`.
+cvc5 supports the theory of finite sets using the following sorts, constants,
+functions and predicates.  More details can be found in :cite:`BansalBRT17`.
 
 For the C++ API examples in the table below, we assume that we have created
 a `cvc5::api::Solver solver` object.
@@ -136,16 +127,21 @@ Above, notice that we were able to find a model for the universe set of sort
   The reason for that is that making this formula (and similar ones) `unsat` is
   counter-intuitive when quantifiers are present.
 
+
+Below is a more extensive example on how to use finite sets:
+
+.. api-examples::
+    <examples>/api/cpp/sets.cpp
+    <examples>/api/java/Sets.java
+    <examples>/api/python/sets.py
+    <examples>/api/smtlib/sets.smt2
+
+
 Finite Relations
 ----------------
 
-Example:
-
-.. api-examples::
-    <examples>/api/smtlib/relations.smt2
-
-For reference, below is a short summary of the sorts, constants, functions and
-predicates.
+cvc5 also supports the theory of finite relations, using the following sorts,
+constants, functions and predicates.
 More details can be found in :cite:`MengRTB17`.
 
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
@@ -187,3 +183,8 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Product              | ``(rel.product X Y)``                        | ``Term t = solver.mkTerm(Kind::RELATION_PRODUCT, X, Y);``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
+
+Example:
+
+.. api-examples::
+    <examples>/api/smtlib/relations.smt2
