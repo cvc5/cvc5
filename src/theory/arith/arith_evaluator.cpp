@@ -1,6 +1,7 @@
 #include "theory/arith/arith_evaluator.h"
 
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/theory.h"
 #include "theory/rewriter.h"
 #include "util/real_algebraic_number.h"
 
@@ -64,7 +65,7 @@ bool isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model)
     std::vector<TNode> repls;
     for (const auto& [node, repl]: model)
     {
-        if (repl.isConst())
+        if (repl.getType().isRealOrInt() && Theory::isLeafOf(repl, TheoryId::THEORY_ARITH))
         {
             nodes.emplace_back(node);
             repls.emplace_back(repl);
