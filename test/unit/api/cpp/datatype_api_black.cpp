@@ -337,6 +337,25 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
 }
 
+TEST_F(TestApiBlackDatatype, isFinite)
+{
+  DatatypeDecl dtypedecl = d_solver.mkDatatypeDecl("dt", {});
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+  ctordecl.addSelector("sel", d_solver.getBooleanSort());
+  dtypedecl.addConstructor(ctordecl);
+  Sort dtype = d_solver.mkDatatypeSort(dtypedecl);
+  ASSERT_TRUE(dtype.getDatatype().isFinite());
+
+  Sort p = d_solver.mkParamSort("p1");
+  DatatypeDecl pdtypedecl = d_solver.mkDatatypeDecl("dt", {p});
+  DatatypeConstructorDecl pctordecl =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  pctordecl.addSelector("sel", p);
+  pdtypedecl.addConstructor(pctordecl);
+  Sort pdtype = d_solver.mkDatatypeSort(pdtypedecl);
+  ASSERT_THROW(pdtype.getDatatype().isFinite(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
 {
   /* Create mutual datatypes corresponding to this definition block:
