@@ -310,6 +310,26 @@ class DatatypeTest
     assertTrue(pairIntInt.isSubsortOf(pairIntInt));
   }
 
+  @Test void datatypeIsFinite() throws CVC5ApiException
+  {
+    List<Sort> v = new ArrayList<>();
+    DatatypeDecl dtypedecl = d_solver.mkDatatypeDecl("dt", v);
+    DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+    ctordecl.addSelector("sel", d_solver.getBooleanSort());
+    dtypedecl.addConstructor(ctordecl);
+    Sort dtype = d_solver.mkDatatypeSort(dtypedecl);
+    assertTrue(dtype.getDatatype().isFinite());
+
+    Sort p = d_solver.mkParamSort("p1");
+    v.add(p);
+    DatatypeDecl pdtypedecl = d_solver.mkDatatypeDecl("dt", v);
+    DatatypeConstructorDecl pctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+    pctordecl.addSelector("sel", p);
+    pdtypedecl.addConstructor(pctordecl);
+    Sort pdtype = d_solver.mkDatatypeSort(pdtypedecl);
+    assertThrows(CVC5ApiException.class, () -> pdtype.getDatatype().isFinite());
+  }
+
   @Test void datatypeSimplyRec() throws CVC5ApiException
   {
     /* Create mutual datatypes corresponding to this definition block:
