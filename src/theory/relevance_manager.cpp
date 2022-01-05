@@ -131,7 +131,7 @@ void RelevanceManager::addInputToAtomsMap(TNode input)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (isBooleanConnective(cur))
+      if (expr::isBooleanConnective(cur))
       {
         visit.insert(visit.end(), cur.begin(), cur.end());
         continue;
