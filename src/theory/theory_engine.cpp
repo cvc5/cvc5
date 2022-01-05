@@ -221,7 +221,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_relManager(nullptr),
       d_inConflict(context(), false),
       d_inSatMode(false),
-      d_hasShutDown(false),
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
@@ -255,7 +254,6 @@ TheoryEngine::TheoryEngine(Env& env)
 }
 
 TheoryEngine::~TheoryEngine() {
-  Assert(d_hasShutDown);
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if(d_theoryTable[theoryId] != NULL) {
@@ -715,20 +713,6 @@ bool TheoryEngine::isRelevant(Node lit) const
   }
   // otherwise must assume its relevant
   return true;
-}
-
-void TheoryEngine::shutdown() {
-  // Set this first; if a Theory shutdown() throws an exception,
-  // at least the destruction of the TheoryEngine won't confound
-  // matters.
-  d_hasShutDown = true;
-
-  // Shutdown all the theories
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
-      theoryOf(theoryId)->shutdown();
-    }
-  }
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(
