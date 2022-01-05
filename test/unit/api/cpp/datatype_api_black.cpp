@@ -389,9 +389,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[2].getDatatype().isWellFounded());
-  ASSERT_FALSE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_FALSE(dtsorts[1].getDatatype().hasNestedRecursion());
-  ASSERT_FALSE(dtsorts[2].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -422,7 +419,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
       dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort(),
       dtsorts[0]);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -459,8 +455,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -497,8 +491,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -534,7 +526,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 }
 
 TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
