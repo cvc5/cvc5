@@ -382,9 +382,6 @@ class DatatypeTest
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(2).getDatatype().isWellFounded());
-    assertFalse(dtsorts.get(0).getDatatype().hasNestedRecursion());
-    assertFalse(dtsorts.get(1).getDatatype().hasNestedRecursion());
-    assertFalse(dtsorts.get(2).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -420,7 +417,6 @@ class DatatypeTest
                      .getArrayElementSort(),
         dtsorts.get(0));
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -458,8 +454,6 @@ class DatatypeTest
     assertEquals(dtsorts.size(), 2);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
-    assertTrue(dtsorts.get(1).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -497,8 +491,6 @@ class DatatypeTest
     assertEquals(dtsorts.size(), 2);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
-    assertTrue(dtsorts.get(1).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -535,7 +527,6 @@ class DatatypeTest
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
   }
 
   @Test void datatypeSpecializedCons() throws CVC5ApiException

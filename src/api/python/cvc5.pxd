@@ -58,7 +58,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isRecord() except +
         bint isFinite() except +
         bint isWellFounded() except +
-        bint hasNestedRecursion() except +
         bint isNull() except +
         string toString() except +
         cppclass const_iterator:
