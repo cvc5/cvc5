@@ -79,5 +79,6 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, arithmetic)
   ASSERT_EQ(-msqrt2 + sqrt2, sqrt2 + sqrt2);
   ASSERT_EQ(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
 }
+
 }  // namespace test
 }  // namespace cvc5
