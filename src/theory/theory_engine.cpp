@@ -1022,8 +1022,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
 const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
-bool TheoryEngine::hasSepHeapTypes() const { return !d_sepLocType.isNull(); }
-
 bool TheoryEngine::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
 {
   if (d_sepLocType.isNull())
@@ -1037,7 +1035,6 @@ bool TheoryEngine::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
 
 void TheoryEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
-  Assert(!locT.isNull() && !dataT.isNull());
   Theory* tsep = theoryOf(THEORY_SEP);
   if (tsep == nullptr)
   {

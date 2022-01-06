@@ -334,8 +334,6 @@ class TheoryEngine : protected EnvObj
   }
   /** get the logic info used by this theory engine */
   const LogicInfo& getLogicInfo() const;
-  /** Have separation logic heap types been declared? */
-  bool hasSepHeapTypes() const;
   /** get the separation logic heap types */
   bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
 

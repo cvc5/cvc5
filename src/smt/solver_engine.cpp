@@ -203,18 +203,6 @@ void SolverEngine::finishInit()
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
   Assert(te != nullptr);
-
-  if (d_env->getOptions().base.incrementalSolving)
-  {
-    // check if separation logic is enabled in incremental mode, which requires
-    // the theory engine, hence it is done here
-    if (te->hasSepHeapTypes())
-    {
-      throw OptionException(
-          std::string("Separation logic not supported in incremental mode"));
-    }
-  }
-
   TheoryModel* tm = te->getModel();
   if (tm != nullptr)
   {
@@ -1231,6 +1219,13 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   }
   SolverEngineScope smts(this);
   finishInit();
+  // check whether incremental is enabled, where separation logic is not
+  // supported.
+  if (d_env->getOptions().base.incrementalSolving)
+  {
+    throw RecoverableModalException(
+        std::string("Separation logic not supported in incremental mode"));
+  }
   TheoryEngine* te = getTheoryEngine();
   te->declareSepHeap(locT, dataT);
 }
