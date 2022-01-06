@@ -1224,7 +1224,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   if (d_env->getOptions().base.incrementalSolving)
   {
     throw RecoverableModalException(
-        std::string("Separation logic not supported in incremental mode"));
+        "Separation logic not supported in incremental mode");
   }
   TheoryEngine* te = getTheoryEngine();
   te->declareSepHeap(locT, dataT);
