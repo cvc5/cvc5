@@ -293,7 +293,6 @@ class DumpTester(Tester):
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args
                 + [
-                    "-q",
                     "--parse-only",
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
