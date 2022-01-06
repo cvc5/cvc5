@@ -751,6 +751,8 @@ class NodeManager
    */
   Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
 
+  Node mkConstRealAlgebraicNumber(const RealAlgebraicNumber& ran);
+
   /** Create a node with children. */
   TypeNode mkTypeNode(Kind kind, TypeNode child1);
   TypeNode mkTypeNode(Kind kind, TypeNode child1, TypeNode child2);
