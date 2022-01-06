@@ -36,7 +36,8 @@ class SubtypeElimNodeConverter : public NodeConverter
   ~SubtypeNodeConverter() {}
   /** convert to internal */
   Node postConvert(Node n) override;
-private:
+
+ private:
   /** Is real type (not integer)? */
   const bool isRealTypeStrict(TypeNode tn);
 };

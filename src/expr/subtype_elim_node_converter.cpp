@@ -19,11 +19,7 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-
-SubtypeElimNodeConverter::SubtypeElimNodeConverter()
-{
-  
-}
+SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {
@@ -34,17 +30,18 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   bool convertToRealChildren = false;
-  if (k==PLUS || k==MULT || k==NONLINEAR_MULT)
+  if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k==EQUAL || k==GEQ)
+  else if (k == EQUAL || k == GEQ)
   {
-    convertToRealChildren = isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
+    convertToRealChildren =
+        isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
   }
   if (convertToRealChildren)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     for (const Node& nc : c)
     {
