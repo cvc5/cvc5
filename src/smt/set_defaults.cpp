@@ -86,7 +86,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
     }
-    opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
@@ -137,17 +136,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // if unsat cores are disabled, then unsat cores mode should be OFF
   Assert(opts.smt.unsatCores
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
-
-  // new unsat core specific restrictions for proofs
-  if (opts.smt.unsatCores
-      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
-  {
-    // no fine-graininess
-    if (!opts.proof.proofGranularityModeWasSetByUser)
-    {
-      opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
-    }
-  }
 
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
