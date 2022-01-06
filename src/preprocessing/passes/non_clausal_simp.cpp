@@ -72,8 +72,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
-      Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-                                    << (*assertionsToPreprocess)[i] << std::endl;
+      Trace("non-clausal-simplify")
+          << "Assertion #" << i << " : " << (*assertionsToPreprocess)[i]
+          << std::endl;
     }
   }
 

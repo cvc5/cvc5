@@ -56,15 +56,15 @@ CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBa
 {
 }
 
-  void CircuitPropagator::initialize() { 
-      if (d_needsFinish)
+void CircuitPropagator::initialize()
+{
+  if (d_needsFinish)
   {
     d_context.pop();
   }
-    d_context.push(); 
-    d_needsFinish = true;
-  }
-
+  d_context.push();
+  d_needsFinish = true;
+}
 
 void CircuitPropagator::assertTrue(TNode assertion)
 {
