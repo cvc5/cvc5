@@ -128,6 +128,9 @@ RealAlgebraicNumber operator-(const RealAlgebraicNumber& ran);
 /** Multiply two real algebraic numbers. */
 RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs);
+/** Divide two real algebraic numbers. */
+RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs);
 
 /** Add and assign two real algebraic numbers. */
 RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
@@ -146,6 +149,8 @@ int sgn(const RealAlgebraicNumber& ran);
 bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
 bool isOne(const RealAlgebraicNumber& ran);
+/** Compute the inverse of a real algebraic number. */
+RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran);
 
 using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
 
