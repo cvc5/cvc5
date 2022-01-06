@@ -54,7 +54,7 @@ class Preprocessor : protected EnvObj
 {
  public:
   Preprocessor(Env& env, AbstractValues& abs, SolverEngineStatistics& stats);
-  ~Preprocessor() {}
+  ~Preprocessor();
   /**
    * Finish initialization
    */

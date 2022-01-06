@@ -44,7 +44,10 @@ Preprocessor::Preprocessor(Env& env,
       d_exDefs(env),
       d_processor(env, stats)
 {
+
 }
+
+Preprocessor::~Preprocessor() {}
 
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
