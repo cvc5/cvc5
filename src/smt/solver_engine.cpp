@@ -1219,6 +1219,13 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   }
   SolverEngineScope smts(this);
   finishInit();
+  // check whether incremental is enabled, where separation logic is not
+  // supported.
+  if (d_env->getOptions().base.incrementalSolving)
+  {
+    throw RecoverableModalException(
+        "Separation logic not supported in incremental mode");
+  }
   TheoryEngine* te = getTheoryEngine();
   te->declareSepHeap(locT, dataT);
 }
