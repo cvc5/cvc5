@@ -53,7 +53,7 @@ Node AlphaEquivalenceTypeNode::registerNode(
     Trace("aeq-debug") << "[" << curr << " " << typCount[curr] << "] ";
     std::pair<TypeNode, size_t> key(curr, typCount[curr]);
     aetn->d_children[key] = std::make_shared<AlphaEquivalenceTypeNode>(c);
-    aetn =aetn->d_children[key].get();
+    aetn = aetn->d_children[key].get();
     index = index + 1;
   }
   Trace("aeq-debug") << " : ";
@@ -69,7 +69,10 @@ Node AlphaEquivalenceTypeNode::registerNode(
 AlphaEquivalenceDb::AlphaEquivalenceDb(context::Context* c,
                                        expr::TermCanonize* tc,
                                        bool sortCommChildren)
-    : d_context(c), d_ae_typ_trie(c), d_tc(tc), d_sortCommutativeOpChildren(sortCommChildren)
+    : d_context(c),
+      d_ae_typ_trie(c),
+      d_tc(tc),
+      d_sortCommutativeOpChildren(sortCommChildren)
 {
 }
 Node AlphaEquivalenceDb::addTerm(Node q)
