@@ -175,22 +175,6 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native boolean isWellFounded(long pointer);
 
   /**
-   * Does this datatype have nested recursion? This method returns false if a
-   * value of this datatype includes a subterm of its type that is nested
-   * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with codomain type (Set T)
-   * has nested recursion.
-   *
-   * @return true if this datatype has nested recursion
-   */
-  public boolean hasNestedRecursion()
-  {
-    return hasNestedRecursion(pointer);
-  }
-
-  private native boolean hasNestedRecursion(long pointer);
-
-  /**
    * @return true if this Datatype is a null object
    */
   public boolean isNull()

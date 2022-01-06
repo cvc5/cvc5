@@ -765,7 +765,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
-      d_im.addPendingLemma(eq, InferenceId::DATATYPES_PURIFY);
+      d_im.addPendingInference(eq, InferenceId::DATATYPES_PURIFY, d_true, true);
       return k;
     }else{
       return (*it).second;

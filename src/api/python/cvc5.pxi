@@ -1,4 +1,4 @@
-from collections import defaultdict, Set
+from collections import defaultdict
 from fractions import Fraction
 from functools import wraps
 import sys
@@ -188,10 +188,6 @@ cdef class Datatype:
     def isWellFounded(self):
         """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
-
-    def hasNestedRecursion(self):
-        """:return: True if this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
-        return self.cd.hasNestedRecursion()
 
     def isNull(self):
         """:return: True if this Datatype is a null object."""
@@ -832,7 +828,7 @@ cdef class Solver:
         if unresolvedSorts == None:
             unresolvedSorts = set([])
         else:
-            assert isinstance(unresolvedSorts, Set)
+            assert isinstance(unresolvedSorts, set)
 
         sorts = []
         cdef vector[c_DatatypeDecl] decls
@@ -2234,6 +2230,117 @@ cdef class Solver:
         :param value: the option value
         """
         self.csolver.setOption(option.encode(), value.encode())
+
+    def getInterpolant(self, Term conj, *args):
+        """Get an interpolant.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-interpol <conj> )
+            ( get-interpol <conj> <grammar> )
+
+        Requires option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+
+        Supports the following variants:
+
+        - ``bool getInteprolant(Term conj, Term output)``
+        - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+        
+        :param conj: the conjecture term
+        :param output: the term where the result will be stored
+        :param grammar: a grammar for the inteprolant
+        :return: True iff an interpolant was found
+        """
+        result = False
+        if len(args) == 1:
+            assert isinstance(args[0], Term)
+            result = self.csolver.getInterpolant(conj.cterm, (<Term ?> args[0]).cterm)
+        else:
+            assert len(args) == 2
+            assert isinstance(args[0], Grammar)
+            assert isinstance(args[1], Term)
+            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+        return result
+
+
+    def getInterpolantNext(self, Term output):
+        """
+        Get the next interpolant. Can only be called immediately after
+        a succesful call to get-interpol or get-interpol-next. 
+        Is guaranteed to produce a syntactically different interpolant wrt the
+        last returned interpolant if successful.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-interpol-next )
+
+        Requires to enable incremental mode, and 
+        option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+
+        :param output: the term where the result will be stored
+        :return: True iff an interpolant was found
+        """
+        result = self.csolver.getInterpolantNext(output.cterm)
+        return result
+        
+    def getAbduct(self, Term conj, *args):
+        """Get an abduct.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-abduct <conj> )
+            ( get-abduct <conj> <grammar> )
+
+        Requires to enable option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+
+        Supports the following variants:
+
+        - ``bool getAbduct(Term conj, Term output)``
+        - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+        
+        :param conj: the conjecture term
+        :param output: the term where the result will be stored
+        :param grammar: a grammar for the abduct 
+        :return: True iff an abduct was found
+        """
+        result = False
+        if len(args) == 1:
+            assert isinstance(args[0], Term)
+            result = self.csolver.getAbduct(conj.cterm, (<Term ?> args[0]).cterm)
+        else:
+            assert len(args) == 2
+            assert isinstance(args[0], Grammar)
+            assert isinstance(args[1], Term)
+            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+        return result
+
+    def getAbductNext(self, Term output):
+        """
+        Get the next abduct. Can only be called immediately after
+        a succesful call to get-abduct or get-abduct-next. 
+        Is guaranteed to produce a syntactically different abduct wrt the 
+        last returned abduct if successful.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-abduct-next )
+
+        Requires to enable incremental mode, and 
+        option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+        :param output: the term where the result will be stored
+        :return: True iff an abduct was found
+        """
+        result = self.csolver.getAbductNext(output.cterm)
+        return result
+
 
 
 cdef class Sort:

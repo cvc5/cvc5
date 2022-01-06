@@ -25,6 +25,7 @@
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/bags/strategy.h"
 #include "theory/bags/term_registry.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -72,6 +73,11 @@ class TheoryBags : public Theory
   void preRegisterTerm(TNode n) override;
   void presolve() override;
 
+  /** run strategy for effort e */
+  void runStrategy(Theory::Effort e);
+  /** run the given inference step */
+  bool runInferStep(InferStep s, int effort);
+
  private:
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public TheoryEqNotifyClass
@@ -113,6 +119,9 @@ class TheoryBags : public Theory
 
   /** bag reduction */
   BagReduction d_bagReduction;
+
+  /** The representation of the strategy */
+  Strategy d_strat;
 
   void eqNotifyNewClass(TNode n);
   void eqNotifyMerge(TNode n1, TNode n2);

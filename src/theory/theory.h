@@ -141,17 +141,6 @@ class Theory : protected EnvObj
          std::string instance = "");  // taking : No default.
 
   /**
-   * This is called at shutdown time by the TheoryEngine, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between PropEngine and Theory (based on what
-   * hard-links to Nodes are outstanding).  As the fact queue might be
-   * nonempty, we ensure here that it's clear.  If you overload this,
-   * you must make an explicit call here to this->Theory::shutdown()
-   * too.
-   */
-  virtual void shutdown() {}
-
-  /**
    * The output channel for the Theory.
    */
   OutputChannel* d_out;
