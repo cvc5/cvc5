@@ -47,7 +47,7 @@ Node AlphaEquivalenceTypeNode::registerNode(
   AlphaEquivalenceTypeNode* aetn = this;
   size_t index = 0;
   std::map<std::pair<TypeNode, size_t>,
-           std::shared_ptr<AlphaEquivalenceTypeNode>>::iterator itc;
+           std::unique_ptr<AlphaEquivalenceTypeNode>>::iterator itc;
   while (index < typs.size())
   {
     TypeNode curr = typs[index];
@@ -57,7 +57,7 @@ Node AlphaEquivalenceTypeNode::registerNode(
     itc = aetn->d_children.find(key);
     if (itc == aetn->d_children.end())
     {
-      aetn->d_children[key] = std::make_shared<AlphaEquivalenceTypeNode>(c);
+      aetn->d_children[key] = std::make_unique<AlphaEquivalenceTypeNode>(c);
       aetn = aetn->d_children[key].get();
     }
     else

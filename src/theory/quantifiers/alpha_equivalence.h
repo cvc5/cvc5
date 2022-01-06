@@ -41,7 +41,7 @@ class AlphaEquivalenceTypeNode {
   AlphaEquivalenceTypeNode(context::Context* c);
   /** children of this node */
   std::map<std::pair<TypeNode, size_t>,
-           std::shared_ptr<AlphaEquivalenceTypeNode>>
+           std::unique_ptr<AlphaEquivalenceTypeNode>>
       d_children;
   /**
    * map from canonized quantifier bodies to a quantified formula whose
