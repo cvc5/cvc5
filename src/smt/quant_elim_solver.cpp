@@ -132,6 +132,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     {
       ret = SkolemManager::getOriginalForm(ret);
     }
+    // make so that the returned formula does not involve arithmetic subtyping
+    SubtypeElimNodeConverter senc;
+    ret = senc.convert(ret);
     return ret;
   }
   // otherwise, just true/false
