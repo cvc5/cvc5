@@ -14,7 +14,7 @@ namespace arith {
 bool isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model);
 
 }
-}
-}
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

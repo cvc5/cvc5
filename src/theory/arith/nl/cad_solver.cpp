@@ -217,9 +217,10 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node value = value_to_node(d_CAC.getModel().get(v), variable);
     addToModel(variable, value);
   }
-  for (const auto& sub: d_eqsubs.getSubstitutions())
+  for (const auto& sub : d_eqsubs.getSubstitutions())
   {
-    Trace("nl-cad") << "EqSubs: " << sub.first << " -> " << sub.second << std::endl;
+    Trace("nl-cad") << "EqSubs: " << sub.first << " -> " << sub.second
+                    << std::endl;
     addToModel(sub.first, sub.second);
   }
   if (foundNonVariable)

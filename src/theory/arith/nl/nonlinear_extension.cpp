@@ -283,7 +283,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                 d_approximations,
                                 d_witnesses,
                                 options().smt.modelWitnessValue);
-    for(auto& am: arithModel)
+    for (auto& am : arithModel)
     {
       Node val = getModelValue(am.first);
       if (!val.isNull())

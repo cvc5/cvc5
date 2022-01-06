@@ -19,6 +19,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
 #include "theory/arith/infer_bounds.h"
@@ -27,7 +28,6 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "theory/arith/arith_evaluator.h"
 
 using namespace std;
 using namespace cvc5::kind;
