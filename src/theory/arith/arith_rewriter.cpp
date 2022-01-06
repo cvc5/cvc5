@@ -78,10 +78,7 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
   {
     return RewriteResponse(REWRITE_DONE, nm->mkConstRealOrInt(t.getType(), Rational(0)));
   }
-  if (pre)
-  {
-    return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
-  }
+  return RewriteResponse(REWRITE_AGAIN_FULL, nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
   Assert(false) << "We should never get to postRewriteMinus: " << t;
   
   Polynomial minuend = Polynomial::parsePolynomial(t[0]);
@@ -99,6 +96,13 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
     NodeManager* nm = NodeManager::currentNM();
     return RewriteResponse(REWRITE_DONE,
                            nm->mkConstRealOrInt(t[0].getType(), neg));
+  }
+  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    RealAlgebraicNumber r = -(t[0].getOperator().getConst<RealAlgebraicNumber>());
+    NodeManager* nm = NodeManager::currentNM();
+    return RewriteResponse(REWRITE_DONE,
+                           nm->mkConstRealAlgebraicNumber(r));
   }
 
   Node noUminus = makeUnaryMinusNode(t[0]);
