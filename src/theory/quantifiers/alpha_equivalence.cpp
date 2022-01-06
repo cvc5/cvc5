@@ -55,7 +55,7 @@ Node AlphaEquivalenceTypeNode::registerNode(
     Trace("aeq-debug") << "[" << curr << " " << typCount[curr] << "] ";
     std::pair<TypeNode, size_t> key(curr, typCount[curr]);
     itc = aetn->d_children.find(key);
-    if (itc==aetn->d_children.end())
+    if (itc == aetn->d_children.end())
     {
       aetn->d_children[key] = std::make_shared<AlphaEquivalenceTypeNode>(c);
       aetn = aetn->d_children[key].get();
