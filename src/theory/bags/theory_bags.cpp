@@ -159,11 +159,11 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 void TheoryBags::postCheck(Effort effort)
 {
   d_im.doPendingFacts();
-  // TODO issue #78: add Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck())
-  // TODO issue #78:  add && d_strat.hasStrategyEffort(e))
+  Assert(d_strat.isStrategyInit());
+  if (!d_state.isInConflict() && !d_valuation.needCheck()
+      && d_strat.hasStrategyEffort(effort))
   {
-    Trace("bags::TheoryBags::postCheck") << "effort: " << std::endl;
+    Trace("bags::TheoryBags::postCheck") << "effort: " << effort << std::endl;
 
     // TODO issue #78: add ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
@@ -174,9 +174,12 @@ void TheoryBags::postCheck(Effort effort)
       d_im.reset();
       // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
-      // TODO issue #78: add runStrategy(e);
-
-      d_solver.postCheck();
+      std::vector<Node> lemmas = d_state.initialize();
+      for (Node lemma : lemmas)
+      {
+        d_im.lemma(lemma, InferenceId::BAGS_COUNT_SKOLEM);
+      }
+      runStrategy(effort);
 
       // remember if we had pending facts or lemmas
       hadPending = d_im.hasPending();
@@ -192,7 +195,7 @@ void TheoryBags::postCheck(Effort effort)
       sentLemma = d_im.hasSentLemma();
       if (Trace.isOn("bags-check"))
       {
-        // TODO: clean this Trace("bags-check") << "  ...finish run strategy: ";
+        Trace("bags-check") << "  ...finish run strategy: ";
         Trace("bags-check") << (hadPending ? "hadPending " : "");
         Trace("bags-check") << (sentLemma ? "sentLemma " : "");
         Trace("bags-check") << (d_state.isInConflict() ? "conflict " : "");
@@ -209,6 +212,66 @@ void TheoryBags::postCheck(Effort effort)
   Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
   Assert(!d_im.hasPendingFact());
   Assert(!d_im.hasPendingLemma());
+}
+
+void TheoryBags::runStrategy(Theory::Effort e)
+{
+  std::vector<std::pair<InferStep, size_t>>::iterator it = d_strat.stepBegin(e);
+  std::vector<std::pair<InferStep, size_t>>::iterator stepEnd =
+      d_strat.stepEnd(e);
+
+  Trace("bags-process") << "----check, next round---" << std::endl;
+  while (it != stepEnd)
+  {
+    InferStep curr = it->first;
+    if (curr == BREAK)
+    {
+      if (d_state.isInConflict() || d_im.hasPending())
+      {
+        break;
+      }
+    }
+    else
+    {
+      if (runInferStep(curr, it->second) || d_state.isInConflict())
+      {
+        break;
+      }
+    }
+    ++it;
+  }
+  Trace("bags-process") << "----finished round---" << std::endl;
+}
+
+/** run the given inference step */
+bool TheoryBags::runInferStep(InferStep s, int effort)
+{
+  Trace("bags-process") << "Run " << s;
+  if (effort > 0)
+  {
+    Trace("bags-process") << ", effort = " << effort;
+  }
+  Trace("bags-process") << "..." << std::endl;
+  switch (s)
+  {
+    case CHECK_INIT: break;
+    case CHECK_BAG_MAKE:
+    {
+      if (d_solver.checkBagMake())
+      {
+        return true;
+      }
+      break;
+    }
+    case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
+    default: Unreachable(); break;
+  }
+  Trace("bags-process") << "Done " << s
+                        << ", addedFact = " << d_im.hasPendingFact()
+                        << ", addedLemma = " << d_im.hasPendingLemma()
+                        << ", conflict = " << d_state.isInConflict()
+                        << std::endl;
+  return false;
 }
 
 void TheoryBags::notifyFact(TNode atom,
@@ -245,22 +308,24 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
     processedBags.insert(r);
 
-    std::set<Node> solverElements = d_state.getElements(r);
-    std::set<Node> elements;
-    // only consider terms in termSet and ignore other elements in the solver
-    std::set_intersection(termSet.begin(),
-                          termSet.end(),
-                          solverElements.begin(),
-                          solverElements.end(),
-                          std::inserter(elements, elements.begin()));
-    Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
-                        << elements << std::endl;
-    std::map<Node, Node> elementReps;
-    for (const Node& e : elements)
+    const std::vector<std::pair<Node, Node>>& solverElements =
+        d_state.getElementCountPairs(r);
+    std::vector<std::pair<Node, Node>> elements;
+    for (std::pair<Node, Node> pair : solverElements)
     {
-      Node key = d_state.getRepresentative(e);
-      Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      Node value = m->getRepresentative(countTerm);
+      if (termSet.find(pair.first) == termSet.end())
+      {
+        continue;
+      }
+      elements.push_back(pair);
+    }
+
+    std::map<Node, Node> elementReps;
+    for (std::pair<Node, Node> pair : elements)
+    {
+      Node key = d_state.getRepresentative(pair.first);
+      Node countSkolem = pair.second;
+      Node value = m->getRepresentative(countSkolem);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
@@ -299,7 +364,12 @@ void TheoryBags::preRegisterTerm(TNode n)
   }
 }
 
-void TheoryBags::presolve() {}
+void TheoryBags::presolve()
+{
+  Debug("bags-presolve") << "Started presolve" << std::endl;
+  d_strat.initializeStrategy();
+  Debug("bags-presolve") << "Finished presolve" << std::endl;
+}
 
 /**************************** eq::NotifyClass *****************************/
 

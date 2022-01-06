@@ -77,7 +77,7 @@ PfManager::PfManager(Env& env)
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
-      != options::ProofGranularityMode::OFF)
+      != options::ProofGranularityMode::MACRO)
   {
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
@@ -224,6 +224,7 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
                                        Assertions& as)
 {
+  Trace("difficulty-proc") << "Translate difficulty start" << std::endl;
   Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
   if (dmap.empty())
   {
@@ -231,6 +232,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   }
   std::map<Node, Node> dmapp = dmap;
   dmap.clear();
+  Trace("difficulty-proc") << "Get ppAsserts" << std::endl;
   std::vector<Node> ppAsserts;
   for (const std::pair<const Node, Node>& ppa : dmapp)
   {
@@ -241,12 +243,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
+  Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
   CDProof cdp(d_pnm.get());
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
+  Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
   Assert(fpf->getRule() == PfRule::SCOPE);
@@ -256,6 +260,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   DifficultyPostprocessCallback dpc;
   ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  Trace("difficulty-proc") << "Compute accumulated difficulty" << std::endl;
   // For each child of SAT_REFUTATION, we increment the difficulty on all
   // "source" free assumptions (see DifficultyPostprocessCallback) by the
   // difficulty of the preprocessed assertion.
@@ -274,6 +279,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   }
   // get the accumulated difficulty map from the callback
   dpc.getDifficultyMap(dmap);
+  Trace("difficulty-proc") << "Translate difficulty end" << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }

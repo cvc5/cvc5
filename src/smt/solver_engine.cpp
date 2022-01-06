@@ -254,9 +254,6 @@ void SolverEngine::finishInit()
 void SolverEngine::shutdown()
 {
   d_state->shutdown();
-
-  d_smtSolver->shutdown();
-
   d_env->shutdown();
 }
 

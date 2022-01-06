@@ -40,11 +40,29 @@ class BagSolver : protected EnvObj
   BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BagSolver();
 
-  void postCheck();
+  /**
+   * apply inference rules for basic bag operators:
+   * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
+   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
+   */
+  void checkBasicOperations();
+
+  /**
+   * apply inference rules for BAG_MAKE terms.
+   * For each term (bag x c) that is neither equal nor disequal to the empty
+   * bag, we do a split using the following lemma:
+   * (or
+   *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
+   *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
+   * where (Bag E) is the type of the bag term
+   * @return true if a new lemma was successfully sent.
+   */
+  bool checkBagMake();
 
  private:
   /** apply inference rules for empty bags */
   void checkEmpty(const Node& n);
+
   /**
    * apply inference rules for BAG_MAKE operator.
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
