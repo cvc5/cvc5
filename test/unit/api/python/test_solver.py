@@ -2101,16 +2101,6 @@ def test_declare_pool(solver):
     with pytest.raises(RuntimeError):
         solver.declarePool("i", nullSort, [])
 
-
-def test_declare_sep_heap(solver):
-    solver.setLogic("ALL")
-    integer = solver.getIntegerSort()
-    solver.declareSepHeap(integer, integer)
-    # cannot declare separation logic heap more than once
-    with pytest.raises(RuntimeError):
-        solver.declareSepHeap(integer, integer)
-
-
 def test_define_fun_global(solver):
     bSort = solver.getBooleanSort()
 
