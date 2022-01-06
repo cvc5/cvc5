@@ -182,6 +182,16 @@ void SolverEngine::finishInit()
   SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
+  if (d_env->getOptions().smt.incrementalSolving)
+  {
+    // check if separation logic is enabled in incremental mode, which requires
+    // the theory engine, hence it is done here
+    if (te->hasSepHeapTypes())
+    {
+        throw OptionException(std::string(
+            "Separation logic not supported in incremental mode"));
+    }
+  }
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
