@@ -111,7 +111,14 @@ class NonlinearExtension : EnvObj
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
 
+  /**
+   * Retrieve the model value for the given variable. It may be either an
+   * arithmetic term or a witness.
+   */
   Node getModelValue(TNode var) const;
+  /**
+   * Assert the model for the given variable to the theory model.
+   */
   bool assertModel(TheoryModel* tm, TNode var) const;
 
   /** Does this class need a call to check(...) at last call effort? */

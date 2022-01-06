@@ -82,6 +82,10 @@ class CadSolver: protected EnvObj
   bool constructModelIfAvailable(std::vector<Node>& assertions);
 
  private:
+  /**
+   * Add the variable assignment `var = value` to the nonlinear model.
+   * Depending on `value`, it is either added as substitution or witness.
+   */
   void addToModel(TNode var, TNode value) const;
 
   /**
