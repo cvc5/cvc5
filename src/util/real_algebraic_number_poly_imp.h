@@ -147,6 +147,17 @@ bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
 bool isOne(const RealAlgebraicNumber& ran);
 
+using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
+
 }  // namespace cvc5
+
+namespace std
+{
+  template<>
+  struct hash<cvc5::RealAlgebraicNumber>
+  {
+    size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
+  };
+}
 
 #endif /* CVC5__REAL_ALGEBRAIC_NUMBER_H */

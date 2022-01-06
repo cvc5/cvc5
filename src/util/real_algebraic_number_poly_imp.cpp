@@ -174,3 +174,11 @@ bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
 
 }  // namespace cvc5
+
+namespace std
+{
+  size_t hash<cvc5::RealAlgebraicNumber>::operator()(const cvc5::RealAlgebraicNumber& ran) const
+  {
+    return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
+  }
+}
