@@ -156,13 +156,12 @@ using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
 
 }  // namespace cvc5
 
-namespace std
+namespace std {
+template <>
+struct hash<cvc5::RealAlgebraicNumber>
 {
-  template<>
-  struct hash<cvc5::RealAlgebraicNumber>
-  {
-    size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
-  };
-}
+  size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
+};
+}  // namespace std
 
 #endif /* CVC5__REAL_ALGEBRAIC_NUMBER_H */

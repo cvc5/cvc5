@@ -178,14 +178,17 @@ RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
 int sgn(const RealAlgebraicNumber& ran) { return sgn(ran.getValue()); }
 bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
-RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran) { return inverse(ran.getValue()); }
+RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
+{
+  return inverse(ran.getValue());
+}
 
 }  // namespace cvc5
 
-namespace std
+namespace std {
+size_t hash<cvc5::RealAlgebraicNumber>::operator()(
+    const cvc5::RealAlgebraicNumber& ran) const
 {
-  size_t hash<cvc5::RealAlgebraicNumber>::operator()(const cvc5::RealAlgebraicNumber& ran) const
-  {
-    return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
-  }
+  return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
 }
+}  // namespace std

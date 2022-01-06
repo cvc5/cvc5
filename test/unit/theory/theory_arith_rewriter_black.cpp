@@ -66,7 +66,8 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   {
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
-    Node m = d_nodeManager->mkNode(Kind::PLUS, n, d_nodeManager->mkConstReal(Rational(1)));
+    Node m = d_nodeManager->mkNode(
+        Kind::PLUS, n, d_nodeManager->mkConstReal(Rational(1)));
     n = d_nodeManager->mkNode(Kind::MINUS, m, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);

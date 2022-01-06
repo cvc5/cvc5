@@ -36,16 +36,14 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-
-TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(NodeManager* nodeManager,
-                                                   TNode n,
-                                                   bool check)
+TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
 {
   return nodeManager->realType();
 }
 TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
-                                                   TNode n,
-                                                   bool check)
+                                                       TNode n,
+                                                       bool check)
 {
   return nodeManager->realType();
 }
