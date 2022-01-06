@@ -43,7 +43,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
-    for (const Node& nc : c)
+    for (const Node& nc : n)
     {
       if (nc.getType().isInteger())
       {

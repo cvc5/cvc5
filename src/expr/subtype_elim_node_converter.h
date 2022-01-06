@@ -40,7 +40,7 @@ class SubtypeElimNodeConverter : public NodeConverter
   Node postConvert(Node n) override;
  private:
   /** Is real type (not integer)? */
-  const bool isRealTypeStrict(TypeNode tn);
+  static bool isRealTypeStrict(TypeNode tn);
 };
 
 }  // namespace cvc5
