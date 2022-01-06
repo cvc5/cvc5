@@ -1002,41 +1002,41 @@ def test_mk_const_array(solver):
         slv.mkConstArray(arrSort, zero2)
 
 
-def test_declare_datatype(solver):
-  lin = solver.mkDatatypeConstructorDecl("lin")
-  ctors0 = [lin]
-  solver.declareDatatype("", ctors0)
-
-  nil = solver.mkDatatypeConstructorDecl("nil")
-  ctors1 = [nil]
-  solver.declareDatatype("a", ctors1)
-
-  cons = solver.mkDatatypeConstructorDecl("cons")
-  nil2 = solver.mkDatatypeConstructorDecl("nil")
-  ctors2 = [cons, nil2]
-  solver.declareDatatype("b", ctors2)
-
-  cons2 = solver.mkDatatypeConstructorDecl("cons")
-  nil3 = solver.mkDatatypeConstructorDecl("nil")
-  ctors3 = [cons2, nil3]
-  solver.declareDatatype("", ctors3)
-
-  # must have at least one constructor
-  ctors4 = []
-  with pytest.raises(RuntimeError):
-      solver.declareDatatype("C", ctors4)
-  
-  # constructors may not be reused
-  ctor1 = solver.mkDatatypeConstructorDecl("_x21")
-  ctor2 = solver.mkDatatypeConstructorDecl("_x31")
-  Sort s3 = solver.declareDatatype("_x17", [ctor1, ctor2])
-  with pytest.raises(RuntimeError):
-      solver.declareDatatype("_x86", [ctor1, ctor2])
-  
-  # constructor belongs to different solver instance
-  slv = pycvc5.Solver()
-  with pytest.raises(RuntimeError):
-      solver.declareDatatype("a", ctors1)
+#def test_declare_datatype(solver):
+#  lin = solver.mkDatatypeConstructorDecl("lin")
+#  ctors0 = [lin]
+#  solver.declareDatatype("", ctors0)
+#
+#  nil = solver.mkDatatypeConstructorDecl("nil")
+#  ctors1 = [nil]
+#  solver.declareDatatype("a", ctors1)
+#
+#  cons = solver.mkDatatypeConstructorDecl("cons")
+#  nil2 = solver.mkDatatypeConstructorDecl("nil")
+#  ctors2 = [cons, nil2]
+#  solver.declareDatatype("b", ctors2)
+#
+#  cons2 = solver.mkDatatypeConstructorDecl("cons")
+#  nil3 = solver.mkDatatypeConstructorDecl("nil")
+#  ctors3 = [cons2, nil3]
+#  solver.declareDatatype("", ctors3)
+#
+#  # must have at least one constructor
+#  ctors4 = []
+#  with pytest.raises(RuntimeError):
+#      solver.declareDatatype("C", ctors4)
+#  
+#  # constructors may not be reused
+#  ctor1 = solver.mkDatatypeConstructorDecl("_x21")
+#  ctor2 = solver.mkDatatypeConstructorDecl("_x31")
+#  s3 = solver.declareDatatype("_x17", [ctor1, ctor2])
+#  with pytest.raises(RuntimeError):
+#      solver.declareDatatype("_x86", [ctor1, ctor2])
+#  
+#  # constructor belongs to different solver instance
+#  slv = pycvc5.Solver()
+#  with pytest.raises(RuntimeError):
+#      solver.declareDatatype("a", ctors1)
 
 
 def test_declare_fun(solver):
@@ -2319,10 +2319,10 @@ def test_get_model_domain_elements2(solver):
     uSort = solver.mkUninterpretedSort("u")
     x = solver.mkVar(uSort, "x")
     y = solver.mkVar(uSort, "y")
-    eq = solver.mkTerm(Kinds.Equal, x, y)
-    bvl = solver.mkTerm(Kinds.VariableList, x, y)
-    f = solver.mkTerm(Kinds.Forall, bvl, eq)
-    solver.asV sertFormula(f)
+    eq = solver.mkTerm(Kind.Equal, x, y)
+    bvl = solver.mkTerm(Kind.VariableList, x, y)
+    f = solver.mkTerm(Kind.Forall, bvl, eq)
+    solver.assertFormula(f)
     solver.checkSat()
     solver.getModelDomainElements(uSort)
     assert len(solver.getModelDomainElements(uSort)) == 1
@@ -2693,11 +2693,11 @@ def test_define_funs_rec_global(solver):
   solver.defineFunsRec([gSym], [[b]], [b], True)
 
   # (assert (not (g true)))
-  solver.assertFormula(solver.mkTerm(Kinds.ApplyUf, gSym, bTrue).notTerm())
+  solver.assertFormula(solver.mkTerm(Kind.ApplyUf, gSym, bTrue).notTerm())
   assert solver.checkSat().isUnsat()
   solver.pop()
   # (assert (not (g true)))
-  solver.assertFormula(solver.mkTerm(Kinds.ApplyUf, gSym, bTrue).notTerm())
+  solver.assertFormula(solver.mkTerm(Kind.ApplyUf, gSym, bTrue).notTerm())
   assert solver.checkSat().isUnsat()
 
 
@@ -2722,20 +2722,20 @@ def test_get_difficulty2(solver):
   # option is not set
       solver.getDifficulty()
 
-ded test_get_difficulty3(solver):
+def test_get_difficulty3(solver):
   solver.setOption("produce-difficulty", "true")
-  Sort intSort = solver.getIntegerSort()
-  Term x = solver.mkConst(intSort, "x")
-  Term zero = solver.mkInteger(0)
-  Term ten = solver.mkInteger(10)
-  Term f0 = solver.mkTerm(Kinds.Geq, x, ten)
-  Term f1 = solver.mkTerm(Kinds.Geq, zero, x)
+  intSort = solver.getIntegerSort()
+  x = solver.mkConst(intSort, "x")
+  zero = solver.mkInteger(0)
+  ten = solver.mkInteger(10)
+  f0 = solver.mkTerm(Kind.Geq, x, ten)
+  f1 = solver.mkTerm(Kind.Geq, zero, x)
   solver.checkSat()
   dmap = solver.getDifficulty()
   # difficulty should map assertions to integer values
-  for key, value : dmap.items():
+  for key, value in dmap.items():
     assert key == f0 or key == f1
-    assert value.getKind() == Kinds.CONST_RATIONAL
+    assert value.getKind() == Kind.CONST_RATIONAL
 
 def test_get_model(solver):
     solver.setOption("produce-models", "true")
@@ -2743,7 +2743,7 @@ def test_get_model(solver):
     x = solver.mkConst(uSort, "x")
     y = solver.mkConst(uSort, "y")
     z = solver.mkConst(uSort, "z")
-    f = solver.mkTerm(Kinds.Not, solver.mkTerm(Kinds.Equal, x, y));
+    f = solver.mkTerm(Kind.Not, solver.mkTerm(Kind.Equal, x, y));
     solver.assertFormula(f)
     solver.checkSat()
     sorts = [uSort]
@@ -2780,7 +2780,7 @@ def test_get_option_names(solver):
 
 def test_get_quantifier_elimination(solver):
     x = solver.mkVar(solver.getBooleanSort(), "x")
-    forall = solver.mkTerm(Kinds.Forall, solver.mkTerm(Kinds.VariableList, x), solver.mkTerm(Kinds.Or, x, solver.mkTerm(Kinds.Not, x)))
+    forall = solver.mkTerm(Kind.Forall, solver.mkTerm(Kind.VariableList, x), solver.mkTerm(Kind.Or, x, solver.mkTerm(Kind.Not, x)))
     with pytest.raises(RuntimeError):
         solver.getQuantifierElimination(pycvc5.Term())
     with pytest.raises(RuntimeError):
@@ -2789,10 +2789,11 @@ def test_get_quantifier_elimination(solver):
 
 def test_get_quantifier_elimination_disjunct(solver):
     x = solver.mkVar(solver.getBooleanSort(), "x")
-    forall = solver.mkTerm(Kinds.Forall, solver.mkTerm(Kinds.VariableList, x), solver.mkTerm(Kinds.Or, x, solver.mkTerm(Kinds.Not, x)))
+    forall = solver.mkTerm(Kind.Forall, solver.mkTerm(Kind.VariableList, x), solver.mkTerm(Kind.Or, x, solver.mkTerm(Kind.Not, x)))
     with pytest.raises(RuntimeError):
         solver.getQuantifierEliminationDisjunct(pycvc5.Term())
     with pytest.raises(RuntimeError):
         solver.getQuantifierEliminationDisjunct(pycvc5.Solver().mkBoolean(False))
     solver.getQuantifierEliminationDisjunct(forall)
     
+

@@ -1898,12 +1898,13 @@ cdef class Solver:
                                            <bint> glbl)
         return fun
 
-    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
+    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, bool_or_term, glbl=None):
         """Define recursive functions.
 
         Supports two uses:
 
         - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
+        - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term)``
         - ``Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)``
 
 
@@ -1926,17 +1927,22 @@ cdef class Solver:
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
 
-        if t is not None:
+        if glbl is not None:
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm,
+                                                (<Term?> bool_or_term).cterm,
                                                 <bint> glbl)
+        elif isinstance(sym_or_fun, str):
+            term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
+                                                   <const vector[c_Term]&> v,
+                                                   (<Sort?> sort_or_term).csort,
+                                                   (<Term?> bool_or_term).cterm)
         else:
             term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
                                                    <const vector[c_Term]&> v,
                                                    (<Term?> sort_or_term).cterm,
-                                                   <bint> glbl)
+                                                   <bint> bool_or_term)
 
         return term
 
