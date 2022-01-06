@@ -44,13 +44,13 @@ class Tester:
     def applies(self, benchmark_info):
         return True
 
-    def run(self, benchmark_info):
+    def run(self, benchmark_info, compare_outputs=True):
         exit_code = EXIT_OK
         output, error, exit_status = run_benchmark(benchmark_info)
         if exit_status == STATUS_TIMEOUT:
             exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
             print("Timeout - Flags: {}".format(benchmark_info.command_line_args))
-        elif output != benchmark_info.expected_output:
+        elif compare_outputs and output != benchmark_info.expected_output:
             exit_code = EXIT_FAILURE
             print("not ok - Flags: {}".format(benchmark_info.command_line_args))
             print()
@@ -66,7 +66,7 @@ class Tester:
                 print_colored(Color.YELLOW, error)
                 print("=" * 80)
                 print()
-        elif error != benchmark_info.expected_error:
+        elif compare_outputs and error != benchmark_info.expected_error:
             exit_code = EXIT_FAILURE
             print(
                 "not ok - Differences between expected and actual output on stderr - Flags: {}".format(
@@ -245,12 +245,24 @@ class AbductTester(Tester):
 
 class DumpTester(Tester):
     def applies(self, benchmark_info):
-        return benchmark_info.expected_exit_status == EXIT_OK
+        return (
+            benchmark_info.benchmark_ext != ".p"
+            and benchmark_info.expected_exit_status == EXIT_OK
+            and "Parse Error" not in benchmark_info.expected_output
+            # Skip the regressions below. Temperory until we can disable testers
+            # from within a regression.
+            # Incompatible options.
+            and "named_muted" not in benchmark_info.benchmark_basename
+            and "issue5512-vvv" not in benchmark_info.benchmark_basename
+            # Unsupported features.
+            and "issue6908-get-value-uc" not in benchmark_info.benchmark_basename
+            and "issue1063-overloading-dt-cons" not in benchmark_info.benchmark_basename
+        )
 
     def run(self, benchmark_info):
         ext_to_lang = {
             ".smt2": "smt2",
-            ".p": "tptp",
+            ".p": "smt2",
             ".sy": "sygus",
         }
 
@@ -281,12 +293,13 @@ class DumpTester(Tester):
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args
                 + [
+                    "-q",
                     "--parse-only",
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
-                expected_output="",
-            )
+            ),
+            False,
         )
         os.remove(tmpf.name)
         return exit_code
