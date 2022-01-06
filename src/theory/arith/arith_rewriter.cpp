@@ -82,7 +82,7 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
   {
     return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
   }
-  Assert(false) << "We should never get to postRewriteMinus";
+  Assert(false) << "We should never get to postRewriteMinus: " << t;
   
   Polynomial minuend = Polynomial::parsePolynomial(t[0]);
   Polynomial subtrahend = Polynomial::parsePolynomial(t[1]);
