@@ -10,23 +10,20 @@ V blockmodelvalues4
 V blockmodelvalues5
 V declaredatatype
 V definefunrecglobal
-definefunsrec
-definefunsrecglobal
-definefunsrecwronglogic
-getdatatypearity
-getdifficulty
-getdifficulty2
-getdifficulty3
-getmodel
-getmodel2
-getmodel3
-getmodeldomainelements2
-getoptioninfo
-getoptionnames
-getquantifierelimination
-getquantifiereliminationdisjunct
-getunsatcore3
-getunsatcoreandproof
+V definefunsrec
+V definefunsrecglobal
+V definefunsrecwronglogic
+V getdatatypearity
+V getdifficulty
+V getdifficulty2
+V getdifficulty3
+V getmodel
+V getmodel2
+V getmodel3
+V getmodeldomainelements2
+V getoptionnames
+V getquantifierelimination
+V getquantifiereliminationdisjunct
 Helper
 mknan
 mknan{assert_no_throw(d_solver.mknan(3
@@ -44,3 +41,5 @@ proj_issue379
 proj_issue381
 proj_issue382
 proj_issue383
+getoptioninfo
+getunsatcoreandproof

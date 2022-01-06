@@ -2313,6 +2313,20 @@ def test_get_model_domain_elements(solver):
     with pytest.raises(RuntimeError):
         solver.getModelDomainElements(intSort)
 
+def test_get_model_domain_elements2(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("finite-model-find", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkVar(uSort, "x")
+    y = solver.mkVar(uSort, "y")
+    eq = solver.mkTerm(Kinds.Equal, x, y)
+    bvl = solver.mkTerm(Kinds.VariableList, x, y)
+    f = solver.mkTerm(Kinds.Forall, bvl, eq)
+    solver.asV sertFormula(f)
+    solver.checkSat()
+    solver.getModelDomainElements(uSort)
+    assert len(solver.getModelDomainElements(uSort)) == 1
+
 
 def test_get_synth_solutions(solver):
     solver.setOption("lang", "sygus2")
@@ -2592,3 +2606,193 @@ def test_tuple_project(solver):
 
         assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
             projection)
+
+
+def test_define_funs_rec(solver):
+  u= solver.mkUninterpretedSort("u")
+  bv= solver.mkBitVectorSort(32)
+  funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
+  funSort2 = solver.mkFunctionSort(uSort, solver.getIntegerSort())
+  b1 = solver.mkVar(bvSort, "b1")
+  b11 = solver.mkVar(bvSort, "b1")
+  b2 = solver.mkVar(solver.getIntegerSort(), "b2")
+  b3 = solver.mkVar(funSort2, "b3")
+  b4 = solver.mkVar(uSort, "b4")
+  v1 = solver.mkConst(bvSort, "v1")
+  v2 = solver.mkConst(solver.getIntegerSort(), "v2")
+  v3 = solver.mkConst(funSort2, "v3")
+  v4 = solver.mkConst(uSort, "v4")
+  f1 = solver.mkConst(funSort1, "f1")
+  f2 = solver.mkConst(funSort2, "f2")
+  f3 = solver.mkConst(bvSort, "f3")
+  solver.defineFunsRec([f1, f2], [[b1, b11], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+      solver.defineFunsRec([f1, f2], [[v1, b11], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+      solver.defineFunsRec([f1, f3], [[b1, b11], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+      solver.defineFunsRec([f1, f2], [[b1], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+      solver.defineFunsRec([f1, f2], [[b1, b2], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+      solver.defineFunsRec([f1, f2], [[b1, b11], [b4]], [v1, v4])
+
+  slv = pycvc5.Solver()
+  uSort2 = slv.mkUninterpretedSort("u")
+  bvSort2 = slv.mkBitVectorSort(32)
+  funSort12 = slv.mkFunctionSort([bvSort2, bvSort2], bvSort2)
+  funSort22 = slv.mkFunctionSort(uSort2, slv.getIntegerSort())
+  b12 = slv.mkVar(bvSort2, "b1")
+  b112 = slv.mkVar(bvSort2, "b1")
+  b42 = slv.mkVar(uSort2, "b4")
+  v12 = slv.mkConst(bvSort2, "v1")
+  v22 = slv.mkConst(slv.getIntegerSort(), "v2")
+  f12 = slv.mkConst(funSort12, "f1")
+  f22 = slv.mkConst(funSort22, "f2")
+  slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v12, v22])
+  
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f1, f22], [[b12, b112], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f12, f2], [[b12, b112], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f12, f22], [[b1, b112], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f12, f22], [[b12, b11], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f12, f22], [[b12, b112], [b4]], [v12, v22])
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v1, v22])
+  with pytest.raises(RuntimeError):
+      slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v12, v2])
+
+def test_define_funs_rec_wrong_logic(solver):
+  solver.setLogic("QF_BV")
+  u= solver.mkUninterpretedSort("u")
+  bv= solver.mkBitVectorSort(32)
+  funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
+  funSort2 = solver.mkFunctionSort(uSort, solver.getIntegerSort())
+  b = solver.mkVar(bvSort, "b")
+  u = solver.mkVar(uSort, "u")
+  v1 = solver.mkConst(bvSort, "v1")
+  v2 = solver.mkConst(solver.getIntegerSort(), "v2")
+  f1 = solver.mkConst(funSort1, "f1")
+  f2 = solver.mkConst(funSort2, "f2")
+  with pytest.raises(RuntimeError):
+      solver.defineFunsRec([f1, f2], [[b, b], [u]], [v1, v2])
+
+def test_define_funs_rec_global(solver):
+  b= solver.getBooleanSort()
+  f= solver.mkFunctionSort(bSort, bSort)
+
+  solver.push()
+  bTrue = solver.mkBoolean(True)
+  b = solver.mkVar(bSort, "b")
+  gSym = solver.mkConst(fSort, "g")
+  # (define-funs-rec ((g ((b Bool)) Bool)) (b))
+  solver.defineFunsRec([gSym], [[b]], [b], True)
+
+  # (assert (not (g true)))
+  solver.assertFormula(solver.mkTerm(Kinds.ApplyUf, gSym, bTrue).notTerm())
+  assert solver.checkSat().isUnsat()
+  solver.pop()
+  # (assert (not (g true)))
+  solver.assertFormula(solver.mkTerm(Kinds.ApplyUf, gSym, bTrue).notTerm())
+  assert solver.checkSat().isUnsat()
+
+
+def test_get_data_type_arity(solver):
+  ctor1 = solver.mkDatatypeConstructorDecl("_x21");
+  ctor2 = solver.mkDatatypeConstructorDecl("_x31");
+  s3 = solver.declareDatatype("_x17", [ctor1, ctor2]);
+  assert s3.getDatatypeArity() == 0
+
+
+def test_get_difficulty(solver):
+  solver.setOption("produce-difficulty", "true")
+  # cannot ask before a check sat
+  with pytest.raises(RuntimeError):
+      solver.getDifficulty()
+  solver.checkSat()
+  solver.getDifficulty()
+
+def test_get_difficulty2(solver):
+  solver.checkSat()
+  with pytest.raises(RuntimeError):
+  # option is not set
+      solver.getDifficulty()
+
+ded test_get_difficulty3(solver):
+  solver.setOption("produce-difficulty", "true")
+  Sort intSort = solver.getIntegerSort()
+  Term x = solver.mkConst(intSort, "x")
+  Term zero = solver.mkInteger(0)
+  Term ten = solver.mkInteger(10)
+  Term f0 = solver.mkTerm(Kinds.Geq, x, ten)
+  Term f1 = solver.mkTerm(Kinds.Geq, zero, x)
+  solver.checkSat()
+  dmap = solver.getDifficulty()
+  # difficulty should map assertions to integer values
+  for key, value : dmap.items():
+    assert key == f0 or key == f1
+    assert value.getKind() == Kinds.CONST_RATIONAL
+
+def test_get_model(solver):
+    solver.setOption("produce-models", "true")
+    uSprt = solver.mkUninterpretedSort("u")
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    z = solver.mkConst(uSort, "z")
+    f = solver.mkTerm(Kinds.Not, solver.mkTerm(Kinds.Equal, x, y));
+    solver.assertFormula(f)
+    solver.checkSat()
+    sorts = [uSort]
+    terms = [x, y]
+    solver.getModel(sorts, terms)
+    null = pycvc5.Term(solver)
+    terms += [null]
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+def test_get_model2(solver):
+    solver.setOption("produce-models", "true")
+    sorts = []
+    terms = []
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+def test_get_model_3(solver):
+    solver.setOption("produce-models", "true")
+    sorts = []
+    terms = []
+    solver.checkSat()
+    solver.getModel(sorts, terms)
+    integer = solver.getIntegerSort()
+    sorts += [integer]
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+def test_get_option_names(solver):
+    names = solver.getOptionNames()
+    assert names.size() > 100
+    assert "verbose" in names
+    assert "foobar" not in names
+
+def test_get_quantifier_elimination(solver):
+    x = solver.mkVar(solver.getBooleanSort(), "x")
+    forall = solver.mkTerm(Kinds.Forall, solver.mkTerm(Kinds.VariableList, x), solver.mkTerm(Kinds.Or, x, solver.mkTerm(Kinds.Not, x)))
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierElimination(pycvc5.Term())
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierElimination(pycvc5.Solver.mkBoolean(False))
+    solver.getQuantifierElimination(forall)
+
+def test_get_quantifier_elimination_disjunct(solver):
+    x = solver.mkVar(solver.getBooleanSort(), "x")
+    forall = solver.mkTerm(Kinds.Forall, solver.mkTerm(Kinds.VariableList, x), solver.mkTerm(Kinds.Or, x, solver.mkTerm(Kinds.Not, x)))
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierEliminationDisjunct(pycvc5.Term())
+    with pytest.raises(RuntimeError):
+        solver.getQuantifierEliminationDisjunct(pycvc5.Solver().mkBoolean(False))
+    solver.getQuantifierEliminationDisjunct(forall)
+    
