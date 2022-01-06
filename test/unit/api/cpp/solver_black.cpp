@@ -1902,6 +1902,7 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 TEST_F(TestApiBlackSolver, declareSepHeap)
 {
   d_solver.setLogic("ALL");
+  d_solver.setOption("incremental", "false");
   Sort integer = d_solver.getIntegerSort();
   ASSERT_NO_THROW(d_solver.declareSepHeap(integer, integer));
   // cannot declare separation logic heap more than once
