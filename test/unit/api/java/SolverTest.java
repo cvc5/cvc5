@@ -1879,6 +1879,7 @@ class SolverTest
   @Test void declareSepHeap() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
+    d_solver.setOption("incremental", "false");
     Sort integer = d_solver.getIntegerSort();
     assertDoesNotThrow(() -> d_solver.declareSepHeap(integer, integer));
     // cannot declare separation logic heap more than once
