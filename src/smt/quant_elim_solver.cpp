@@ -23,6 +23,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/string.h"
+#include "expr/subtype_elim_node_converter.h"
 
 using namespace cvc5::theory;
 using namespace cvc5::kind;
