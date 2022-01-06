@@ -112,9 +112,14 @@ class NonlinearExtension : EnvObj
                        const std::set<Node>& termSet);
 
   /**
-   * Finalize the given model by adding approximations and witnesses.
+   * Retrieve the model value for the given variable. It may be either an
+   * arithmetic term or a witness.
    */
-  void finalizeModel(TheoryModel* tm);
+  Node getModelValue(TNode var) const;
+  /**
+   * Assert the model for the given variable to the theory model.
+   */
+  bool assertModel(TheoryModel* tm, TNode var) const;
 
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
