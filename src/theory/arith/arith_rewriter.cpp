@@ -70,23 +70,24 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t){
 
 RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
   Assert(t.getKind() == kind::MINUS);
+  Assert(t.getNumChildren() == 2);
 
-  if(pre){
-    if(t[0] == t[1]){
-      Rational zero(0);
-      Node zeroNode =
-          NodeManager::currentNM()->mkConstRealOrInt(t.getType(), zero);
-      return RewriteResponse(REWRITE_DONE, zeroNode);
-    }else{
-      Node noMinus = makeSubtractionNode(t[0],t[1]);
-      return RewriteResponse(REWRITE_DONE, noMinus);
-    }
-  }else{
-    Polynomial minuend = Polynomial::parsePolynomial(t[0]);
-    Polynomial subtrahend = Polynomial::parsePolynomial(t[1]);
-    Polynomial diff = minuend - subtrahend;
-    return RewriteResponse(REWRITE_DONE, diff.getNode());
+  auto* nm = NodeManager::currentNM();
+
+  if (t[0] == t[1])
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConstRealOrInt(t.getType(), Rational(0)));
   }
+  if (pre)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
+  }
+  Assert(false) << "We should never get to postRewriteMinus";
+  
+  Polynomial minuend = Polynomial::parsePolynomial(t[0]);
+  Polynomial subtrahend = Polynomial::parsePolynomial(t[1]);
+  Polynomial diff = minuend - subtrahend;
+  return RewriteResponse(REWRITE_DONE, diff.getNode());
 }
 
 RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
@@ -367,7 +368,6 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t){
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
 
   if (t.getNumChildren() == 1)
   {

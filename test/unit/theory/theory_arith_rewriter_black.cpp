@@ -55,6 +55,23 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     EXPECT_EQ(n.getKind(), Kind::REAL_ALGEBRAIC_NUMBER);
     EXPECT_EQ(n.getOperator().getConst<RealAlgebraicNumber>(), twosqrt2);
   }
+  {
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
+    Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+    n = d_nodeManager->mkNode(Kind::MINUS, n, n);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.getConst<Rational>(), Rational(0));
+  }
+  {
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
+    Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+    Node m = d_nodeManager->mkNode(Kind::PLUS, n, d_nodeManager->mkConstReal(Rational(1)));
+    n = d_nodeManager->mkNode(Kind::MINUS, m, n);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.getConst<Rational>(), Rational(1));
+  }
 }
 
 }  // namespace test
