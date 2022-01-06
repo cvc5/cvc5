@@ -46,15 +46,6 @@ Preprocessor::Preprocessor(Env& env,
 {
 }
 
-Preprocessor::~Preprocessor()
-{
-  if (d_propagator.getNeedsFinish())
-  {
-    d_propagator.finish();
-    d_propagator.setNeedsFinish(false);
-  }
-}
-
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
