@@ -46,22 +46,34 @@ Node AlphaEquivalenceTypeNode::registerNode(
 {
   AlphaEquivalenceTypeNode* aetn = this;
   size_t index = 0;
+  std::map<std::pair<TypeNode, size_t>,
+           std::shared_ptr<AlphaEquivalenceTypeNode>>::iterator itc;
   while (index < typs.size())
   {
     TypeNode curr = typs[index];
     Assert(typCount.find(curr) != typCount.end());
     Trace("aeq-debug") << "[" << curr << " " << typCount[curr] << "] ";
     std::pair<TypeNode, size_t> key(curr, typCount[curr]);
-    aetn->d_children[key] = std::make_shared<AlphaEquivalenceTypeNode>(c);
-    aetn = aetn->d_children[key].get();
+    itc = aetn->d_children.find(key);
+    if (itc==aetn->d_children.end())
+    {
+      aetn->d_children[key] = std::make_shared<AlphaEquivalenceTypeNode>(c);
+      aetn = aetn->d_children[key].get();
+    }
+    else
+    {
+      aetn = itc->second.get();
+    }
     index = index + 1;
   }
   Trace("aeq-debug") << " : ";
   NodeMap::iterator it = aetn->d_quant.find(t);
-  if (it != aetn->d_quant.end())
+  if (it != aetn->d_quant.end() && !it->second.isNull())
   {
+    Trace("aeq-debug") << it->second << std::endl;
     return it->second;
   }
+  Trace("aeq-debug") << "(new)" << std::endl;
   aetn->d_quant[t] = q;
   return q;
 }
