@@ -36,7 +36,7 @@ class SubtypeElimNodeConverter : public NodeConverter
  public:
   SubtypeElimNodeConverter();
   ~SubtypeElimNodeConverter() {}
-  /** convert to internal */
+  /** convert node n as described above during post-order traversal */
   Node postConvert(Node n) override;
  private:
   /** Is real type (not integer)? */
