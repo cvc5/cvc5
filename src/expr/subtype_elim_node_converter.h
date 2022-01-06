@@ -28,15 +28,16 @@ namespace cvc5 {
 
 /**
  * This converts a node into one that does not involve (arithmetic) subtyping.
+ * In particular, all applications of arithmetic symbols that involve at least
+ * one (strict) Real child are such that all children are cast to real.
  */
 class SubtypeElimNodeConverter : public NodeConverter
 {
  public:
-  SubtypeNodeConverter();
-  ~SubtypeNodeConverter() {}
+  SubtypeElimNodeConverter();
+  ~SubtypeElimNodeConverter() {}
   /** convert to internal */
   Node postConvert(Node n) override;
-
  private:
   /** Is real type (not integer)? */
   const bool isRealTypeStrict(TypeNode tn);

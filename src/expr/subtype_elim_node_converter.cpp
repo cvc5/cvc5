@@ -47,6 +47,8 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
     {
       if (nc.getType().isInteger())
       {
+        // we use CAST_TO_REAL for constants, so that e.g. 5 is printed as
+        // 5.0 not (to_real 5)
         Kind nk = nc.isConst ? CAST_TO_REAL : TO_REAL;
         children.push_back(nm->mkNode(nk, nc));
       }
