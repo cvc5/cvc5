@@ -1,4 +1,4 @@
-from collections import defaultdict, Set
+from collections import defaultdict
 from fractions import Fraction
 from functools import wraps
 import sys
@@ -188,10 +188,6 @@ cdef class Datatype:
     def isWellFounded(self):
         """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
-
-    def hasNestedRecursion(self):
-        """:return: True if this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
-        return self.cd.hasNestedRecursion()
 
     def isNull(self):
         """:return: True if this Datatype is a null object."""
@@ -832,7 +828,7 @@ cdef class Solver:
         if unresolvedSorts == None:
             unresolvedSorts = set([])
         else:
-            assert isinstance(unresolvedSorts, Set)
+            assert isinstance(unresolvedSorts, set)
 
         sorts = []
         cdef vector[c_DatatypeDecl] decls

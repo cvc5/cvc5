@@ -358,6 +358,8 @@ libcvc5_add_sources(
   smt_util/boolean_simplification.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
+  theory/arith/arith_evaluator.cpp
+  theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp
