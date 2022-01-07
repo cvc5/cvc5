@@ -150,7 +150,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Trace("non-clausal-simplify")
         << "Process learnedLiteral : " << learnedLiteral;
     Assert(rewrite(learnedLiteral) == learnedLiteral);
-    Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral) << learnedLiteral << " after subs is " << top_level_substs.apply(learnedLiteral);
+    Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral)
+        << learnedLiteral << " after subs is "
+        << top_level_substs.apply(learnedLiteral);
     // process the learned literal with substitutions and const propagations
     learnedLiteral = processLearnedLit(
         learnedLiteral, newSubstitutions.get(), constantPropagations.get());
