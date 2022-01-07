@@ -68,20 +68,18 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 {
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
+  if (Trace.isOn("non-clausal-simplify"))
+  {
+    for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+    {
+      Trace("non-clausal-simplify")
+          << "Assertion #" << i << " : " << (*assertionsToPreprocess)[i]
+          << std::endl;
+    }
+  }
+
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();
-
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-                                  << (*assertionsToPreprocess)[i] << std::endl;
-  }
-
-  if (propagator->getNeedsFinish())
-  {
-    propagator->finish();
-    propagator->setNeedsFinish(false);
-  }
   propagator->initialize();
 
   // Assert all the assertions to the propagator
@@ -111,7 +109,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         << "conflict in non-clausal propagation" << std::endl;
     assertionsToPreprocess->clear();
     assertionsToPreprocess->pushBackTrusted(conf);
-    propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
   }
 
@@ -174,7 +171,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n, false, false, d_llpg.get());
-        propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
     }
@@ -208,7 +204,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
       default:
@@ -247,11 +242,11 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         {
           // Keep the literal
           learned_literals[j++] = learned_literals[i];
-          // Its a literal that could not be processed as a substitution or
-          // conflict. In this case, we notify the context of the learned
-          // literal, which will process it with the learned literal manager.
-          d_preprocContext->notifyLearnedLiteral(learnedLiteral);
         }
+        // Its a literal that could not be processed as a substitution or
+        // conflict. In this case, we notify the context of the learned
+        // literal, which will process it with the learned literal manager.
+        d_preprocContext->notifyLearnedLiteral(learnedLiteral);
         break;
     }
   }
@@ -430,8 +425,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // where newConj is conjoined at the given index
     assertionsToPreprocess->conjoin(replIndex, newConj, pg);
   }
-
-  propagator->setNeedsFinish(true);
 
   // Note that typically ttls.apply(assert)==assert here.
   // However, this invariant is invalidated for cases where we use explicit

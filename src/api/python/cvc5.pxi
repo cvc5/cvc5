@@ -189,10 +189,6 @@ cdef class Datatype:
         """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
 
-    def hasNestedRecursion(self):
-        """:return: True if this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
-        return self.cd.hasNestedRecursion()
-
     def isNull(self):
         """:return: True if this Datatype is a null object."""
         return self.cd.isNull()
