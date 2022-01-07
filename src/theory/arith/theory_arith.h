@@ -91,8 +91,6 @@ class TheoryArith : public Theory {
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  void shutdown() override {}
-
   void presolve() override;
   void notifyRestart() override;
   PPAssertStatus ppAssert(TrustNode tin,

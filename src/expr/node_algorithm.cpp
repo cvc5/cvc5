@@ -856,5 +856,13 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
   return true;
 }
 
+bool isBooleanConnective(TNode cur)
+{
+  Kind k = cur.getKind();
+  return k == kind::NOT || k == kind::IMPLIES || k == kind::AND || k == kind::OR
+         || (k == kind::ITE && cur.getType().isBoolean()) || k == kind::XOR
+         || (k == kind::EQUAL && cur[0].getType().isBoolean());
+}
+
 }  // namespace expr
 }  // namespace cvc5
