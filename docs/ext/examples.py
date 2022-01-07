@@ -50,17 +50,23 @@ class APIExamples(SphinxDirective):
                 title = os.path.splitext(file)[1]
                 lang = title
 
-            for k, v in self.env.config.ex_patterns.items():
-                file = file.replace(k, v)
+            url = None
+            urlname = None
+            for k, v in self.env.config.examples_file_patterns.items():
+                m = re.match(k, file)
+                if m is not None:
+                    file = v['local'].format(*m.groups())
+                    if 'url' in v:
+                        url = v['url'].format(*m.groups())
+                        urlname = v['urlname'].format(*m.groups())
+                    break
 
             # generate tabs
             content.append(f'    .. tab:: {title}')
             content.append(f'')
 
-            if file.startswith('/'):
-                # if the file is "absolute", we can provide a download link
-                urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
-                url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
+            if url is not None:
+                # we can provide a download link
                 content.append(f'        .. rst-class:: fa fa-download icon-margin')
                 content.append(f'        ')
                 content.append(f'        `{urlname} <{url}>`_')
