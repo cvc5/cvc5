@@ -148,7 +148,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = learned_literals[i].getNode();
     Trace("non-clausal-simplify")
-        << "Process learnedLiteral : " << learnedLiteral
+        << "Process learnedLiteral : " << learnedLiteral;
     Assert(rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral) << learnedLiteral << " after subs is " << top_level_substs.apply(learnedLiteral);
     // process the learned literal with substitutions and const propagations
