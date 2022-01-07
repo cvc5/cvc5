@@ -236,7 +236,7 @@ class StatisticsRegistry : protected EnvObj
   template <typename Stat>
   Stat registerStat(const std::string& name, bool expert)
   {
-    if (Configuration::isStatisticsBuild())
+    if constexpr (Configuration::isStatisticsBuild())
     {
       auto it = d_stats.find(name);
       if (it == d_stats.end())
