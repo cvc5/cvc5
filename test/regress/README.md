@@ -51,7 +51,7 @@ The following types of regression files are supported:
 - `*.sy`: A [SyGuS](http://sygus.seas.upenn.edu/files/SyGuS-IF.pdf) benchmark
 - `*.p`: A [TPTP](http://www.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html) benchmark
 
-## Expected Output, Error, and Exit Codes
+## Directives
 
 In the regression file, you can specify expected stdout, stderr, and exit codes
 with the following directives:
@@ -122,3 +122,12 @@ This benchmark is only run when CryptoMiniSat has been configured.  Multiple
 as a requirement, refer to cvc5's `--show-config` output. Features can also be
 excluded by adding the `no-` prefix, e.g. `no-cryptominisat` means that the
 test is not valid for builds that include CryptoMiniSat support.
+
+To disable a specific type of test, the `DISABLE-TESTER` directive can be used.
+The following example disables the proof tester for a regression:
+
+```
+; DISABLE-TESTER: proof
+```
+
+Multiple testers can be disabled using multiple `DISABLE-TESTER` directives.
