@@ -81,13 +81,18 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     Node n3 = d_nodeManager->mkConstRealAlgebraicNumber(sqrt3);
     Node n10 = d_nodeManager->mkConstRealAlgebraicNumber(sqrt10);
     {
-      Node n = d_nodeManager->mkNode(Kind::LT, d_nodeManager->mkNode(Kind::PLUS, n2, n3), n10);
+      Node n = d_nodeManager->mkNode(
+          Kind::LT, d_nodeManager->mkNode(Kind::PLUS, n2, n3), n10);
       n = d_slvEngine->getRewriter()->rewrite(n);
       EXPECT_EQ(n.getKind(), Kind::CONST_BOOLEAN);
       EXPECT_TRUE(n.getConst<bool>());
     }
     {
-      Node n = d_nodeManager->mkNode(Kind::LT, d_nodeManager->mkNode(Kind::PLUS, n2, n3), d_nodeManager->mkNode(Kind::MINUS, n10, d_nodeManager->mkConstReal(Rational(1))));
+      Node n = d_nodeManager->mkNode(
+          Kind::LT,
+          d_nodeManager->mkNode(Kind::PLUS, n2, n3),
+          d_nodeManager->mkNode(
+              Kind::MINUS, n10, d_nodeManager->mkConstReal(Rational(1))));
       n = d_slvEngine->getRewriter()->rewrite(n);
       EXPECT_EQ(n.getKind(), Kind::CONST_BOOLEAN);
       EXPECT_FALSE(n.getConst<bool>());

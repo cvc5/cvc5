@@ -43,7 +43,7 @@ namespace arith {
 
 namespace {
 
-template<typename L, typename R>
+template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
 {
   switch (rel)
@@ -53,13 +53,11 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     case Kind::EQUAL: return l == r;
     case Kind::GEQ: return l >= r;
     case Kind::GT: return l > r;
-    default:
-      Unreachable();
-      return false;
+    default: Unreachable(); return false;
   }
 }
 
-}
+}  // namespace
 
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 
@@ -180,23 +178,33 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     if (right.isConst())
     {
       const Rational& r = right.getConst<Rational>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
-    } else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      const RealAlgebraicNumber& r = right.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
     }
-  } else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      const RealAlgebraicNumber& r =
+          right.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+    }
+  }
+  else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
-      const RealAlgebraicNumber& l = left.getOperator().getConst<RealAlgebraicNumber>();
+    const RealAlgebraicNumber& l =
+        left.getOperator().getConst<RealAlgebraicNumber>();
     if (right.isConst())
     {
       const Rational& r = right.getConst<Rational>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
-    } else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+    }
+    else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
-      const RealAlgebraicNumber& r = right.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+      const RealAlgebraicNumber& r =
+          right.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
     }
   }
 
@@ -326,23 +334,22 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
           if (rat >= 0)
           {
             return RewriteResponse(REWRITE_DONE, t[0]);
-          } else {
-          return RewriteResponse(
-              REWRITE_DONE,
-              NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+          }
+          else
+          {
+            return RewriteResponse(REWRITE_DONE,
+                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                       t[0].getType(), -rat));
+          }
         }
-      }
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::IS_INTEGER:
-    case kind::TO_INTEGER:
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::POW:
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default: Unhandled() << k;
+        return RewriteResponse(REWRITE_DONE, t);
+      case kind::IS_INTEGER:
+      case kind::TO_INTEGER: return RewriteResponse(REWRITE_DONE, t);
+      case kind::TO_REAL:
+      case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
+      case kind::POW: return RewriteResponse(REWRITE_DONE, t);
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unhandled() << k;
     }
   }
 }
@@ -392,17 +399,19 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           if (rat >= 0)
           {
             return RewriteResponse(REWRITE_DONE, t[0]);
-          } else {
-          return RewriteResponse(
-              REWRITE_DONE,
-              NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+          }
+          else
+          {
+            return RewriteResponse(REWRITE_DONE,
+                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                       t[0].getType(), -rat));
+          }
         }
-      }
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
-    case kind::POW:
+        return RewriteResponse(REWRITE_DONE, t);
+      case kind::TO_REAL:
+      case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
+      case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
+      case kind::POW:
       {
         if (t[1].isConst())
         {
@@ -968,31 +977,42 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
     }
     if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
-      const RealAlgebraicNumber& num = left.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConstRealAlgebraicNumber(num / RealAlgebraicNumber(den)));
+      const RealAlgebraicNumber& num =
+          left.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(
+          REWRITE_DONE,
+          nm->mkConstRealAlgebraicNumber(num / RealAlgebraicNumber(den)));
     }
 
     Node result = nm->mkConstReal(den.inverse());
-    Node mult = NodeManager::currentNM()->mkNode(kind::MULT,left,result);
-    if(pre){
+    Node mult = NodeManager::currentNM()->mkNode(kind::MULT, left, result);
+    if (pre)
+    {
       return RewriteResponse(REWRITE_DONE, mult);
-    }else{
+    }
+    else
+    {
       return RewriteResponse(REWRITE_AGAIN, mult);
     }
   }
   if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
     NodeManager* nm = NodeManager::currentNM();
-    const RealAlgebraicNumber& den = right.getOperator().getConst<RealAlgebraicNumber>();
+    const RealAlgebraicNumber& den =
+        right.getOperator().getConst<RealAlgebraicNumber>();
     if (left.isConst())
     {
       const Rational& num = left.getConst<Rational>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConstRealAlgebraicNumber(RealAlgebraicNumber(num) / den));
+      return RewriteResponse(
+          REWRITE_DONE,
+          nm->mkConstRealAlgebraicNumber(RealAlgebraicNumber(num) / den));
     }
     if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
-      const RealAlgebraicNumber& num = left.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(REWRITE_DONE, nm->mkConstRealAlgebraicNumber(num / den));
+      const RealAlgebraicNumber& num =
+          left.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConstRealAlgebraicNumber(num / den));
     }
 
     Node result = nm->mkConstRealAlgebraicNumber(inverse(den));
