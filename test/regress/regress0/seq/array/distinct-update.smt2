@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --strings-exp --seq-array=eager
 (set-logic QF_SLIA)
+(set-info :status unsat)
 
 (declare-fun x () (Seq Int))
 (declare-fun y () (Seq Int))
@@ -15,5 +16,4 @@
 (assert (= y z))
 (assert (> (str.len y) 0))
 
-(set-info :status unsat)
 (check-sat)
