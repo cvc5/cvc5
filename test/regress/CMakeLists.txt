@@ -109,6 +109,7 @@ set(regress_0_tests
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4927-unsat-cores.smt2
+  regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
@@ -738,6 +739,7 @@ set(regress_0_tests
   regress0/named-expr-use.smt2
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
+  regress0/nl/combined-uf.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -1095,8 +1097,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
-  regress0/seq/intseq_dt.smt2
   regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1105,6 +1107,18 @@ set(regress_0_tests
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/rev.smt2
+  regress0/seq/seqa-model-unsound-dd.smt2
+  regress0/seq/array/array1.smt2
+  regress0/seq/array/array2.smt2
+  regress0/seq/array/array3.smt2
+  regress0/seq/array/array4.smt2
+  regress0/seq/array/distinct-update.smt2
+  regress0/seq/array/model-dd-1220.smt2
+  regress0/seq/array/nth-concat.smt2
+  regress0/seq/array/update-fallback.smt2
+  regress0/seq/array/update-word-eq.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1120,7 +1134,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
-  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/update-eq-unsat.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -1648,6 +1662,7 @@ set(regress_1_tests
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
   regress1/bv2int-isabelle.smt2
+  regress1/bv2int-make-binary.smt2
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
@@ -2016,6 +2031,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
+  regress1/quantifiers/issue5373-1-qe-inc.smt2 
+  regress1/quantifiers/issue5373-2.smt2 
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
@@ -2093,6 +2110,7 @@ set(regress_1_tests
   regress1/quantifiers/seu169+1.smt2
   regress1/quantifiers/seq-solved-enum.smt2
   regress1/quantifiers/seq-unsolved-ematch.smt2
+  regress1/quantifiers/seqa-unsat-unknown-110921.smt2
   regress1/quantifiers/small-pipeline-fixpoint-3.smt2
   regress1/quantifiers/smtcomp-qbv-053118.smt2
   regress1/quantifiers/smtlib384a03.smt2
@@ -2311,6 +2329,7 @@ set(regress_1_tests
   regress1/strings/issue5610-2-infer-proxy.smt2
   regress1/strings/issue5611-deq-norm-emp.smt2
   regress1/strings/issue5692-infer-proxy.smt2
+  regress1/strings/issue5780-repeat-skolem.smt2
   regress1/strings/issue5940-skc-len-conc.smt2
   regress1/strings/issue5940-2-skc-len-conc.smt2
   regress1/strings/issue6057-replace-re.smt2
@@ -2405,6 +2424,7 @@ set(regress_1_tests
   regress1/strings/rew-check1.smt2
   regress1/strings/seq-cardinality.smt2
   regress1/strings/seq-quant-infinite-branch.smt2
+  regress1/strings/seq-skeleton-gap.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2

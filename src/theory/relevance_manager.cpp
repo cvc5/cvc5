@@ -17,9 +17,11 @@
 
 #include <sstream>
 
+#include "expr/node_algorithm.h"
 #include "expr/term_context_stack.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
+#include "theory/relevance_manager.h"
 
 using namespace cvc5::kind;
 
@@ -30,8 +32,10 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
     : EnvObj(env),
       d_val(val),
       d_input(userContext()),
+      d_atomMap(userContext()),
       d_rset(context()),
       d_inFullEffortCheck(false),
+      d_fullEffortCheckFail(false),
       d_success(false),
       d_trackRSetExp(false),
       d_miniscopeTopLevel(true),
@@ -40,7 +44,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options().smt.produceDifficulty)
   {
-    d_dman.reset(new DifficultyManager(userContext(), val));
+    d_dman = std::make_unique<DifficultyManager>(this, userContext(), val);
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -67,6 +71,8 @@ void RelevanceManager::notifyPreprocessedAssertions(
     else
     {
       d_input.push_back(a);
+      // add to atoms map
+      addInputToAtomsMap(a);
     }
   }
   addAssertionsInternal(toProcess);
@@ -105,12 +111,42 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
       // note that a could be a literal, in which case we could add it to
       // an "always relevant" set here.
       d_input.push_back(a);
+      // add to atoms map
+      addInputToAtomsMap(a);
     }
     i++;
   }
 }
 
-void RelevanceManager::beginRound() { d_inFullEffortCheck = true; }
+void RelevanceManager::addInputToAtomsMap(TNode input)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(input);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (expr::isBooleanConnective(cur))
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+        continue;
+      }
+      NodeList* ilist = getInputListFor(cur);
+      ilist->push_back(input);
+    }
+  } while (!visit.empty());
+}
+
+void RelevanceManager::beginRound()
+{
+  d_inFullEffortCheck = true;
+  d_fullEffortCheckFail = false;
+}
 
 void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
@@ -121,26 +157,18 @@ void RelevanceManager::computeRelevance()
   Assert(d_inFullEffortCheck || d_trackRSetExp);
   Trace("rel-manager") << "RelevanceManager::computeRelevance, full effort = "
                        << d_inFullEffortCheck << "..." << std::endl;
+  // if we already failed
+  if (d_fullEffortCheckFail)
+  {
+    d_success = false;
+    return;
+  }
   for (const Node& node: d_input)
   {
-    TNode n = node;
-    int32_t val = justify(n);
-    if (val != 1)
+    if (!computeRelevanceFor(node))
     {
-      // if we are in full effort check and fail to justify, then we should
-      // give a failure and set success to false, or otherwise calls to
-      // isRelevant cannot be trusted.
-      if (d_inFullEffortCheck)
-      {
-        std::stringstream serr;
-        serr
-            << "RelevanceManager::computeRelevance: WARNING: failed to justify "
-            << n;
-        Trace("rel-manager") << serr.str() << std::endl;
-        Assert(false) << serr.str();
-        d_success = false;
-        return;
-      }
+      d_success = false;
+      return;
     }
   }
   if (Trace.isOn("rel-manager"))
@@ -156,14 +184,29 @@ void RelevanceManager::computeRelevance()
                            << std::endl;
     }
   }
-  d_success = true;
+  d_success = !d_fullEffortCheckFail;
 }
 
-bool RelevanceManager::isBooleanConnective(TNode cur)
+bool RelevanceManager::computeRelevanceFor(TNode input)
 {
-  Kind k = cur.getKind();
-  return k == NOT || k == IMPLIES || k == AND || k == OR || k == ITE || k == XOR
-         || (k == EQUAL && cur[0].getType().isBoolean());
+  int32_t val = justify(input);
+  if (val != 1)
+  {
+    // if we are in full effort check and fail to justify, then we should
+    // give a failure and set success to false, or otherwise calls to
+    // isRelevant cannot be trusted.
+    if (d_inFullEffortCheck)
+    {
+      std::stringstream serr;
+      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+           << input;
+      Trace("rel-manager") << serr.str() << std::endl;
+      Assert(false) << serr.str();
+      d_fullEffortCheckFail = true;
+      return false;
+    }
+  }
+  return true;
 }
 
 bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
@@ -174,7 +217,7 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
   // compute the next child, in this case we push the status of the current
   // child to childrenJustify.
   size_t nchildren = cur.first.getNumChildren();
-  Assert(isBooleanConnective(cur.first));
+  Assert(expr::isBooleanConnective(cur.first));
   size_t index = childrenJustify.size();
   Assert(index < nchildren);
   Kind k = cur.first.getKind();
@@ -307,7 +350,7 @@ int32_t RelevanceManager::justify(TNode n)
     if (itc == childJustify.end())
     {
       // are we not a Boolean connective (including NOT)?
-      if (isBooleanConnective(cur.first))
+      if (expr::isBooleanConnective(cur.first))
       {
         // initialize its children justify vector as empty
         childJustify[cur].clear();
@@ -372,9 +415,11 @@ int32_t RelevanceManager::justify(TNode n)
   return d_jcache[ci];
 }
 
-bool RelevanceManager::isRelevant(Node lit)
+bool RelevanceManager::isRelevant(TNode lit)
 {
   Assert(d_inFullEffortCheck);
+  // since this is used in full effort, and typically for all asserted literals,
+  // we just ensure relevance is fully computed here
   computeRelevance();
   if (!d_success)
   {
@@ -387,6 +432,80 @@ bool RelevanceManager::isRelevant(Node lit)
     lit = lit[0];
   }
   return d_rset.find(lit) != d_rset.end();
+}
+
+TNode RelevanceManager::getExplanationForRelevant(TNode lit)
+{
+  // agnostic to negation
+  while (lit.getKind() == NOT)
+  {
+    lit = lit[0];
+  }
+  NodeList* ilist = nullptr;
+  TNode nextInput;
+  size_t ninputs = 0;
+  size_t index = 0;
+  do
+  {
+    // check if it has an explanation yet
+    TNode exp = getExplanationForRelevantInternal(lit);
+    if (!exp.isNull())
+    {
+      return exp;
+    }
+    // if the first time, we get the list of input formulas the atom occurs in
+    if (index == 0)
+    {
+      ilist = getInputListFor(lit, false);
+      if (ilist != nullptr)
+      {
+        ninputs = ilist->size();
+      }
+      Trace("rel-manager-exp-debug")
+          << "Atom " << lit << " occurs in " << ninputs << " assertions..."
+          << std::endl;
+    }
+    if (index < ninputs)
+    {
+      // justify the next
+      nextInput = (*ilist)[index];
+      index++;
+      // justify the next input that the atom occurs in
+      computeRelevanceFor(nextInput);
+    }
+    else
+    {
+      nextInput = TNode::null();
+    }
+  } while (!nextInput.isNull());
+
+  return TNode::null();
+}
+
+TNode RelevanceManager::getExplanationForRelevantInternal(TNode atom) const
+{
+  NodeMap::const_iterator it = d_rsetExp.find(atom);
+  if (it != d_rsetExp.end())
+  {
+    return it->second;
+  }
+  return TNode::null();
+}
+
+RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
+                                                              bool doMake)
+{
+  NodeListMap::const_iterator it = d_atomMap.find(atom);
+  if (it == d_atomMap.end())
+  {
+    if (!doMake)
+    {
+      return nullptr;
+    }
+    d_atomMap[atom] = std::make_shared<NodeList>(userContext());
+    it = d_atomMap.find(atom);
+  }
+  return it->second.get();
 }
 
 std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
@@ -405,14 +524,14 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
   return rset;
 }
 
-void RelevanceManager::notifyLemma(Node n)
+void RelevanceManager::notifyLemma(TNode n)
 {
   // notice that we may be in FULL or STANDARD effort here.
   if (d_dman != nullptr)
   {
-    // ensure we know which literals are relevant, and why
-    computeRelevance();
-    d_dman->notifyLemma(d_rsetExp, n);
+    // notice that we don't compute relevance here, instead it is computed
+    // on demand based on the literals in n.
+    d_dman->notifyLemma(n);
   }
 }
 

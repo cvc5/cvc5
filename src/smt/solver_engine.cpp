@@ -242,9 +242,6 @@ void SolverEngine::finishInit()
 void SolverEngine::shutdown()
 {
   d_state->shutdown();
-
-  d_smtSolver->shutdown();
-
   d_env->shutdown();
 }
 
@@ -1222,6 +1219,13 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   }
   SolverEngineScope smts(this);
   finishInit();
+  // check whether incremental is enabled, where separation logic is not
+  // supported.
+  if (d_env->getOptions().base.incrementalSolving)
+  {
+    throw RecoverableModalException(
+        "Separation logic not supported in incremental mode");
+  }
   TheoryEngine* te = getTheoryEngine();
   te->declareSepHeap(locT, dataT);
 }
@@ -1618,16 +1622,10 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return d_sygusSolver->getSubsolverSynthSolutions(solMap);
 }
 
-Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
+Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   SolverEngineScope smts(this);
   finishInit();
-  const LogicInfo& logic = getLogicInfo();
-  if (!logic.isPure(THEORY_ARITH) && strict)
-  {
-    d_env->warning() << "Unexpected logic for quantifier elimination " << logic
-              << endl;
-  }
   return d_quantElimSolver->getQuantifierElimination(
       *d_asserts, q, doFull, d_isInternalSubsolver);
 }

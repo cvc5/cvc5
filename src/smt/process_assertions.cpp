@@ -201,10 +201,6 @@ bool ProcessAssertions::apply(Assertions& as)
     applyPass("foreign-theory-rewrite", as);
   }
 
-  // Since this pass is not robust for the information tracking necessary for
-  // unsat cores, it's only applied if we are not doing unsat core computation
-  applyPass("apply-substs", as);
-
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", as);
 
@@ -233,6 +229,9 @@ bool ProcessAssertions::apply(Assertions& as)
   if (!options().strings.stringLazyPreproc)
   {
     applyPass("strings-eager-pp", as);
+    // needed since strings eager preprocessing may reintroduce skolems that
+    // were already solved for in incremental mode
+    applyPass("apply-substs", as);
   }
   if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
   {
