@@ -206,11 +206,6 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     return false;
   }
   bool foundNonVariable = false;
-  for (const auto& sub: d_eqsubs.getSubstitutions())
-  {
-    d_model.addSubstitution(sub.first, sub.second);
-    Trace("nl-cad") << "-> " << sub.first << " = " << sub.second << std::endl;
-  }
   for (const auto& v : d_CAC.getVariableOrdering())
   {
     Node variable = d_CAC.getConstraints().varMapper()(v);
@@ -219,16 +214,14 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
       Trace("nl-cad") << "Not a variable: " << variable << std::endl;
       foundNonVariable = true;
     }
-    Node value = value_to_node(d_CAC.getModel().get(v), d_ranVariable);
-    if (value.isConst())
-    {
-      d_model.addSubstitution(variable, value);
-    }
-    else
-    {
-      d_model.addWitness(variable, value);
-    }
-    Trace("nl-cad") << "-> " << v << " = " << value << std::endl;
+    Node value = value_to_node(d_CAC.getModel().get(v), variable);
+    addToModel(variable, value);
+  }
+  for (const auto& sub : d_eqsubs.getSubstitutions())
+  {
+    Trace("nl-cad") << "EqSubs: " << sub.first << " -> " << sub.second
+                    << std::endl;
+    addToModel(sub.first, sub.second);
   }
   if (foundNonVariable)
   {
@@ -247,6 +240,19 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
             << std::endl;
   return false;
 #endif
+}
+
+void CadSolver::addToModel(TNode var, TNode value) const
+{
+  Trace("nl-cad") << "-> " << var << " = " << value << std::endl;
+  if (value.getType().isRealOrInt())
+  {
+    d_model.addSubstitution(var, value);
+  }
+  else
+  {
+    d_model.addWitness(var, value);
+  }
 }
 
 }  // namespace nl
