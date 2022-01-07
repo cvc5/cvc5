@@ -9,5 +9,4 @@
 (push)
 (assert (= t (str.replace_re (str.++ t s) re.none r)))
 (push)
-;(assert (not (= s "")))
 (check-sat)
