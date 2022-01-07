@@ -2329,6 +2329,7 @@ set(regress_1_tests
   regress1/strings/issue5610-2-infer-proxy.smt2
   regress1/strings/issue5611-deq-norm-emp.smt2
   regress1/strings/issue5692-infer-proxy.smt2
+  regress1/strings/issue5780-repeat-skolem.smt2
   regress1/strings/issue5940-skc-len-conc.smt2
   regress1/strings/issue5940-2-skc-len-conc.smt2
   regress1/strings/issue6057-replace-re.smt2
