@@ -55,11 +55,11 @@ class APIExamples(SphinxDirective):
             # detect file extension
             lang = None
             title = None
-            for type in self.types:
-                if re.search(type, file) != None:
-                    lang = self.types[type]['lang']
-                    title = self.types[type]['title']
-                    remaining.discard(self.types[type]['group'])
+            for pattern,data in self.env.config.examples_types.items():
+                if re.search(pattern, file) != None:
+                    lang = data['lang']
+                    title = data['title']
+                    remaining.discard(data['group'])
                     break
             if lang == None:
                 self.logger.warning(
