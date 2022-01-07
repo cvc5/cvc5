@@ -1,6 +1,8 @@
 Theory Reference: Datatypes
 ===========================
 
+cvc5 implements some extensions to the support for datatypes in SMT-LIB 2.
+
 Logic
 -----
 
