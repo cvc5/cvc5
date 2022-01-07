@@ -94,11 +94,12 @@ class APIExamples(SphinxDirective):
             if file.startswith('/'):
                 # if the file is "absolute", we can provide a download link
                 urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
-                url = f'https://github.com/cvc5/cvc5/tree/master/{urlname}'
-                content.append(f'        .. rst-class:: fa fa-download icon-margin')
-                content.append(f'        ')
-                content.append(f'        `{urlname} <{url}>`_')
-                content.append(f'')
+                if not urlname[urlname.find('/')+1:].startswith('deps'):
+                    url = f'https://github.com/cvc6/cvc5/tree/master/{urlname}'
+                    content.append(f'        .. rst-class:: fa fa-download icon-margin')
+                    content.append(f'        ')
+                    content.append(f'        `{urlname} <{url}>`_')
+                    content.append(f'')
 
             content.append(f'        .. literalinclude:: {file}')
             content.append(f'            :language: {lang}')
