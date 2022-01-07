@@ -1097,8 +1097,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
-  regress0/seq/intseq_dt.smt2
   regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1107,6 +1107,18 @@ set(regress_0_tests
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/rev.smt2
+  regress0/seq/seqa-model-unsound-dd.smt2
+  regress0/seq/array/array1.smt2
+  regress0/seq/array/array2.smt2
+  regress0/seq/array/array3.smt2
+  regress0/seq/array/array4.smt2
+  regress0/seq/array/distinct-update.smt2
+  regress0/seq/array/model-dd-1220.smt2
+  regress0/seq/array/nth-concat.smt2
+  regress0/seq/array/update-fallback.smt2
+  regress0/seq/array/update-word-eq.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1122,7 +1134,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
-  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/update-eq-unsat.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -2019,6 +2031,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
+  regress1/quantifiers/issue5373-1-qe-inc.smt2 
+  regress1/quantifiers/issue5373-2.smt2 
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
@@ -2096,6 +2110,7 @@ set(regress_1_tests
   regress1/quantifiers/seu169+1.smt2
   regress1/quantifiers/seq-solved-enum.smt2
   regress1/quantifiers/seq-unsolved-ematch.smt2
+  regress1/quantifiers/seqa-unsat-unknown-110921.smt2
   regress1/quantifiers/small-pipeline-fixpoint-3.smt2
   regress1/quantifiers/smtcomp-qbv-053118.smt2
   regress1/quantifiers/smtlib384a03.smt2
@@ -2409,6 +2424,7 @@ set(regress_1_tests
   regress1/strings/rew-check1.smt2
   regress1/strings/seq-cardinality.smt2
   regress1/strings/seq-quant-infinite-branch.smt2
+  regress1/strings/seq-skeleton-gap.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
