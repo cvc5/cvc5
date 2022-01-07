@@ -1419,6 +1419,8 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_CHECK_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
+  CVC5_API_CHECK(d_type->getNumChildren()==params.size())
+      << "Arity mismatch for parametric sort";
   //////// all checks before this line
   std::vector<cvc5::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
