@@ -249,14 +249,6 @@ class DumpTester(Tester):
             benchmark_info.benchmark_ext != ".p"
             and benchmark_info.expected_exit_status == EXIT_OK
             and "Parse Error" not in benchmark_info.expected_output
-            # Skip the regressions below. Temperory until we can disable testers
-            # from within a regression.
-            # Incompatible options.
-            and "named_muted" not in benchmark_info.benchmark_basename
-            and "issue5512-vvv" not in benchmark_info.benchmark_basename
-            # Unsupported features.
-            and "issue6908-get-value-uc" not in benchmark_info.benchmark_basename
-            and "issue1063-overloading-dt-cons" not in benchmark_info.benchmark_basename
         )
 
     def run(self, benchmark_info):
