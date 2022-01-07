@@ -16,7 +16,24 @@ class APIExamples(SphinxDirective):
 
         The arguments should be proper filenames to source files.
         This directives tries to detect the language from the file extension
-        and supports the file extensions specified in `self.exts`.
+        and supports the file extensions specified in `examples_types`.
+        Additionally, `examples_file_patterns` allows to specify file name
+        patterns that allow using files from fixed directories more easily, and
+        to add proper download links.
+
+        examples_types:
+            '<regex>': {
+                'title': '<tab title>',
+                'lang': '<language identifier for synatax highlighting>',
+                'group': '<group identifier to detext missing examples>',
+            }
+
+        examples_file_patterns:
+            '<regex>': { # match groups are used to format the strings below
+                'local': '<pseudo-absolute path to local file>',
+                'url': '<url to download this file>', # optional
+                'urlname': '<text for the download link>',
+            }
     """
 
     # The "arguments" are actually the content of the directive
