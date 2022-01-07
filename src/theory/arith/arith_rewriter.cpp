@@ -41,6 +41,26 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+namespace {
+
+template<typename L, typename R>
+bool evaluateRelation(Kind rel, const L& l, const R& r)
+{
+  switch (rel)
+  {
+    case Kind::LT: return l < r;
+    case Kind::LEQ: return l <= r;
+    case Kind::EQUAL: return l == r;
+    case Kind::GEQ: return l >= r;
+    case Kind::GT: return l > r;
+    default:
+      Unreachable();
+      return false;
+  }
+}
+
+}
+
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
@@ -152,6 +172,33 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   // left |><| right
   TNode left = atom[0];
   TNode right = atom[1];
+
+  auto* nm = NodeManager::currentNM();
+  if (left.isConst())
+  {
+    const Rational& l = left.getConst<Rational>();
+    if (right.isConst())
+    {
+      const Rational& r = right.getConst<Rational>();
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+    } else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      const RealAlgebraicNumber& r = right.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+    }
+  } else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+      const RealAlgebraicNumber& l = left.getOperator().getConst<RealAlgebraicNumber>();
+    if (right.isConst())
+    {
+      const Rational& r = right.getConst<Rational>();
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+    } else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      const RealAlgebraicNumber& r = right.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
+    }
+  }
 
   Polynomial pleft = Polynomial::parsePolynomial(left);
   Polynomial pright = Polynomial::parsePolynomial(right);
