@@ -19,40 +19,6 @@ class APIExamples(SphinxDirective):
         and supports the file extensions specified in `self.exts`.
     """
 
-    # Set tab title and language for syntax highlighting
-    types = {
-        '\.cpp$': {
-            'title': 'C++',
-            'lang': 'c++',
-            'group': 'c++'
-        },
-        '\.java$': {
-            'title': 'Java',
-            'lang': 'java',
-            'group': 'java'
-        },
-        '<examples>.*\.py$': {
-            'title': 'Python',
-            'lang': 'python',
-            'group': 'py-regular'
-        },
-        '<z3pycompat>.*\.py$': {
-            'title': 'Python z3py',
-            'lang': 'python',
-            'group': 'py-z3pycompat'
-        },
-        '\.smt2$': {
-            'title': 'SMT-LIBv2',
-            'lang': 'smtlib',
-            'group': 'smt2'
-        },
-        '\.sy$': {
-            'title': 'SyGuS',
-            'lang': 'smtlib',
-            'group': 'smt2'
-        },
-    }
-
     # The "arguments" are actually the content of the directive
     has_content = True
 
@@ -65,7 +31,7 @@ class APIExamples(SphinxDirective):
         # collect everything in a list of strings
         content = ['.. tabs::', '']
 
-        remaining = set([t['group'] for t in self.types.values()])
+        remaining = set([t['group'] for t in self.env.config.examples_types.values()])
         location = '{}:{}'.format(*self.get_source_info())
 
         for file in self.content:
@@ -116,7 +82,8 @@ class APIExamples(SphinxDirective):
 def setup(app):
     APIExamples.srcdir = app.srcdir
     app.setup_extension('sphinx_tabs.tabs')
-    app.add_config_value('ex_patterns', {}, 'env')
+    app.add_config_value('examples_types', {}, 'env')
+    app.add_config_value('examples_file_patterns', {}, 'env')
     app.add_directive("api-examples", APIExamples)
     return {
         'version': '0.1',

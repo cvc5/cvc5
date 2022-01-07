@@ -80,10 +80,52 @@ html_show_sourcelink = False
 
 html_extra_path = []
 
-
-ex_patterns = {
-        '<examples>': '/../examples',
-        '<z3pycompat>': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}'),
+# -- Configuration for examples extension ------------------------------------
+# Configuration for tabs: title, language and group for detecting missing files
+examples_types = {
+        '\.cpp$': {
+                'title': 'C++',
+                'lang': 'c++',
+                'group': 'c++'
+        },
+        '\.java$': {
+                'title': 'Java',
+                'lang': 'java',
+                'group': 'java'
+        },
+        '^<examples>.*\.py$': {
+                'title': 'Python',
+                'lang': 'python',
+                'group': 'py-regular'
+        },
+        '^<z3pycompat>.*\.py$': {
+                'title': 'Python z3py',
+                'lang': 'python',
+                'group': 'py-z3pycompat'
+        },
+        '\.smt2$': {
+                'title': 'SMT-LIBv2',
+                'lang': 'smtlib',
+                'group': 'smt2'
+        },
+        '\.sy$': {
+                'title': 'SyGuS',
+                'lang': 'smtlib',
+                'group': 'smt2'
+        },
+}
+# Special file patterns
+examples_file_patterns = {
+        '^<examples>(.*)': {
+                'local': '/../examples{}',
+                'url': 'https://github.com/cvc5/cvc5/tree/master/examples{}',
+                'urlname': 'examples{}',
+        },
+        '<z3pycompat>(.*)': {
+                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
+                'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
+                'urlname': 'cvc5_z3py_compat:{}',
+        }
 }
 
 # -- C++ / Breathe configuration ---------------------------------------------
