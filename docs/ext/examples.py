@@ -39,7 +39,9 @@ class APIExamples(SphinxDirective):
         '<z3pycompat>.*\.py$': {
             'title': 'Python z3py',
             'lang': 'python',
-            'group': 'py-z3pycompat'
+            'group': 'py-z3pycompat',
+            # where to look for examples
+            'examples_dir': 'https://github.com/cvc5/cvc5_z3py_compat/tree/master/test/pgms'
         },
         '\.smt2$': {
             'title': 'SMT-LIBv2',
@@ -72,11 +74,13 @@ class APIExamples(SphinxDirective):
             # detect file extension
             lang = None
             title = None
+            examples_dir = None
             for type in self.types:
                 if re.search(type, file) != None:
                     lang = self.types[type]['lang']
                     title = self.types[type]['title']
                     remaining.discard(self.types[type]['group'])
+                    examples_dir = self.types[type].get('examples_dir')
                     break
             if lang == None:
                 self.logger.warning(
@@ -94,12 +98,17 @@ class APIExamples(SphinxDirective):
             if file.startswith('/'):
                 # if the file is "absolute", we can provide a download link
                 urlname = os.path.relpath(os.path.join('..', file[1:]), os.path.join(self.srcdir, '..'))
-                if not urlname[urlname.find('/')+1:].startswith('deps'):
-                    url = f'https://github.com/cvc6/cvc5/tree/master/{urlname}'
-                    content.append(f'        .. rst-class:: fa fa-download icon-margin')
-                    content.append(f'        ')
-                    content.append(f'        `{urlname} <{url}>`_')
-                    content.append(f'')
+                if examples_dir is not None:
+                    urlname = os.path.split(urlname)[1]
+                    url = f'{examples_dir}/{urlname}'
+                    print(url)
+                else:
+                    url = f'https://github.com/cvc5/cvc5-z3py-compat/tree/master/{urlname}'
+
+                content.append(f'        .. rst-class:: fa fa-download icon-margin')
+                content.append(f'        ')
+                content.append(f'        `{urlname} <{url}>`_')
+                content.append(f'')
 
             content.append(f'        .. literalinclude:: {file}')
             content.append(f'            :language: {lang}')
