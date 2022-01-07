@@ -339,6 +339,7 @@ EXPECT_ERROR = "EXPECT-ERROR:"
 EXIT = "EXIT:"
 COMMAND_LINE = "COMMAND-LINE:"
 REQUIRES = "REQUIRES:"
+DISABLE_TESTER = "DISABLE-TESTER:"
 
 EXIT_OK = 0
 EXIT_FAILURE = 1
@@ -545,6 +546,13 @@ def run_regression(
             command_lines.append(line[len(COMMAND_LINE) :].strip())
         elif line.startswith(REQUIRES):
             requires.append(line[len(REQUIRES) :].strip())
+        elif line.startswith(DISABLE_TESTER):
+            disable_tester = line[len(DISABLE_TESTER) :].strip()
+            if disable_tester not in g_testers:
+                print("Unknown tester: {}".format(disable_tester))
+                return EXIT_FAILURE
+            testers.remove(disable_tester)
+
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
