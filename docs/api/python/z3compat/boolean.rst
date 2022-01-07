@@ -15,6 +15,8 @@ Basic Generic Term Builders
 .. autofunction:: cvc5_z3py_compat.Const
 .. autofunction:: cvc5_z3py_compat.Consts
 .. autofunction:: cvc5_z3py_compat.FreshConst
+.. autofunction:: cvc5_z3py_compat.Function
+.. autofunction:: cvc5_z3py_compat.FreshFunction
 
 Boolean Operators
 -----------------
@@ -53,6 +55,7 @@ Testers
 .. autofunction:: cvc5_z3py_compat.is_eq
 .. autofunction:: cvc5_z3py_compat.is_distinct
 .. autofunction:: cvc5_z3py_compat.is_const
+.. autofunction:: cvc5_z3py_compat.is_func_decl
 
 
 Classes (with overloads)
@@ -67,5 +70,8 @@ Classes (with overloads)
    :members:
    :special-members:
 .. autoclass:: cvc5_z3py_compat.BoolSortRef
+   :members:
+   :special-members:
+.. autoclass:: cvc5_z3py_compat.FuncDeclRef
    :members:
    :special-members:
