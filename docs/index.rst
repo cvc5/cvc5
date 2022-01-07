@@ -18,6 +18,6 @@ Table of Contents
    binary/binary
    api/api
    examples/examples
-   theory
+   theories/theories
    references
    genindex
