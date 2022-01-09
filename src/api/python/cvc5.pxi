@@ -1900,8 +1900,8 @@ cdef class Solver:
         Supports two uses:
 
         - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
-        - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term)``
         - ``Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)``
+        - ``Term defineFunRec(Term fun, List[Term] bound_vars, Term term)``
 
 
         SMT-LIB:
@@ -1922,23 +1922,21 @@ cdef class Solver:
         cdef vector[c_Term] v
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
-
         if glbl is not None:
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
                                                 (<Term?> bool_or_term).cterm,
                                                 <bint> glbl)
-        elif isinstance(sym_or_fun, str):
-            term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
-                                                   <const vector[c_Term]&> v,
-                                                   (<Sort?> sort_or_term).csort,
-                                                   (<Term?> bool_or_term).cterm)
-        else:
+        elif bool_or_term is not None:
             term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
                                                    <const vector[c_Term]&> v,
                                                    (<Term?> sort_or_term).cterm,
                                                    <bint> bool_or_term)
+        else:
+            term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
+                                                   <const vector[c_Term]&> v,
+                                                   (<Term?> sort_or_term).cterm)
 
         return term
 
