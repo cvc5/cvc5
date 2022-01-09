@@ -4193,6 +4193,8 @@ bool Datatype::isFinite() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(!d_dtype->isParametric())
+      << "Invalid call to 'isFinite()', expected non-parametric Datatype";
   //////// all checks before this line
   // we assume that finite model finding is disabled by passing false as the
   // second argument
@@ -4207,15 +4209,6 @@ bool Datatype::isWellFounded() const
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_dtype->isWellFounded();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-bool Datatype::hasNestedRecursion() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return d_dtype->hasNestedRecursion();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7473,7 +7466,7 @@ Term Solver::getQuantifierElimination(const Term& q) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
-  return Term(this, d_slv->getQuantifierElimination(q.getNode(), true, true));
+  return Term(this, d_slv->getQuantifierElimination(q.getNode(), true));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7483,7 +7476,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
-  return Term(this, d_slv->getQuantifierElimination(q.getNode(), false, true));
+  return Term(this, d_slv->getQuantifierElimination(q.getNode(), false));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
