@@ -1001,7 +1001,7 @@ Node LfscNodeConverter::getOperatorOfClosure(Node q,
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode retType = isPartial ? q[1].getType() : q.getType();
-  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType());
+  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), retType);
   // We permit non-flat function types here
   // intType is used here for variable indices
   TypeNode intType = nm->integerType();
