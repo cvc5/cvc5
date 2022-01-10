@@ -245,9 +245,7 @@ class AbductTester(Tester):
 
 class DumpTester(Tester):
     def applies(self, benchmark_info):
-        return (
-            benchmark_info.benchmark_ext != ".p"
-        )
+        return benchmark_info.benchmark_ext != ".p"
 
     def run(self, benchmark_info):
         ext_to_lang = {
