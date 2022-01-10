@@ -180,7 +180,7 @@ bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
 RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
 {
-  Assert(!isZero(rhs)) << "Can not invert zero";
+  Assert(!isZero(ran)) << "Can not invert zero";
   return inverse(ran.getValue());
 }
 
