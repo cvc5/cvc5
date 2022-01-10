@@ -137,6 +137,9 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return the result of replacing 'term' by 'replacement' in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point.
    */
   public Term substitute(Term term, Term replacement)
   {
@@ -149,6 +152,11 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point. In the case that
+   * terms contains duplicates, the replacement earliest in the vector takes
+   * priority.
    */
   public Term substitute(List<Term> terms, List<Term> replacements)
   {
