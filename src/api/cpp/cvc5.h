@@ -1159,7 +1159,9 @@ class CVC5_EXPORT Term
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the term. It is not run until fix point. In the case that
    * terms contains duplicates, the replacement earliest in the vector takes
-   * priority.
+   * priority. For example, calling substitute on f(x,y) with
+   *   terms = { x, z }, replacements = { g(z), w }
+   * results in the term f(g(z),y).
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;

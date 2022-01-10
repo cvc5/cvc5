@@ -2996,8 +2996,10 @@ cdef class Term:
 	   
       Note that this replacement is applied during a pre-order traversal and
       only once to the term. It is not run until fix point. In the case that
-      terms contains duplicates, the replacement earliest in the vector takes
-      priority.
+      terms contains duplicates, the replacement earliest in the list takes
+      priority. For example, calling substitute on f(x,y) with
+        term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
+      results in the term f(g(z),y).
 	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
