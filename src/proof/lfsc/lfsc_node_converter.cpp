@@ -331,7 +331,7 @@ Node LfscNodeConverter::postConvert(Node n)
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
       // use the partial operator for variables beyond the first
-      Node vop = getOperatorOfBoundVar(ii==0 ? pcop : cop, v);
+      Node vop = getOperatorOfBoundVar(ii == 0 ? pcop : cop, v);
       ret = nm->mkNode(APPLY_UF, vop, ret);
     }
     // notice that intentionally we drop annotations here
@@ -995,7 +995,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   return getSymbolInternal(k, ftype, opName.str());
 }
 
-Node LfscNodeConverter::getOperatorOfClosure(Node q, bool macroApply, bool isPartial)
+Node LfscNodeConverter::getOperatorOfClosure(Node q,
+                                             bool macroApply,
+                                             bool isPartial)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode retType = isParial ? q[1].getType() : q.getType();
