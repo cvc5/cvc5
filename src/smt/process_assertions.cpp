@@ -229,6 +229,9 @@ bool ProcessAssertions::apply(Assertions& as)
   if (!options().strings.stringLazyPreproc)
   {
     applyPass("strings-eager-pp", as);
+    // needed since strings eager preprocessing may reintroduce skolems that
+    // were already solved for in incremental mode
+    applyPass("apply-substs", as);
   }
   if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
   {

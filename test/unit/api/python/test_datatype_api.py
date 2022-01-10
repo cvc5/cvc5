@@ -300,23 +300,6 @@ def test_parametric_datatype(solver):
     assert pairIntInt != pairRealInt
     assert pairIntReal != pairRealInt
 
-    assert pairRealReal.isComparableTo(pairRealReal)
-    assert not pairIntReal.isComparableTo(pairRealReal)
-    assert not pairRealInt.isComparableTo(pairRealReal)
-    assert not pairIntInt.isComparableTo(pairRealReal)
-    assert not pairRealReal.isComparableTo(pairRealInt)
-    assert not pairIntReal.isComparableTo(pairRealInt)
-    assert pairRealInt.isComparableTo(pairRealInt)
-    assert not pairIntInt.isComparableTo(pairRealInt)
-    assert not pairRealReal.isComparableTo(pairIntReal)
-    assert pairIntReal.isComparableTo(pairIntReal)
-    assert not pairRealInt.isComparableTo(pairIntReal)
-    assert not pairIntInt.isComparableTo(pairIntReal)
-    assert not pairRealReal.isComparableTo(pairIntInt)
-    assert not pairIntReal.isComparableTo(pairIntInt)
-    assert not pairRealInt.isComparableTo(pairIntInt)
-    assert pairIntInt.isComparableTo(pairIntInt)
-
     assert pairRealReal.isSubsortOf(pairRealReal)
     assert not pairIntReal.isSubsortOf(pairRealReal)
     assert not pairRealInt.isSubsortOf(pairRealReal)
