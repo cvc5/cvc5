@@ -247,7 +247,6 @@ class DumpTester(Tester):
     def applies(self, benchmark_info):
         return (
             benchmark_info.benchmark_ext != ".p"
-            and benchmark_info.expected_exit_status == EXIT_OK
         )
 
     def run(self, benchmark_info):
@@ -287,7 +286,8 @@ class DumpTester(Tester):
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
-                compare_outputs=False
+                expected_exit_status=0,
+                compare_outputs=False,
             )
         )
         os.remove(tmpf.name)
