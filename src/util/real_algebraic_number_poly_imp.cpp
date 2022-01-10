@@ -149,6 +149,12 @@ RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
 {
   return lhs.getValue() * rhs.getValue();
 }
+RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs)
+{
+  Assert(!isZero(rhs)) << "Can not divide by zero";
+  return lhs.getValue() / rhs.getValue();
+}
 
 RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
                                 const RealAlgebraicNumber& rhs)
@@ -172,5 +178,18 @@ RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
 int sgn(const RealAlgebraicNumber& ran) { return sgn(ran.getValue()); }
 bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
 bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
+RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
+{
+  Assert(!isZero(rhs)) << "Can not invert zero";
+  return inverse(ran.getValue());
+}
 
 }  // namespace cvc5
+
+namespace std {
+size_t hash<cvc5::RealAlgebraicNumber>::operator()(
+    const cvc5::RealAlgebraicNumber& ran) const
+{
+  return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
+}
+}  // namespace std
