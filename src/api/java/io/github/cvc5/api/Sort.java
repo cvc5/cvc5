@@ -416,18 +416,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isSubsortOf(long pointer, long sortPointer);
 
   /**
-   * Is this sort comparable to the given sort (i.e., do they share
-   * a common ancestor in the subsort tree)?
-   * @return true if this sort is comparable to s
-   */
-  public boolean isComparableTo(Sort s)
-  {
-    return isComparableTo(pointer, s.getPointer());
-  }
-
-  private native boolean isComparableTo(long pointer, long sortPointer);
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   public Datatype getDatatype()
