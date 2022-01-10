@@ -331,7 +331,7 @@ Node LfscNodeConverter::postConvert(Node n)
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
       // use the partial operator for variables beyond the first
-      Node vop = getOperatorOfBoundVar(ii == 0 ? pcop : cop, v);
+      Node vop = getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
       ret = nm->mkNode(APPLY_UF, vop, ret);
     }
     // notice that intentionally we drop annotations here
