@@ -264,13 +264,6 @@ def test_is_subsort_of(solver):
     Sort(solver).isSubsortOf(Sort(solver))
 
 
-def test_is_comparable_to(solver):
-    assert solver.getIntegerSort().isComparableTo(solver.getIntegerSort())
-    assert solver.getIntegerSort().isComparableTo(solver.getRealSort())
-    assert not solver.getIntegerSort().isComparableTo(solver.getBooleanSort())
-    Sort(solver).isComparableTo(Sort(solver))
-
-
 def test_get_datatype(solver):
     dtypeSort = create_datatype_sort(solver)
     dtypeSort.getDatatype()
@@ -565,21 +558,14 @@ def test_sort_subtyping(solver):
     realSort = solver.getRealSort()
     assert intSort.isSubsortOf(realSort)
     assert not realSort.isSubsortOf(intSort)
-    assert intSort.isComparableTo(realSort)
-    assert realSort.isComparableTo(intSort)
 
     arraySortII = solver.mkArraySort(intSort, intSort)
     arraySortIR = solver.mkArraySort(intSort, realSort)
-    assert not arraySortII.isComparableTo(intSort)
-    # we do not support subtyping for arrays
-    assert not arraySortII.isComparableTo(arraySortIR)
 
     setSortI = solver.mkSetSort(intSort)
     setSortR = solver.mkSetSort(realSort)
     # we don't support subtyping for sets
-    assert not setSortI.isComparableTo(setSortR)
     assert not setSortI.isSubsortOf(setSortR)
-    assert not setSortR.isComparableTo(setSortI)
     assert not setSortR.isSubsortOf(setSortI)
 
 
