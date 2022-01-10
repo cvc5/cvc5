@@ -284,14 +284,6 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getNullSort().isSubsortOf(d_solver.getNullSort()));
   }
 
-  @Test void isComparableTo()
-  {
-    assertTrue(d_solver.getIntegerSort().isComparableTo(d_solver.getIntegerSort()));
-    assertTrue(d_solver.getIntegerSort().isComparableTo(d_solver.getRealSort()));
-    assertFalse(d_solver.getIntegerSort().isComparableTo(d_solver.getBooleanSort()));
-    assertDoesNotThrow(() -> d_solver.getNullSort().isComparableTo(d_solver.getNullSort()));
-  }
-
   @Test void getDatatype() throws CVC5ApiException
   {
     Sort dtypeSort = create_datatype_sort();
@@ -581,21 +573,14 @@ class SortTest
     Sort realSort = d_solver.getRealSort();
     assertTrue(intSort.isSubsortOf(realSort));
     assertFalse(realSort.isSubsortOf(intSort));
-    assertTrue(intSort.isComparableTo(realSort));
-    assertTrue(realSort.isComparableTo(intSort));
 
     Sort arraySortII = d_solver.mkArraySort(intSort, intSort);
     Sort arraySortIR = d_solver.mkArraySort(intSort, realSort);
-    assertFalse(arraySortII.isComparableTo(intSort));
-    // we do not support subtyping for arrays
-    assertFalse(arraySortII.isComparableTo(arraySortIR));
 
     Sort setSortI = d_solver.mkSetSort(intSort);
     Sort setSortR = d_solver.mkSetSort(realSort);
     // we don't support subtyping for sets
-    assertFalse(setSortI.isComparableTo(setSortR));
     assertFalse(setSortI.isSubsortOf(setSortR));
-    assertFalse(setSortR.isComparableTo(setSortI));
     assertFalse(setSortR.isSubsortOf(setSortI));
   }
 
