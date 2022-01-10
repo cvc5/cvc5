@@ -160,6 +160,12 @@ namespace std {
 template <>
 struct hash<cvc5::RealAlgebraicNumber>
 {
+  /**
+   * Computes a hash of the given real algebraic number. Given that the internal
+   * representation of real algebraic numbers are inherently mutable (th
+   * interval may be refined for comparisons) we hash a well-defined rational
+   * approximation.
+   */
   size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
 };
 }  // namespace std
