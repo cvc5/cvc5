@@ -112,7 +112,7 @@ std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
 {
 #ifdef CVC5_POLY_IMP
   return os << ran.getValue();
-#endif
+#else
   return os;
 #endif
 }
