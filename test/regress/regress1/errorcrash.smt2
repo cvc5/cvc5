@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXIT: 1
 ; EXPECT: (error "Parse Error: errorcrash.smt2:6.29: Symbol 'Array' not declared as a type")

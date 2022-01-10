@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXPECT: (error "Parse Error: issue-4075.smt2:11.26: expecting number of repeats > 0
 ; EXPECT:

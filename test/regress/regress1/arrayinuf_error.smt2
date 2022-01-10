@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXPECT: (error "Parse Error: arrayinuf_error.smt2:8.21: Symbol 'Array' not declared as a type
 ; EXPECT: 
