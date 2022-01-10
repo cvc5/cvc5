@@ -129,6 +129,9 @@ typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
 typerule CONST_INTEGER ::cvc5::theory::arith::ArithConstantTypeRule
 
+typerule REAL_ALGEBRAIC_NUMBER_OP ::cvc5::theory::arith::ArithRealAlgebraicNumberOpTypeRule
+typerule REAL_ALGEBRAIC_NUMBER ::cvc5::theory::arith::ArithRealAlgebraicNumberTypeRule
+
 typerule LT ::cvc5::theory::arith::ArithRelationTypeRule
 typerule LEQ ::cvc5::theory::arith::ArithRelationTypeRule
 typerule GT ::cvc5::theory::arith::ArithRelationTypeRule
