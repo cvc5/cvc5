@@ -11,11 +11,13 @@ z3py compatibility Python API
 This API is missing some features from cvc5 and Z3Py.
 
 It does not (currently) support these cvc5 features:
+
 * The theories of strings and sequences
 * unsatisfiable cores
 * syntax-guided synthesis (SyGuS)
 
 It does not support the following features of Z3Py:
+
 * Patterns for quantifier instantiation
 * Pseudo-boolean counting constraints: AtMost, AtLeast, ...
 * Special relation classes: PartialOrder, LinearOrder, ...
