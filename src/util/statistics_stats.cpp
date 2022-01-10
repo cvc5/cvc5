@@ -22,7 +22,7 @@ namespace cvc5 {
 
 AverageStat& AverageStat::operator<<(double v)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_data->d_sum += v;
     d_data->d_count++;
@@ -32,7 +32,7 @@ AverageStat& AverageStat::operator<<(double v)
 
 IntStat& IntStat::operator=(int64_t val)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_data->d_value = val;
   }
@@ -41,7 +41,7 @@ IntStat& IntStat::operator=(int64_t val)
 
 IntStat& IntStat::operator++()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_data->d_value++;
   }
@@ -50,7 +50,7 @@ IntStat& IntStat::operator++()
 
 IntStat& IntStat::operator++(int)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_data->d_value++;
   }
@@ -59,7 +59,7 @@ IntStat& IntStat::operator++(int)
 
 IntStat& IntStat::operator+=(int64_t val)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_data->d_value += val;
   }
@@ -68,7 +68,7 @@ IntStat& IntStat::operator+=(int64_t val)
 
 void IntStat::maxAssign(int64_t val)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     if (d_data->d_value < val)
     {
@@ -79,7 +79,7 @@ void IntStat::maxAssign(int64_t val)
 
 void IntStat::minAssign(int64_t val)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     if (d_data->d_value > val)
     {
@@ -90,7 +90,7 @@ void IntStat::minAssign(int64_t val)
 
 void TimerStat::start()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     Assert(!d_data->d_running) << "timer is already running";
     d_data->d_start = StatisticTimerValue::clock::now();
@@ -99,7 +99,7 @@ void TimerStat::start()
 }
 void TimerStat::stop()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     Assert(d_data->d_running) << "timer is not running";
     d_data->d_duration += StatisticTimerValue::clock::now() - d_data->d_start;
@@ -108,7 +108,7 @@ void TimerStat::stop()
 }
 bool TimerStat::running() const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     return d_data->d_running;
   }
@@ -118,7 +118,7 @@ bool TimerStat::running() const
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
     : d_timer(timer), d_reentrant(false)
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     if (!allow_reentrant || !(d_reentrant = d_timer.running()))
     {
@@ -128,7 +128,7 @@ CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
 }
 CodeTimer::~CodeTimer()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     if (!d_reentrant)
     {

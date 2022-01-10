@@ -20,5 +20,4 @@ z3py compatibility Python API
     set
     quant
     solver
-    commands
     internals
