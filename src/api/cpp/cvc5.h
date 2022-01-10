@@ -598,7 +598,7 @@ class CVC5_EXPORT Sort
    * @param replacement the sort replacing the substituted subsort.
    *
    * Note that this replacement is applied during a pre-order traversal and
-   * only once to the sort. It is not run until fix point. 
+   * only once to the sort. It is not run until fix point.
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
@@ -1148,14 +1148,14 @@ class CVC5_EXPORT Term
    * @return the result of replacing 'term' by 'replacement' in this term.
    *
    * Note that this replacement is applied during a pre-order traversal and
-   * only once to the term. It is not run until fix point. 
+   * only once to the term. It is not run until fix point.
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
-   * 
+   *
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the term. It is not run until fix point. In the case that
    * terms contains duplicates, the replacement earliest in the vector takes
