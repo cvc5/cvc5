@@ -1391,16 +1391,6 @@ bool Sort::isSubsortOf(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isComparableTo(const Sort& s) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_SOLVER("sort", s);
-  //////// all checks before this line
-  return d_type->isComparableTo(*s.d_type);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -2483,8 +2473,8 @@ Term Term::substitute(const Term& term, const Term& replacement) const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_TERM(term);
   CVC5_API_CHECK_TERM(replacement);
-  CVC5_API_CHECK(term.getSort().isComparableTo(replacement.getSort()))
-      << "Expecting terms of comparable sort in substitute";
+  CVC5_API_CHECK(term.getSort() == replacement.getSort())
+      << "Expecting terms of the same sort in substitute";
   //////// all checks before this line
   return Term(
       d_solver,
@@ -2500,7 +2490,7 @@ Term Term::substitute(const std::vector<Term>& terms,
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(terms.size() == replacements.size())
       << "Expecting vectors of the same arity in substitute";
-  CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_COMPARABLE_TO(terms, replacements);
+  CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms, replacements);
   //////// all checks before this line
   std::vector<Node> nodes = Term::termVectorToNodes(terms);
   std::vector<Node> nodeReplacements = Term::termVectorToNodes(replacements);

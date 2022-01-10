@@ -302,23 +302,6 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
 
-  ASSERT_TRUE(pairRealReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isComparableTo(pairIntInt));
-
   ASSERT_TRUE(pairRealReal.isSubsortOf(pairRealReal));
   ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealReal));
   ASSERT_FALSE(pairRealInt.isSubsortOf(pairRealReal));
