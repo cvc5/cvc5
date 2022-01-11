@@ -1803,6 +1803,7 @@ set(regress_1_tests
   regress1/issue4335-unsat-core.smt2
   regress1/issue5101-alira-subtypes.smt2
   regress1/issue5739-rtf-processed.smt2
+  regress1/issue7902-abd-subsolver-uc.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
