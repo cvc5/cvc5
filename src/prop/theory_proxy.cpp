@@ -67,7 +67,6 @@ void TheoryProxy::presolve()
 {
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
-  d_deepRestart = false;
 }
 
 void TheoryProxy::notifyInputFormulas(
@@ -127,15 +126,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     if (d_zll != nullptr)
     {
       // check if this corresponds to a zero-level asserted literal
-      if (d_deepRestart.get())
-      {
-        break;
-      }
-      else if (!d_zll->notifyAsserted(assertion))
-      {
-        d_deepRestart = true;
-        break;
-      }
+      d_zll->notifyAsserted(assertion);
     }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
@@ -153,17 +144,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
-  if (!d_deepRestart.get())
-  {
-    d_theoryEngine->check(effort);
-  }
+  d_theoryEngine->check(effort);
 }
 
 void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
-  if (d_deepRestart.get())
-  {
-    return;
-  }
   // Get the propagated literals
   std::vector<TNode> outputNodes;
   d_theoryEngine->getPropagatedLiterals(outputNodes);
@@ -227,11 +211,6 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
-  if (d_deepRestart.get())
-  {
-    stopSearch = true;
-    return undefSatLiteral;
-  }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
     Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
@@ -240,16 +219,12 @@ SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
 }
 
 bool TheoryProxy::theoryNeedCheck() const {
-  if (d_deepRestart.get())
-  {
-    return false;
-  }
   return d_theoryEngine->needCheck();
 }
 
 bool TheoryProxy::isIncomplete() const
 {
-  return d_deepRestart.get() || d_theoryEngine->isIncomplete();
+  return d_theoryEngine->isIncomplete();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {
@@ -269,7 +244,7 @@ void TheoryProxy::spendResource(Resource r)
 bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
-  return d_decisionEngine->isDone() || d_deepRestart.get();
+  return d_decisionEngine->isDone();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
