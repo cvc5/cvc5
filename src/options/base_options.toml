@@ -186,8 +186,12 @@ name   = "Base"
 [[option.mode.RAW_BENCHMARK]]
   name = "raw-benchmark"
   help = "print the benchmark back on the output verbatim as it is processed"
-  description = "With ``-o raw_benchmark``, cvc5 prints the benchmark back just as it has been parsed."
+  description = "With ``-o raw-benchmark``, cvc5 prints the benchmark back just as it has been parsed."
   example-file = "regress0/datatypes/datatype-dump.cvc.smt2"
+[[option.mode.LEARNED_LITERALS]]
+  name = "learned-literals"
+  help = "print input literals that hold globally"
+  description = "With ``-o learned-literals``, cvc5 prints input literals that hold globally."
 
 # Stores then enabled output tags.
 [[option]]
