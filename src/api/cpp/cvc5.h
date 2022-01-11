@@ -1522,12 +1522,16 @@ class CVC5_EXPORT Term
    * A term is a set value if it is considered to be a (canonical) constant set
    * value.  A canonical set value is one whose AST is:
    *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
    *     (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * \endverbatim
    *
-   * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
-   * also @ref Term::operator>(const Term&) const).
+   * where @f$c_1 ... c_n@f$ are values ordered by id such that
+   * @f$c_1 > ... > c_n@f$ (see @ref Term::operator>(const Term&) const).
    *
-   * @note A universe set term `(kind SET_UNIVERSE)` is not considered to be
+   * @note A universe set term (kind `SET_UNIVERSE`) is not considered to be
    *       a set value.
    */
   bool isSetValue() const;
