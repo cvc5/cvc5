@@ -57,7 +57,7 @@ TypeNode TypeNode::substitute(
     }
     else
     {
-      (*j).substitute(type, replacement);
+      nb << (*j).substitute(type, replacement);
     }
   }
 
