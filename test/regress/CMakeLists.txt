@@ -1560,8 +1560,6 @@ set(regress_1_tests
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848.smt2
   regress1/abduction/issue6605-1.smt2
-  regress1/abduction/issue7902-abd-subsolver-uc.smt2
-  regress1/abduction/proj-issue354-abd-subsolver-uc.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -1805,6 +1803,7 @@ set(regress_1_tests
   regress1/issue4335-unsat-core.smt2
   regress1/issue5101-alira-subtypes.smt2
   regress1/issue5739-rtf-processed.smt2
+  regress1/issue7902-abd-subsolver-uc.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
