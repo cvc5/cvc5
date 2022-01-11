@@ -2750,6 +2750,7 @@ set(regress_2_tests
   regress2/sygus/min_IC_1.sy
   regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
+  regress2/sygus/no-bad-filter.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy
