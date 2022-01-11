@@ -163,8 +163,8 @@ class TheoryProxy : protected EnvObj, public Registrar
    * definitions, see DecisionEngine::needsActiveSkolemDefs.
    */
   bool d_dmNeedsActiveDefs;
-  
-  /** 
+
+  /**
    * Whether we are tracking top-level learned literals.
    */
   bool d_trackTopLevelLearned;
