@@ -282,7 +282,7 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
     RealAlgebraicNumber r =
         -(t[0].getOperator().getConst<RealAlgebraicNumber>());
     NodeManager* nm = NodeManager::currentNM();
-    return RewriteResponse(REWRITE_DONE, nm->mkConstRealAlgebraicNumber(r));
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(r));
   }
 
   Node noUminus = makeUnaryMinusNode(t[0]);
@@ -605,12 +605,12 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   if (poly.isConstant())
   {
     ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    return RewriteResponse(REWRITE_DONE, nm->mkConstRealAlgebraicNumber(ran));
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
   }
   return RewriteResponse(
       REWRITE_DONE,
       nm->mkNode(
-          Kind::PLUS, nm->mkConstRealAlgebraicNumber(ran), poly.getNode()));
+          Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
@@ -655,12 +655,12 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   if (poly.isConstant())
   {
     ran *= RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    return RewriteResponse(REWRITE_DONE, nm->mkConstRealAlgebraicNumber(ran));
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
   }
   return RewriteResponse(
       REWRITE_DONE,
       nm->mkNode(
-          Kind::MULT, nm->mkConstRealAlgebraicNumber(ran), poly.getNode()));
+          Kind::MULT, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
@@ -981,7 +981,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
           left.getOperator().getConst<RealAlgebraicNumber>();
       return RewriteResponse(
           REWRITE_DONE,
-          nm->mkConstRealAlgebraicNumber(num / RealAlgebraicNumber(den)));
+          nm->mkRealAlgebraicNumber(num / RealAlgebraicNumber(den)));
     }
 
     Node result = nm->mkConstReal(den.inverse());
@@ -1005,17 +1005,17 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
       const Rational& num = left.getConst<Rational>();
       return RewriteResponse(
           REWRITE_DONE,
-          nm->mkConstRealAlgebraicNumber(RealAlgebraicNumber(num) / den));
+          nm->mkRealAlgebraicNumber(RealAlgebraicNumber(num) / den));
     }
     if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
       const RealAlgebraicNumber& num =
           left.getOperator().getConst<RealAlgebraicNumber>();
       return RewriteResponse(REWRITE_DONE,
-                             nm->mkConstRealAlgebraicNumber(num / den));
+                             nm->mkRealAlgebraicNumber(num / den));
     }
 
-    Node result = nm->mkConstRealAlgebraicNumber(inverse(den));
+    Node result = nm->mkRealAlgebraicNumber(inverse(den));
     Node mult = NodeManager::currentNM()->mkNode(kind::MULT,left,result);
     if(pre){
       return RewriteResponse(REWRITE_DONE, mult);

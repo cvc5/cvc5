@@ -717,7 +717,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_tnode)
 TEST_F(TestNodeBlackNode, RealAlgebraicNumber)
 {
   RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
-  Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+  Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
   std::cout << n << std::endl;
   Node m = d_nodeManager->mkNode(Kind::MULT, n, n);
   std::cout << m << std::endl;

@@ -34,13 +34,13 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   Trace.on("arith-rewriter");
   {
     RealAlgebraicNumber two({-8, 0, 0, 1}, 1, 3);
-    Node n = d_nodeManager->mkConstRealAlgebraicNumber(two);
+    Node n = d_nodeManager->mkRealAlgebraicNumber(two);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
     EXPECT_EQ(n.getConst<Rational>(), Rational(2));
   }
   {
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
-    Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+    Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::MULT, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
@@ -49,7 +49,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   {
     RealAlgebraicNumber twosqrt2({-8, 0, 1}, 2, 3);
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
-    Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+    Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::PLUS, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::REAL_ALGEBRAIC_NUMBER);
@@ -57,7 +57,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   }
   {
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
-    Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+    Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::MINUS, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
@@ -65,7 +65,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   }
   {
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
-    Node n = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
+    Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     Node m = d_nodeManager->mkNode(
         Kind::PLUS, n, d_nodeManager->mkConstReal(Rational(1)));
     n = d_nodeManager->mkNode(Kind::MINUS, m, n);
@@ -77,9 +77,9 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     RealAlgebraicNumber sqrt3({-3, 0, 1}, 1, 3);
     RealAlgebraicNumber sqrt10({-10, 0, 1}, 2, 4);
-    Node n2 = d_nodeManager->mkConstRealAlgebraicNumber(sqrt2);
-    Node n3 = d_nodeManager->mkConstRealAlgebraicNumber(sqrt3);
-    Node n10 = d_nodeManager->mkConstRealAlgebraicNumber(sqrt10);
+    Node n2 = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
+    Node n3 = d_nodeManager->mkRealAlgebraicNumber(sqrt3);
+    Node n10 = d_nodeManager->mkRealAlgebraicNumber(sqrt10);
     {
       Node n = d_nodeManager->mkNode(
           Kind::LT, d_nodeManager->mkNode(Kind::PLUS, n2, n3), n10);
