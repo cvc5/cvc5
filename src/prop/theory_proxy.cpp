@@ -49,10 +49,9 @@ TheoryProxy::TheoryProxy(Env& env,
       d_queue(context()),
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
-      d_zll(nullptr),
-      d_deepRestart(false, userContext())
+      d_zll(nullptr)
 {
-  if (options().smt.deepRestart)
+  if (d_trackTopLevelLearned)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
   }
