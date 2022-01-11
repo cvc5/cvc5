@@ -188,8 +188,8 @@ name   = "Base"
   help = "print the benchmark back on the output verbatim as it is processed"
   description = "With ``-o raw-benchmark``, cvc5 prints the benchmark back just as it has been parsed."
   example-file = "regress0/datatypes/datatype-dump.cvc.smt2"
-[[option.mode.LEARNED_LITERALS]]
-  name = "learned-literals"
+[[option.mode.LEARNED_LITS]]
+  name = "learned-lits"
   help = "print input literals that hold globally"
   description = "With ``-o learned-literals``, cvc5 prints input literals that hold globally."
 
