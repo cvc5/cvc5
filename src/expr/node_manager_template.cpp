@@ -1312,7 +1312,7 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
         poly_utils::toRational(poly::to_rational_approximation(ran.getValue()));
     return mkConstReal(r);
   }
-  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, mkConst(ran));
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
 }
 
 }  // namespace cvc5
