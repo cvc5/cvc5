@@ -64,8 +64,20 @@ class LfscNodeConverter : public NodeConverter
    * Get closure operator. In the above example, this method returns the
    * uninterpreted function whose name is "forall" and is used to construct
    * higher-order operators for each bound variable in the closure.
+   *
+   * To ensure typing is correct on converted terms, lambdas require further
+   * care on inner variables. For example:
+   *   (lambda ((x Int) (y Int) (z Int)) 0)
+   * is printed as:
+   *   (apply (lambda N1 Int) (apply (lambda N2 Int) (apply (lambda N3 Int) 0)))
+   * The inner two lambda operators we give type
+   *   (-> Sort Int Int Int)
+   * We call these "partial". Then, the outer lambda is given type:
+   *   (-> Sort Int Int (-> Int Int Int Int))
    */
-  Node getOperatorOfClosure(Node q, bool macroApply = false);
+  Node getOperatorOfClosure(Node q,
+                            bool macroApply = false,
+                            bool isPartial = false);
   /**
    * Get closure operator, where cop is the term returned by
    * getOperatorOfClosure(q), where q is the closures to which v
