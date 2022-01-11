@@ -213,6 +213,8 @@ Node SubstitutionMap::apply(TNode t, Rewriter* r, std::set<TNode>* tracker) {
   if (r != nullptr)
   {
     result = r->rewrite(result);
+    Assert(r->rewrite(result) == result) << "Non-idempotent rewrite: " << result
+                                         << " --> " << r->rewrite(result);
   }
 
   return result;

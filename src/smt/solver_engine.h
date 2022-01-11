@@ -617,13 +617,8 @@ class CVC5_EXPORT SolverEngine
    * extended command get-qe-disjunct, which can be used
    * for incrementally computing the result of a
    * quantifier elimination.
-   *
-   * The argument strict is whether to output
-   * warnings, such as when an unexpected logic is used.
-   *
-   * throw@ Exception
    */
-  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
