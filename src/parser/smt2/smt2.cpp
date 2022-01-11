@@ -1005,7 +1005,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term constVal = args[0];
 
-    if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
+    if (p.d_type.getArrayElementSort() != constVal.getSort())
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
