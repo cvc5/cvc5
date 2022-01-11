@@ -115,7 +115,7 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
         d_levelZeroAssertsLearned.insert(assertion);
         Trace("level-zero-assert")
             << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
-        return true;
+        return;
       }
     }
     else
