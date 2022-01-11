@@ -574,13 +574,6 @@ class CVC5_EXPORT Sort
   bool isSubsortOf(const Sort& s) const;
 
   /**
-   * Is this sort comparable to the given sort (i.e., do they share
-   * a common ancestor in the subsort tree)?
-   * @return true if this sort is comparable to s
-   */
-  bool isComparableTo(const Sort& s) const;
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;

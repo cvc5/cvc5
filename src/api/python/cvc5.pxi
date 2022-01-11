@@ -2629,15 +2629,6 @@ cdef class Sort:
         """
         return self.csort.isSubsortOf(sort.csort)
 
-    def isComparableTo(self, Sort sort):
-        """
-            Is this sort comparable to the given sort
-            (i.e., do they share a common ancestor in the subsort tree)?
-
-            :return: True if this sort is comparable to s
-        """
-        return self.csort.isComparableTo(sort.csort)
-
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort
