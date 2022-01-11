@@ -171,6 +171,22 @@ class InferenceGenerator
    */
   InferInfo duplicateRemoval(Node n, Node e);
   /**
+   * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
+   * @param n is (as bag.empty (Bag E))
+   * @return an inference that represents the following implication
+   * (=> (= A (as bag.empty (Bag E)))
+   *     (= (bag.card A) 0))
+   */
+  InferInfo cardEmpty(Node cardTerm, Node n);
+  /**
+   * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
+   * @param n is a term of the form (bag.union_disjoint A B)
+   * @return an inference that represents the following implication
+   * (=> (= C (bag.union_disjoint A B))
+   *     (= (bag.card C) (+ (bag.card A) (bag.card B))))
+   */
+  InferInfo cardUnionDisjoint(Node cardTerm, Node n);
+  /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param e is a node of Type E

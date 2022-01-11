@@ -41,6 +41,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(&d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
+      d_cardSolver(env, d_state, d_im),
       d_bagReduction(env)
 {
   // use the official theory state and inference manager objects
@@ -88,18 +89,6 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   switch (atom.getKind())
   {
     case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
-    case kind::BAG_CARD:
-    {
-      std::vector<Node> asserts;
-      Node ret = d_bagReduction.reduceCardOperator(atom, asserts);
-      NodeManager* nm = NodeManager::currentNM();
-      Node andNode = nm->mkNode(AND, asserts);
-      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
-                         << " such that:" << std::endl
-                         << andNode << std::endl;
-      d_im.lemma(andNode, InferenceId::BAGS_CARD);
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-    }
     case kind::BAG_FOLD:
     {
       std::vector<Node> asserts;
@@ -264,6 +253,9 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
       break;
     }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
+    case CHECK_CARDINALITY_CONSTRAINTS:
+      d_cardSolver.checkCardinalityGraph();
+      break;
     default: Unreachable(); break;
   }
   Trace("bags-process") << "Done " << s

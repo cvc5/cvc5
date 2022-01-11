@@ -303,6 +303,34 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::cardEmpty(Node cardTerm, Node n)
+{
+  Assert(cardTerm.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_EMPTY && n.getType() == cardTerm[0].getType());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node premise = cardTerm[0].eqNode(n);
+  Node conclusion = cardTerm.eqNode(d_zero);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardUnionDisjoint(Node cardTerm, Node n)
+{
+  Assert(cardTerm.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_UNION_DISJOINT
+         && n.getType() == cardTerm[0].getType());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node premise = cardTerm[0].eqNode(n);
+  Node A = n[0];
+  Node B = n[1];
+  Node cardA = d_nm->mkNode(BAG_CARD, A);
+  Node cardB = d_nm->mkNode(BAG_CARD, B);
+  Node sum = d_nm->mkNode(PLUS, cardA, cardB);
+  Node conclusion = cardTerm.eqNode(sum);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
 Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
 {
   Node count = d_nm->mkNode(BAG_COUNT, element, bag);

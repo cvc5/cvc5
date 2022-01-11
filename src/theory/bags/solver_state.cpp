@@ -51,7 +51,17 @@ Node SolverState::registerCountTerm(TNode n)
   return count.eqNode(skolem);
 }
 
+void SolverState::registerCardinalityTerm(TNode n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  d_cardTerms.insert(n);
+}
+
+bool SolverState::hasCardinalityTerm() const { return d_cardTerms.size() == 0; }
+
 const std::set<Node>& SolverState::getBags() { return d_bags; }
+
+const std::set<Node>& SolverState::getCardinalityTerms() { return d_cardTerms; }
 
 std::set<Node> SolverState::getElements(Node B)
 {
@@ -79,6 +89,7 @@ void SolverState::reset()
   d_bagElements.clear();
   d_bags.clear();
   d_deq.clear();
+  d_cardTerms.clear();
 }
 
 std::vector<Node> SolverState::initialize()
@@ -126,6 +137,10 @@ std::vector<Node> SolverState::collectBagsAndCountTerms()
         lemmas.push_back(lemma);
         Trace("SolverState::collectBagsAndCountTerms")
             << "registered " << n << endl;
+      }
+      if (k == BAG_CARD)
+      {
+        registerCardinalityTerm(n);
       }
       ++it;
     }
