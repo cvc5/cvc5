@@ -100,6 +100,8 @@ class SmtLibLexer(RegexLexer):
             # parentheses
             (r'\(', token.Text),
             (r'\)', token.Text),
+            (r'\{', token.Text),
+            (r'\}', token.Text),
             # commands (terminated by whitespace or ")")
             ('(' + '|'.join(COMMANDS) + ')(?=(\s|\)))', token.Keyword),
             # sorts (terminated by whitespace or ")")
