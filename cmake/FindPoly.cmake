@@ -123,11 +123,6 @@ if(NOT Poly_FOUND_SYSTEM)
     set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
     set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
   endif()
-
-  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  endif()
 endif()
 
 set(Poly_FOUND TRUE)
