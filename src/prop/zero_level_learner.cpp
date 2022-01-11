@@ -77,12 +77,12 @@ void ZeroLevelLearner::notifyInputFormulas(
     visited.insert(atom);
     d_pplAtoms.insert(atom);
   }
-  if (isOutputOn(OutputTag::LEARNED_LIT))
+  if (isOutputOn(OutputTag::LEARNED_LITS))
   {
     // output learned literals from preprocessing
     for (const Node& lit : ppl)
     {
-      output(OutputTag::LEARNED_LIT) << "(learned-lit " << lit << " :preprocess)" << std::endl;
+      output(OutputTag::LEARNED_LITS) << "(learned-lit " << lit << " :preprocess)" << std::endl;
     }
   }
   for (const Node& a : assertions)
@@ -124,9 +124,9 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
         d_levelZeroAssertsLearned.insert(assertion);
         Trace("level-zero-assert")
             << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
-        if (isOutputOn(OutputTag::LEARNED_LIT))
+        if (isOutputOn(OutputTag::LEARNED_LITS))
         {
-          output(OutputTag::LEARNED_LIT) << "(learned-lit " << assertion << ")" << std::endl;
+          output(OutputTag::LEARNED_LITS) << "(learned-lit " << assertion << ")" << std::endl;
         }
         return;
       }
