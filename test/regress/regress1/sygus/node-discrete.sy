@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
 (set-logic ALL)
