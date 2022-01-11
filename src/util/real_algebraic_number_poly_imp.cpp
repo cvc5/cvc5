@@ -211,6 +211,16 @@ RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
   return lhs;
 #endif
 }
+RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs)
+{
+#ifdef CVC5_POLY_IMP
+  Assert(!isZero(rhs)) << "Can not divide by zero";
+  return lhs.getValue() / rhs.getValue();
+#else
+  return lhs;
+#endif
+}
 
 RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
                                 const RealAlgebraicNumber& rhs)
