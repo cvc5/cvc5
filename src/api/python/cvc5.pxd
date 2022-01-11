@@ -199,6 +199,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkSygusVar(Sort sort, const string& symbol) except +
         Term mkSygusVar(Sort sort) except +
         void addSygusConstraint(Term term) except +
+        void addSygusAssume(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
@@ -284,6 +285,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getOption(string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
+        vector[Term] getDifficulty() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
         vector[Term] getModelDomainElements(Sort sort) except +
@@ -305,6 +307,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint getAbduct(const Term& conj, Term& output) except +
         bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
         bint getAbductNext(const Term& conj) except +
+        void blockModel() except +
+        void blockModelValues(vector[Term]& terms) except +
 
     cdef cppclass Grammar:
         Grammar() except +

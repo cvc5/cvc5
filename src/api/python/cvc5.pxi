@@ -1628,6 +1628,9 @@ cdef class Solver:
         """
         self.csolver.addSygusConstraint(t.cterm)
 
+    def addSygusAssume(self, Term t):
+        self.csolver.addSygusAssume(t.cterm)
+
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         """
         Add a set of SyGuS constraints to the current state that correspond to an
@@ -1932,12 +1935,12 @@ cdef class Solver:
                                                     (<Sort?> sort_or_term).csort,
                                                     (<Term?> bool_or_term).cterm,
                                                     <bint> glbl)
-            else:
-                term.cterm = self.csolver.defineFunRec(
-                                                    (<str?> sym_or_fun).encode(),
-                                                    <const vector[c_Term]&> v,
-                                                    (<Sort?> sort_or_term).csort,
-                                                    (<Term?> bool_or_term).cterm)
+#            else:
+#                term.cterm = self.csolver.defineFunRec(
+#                                                    (<str?> sym_or_fun).encode(),
+#                                                    <const vector[c_Term]&> v,
+#                                                    (<Sort?> sort_or_term).csort,
+#                                                    (<Term?> bool_or_term).cterm)
         else:
             assert isinstance(sym_or_fun, Term)
             if glbl is not None:
@@ -2074,6 +2077,18 @@ cdef class Solver:
             core.append(term)
         return core
 
+    def getDifficulty(solver):
+        diffi = {}
+        for k, v in self.csolver.getDifficulty().items():
+            termk = Term(self)
+            termk.cterm = k
+
+            termv = Term(self)
+            termv.cterm = v
+            
+            diffi[k] = v
+        return diffi
+     
     def getValue(self, Term t):
         """Get the value of the given term in the current model.
 
@@ -2358,6 +2373,16 @@ cdef class Solver:
         result = self.csolver.getAbductNext(output.cterm)
         return result
 
+    # TOTO add doc to new functions
+
+    def blockModel(self):
+        self.csolver.blockModel()
+
+    def blockModelValues(self, terms):
+        cdef vector[c_Term] v
+        for t in terms:
+          v.push_back((<Term?> t).cterm)
+        self.csolver.blockModelValues(v)
 
 
 cdef class Sort:
