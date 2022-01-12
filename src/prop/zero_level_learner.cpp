@@ -22,6 +22,7 @@
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/trust_substitutions.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace prop {
@@ -126,7 +127,9 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
             << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
         if (isOutputOn(OutputTag::LEARNED_LITS))
         {
-          output(OutputTag::LEARNED_LITS) << "(learned-lit " << assertion << ")" << std::endl;
+          // get the original form so that internally generated variables
+          // are mapped back to their original form
+          output(OutputTag::LEARNED_LITS) << "(learned-lit " << SkolemManager::getOriginalForm(assertion) << ")" << std::endl;
         }
         return;
       }
