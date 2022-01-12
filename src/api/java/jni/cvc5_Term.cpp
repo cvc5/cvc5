@@ -599,31 +599,29 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getBitVectorValue(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
- * Method:    isAbstractValue
+ * Method:    isUninterpretedSortValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isAbstractValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_cvc5_Term_isUninterpretedSortValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  return static_cast<jboolean>(current->isAbstractValue());
+  return static_cast<jboolean>(current->isUninterpretedSortValue());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
  * Class:     cvc5_Term
- * Method:    getAbstractValue
+ * Method:    getUninterpretedSortValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getAbstractValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_cvc5_Term_getUninterpretedSortValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  std::string ret = current->getAbstractValue();
+  std::string ret = current->getUninterpretedSortValue();
   return env->NewStringUTF(ret.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }

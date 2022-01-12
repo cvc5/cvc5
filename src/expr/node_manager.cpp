@@ -32,9 +32,9 @@
 #include "expr/type_checker.h"
 #include "theory/bags/make_bag_op.h"
 #include "theory/sets/singleton_op.h"
-#include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/resource_manager.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 using namespace cvc5::expr;
@@ -1104,8 +1104,9 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
   return bag;
 }
 
-Node NodeManager::mkAbstractValue(const TypeNode& type) {
-  Node n = mkConst(AbstractValue(type, ++d_abstractValueCount));
+Node NodeManager::mkUninterpretedSortValue(const TypeNode& type)
+{
+  Node n = mkConst(UninterpretedSortValue(type, ++d_abstractValueCount));
   return n;
 }
 

@@ -21,8 +21,8 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
-#include "util/abstract_value.h"
 #include "util/integer.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {
@@ -58,7 +58,8 @@ class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortE
     if(isFinished()) {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst(AbstractValue(getType(), d_count));
+    return NodeManager::currentNM()->mkConst(
+        UninterpretedSortValue(getType(), d_count));
   }
 
   UninterpretedSortEnumerator& operator++() override

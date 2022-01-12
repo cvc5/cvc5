@@ -287,7 +287,7 @@ void TheoryUF::preRegisterTerm(TNode node)
   case kind::COMBINED_CARDINALITY_CONSTRAINT:
     //do nothing
     break;
-  case kind::ABSTRACT_VALUE:
+  case kind::UNINTERPRETED_SORT_VALUE:
   {
     // Abstract values should only appear in models, and should never appear in
     // constraints. They are unallowed to ever appear in constraints since the

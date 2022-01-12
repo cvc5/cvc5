@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -751,7 +750,7 @@ void Parser::pushGetValueScope()
     std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
     for (const api::Term& e : elements)
     {
-      defineVar(e.getAbstractValue(), e);
+      defineVar(e.getUninterpretedSortValue(), e);
     }
   }
 }

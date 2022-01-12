@@ -1292,7 +1292,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
     return NodeManager::currentNM()->mkConst(
-        AbstractValue(n.getType(), debruijn));
+        UninterpretedSortValue(n.getType(), debruijn));
   }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){

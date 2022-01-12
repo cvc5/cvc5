@@ -68,7 +68,6 @@
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
-#include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/floatingpoint.h"
@@ -81,6 +80,7 @@
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 #include "util/utility.h"
 
 namespace cvc5 {
@@ -107,7 +107,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND},
     {NULL_EXPR, cvc5::Kind::NULL_EXPR},
     /* Builtin ------------------------------------------------------------- */
-    {ABSTRACT_VALUE, cvc5::Kind::ABSTRACT_VALUE},
+    {UNINTERPRETED_SORT_VALUE, cvc5::Kind::UNINTERPRETED_SORT_VALUE},
     {EQUAL, cvc5::Kind::EQUAL},
     {DISTINCT, cvc5::Kind::DISTINCT},
     {CONSTANT, cvc5::Kind::VARIABLE},
@@ -385,7 +385,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
         {cvc5::Kind::NULL_EXPR, NULL_EXPR},
         /* Builtin --------------------------------------------------------- */
-        {cvc5::Kind::ABSTRACT_VALUE, ABSTRACT_VALUE},
+        {cvc5::Kind::UNINTERPRETED_SORT_VALUE, UNINTERPRETED_SORT_VALUE},
         {cvc5::Kind::EQUAL, EQUAL},
         {cvc5::Kind::DISTINCT, DISTINCT},
         {cvc5::Kind::VARIABLE, CONSTANT},
@@ -616,7 +616,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
-        {cvc5::Kind::BAG_MAP,BAG_MAP},
+        {cvc5::Kind::BAG_MAP, BAG_MAP},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -3082,26 +3082,26 @@ std::string Term::getBitVectorValue(std::uint32_t base) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isAbstractValue() const
+bool Term::isUninterpretedSortValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::ABSTRACT_VALUE;
+  return d_node->getKind() == cvc5::Kind::UNINTERPRETED_SORT_VALUE;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-std::string Term::getAbstractValue() const
+std::string Term::getUninterpretedSortValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::ABSTRACT_VALUE,
-                              *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::UNINTERPRETED_SORT_VALUE, *d_node)
       << "Term to be an abstract value when calling "
-         "getAbstractValue()";
+         "getUninterpretedSortValue()";
   //////// all checks before this line
   std::stringstream ss;
-  ss << d_node->getConst<AbstractValue>();
+  ss << d_node->getConst<UninterpretedSortValue>();
   return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;

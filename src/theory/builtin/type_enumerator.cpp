@@ -16,7 +16,7 @@
 #include "theory/builtin/type_enumerator.h"
 
 #include "theory/builtin/theory_builtin_rewriter.h"
-#include "util/abstract_value.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {

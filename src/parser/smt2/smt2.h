@@ -286,9 +286,9 @@ class Smt2 : public Parser
   /** Make abstract value
    *
    * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isAbstractValue(name) is true.
+   * name should be such that isUninterpretedSortValue(name) is true.
    */
-  api::Term mkAbstractValue(const std::string& name);
+  api::Term mkUninterpretedSortValue(const std::string& name);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the

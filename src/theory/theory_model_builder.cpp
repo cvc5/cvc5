@@ -24,7 +24,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
-#include "util/abstract_value.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -224,7 +224,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     {
       Trace("model-builder-debug") << "  ...matches with " << eqc << " -> "
                                    << eqc_m << std::endl;
-      if (eqc_m.getKind() == kind::ABSTRACT_VALUE)
+      if (eqc_m.getKind() == kind::UNINTERPRETED_SORT_VALUE)
       {
         Trace("model-builder-debug") << "*** " << val
                                      << " is excluded datatype for " << eqc
@@ -318,7 +318,8 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
                                    << tn << std::endl;
       unsigned card = eqc_usort_count[tn];
       Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
-      unsigned index = v.getConst<AbstractValue>().getIndex().toUnsignedInt();
+      unsigned index =
+          v.getConst<UninterpretedSortValue>().getIndex().toUnsignedInt();
       Trace("model-builder-debug") << "  Index is " << index << std::endl;
       return index > 0 && index >= card;
     }

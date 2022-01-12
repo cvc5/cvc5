@@ -109,7 +109,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      if (d_child_enum)
      {
        ret = NodeManager::currentNM()->mkConst(
-           AbstractValue(d_type, d_size_limit));
+           UninterpretedSortValue(d_type, d_size_limit));
      }
      else
      {

@@ -70,10 +70,10 @@ enum CVC5_EXPORT Kind : int32_t
    *   - 1: Index of the abstract value
    *
    * Create with:
-   *   - `Solver::mkAbstractValue(const std::string& index) const`
-   *   - `Solver::mkAbstractValue(uint64_t index) const`
+   *   - `Solver::mkUninterpretedSortValue(const std::string& index) const`
+   *   - `Solver::mkUninterpretedSortValue(uint64_t index) const`
    */
-  ABSTRACT_VALUE,
+  UNINTERPRETED_SORT_VALUE,
 #if 0
   /* Built-in operator */
   BUILTIN,

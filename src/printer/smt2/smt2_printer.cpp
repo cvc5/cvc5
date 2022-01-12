@@ -47,7 +47,6 @@
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
-#include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/floatingpoint.h"
@@ -56,6 +55,7 @@
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 
@@ -324,9 +324,9 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
 
-    case kind::ABSTRACT_VALUE:
+    case kind::UNINTERPRETED_SORT_VALUE:
     {
-      const AbstractValue& av = n.getConst<AbstractValue>();
+      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
       ss << "(as " << av << " " << n.getType() << ")";
       out << ss.str();
@@ -525,7 +525,7 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
     }
-    else if (k != kind::ABSTRACT_VALUE)
+    else if (k != kind::UNINTERPRETED_SORT_VALUE)
     {
       // use type ascription
       out << "(as ";

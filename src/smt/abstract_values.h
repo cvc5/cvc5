@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__ABSTRACT_VALUES_H
-#define CVC5__SMT__ABSTRACT_VALUES_H
+#ifndef CVC5__SMT__UNINTERPRETED_SORT_VALUES_H
+#define CVC5__SMT__UNINTERPRETED_SORT_VALUES_H
 
 #include <unordered_map>
 
@@ -50,7 +50,7 @@ class AbstractValues
    * Make a new (or return an existing) abstract value for a node.
    * Can only use this if options::abstractValues() is on.
    */
-  Node mkAbstractValue(TNode n);
+  Node mkUninterpretedSortValue(TNode n);
 
  private:
   /** Pointer to the used node manager */

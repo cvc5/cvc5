@@ -38,13 +38,13 @@ Node AbstractValues::substituteAbstractValues(TNode n)
   return d_abstractValueMap.apply(n);
 }
 
-Node AbstractValues::mkAbstractValue(TNode n)
+Node AbstractValues::mkUninterpretedSortValue(TNode n)
 {
   Assert(options::abstractValues());
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
-    val = d_nm->mkAbstractValue(n.getType());
+    val = d_nm->mkUninterpretedSortValue(n.getType());
     d_abstractValueMap.addSubstitution(val, n);
   }
   return val;

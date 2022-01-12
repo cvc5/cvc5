@@ -1106,7 +1106,7 @@ Node SolverEngine::getValue(const Node& ex) const
 
   if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
   {
-    resultNode = d_absValues->mkAbstractValue(resultNode);
+    resultNode = d_absValues->mkUninterpretedSortValue(resultNode);
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 

@@ -26,40 +26,50 @@ namespace cvc5 {
 
 class TypeNode;
 
-class AbstractValue
+class UninterpretedSortValue
 {
  public:
-  AbstractValue(const TypeNode& type, const Integer& index);
-  AbstractValue(const AbstractValue& val);
-  ~AbstractValue();
+  UninterpretedSortValue(const TypeNode& type, const Integer& index);
+  UninterpretedSortValue(const UninterpretedSortValue& val);
+  ~UninterpretedSortValue();
 
   const Integer& getIndex() const { return d_index; }
   const TypeNode& getType() const;
 
-  bool operator==(const AbstractValue& val) const;
-  bool operator!=(const AbstractValue& val) const { return !(*this == val); }
-  bool operator<(const AbstractValue& val) const;
-  bool operator<=(const AbstractValue& val) const;
-  bool operator>(const AbstractValue& val) const { return !(*this <= val); }
-  bool operator>=(const AbstractValue& val) const { return !(*this < val); }
+  bool operator==(const UninterpretedSortValue& val) const;
+  bool operator!=(const UninterpretedSortValue& val) const
+  {
+    return !(*this == val);
+  }
+  bool operator<(const UninterpretedSortValue& val) const;
+  bool operator<=(const UninterpretedSortValue& val) const;
+  bool operator>(const UninterpretedSortValue& val) const
+  {
+    return !(*this <= val);
+  }
+  bool operator>=(const UninterpretedSortValue& val) const
+  {
+    return !(*this < val);
+  }
 
  private:
   /** The type of the abstract value */
   std::unique_ptr<TypeNode> d_type;
   /** The index of the abstract value */
   const Integer d_index;
-}; /* class AbstractValue */
+}; /* class UninterpretedSortValue */
 
-std::ostream& operator<<(std::ostream& out, const AbstractValue& val);
+std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val);
 
 /**
  * Hash function for abstract values.
  */
-struct AbstractValueHashFunction
+struct UninterpretedSortValueHashFunction
 {
-  inline size_t operator()(const AbstractValue& val) const {
+  inline size_t operator()(const UninterpretedSortValue& val) const
+  {
     return IntegerHashFunction()(val.getIndex());
   }
-}; /* struct AbstractValueHashFunction */
+}; /* struct UninterpretedSortValueHashFunction */
 
 }  // namespace cvc5

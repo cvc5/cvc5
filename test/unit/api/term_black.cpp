@@ -883,7 +883,7 @@ TEST_F(TestApiBlackTerm, getBitVector)
   ASSERT_EQ("f", b7.getBitVectorValue(16));
 }
 
-TEST_F(TestApiBlackTerm, getAbstractValue)
+TEST_F(TestApiBlackTerm, getUninterpretedSortValue)
 {
   d_solver.setOption("produce-models", "true");
   Sort uSort = d_solver.mkUninterpretedSort("u");
@@ -893,9 +893,9 @@ TEST_F(TestApiBlackTerm, getAbstractValue)
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term vx = d_solver.getValue(x);
   Term vy = d_solver.getValue(y);
-  ASSERT_TRUE(vx.isAbstractValue());
-  ASSERT_TRUE(vy.isAbstractValue());
-  ASSERT_EQ(vx.getAbstractValue(), vy.getAbstractValue());
+  ASSERT_TRUE(vx.isUninterpretedSortValue());
+  ASSERT_TRUE(vy.isUninterpretedSortValue());
+  ASSERT_EQ(vx.getUninterpretedSortValue(), vy.getUninterpretedSortValue());
 }
 
 TEST_F(TestApiBlackTerm, getTuple)

@@ -1396,12 +1396,12 @@ class CVC5_EXPORT Term
   /**
    * @return true if the term is an abstract value.
    */
-  bool isAbstractValue() const;
+  bool isUninterpretedSortValue() const;
   /**
-   * Asserts isAbstractValue().
+   * Asserts isUninterpretedSortValue().
    * @return the representation of an abstract value as a string.
    */
-  std::string getAbstractValue() const;
+  std::string getUninterpretedSortValue() const;
 
   /**
    * @return true if the term is a tuple value.

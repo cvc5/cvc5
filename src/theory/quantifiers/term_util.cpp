@@ -230,7 +230,7 @@ int TermUtil::getTermDepth( Node n ) {
 bool TermUtil::containsUninterpretedConstant( Node n ) {
   if (!n.hasAttribute(ContainsUConstAttribute()) ){
     bool ret = false;
-    if (n.getKind() == ABSTRACT_VALUE && n.getType().isSort())
+    if (n.getKind() == UNINTERPRETED_SORT_VALUE && n.getType().isSort())
     {
       ret = true;
     }

@@ -91,10 +91,11 @@ class SExprTypeRule {
   }
 };/* class SExprTypeRule */
 
-class AbstractValueTypeRule {
+class UninterpretedSortValueTypeRule
+{
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};/* class AbstractValueTypeRule */
+}; /* class UninterpretedSortValueTypeRule */
 
 class LambdaTypeRule {
  public:

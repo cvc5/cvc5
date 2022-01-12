@@ -17,18 +17,18 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
-#include "util/abstract_value.h"
 #include "util/cardinality.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-TypeNode AbstractValueTypeRule::computeType(NodeManager* nodeManager,
-                                            TNode n,
-                                            bool check)
+TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
+                                                     TNode n,
+                                                     bool check)
 {
-  return n.getConst<AbstractValue>().getType();
+  return n.getConst<UninterpretedSortValue>().getType();
 }
 
 /**

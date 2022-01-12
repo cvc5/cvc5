@@ -42,7 +42,7 @@ EvalResult::EvalResult(const EvalResult& other)
       new (&d_str) String;
       d_str = other.d_str;
       break;
-    case ABSTRACT: new (&d_av) AbstractValue(other.d_av); break;
+    case ABSTRACT: new (&d_av) UninterpretedSortValue(other.d_av); break;
     case INVALID: break;
   }
 }
@@ -67,7 +67,7 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
         new (&d_str) String;
         d_str = other.d_str;
         break;
-      case ABSTRACT: new (&d_av) AbstractValue(other.d_av); break;
+      case ABSTRACT: new (&d_av) UninterpretedSortValue(other.d_av); break;
       case INVALID: break;
     }
   }
@@ -95,7 +95,7 @@ EvalResult::~EvalResult()
     }
     case ABSTRACT:
     {
-      d_av.~AbstractValue();
+      d_av.~UninterpretedSortValue();
       break;
     }
     default: break;
@@ -407,9 +407,10 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(r);
           break;
         }
-        case kind::ABSTRACT_VALUE:
+        case kind::UNINTERPRETED_SORT_VALUE:
         {
-          const AbstractValue& av = currNodeVal.getConst<AbstractValue>();
+          const UninterpretedSortValue& av =
+              currNodeVal.getConst<UninterpretedSortValue>();
           results[currNode] = EvalResult(av);
           break;
         }

@@ -577,7 +577,7 @@ class NodeManager
   Node mkBooleanTermVariable();
 
   /** Make a new abstract value with the given type. */
-  Node mkAbstractValue(const TypeNode& type);
+  Node mkUninterpretedSortValue(const TypeNode& type);
 
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);

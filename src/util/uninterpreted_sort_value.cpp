@@ -13,7 +13,7 @@
  * Representation of abstract values.
  */
 
-#include "util/abstract_value.h"
+#include "util/uninterpreted_sort_value.h"
 
 #include <iostream>
 #include <sstream>
@@ -26,11 +26,13 @@ using namespace std;
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, const AbstractValue& val) {
+std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val)
+{
   return out << "@a" << val.getIndex();
 }
 
-AbstractValue::AbstractValue(const TypeNode& type, const Integer& index)
+UninterpretedSortValue::UninterpretedSortValue(const TypeNode& type,
+                                               const Integer& index)
     : d_type(new TypeNode(type)), d_index(index)
 {
   PrettyCheckArgument(index >= 0,
@@ -39,27 +41,28 @@ AbstractValue::AbstractValue(const TypeNode& type, const Integer& index)
                       index.toString().c_str());
 }
 
-AbstractValue::AbstractValue(const AbstractValue& val)
+UninterpretedSortValue::UninterpretedSortValue(
+    const UninterpretedSortValue& val)
     : d_type(new TypeNode(*val.d_type)), d_index(val.d_index)
 {
 }
 
-AbstractValue::~AbstractValue() {}
+UninterpretedSortValue::~UninterpretedSortValue() {}
 
-const TypeNode& AbstractValue::getType() const { return *d_type; }
+const TypeNode& UninterpretedSortValue::getType() const { return *d_type; }
 
-bool AbstractValue::operator==(const AbstractValue& val) const
+bool UninterpretedSortValue::operator==(const UninterpretedSortValue& val) const
 {
   return getType() == val.getType() && d_index == val.d_index;
 }
 
-bool AbstractValue::operator<(const AbstractValue& val) const
+bool UninterpretedSortValue::operator<(const UninterpretedSortValue& val) const
 {
   return getType() < val.getType()
          || (getType() == val.getType() && d_index < val.d_index);
 }
 
-bool AbstractValue::operator<=(const AbstractValue& val) const
+bool UninterpretedSortValue::operator<=(const UninterpretedSortValue& val) const
 {
   return getType() <= val.getType()
          || (getType() == val.getType() && d_index <= val.d_index);

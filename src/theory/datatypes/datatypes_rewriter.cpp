@@ -25,8 +25,8 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
-#include "util/abstract_value.h"
 #include "util/rational.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -729,7 +729,7 @@ Node DatatypesRewriter::collectRef(Node n,
       else
       {
         // a loop
-        const Integer& i = n.getConst<AbstractValue>().getIndex();
+        const Integer& i = n.getConst<UninterpretedSortValue>().getIndex();
         uint32_t index = i.toUnsignedInt();
         if (index >= sk.size())
         {
@@ -771,7 +771,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          AbstractValue(n.getType(), debruijn));
+          UninterpretedSortValue(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;
@@ -798,9 +798,10 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
                                         TypeNode orig_tn,
                                         unsigned depth)
 {
-  if (n.getKind() == kind::ABSTRACT_VALUE && n.getType() == orig_tn)
+  if (n.getKind() == kind::UNINTERPRETED_SORT_VALUE && n.getType() == orig_tn)
   {
-    unsigned index = n.getConst<AbstractValue>().getIndex().toUnsignedInt();
+    unsigned index =
+        n.getConst<UninterpretedSortValue>().getIndex().toUnsignedInt();
     if (index == depth)
     {
       return orig;
