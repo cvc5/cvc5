@@ -64,7 +64,7 @@ class CardSolver : protected EnvObj
   /** apply inference rules for leaves in the cardinality graph
    *
    */
-  void reduceCardinality(const Node& cardTerm);
+  void checkLeafBag(const Node& cardTerm, const Node& bag);
   void addChildren(const Node& parent, const std::set<Node>& children);
   /** The solver state object */
   SolverState& d_state;

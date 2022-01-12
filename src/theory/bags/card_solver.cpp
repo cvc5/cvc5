@@ -35,10 +35,11 @@ namespace bags {
 CardSolver::CardSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env), d_state(s), d_ig(&s, &im), d_im(im), d_bagReduction(env)
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_nm = NodeManager::currentNM();
+  d_zero = d_nm->mkConstInt(Rational(0));
+  d_one = d_nm->mkConstInt(Rational(1));
+  d_true = d_nm->mkConst(true);
+  d_false = d_nm->mkConst(false);
 }
 
 CardSolver::~CardSolver() {}
@@ -80,16 +81,7 @@ void CardSolver::checkCardinalityGraph()
       it++;
     }
     // if the bag is a leaf in the graph, then we reduce its cardinality
-    if (d_cardGraph.count(bag) == 0)
-    {
-      std::vector<Node> assertions;
-      Node reduction = d_bagReduction.reduceCardOperator(cardTerm, assertions);
-      assertions.push_back(reduction.eqNode(cardTerm));
-      bags::InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
-      NodeManager* nm = NodeManager::currentNM();
-      inferInfo.d_conclusion = nm->mkNode(AND, assertions);
-      d_im.lemmaTheoryInference(&inferInfo);
-    }
+    checkLeafBag(cardTerm, bag);
   }
 }
 
@@ -174,18 +166,18 @@ void CardSolver::checkDifferenceRemove(const Node& cardTerm, const Node& n)
   Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
 }
 
-void CardSolver::reduceCardinality(const Node& cardTerm)
+void CardSolver::checkLeafBag(const Node& cardTerm, const Node& bag)
 {
-  std::vector<Node> asserts;
-  Node ret = d_bagReduction.reduceCardOperator(cardTerm, asserts);
-  NodeManager* nm = NodeManager::currentNM();
-  Node equal = cardTerm.eqNode(ret);
-  asserts.push_back(equal);
-  Node andNode = nm->mkNode(AND, asserts);
-  Trace("bags::ppr") << "reduce(" << cardTerm << ") = " << ret
-                     << " such that:" << std::endl
-                     << andNode << std::endl;
-  d_im.lemma(andNode, InferenceId::BAGS_CARD);
+  if (d_cardGraph.count(bag) == 0)
+  {
+    std::vector<Node> assertions;
+    Node reduction = d_bagReduction.reduceCardOperator(cardTerm, assertions);
+    assertions.push_back(reduction.eqNode(cardTerm));
+    bags::InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
+    NodeManager* nm = NodeManager::currentNM();
+    inferInfo.d_conclusion = nm->mkNode(AND, assertions);
+    d_im.lemmaTheoryInference(&inferInfo);
+  }
 }
 
 }  // namespace bags
