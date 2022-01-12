@@ -31,7 +31,7 @@ namespace prop {
 class PropEngine;
 
 /**
- * The proxy class that allows the SatSolver to communicate with the theories
+ * The module for processing literals that are learned at decision level zero.
  */
 class ZeroLevelLearner : protected EnvObj
 {
