@@ -32,6 +32,7 @@
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
+#include "util/real_algebraic_number.h"
 
 using namespace cvc5::kind;
 
@@ -346,27 +347,64 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t){
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
 
+  if (t.getNumChildren() == 1)
+  {
+    return RewriteResponse(REWRITE_DONE, t[0]);
+  }
+
+  Rational rational;
+  RealAlgebraicNumber ran;
   std::vector<Monomial> monomials;
   std::vector<Polynomial> polynomials;
 
-  for(TNode::iterator i = t.begin(), end = t.end(); i != end; ++i){
-    TNode curr = *i;
-    if(Monomial::isMember(curr)){
-      monomials.push_back(Monomial::parseMonomial(curr));
-    }else{
-      polynomials.push_back(Polynomial::parsePolynomial(curr));
+  for (const auto& child : t)
+  {
+    if (child.isConst())
+    {
+      if (child.getConst<Rational>().isZero())
+      {
+        continue;
+      }
+      rational += child.getConst<Rational>();
+    }
+    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      ran += child.getOperator().getConst<RealAlgebraicNumber>();
+    }
+    else if (Monomial::isMember(child))
+    {
+      monomials.emplace_back(Monomial::parseMonomial(child));
+    }
+    else
+    {
+      polynomials.emplace_back(Polynomial::parsePolynomial(child));
     }
   }
 
   if(!monomials.empty()){
     Monomial::sort(monomials);
     Monomial::combineAdjacentMonomials(monomials);
-    polynomials.push_back(Polynomial::mkPolynomial(monomials));
+    polynomials.emplace_back(Polynomial::mkPolynomial(monomials));
   }
+  polynomials.emplace_back(
+      Polynomial::mkPolynomial(Constant::mkConstant(rational)));
 
-  Polynomial res = Polynomial::sumPolynomials(polynomials);
+  Polynomial poly = Polynomial::sumPolynomials(polynomials);
 
-  return RewriteResponse(REWRITE_DONE, res.getNode());
+  if (isZero(ran))
+  {
+    return RewriteResponse(REWRITE_DONE, poly.getNode());
+  }
+  auto* nm = NodeManager::currentNM();
+  if (poly.isConstant())
+  {
+    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
+  }
+  return RewriteResponse(
+      REWRITE_DONE,
+      nm->mkNode(
+          Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
