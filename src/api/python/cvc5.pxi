@@ -2036,6 +2036,12 @@ cdef class Solver:
         """
         return self.csolver.getOption(option.encode())
 
+    def getOptionNames(self):
+       result = []
+       for n in self.csolver.getOptionNames():
+         result += [n.decode()]
+       return result
+
     def getUnsatAssumptions(self):
         """
         Get the set of unsat ("failed") assumptions.
@@ -2077,18 +2083,21 @@ cdef class Solver:
             core.append(term)
         return core
 
-    def getDifficulty(solver):
+    def getDifficulty(self):
         diffi = {}
-        for k, v in self.csolver.getDifficulty().items():
+        for p in self.csolver.getDifficulty():
+            k = p.first
+            v = p.second
+
             termk = Term(self)
             termk.cterm = k
 
             termv = Term(self)
             termv.cterm = v
             
-            diffi[k] = v
+            diffi[termk] = termv
         return diffi
-     
+      
     def getValue(self, Term t):
         """Get the value of the given term in the current model.
 
@@ -2133,6 +2142,25 @@ cdef class Solver:
         :return: true if v is a model core symbol
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
+
+    def getModel(self, sorts, terms):
+        cdef vector[c_Sort] csorts
+        cdef vector[c_Term] cterms
+        for s in sorts:
+          csorts.push_back((<Sort?> s).csort)
+        for t in terms:
+          cterms.push_back((<Term?> t).cterm)
+        return self.csolver.getModel(csorts, cterms).decode()
+
+    def getQuantifierElimination(self, Term term):
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getQuantifierElimination(term.cterm)
+        return result
+
+    def getQuantifierEliminationDisjunct(self, Term term):
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getQuantifierEliminationDisjunct(term.cterm)
+        return result
 
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.

@@ -2730,7 +2730,7 @@ def test_get_difficulty3(solver):
 
 def test_get_model(solver):
     solver.setOption("produce-models", "true")
-    uSprt = solver.mkUninterpretedSort("u")
+    uSort = solver.mkUninterpretedSort("u")
     x = solver.mkConst(uSort, "x")
     y = solver.mkConst(uSort, "y")
     z = solver.mkConst(uSort, "z")
@@ -2765,7 +2765,7 @@ def test_get_model_3(solver):
 
 def test_get_option_names(solver):
     names = solver.getOptionNames()
-    assert names.size() > 100
+    assert len(names) > 100
     assert "verbose" in names
     assert "foobar" not in names
 
@@ -2775,7 +2775,7 @@ def test_get_quantifier_elimination(solver):
     with pytest.raises(RuntimeError):
         solver.getQuantifierElimination(pycvc5.Term(solver))
     with pytest.raises(RuntimeError):
-        solver.getQuantifierElimination(pycvc5.Solver.mkBoolean(False))
+        solver.getQuantifierElimination(pycvc5.Solver().mkBoolean(False))
     solver.getQuantifierElimination(forall)
 
 def test_get_quantifier_elimination_disjunct(solver):

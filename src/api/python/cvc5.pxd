@@ -5,6 +5,7 @@ from libc.stddef cimport wchar_t
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
 
@@ -283,13 +284,17 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
         string getOption(string& option) except +
+        vector[string] getOptionNames() except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
-        vector[Term] getDifficulty() except +
+        map[Term,Term] getDifficulty() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
+        string getModel(vector[Sort] sorts, vector[Term] terms) except +
+        Term getQuantifierElimination(Term term) except +
+        Term getQuantifierEliminationDisjunct(Term term) except +
         void declareSepHeap(Sort locSort, Sort dataSort) except +
         Term getValueSepHeap() except +
         Term getValueSepNil() except +
