@@ -45,14 +45,16 @@ namespace {
  * @param cache: Caches visited nodes.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMaxGroundTerms(TNode n,
+void getMaxGroundTerms(const Options& options,
+                       TNode n,
                        TypeNode tn,
                        std::unordered_set<Node>& terms,
                        std::unordered_set<TNode>& cache,
                        bool skip_quant = false)
 {
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  if (options.quantifiers.sygusInstTermSel != options::SygusInstTermSelMode::MAX
+      && options.quantifiers.sygusInstTermSel
+             != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -100,14 +102,16 @@ void getMaxGroundTerms(TNode n,
  *               term was already found in a subterm.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMinGroundTerms(TNode n,
+void getMinGroundTerms(const Options& options,
+                       TNode n,
                        TypeNode tn,
                        std::unordered_set<Node>& terms,
                        std::unordered_map<TNode, std::pair<bool, bool>>& cache,
                        bool skip_quant = false)
 {
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  if (options.quantifiers.sygusInstTermSel != options::SygusInstTermSelMode::MIN
+      && options.quantifiers.sygusInstTermSel
+             != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -361,8 +365,8 @@ void SygusInst::registerQuantifier(Node q)
         std::unordered_set<TNode> cache_max;
         std::unordered_map<TNode, std::pair<bool, bool>> cache_min;
 
-        getMinGroundTerms(q, tn, terms, cache_min);
-        getMaxGroundTerms(q, tn, terms, cache_max);
+        getMinGroundTerms(options(), q, tn, terms, cache_min);
+        getMaxGroundTerms(options(), q, tn, terms, cache_max);
         relevant_terms.emplace(tn, terms);
       }
 
@@ -394,8 +398,8 @@ void SygusInst::registerQuantifier(Node q)
 
         for (const Node& a : d_notified_assertions)
         {
-          getMinGroundTerms(a, tn, terms, cache_min, true);
-          getMaxGroundTerms(a, tn, terms, cache_max, true);
+          getMinGroundTerms(options(), a, tn, terms, cache_min, true);
+          getMaxGroundTerms(options(), a, tn, terms, cache_max, true);
         }
         d_global_terms.insert(tn, terms);
       }

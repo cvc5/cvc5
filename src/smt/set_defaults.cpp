@@ -68,6 +68,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
     AlwaysAssert(false) << "Fail due to --proof-req "
                         << opts.smt.produceProofsWasSetByUser;
   }
+  // internal-only options
+  if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY)
+  {
+    throw OptionException(
+        std::string("Unsat core mode pp-only is for internal use only."));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -358,17 +364,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-
-  // sygus core connective requires unsat cores
-  if (opts.quantifiers.sygusCoreConnective)
-  {
-    opts.smt.unsatCores = true;
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
-    {
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
-    }
-  }
-
   if ((opts.smt.checkModels || opts.smt.checkSynthSol || opts.smt.produceAbducts
        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
        || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
@@ -696,6 +691,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
+      Trace("smt")
+          << "Disabling shared selectors for quantified logic without SyGuS"
+          << std::endl;
       opts.datatypes.dtSharedSelectors = false;
     }
   }

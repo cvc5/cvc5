@@ -2991,5 +2991,18 @@ TEST_F(TestApiBlackSolver, proj_issue383)
   ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue386)
+{
+  Sort s1 = d_solver.getBooleanSort();
+  Sort p1 = d_solver.mkParamSort("_p1");
+  Sort p2 = d_solver.mkParamSort("_p2");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", {p1, p2});
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("_x1");
+  ctordecl.addSelector("_x2", p1);
+  dtdecl.addConstructor(ctordecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
+}
+
 }  // namespace test
 }  // namespace cvc5

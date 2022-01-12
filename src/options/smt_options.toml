@@ -173,7 +173,6 @@ name   = "SMT Layer"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 [[option.mode.PP_ONLY]]
   name = "pp-only"
-  help = "Not producing unsat cores, but tracking proofs of preprocessing (internal only)."
 
 [[option]]
   name       = "minimalUnsatCores"
