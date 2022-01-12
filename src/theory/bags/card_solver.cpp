@@ -75,10 +75,6 @@ void CardSolver::checkCardinalityGraph()
       it++;
     }
   }
-  for (const Node& cardTerm : d_state.getCardinalityTerms())
-  {
-//    reduceCardinality(cardTerm);
-  }
 }
 
 void CardSolver::checkEmpty(const Node& cardTerm, const Node& n)

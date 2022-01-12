@@ -38,9 +38,7 @@ class TermRegistry;
 class CardSolver : protected EnvObj
 {
  public:
-  CardSolver(Env& env,
-             SolverState& s,
-             InferenceManager& im);
+  CardSolver(Env& env, SolverState& s, InferenceManager& im);
   ~CardSolver();
 
   /**
