@@ -49,7 +49,9 @@ void CardSolver::checkCardinalityGraph()
   {
     Trace("bags-card") << "cardTerm: " << cardTerm << std::endl;
     Assert(cardTerm.getKind() == BAG_CARD);
+    Assert(d_state.hasTerm(cardTerm[0]));
     Node bag = d_state.getRepresentative(cardTerm[0]);
+    Trace("bags-card") << "bag rep: " << bag << std::endl;
     // enumerate all bag terms with bag operators
     eq::EqClassIterator it =
         eq::EqClassIterator(bag, d_state.getEqualityEngine());
@@ -57,11 +59,16 @@ void CardSolver::checkCardinalityGraph()
     {
       Node n = (*it);
       Kind k = n.getKind();
+      Trace("bags-card") << "[" << bag << "] contains bag " << n << std::endl;
       switch (k)
       {
         case kind::BAG_EMPTY: checkEmpty(cardTerm, n); break;
         case kind::BAG_MAKE: checkBagMake(cardTerm, n); break;
-        case kind::BAG_UNION_DISJOINT: checkUnionDisjoint(cardTerm, n); break;
+        case kind::BAG_UNION_DISJOINT:
+        {
+          checkUnionDisjoint(cardTerm, n);
+          break;
+        }
         case kind::BAG_UNION_MAX: checkUnionMax(cardTerm, n); break;
         case kind::BAG_INTER_MIN: checkIntersectionMin(cardTerm, n); break;
         case kind::BAG_DIFFERENCE_SUBTRACT:
@@ -74,6 +81,17 @@ void CardSolver::checkCardinalityGraph()
       }
       it++;
     }
+    // if the bag is a leaf in the graph, then we reduce its cardinality
+    if (d_cardGraph.count(bag) == 0)
+    {
+      std::vector<Node> assertions;
+      Node reduction = d_bagReduction.reduceCardOperator(cardTerm, assertions);
+      assertions.push_back(reduction.eqNode(cardTerm));
+      bags::InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
+      NodeManager* nm = NodeManager::currentNM();
+      inferInfo.d_conclusion = nm->mkNode(AND, assertions);
+      d_im.lemmaTheoryInference(&inferInfo);
+    }
   }
 }
 
@@ -84,11 +102,30 @@ void CardSolver::checkEmpty(const Node& cardTerm, const Node& n)
   d_im.lemmaTheoryInference(&i);
 }
 
+void CardSolver::checkBagMake(const Node& cardTerm, const Node& n)
+{
+  Assert(n.getKind() == BAG_MAKE);
+  InferInfo i = d_ig.cardBagMake(cardTerm, n);
+  d_im.lemmaTheoryInference(&i);
+}
+
 void CardSolver::checkUnionDisjoint(const Node& cardTerm, const Node& n)
 {
   Assert(n.getKind() == BAG_UNION_DISJOINT);
   InferInfo i = d_ig.cardUnionDisjoint(cardTerm, n);
   d_im.lemmaTheoryInference(&i);
+  Node bag = d_state.getRepresentative(cardTerm[0]);
+  Node A = d_state.getRepresentative(n[0]);
+  Node B = d_state.getRepresentative(n[1]);
+  d_cardGraph[bag].insert({A, B});
+  if (d_cardGraph.count(A) == 0)
+  {
+    d_cardGraph[A] = {};
+  }
+  if (d_cardGraph.count(B) == 0)
+  {
+    d_cardGraph[B] = {};
+  }
 }
 
 void CardSolver::checkUnionMax(const Node& cardTerm, const Node& n)
@@ -104,11 +141,6 @@ void CardSolver::checkIntersectionMin(const Node& cardTerm, const Node& n)
 void CardSolver::checkDifferenceSubtract(const Node& cardTerm, const Node& n)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
-}
-
-void CardSolver::checkBagMake(const Node& cardTerm, const Node& n)
-{
-  Assert(n.getKind() == BAG_MAKE);
 }
 
 void CardSolver::checkDifferenceRemove(const Node& cardTerm, const Node& n)

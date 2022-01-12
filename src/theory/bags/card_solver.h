@@ -74,6 +74,8 @@ class CardSolver : protected EnvObj
   /** bag reduction */
   BagReduction d_bagReduction;
 
+  std::map<Node, std::set<std::set<Node>>> d_cardGraph;
+
   /** Commonly used constants */
   Node d_true;
   Node d_false;

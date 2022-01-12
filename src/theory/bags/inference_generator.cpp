@@ -314,6 +314,22 @@ InferInfo InferenceGenerator::cardEmpty(Node cardTerm, Node n)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::cardBagMake(Node cardTerm, Node n)
+{
+  Assert(cardTerm.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_MAKE && n.getType() == cardTerm[0].getType());
+  //(=>
+  //  (and (= A (bag x c)) (>= 0 c))
+  //  (= (bag.card A) c))
+  Node c = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node nonNegative = d_nm->mkNode(GEQ, c, d_zero);
+  Node premise = cardTerm[0].eqNode(n).andNode(nonNegative);
+  Node conclusion = cardTerm.eqNode(c);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::cardUnionDisjoint(Node cardTerm, Node n)
 {
   Assert(cardTerm.getKind() == BAG_CARD);

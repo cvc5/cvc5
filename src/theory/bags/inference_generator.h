@@ -179,6 +179,15 @@ class InferenceGenerator
    */
   InferInfo cardEmpty(Node cardTerm, Node n);
   /**
+   * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
+   * @param n is a node of the form (bag x c) of type (Bag E)
+   * @return an inference that represents the following implication
+   * (=>
+   *     (and (= A (bag x c)) (>= 0 c))
+   *     (= (bag.card A) c))
+   */
+  InferInfo cardBagMake(Node cardTerm, Node n);
+  /**
    * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
    * @param n is a term of the form (bag.union_disjoint A B)
    * @return an inference that represents the following implication
