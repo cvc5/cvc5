@@ -62,11 +62,8 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
         poly::UPolynomial({numerator(pr), -denominator(pr)}),
         poly::DyadicInterval(floor(pr), ceil(pr)));
   }
-<<<<<<< HEAD
-=======
 #else
   RAN_UNREACHABLE;
->>>>>>> upstream/master
 #endif
 }
 
