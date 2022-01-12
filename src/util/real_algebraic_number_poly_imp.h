@@ -20,7 +20,9 @@
 
 #include <vector>
 
+#ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
+#endif
 
 #include "util/integer.h"
 #include "util/rational.h"
@@ -44,8 +46,10 @@ class RealAlgebraicNumber
  public:
   /** Construct as zero. */
   RealAlgebraicNumber() = default;
+#ifdef CVC5_POLY_IMP
   /** Move from a poly::AlgebraicNumber type. */
   RealAlgebraicNumber(poly::AlgebraicNumber&& an);
+#endif
   /** Copy from an Integer. */
   RealAlgebraicNumber(const Integer& i);
   /** Copy from a Rational. */
@@ -89,10 +93,12 @@ class RealAlgebraicNumber
   /** Move assignment. */
   RealAlgebraicNumber& operator=(RealAlgebraicNumber&& ran) = default;
 
+#ifdef CVC5_POLY_IMP
   /** Get the internal value as a const reference. */
   const poly::AlgebraicNumber& getValue() const { return d_value; }
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
+#endif
 
   /**
    * Check if this real algebraic number is actually rational.
@@ -112,7 +118,9 @@ class RealAlgebraicNumber
   /**
    * Stores the actual real algebraic number.
    */
+#ifdef CVC5_POLY_IMP
   poly::AlgebraicNumber d_value;
+#endif
 }; /* class RealAlgebraicNumber */
 
 /** Stream a real algebraic number to an output stream. */
