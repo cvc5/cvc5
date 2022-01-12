@@ -103,8 +103,7 @@ std::vector<Node> Preprocessor::getLearnedLiterals() const
 {
   if (d_ppContext == nullptr)
   {
-    std::vector<Node> emptyVec;
-    return emptyVec;
+    return {};
   }
   return d_ppContext->getLearnedLiterals();
 }
