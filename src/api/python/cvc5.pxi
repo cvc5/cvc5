@@ -3157,18 +3157,6 @@ cdef class Term:
 	"""
         return int(self.cterm.getIntegerValue().decode())
 
-    def isAbstractValue(self):
-        """:return: True iff this term is an abstract value."""
-        return self.cterm.isAbstractValue()
-
-    def getAbstractValue(self):
-        """
-	   Asserts :py:meth:`isAbstractValue()`.
-
-	   :return: the representation of an abstract value as a string.
-	"""
-        return self.cterm.getAbstractValue().decode()
-
     def isFloatingPointPosZero(self):
         """:return: True iff the term is the floating-point value for positive zero."""
         return self.cterm.isFloatingPointPosZero()
@@ -3264,7 +3252,7 @@ cdef class Term:
         """:return: True iff this term is a value from an uninterpreted sort."""
         return self.cterm.isUninterpretedSortValue()
 
-    def getUninterpretedValue(self):
+    def getUninterpretedSortValue(self):
         """
 	   Asserts :py:meth:`isUninterpretedSortValue()`.
 
