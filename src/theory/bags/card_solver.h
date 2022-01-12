@@ -41,6 +41,8 @@ class CardSolver : protected EnvObj
   CardSolver(Env& env, SolverState& s, InferenceManager& im);
   ~CardSolver();
 
+  void reset();
+
   /**
    * add lemmas related to cardinality constraints
    */

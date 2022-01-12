@@ -164,6 +164,7 @@ void TheoryBags::postCheck(Effort effort)
       // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
       std::vector<Node> lemmas = d_state.initialize();
+      d_cardSolver.reset();
       for (Node lemma : lemmas)
       {
         d_im.lemma(lemma, InferenceId::BAGS_COUNT_SKOLEM);

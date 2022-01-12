@@ -44,6 +44,8 @@ CardSolver::CardSolver(Env& env, SolverState& s, InferenceManager& im)
 
 CardSolver::~CardSolver() {}
 
+void CardSolver::reset() { d_cardGraph.clear(); }
+
 void CardSolver::checkCardinalityGraph()
 {
   for (const Node& cardTerm : d_state.getCardinalityTerms())
