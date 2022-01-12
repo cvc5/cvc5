@@ -107,15 +107,7 @@ void CardSolver::checkUnionDisjoint(const Node& cardTerm, const Node& n)
   Node bag = d_state.getRepresentative(cardTerm[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
-  d_cardGraph[bag].insert({A, B});
-  if (d_cardGraph.count(A) == 0)
-  {
-    d_cardGraph[A] = {};
-  }
-  if (d_cardGraph.count(B) == 0)
-  {
-    d_cardGraph[B] = {};
-  }
+  addChildren(bag, {A, B});
 }
 
 void CardSolver::checkUnionMax(const Node& cardTerm, const Node& n)
