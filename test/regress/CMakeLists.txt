@@ -1845,6 +1845,7 @@ set(regress_1_tests
   regress1/nl/issue5660-mb-success.smt2
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
+  regress1/nl/issue7924-sqrt-partial.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
