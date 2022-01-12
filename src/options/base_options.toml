@@ -191,7 +191,7 @@ name   = "Base"
 [[option.mode.LEARNED_LITS]]
   name = "learned-lits"
   help = "print input literals that hold globally"
-  description = "With ``-o learned-literals``, cvc5 prints input literals that hold globally."
+  description = "With ``-o learned-lits``, cvc5 prints input literals that it has learned to hold globally."
   example-file = "regress0/printer/learned-lit-output.smt2"
 
 # Stores then enabled output tags.
