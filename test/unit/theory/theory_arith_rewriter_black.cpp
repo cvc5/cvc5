@@ -42,7 +42,6 @@ TEST_F(TestTheoryArithRewriterBlack, Rational)
     EXPECT_EQ(n, a);
   }
 }
-}
 
 }  // namespace test
 }  // namespace cvc5
