@@ -874,63 +874,7 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Term_getSequenceValue(
 }
 
 /*
-<<<<<<< HEAD:src/api/java/jni/cvc5_Term.cpp
- * Class:     cvc5_Term
-=======
  * Class:     io_github_cvc5_api_Term
- * Method:    isUninterpretedValue
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isUninterpretedValue(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  return static_cast<jboolean>(current->isUninterpretedValue());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Term
- * Method:    getUninterpretedValue
- * Signature: (J)Lio/github/cvc5/api/Pair;
- */
-JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Term_getUninterpretedValue(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  std::pair<Sort, std::int32_t> value = current->getUninterpretedValue();
-
-  Sort* sort = new Sort(value.first);
-  jlong sortPointer = reinterpret_cast<jlong>(sort);
-
-  // Long longObject = new Long(pointer)
-  jclass longClass = env->FindClass("Ljava/lang/Long;");
-  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
-  jobject longObject = env->NewObject(longClass, longConstructor, sortPointer);
-
-  // Integer integerObject = new Integer(pair.second)
-  jclass integerClass = env->FindClass("Ljava/lang/Integer;");
-  jmethodID integerConstructor =
-      env->GetMethodID(integerClass, "<init>", "(I)V");
-  jobject integerObject = env->NewObject(
-      integerClass, integerConstructor, static_cast<jint>(value.second));
-
-  // Pair<String, Long> pair = new Pair<String, Long>(jName, longObject)
-  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
-  jmethodID pairConstructor = env->GetMethodID(
-      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-  jobject pair =
-      env->NewObject(pairClass, pairConstructor, longObject, integerObject);
-
-  return pair;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_api_Term
->>>>>>> master:src/api/java/jni/term.cpp
  * Method:    iterator
  * Signature: (J)J
  */
