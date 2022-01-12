@@ -2093,8 +2093,9 @@ set(regress_1_tests
   regress1/quantifiers/qbv-test-urem-rewrite.smt2
   regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2
   regress1/quantifiers/qcft-smtlib3dbc51.smt2
-  regress1/quantifiers/qe-partial.smt2
   regress1/quantifiers/qe.smt2
+  regress1/quantifiers/qe-partial.smt2
+  regress1/quantifiers/qe-subtypes.smt2
   regress1/quantifiers/qid.smt2
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
