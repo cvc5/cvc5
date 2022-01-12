@@ -94,6 +94,20 @@ class RealAlgebraicNumber
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
 
+  /**
+   * Check if this real algebraic number is actually rational.
+   * If true, the value is rational and toRational() can safely be called.
+   * If false, the value may still be rational, but was not recognized as
+   * such yet.
+   */
+  bool isRational() const;
+  /**
+   * Returns the stored value as a rational.
+   * The value is exact if isRational() returns true, otherwise it may only be a
+   * rational approximation (of unknown precision).
+   */
+  Rational toRational() const;
+
  private:
   /**
    * Stores the actual real algebraic number.
@@ -128,6 +142,9 @@ RealAlgebraicNumber operator-(const RealAlgebraicNumber& ran);
 /** Multiply two real algebraic numbers. */
 RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs);
+/** Divide two real algebraic numbers. */
+RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs);
 
 /** Add and assign two real algebraic numbers. */
 RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
@@ -146,7 +163,25 @@ int sgn(const RealAlgebraicNumber& ran);
 bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
 bool isOne(const RealAlgebraicNumber& ran);
+/** Compute the inverse of a real algebraic number. */
+RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran);
+
+using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
 
 }  // namespace cvc5
+
+namespace std {
+template <>
+struct hash<cvc5::RealAlgebraicNumber>
+{
+  /**
+   * Computes a hash of the given real algebraic number. Given that the internal
+   * representation of real algebraic numbers are inherently mutable (th
+   * interval may be refined for comparisons) we hash a well-defined rational
+   * approximation.
+   */
+  size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
+};
+}  // namespace std
 
 #endif /* CVC5__REAL_ALGEBRAIC_NUMBER_H */

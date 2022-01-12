@@ -303,7 +303,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
 
   // if normalization option is not enabled, we do not infer the transformations
   // below
-  if (!options::sygusGrammarNorm())
+  if (!options().quantifiers.sygusGrammarNorm)
   {
     return nullptr;
   }
