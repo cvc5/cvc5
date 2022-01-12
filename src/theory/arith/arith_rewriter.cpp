@@ -382,8 +382,11 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
     Monomial::combineAdjacentMonomials(monomials);
     polynomials.emplace_back(Polynomial::mkPolynomial(monomials));
   }
-  polynomials.emplace_back(
-      Polynomial::mkPolynomial(Constant::mkConstant(rational)));
+  if (!rational.isZero())
+  {
+    polynomials.emplace_back(
+        Polynomial::mkPolynomial(Constant::mkConstant(rational)));
+  }
 
   Polynomial poly = Polynomial::sumPolynomials(polynomials);
 
