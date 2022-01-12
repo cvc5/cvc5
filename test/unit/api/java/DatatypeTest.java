@@ -275,23 +275,6 @@ class DatatypeTest
     assertNotEquals(pairIntInt, pairRealInt);
     assertNotEquals(pairIntReal, pairRealInt);
 
-    assertTrue(pairRealReal.isComparableTo(pairRealReal));
-    assertFalse(pairIntReal.isComparableTo(pairRealReal));
-    assertFalse(pairRealInt.isComparableTo(pairRealReal));
-    assertFalse(pairIntInt.isComparableTo(pairRealReal));
-    assertFalse(pairRealReal.isComparableTo(pairRealInt));
-    assertFalse(pairIntReal.isComparableTo(pairRealInt));
-    assertTrue(pairRealInt.isComparableTo(pairRealInt));
-    assertFalse(pairIntInt.isComparableTo(pairRealInt));
-    assertFalse(pairRealReal.isComparableTo(pairIntReal));
-    assertTrue(pairIntReal.isComparableTo(pairIntReal));
-    assertFalse(pairRealInt.isComparableTo(pairIntReal));
-    assertFalse(pairIntInt.isComparableTo(pairIntReal));
-    assertFalse(pairRealReal.isComparableTo(pairIntInt));
-    assertFalse(pairIntReal.isComparableTo(pairIntInt));
-    assertFalse(pairRealInt.isComparableTo(pairIntInt));
-    assertTrue(pairIntInt.isComparableTo(pairIntInt));
-
     assertTrue(pairRealReal.isSubsortOf(pairRealReal));
     assertFalse(pairIntReal.isSubsortOf(pairRealReal));
     assertFalse(pairRealInt.isSubsortOf(pairRealReal));

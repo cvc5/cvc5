@@ -1391,16 +1391,6 @@ bool Sort::isSubsortOf(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isComparableTo(const Sort& s) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_SOLVER("sort", s);
-  //////// all checks before this line
-  return d_type->isComparableTo(*s.d_type);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1419,6 +1409,9 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_CHECK_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
+  CVC5_API_CHECK(isSortConstructor()
+                 || d_type->getNumChildren() == params.size() + 1)
+      << "Arity mismatch for instantiated parametric datatype";
   //////// all checks before this line
   std::vector<cvc5::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
@@ -2483,8 +2476,8 @@ Term Term::substitute(const Term& term, const Term& replacement) const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_TERM(term);
   CVC5_API_CHECK_TERM(replacement);
-  CVC5_API_CHECK(term.getSort().isComparableTo(replacement.getSort()))
-      << "Expecting terms of comparable sort in substitute";
+  CVC5_API_CHECK(term.getSort() == replacement.getSort())
+      << "Expecting terms of the same sort in substitute";
   //////// all checks before this line
   return Term(
       d_solver,
@@ -2500,7 +2493,7 @@ Term Term::substitute(const std::vector<Term>& terms,
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(terms.size() == replacements.size())
       << "Expecting vectors of the same arity in substitute";
-  CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_COMPARABLE_TO(terms, replacements);
+  CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms, replacements);
   //////// all checks before this line
   std::vector<Node> nodes = Term::termVectorToNodes(terms);
   std::vector<Node> nodeReplacements = Term::termVectorToNodes(replacements);
@@ -5038,7 +5031,7 @@ NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr; }
 
 void Solver::increment_term_stats(Kind kind) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_stats->d_terms << kind;
   }
@@ -5046,7 +5039,7 @@ void Solver::increment_term_stats(Kind kind) const
 
 void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     const TypeNode tn = sort.getTypeNode();
     TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
@@ -5465,7 +5458,7 @@ bool Solver::isValidInteger(const std::string& s) const
 
 void Solver::resetStatistics()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_stats.reset(new APIStatistics{
         d_slv->getStatisticsRegistry().registerHistogram<TypeConstant>(

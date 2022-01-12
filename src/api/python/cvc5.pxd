@@ -361,7 +361,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isFirstClass() except +
         bint isFunctionLike() except +
         bint isSubsortOf(Sort s) except +
-        bint isComparableTo(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
