@@ -1306,11 +1306,9 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 
 Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
 {
-  if (poly::is_rational(ran.getValue()))
+  if (ran.isRational())
   {
-    Rational r =
-        poly_utils::toRational(poly::to_rational_approximation(ran.getValue()));
-    return mkConstReal(r);
+    return mkConstReal(ran.toRational());
   }
   return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
 }
