@@ -94,6 +94,18 @@ class RealAlgebraicNumber
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
 
+  /**
+   * Check if this real algebraic number is actually rational.
+   * If true, the value is rational and toRational() can safely be called.
+   * If false, the value may still be rational, but only was not recognized as such yet.
+   */
+  bool isRational() const;
+  /**
+   * Returns the stored value as a rational.
+   * The value is exact if isRational() returns true, otherwise it may only be a rational approximation (of unknown precision).
+   */
+  Rational toRational() const;
+
  private:
   /**
    * Stores the actual real algebraic number.

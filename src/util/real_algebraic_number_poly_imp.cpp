@@ -100,6 +100,23 @@ RealAlgebraicNumber::RealAlgebraicNumber(
       poly::UPolynomial(std::move(coeffs)), lower, upper);
 }
 
+bool RealAlgebraicNumber::isRational() const
+{
+#ifdef CVC5_POLY_IMP
+  return poly::is_rational(getValue());
+#else
+  return true;
+#endif
+}
+Rational RealAlgebraicNumber::toRational() const
+{
+#ifdef CVC5_POLY_IMP
+  return poly_utils::toRational(poly::to_rational_approximation(getValue()));
+#else
+  return Rational(0);
+#endif
+}
+
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
 {
   return os << ran.getValue();
