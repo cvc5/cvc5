@@ -463,7 +463,7 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 bool OperatorElim::usePartialFunction(SkolemFunId id) const
 {
   // always use partial function for sqrt
-  return !options().arith.arithNoPartialFun && id != SkolemFunId::SQRT;
+  return !options().arith.arithNoPartialFun || id == SkolemFunId::SQRT;
 }
 
 Node OperatorElim::mkWitnessTerm(Node v,
