@@ -762,7 +762,7 @@ class NodeManager
    * may turn out to be rational later on, it may be semantically equal to a
    * CONST_RATIONAL node, although the comparison operator would always return
    * false. For this reason, comparisons should be performed by evaluating (i.e.
-   * rewriting) the EQUAL predicated, or by inspecting the values manually. Note
+   * rewriting) the EQUAL predicate, or by inspecting the values manually. Note
    * that the comparison operators for RealAlgebraicNumber properly support
    * Rational as well.
    */
