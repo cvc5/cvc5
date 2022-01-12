@@ -56,6 +56,7 @@ SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
   // we must use the same setting for datatype selectors, since shared selectors
   // can appear in solutions
   d_subOptions.datatypes.dtSharedSelectors = options().datatypes.dtSharedSelectors;
+  d_subOptions.datatypes.dtSharedSelectorsWasSetByUser = true;
 }
 
 SynthVerify::~SynthVerify() {}

@@ -677,6 +677,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
+      Trace("smt") << "Disabling shared selectors for quantified logic without SyGuS" << std::endl;
       opts.datatypes.dtSharedSelectors = false;
     }
   }
