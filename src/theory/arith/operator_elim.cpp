@@ -432,17 +432,17 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     }
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
-    // arith-no-partial-fun only impacts division by zero
-    if (options().arith.arithNoPartialFun && id == SkolemFunId::DIV_BY_ZERO)
-    {
-      // partial function: division, where we treat the skolem function as
-      // a constant
-      skolem = sm->mkSkolemFunction(id, tn);
-    }
-    else
+    if (usePartialFunction(id))
     {
       // partial function: division
       skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
+    }
+    else
+    {
+      
+      // partial function: division, where we treat the skolem function as
+      // a constant
+      skolem = sm->mkSkolemFunction(id, tn);
     }
     // cache it
     d_arithSkolem[id] = skolem;
@@ -454,11 +454,17 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
 Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
   Node skolem = getArithSkolem(id);
-  if (!options().arith.arithNoPartialFun)
+  if (usePartialFunction(id))
   {
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
   }
   return skolem;
+}
+
+bool OperatorElim::usePartialFunction(SkolemFunId id) const
+{
+  // always use partial function for sqrt
+  return !options().arith.arithNoPartialFun && id!=SkolemFunId::SQRT;
 }
 
 Node OperatorElim::mkWitnessTerm(Node v,
