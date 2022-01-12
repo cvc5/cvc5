@@ -29,6 +29,20 @@ class TestTheoryArithRewriterBlack : public TestSmt
 {
 };
 
+TEST_F(TestTheoryArithRewriterBlack, Rational)
+{
+  {
+    Node a = d_nodeManager->mkConstReal(10);
+    Node b = d_nodeManager->mkConstReal(-10);
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, a);
+    EXPECT_EQ(n, a);
+  }
+}
+
 TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 {
   Trace.on("arith-rewriter");
