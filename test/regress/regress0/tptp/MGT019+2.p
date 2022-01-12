@@ -25,7 +25,7 @@
 %                                         (   0 <~>;   0 ~|;   0 ~&)
 %            Number of predicates  :    7 (   0 propositional; 1-4 arity)
 %            Number of functors    :    5 (   2 constant; 0-2 arity)
-%            Number of variables   :   11 (   0 singleton;   9 !;   2 ?)
+%            Number of variables   :   11 (   0 set.singleton;   9 !;   2 ?)
 %            Maximal term depth    :    2 (   1 average)
 % SPC      : FOF_CSA_RFO_SEQ
 

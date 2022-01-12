@@ -21,8 +21,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
-#include "context/context.h"
 #include "options/smt_options.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/iand_utils.h"
 
 namespace cvc5 {
@@ -91,7 +91,7 @@ namespace cvc5 {
 ** op.
 **
 **/
-class IntBlaster
+class IntBlaster : protected EnvObj
 {
   using CDNodeMap = context::CDHashMap<Node, Node>;
 
@@ -101,14 +101,14 @@ class IntBlaster
    * @param context user context
    * @param mode bv-to-int translation mode
    * @param granularity bv-to-int translation granularity
-   * @param introduceFreshIntVars determines whether bit-vector variables are
    * translated to integer variables, or are directly casted using `bv2nat`
    * operator. not purely bit-vector nodes.
    */
-  IntBlaster(context::Context* context,
+  IntBlaster(Env& env,
              options::SolveBVAsIntMode mode,
-             uint64_t granluarity = 1,
-             bool introduceFreshIntVars = true);
+             uint64_t granluarity = 1);
+
+  ~IntBlaster();
 
   /**
    * The result is an integer term and is computed
@@ -369,11 +369,6 @@ class IntBlaster
   /** an SolverEngine for context */
   context::Context* d_context;
 
-  /** true iff the translator should introduce
-   * fresh integer variables for bit-vector variables.
-   * Otherwise, we introduce a nat2bv term.
-   */
-  bool d_introduceFreshIntVars;
 };
 
 }  // namespace cvc5

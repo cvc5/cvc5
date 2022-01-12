@@ -18,18 +18,19 @@
 #ifndef CVC5__INTEGER_H
 #define CVC5__INTEGER_H
 
-#include <cln/input.h>
 #include <cln/integer.h>
-#include <cln/integer_io.h>
-#include <cln/modinteger.h>
 
-#include <iostream>
+#include <iosfwd>
 #include <limits>
-#include <sstream>
 #include <string>
 
 #include "base/exception.h"
 #include "cvc5_export.h"  // remove when Cvc language support is removed
+
+namespace cln
+{
+  struct cl_read_flags;
+}
 
 namespace cvc5 {
 
@@ -273,17 +274,17 @@ class CVC5_EXPORT Integer
   /** Return the unsigned int representation of this Integer. */
   unsigned int getUnsignedInt() const;
 
-  /** Return true if this Integer fits into a signed long. */
-  bool fitsSignedLong() const;
-
-  /** Return true if this Integer fits into an unsigned long. */
-  bool fitsUnsignedLong() const;
-
   /** Return the signed long representation of this Integer. */
   long getLong() const;
 
   /** Return the unsigned long representation of this Integer. */
   unsigned long getUnsignedLong() const;
+
+  /** Return the int64_t representation of this Integer. */
+  int64_t getSigned64() const;
+
+  /** Return the uint64_t representation of this Integer. */
+  uint64_t getUnsigned64() const;
 
   /**
    * Computes the hash of the node from the first word of the

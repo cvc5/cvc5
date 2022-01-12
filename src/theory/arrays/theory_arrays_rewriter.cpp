@@ -307,7 +307,7 @@ Node TheoryArraysRewriter::expandEqRange(TNode node)
   {
     kle = kind::FLOATINGPOINT_LEQ;
   }
-  else if (type.isInteger() || type.isReal())
+  else if (type.isRealOrInt())
   {
     kle = kind::LEQ;
   }
@@ -500,7 +500,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
           Assert(n != node);
           Trace("arrays-postrewrite")
               << "Arrays::postRewrite returning " << n << std::endl;
-          return RewriteResponse(REWRITE_AGAIN, n);
+          return RewriteResponse(REWRITE_AGAIN_FULL, n);
         }
       }
       break;

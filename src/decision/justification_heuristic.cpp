@@ -62,10 +62,11 @@ JustificationHeuristic::~JustificationHeuristic() {}
 
 cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 {
-  if(options::decisionThreshold() > 0) {
+  if (options().decision.decisionThreshold > 0)
+  {
     bool stopSearchTmp = false;
     prop::SatLiteral lit =
-        getNextThresh(stopSearchTmp, options::decisionThreshold());
+        getNextThresh(stopSearchTmp, options().decision.decisionThreshold);
     if (lit != prop::undefSatLiteral)
     {
       Assert(stopSearchTmp == false);
@@ -252,7 +253,7 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, SatValue satV
 
 DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity)
 {
-  if (options::decisionWeightInternal()
+  if (options().decision.decisionWeightInternal
       != options::DecisionWeightInternal::USR1)
   {
     return getWeight(n);
@@ -304,15 +305,16 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
 DecisionWeight JustificationHeuristic::getWeight(TNode n) {
   if(!n.hasAttribute(DecisionWeightAttr()) ) {
     options::DecisionWeightInternal combiningFn =
-        options::decisionWeightInternal();
+        options().decision.decisionWeightInternal;
 
     if (combiningFn == options::DecisionWeightInternal::OFF
         || n.getNumChildren() == 0)
     {
-      if (options::decisionRandomWeight() != 0)
+      if (options().decision.decisionRandomWeight != 0)
       {
         n.setAttribute(DecisionWeightAttr(),
-            Random::getRandom().pick(0, options::decisionRandomWeight()-1));
+                       Random::getRandom().pick(
+                           0, options().decision.decisionRandomWeight - 1));
       }
     }
     else if (combiningFn == options::DecisionWeightInternal::MAX)
@@ -340,7 +342,8 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
 
 typedef std::vector<TNode> ChildList;
 TNode JustificationHeuristic::getChildByWeight(TNode n, int i, bool polarity) {
-  if(options::decisionUseWeight()) {
+  if (options().decision.decisionUseWeight)
+  {
     // TODO: Optimize storing & access
     if(d_childCache.find(n) == d_childCache.end()) {
       ChildList list0(n.begin(), n.end()), list1(n.begin(), n.end());
@@ -349,7 +352,9 @@ TNode JustificationHeuristic::getChildByWeight(TNode n, int i, bool polarity) {
       d_childCache[n] = make_pair(list0, list1);
     }
     return polarity ? d_childCache[n].get().second[i] : d_childCache[n].get().first[i];
-  } else {
+  }
+  else
+  {
     return n[i];
   }
 }
@@ -612,8 +617,10 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryEasy(TN
                                               TNode node2,
                                               SatValue desiredVal2)
 {
-  if(options::decisionUseWeight() &&
-     getWeightPolarized(node1, desiredVal1) > getWeightPolarized(node2, desiredVal2)) {
+  if (options().decision.decisionUseWeight
+      && getWeightPolarized(node1, desiredVal1)
+             > getWeightPolarized(node2, desiredVal2))
+  {
     std::swap(node1, node2);
     std::swap(desiredVal1, desiredVal2);
   }
@@ -637,8 +644,10 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryHard(TN
                                               TNode node2,
                                               SatValue desiredVal2)
 {
-  if(options::decisionUseWeight() &&
-     getWeightPolarized(node1, desiredVal1) > getWeightPolarized(node2, desiredVal2)) {
+  if (options().decision.decisionUseWeight
+      && getWeightPolarized(node1, desiredVal1)
+             > getWeightPolarized(node2, desiredVal2))
+  {
     std::swap(node1, node2);
     std::swap(desiredVal1, desiredVal2);
   }
@@ -673,13 +682,17 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleITE(TNode nod
 
     if(trueChildVal == desiredVal || falseChildVal == invertValue(desiredVal)) {
       ifDesiredVal = SAT_VALUE_TRUE;
-    } else if(trueChildVal == invertValue(desiredVal) ||
-              falseChildVal == desiredVal ||
-              (options::decisionUseWeight() &&
-               getWeightPolarized(node[1], true) > getWeightPolarized(node[2], false))
-              ) {
+    }
+    else if (trueChildVal == invertValue(desiredVal)
+             || falseChildVal == desiredVal
+             || (options().decision.decisionUseWeight
+                 && getWeightPolarized(node[1], true)
+                        > getWeightPolarized(node[2], false)))
+    {
       ifDesiredVal = SAT_VALUE_FALSE;
-    } else {
+    }
+    else
+    {
       ifDesiredVal = SAT_VALUE_TRUE;
     }
 

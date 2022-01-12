@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "options/arith_options.h"
@@ -135,7 +136,7 @@ private:
    * Auxillary information for storing the difference between a variable and its bound.
    * Only set on signals.
    */
-  DeltaRational* d_amount;
+  std::unique_ptr<DeltaRational> d_amount;
 
   /** */
   uint32_t d_metric;
@@ -173,7 +174,7 @@ public:
   inline void setInFocus(bool inFocus) { d_inFocus = inFocus; }
 
   const DeltaRational& getAmount() const {
-    Assert(d_amount != NULL);
+    Assert(d_amount != nullptr);
     return *d_amount;
   }
 
@@ -201,9 +202,12 @@ public:
        << ", " << d_sgn
        << ", " << d_relaxed
        << ", " << d_inFocus;
-    if(d_amount == NULL){
-      os << "NULL";
-    }else{
+    if (d_amount == nullptr)
+    {
+      os << "nullptr";
+    }
+    else
+    {
       os << (*d_amount);
     }
     os << "}";

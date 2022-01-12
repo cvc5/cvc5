@@ -18,6 +18,9 @@
 #include <climits>
 #include <sstream>
 
+#include "expr/cardinality_constraint.h"
+#include "theory/uf/function_const.h"
+#include "util/cardinality.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -63,33 +66,19 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
   return fType.getRangeType();
 }
 
-TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check)
+TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
+                                                      TNode n,
+                                                      bool check)
 {
   if (check)
   {
-    // don't care what it is, but it should be well-typed
-    n[0].getType(check);
-
-    TypeNode valType = n[1].getType(check);
-    if (valType != nodeManager->integerType())
+    const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
+    if (!cc.getType().isSort())
     {
       throw TypeCheckingExceptionPrivate(
-          n, "cardinality constraint must be integer");
+          n, "cardinality constraint must apply to uninterpreted sort");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[1].getConst<Rational>() > r)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Exceeded INT_MAX in cardinality constraint");
-    }
-    if (n[1].getConst<Rational>().getNumerator().sgn() != 1)
+    if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must be positive");
@@ -98,34 +87,32 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode CombinedCardinalityConstraintTypeRule::computeType(
+TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
+                                                    TNode n,
+                                                    bool check)
+{
+  return nodeManager->booleanType();
+}
+
+TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
 {
   if (check)
   {
-    TypeNode valType = n[0].getType(check);
-    if (valType != nodeManager->integerType())
+    const CombinedCardinalityConstraint& cc =
+        n.getConst<CombinedCardinalityConstraint>();
+    if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be integer");
-    }
-    if (n[0].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[0].getConst<Rational>() > r)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Exceeded INT_MAX in combined cardinality constraint");
-    }
-    if (n[0].getConst<Rational>().getNumerator().sgn() == -1)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be non-negative");
+          n, "combined cardinality constraint must be positive");
     }
   }
+  return nodeManager->booleanType();
+}
+
+TypeNode CombinedCardinalityConstraintTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
+{
   return nodeManager->booleanType();
 }
 
@@ -134,17 +121,6 @@ TypeNode PartialTypeRule::computeType(NodeManager* nodeManager,
                                       bool check)
 {
   return n.getOperator().getType().getRangeType();
-}
-
-TypeNode CardinalityValueTypeRule::computeType(NodeManager* nodeManager,
-                                               TNode n,
-                                               bool check)
-{
-  if (check)
-  {
-    n[0].getType(check);
-  }
-  return nodeManager->integerType();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
@@ -184,6 +160,112 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
     }
     return nodeManager->mkFunctionType(children);
   }
+}
+
+TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+{
+  if (n[0].getType(check) != nodeManager->boundVarListType())
+  {
+    std::stringstream ss;
+    ss << "expected a bound var list for LAMBDA expression, got `"
+       << n[0].getType().toString() << "'";
+    throw TypeCheckingExceptionPrivate(n, ss.str());
+  }
+  std::vector<TypeNode> argTypes;
+  for (TNode::iterator i = n[0].begin(); i != n[0].end(); ++i)
+  {
+    argTypes.push_back((*i).getType());
+  }
+  TypeNode rangeType = n[1].getType(check);
+  return nodeManager->mkFunctionType(argTypes, rangeType);
+}
+
+bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  Assert(n.getKind() == kind::LAMBDA);
+  // get array representation of this function, if possible
+  Node na = FunctionConst::getArrayRepresentationForLambda(n);
+  if (!na.isNull())
+  {
+    Assert(na.getType().isArray());
+    Trace("lambda-const") << "Array representation for " << n << " is " << na
+                          << " " << na.getType() << std::endl;
+    // must have the standard bound variable list
+    Node bvl =
+        NodeManager::currentNM()->getBoundVarListForFunctionType(n.getType());
+    if (bvl == n[0])
+    {
+      // array must be constant
+      if (na.isConst())
+      {
+        Trace("lambda-const") << "*** Constant lambda : " << n;
+        Trace("lambda-const") << " since its array representation : " << na
+                              << " is constant." << std::endl;
+        return true;
+      }
+      else
+      {
+        Trace("lambda-const") << "Non-constant lambda : " << n
+                              << " since array is not constant." << std::endl;
+      }
+    }
+    else
+    {
+      Trace("lambda-const")
+          << "Non-constant lambda : " << n
+          << " since its varlist is not standard." << std::endl;
+      Trace("lambda-const") << "  standard : " << bvl << std::endl;
+      Trace("lambda-const") << "   current : " << n[0] << std::endl;
+    }
+  }
+  else
+  {
+    Trace("lambda-const") << "Non-constant lambda : " << n
+                          << " since it has no array representation."
+                          << std::endl;
+  }
+  return false;
+}
+
+Cardinality FunctionProperties::computeCardinality(TypeNode type)
+{
+  // Don't assert this; allow other theories to use this cardinality
+  // computation.
+  //
+  // Assert(type.getKind() == kind::FUNCTION_TYPE);
+
+  Cardinality argsCard(1);
+  // get the largest cardinality of function arguments/return type
+  for (size_t i = 0, i_end = type.getNumChildren() - 1; i < i_end; ++i)
+  {
+    argsCard *= type[i].getCardinality();
+  }
+
+  Cardinality valueCard = type[type.getNumChildren() - 1].getCardinality();
+
+  return valueCard ^ argsCard;
+}
+
+bool FunctionProperties::isWellFounded(TypeNode type)
+{
+  for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end; ++i)
+  {
+    if (!(*i).isWellFounded())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+Node FunctionProperties::mkGroundTerm(TypeNode type)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node bvl = nm->getBoundVarListForFunctionType(type);
+  Node ret = nm->mkGroundTerm(type.getRangeType());
+  return nm->mkNode(kind::LAMBDA, bvl, ret);
 }
 
 }  // namespace uf

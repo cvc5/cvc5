@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
+#include "smt/env_obj.h"
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
@@ -51,13 +52,13 @@ class TheoryProxy;
  * PropEngine is the abstraction of a Sat Solver, providing methods for
  * solving the SAT problem and conversion to CNF (via the CnfStream).
  */
-class PropEngine
+class PropEngine : protected EnvObj
 {
  public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine* te, Env& env);
+  PropEngine(Env& env, TheoryEngine* te);
 
   /**
    * Destructor.
@@ -70,15 +71,6 @@ class PropEngine
    * This method converts and asserts true and false into the CNF stream.
    */
   void finishInit();
-
-  /**
-   * This is called by SolverEngine, at shutdown time, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between some parts of the system (notably between
-   * PropEngine and Theory).  For now, there's nothing to do here in
-   * the PropEngine.
-   */
-  void shutdown() {}
 
   /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
@@ -347,9 +339,6 @@ class PropEngine
 
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
-
-  /** Reference to the environment */
-  Env& d_env;
 
   /** The decision engine we will be using */
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;

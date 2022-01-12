@@ -172,10 +172,7 @@ void Strategy::initializeStrategy(const Options& options)
   one << InferStep::POW2_FULL << InferStep::BREAK;
   if (options.arith.nlCad)
   {
-    one << InferStep::CAD_INIT;
-  }
-  if (options.arith.nlCad)
-  {
+    one << InferStep::CAD_INIT << InferStep::BREAK;
     one << InferStep::CAD_FULL << InferStep::BREAK;
   }
 

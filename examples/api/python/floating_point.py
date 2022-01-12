@@ -17,7 +17,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 if __name__ == "__main__":
     slv = pycvc5.Solver()
@@ -37,10 +37,10 @@ if __name__ == "__main__":
     z = slv.mkConst(fp32, 'z')
 
     # check floating-point arithmetic is commutative, i.e. x + y == y + x
-    commutative = slv.mkTerm(kinds.FPEq, slv.mkTerm(kinds.FPAdd, rm, x, y), slv.mkTerm(kinds.FPAdd, rm, y, x))
+    commutative = slv.mkTerm(Kind.FPEq, slv.mkTerm(Kind.FPAdd, rm, x, y), slv.mkTerm(Kind.FPAdd, rm, y, x))
 
     slv.push()
-    slv.assertFormula(slv.mkTerm(kinds.Not, commutative))
+    slv.assertFormula(slv.mkTerm(Kind.Not, commutative))
     print("Checking floating-point commutativity")
     print("Expect SAT (property does not hold for NaN and Infinities).")
     print("cvc5:", slv.checkSat())
@@ -48,10 +48,10 @@ if __name__ == "__main__":
     print("Model for y:", slv.getValue(y))
 
     # disallow NaNs and Infinities
-    slv.assertFormula(slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPIsNan, x)))
-    slv.assertFormula(slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPIsInf, x)))
-    slv.assertFormula(slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPIsNan, y)))
-    slv.assertFormula(slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPIsInf, y)))
+    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsNan, x)))
+    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsInf, x)))
+    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsNan, y)))
+    slv.assertFormula(slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPIsInf, y)))
 
     print("Checking floating-point commutativity assuming x and y are not NaN or Infinity")
     print("Expect UNSAT.")
@@ -70,15 +70,15 @@ if __name__ == "__main__":
             24,
             slv.mkBitVector(32, "01000000010010001111010111000011", 2))  # 3.14
 
-    bounds_x = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, x), slv.mkTerm(kinds.FPLeq, x, b))
-    bounds_y = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, y), slv.mkTerm(kinds.FPLeq, y, b))
-    bounds_z = slv.mkTerm(kinds.And, slv.mkTerm(kinds.FPLeq, a, z), slv.mkTerm(kinds.FPLeq, z, b))
-    slv.assertFormula(slv.mkTerm(kinds.And, slv.mkTerm(kinds.And, bounds_x, bounds_y), bounds_z))
+    bounds_x = slv.mkTerm(Kind.And, slv.mkTerm(Kind.FPLeq, a, x), slv.mkTerm(Kind.FPLeq, x, b))
+    bounds_y = slv.mkTerm(Kind.And, slv.mkTerm(Kind.FPLeq, a, y), slv.mkTerm(Kind.FPLeq, y, b))
+    bounds_z = slv.mkTerm(Kind.And, slv.mkTerm(Kind.FPLeq, a, z), slv.mkTerm(Kind.FPLeq, z, b))
+    slv.assertFormula(slv.mkTerm(Kind.And, slv.mkTerm(Kind.And, bounds_x, bounds_y), bounds_z))
 
     # (x + y) + z == x + (y + z)
-    lhs = slv.mkTerm(kinds.FPAdd, rm, slv.mkTerm(kinds.FPAdd, rm, x, y), z)
-    rhs = slv.mkTerm(kinds.FPAdd, rm, x, slv.mkTerm(kinds.FPAdd, rm, y, z))
-    associative = slv.mkTerm(kinds.Not, slv.mkTerm(kinds.FPEq, lhs, rhs))
+    lhs = slv.mkTerm(Kind.FPAdd, rm, slv.mkTerm(Kind.FPAdd, rm, x, y), z)
+    rhs = slv.mkTerm(Kind.FPAdd, rm, x, slv.mkTerm(Kind.FPAdd, rm, y, z))
+    associative = slv.mkTerm(Kind.Not, slv.mkTerm(Kind.FPEq, lhs, rhs))
 
     slv.assertFormula(associative)
 

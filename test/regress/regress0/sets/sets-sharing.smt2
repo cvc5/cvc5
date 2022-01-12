@@ -4,8 +4,8 @@
 (declare-fun S () (Set Int))
 (declare-fun x () Int)
 
-(assert (member (+ 5 x) S))
-(assert (not (member 9 S)))
+(assert (set.member (+ 5 x) S))
+(assert (not (set.member 9 S)))
 (assert (= x 4))
 
 (check-sat)

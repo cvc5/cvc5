@@ -31,10 +31,6 @@ code.xref {
   border-color: #0077b3;
 }
 
-.wy-body-for-nav {
-  background: #343131;
-}
-
 .wy-menu-vertical a {
   color: #4dc3ff;
 }
@@ -93,6 +89,11 @@ a:hover, a:focus {
   margin: 1px 0 0 0;
 }
 
+/* Adds a space between icon and content for fa icons */
+.icon-margin.fa::before {
+  margin-right: 0.25em;
+}
+
 #c-api-class-hierarchy code {
   font-size: 100%;
   font-weight: normal;
@@ -101,4 +102,8 @@ a:hover, a:focus {
 
 .hide-toctree {
   display: none;
+}
+
+.expert-option {
+  opacity: 0.7;
 }

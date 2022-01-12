@@ -59,7 +59,7 @@ check_include_file_cxx(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
 
 # For Windows builds check if clock_gettime is available via -lpthread
 # (pthread_time.h).
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set(CMAKE_REQUIRED_FLAGS -pthread)
   check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
   unset(CMAKE_REQUIRED_FLAGS)

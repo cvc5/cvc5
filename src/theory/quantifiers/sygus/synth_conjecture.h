@@ -62,7 +62,9 @@ class SynthConjecture : protected EnvObj
                   TermRegistry& tr,
                   SygusStatistics& s);
   ~SynthConjecture();
-  /** presolve */
+  /**
+   * Presolve, called once at the beginning of every check-sat.
+   */
   void presolve();
   /** get original version of conjecture */
   Node getConjecture() const { return d_quant; }
@@ -197,6 +199,19 @@ class SynthConjecture : protected EnvObj
    * on every call to presolve.
    */
   bool d_hasSolution;
+  /** Whether we have computed a solution */
+  bool d_computedSolution;
+  /**
+   * The final solution and status, caches getSynthSolutionsInternal, valid
+   * if d_computedSolution is true.
+   */
+  std::vector<Node> d_sol;
+  std::vector<int8_t> d_solStatus;
+  /**
+   * (SyGuS datatype) values for solutions, which is populated if we have a
+   * solution and only if we are not using the single invocation solver.
+   */
+  std::vector<std::vector<Node>> d_solutionValues;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
@@ -283,22 +298,13 @@ class SynthConjecture : protected EnvObj
   Node d_simp_quant;
   /** (negated) conjecture after simplification, conversion to deep embedding */
   Node d_embed_quant;
-  /** candidate information */
-  class CandidateInfo
-  {
-   public:
-    CandidateInfo() {}
-    /** list of terms we have instantiated candidates with */
-    std::vector<Node> d_inst;
-  };
-  std::map<Node, CandidateInfo> d_cinfo;
   /**
    * The first index of an instantiation in CandidateInfo::d_inst that we have
    * not yet tried to repair.
    */
   unsigned d_repair_index;
   /** record solution (this is used to construct solutions later) */
-  void recordSolution(std::vector<Node>& vs);
+  void recordSolution(const std::vector<Node>& vs);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all
@@ -328,11 +334,9 @@ class SynthConjecture : protected EnvObj
    * The argument enums is the set of enumerators that comprise the current
    * solution, and values is their current values.
    */
-  void printAndContinueStream(const std::vector<Node>& enums,
-                              const std::vector<Node>& values);
+  void printAndContinueStream(const std::vector<Node>& values);
   /** exclude the current solution { enums -> values } */
-  void excludeCurrentSolution(const std::vector<Node>& enums,
-                              const std::vector<Node>& values);
+  void excludeCurrentSolution(const std::vector<Node>& values);
   /**
    * Whether we have guarded a stream exclusion lemma when using sygusStream.
    * This is an optimization that allows us to guard only the first stream

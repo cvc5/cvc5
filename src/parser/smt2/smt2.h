@@ -105,6 +105,10 @@ class Smt2 : public Parser
    * @return true if higher-order support is enabled, false otherwise
    */
   bool isHoEnabled() const;
+  /**
+   * @return true if cardinality constraints are enabled, false otherwise
+   */
+  bool hasCardinalityConstraints() const;
 
   bool logicIsSet() override;
 
@@ -412,7 +416,11 @@ class Smt2 : public Parser
    * @return True if `es` is empty, `e` if `es` consists of a single element
    *         `e`, the conjunction of expressions otherwise.
    */
-  api::Term mkAnd(const std::vector<api::Term>& es);
+  api::Term mkAnd(const std::vector<api::Term>& es) const;
+  /**
+   * Is term t a constant integer?
+   */
+  static bool isConstInt(const api::Term& t);
 }; /* class Smt2 */
 
 }  // namespace parser

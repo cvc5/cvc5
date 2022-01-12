@@ -5,6 +5,6 @@
 
 (declare-fun S () (Set (Array Int Unit)))
 
-(assert (> (card S) 1))
+(assert (> (set.card S) 1))
 
 (check-sat)

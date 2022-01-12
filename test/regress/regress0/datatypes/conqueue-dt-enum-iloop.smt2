@@ -63,11 +63,11 @@
 
 (declare-fun isTip!5 (ConQ!6) Bool)
 
-(assert (=> start!13 (and (not (isTip!5 (evalLazyConQ2!7 lt!14))) (member lt!14 st!3))))
+(assert (=> start!13 (and (not (isTip!5 (evalLazyConQ2!7 lt!14))) (set.member lt!14 st!3))))
 
 (assert (=> start!13 (= lt!14 e!42)))
 
-(assert (=> start!13 (= b!40 (member l!2 st!3))))
+(assert (=> start!13 (= b!40 (set.member l!2 st!3))))
 
 (assert (=> start!13 (or (not b!40) (not b!42))))
 

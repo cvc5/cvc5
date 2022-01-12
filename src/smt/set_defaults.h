@@ -17,6 +17,7 @@
 #define CVC5__SMT__SET_DEFAULTS_H
 
 #include "options/options.h"
+#include "smt/env_obj.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
@@ -26,14 +27,14 @@ namespace smt {
  * Class responsible for setting default options, which includes managing
  * implied options and dependencies between the options and the logic.
  */
-class SetDefaults
+class SetDefaults : protected EnvObj
 {
  public:
   /**
    * @param isInternalSubsolver Whether we are setting the options for an
    * internal subsolver (see SolverEngine::isInternalSubsolver).
    */
-  SetDefaults(bool isInternalSubsolver);
+  SetDefaults(Env& env, bool isInternalSubsolver);
   /**
    * The purpose of this method is to set the default options and update the
    * logic info for an SMT engine.

@@ -23,7 +23,7 @@
 (assert (forall ((l4 List0) (e1 Int)) (! (= (buggySortedIns e1 l4) (ite ((_ is Nil) l4) (Cons e1 Nil) (ite (<= (head0 l4) e1) (Cons (head0 l4) (buggySortedIns e1 (tail0 l4))) (Cons e1 l4)))) :pattern ((buggySortedIns e1 l4)))))
 (assert (forall ((l3 List0) (e Int)) (! (= (sortedIns e l3) (ite ((_ is Nil) l3) (Cons e Nil) (ite (<= (head0 l3) e) (Cons (head0 l3) (sortedIns e (tail0 l3))) (Cons e l3)))) :pattern ((sortedIns e l3)))))
 (assert (forall ((l5 List0)) (! (= (sort l5) (ite ((_ is Nil) l5) Nil (sortedIns (head0 l5) (sort (tail0 l5))))) :pattern ((sort l5)))))
-(assert (forall ((l1 List0)) (! (= (contents l1) (ite ((_ is Nil) l1) (as emptyset (Set Int)) (union (contents (tail0 l1)) (singleton (head0 l1))))) :pattern ((contents l1)))))
+(assert (forall ((l1 List0)) (! (= (contents l1) (ite ((_ is Nil) l1) (as set.empty (Set Int)) (set.union (contents (tail0 l1)) (set.singleton (head0 l1))))) :pattern ((contents l1)))))
 
 (push)
 (assert (forall ((l List0)) (not (let ((result (ite ((_ is Nil) l) 0 (+ 1 (size (tail0 l)))))) (>= result 0)))))
@@ -36,6 +36,6 @@
 (pop)
 
 (push)
-(assert (forall ((l4 List0) (e1 Int)) (not (let ((result2 (ite ((_ is Nil) l4) (Cons e1 Nil) (ite (<= (head0 l4) e1) (Cons (head0 l4) (buggySortedIns e1 (tail0 l4))) (Cons e1 l4))))) (and (= (contents result2) (union (contents l4) (singleton e1))) (isSorted result2) (= (size result2) (+ (size l4) 1)))))))
+(assert (forall ((l4 List0) (e1 Int)) (not (let ((result2 (ite ((_ is Nil) l4) (Cons e1 Nil) (ite (<= (head0 l4) e1) (Cons (head0 l4) (buggySortedIns e1 (tail0 l4))) (Cons e1 l4))))) (and (= (contents result2) (set.union (contents l4) (set.singleton e1))) (isSorted result2) (= (size result2) (+ (size l4) 1)))))))
 (check-sat)
 (pop)

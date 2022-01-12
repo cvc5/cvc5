@@ -91,8 +91,8 @@ void EqProof::cleanReflPremises(std::vector<Node>& premises) const
   if (newPremises.size() != size)
   {
     Trace("eqproof-conv") << "EqProof::cleanReflPremises: removed "
-                          << (newPremises.size() >= size
-                                  ? newPremises.size() - size
+                          << (size >= newPremises.size()
+                                  ? size - newPremises.size()
                                   : 0)
                           << " refl premises from " << premises << "\n";
     premises.clear();
@@ -138,6 +138,8 @@ bool EqProof::expandTransitivityForDisequalities(
   // if no equality of the searched form, nothing to do
   if (offending == size)
   {
+    Trace("eqproof-conv")
+        << "EqProof::expandTransitivityForDisequalities: no need.\n";
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -703,8 +705,10 @@ void EqProof::reduceNestedCongruence(
         << transitivityMatrix[i].back() << "\n";
     // if i == 0, first child must be REFL step, standing for (= f f), which can
     // be ignored in a first-order calculus
-    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
-           || options::ufHo());
+    // Notice if higher-order is disabled, the following holds:
+    //   i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
+    // We don't have access to whether we are higher-order in this context,
+    // so the above cannot be an assertion.
     // recurse
     if (i > 1)
     {
@@ -965,6 +969,7 @@ Node EqProof::addToProof(CDProof* p,
   if (d_id == MERGED_THROUGH_REFLEXIVITY
       || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
+    Trace("eqproof-conv") << "EqProof::addToProof: refl step\n";
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]});
@@ -1168,7 +1173,9 @@ Node EqProof::addToProof(CDProof* p,
         }
       }
     }
-    Assert(p->hasStep(conclusion));
+    Assert(p->hasStep(conclusion) || assumptions.count(conclusion))
+        << "Conclusion " << conclusion
+        << " does not have a step in the proof neither it's an assumption.\n";
     visited[d_node] = conclusion;
     return conclusion;
   }
@@ -1430,7 +1437,7 @@ Node EqProof::addToProof(CDProof* p,
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is
   // flattened into the original conclusion (= (f t1 t2 t3 t4) (f t5 t6 t7)) via
   // rewriting
-  if (conclusion != d_node)
+  if (!CDProof::isSame(conclusion, d_node))
   {
     Trace("eqproof-conv") << "EqProof::addToProof: add "
                           << PfRule::MACRO_SR_PRED_TRANSFORM

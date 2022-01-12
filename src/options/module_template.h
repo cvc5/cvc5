@@ -42,7 +42,7 @@ ${modes_decl}$
 struct Holder${id_cap}$
 {
 // clang-format off
-${holder_decl}$
+  ${holder_decl}$
 // clang-format on
 };
 
@@ -51,13 +51,6 @@ ${holder_decl}$
 // clang-format off
 ${wrapper_functions}$
 // clang-format on
-
-namespace ${id}$
-{
-// clang-format off
-${option_names}$
-// clang-format on
-}
 
 }  // namespace cvc5::options
 

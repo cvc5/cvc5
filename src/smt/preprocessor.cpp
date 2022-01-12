@@ -22,7 +22,6 @@
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/solver_engine.h"
@@ -40,22 +39,15 @@ Preprocessor::Preprocessor(Env& env,
                            SolverEngineStatistics& stats)
     : EnvObj(env),
       d_absValues(abs),
-      d_propagator(true, true),
+      d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env),
-      d_processor(env, stats),
-      d_pnm(nullptr)
+      d_processor(env, stats)
 {
+
 }
 
-Preprocessor::~Preprocessor()
-{
-  if (d_propagator.getNeedsFinish())
-  {
-    d_propagator.finish();
-    d_propagator.setNeedsFinish(false);
-  }
-}
+Preprocessor::~Preprocessor() {}
 
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
@@ -126,8 +118,8 @@ Node Preprocessor::expandDefinitions(const Node& node,
     // Ensure node is type-checked at this point.
     n.getType(true);
   }
-  // we apply substitutions here, before expanding definitions
-  n = d_env.getTopLevelSubstitutions().apply(n, false);
+  // apply substitutions here (without rewriting), before expanding definitions
+  n = d_env.getTopLevelSubstitutions().apply(n);
   // now call expand definitions
   n = d_exDefs.expandDefinitions(n, cache);
   return n;
@@ -145,21 +137,16 @@ void Preprocessor::expandDefinitions(std::vector<Node>& ns)
 Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    d_env.getPrinter().toStreamCmdSimplify(d_env.getDumpOut(), node);
-  }
   Node ret = expandDefinitions(node);
-  ret = theory::Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
-void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
+void Preprocessor::enableProofs(PreprocessProofGenerator* pppg)
 {
   Assert(pppg != nullptr);
-  d_pnm = pppg->getManager();
-  d_exDefs.setProofNodeManager(d_pnm);
-  d_propagator.setProof(d_pnm, userContext(), pppg);
+  d_exDefs.enableProofs();
+  d_propagator.enableProofs(userContext(), pppg);
 }
 
 }  // namespace smt

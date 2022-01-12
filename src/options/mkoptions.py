@@ -287,53 +287,33 @@ def generate_get_impl(modules):
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
         res.append('if ({}) {}'.format(cond, ret))
-    return '\n  '.join(res)
+    return '\n    '.join(res)
 
 
 def _set_handlers(option):
     """Render handler call for options::set()."""
-    optname = option.long_name if option.long else ""
     if option.handler:
-        if option.type == 'void':
-            return 'opts.handler().{}("{}", name)'.format(
-                option.handler, optname)
-        else:
-            return 'opts.handler().{}("{}", name, optionarg)'.format(
-                option.handler, optname)
+        return 'opts.handler().{}(name, optionarg)'.format(option.handler)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(
-        option.type, optname)
+    return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
 def _set_predicates(option):
     """Render predicate calls for options::set()."""
-    if option.type == 'void':
-        return []
-    optname = option.long_name if option.long else ""
-    assert option.type != 'void'
     res = []
     if option.minimum:
         res.append(
-            'opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.minimum))
+            'opts.handler().checkMinimum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.minimum))
     if option.maximum:
         res.append(
-            'opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.maximum))
+            'opts.handler().checkMaximum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.maximum))
     res += [
-        'opts.handler().{}("{}", name, value);'.format(x, optname)
-        for x in option.predicates
+        'opts.handler().{}(name, value);'.format(x) for x in option.predicates
     ]
     return res
-
-
-TPL_SET = '''    opts.{module}.{name} = {handler};
-    opts.{module}.{name}WasSetByUser = true;'''
-TPL_SET_PRED = '''    auto value = {handler};
-    {predicates}
-    opts.{module}.{name} = value;
-    opts.{module}.{name}WasSetByUser = true;'''
 
 
 def generate_set_impl(modules):
@@ -343,31 +323,19 @@ def generate_set_impl(modules):
         if not option.long:
             continue
         cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
-        predicates = _set_predicates(option)
         if res:
-            res.append('  }} else if ({}) {{'.format(cond))
+            res.append('}} else if ({}) {{'.format(cond))
         else:
             res.append('if ({}) {{'.format(cond))
-        if option.name and not (option.handler and option.mode):
-            if predicates:
-                res.append(
-                    TPL_SET_PRED.format(module=module.id,
-                                        name=option.name,
-                                        handler=_set_handlers(option),
-                                        predicates='\n    '.join(predicates)))
-            else:
-                res.append(
-                    TPL_SET.format(module=module.id,
-                                   name=option.name,
-                                   handler=_set_handlers(option)))
-        elif option.handler:
-            h = '  opts.handler().{handler}("{smtname}", name'
-            if option.type not in ['bool', 'void']:
-                h += ', optionarg'
-            h += ');'
-            res.append(
-                h.format(handler=option.handler, smtname=option.long_name))
-    return '\n'.join(res)
+        res.append('  auto value = {};'.format(_set_handlers(option)))
+        for pred in _set_predicates(option):
+            res.append('  {}'.format(pred))
+        if option.name:
+            res.append('  opts.{module}.{name} = value;'.format(
+                module=module.id, name=option.name))
+            res.append('  opts.{module}.{name}WasSetByUser = true;'.format(
+                module=module.id, name=option.name))
+    return '\n    '.join(res)
 
 
 def generate_getinfo_impl(modules):
@@ -398,7 +366,9 @@ def generate_getinfo_impl(modules):
         elif option.type == 'double' or is_numeric_cpp_type(option.type):
             constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'
         elif option.mode:
-            fmt['modes'] = ', '.join(['"{}"'.format(s) for s in sorted(option.mode.keys())])
+            modes = { key: value[0]['name'] for key,value in option.mode.items() }
+            fmt['modes'] = ', '.join(['"{}"'.format(s) for s in sorted(modes.values())])
+            fmt['default'] = modes[fmt['default']]
             constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
@@ -422,9 +392,9 @@ def generate_module_includes(module):
 
 TPL_MODE_DECL = '''enum class {type}
 {{
-  {values}
+  {values},
+  __MAX_VALUE = {maxvalue}
 }};
-static constexpr size_t {type}__numValues = {nvalues};
 std::ostream& operator<<(std::ostream& os, {type} mode);
 {type} stringTo{type}(const std::string& optarg);
 '''
@@ -434,13 +404,13 @@ def generate_module_mode_decl(module):
     """Generates the declarations of mode enums and utility functions."""
     res = []
     for option in module.options:
-        if option.name is None or not option.mode:
+        if not option.mode:
             continue
+        values = list(option.mode.keys())
         res.append(
             TPL_MODE_DECL.format(type=option.type,
-                                 values=wrap_line(
-                                     ', '.join(option.mode.keys()), 2),
-                                 nvalues=len(option.mode)))
+                                 values=wrap_line(', '.join(values), 2),
+                                 maxvalue=values[-1]))
     return '\n'.join(res)
 
 
@@ -469,15 +439,6 @@ def generate_module_wrapper_functions(module):
             'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
             .format(module=module.id, name=option.name, type=option.type))
     return '\n'.join(res)
-
-
-def generate_module_option_names(module):
-    relevant = [
-        o for o in module.options
-        if not (o.name is None or o.long_name is None)
-    ]
-    return concat_format(
-        'static constexpr const char* {name}__name = "{long_name}";', relevant)
 
 
 ################################################################################
@@ -535,11 +496,12 @@ def generate_module_mode_impl(module):
     """Generates the declarations of mode enums and utility functions."""
     res = []
     for option in module.options:
-        if option.name is None or not option.mode:
+        if not option.mode:
             continue
         cases = [
-            'case {type}::{enum}: return os << "{type}::{enum}";'.format(
-                type=option.type, enum=x) for x in option.mode.keys()
+            'case {type}::{enum}: return os << "{name}";'.format(
+                type=option.type, enum=enum, name=info[0]['name'])
+            for enum, info in option.mode.items()
         ]
         res.append(
             TPL_MODE_STREAM_OPERATOR.format(type=option.type,
@@ -577,7 +539,7 @@ def generate_module_mode_impl(module):
 def _add_cmdoption(option, name, opts, next_id):
     fmt = {
         'name': name,
-        'arg': 'no' if option.type in ['bool', 'void'] else 'required',
+        'arg': 'no' if option.type == 'bool' else 'required',
         'next_id': next_id
     }
     opts.append(
@@ -601,7 +563,7 @@ def generate_parsing(modules):
             needs_impl = True
             code.append("case '{0}': // -{0}".format(option.short))
             short += option.short
-            if option.type not in ['bool', 'void']:
+            if option.type != 'bool':
                 short += ':'
         if option.long:  # long option
             needs_impl = True
@@ -619,9 +581,6 @@ def generate_parsing(modules):
             # there is some way to call it, add call to solver.setOption()
             if option.type == 'bool':
                 code.append('  solver.setOption("{}", "true"); break;'.format(
-                    option.long_name))
-            elif option.type == 'void':
-                code.append('  solver.setOption("{}", ""); break;'.format(
                     option.long_name))
             else:
                 code.append(
@@ -773,17 +732,17 @@ def _sphinx_help_render_option(res, opt):
     """Render an option to be displayed with sphinx."""
     indent = ' ' * 4
     desc = '``{}``'
+    if opt['alternate']:
+        desc += ' (also ``--no-*``)'
     val = indent + '{}'
+
     res.append('.. _lbl-option-{}:'.format(opt['long_name']))
     res.append('')
     if opt['expert']:
-        res.append('.. admonition:: This option is intended for Experts only!')
-        res.append(indent)
-        desc = indent + desc
-        val = indent + val
+        res.append('.. rst-class:: expert-option simple')
+        res.append('')
+        desc += '\n{0}.. rst-class:: float-right\n\n{0}**[experts only]**\n'.format(indent)
 
-    if opt['alternate']:
-        desc += ' (also ``--no-*``)'
     res.append(desc.format(' | '.join(opt['name'])))
     res.append(val.format(opt['help']))
 
@@ -803,7 +762,7 @@ def generate_sphinx_help(modules):
     common = []
     others = {}
     for module, option in all_options(modules, False):
-        if option.type == 'undocumented':
+        if option.category == 'undocumented':
             continue
         if not option.long and not option.short:
             continue
@@ -829,6 +788,38 @@ def generate_sphinx_help(modules):
 
 
 ################################################################################
+# sphinx documentation for --output @ docs/output_tags_generated.rst
+
+
+def generate_sphinx_output_tags(modules, src_dir, build_dir):
+    """Render help for the --output option for sphinx."""
+    base = next(filter(lambda m: m.id == 'base', modules))
+    opt = next(filter(lambda o: o.long == 'output=TAG', base.options))
+
+    # The programoutput extension has weird semantics about the cwd:
+    # https://sphinxcontrib-programoutput.readthedocs.io/en/latest/#usage
+    cwd = '/' + os.path.relpath(build_dir, src_dir)
+
+    res = []
+    for name, info in opt.mode.items():
+        info = info[0]
+        if 'description' not in info:
+            continue
+        res.append('{} (``-o {}``)'.format(name, info['name']))
+        res.append('~' * len(res[-1]))
+        res.append('')
+        res.append(info['description'])
+        if 'example-file' in info:
+            res.append('')
+            res.append('.. command-output:: bin/cvc5 -o {} ../test/regress/{}'.format(info['name'], info['example-file']))
+            res.append('  :cwd: {}'.format(cwd))
+        res.append('')
+        res.append('')
+
+    return '\n'.join(res)
+
+
+################################################################################
 # main code generation for individual modules
 
 
@@ -842,7 +833,6 @@ def codegen_module(module, dst_dir, tpls):
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
         'wrapper_functions': generate_module_wrapper_functions(module),
-        'option_names': generate_module_option_names(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),
@@ -856,7 +846,7 @@ def codegen_module(module, dst_dir, tpls):
 # main code generation
 
 
-def codegen_all_modules(modules, build_dir, dst_dir, tpls):
+def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
     short, cmdline_opts, parseinternal = generate_parsing(modules)
     help_common, help_others = generate_cli_help(modules)
@@ -864,6 +854,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     if os.path.isdir('{}/docs/'.format(build_dir)):
         write_file('{}/docs/'.format(build_dir), 'options_generated.rst',
                    generate_sphinx_help(modules))
+        write_file('{}/docs/'.format(build_dir), 'output_tags_generated.rst',
+                   generate_sphinx_output_tags(modules, src_dir, build_dir))
 
     data = {
         # options/options.h
@@ -980,9 +972,9 @@ class Checker:
             self.__check_option_long(o, o.long_name)
             if o.alternate:
                 self.__check_option_long(o, 'no-' + o.long_name)
-            if o.type in ['bool', 'void'] and '=' in o.long:
-                self.perr('must not have an argument description', option=o)
-            if o.type not in ['bool', 'void'] and not '=' in o.long:
+            if o.type == 'bool' and '=' in o.long:
+                self.perr('bool options must not have an argument description', option=o)
+            if o.type != 'bool' and not '=' in o.long:
                 self.perr("needs argument description ('{}=...')",
                           o.long,
                           option=o)
@@ -1058,7 +1050,10 @@ def mkoptions_main():
     # Generate code
     for module in modules:
         codegen_module(module, dst_dir, module_tpls)
-    codegen_all_modules(modules, build_dir, dst_dir, global_tpls)
+    codegen_all_modules(modules, src_dir, build_dir, dst_dir, global_tpls)
+
+    # Generate output file to signal cmake when this script was run last
+    open(os.path.join(dst_dir, 'options/options.stamp'), 'w').write('')
 
 
 if __name__ == "__main__":

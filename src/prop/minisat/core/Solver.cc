@@ -42,48 +42,33 @@ namespace cvc5 {
 namespace Minisat {
 
 namespace {
-/*
- * Returns true if the solver should add all clauses at the current assertion
- * level.
- *
- * FIXME: This is a workaround. Currently, our resolution proofs do not
- * handle clauses with a lower-than-assertion-level correctly because the
- * resolution proofs get removed when popping the context but the SAT solver
- * keeps using them.
- */
-bool assertionLevelOnly()
-{
-  return (options::produceProofs() || options::unsatCores())
-         && options::incrementalSolving();
-}
-
 //=================================================================================================
 // Helper functions for decision tree tracing
 
 // Writes to Trace macro for decision tree tracing
 static inline void dtviewDecisionHelper(size_t level,
                                         const Node& node,
-                                        const char* decisiontype)
+                                        const char* decisiontype,
+                                        bool incremental)
 {
-  Trace("dtview") << std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
-                  << " " << node << " :" << decisiontype << "-DECISION:" << std::endl;
+  Trace("dtview") << std::string(level - (incremental ? 1 : 0), '*') << " "
+                  << node << " :" << decisiontype << "-DECISION:" << std::endl;
 }
 
 // Writes to Trace macro for propagation tracing
-static inline void dtviewPropagationHeaderHelper(size_t level)
+static inline void dtviewPropagationHeaderHelper(size_t level, bool incremental)
 {
-  Trace("dtview::prop") << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0),
-                                       '*')
+  Trace("dtview::prop") << std::string(level + 1 - (incremental ? 1 : 0), '*')
                         << " /Propagations/" << std::endl;
 }
 
 // Writes to Trace macro for propagation tracing
 static inline void dtviewBoolPropagationHelper(size_t level,
                                                Lit& l,
-                                               cvc5::prop::TheoryProxy* proxy)
+                                               cvc5::prop::TheoryProxy* proxy,
+                                               bool incremental)
 {
-  Trace("dtview::prop") << std::string(
-      level + 1 - (options::incrementalSolving() ? 1 : 0), ' ')
+  Trace("dtview::prop") << std::string(level + 1 - (incremental ? 1 : 0), ' ')
                         << ":BOOL-PROP: "
                         << proxy->getNode(MinisatSatSolver::toSatLiteral(l))
                         << std::endl;
@@ -92,10 +77,11 @@ static inline void dtviewBoolPropagationHelper(size_t level,
 // Writes to Trace macro for conflict tracing
 static inline void dtviewPropConflictHelper(size_t level,
                                             Clause& confl,
-                                            cvc5::prop::TheoryProxy* proxy)
+                                            cvc5::prop::TheoryProxy* proxy,
+                                            bool incremental)
 {
   Trace("dtview::conflict")
-      << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0), ' ')
+      << std::string(level + 1 - (incremental ? 1 : 0), ' ')
       << ":PROP-CONFLICT: (or";
   for (int i = 0; i < confl.size(); i++)
   {
@@ -145,15 +131,20 @@ class ScopedBool
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(cvc5::prop::TheoryProxy* proxy,
+Solver::Solver(Env& env,
+               cvc5::prop::TheoryProxy* proxy,
                cvc5::context::Context* context,
                cvc5::context::UserContext* userContext,
                ProofNodeManager* pnm,
                bool enableIncremental)
-    : d_proxy(proxy),
+    : EnvObj(env),
+      d_proxy(proxy),
       d_context(context),
       assertionLevel(0),
       d_pfManager(nullptr),
+      d_assertionLevelOnly(
+          (options().smt.produceProofs || options().smt.unsatCores)
+          && options().base.incrementalSolving),
       d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
@@ -352,69 +343,70 @@ CRef Solver::reason(Var x) {
 
   // Compute the assertion level for this clause
   int explLevel = 0;
-  if (assertionLevelOnly())
+  if (d_assertionLevelOnly)
   {
     explLevel = assertionLevel;
-    }
-    else
+  }
+  else
+  {
+    int i, j;
+    Lit prev = lit_Undef;
+    for (i = 0, j = 0; i < explanation.size(); ++i)
     {
-      int i, j;
-      Lit prev = lit_Undef;
-      for (i = 0, j = 0; i < explanation.size(); ++i)
+      // This clause is valid theory propagation, so its level is the level of
+      // the top literal
+      explLevel = std::max(explLevel, intro_level(var(explanation[i])));
+
+      Assert(value(explanation[i]) != l_Undef);
+      Assert(i == 0
+             || trail_index(var(explanation[0]))
+                    > trail_index(var(explanation[i])));
+
+      // Always keep the first literal
+      if (i == 0)
       {
-        // This clause is valid theory propagation, so its level is the level of
-        // the top literal
-        explLevel = std::max(explLevel, intro_level(var(explanation[i])));
-
-        Assert(value(explanation[i]) != l_Undef);
-        Assert(i == 0
-               || trail_index(var(explanation[0]))
-                      > trail_index(var(explanation[i])));
-
-        // Always keep the first literal
-        if (i == 0)
-        {
-          prev = explanation[j++] = explanation[i];
-          continue;
-        }
-        // Ignore duplicate literals
-        if (explanation[i] == prev)
-        {
-          continue;
-        }
-        // Ignore zero level literals
-        if (level(var(explanation[i])) == 0
-            && user_level(var(explanation[i]) == 0))
-        {
-          continue;
-        }
-        // Keep this literal
         prev = explanation[j++] = explanation[i];
+        continue;
       }
-      explanation.shrink(i - j);
-
-      Trace("pf::sat") << "Solver::reason: explanation = ";
-      for (int k = 0; k < explanation.size(); ++k)
+      // Ignore duplicate literals
+      if (explanation[i] == prev)
       {
-        Trace("pf::sat") << explanation[k] << " ";
+        continue;
       }
-      Trace("pf::sat") << std::endl;
-
-      // We need an explanation clause so we add a fake literal
-      if (j == 1)
+      // Ignore zero level literals
+      if (level(var(explanation[i])) == 0
+          && user_level(var(explanation[i]) == 0))
       {
-        // Add not TRUE to the clause
-        explanation.push(mkLit(varTrue, true));
+        continue;
       }
+      // Keep this literal
+      prev = explanation[j++] = explanation[i];
     }
+    explanation.shrink(i - j);
 
-    // Construct the reason
-    CRef real_reason = ca.alloc(explLevel, explanation, true);
-    vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
-    clauses_removable.push(real_reason);
-    attachClause(real_reason);
+    Trace("pf::sat") << "Solver::reason: explanation = ";
+    for (int k = 0; k < explanation.size(); ++k)
+    {
+      Trace("pf::sat") << explanation[k] << " ";
+    }
+    Trace("pf::sat") << std::endl;
 
-    return real_reason;
+    // We need an explanation clause so we add a fake literal
+    if (j == 1)
+    {
+      // Add not TRUE to the clause
+      explanation.push(mkLit(varTrue, true));
+    }
+  }
+
+  // Construct the reason
+  CRef real_reason = ca.alloc(explLevel, explanation, true);
+  vardata[x] = VarData(
+      real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
+  clauses_removable.push(real_reason);
+  attachClause(real_reason);
+
+  return real_reason;
 }
 
 bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
@@ -426,13 +418,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     Lit p; int i, j;
 
     // Which user-level to assert this clause at
-    int clauseLevel = (removable && !assertionLevelOnly()) ? 0 : assertionLevel;
+    int clauseLevel = (removable && !d_assertionLevelOnly) ? 0 : assertionLevel;
 
     // Check the clause for tautologies and similar
     int falseLiteralsCount = 0;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
       // Update the level
-      clauseLevel = assertionLevelOnly()
+      clauseLevel = d_assertionLevelOnly
                         ? assertionLevel
                         : std::max(clauseLevel, intro_level(var(ps[i])));
       // Tautologies are ignored
@@ -453,7 +445,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // If a literal is false at 0 level (both sat and user level) we also
       // ignore it, unless we are tracking the SAT solver's reasoning
       if (value(ps[i]) == l_False) {
-        if (!options::unsatCores() && !needProof() && level(var(ps[i])) == 0
+        if (!options().smt.unsatCores && !needProof() && level(var(ps[i])) == 0
             && user_level(var(ps[i])) == 0)
         {
           continue;
@@ -488,7 +480,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if (options::unsatCores() || needProof())
+        if (options().smt.unsatCores || needProof())
         {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
@@ -519,7 +511,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         clauses_persistent.push(cr);
         attachClause(cr);
 
-        if (options::unsatCores() || needProof())
+        if (options().smt.unsatCores || needProof())
         {
           if (ps.size() == falseLiteralsCount)
           {
@@ -737,12 +729,14 @@ Lit Solver::pickBranchLit()
           dtviewDecisionHelper(
               d_context->getLevel(),
               d_proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-              "THEORY");
+              "THEORY",
+              options().base.incrementalSolving);
         }
 
         if (Trace.isOn("dtview::prop"))
         {
-          dtviewPropagationHeaderHelper(d_context->getLevel());
+          dtviewPropagationHeaderHelper(d_context->getLevel(),
+                                        options().base.incrementalSolving);
         }
 
         return nextLit;
@@ -780,12 +774,14 @@ Lit Solver::pickBranchLit()
         dtviewDecisionHelper(
             d_context->getLevel(),
             d_proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-            "DE");
+            "DE",
+            options().base.incrementalSolving);
       }
 
       if (Trace.isOn("dtview::prop"))
       {
-        dtviewPropagationHeaderHelper(d_context->getLevel());
+        dtviewPropagationHeaderHelper(d_context->getLevel(),
+                                      options().base.incrementalSolving);
       }
 
       return nextLit;
@@ -842,12 +838,14 @@ Lit Solver::pickBranchLit()
         dtviewDecisionHelper(
             d_context->getLevel(),
             d_proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
-            "DE");
+            "DE",
+            options().base.incrementalSolving);
       }
 
       if (Trace.isOn("dtview::prop"))
       {
-        dtviewPropagationHeaderHelper(d_context->getLevel());
+        dtviewPropagationHeaderHelper(d_context->getLevel(),
+                                      options().base.incrementalSolving);
       }
 
       return decisionLit;
@@ -1234,7 +1232,10 @@ CRef Solver::propagate(TheoryCheckType type)
           {
             if (confl != CRef_Undef)
             {
-              dtviewPropConflictHelper(decisionLevel(), ca[confl], d_proxy);
+              dtviewPropConflictHelper(decisionLevel(),
+                                       ca[confl],
+                                       d_proxy,
+                                       options().base.incrementalSolving);
             }
           }
           // Even though in conflict, we still need to discharge the lemmas
@@ -1332,7 +1333,8 @@ CRef Solver::propagateBool()
         // if propagation tracing enabled, print boolean propagation
         if (Trace.isOn("dtview::prop"))
         {
-          dtviewBoolPropagationHelper(decisionLevel(), p, d_proxy);
+          dtviewBoolPropagationHelper(
+              decisionLevel(), p, d_proxy, options().base.incrementalSolving);
         }
 
         for (i = j = (Watcher*)ws, end = i + ws.size();  i != end;){
@@ -1558,7 +1560,7 @@ lbool Solver::search(int nof_conflicts)
       }
       else
       {
-        CRef cr = ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
+        CRef cr = ca.alloc(d_assertionLevelOnly ? assertionLevel : max_level,
                            learnt_clause,
                            true);
         clauses_removable.push(cr);
@@ -2042,7 +2044,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!options::unsatCores() && !needProof());
+        Assert(!options().smt.unsatCores && !needProof());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2084,7 +2086,7 @@ CRef Solver::updateLemmas() {
     if (lemma.size() > 1) {
       // If the lemmas is removable, we can compute its level by the level
       int clauseLevel = assertionLevel;
-      if (removable && !assertionLevelOnly())
+      if (removable && !d_assertionLevelOnly)
       {
         clauseLevel = 0;
         for (int k = 0; k < lemma.size(); ++k)
@@ -2188,8 +2190,8 @@ bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
 bool Solver::needProof() const
 {
   return isProofEnabled()
-         && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
-         && options::unsatCoresMode() != options::UnsatCoresMode::PP_ONLY;
+         && options().smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
+         && options().smt.unsatCoresMode != options::UnsatCoresMode::PP_ONLY;
 }
 
 }  // namespace Minisat

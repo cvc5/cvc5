@@ -17,6 +17,7 @@
 
 #include "expr/ascription_type.h"
 #include "options/smt_options.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace smt {
@@ -38,13 +39,13 @@ Node AbstractValues::substituteAbstractValues(TNode n)
   return d_abstractValueMap.apply(n);
 }
 
-Node AbstractValues::mkUninterpretedSortValue(TNode n)
+Node AbstractValues::mkAbstractValue(TNode n)
 {
   Assert(options::abstractValues());
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
-    val = d_nm->mkUninterpretedSortValue(n.getType());
+    val = d_nm->getSkolemManager()->mkDummySkolem("a", n.getType(), "an abstract value", SkolemManager::SKOLEM_ABSTRACT_VALUE);
     d_abstractValueMap.addSubstitution(val, n);
   }
   return val;

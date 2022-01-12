@@ -40,7 +40,7 @@ namespace quantifiers {
  * In detail, given a stream of expressions t_1, ..., t_{n-1}, upon generating
  * term t_n, we consider a query (not) t_n = t_i to be an interesting query
  * if it is satisfied by at most D points, where D is a predefined threshold
- * given by options::sygusQueryGenThresh(). If t_n has type Bool, we
+ * given by the sygusQueryGenThresh option. If t_n has type Bool, we
  * additionally consider the case where t_n is satisfied (or not satisfied) by
  * fewer than D points.
  *

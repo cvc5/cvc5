@@ -21,9 +21,10 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BitblastProofGenerator::BitblastProofGenerator(ProofNodeManager* pnm,
+BitblastProofGenerator::BitblastProofGenerator(Env& env,
+                                               ProofNodeManager* pnm,
                                                TConvProofGenerator* tcpg)
-    : d_pnm(pnm), d_tcpg(tcpg)
+    : EnvObj(env), d_pnm(pnm), d_tcpg(tcpg)
 {
 }
 
@@ -78,7 +79,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
      * sub-terms and recording these bit-blast steps in the conversion proof.
      */
 
-    Node rwt = Rewriter::rewrite(t);
+    Node rwt = rewrite(t);
 
     std::vector<Node> transSteps;
 
@@ -94,7 +95,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
     transSteps.push_back(rwt.eqNode(bbt));
 
     // Record post-rewrite of bit-blasted term.
-    Node rwbbt = Rewriter::rewrite(bbt);
+    Node rwbbt = rewrite(bbt);
     if (bbt != rwbbt)
     {
       cdp.addStep(bbt.eqNode(rwbbt), PfRule::REWRITE, {}, {bbt});

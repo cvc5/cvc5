@@ -54,7 +54,7 @@ macro(cvc5_add_example name src_files output_dir)
   endif()
 
   add_executable(${name} ${src_files_list})
-  target_link_libraries(${name} cvc5::cvc5-shared cvc5::cvc5parser-shared)
+  target_link_libraries(${name} cvc5::cvc5 cvc5::cvc5parser)
 
   # The test target is prefixed with the path,
   # e.g., for '<output_dir>/myexample.cpp'
@@ -85,26 +85,43 @@ add_subdirectory(api/cpp)
 
 if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
+  find_package(JNI REQUIRED)
   include(UseJava)
+  message(STATUS "JNI_LIBRARIES: ${JNI_LIBRARIES}")
 
-  ## disabled until bindings for the new API are in place (issue #2284)
-  # get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
-  #
-  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
-  #
-  # add_test(
-  #   NAME java/SimpleVC
-  #   COMMAND
-  #     ${Java_JAVA_EXECUTABLE}
-  #       -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
-  #       -Djava.library.path=${CVC5_JNI_PATH}
-  #       SimpleVC
-  # )
-  # TODO(project wishue #83): enable java examples
-  # add_subdirectory(api/java)
+  # get the directories of libraries libjawt.so and libjvm.so
+  set(JNI_LIBRARIES_PATHS "")
+  foreach(LIB ${JNI_LIBRARIES})
+    get_filename_component(LIB_PATH ${LIB} DIRECTORY)
+    set(JNI_LIBRARIES_PATHS "${JNI_LIBRARIES_PATHS}${LIB_PATH}:")
+  endforeach()
+
+  message(STATUS "JNI_LIBRARIES_PATHS: ${JNI_LIBRARIES_PATHS}")
+  # get directory build/install/lib where libcvc5jni.so is installed
+  get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
+  get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
+  message(STATUS "CVC5_JNI_PATH: ${CVC5_JNI_PATH}")
+
+
+  get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
+  message(STATUS "cvc5jar: ${CVC5_JAR}")
+
+  add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
+  add_test(
+    NAME java/SimpleVC
+    COMMAND
+      ${Java_JAVA_EXECUTABLE}
+        -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
+        -Djava.library.path=${CVC5_JNI_PATH}
+        SimpleVC
+  )
+  set_tests_properties(java/SimpleVC PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=${JNI_LIBRARIES_PATHS}")
+  add_subdirectory(api/java)
 endif()
 
 if(CVC5_BINDINGS_PYTHON)
+  message(STATUS "with Python examples")
   # If legacy Python API has been built
   add_subdirectory(api/python)
 endif()

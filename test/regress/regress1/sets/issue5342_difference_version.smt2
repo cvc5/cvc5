@@ -2,6 +2,6 @@
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun S () (Set Int))
-(assert (is_singleton (setminus (as univset (Set Int)) (setminus (as univset (Set Int)) S))))
-(assert (= 2 (card S)))
+(assert (set.is_singleton (set.minus (as set.universe (Set Int)) (set.minus (as set.universe (Set Int)) S))))
+(assert (= 2 (set.card S)))
 (check-sat)

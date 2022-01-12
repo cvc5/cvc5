@@ -9,7 +9,7 @@
 (declare-fun S () (Set Atom))
 
 
-(assert (= S (union (singleton a) (union (singleton c) (singleton b)))))
+(assert (= S (set.union (set.singleton a) (set.union (set.singleton c) (set.singleton b)))))
 
 (check-sat)
 

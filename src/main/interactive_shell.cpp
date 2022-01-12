@@ -89,7 +89,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
-  d_parser = parserBuilder.build();
+  d_parser.reset(parserBuilder.build());
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
@@ -129,13 +129,16 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
     d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
     ::stifle_history(s_historyLimit);
-    if(Notice.isOn()) {
+    if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+    {
       if(err == 0) {
-        Notice() << "Read " << ::history_length << " lines of history from "
-                 << d_historyFilename << std::endl;
+        d_solver->getDriverOptions().err()
+            << "Read " << ::history_length << " lines of history from "
+            << d_historyFilename << std::endl;
       } else {
-        Notice() << "Could not read history from " << d_historyFilename
-                 << ": " << strerror(err) << std::endl;
+        d_solver->getDriverOptions().err()
+            << "Could not read history from " << d_historyFilename << ": "
+            << strerror(err) << std::endl;
       }
     }
   }
@@ -151,15 +154,20 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
 InteractiveShell::~InteractiveShell() {
 #if HAVE_LIBEDITLINE
   int err = ::write_history(d_historyFilename.c_str());
-  if(err == 0) {
-    Notice() << "Wrote " << ::history_length << " lines of history to "
-             << d_historyFilename << std::endl;
-  } else {
-    Notice() << "Could not write history to " << d_historyFilename
-             << ": " << strerror(err) << std::endl;
+  if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+  {
+    if (err == 0)
+    {
+      d_solver->getDriverOptions().err()
+          << "Wrote " << ::history_length << " lines of history to "
+          << d_historyFilename << std::endl;
+    } else {
+      d_solver->getDriverOptions().err()
+          << "Could not write history to " << d_historyFilename << ": "
+          << strerror(err) << std::endl;
+  }
   }
 #endif /* HAVE_LIBEDITLINE */
-  delete d_parser;
 }
 
 Command* InteractiveShell::readCommand()

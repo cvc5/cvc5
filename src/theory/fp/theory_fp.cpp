@@ -31,6 +31,7 @@
 #include "util/floatingpoint.h"
 
 using namespace std;
+using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
@@ -68,7 +69,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_abstractionMap(userContext()),
       d_rewriter(userContext()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::fp::", true),
+      d_im(env, *this, d_state, "theory::fp::", true),
       d_wbFactsCache(userContext()),
       d_true(d_env.getNodeManager()->mkConst(true))
 {
@@ -289,9 +290,13 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
   {
     // Get the values
-    Assert(m->hasTerm(abstract));
-    Assert(m->hasTerm(concrete[0]));
-    Assert(m->hasTerm(concrete[1]));
+    Assert(m->hasTerm(abstract)) << "Term " << abstract << " not in model";
+    Assert(m->hasTerm(concrete[0]))
+        << "Term " << concrete[0] << " not in model";
+    // Note: while the value for concrete[1] that we get from the model has to
+    // be const, it is not necessarily the case that `m->hasTerm(concrete[1])`.
+    // The arithmetic solver computes values for the variables in shared terms
+    // but does not necessarily add the shared terms themselves.
 
     Node abstractValue = m->getValue(abstract);
     Node rmValue = m->getValue(concrete[0]);
@@ -359,7 +364,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
         Node realValueOfAbstract =
             rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                abstractValue,
-                               nm->mkConst(Rational(0U))));
+                               nm->mkConstReal(Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -476,20 +481,13 @@ void TheoryFp::registerTerm(TNode node)
 {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
-  if (isRegistered(node))
-  {
-    return;
-  }
-
   Kind k = node.getKind();
   Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC && k != kind::FLOATINGPOINT_SUB
          && k != kind::FLOATINGPOINT_EQ && k != kind::FLOATINGPOINT_GEQ
          && k != kind::FLOATINGPOINT_GT);
 
-  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
-  Assert(success);
-
-  // Add to the equality engine
+  // Add to the equality engine, always. This is required to ensure
+  // getEqualityStatus works as expected when theory combination is enabled.
   if (k == kind::EQUAL)
   {
     d_equalityEngine->addTriggerPredicate(node);
@@ -498,6 +496,15 @@ void TheoryFp::registerTerm(TNode node)
   {
     d_equalityEngine->addTerm(node);
   }
+
+  // if not registered in this user context
+  if (isRegistered(node))
+  {
+    return;
+  }
+
+  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
+  Assert(success);
 
   // Give the expansion of classifications in terms of equalities
   // This should make equality reasoning slightly more powerful.
@@ -560,10 +567,10 @@ void TheoryFp::registerTerm(TNode node)
                    nm->mkNode(kind::EQUAL, node, node[1]));
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
-    Node z =
-        nm->mkNode(kind::IMPLIES,
-                   nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-                   nm->mkNode(kind::EQUAL, node, nm->mkConst(Rational(0U))));
+    Node z = nm->mkNode(
+        kind::IMPLIES,
+        nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
+        nm->mkNode(kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -584,7 +591,7 @@ void TheoryFp::registerTerm(TNode node)
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(kind::EQUAL, node[1], nm->mkConst(Rational(0U))),
+        nm->mkNode(kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
         nm->mkNode(kind::EQUAL,
                    node,
                    nm->mkConst(FloatingPoint::makeZero(
@@ -675,8 +682,6 @@ void TheoryFp::postCheck(Effort level)
     Trace("fp-abstraction")
         << "TheoryFp::check(): checking abstractions" << std::endl;
     TheoryModel* m = getValuation().getModel();
-    bool lemmaAdded = false;
-
     for (const auto& [abstract, concrete] : d_abstractionMap)
     {
       Trace("fp-abstraction")
@@ -685,7 +690,7 @@ void TheoryFp::postCheck(Effort level)
       {  // Is actually used in the model
         Trace("fp-abstraction")
             << "TheoryFp::check(): ... relevant" << std::endl;
-        lemmaAdded |= refineAbstraction(m, abstract, concrete);
+        refineAbstraction(m, abstract, concrete);
       }
       else
       {

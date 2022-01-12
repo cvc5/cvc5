@@ -168,18 +168,22 @@ enum class InferenceId
   // ---------------------------------- end arrays theory
 
   // ---------------------------------- bags theory
-  BAG_NON_NEGATIVE_COUNT,
-  BAG_MK_BAG_SAME_ELEMENT,
-  BAG_MK_BAG,
-  BAG_EQUALITY,
-  BAG_DISEQUALITY,
-  BAG_EMPTY,
-  BAG_UNION_DISJOINT,
-  BAG_UNION_MAX,
-  BAG_INTERSECTION_MIN,
-  BAG_DIFFERENCE_SUBTRACT,
-  BAG_DIFFERENCE_REMOVE,
-  BAG_DUPLICATE_REMOVAL,
+  BAGS_NON_NEGATIVE_COUNT,
+  BAGS_BAG_MAKE,
+  BAGS_BAG_MAKE_SPLIT,
+  BAGS_COUNT_SKOLEM,
+  BAGS_EQUALITY,
+  BAGS_DISEQUALITY,
+  BAGS_EMPTY,
+  BAGS_UNION_DISJOINT,
+  BAGS_UNION_MAX,
+  BAGS_INTERSECTION_MIN,
+  BAGS_DIFFERENCE_SUBTRACT,
+  BAGS_DIFFERENCE_REMOVE,
+  BAGS_DUPLICATE_REMOVAL,
+  BAGS_MAP,
+  BAGS_FOLD,
+  BAGS_CARD,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -341,12 +345,6 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
-  // Q where Q was solved by a subcall to the single invocation module
-  QUANTIFIERS_SYGUS_SI_SOLVED,
-  // Q where Q was (trusted) solved by sampling
-  QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
-  // Q where Q was solved by a verification subcall
-  QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // unif+pi symmetry breaking between multiple enumerators
@@ -692,6 +690,16 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation
   STRINGS_ARRAY_NTH_CONCAT,
+  // nth over extract
+  STRINGS_ARRAY_NTH_EXTRACT,
+  // nth over update
+  STRINGS_ARRAY_NTH_UPDATE,
+  // reasoning about the nth term from update term
+  STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+  // nth over update when updated with an unit term
+  STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
+  // nth over reverse
+  STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
@@ -772,9 +780,11 @@ enum class InferenceId
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   STRINGS_REDUCTION,
-  //-------------------- prefix conflict
-  // prefix conflict (coarse-grained)
+  //-------------------- merge conflicts
+  // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // arithmetic bound conflict
+  STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other
   // a lemma added during term registration for an atomic term
   STRINGS_REGISTER_TERM_ATOMIC,
@@ -836,6 +846,15 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
+  // equivalence of lambda functions
+  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
+  // This is applied when lamda functions f and g are in the same eq class.
+  UF_HO_LAMBDA_UNIV_EQ,
+  // equivalence of a lambda function and an ordinary function
+  //   f = h => h(t) = reduce(lambda(f)(t))
+  // This is applied when lamda function f and ordinary function h are in the
+  // same eq class.
+  UF_HO_LAMBDA_APP_REDUCE,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------------------------- end uf theory

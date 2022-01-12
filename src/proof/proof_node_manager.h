@@ -27,6 +27,11 @@ namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
+class Options;
+
+namespace theory {
+class Rewriter;
+}
 
 /**
  * A manager for proof node objects. This is a trusted interface for creating
@@ -54,7 +59,9 @@ class ProofNode;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(ProofChecker* pc = nullptr);
+  ProofNodeManager(const Options& opts,
+                   theory::Rewriter* rr,
+                   ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}
   /**
    * This constructs a ProofNode with the given arguments. The expected
@@ -184,6 +191,10 @@ class ProofNodeManager
   static ProofNode* cancelDoubleSymm(ProofNode* pn);
 
  private:
+  /** Reference to the options */
+  const Options& d_opts;
+  /** The rewriter */
+  theory::Rewriter* d_rewriter;
   /** The (optional) proof checker */
   ProofChecker* d_checker;
   /** the true node */

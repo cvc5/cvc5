@@ -79,12 +79,11 @@ bool SymmetryBreaker::Template::matchRecursive(TNode t, TNode n) {
   }
 
   if(t.getNumChildren() == 0) {
-    if(t.isConst()) {
-      Assert(n.isConst());
-      Debug("ufsymm:match") << "UFSYMM we have constants, failing match" << endl;
+    if (!t.isVar())
+    {
+      Debug("ufsymm:match") << "UFSYMM non-variables, failing match" << endl;
       return false;
     }
-    Assert(t.isVar() && n.isVar());
     t = find(t);
     n = find(n);
     Debug("ufsymm:match") << "UFSYMM variable match " << t << " , " << n << endl;
@@ -164,9 +163,10 @@ void SymmetryBreaker::Template::reset() {
   d_reps.clear();
 }
 
-SymmetryBreaker::SymmetryBreaker(context::Context* context, std::string name)
-    : ContextNotifyObj(context),
-      d_assertionsToRerun(context),
+SymmetryBreaker::SymmetryBreaker(Env& env, std::string name)
+    : EnvObj(env),
+      ContextNotifyObj(userContext()),
+      d_assertionsToRerun(userContext()),
       d_rerunningAssertions(false),
       d_phi(),
       d_phiSet(),
@@ -207,7 +207,7 @@ void SymmetryBreaker::rerunAssertionsIfNecessary() {
 }
 
 Node SymmetryBreaker::norm(TNode phi) {
-  Node n = Rewriter::rewrite(phi);
+  Node n = rewrite(phi);
   return normInternal(n, 0);
 }
 

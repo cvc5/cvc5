@@ -217,10 +217,25 @@ void InferProofCons::convert(InferenceId infer,
       Node src = ps.d_children[ps.d_children.size() - 1];
       std::vector<Node> expe(ps.d_children.begin(), ps.d_children.end() - 1);
       // start with a default rewrite
+      Trace("strings-ipc-core")
+          << "Generate proof for STRINGS_EXTF_EQ_REW, starting with " << src
+          << std::endl;
       Node mainEqSRew = psb.applyPredElim(src, expe);
+      Trace("strings-ipc-core")
+          << "...after pred elim: " << mainEqSRew << std::endl;
       if (mainEqSRew == conc)
       {
+        Trace("strings-ipc-core") << "...success" << std::endl;
         useBuffer = true;
+        break;
+      }
+      else if (mainEqSRew.getKind() != EQUAL)
+      {
+        // Note this can happen in rare cases where substitution+rewriting
+        // is more powerful than congruence+rewriting. We fail to reconstruct
+        // the proof in this case.
+        Trace("strings-ipc-core")
+            << "...failed, not equality after rewriting" << std::endl;
         break;
       }
       // may need the "extended equality rewrite"
@@ -229,6 +244,8 @@ void InferProofCons::convert(InferenceId infer,
                                            MethodId::SB_DEFAULT,
                                            MethodId::SBA_SEQUENTIAL,
                                            MethodId::RW_REWRITE_EQ_EXT);
+      Trace("strings-ipc-core")
+          << "...after extended equality rewrite: " << mainEqSRew2 << std::endl;
       if (mainEqSRew2 == conc)
       {
         useBuffer = true;
@@ -482,7 +499,7 @@ void InferProofCons::convert(InferenceId infer,
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkConst(Rational(0)))
+                       .eqNode(nm->mkConstInt(Rational(0)))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = PfRule::CONCAT_CSPLIT;
@@ -513,7 +530,7 @@ void InferProofCons::convert(InferenceId infer,
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkConst(Rational(0)))
+                       .eqNode(nm->mkConstInt(Rational(0)))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = PfRule::CONCAT_CPROP;
@@ -820,7 +837,7 @@ void InferProofCons::convert(InferenceId infer,
             std::vector<Node> childrenAE;
             childrenAE.push_back(eunf);
             std::vector<Node> argsAE;
-            argsAE.push_back(nm->mkConst(Rational(0)));
+            argsAE.push_back(nm->mkConstInt(Rational(0)));
             Node eunfAE = psb.tryStep(PfRule::AND_ELIM, childrenAE, argsAE);
             Trace("strings-ipc-prefix")
                 << "--- and elim to " << eunfAE << std::endl;

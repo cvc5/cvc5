@@ -82,8 +82,7 @@ class InferenceManager : public InferenceManagerBuffered
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
-                   SequencesStatistics& statistics,
-                   ProofNodeManager* pnm);
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /**

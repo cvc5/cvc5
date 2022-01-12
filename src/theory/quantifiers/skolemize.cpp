@@ -36,18 +36,16 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(Env& env,
-                     QuantifiersState& qs,
-                     TermRegistry& tr,
-                     ProofNodeManager* pnm)
+Skolemize::Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr)
     : EnvObj(env),
       d_qstate(qs),
       d_treg(tr),
       d_skolemized(userContext()),
-      d_pnm(pnm),
-      d_epg(pnm == nullptr
+      d_epg(!isProofEnabled()
                 ? nullptr
-                : new EagerProofGenerator(pnm, userContext(), "Skolemize::epg"))
+                : new EagerProofGenerator(env.getProofNodeManager(),
+                                          userContext(),
+                                          "Skolemize::epg"))
 {
 }
 
@@ -61,9 +59,10 @@ TrustNode Skolemize::process(Node q)
   }
   Node lem;
   ProofGenerator* pg = nullptr;
-  if (isProofEnabled() && !options::dtStcInduction()
-      && !options::intWfInduction())
+  if (isProofEnabled() && !options().quantifiers.dtStcInduction
+      && !options().quantifiers.intWfInduction)
   {
+    ProofNodeManager * pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
@@ -73,12 +72,12 @@ TrustNode Skolemize::process(Node q)
     Node existsq = nm->mkNode(EXISTS, echildren);
     Node res = skm->mkSkolemize(existsq, d_skolem_constants[q], "skv");
     Node qnot = q.notNode();
-    CDProof cdp(d_pnm);
+    CDProof cdp(pnm);
     cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
     std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
     std::vector<Node> assumps;
     assumps.push_back(qnot);
-    std::shared_ptr<ProofNode> pfs = d_pnm->mkScope({pf}, assumps);
+    std::shared_ptr<ProofNode> pfs = pnm->mkScope({pf}, assumps);
     lem = nm->mkNode(IMPLIES, qnot, res);
     d_epg->setProofFor(lem, pfs);
     pg = d_epg.get();
@@ -138,8 +137,8 @@ void Skolemize::getSelfSel(const DType& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = dc.getSpecializedConstructorType(n.getType());
-    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
+    tspec = dc.getInstantiatedConstructorType(n.getType());
+    Trace("sk-ind-debug") << "Instantiated constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
@@ -286,10 +285,11 @@ Node Skolemize::mkSkolemizedBody(Node f,
     }
     else if (options::intWfInduction() && tn.isInteger())
     {
-      Node icond = nm->mkNode(GEQ, k, nm->mkConst(Rational(0)));
-      Node iret = ret.substitute(ind_vars[0],
-                                 nm->mkNode(MINUS, k, nm->mkConst(Rational(1))))
-                      .negate();
+      Node icond = nm->mkNode(GEQ, k, nm->mkConstInt(Rational(0)));
+      Node iret =
+          ret.substitute(ind_vars[0],
+                         nm->mkNode(MINUS, k, nm->mkConstInt(Rational(1))))
+              .negate();
       n_str_ind = nm->mkNode(OR, icond.negate(), iret);
       n_str_ind = nm->mkNode(AND, icond, n_str_ind);
     }
@@ -308,7 +308,6 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       Node bvl = nm->mkNode(BOUND_VAR_LIST, rem_ind_vars);
       nret = nm->mkNode(FORALL, bvl, nret);
-      nret = Rewriter::rewrite(nret);
       sub = nret;
       sub_vars.insert(
           sub_vars.end(), ind_var_indicies.begin() + 1, ind_var_indicies.end());
@@ -397,7 +396,10 @@ void Skolemize::getSkolemTermVectors(
   }
 }
 
-bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
+bool Skolemize::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace quantifiers
 }  // namespace theory

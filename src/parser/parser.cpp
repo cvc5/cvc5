@@ -530,11 +530,11 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   api::Kind k = t.getKind();
-  if (k == api::EMPTYSET)
+  if (k == api::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == api::EMPTYBAG)
+  else if (k == api::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
@@ -554,7 +554,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == api::UNIVERSE_SET)
+  else if (k == api::SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }
@@ -583,7 +583,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       // lookup by name
       api::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getSpecializedConstructorTerm(s);
+      t = dc.getInstantiatedConstructorTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.

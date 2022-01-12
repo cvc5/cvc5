@@ -52,12 +52,6 @@ QuantInfo::~QuantInfo() {
   d_var_mg.clear();
 }
 
-QuantifiersInferenceManager& QuantInfo::getInferenceManager()
-{
-  Assert(d_parent != nullptr);
-  return d_parent->getInferenceManager();
-}
-
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   d_parent = p;
   d_q = q;
@@ -578,29 +572,32 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
     EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
+    std::map<TNode, TNode> subs;
+    for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
+    {
+      Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
+      subs[d_q[0][i]] = terms[i];
+    }
+    for (size_t i = 0, evsize = d_extra_var.size(); i < evsize; i++)
+    {
+      Node n = getCurrentExpValue(d_extra_var[i]);
+      Trace("qcf-instance-check")
+          << "  " << d_extra_var[i] << " -> " << n << std::endl;
+      subs[d_extra_var[i]] = n;
+    }
     if (p->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
-      std::map< TNode, TNode > subs;
-      for( unsigned i=0; i<terms.size(); i++ ){
-        Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
-        subs[d_q[0][i]] = terms[i];
-      }
-      for( unsigned i=0; i<d_extra_var.size(); i++ ){
-        Node n = getCurrentExpValue( d_extra_var[i] );
-        Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
-        subs[d_extra_var[i]] = n;
-      }
       if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
         Trace("qcf-instance-check") << "...not entailed to be false." << std::endl;
         return true;
       }
     }else{
-      Node inst =
-          getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
-      inst = Rewriter::rewrite(inst);
-      Node inst_eval =
-          echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
+      // see if the body of the quantified formula evaluates to a Boolean
+      // combination of known terms under the current substitution. We use
+      // the helper method evaluateTerm from the entailment check utility.
+      Node inst_eval = echeck->evaluateTerm(
+          d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -608,6 +605,10 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
+      // If it is the case that instantiation can be rewritten to a Boolean
+      // combination of terms that exist in the current context, then inst_eval
+      // is non-null. Moreover, we insist that inst_eval is not true, or else
+      // the instantiation is trivially entailed and hence is spurious.
       if (inst_eval.isNull()
           || (inst_eval.isConst() && inst_eval.getConst<bool>()))
       {
@@ -720,7 +721,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
                   break;
                 }
               }else{
-                Node z = p->getZero( k );
+                Node z = p->getZero(d_vars[index].getType(), k);
                 if( !z.isNull() ){
                   Trace("qcf-tconstraint-debug") << "...set " << d_vars[vn] << " = " << z << std::endl;
                   assigned.push_back( vn );
@@ -743,7 +744,7 @@ bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assign
           if( slv_v!=-1 ){
             Node lhs;
             if( children.empty() ){
-              lhs = p->getZero( k );
+              lhs = p->getZero(d_vars[index].getType(), k);
             }else if( children.size()==1 ){
               lhs = children[0];
             }else{
@@ -994,8 +995,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
     Assert(qi->d_var_num.find(n) != qi->d_var_num.end());
     // rare case where we have a free variable in an operator, we are invalid
     if (n.getKind() == ITE
-        || (options::ufHo() && n.getKind() == APPLY_UF
-            && expr::hasFreeVar(n.getOperator())))
+        || (n.getKind() == APPLY_UF && expr::hasFreeVar(n.getOperator())))
     {
       d_type = typ_invalid;
     }else{
@@ -1918,13 +1918,17 @@ bool QuantConflictFind::areMatchDisequal( TNode n1, TNode n2 ) {
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   bool performCheck = false;
-  if( options::quantConflictFind() && !d_conflict ){
+  if (options().quantifiers.quantConflictFind && !d_conflict)
+  {
     if( level==Theory::EFFORT_LAST_CALL ){
-      performCheck = options::qcfWhenMode() == options::QcfWhenMode::LAST_CALL;
+      performCheck =
+          options().quantifiers.qcfWhenMode == options::QcfWhenMode::LAST_CALL;
     }else if( level==Theory::EFFORT_FULL ){
-      performCheck = options::qcfWhenMode() == options::QcfWhenMode::DEFAULT;
+      performCheck =
+          options().quantifiers.qcfWhenMode == options::QcfWhenMode::DEFAULT;
     }else if( level==Theory::EFFORT_STANDARD ){
-      performCheck = options::qcfWhenMode() == options::QcfWhenMode::STD;
+      performCheck =
+          options().quantifiers.qcfWhenMode == options::QcfWhenMode::STD;
     }
   }
   return performCheck;
@@ -1943,7 +1947,7 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
-      if (!options::cegqi() || !TermUtil::hasInstConstAttr(r))
+      if (!options().quantifiers.cegqi || !TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);
       }
@@ -2276,18 +2280,20 @@ QuantConflictFind::Statistics::Statistics()
 {
 }
 
-TNode QuantConflictFind::getZero( Kind k ) {
-  std::map< Kind, Node >::iterator it = d_zero.find( k );
-  if( it==d_zero.end() ){
+TNode QuantConflictFind::getZero(TypeNode tn, Kind k)
+{
+  std::pair<TypeNode, Kind> key(tn, k);
+  std::map<std::pair<TypeNode, Kind>, Node>::iterator it = d_zero.find(key);
+  if (it == d_zero.end())
+  {
     Node nn;
     if( k==PLUS ){
-      nn = NodeManager::currentNM()->mkConst( Rational(0) );
+      nn = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
     }
-    d_zero[k] = nn;
+    d_zero[key] = nn;
     return nn;
-  }else{
-    return it->second;
   }
+  return it->second;
 }
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e) {

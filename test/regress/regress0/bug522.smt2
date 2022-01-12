@@ -1,6 +1,6 @@
 ; EXPECT: sat
 ; EXPECT: sat
-(set-option :incremental "true")
+(set-option :incremental true)
 (set-logic QF_UF)
 
 (push 1)

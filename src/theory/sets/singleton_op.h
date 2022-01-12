@@ -25,39 +25,38 @@ namespace cvc5 {
 class TypeNode;
 
 /**
- * The class is an operator for kind SINGLETON used to construct singleton sets.
- * It specifies the type of the single element especially when it is a constant.
- * e.g. the type of rational 1 is Int, however
- * (singleton (singleton_op Real) 1) is of type (Set Real), not (Set Int).
- * Note that the type passed to the constructor is the element's type, not the
- * set type.
+ * The class is an operator for kind SET_SINGLETON used to construct singleton
+ * sets. It specifies the type of the single element especially when it is a
+ * constant. e.g. the type of rational 1 is Int, however (singleton
+ * (singleton_op Real) 1) is of type (Set Real), not (Set Int). Note that the
+ * type passed to the constructor is the element's type, not the set type.
  */
-class SingletonOp
+class SetSingletonOp
 {
  public:
-  SingletonOp(const TypeNode& elementType);
-  SingletonOp(const SingletonOp& op);
+  SetSingletonOp(const TypeNode& elementType);
+  SetSingletonOp(const SetSingletonOp& op);
 
   /** return the type of the current object */
   const TypeNode& getType() const;
 
-  bool operator==(const SingletonOp& op) const;
+  bool operator==(const SetSingletonOp& op) const;
 
  private:
-  SingletonOp();
+  SetSingletonOp();
   /** a pointer to the type of the singleton element */
   std::unique_ptr<TypeNode> d_type;
-}; /* class Singleton */
+}; /* class SetSingletonOp */
 
-std::ostream& operator<<(std::ostream& out, const SingletonOp& op);
+std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op);
 
 /**
  * Hash function for the SingletonHashFunction objects.
  */
-struct SingletonOpHashFunction
+struct SetSingletonOpHashFunction
 {
-  size_t operator()(const SingletonOp& op) const;
-}; /* struct SingletonOpHashFunction */
+  size_t operator()(const SetSingletonOp& op) const;
+}; /* struct SetSingletonOpHashFunction */
 
 }  // namespace cvc5
 

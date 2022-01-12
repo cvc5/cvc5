@@ -17,6 +17,7 @@
 #define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
 
@@ -27,10 +28,10 @@ namespace nl {
 
 struct ExtState;
 
-class MonomialCheck
+class MonomialCheck : protected EnvObj
 {
  public:
-  MonomialCheck(ExtState* data);
+  MonomialCheck(Env& env, ExtState* data);
 
   void init(const std::vector<Node>& xts);
 

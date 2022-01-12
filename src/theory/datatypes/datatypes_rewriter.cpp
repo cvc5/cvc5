@@ -16,6 +16,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
@@ -78,7 +79,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       const DType& dt = utils::datatypeOf(constructor);
       const DTypeConstructor& c = dt[constructorIndex];
       unsigned weight = c.getWeight();
-      children.push_back(nm->mkConst(Rational(weight)));
+      children.push_back(nm->mkConstInt(Rational(weight)));
       Node res =
           children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
       Trace("datatypes-rewrite")
@@ -105,7 +106,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
             break;
           }
           children.push_back(
-              nm->mkNode(kind::DT_HEIGHT_BOUND, in[0][i], nm->mkConst(rmo)));
+              nm->mkNode(kind::DT_HEIGHT_BOUND, in[0][i], nm->mkConstInt(rmo)));
         }
       }
       if (res.isNull())
@@ -152,6 +153,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   else if (kind == MATCH)
   {
     Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
+    // ensure we've type checked
+    TypeNode tin = in.getType();
     Node h = in[0];
     std::vector<Node> cases;
     std::vector<Node> rets;
@@ -228,8 +231,9 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::reverse(cases.begin(), cases.end());
     std::reverse(rets.begin(), rets.end());
     Node ret = rets[0];
-    AlwaysAssert(cases[0].isConst() || cases.size() == dt.getNumConstructors());
-    for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
+    // notice that due to our type checker, either there is a variable pattern
+    // or all constructors are present in the match.
+    for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
     {
       ret = nm->mkNode(ITE, cases[i], rets[i], ret);
     }
@@ -328,10 +332,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         // get the constructor object
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
-        Node tc = NodeManager::currentNM()->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(tn)));
-        Node op_new = NodeManager::currentNM()->mkNode(
-            kind::APPLY_TYPE_ASCRIPTION, tc, op);
+        Node op_new = dtc.getInstantiatedConstructor(tn);
         // make new node
         std::vector<Node> children;
         children.push_back(op_new);
@@ -440,7 +441,8 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
       // evaluates to the first ground value of type tn.
-      Node gt = tn.mkGroundValue();
+      NodeManager* nm = NodeManager::currentNM();
+      Node gt = nm->mkGroundValue(tn);
       Assert(!gt.isNull());
       if (tn.isDatatype() && !tn.isInstantiatedDatatype())
       {
@@ -729,7 +731,7 @@ Node DatatypesRewriter::collectRef(Node n,
       else
       {
         // a loop
-        const Integer& i = n.getConst<UninterpretedSortValue>().getIndex();
+        const Integer& i = n.getConst<CodatatypeBoundVariable>().getIndex();
         uint32_t index = i.toUnsignedInt();
         if (index >= sk.size())
         {
@@ -771,7 +773,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          UninterpretedSortValue(n.getType(), debruijn));
+          CodatatypeBoundVariable(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;
@@ -798,10 +800,10 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
                                         TypeNode orig_tn,
                                         unsigned depth)
 {
-  if (n.getKind() == kind::UNINTERPRETED_SORT_VALUE && n.getType() == orig_tn)
+  if (n.getKind() == kind::CODATATYPE_BOUND_VARIABLE && n.getType() == orig_tn)
   {
     unsigned index =
-        n.getConst<UninterpretedSortValue>().getIndex().toUnsignedInt();
+        n.getConst<CodatatypeBoundVariable>().getIndex().toUnsignedInt();
     if (index == depth)
     {
       return orig;
@@ -889,7 +891,14 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       size_t cindex = utils::cindexOf(op);
       const DTypeConstructor& dc = dt[cindex];
       NodeBuilder b(APPLY_CONSTRUCTOR);
-      b << dc.getConstructor();
+      if (tn.isParametricDatatype())
+      {
+        b << dc.getInstantiatedConstructor(n[0].getType());
+      }
+      else
+      {
+        b << dc.getConstructor();
+      }
       Trace("dt-expand") << "Expand updater " << n << std::endl;
       Trace("dt-expand") << "expr is " << n << std::endl;
       Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;

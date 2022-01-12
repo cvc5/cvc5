@@ -30,7 +30,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter* r) : d_rr(r) {}
+ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
+{
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+}
 
 Node ArithEntail::rewrite(Node a) { return d_rr->rewrite(a); }
 
@@ -73,9 +76,10 @@ bool ArithEntail::check(Node a, bool strict)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
 
-  Node ar = strict ? NodeManager::currentNM()->mkNode(
-                kind::MINUS, a, NodeManager::currentNM()->mkConst(Rational(1)))
-                   : a;
+  Node ar =
+      strict ? NodeManager::currentNM()->mkNode(
+          kind::MINUS, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
+             : a;
   ar = d_rr->rewrite(ar);
 
   if (ar.getAttribute(StrCheckEntailArithComputedAttr()))
@@ -128,7 +132,7 @@ bool ArithEntail::checkApprox(Node ar)
         << "Get approximations " << v << "..." << std::endl;
     if (v.isNull())
     {
-      Node mn = c.isNull() ? nm->mkConst(Rational(1)) : c;
+      Node mn = c.isNull() ? nm->mkConstInt(Rational(1)) : c;
       aarSum.push_back(mn);
     }
     else
@@ -197,7 +201,7 @@ bool ArithEntail::checkApprox(Node ar)
   }
   // get the current "fixed" sum for the abstraction of ar
   Node aar = aarSum.empty()
-                 ? nm->mkConst(Rational(0))
+                 ? d_zero
                  : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(PLUS, aarSum));
   aar = d_rr->rewrite(aar);
   Trace("strings-ent-approx-debug")
@@ -492,7 +496,7 @@ void ArithEntail::getArithApproximations(Node a,
             // x >= 0 implies
             //   x+1 >= len( int.to.str( x ) )
             approx.push_back(
-                nm->mkNode(PLUS, nm->mkConst(Rational(1)), a[0][0]));
+                nm->mkNode(PLUS, nm->mkConstInt(Rational(1)), a[0][0]));
           }
         }
       }
@@ -502,7 +506,7 @@ void ArithEntail::getArithApproximations(Node a,
         {
           // x >= 0 implies
           //   len( int.to.str( x ) ) >= 1
-          approx.push_back(nm->mkConst(Rational(1)));
+          approx.push_back(nm->mkConstInt(Rational(1)));
         }
         // other crazy things are possible here, e.g.
         // len( int.to.str( len( y ) + 10 ) ) >= 2
@@ -536,7 +540,7 @@ void ArithEntail::getArithApproximations(Node a,
       // ...hard to test, runs risk of non-termination
 
       // -1 <= indexof( x, y, n )
-      approx.push_back(nm->mkConst(Rational(-1)));
+      approx.push_back(nm->mkConstInt(Rational(-1)));
     }
   }
   else if (ak == STRING_STOI)
@@ -551,7 +555,7 @@ void ArithEntail::getArithApproximations(Node a,
     else
     {
       // -1 <= str.to.int( x )
-      approx.push_back(nm->mkConst(Rational(-1)));
+      approx.push_back(nm->mkConstInt(Rational(-1)));
     }
   }
   Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
@@ -656,7 +660,8 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       // (not (>= s t)) --> (>= (t - 1) s)
       Assert(assumption.getKind() == kind::NOT
              && assumption[0].getKind() == kind::GEQ);
-      x = nm->mkNode(kind::MINUS, assumption[0][1], nm->mkConst(Rational(1)));
+      x = nm->mkNode(
+          kind::MINUS, assumption[0][1], nm->mkConstInt(Rational(1)));
       y = assumption[0][0];
     }
 
@@ -709,10 +714,63 @@ bool ArithEntail::checkWithAssumptions(std::vector<Node> assumptions,
   return res;
 }
 
-Node ArithEntail::getConstantBound(Node a, bool isLower)
+struct ArithEntailConstantBoundLowerId
+{
+};
+typedef expr::Attribute<ArithEntailConstantBoundLowerId, Node>
+    ArithEntailConstantBoundLower;
+
+struct ArithEntailConstantBoundUpperId
+{
+};
+typedef expr::Attribute<ArithEntailConstantBoundUpperId, Node>
+    ArithEntailConstantBoundUpper;
+
+void ArithEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
+{
+  if (isLower)
+  {
+    ArithEntailConstantBoundLower acbl;
+    n.setAttribute(acbl, ret);
+  }
+  else
+  {
+    ArithEntailConstantBoundUpper acbu;
+    n.setAttribute(acbu, ret);
+  }
+}
+
+bool ArithEntail::getConstantBoundCache(TNode n, bool isLower, Node& c)
+{
+  if (isLower)
+  {
+    ArithEntailConstantBoundLower acbl;
+    if (n.hasAttribute(acbl))
+    {
+      c = n.getAttribute(acbl);
+      return true;
+    }
+  }
+  else
+  {
+    ArithEntailConstantBoundUpper acbu;
+    if (n.hasAttribute(acbu))
+    {
+      c = n.getAttribute(acbu);
+      return true;
+    }
+  }
+  return false;
+}
+
+Node ArithEntail::getConstantBound(TNode a, bool isLower)
 {
   Assert(d_rr->rewrite(a) == a);
   Node ret;
+  if (getConstantBoundCache(a, isLower, ret))
+  {
+    return ret;
+  }
   if (a.isConst())
   {
     ret = a;
@@ -721,7 +779,7 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
   {
     if (isLower)
     {
-      ret = NodeManager::currentNM()->mkConst(Rational(0));
+      ret = d_zero;
     }
   }
   else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
@@ -767,7 +825,7 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
     {
       if (children.empty())
       {
-        ret = NodeManager::currentNM()->mkConst(Rational(0));
+        ret = d_zero;
       }
       else if (children.size() == 1)
       {
@@ -789,6 +847,56 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
          || check(a, false));
   Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
          || check(a, true));
+  // cache
+  setConstantBoundCache(a, ret, isLower);
+  return ret;
+}
+
+Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
+{
+  Assert(s.getType().isStringLike());
+  Node ret;
+  if (getConstantBoundCache(s, isLower, ret))
+  {
+    return ret;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  if (s.isConst())
+  {
+    size_t len = Word::getLength(s);
+    ret = nm->mkConstInt(Rational(len));
+  }
+  else if (s.getKind() == STRING_CONCAT)
+  {
+    Rational sum(0);
+    bool success = true;
+    for (const Node& sc : s)
+    {
+      Node b = getConstantBoundLength(sc, isLower);
+      if (b.isNull())
+      {
+        if (isLower)
+        {
+          // assume zero and continue
+          continue;
+        }
+        success = false;
+        break;
+      }
+      Assert(b.isConst());
+      sum = sum + b.getConst<Rational>();
+    }
+    if (success && (!isLower || sum.sgn() != 0))
+    {
+      ret = nm->mkConstInt(sum);
+    }
+  }
+  if (ret.isNull() && isLower)
+  {
+    ret = d_zero;
+  }
+  // cache
+  setConstantBoundCache(s, ret, isLower);
   return ret;
 }
 
@@ -853,7 +961,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
     }
     else
     {
-      sum = ys.size() == 1 ? ys[0] : nm->mkConst(Rational(0));
+      sum = ys.size() == 1 ? ys[0] : d_zero;
     }
 
     if (check(sum, x))

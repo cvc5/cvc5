@@ -67,8 +67,9 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
     }
     if( c[index].getType().isSort() ){
       //for star: check if all children are defined and have generalizations
-      if( c[index]==st ){     ///options::fmfFmcCoverSimplify()
-        //check if all children exist and are complete
+      if (c[index] == st)
+      {  /// option fmfFmcCoverSimplify
+        // check if all children exist and are complete
         unsigned num_child_def =
             d_child.size() - (d_child.find(st) != d_child.end() ? 1 : 0);
         if (num_child_def == m->getRepSet()->getNumRepresentatives(tn))
@@ -399,6 +400,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     //reset the model
     d_fm->d_models[op]->reset();
 
+    // if we've already assigned the function, ignore
+    if (m->hasAssignedFunctionDefinition(op))
+    {
+      continue;
+    }
+
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
     bool needsDefault = true;
@@ -539,8 +546,15 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 
   //make function values
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
-    Node f_def = getFunctionValue( fm, it->first, "$x" );
-    m->assignFunctionDefinition( it->first, f_def );
+    // For lazy lambda lifting, a function may already have been assigned
+    // during uf::HoExtension's collectModelValues method. In this case,
+    // the Def in it->second was not used, as all such functions are eagerly
+    // eliminated.
+    if (!m->hasAssignedFunctionDefinition(it->first))
+    {
+      Node f_def = getFunctionValue(fm, it->first, "$x");
+      m->assignFunctionDefinition(it->first, f_def);
+    }
   }
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
@@ -626,7 +640,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
-    if (options::mbqiMode() == options::MbqiMode::NONE)
+    if (options().quantifiers.mbqiMode == options::MbqiMode::NONE)
     {
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
@@ -690,9 +704,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
           if (ev == d_true)
           {
-            CVC5Message() << "WARNING: instantiation was true! " << f << " "
-                          << mcond[i] << std::endl;
-            AlwaysAssert(false);
+            AlwaysAssert(false) << "WARNING: instantiation was true! " << f
+                                << " " << mcond[i] << std::endl;
           }
           else
           {
@@ -709,7 +722,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_star_insts[f].push_back(i);
         continue;
       }
-      if (options::fmfBound() || options::stringExp())
+      if (options().quantifiers.fmfBound || options().strings.stringExp)
       {
         std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
@@ -735,7 +748,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
-        if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+        if (d_qstate.isInConflict() || options().quantifiers.fmfOneInstPerRound)
         {
           break;
         }
@@ -888,7 +901,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+          if (d_qstate.isInConflict()
+              || options().quantifiers.fmfOneInstPerRound)
           {
             break;
           }
@@ -951,10 +965,15 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     Node r = n;
     if( !n.isConst() ){
       TypeNode tn = n.getType();
-      if( !fm->hasTerm(n) && tn.isFirstClass() ){
-        r = getSomeDomainElement(fm, tn );
+      if (!fm->hasTerm(n) && tn.isFirstClass())
+      {
+        // if the term is unknown, we do not assume any value for it
+        r = Node::null();
       }
-      r = fm->getRepresentative( r );
+      else
+      {
+        r = fm->getRepresentative(r);
+      }
     }
     Trace("fmc-debug") << "Add constant entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), r);
@@ -1363,7 +1382,7 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 
 
 bool FullModelChecker::useSimpleModels() {
-  return options::fmfFmcSimple();
+  return options().quantifiers.fmfFmcSimple;
 }
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {

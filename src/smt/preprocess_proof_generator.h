@@ -24,6 +24,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_set.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -53,13 +54,13 @@ namespace smt {
  * whose free assumptions are intended to be input assertions, which are
  * implictly all assertions that are not notified to this class.
  */
-class PreprocessProofGenerator : public ProofGenerator
+class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, TrustNode> NodeTrustNodeMap;
 
  public:
   /**
-   * @param pnm The proof node manager
+   * @param env Reference to the environment
    * @param c The context this class depends on
    * @param name The name of this generator (for debugging)
    * @param ra The proof rule to use when no generator is provided for new
@@ -67,7 +68,7 @@ class PreprocessProofGenerator : public ProofGenerator
    * @param rpp The proof rule to use when no generator is provided for
    * preprocessing steps.
    */
-  PreprocessProofGenerator(ProofNodeManager* pnm,
+  PreprocessProofGenerator(Env& env,
                            context::Context* c = nullptr,
                            std::string name = "PreprocessProofGenerator",
                            PfRule ra = PfRule::PREPROCESS_LEMMA,
@@ -98,8 +99,6 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
-  /** Get the proof manager */
-  ProofNodeManager* getManager();
   /**
    * Allocate a helper proof. This returns a fresh lazy proof object that
    * remains alive in the context. This feature is used to construct
@@ -114,8 +113,6 @@ class PreprocessProofGenerator : public ProofGenerator
    * to this class.
    */
   void checkEagerPedantic(PfRule r);
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The context used here */

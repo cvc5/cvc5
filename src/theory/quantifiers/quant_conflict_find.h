@@ -132,8 +132,6 @@ public:
 public:
   QuantInfo();
   ~QuantInfo();
-  /** Get quantifiers inference manager */
-  QuantifiersInferenceManager& getInferenceManager();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -197,7 +195,7 @@ class QuantConflictFind : public QuantifiersModule
 
  private:
   context::CDO< bool > d_conflict;
-  std::map< Kind, Node > d_zero;
+  std::map<std::pair<TypeNode, Kind>, Node> d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
   std::vector< Node > d_tempCache;
   //optimization: list of quantifiers that depend on ground function applications
@@ -211,8 +209,9 @@ private:
 public:  //for ground terms
   Node d_true;
   Node d_false;
-  TNode getZero( Kind k );
-private:
+  TNode getZero(TypeNode tn, Kind k);
+
+ private:
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
   // type -> list(eqc)

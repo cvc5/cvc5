@@ -41,10 +41,6 @@ bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
 
-bool Configuration::isDumpingBuild() {
-  return IS_DUMPING_BUILD && !IS_MUZZLED_BUILD;
-}
-
 bool Configuration::isMuzzledBuild() {
   return IS_MUZZLED_BUILD;
 }
@@ -73,11 +69,7 @@ bool Configuration::isCompetitionBuild() {
 
 bool Configuration::isStaticBuild()
 {
-#if defined(CVC5_STATIC_BUILD)
-  return true;
-#else
-  return false;
-#endif
+  return CVC5_STATIC_BUILD;
 }
 
 string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }
@@ -114,16 +106,10 @@ std::string Configuration::copyright() {
      << "  See https://github.com/arminbiere/cadical for copyright "
      << "information.\n\n";
 
-  if (Configuration::isBuiltWithAbc()
-      || Configuration::isBuiltWithCryptominisat()
+  if (Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithEditline())
   {
-    if (Configuration::isBuiltWithAbc()) {
-      ss << "  ABC - A System for Sequential Synthesis and Verification\n"
-         << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
-         << "  licensing information.\n\n";
-    }
     if (Configuration::isBuiltWithCryptominisat())
     {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
@@ -221,10 +207,6 @@ bool Configuration::isBuiltWithCln() {
 
 bool Configuration::isBuiltWithGlpk() {
   return IS_GLPK_BUILD;
-}
-
-bool Configuration::isBuiltWithAbc() {
-  return IS_ABC_BUILD;
 }
 
 bool Configuration::isBuiltWithCryptominisat() {

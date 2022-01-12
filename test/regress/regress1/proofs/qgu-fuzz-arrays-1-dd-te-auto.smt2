@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status unsat)
+(declare-const x Int)
+(declare-fun b () (Array Int Int))
+(declare-fun y () Int)
+(assert (and (= b (store b x y)) (= b (store b y y)) (= y (ite (> y 0) 0 y)) (= (store b 0 0) (store (store b y 1) 1 1))))
+(check-sat)

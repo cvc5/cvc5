@@ -23,6 +23,7 @@
 
 #include "base/check.h"
 #include "base/exception.h"
+#include "util/hash.h"
 
 using namespace std;
 
@@ -518,6 +519,20 @@ Rational String::toNumber() const
   // semantics of str.from.int for leading zeros
   return Rational(toString());
 }
+
+namespace strings {
+
+size_t StringHashFunction::operator()(const ::cvc5::String& s) const
+{
+  uint64_t ret = fnv1a::offsetBasis;
+  for (unsigned c : s.d_str)
+  {
+    ret = fnv1a::fnv1a_64(c, ret);
+  }
+  return static_cast<size_t>(ret);
+}
+
+}  // namespace strings
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString() << "\"";

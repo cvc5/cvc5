@@ -75,64 +75,64 @@ TEST_F(TestTheoryWhiteTypeEnumerator, arith)
 {
   TypeEnumerator te(d_nodeManager->integerType());
   ASSERT_FALSE(te.isFinished());
-  ASSERT_EQ(*te, d_nodeManager->mkConst(Rational(0)));
+  ASSERT_EQ(*te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
   for (int i = 1; i <= 100; ++i)
   {
     ASSERT_FALSE(te.isFinished());
-    ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(i)));
+    ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(i)));
     ASSERT_FALSE(te.isFinished());
-    ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-i)));
+    ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-i)));
   }
   ASSERT_FALSE(te.isFinished());
 
   te = TypeEnumerator(d_nodeManager->realType());
   ASSERT_FALSE(te.isFinished());
-  ASSERT_EQ(*te, d_nodeManager->mkConst(Rational(0, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(2, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-2, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 2)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 2)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(3, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-3, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 3)));
+  ASSERT_EQ(*te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(0, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(2, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-2, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 2)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(3, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-3, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 3)));
   ASSERT_FALSE(te.isFinished());
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(4, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-4, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(3, 2)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-3, 2)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(2, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-2, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 4)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 4)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(5, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-5, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(4, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-4, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(3, 2)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-3, 2)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(2, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-2, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 4)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 4)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(5, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-5, 1)));
   ASSERT_FALSE(te.isFinished());
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 5)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 5)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(6, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-6, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(5, 2)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-5, 2)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(4, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-4, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(3, 4)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-3, 4)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(2, 5)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-2, 5)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 6)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 5)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 5)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(6, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-6, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(5, 2)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-5, 2)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(4, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-4, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(3, 4)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-3, 4)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(2, 5)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-2, 5)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 6)));
   ASSERT_FALSE(te.isFinished());
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 6)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(7, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-7, 1)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(5, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-5, 3)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(3, 5)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-3, 5)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(1, 7)));
-  ASSERT_EQ(*++te, d_nodeManager->mkConst(Rational(-1, 7)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 6)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(7, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-7, 1)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(5, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-5, 3)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(3, 5)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-3, 5)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 7)));
+  ASSERT_EQ(*++te, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1, 7)));
   ASSERT_FALSE(te.isFinished());
 }
 
@@ -265,26 +265,26 @@ TEST_F(TestTheoryWhiteTypeEnumerator, arrays_infinite)
   // ensure that certain items were found
   TypeNode arrayType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                   d_nodeManager->integerType());
-  Node zeroes = d_nodeManager->mkConst(
-      ArrayStoreAll(arrayType, d_nodeManager->mkConst(Rational(0))));
-  Node ones = d_nodeManager->mkConst(
-      ArrayStoreAll(arrayType, d_nodeManager->mkConst(Rational(1))));
-  Node twos = d_nodeManager->mkConst(
-      ArrayStoreAll(arrayType, d_nodeManager->mkConst(Rational(2))));
-  Node threes = d_nodeManager->mkConst(
-      ArrayStoreAll(arrayType, d_nodeManager->mkConst(Rational(3))));
-  Node fours = d_nodeManager->mkConst(
-      ArrayStoreAll(arrayType, d_nodeManager->mkConst(Rational(4))));
-  Node tens = d_nodeManager->mkConst(
-      ArrayStoreAll(arrayType, d_nodeManager->mkConst(Rational(10))));
+  Node zeroes = d_nodeManager->mkConst(ArrayStoreAll(
+      arrayType, d_nodeManager->mkConst(CONST_RATIONAL, Rational(0))));
+  Node ones = d_nodeManager->mkConst(ArrayStoreAll(
+      arrayType, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1))));
+  Node twos = d_nodeManager->mkConst(ArrayStoreAll(
+      arrayType, d_nodeManager->mkConst(CONST_RATIONAL, Rational(2))));
+  Node threes = d_nodeManager->mkConst(ArrayStoreAll(
+      arrayType, d_nodeManager->mkConst(CONST_RATIONAL, Rational(3))));
+  Node fours = d_nodeManager->mkConst(ArrayStoreAll(
+      arrayType, d_nodeManager->mkConst(CONST_RATIONAL, Rational(4))));
+  Node tens = d_nodeManager->mkConst(ArrayStoreAll(
+      arrayType, d_nodeManager->mkConst(CONST_RATIONAL, Rational(10))));
 
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node two = d_nodeManager->mkConst(Rational(2));
-  Node three = d_nodeManager->mkConst(Rational(3));
-  Node four = d_nodeManager->mkConst(Rational(4));
-  Node five = d_nodeManager->mkConst(Rational(5));
-  Node eleven = d_nodeManager->mkConst(Rational(11));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
+  Node four = d_nodeManager->mkConst(CONST_RATIONAL, Rational(4));
+  Node five = d_nodeManager->mkConst(CONST_RATIONAL, Rational(5));
+  Node eleven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(11));
 
   ASSERT_EQ(elts.find(d_nodeManager->mkNode(STORE, ones, zero, zero)),
             elts.end());

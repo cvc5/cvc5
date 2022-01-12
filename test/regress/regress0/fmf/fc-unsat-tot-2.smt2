@@ -7,7 +7,7 @@
 (declare-fun b () U)
 (declare-fun c () U)
 
-(assert (not (fmf.card a 2)))
+(assert (not (_ fmf.card U 2)))
 
 (assert (forall ((x U)) (or (= x a) (= x b))))
 

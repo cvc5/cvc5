@@ -4,8 +4,8 @@
 (set-info :status unsat)
 (declare-fun x () (Set Int))
 
-(assert (= x (union (singleton 0) (singleton 1))))
+(assert (= x (set.union (set.singleton 0) (set.singleton 1))))
 
-(assert (not (member 0 (as univset (Set Int)))))
+(assert (not (set.member 0 (as set.universe (Set Int)))))
 
 (check-sat)

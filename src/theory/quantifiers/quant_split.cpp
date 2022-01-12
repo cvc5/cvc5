@@ -62,12 +62,13 @@ void QuantDSplit::checkOwnership(Node q)
       }
       else
       {
-        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        if (options().quantifiers.quantDynamicSplit
+            == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
           doSplit = isFinite;
         }
-        else if (options::quantDynamicSplit()
+        else if (options().quantifiers.quantDynamicSplit
                  == options::QuantDSplitMode::DEFAULT)
         {
           if (!qbi.isFiniteBound(q, q[0][i]))
@@ -166,7 +167,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         std::vector<Node> vars;
-        TypeNode dtjtn = dt[j].getSpecializedConstructorType(tn);
+        TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
         Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
         for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
         {

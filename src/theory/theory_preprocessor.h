@@ -23,6 +23,7 @@
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/conv_seq_proof_generator.h"
 #include "proof/lazy_proof.h"
@@ -48,22 +49,13 @@ namespace theory {
  * [2]
  * TRAVERSE(
  *   prerewrite:
- *    if theory atom {
- *      TRAVERSE(
- *        prerewrite:
- *          // nothing
- *        postrewrite:
- *          apply rewriter
- *          apply ppRewrite
- *            if changed
- *              apply rewriter
- *              REPEAT traversal
- *      )
- *      apply term formula removal
- *      apply rewriter
- *    }
- *  postrewrite: // for Boolean connectives
- *    apply rewriter
+ *     apply term formula removal to the current node
+ *   postrewrite:
+ *     apply rewriter
+ *     apply ppRewrite
+ *       if changed
+ *         apply rewriter
+ *         REPEAT traversal
  * )
  *
  * Note that the rewriter must be applied beforehand, since the rewriter may
@@ -134,33 +126,27 @@ class TheoryPreprocessor : protected EnvObj
                                     bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
-  /**
-   * Cache for theory-preprocessing of theory atoms. The domain of this map
-   * are terms that appear within theory atoms given to this class.
+
+  typedef context::CDInsertHashMap<
+      std::pair<Node, uint32_t>,
+      Node,
+      PairHashFunction<Node, uint32_t, std::hash<Node>>>
+      TppCache;
+  /** term formula removal cache
+   *
+   * This stores the results of theory preprocessing using the theoryPreprocess
+   * method, where the integer in the pair we hash on is the
+   * result of cacheVal of the rtf term context.
    */
-  NodeMap d_ppCache;
-  /**
-   * Cache for theory-preprocessing + term formula removal of the Boolean
-   * structure of assertions. The domain of this map are the Boolean
-   * connectives and theory atoms given to this class.
-   */
-  NodeMap d_rtfCache;
+  TppCache d_cache;
   /** The term formula remover */
   RemoveTermFormulas d_tfr;
-  /** The term context, which computes hash values for term contexts. */
-  InQuantTermContext d_iqtc;
   /**
    * A term conversion proof generator storing preprocessing and rewriting
    * steps, which is done until fixed point in the inner traversal of this
    * class for theory atoms in step [2] above.
    */
   std::unique_ptr<TConvProofGenerator> d_tpg;
-  /**
-   * A term conversion proof generator storing large steps from d_tpg (results
-   * of its fixed point) and term formula removal steps for the outer traversal
-   * of this class for theory atoms in step [2] above.
-   */
-  std::unique_ptr<TConvProofGenerator> d_tpgRtf;
   /**
    * A term conversion proof generator storing rewriting steps, which is used
    * for top-level rewriting before the preprocessing pass, step [1] above.
@@ -175,27 +161,32 @@ class TheoryPreprocessor : protected EnvObj
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
   /**
-   * Helper for theoryPreprocess, which traverses the provided term and
-   * applies ppRewrite and rewriting until fixed point on term using
-   * the method preprocessWithProof helper below.
+   * The remove term formula context, which computes hash values for term
+   * contexts.
    */
-  Node ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems);
+  RtfTermContext d_rtfc;
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
    *
    * @param term The term to rewrite
    * @param pg The proof generator to register to
-   * @param isPre whether the rewrite is a pre-rewrite.
+   * @param isPre Whether the rewrite is a pre-rewrite
+   * @param tctx The term context identifier we should store the proof in pg
    */
-  Node rewriteWithProof(Node term, TConvProofGenerator* pg, bool isPre);
+  Node rewriteWithProof(Node term,
+                        TConvProofGenerator* pg,
+                        bool isPre,
+                        uint32_t tctx);
   /**
    * Preprocess with proof, which calls the appropriate ppRewrite method,
    * stores the corresponding rewrite step in d_tpg if necessary and returns
    * the preprocessed and rewritten form of term. It should be the case that
    * term is already in rewritten form.
    */
-  Node preprocessWithProof(Node term, std::vector<SkolemLemma>& lems);
+  Node preprocessWithProof(Node term,
+                           std::vector<SkolemLemma>& lems,
+                           uint32_t tctx);
   /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is
@@ -203,11 +194,13 @@ class TheoryPreprocessor : protected EnvObj
    *
    * @param trn The REWRITE trust node
    * @param pg The proof generator to register to
-   * @param isPre whether the rewrite is a pre-rewrite.
+   * @param isPre Whether the rewrite is a pre-rewrite
+   * @param tctx The term context identifier we should store the proof in pg
    */
   void registerTrustedRewrite(TrustNode trn,
                               TConvProofGenerator* pg,
-                              bool isPre);
+                              bool isPre,
+                              uint32_t tctx);
   /** Proofs enabled */
   bool isProofEnabled() const;
 };

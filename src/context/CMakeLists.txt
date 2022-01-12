@@ -14,7 +14,6 @@
 ##
 
 set(LIBCONTEXT_SOURCES
-  cddense_set.h
   cdhashmap.h
   cdhashmap_forward.h
   cdhashset.h
@@ -35,4 +34,4 @@ set(LIBCONTEXT_SOURCES
 
 add_library(cvc5context OBJECT ${LIBCONTEXT_SOURCES})
 set_target_properties(cvc5context PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(cvc5context PRIVATE -D__BUILDING_CVC5LIB)
+target_compile_definitions(cvc5context PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)

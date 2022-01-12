@@ -32,11 +32,8 @@ namespace prop {
 class SatSolverFactory
 {
  public:
-  static BVSatSolverInterface* createMinisat(context::Context* mainSatContext,
-                                             StatisticsRegistry& registry,
-                                             const std::string& name = "");
-
-  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry& registry);
+  static MinisatSatSolver* createCDCLTMinisat(Env& env,
+                                              StatisticsRegistry& registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         const std::string& name = "");

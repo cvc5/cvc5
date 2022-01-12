@@ -18,12 +18,14 @@
 #ifndef CVC5__THEORY__BAGS__THEORY_BAGS_H
 #define CVC5__THEORY__BAGS__THEORY_BAGS_H
 
+#include "theory/bags/bag_reduction.h"
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/bags/strategy.h"
 #include "theory/bags/term_registry.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -52,6 +54,8 @@ class TheoryBags : public Theory
   bool needsEqualityEngine(EeSetupInfo& esi) override;
   /** finish initialization */
   void finishInit() override;
+  /** preprocess rewrite */
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   //--------------------------------- end initialization
 
   //--------------------------------- standard check
@@ -68,6 +72,11 @@ class TheoryBags : public Theory
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
   void presolve() override;
+
+  /** run strategy for effort e */
+  void runStrategy(Theory::Effort e);
+  /** run the given inference step */
+  bool runInferStep(InferStep s, int effort);
 
  private:
   /** Functions to handle callbacks from equality engine */
@@ -87,6 +96,10 @@ class TheoryBags : public Theory
     TheoryBags& d_theory;
   };
 
+  /** expand the definition of the bag.choose operator */
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
+
   /** The state of the bags solver at full effort */
   SolverState d_state;
   /** The inference manager */
@@ -103,6 +116,12 @@ class TheoryBags : public Theory
   TermRegistry d_termReg;
   /** the main solver for bags */
   BagSolver d_solver;
+
+  /** bag reduction */
+  BagReduction d_bagReduction;
+
+  /** The representation of the strategy */
+  Strategy d_strat;
 
   void eqNotifyNewClass(TNode n);
   void eqNotifyMerge(TNode n1, TNode n2);

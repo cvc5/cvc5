@@ -33,20 +33,20 @@
 namespace cvc5 {
 namespace prop {
 
-TheoryProxy::TheoryProxy(PropEngine* propEngine,
+TheoryProxy::TheoryProxy(Env& env,
+                         PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
                          decision::DecisionEngine* decisionEngine,
-                         SkolemDefManager* skdm,
-                         Env& env)
-    : d_propEngine(propEngine),
+                         SkolemDefManager* skdm)
+    : EnvObj(env),
+      d_propEngine(propEngine),
       d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_dmNeedsActiveDefs(d_decisionEngine->needsActiveSkolemDefs()),
       d_theoryEngine(theoryEngine),
       d_queue(env.getContext()),
       d_tpp(env, *theoryEngine),
-      d_skdm(skdm),
-      d_env(env)
+      d_skdm(skdm)
 {
 }
 
@@ -120,7 +120,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Node theoryExplanation = tte.getNode();
   if (d_env.isSatProofProducing())
   {
-    Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
+    Assert(options().smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF
            || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }

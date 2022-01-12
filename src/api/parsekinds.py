@@ -22,7 +22,7 @@ handle nested '#if 0' pairs.
 """
 
 from collections import OrderedDict
-
+import textwrap
 
 ##################### Useful Constants ################
 OCB = '{'
@@ -34,7 +34,7 @@ US = '_'
 NL = '\n'
 
 # Expected C++ Enum Declarations
-ENUM_START = 'enum CVC5_EXPORT Kind'
+ENUM_START = 'enum Kind'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens
@@ -105,7 +105,7 @@ class KindsParser:
            BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
            FLOATINGPOINT_ISNAN -->  FPIsNan
-           SETMINUS            -->  Setminus
+           SET_MINUS            -->  Setminus
 
         See the generated .pxi file for an explicit mapping
         '''
@@ -120,19 +120,19 @@ class KindsParser:
 
     def format_comment(self, comment):
         '''
-        Removes the C++ syntax for block comments and returns just the text
+        Removes the C++ syntax for block comments and returns just the text.
         '''
-        assert comment[0]  == '/', \
-            "Expecting to start with / but got %s" % comment[0]
-        assert comment[-1] == '/', \
-            "Expecting to end with / but got %s" % comment[-1]
-        res = ""
-        for line in comment.strip("/* \t").split("\n"):
-            line = line.strip("*")
-            if line:
-                res += line
-                res += "\n"
-        return res
+        assert comment[:2]  == '/*', \
+            "Expecting to start with /* but got \"{}\"".format(comment[:2])
+        assert comment[-2:] == '*/', \
+            "Expecting to end with */ but got \"{}\"".format(comment[-2:])
+        comment = comment[2:-2].strip('*\n')   # /** ... */ -> ...
+        comment = textwrap.dedent(comment)     # remove indentation
+        comment = comment.replace('\n*', '\n') # remove leading "*""
+        comment = textwrap.dedent(comment)     # remove indentation
+        comment = comment.replace('\\rst', '').replace('\\endrst', '')
+        comment = comment.strip()  # remove leading and trailing spaces
+        return comment
 
     def ignore_block(self, line):
         '''

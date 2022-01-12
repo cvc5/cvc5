@@ -21,22 +21,22 @@ cardinality CONSTRUCTOR_TYPE \
 operator SELECTOR_TYPE 2 "selector"
 # can re-use function cardinality
 cardinality SELECTOR_TYPE \
-    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
+    "::cvc5::theory::uf::FunctionProperties::computeCardinality(%TYPE%)" \
+    "theory/uf/theory_uf_type_rules.h"
 
 # tester type has a constructor type
 operator TESTER_TYPE 1 "tester"
 # can re-use function cardinality
 cardinality TESTER_TYPE \
-    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
+    "::cvc5::theory::uf::FunctionProperties::computeCardinality(%TYPE%)" \
+    "theory/uf/theory_uf_type_rules.h"
 
 # tester type has a constructor type
 operator UPDATER_TYPE 2 "datatype update"
 # can re-use function cardinality
 cardinality UPDATER_TYPE \
-    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
+    "::cvc5::theory::uf::FunctionProperties::computeCardinality(%TYPE%)" \
+    "theory/uf/theory_uf_type_rules.h"
 
 parameterized APPLY_CONSTRUCTOR APPLY_TYPE_ASCRIPTION 0: "constructor application; first parameter is the constructor, remaining parameters (if any) are parameters to the constructor"
 
@@ -107,10 +107,10 @@ operator DT_SIZE_BOUND 2 "datatypes height bound"
 typerule DT_SIZE_BOUND ::cvc5::theory::datatypes::DtBoundTypeRule
 
 operator DT_SYGUS_BOUND 2 "datatypes sygus bound"
-typerule DT_SYGUS_BOUND ::cvc5::theory::datatypes::DtSygusBoundTypeRule
+typerule DT_SYGUS_BOUND ::cvc5::theory::datatypes::DtBoundTypeRule
 
 operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
-typerule DT_SYGUS_EVAL ::cvc5::theory::datatypes::DtSyguEvalTypeRule
+typerule DT_SYGUS_EVAL ::cvc5::theory::datatypes::DtSygusEvalTypeRule
 
 
 # Kinds for match terms. For example, the match term
@@ -144,5 +144,14 @@ parameterized TUPLE_PROJECT TUPLE_PROJECT_OP 1 \
 
 typerule TUPLE_PROJECT_OP  "SimpleTypeRule<RBuiltinOperator>"
 typerule TUPLE_PROJECT     ::cvc5::theory::datatypes::TupleProjectTypeRule
+
+# For representing codatatype values
+constant CODATATYPE_BOUND_VARIABLE \
+    class \
+    CodatatypeBoundVariable \
+    ::cvc5::CodatatypeBoundVariableHashFunction \
+    "expr/codatatype_bound_variable.h" \
+    "the kind of expressions representing bound variables in codatatype constants, which are de Bruijn indexed variables; payload is an instance of the cvc5::CodatatypeBoundVariable class (used in models)"
+typerule CODATATYPE_BOUND_VARIABLE ::cvc5::theory::datatypes::CodatatypeBoundVariableTypeRule
 
 endtheory

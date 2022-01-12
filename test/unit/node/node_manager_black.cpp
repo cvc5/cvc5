@@ -122,7 +122,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
   Node x = d_skolemManager->mkDummySkolem(
-      "x", *d_boolTypeNode, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", *d_boolTypeNode, "", SkolemManager::SKOLEM_EXACT_NAME);
   ASSERT_EQ(x.getKind(), SKOLEM);
   ASSERT_EQ(x.getNumChildren(), 0u);
   ASSERT_EQ(x.getAttribute(VarNameAttr()), "x");
@@ -140,7 +140,7 @@ TEST_F(TestNodeBlackNodeManager, mkConst_bool)
 TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 {
   Rational r("3/2");
-  Node n = d_nodeManager->mkConst(r);
+  Node n = d_nodeManager->mkConst(CONST_RATIONAL, r);
   ASSERT_EQ(n.getConst<Rational>(), r);
 }
 

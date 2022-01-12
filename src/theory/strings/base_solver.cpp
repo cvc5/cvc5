@@ -32,8 +32,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
-    : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
+BaseSolver::BaseSolver(Env& env,
+                       SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr)
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
@@ -46,7 +49,7 @@ void BaseSolver::checkInit()
   // build term index
   d_eqcInfo.clear();
   d_termIndex.clear();
-  d_stringsEqc.clear();
+  d_stringLikeEqc.clear();
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
@@ -65,7 +68,7 @@ void BaseSolver::checkInit()
       std::map<Kind, TermIndex>& tti = d_termIndex[tn];
       if (tn.isStringLike())
       {
-        d_stringsEqc.push_back(eqc);
+        d_stringLikeEqc.push_back(eqc);
         emps = Word::mkEmptyWord(tn);
       }
       Node var;
@@ -344,7 +347,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     Node c;
     if (isConst)
     {
-      c = utils::mkNConcat(vecc, n.getType());
+      c = d_termReg.mkNConcat(vecc, n.getType());
     }
     if (!isConst || !d_state.areEqual(n, c))
     {
@@ -421,7 +424,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           {
             // The equivalence class is not entailed to be equal to a constant
             // and we found a better concatenation
-            Node nct = utils::mkNConcat(vecnc, n.getType());
+            Node nct = d_termReg.mkNConcat(vecnc, n.getType());
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
             bei.d_bestScore = contentSize;
@@ -512,7 +515,7 @@ void BaseSolver::checkCardinality()
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
   std::map<TypeNode, std::vector<std::vector<Node> > > cols;
   std::map<TypeNode, std::vector<Node> > lts;
-  d_state.separateByLength(d_stringsEqc, cols, lts);
+  d_state.separateByLength(d_stringLikeEqc, cols, lts);
   for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
   {
     checkCardinalityType(c.first, c.second, lts[c.first]);
@@ -604,8 +607,8 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     if (lr.isConst())
     {
       // if constant, compare
-      Node cmp = nm->mkNode(GEQ, lr, nm->mkConst(Rational(card_need)));
-      cmp = Rewriter::rewrite(cmp);
+      Node cmp = nm->mkNode(GEQ, lr, nm->mkConstInt(Rational(card_need)));
+      cmp = rewrite(cmp);
       needsSplit = !cmp.getConst<bool>();
     }
     else
@@ -618,7 +621,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       bool success = true;
       while (r < card_need && success)
       {
-        Node rr = nm->mkConst(Rational(r));
+        Node rr = nm->mkConstInt(Rational(r));
         if (d_state.areDisequal(rr, lr))
         {
           r++;
@@ -668,7 +671,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                           << std::endl;
     if (int_k + 1 > ei->d_cardinalityLemK.get())
     {
-      Node k_node = nm->mkConst(Rational(int_k));
+      Node k_node = nm->mkConstInt(Rational(int_k));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
       std::vector<Node> expn;
@@ -686,7 +689,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       }
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
       Node cons = nm->mkNode(GEQ, len, k_node);
-      cons = Rewriter::rewrite(cons);
+      cons = rewrite(cons);
       ei->d_cardinalityLemK.set(int_k + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {
@@ -758,9 +761,9 @@ Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
   return Node::null();
 }
 
-const std::vector<Node>& BaseSolver::getStringEqc() const
+const std::vector<Node>& BaseSolver::getStringLikeEqc() const
 {
-  return d_stringsEqc;
+  return d_stringLikeEqc;
 }
 
 Node BaseSolver::TermIndex::add(TNode n,

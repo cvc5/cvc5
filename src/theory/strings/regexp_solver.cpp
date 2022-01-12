@@ -52,7 +52,7 @@ RegExpSolver::RegExpSolver(Env& env,
       d_regexp_opr(env, tr.getSkolemCache())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
-  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
+  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_NONE);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -62,8 +62,10 @@ Node RegExpSolver::mkAnd(Node c1, Node c2)
   return NodeManager::currentNM()->mkNode(AND, c1, c2);
 }
 
-void RegExpSolver::checkMemberships()
+void RegExpSolver::checkMemberships(int effort)
 {
+  Trace("regexp-process") << "Checking Memberships, effort = " << effort
+                          << " ... " << std::endl;
   // add the memberships
   std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
   // maps representatives to regular expression memberships in that class
@@ -90,236 +92,260 @@ void RegExpSolver::checkMemberships()
           << "  irrelevant (non-asserted) membership : " << n << std::endl;
     }
   }
-  check(assertedMems);
+  if (effort == 0)
+  {
+    // First check for conflict. We do this only if effort is 0, otherwise
+    // we have already run these checks in this SAT context.
+    if (checkInclInter(assertedMems))
+    {
+      return;
+    }
+  }
+  checkUnfold(assertedMems, effort);
 }
 
-void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
+bool RegExpSolver::checkInclInter(
+    const std::map<Node, std::vector<Node> >& mems)
 {
-  bool addedLemma = false;
-  bool changed = false;
-  std::vector<Node> processed;
-
-  Trace("regexp-process") << "Checking Memberships ... " << std::endl;
+  Trace("regexp-process") << "Checking inclusion/intersection ... "
+                          << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
+    // copy the vector because it is modified in the call below
     std::vector<Node> mems2 = mr.second;
     Trace("regexp-process")
         << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if (!checkEqcInclusion(mems2))
+    if (options().strings.stringRegexpInclusion && !checkEqcInclusion(mems2))
     {
       // conflict discovered, return
-      return;
+      return true;
     }
     if (!checkEqcIntersect(mems2))
     {
       // conflict discovered, return
-      return;
+      return true;
+    }
+  }
+  Trace("regexp-debug") << "... No Intersect Conflict in Memberships"
+                        << std::endl;
+  return false;
+}
+
+void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
+                               int effort)
+{
+  Trace("regexp-process") << "Checking unfold ... " << std::endl;
+  bool addedLemma = false;
+  std::vector<Node> processed;
+
+  // get all memberships
+  std::map<Node, Node> allMems;
+  for (const std::pair<const Node, std::vector<Node> >& mr : mems)
+  {
+    for (const Node& m : mr.second)
+    {
+      allMems[m] = mr.first;
     }
   }
 
-  Trace("regexp-debug")
-      << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma
-      << std::endl;
-  if (!addedLemma)
+  NodeManager* nm = NodeManager::currentNM();
+  // representatives of strings that are the LHS of positive memberships that
+  // we unfolded
+  std::unordered_set<Node> repUnfold;
+  // Check positive (e=0), then negative (e=1) memberships. If we are doing
+  // model-based reductions, we process positive ones at effort=0, and negative
+  // ones at effort=3.
+  bool mbr = options().strings.stringModelBasedReduction;
+  size_t startE = mbr ? (effort > 0 ? 1 : 0) : 0;
+  size_t endE = mbr ? (effort > 0 ? 2 : 1) : 2;
+  for (size_t e = startE; e < endE; e++)
   {
-    // get all memberships
-    std::map<Node, Node> allMems;
-    for (const std::pair<const Node, std::vector<Node> >& mr : mems)
+    for (const std::pair<const Node, Node>& mp : allMems)
     {
-      for (const Node& m : mr.second)
+      Node assertion = mp.first;
+      Node rep = mp.second;
+      bool polarity = assertion.getKind() != NOT;
+      if (polarity != (e == 0))
       {
-        allMems[m] = mr.first;
+        continue;
       }
-    }
-
-    NodeManager* nm = NodeManager::currentNM();
-    // representatives of strings that are the LHS of positive memberships that
-    // we unfolded
-    std::unordered_set<Node> repUnfold;
-    // check positive (e=0), then negative (e=1) memberships
-    for (unsigned e = 0; e < 2; e++)
-    {
-      for (const std::pair<const Node, Node>& mp : allMems)
+      // check regular expression membership
+      Trace("regexp-debug")
+          << "Check : " << assertion << " "
+          << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " "
+          << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
+          << std::endl;
+      if (d_regexp_ucached.find(assertion) != d_regexp_ucached.end()
+          || d_regexp_ccached.find(assertion) != d_regexp_ccached.end())
       {
-        Node assertion = mp.first;
-        Node rep = mp.second;
-        // check regular expression membership
-        Trace("regexp-debug")
-            << "Check : " << assertion << " "
-            << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end())
-            << " "
-            << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
-            << std::endl;
-        if (d_regexp_ucached.find(assertion) != d_regexp_ucached.end()
-            || d_regexp_ccached.find(assertion) != d_regexp_ccached.end())
-        {
-          continue;
-        }
+        continue;
+      }
+      Trace("strings-regexp")
+          << "We have regular expression assertion : " << assertion
+          << std::endl;
+      Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
+      Assert(atom == rewrite(atom));
+      if (effort > 0 && !d_esolver.isActiveInModel(atom))
+      {
         Trace("strings-regexp")
-            << "We have regular expression assertion : " << assertion
-            << std::endl;
-        Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
-        Assert(atom == rewrite(atom));
-        bool polarity = assertion.getKind() != NOT;
-        if (polarity != (e == 0))
+            << "...ignore since inactive in model" << std::endl;
+        continue;
+      }
+      Node x = atom[0];
+      Node r = atom[1];
+      Assert(rep == d_state.getRepresentative(x));
+      // The following code takes normal forms into account for the purposes
+      // of simplifying a regular expression membership x in R. For example,
+      // if x = "A" in the current context, then we may be interested in
+      // reasoning about ( x in R ) * { x -> "A" }. Say we update the
+      // membership to nx in R', then:
+      // - nfexp => ( x in R ) <=> nx in R'
+      // - rnfexp => R = R'
+      // We use these explanations below as assumptions on inferences when
+      // appropriate. Notice that for inferring conflicts and tautologies,
+      // we use the normal form of x always. This is because we always want to
+      // discover conflicts/tautologies whenever possible.
+      // For inferences based on regular expression unfolding, we do not use
+      // the normal form of x. The reason is that it is better to unfold
+      // regular expression memberships in a context-indepedent manner,
+      // that is, not taking into account the current normal form of x, since
+      // this ensures these lemmas are still relevant after backtracking.
+      std::vector<Node> nfexp;
+      std::vector<Node> rnfexp;
+      // The normal form of x is stored in nx, while x is left unchanged.
+      Node nx = x;
+      if (!x.isConst())
+      {
+        nx = d_csolver.getNormalString(x, nfexp);
+      }
+      // If r is not a constant regular expression, we update it based on
+      // normal forms, which may concretize its variables.
+      bool changed = false;
+      if (!d_regexp_opr.checkConstRegExp(r))
+      {
+        r = getNormalSymRegExp(r, rnfexp);
+        nfexp.insert(nfexp.end(), rnfexp.begin(), rnfexp.end());
+        changed = true;
+      }
+      Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
+                                 << nx << " IN " << r << std::endl;
+      if (nx != x || changed)
+      {
+        // We rewrite the membership nx IN r.
+        Node tmp = rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
+        Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
+        if (tmp.isConst())
         {
-          continue;
-        }
-        bool flag = true;
-        Node x = atom[0];
-        Node r = atom[1];
-        Assert(rep == d_state.getRepresentative(x));
-        // The following code takes normal forms into account for the purposes
-        // of simplifying a regular expression membership x in R. For example,
-        // if x = "A" in the current context, then we may be interested in
-        // reasoning about ( x in R ) * { x -> "A" }. Say we update the
-        // membership to nx in R', then:
-        // - nfexp => ( x in R ) <=> nx in R'
-        // - rnfexp => R = R'
-        // We use these explanations below as assumptions on inferences when
-        // appropriate. Notice that for inferring conflicts and tautologies,
-        // we use the normal form of x always. This is because we always want to
-        // discover conflicts/tautologies whenever possible.
-        // For inferences based on regular expression unfolding, we do not use
-        // the normal form of x. The reason is that it is better to unfold
-        // regular expression memberships in a context-indepedent manner,
-        // that is, not taking into account the current normal form of x, since
-        // this ensures these lemmas are still relevant after backtracking.
-        std::vector<Node> nfexp;
-        std::vector<Node> rnfexp;
-        // The normal form of x is stored in nx, while x is left unchanged.
-        Node nx = x;
-        if (!x.isConst())
-        {
-          nx = d_csolver.getNormalString(x, nfexp);
-        }
-        // If r is not a constant regular expression, we update it based on
-        // normal forms, which may concretize its variables.
-        if (!d_regexp_opr.checkConstRegExp(r))
-        {
-          r = getNormalSymRegExp(r, rnfexp);
-          nfexp.insert(nfexp.end(), rnfexp.begin(), rnfexp.end());
-          changed = true;
-        }
-        Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
-                                   << nx << " IN " << r << std::endl;
-        if (nx != x || changed)
-        {
-          // We rewrite the membership nx IN r.
-          Node tmp = rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
-          Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
-          if (tmp.isConst())
+          if (tmp.getConst<bool>() == polarity)
           {
-            if (tmp.getConst<bool>() == polarity)
-            {
-              // it is satisfied in this SAT context
-              d_regexp_ccached.insert(assertion);
-              continue;
-            }
-            else
-            {
-              // we have a conflict
-              std::vector<Node> iexp = nfexp;
-              std::vector<Node> noExplain;
-              iexp.push_back(assertion);
-              noExplain.push_back(assertion);
-              Node conc = Node::null();
-              d_im.sendInference(
-                  iexp, noExplain, conc, InferenceId::STRINGS_RE_NF_CONFLICT);
-              addedLemma = true;
-              break;
-            }
-          }
-        }
-        if (e == 1 && repUnfold.find(rep) != repUnfold.end())
-        {
-          // do not unfold negative memberships of strings that have new
-          // positive unfoldings. For example:
-          //   x in ("A")* ^ NOT x in ("B")*
-          // We unfold x = "A" ++ x' only. The intution here is that positive
-          // unfoldings lead to stronger constraints (equalities are stronger
-          // than disequalities), and are easier to check.
-          continue;
-        }
-        if (polarity)
-        {
-          flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
-        }
-        else
-        {
-          if (!options::stringExp())
-          {
-            throw LogicException(
-                "Strings Incomplete (due to Negative Membership) by default, "
-                "try --strings-exp option.");
-          }
-        }
-        if (flag)
-        {
-          // check if the term is atomic
-          Trace("strings-regexp")
-              << "Unroll/simplify membership of atomic term " << rep
-              << std::endl;
-          // if so, do simple unrolling
-          Trace("strings-regexp") << "Simplify on " << atom << std::endl;
-          Node conc = d_regexp_opr.simplify(atom, polarity);
-          Trace("strings-regexp") << "...finished, got " << conc << std::endl;
-          // if simplifying successfully generated a lemma
-          if (!conc.isNull())
-          {
-            std::vector<Node> iexp;
-            std::vector<Node> noExplain;
-            iexp.push_back(assertion);
-            noExplain.push_back(assertion);
-            Assert(atom.getKind() == STRING_IN_REGEXP);
-            if (polarity)
-            {
-              d_statistics.d_regexpUnfoldingsPos << atom[1].getKind();
-            }
-            else
-            {
-              d_statistics.d_regexpUnfoldingsNeg << atom[1].getKind();
-            }
-            InferenceId inf =
-                polarity ? InferenceId::STRINGS_RE_UNFOLD_POS : InferenceId::STRINGS_RE_UNFOLD_NEG;
-            // in very rare cases, we may find out that the unfolding lemma
-            // for a membership is equivalent to true, in spite of the RE
-            // not being rewritten to true.
-            if (d_im.sendInference(iexp, noExplain, conc, inf))
-            {
-              addedLemma = true;
-              if (e == 0)
-              {
-                // Remember that we have unfolded a membership for x
-                // notice that we only do this here, after we have definitely
-                // added a lemma.
-                repUnfold.insert(rep);
-              }
-            }
-            processed.push_back(assertion);
+            // it is satisfied in this SAT context
+            d_regexp_ccached.insert(assertion);
+            continue;
           }
           else
           {
-            // otherwise we are incomplete
-            d_im.setIncomplete(IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY);
+            // we have a conflict
+            std::vector<Node> iexp = nfexp;
+            std::vector<Node> noExplain;
+            iexp.push_back(assertion);
+            noExplain.push_back(assertion);
+            Node conc = Node::null();
+            d_im.sendInference(
+                iexp, noExplain, conc, InferenceId::STRINGS_RE_NF_CONFLICT);
+            addedLemma = true;
+            break;
           }
         }
-        if (d_state.isInConflict())
+      }
+      if (e == 1 && repUnfold.find(rep) != repUnfold.end())
+      {
+        // do not unfold negative memberships of strings that have new
+        // positive unfoldings. For example:
+        //   x in ("A")* ^ NOT x in ("B")*
+        // We unfold x = "A" ++ x' only. The intution here is that positive
+        // unfoldings lead to stronger constraints (equalities are stronger
+        // than disequalities), and are easier to check.
+        continue;
+      }
+      bool doSimplify = true;
+      if (polarity)
+      {
+        doSimplify = checkPDerivative(x, r, atom, addedLemma, rnfexp);
+      }
+      else
+      {
+        if (!options().strings.stringExp)
         {
-          break;
+          throw LogicException(
+              "Strings Incomplete (due to Negative Membership) by default, "
+              "try --strings-exp option.");
         }
+      }
+      if (doSimplify)
+      {
+        // check if the term is atomic
+        Trace("strings-regexp")
+            << "Unroll/simplify membership of atomic term " << rep << std::endl;
+        // if so, do simple unrolling
+        Trace("strings-regexp") << "Simplify on " << atom << std::endl;
+        Node conc = d_regexp_opr.simplify(atom, polarity);
+        Trace("strings-regexp") << "...finished, got " << conc << std::endl;
+        // if simplifying successfully generated a lemma
+        if (!conc.isNull())
+        {
+          std::vector<Node> iexp;
+          std::vector<Node> noExplain;
+          iexp.push_back(assertion);
+          noExplain.push_back(assertion);
+          Assert(atom.getKind() == STRING_IN_REGEXP);
+          if (polarity)
+          {
+            d_statistics.d_regexpUnfoldingsPos << atom[1].getKind();
+          }
+          else
+          {
+            d_statistics.d_regexpUnfoldingsNeg << atom[1].getKind();
+          }
+          InferenceId inf = polarity ? InferenceId::STRINGS_RE_UNFOLD_POS
+                                     : InferenceId::STRINGS_RE_UNFOLD_NEG;
+          // in very rare cases, we may find out that the unfolding lemma
+          // for a membership is equivalent to true, in spite of the RE
+          // not being rewritten to true.
+          if (d_im.sendInference(iexp, noExplain, conc, inf))
+          {
+            addedLemma = true;
+            if (e == 0)
+            {
+              // Remember that we have unfolded a membership for x
+              // notice that we only do this here, after we have definitely
+              // added a lemma.
+              repUnfold.insert(rep);
+            }
+          }
+          processed.push_back(assertion);
+        }
+        else
+        {
+          // otherwise we are incomplete
+          d_im.setIncomplete(IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY);
+        }
+      }
+      if (d_state.isInConflict())
+      {
+        break;
       }
     }
   }
+
   if (addedLemma)
   {
     if (!d_state.isInConflict())
     {
-      for (unsigned i = 0; i < processed.size(); i++)
+      for (const Node& p : processed)
       {
         Trace("strings-regexp")
-            << "...add " << processed[i] << " to u-cache." << std::endl;
-        d_regexp_ucached.insert(processed[i]);
+            << "...add " << p << " to u-cache." << std::endl;
+        d_regexp_ucached.insert(p);
       }
     }
   }
@@ -350,27 +376,48 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
       bool m2Neg = m2.getKind() == NOT;
       Node m2Lit = m2Neg ? m2[0] : m2;
 
-      // Both regular expression memberships have the same polarity
       if (m1Neg == m2Neg)
       {
-        if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
+        // Check whether the RE in membership m1 contains the one in m2, if
+        // so then m1 can be marked reduced if positive polarity, m2 if
+        // negative polarity.
+        // Notice that we do not do this if the non-reduced membership has
+        // already been unfolded, since memberships may reduce to other
+        // memberships that are included in the original, thus making the
+        // justification for the reduction cyclic.  For example, to reduce:
+        //  (not (str.in_re x (re.++ (re.* R1) R2)))
+        // We may rely on justifying this by the fact that (writing x[i:j] for
+        // substring) either:
+        //  (not (str.in_re x[:0] (re.* R1)))
+        //  (not (str.in_re x[0:] R2))
+        // The first is trivially satisfied, the second is equivalent to
+        //  (not (str.in_re x R2))
+        // where R2 is included in (re.++ (re.* R1) R2)). However, we cannot
+        // mark the latter as reduced.
+        bool basisUnfolded =
+            d_regexp_ucached.find(m1Neg ? m1 : m2) != d_regexp_ucached.end();
+        if (!basisUnfolded)
         {
-          if (m1Neg)
+          // Both regular expression memberships have positive polarity
+          if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
           {
-            // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
-            //   mark ~str.in.re(x, R2) as reduced
-            d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
-            remove.insert(m2);
-          }
-          else
-          {
-            // str.in.re(x, R1) includes str.in.re(x, R2) --->
-            //   mark str.in.re(x, R1) as reduced
-            d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
-            remove.insert(m1);
+            if (m1Neg)
+            {
+              // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
+              //   mark ~str.in.re(x, R2) as reduced
+              d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
+              remove.insert(m2);
+            }
+            else
+            {
+              // str.in.re(x, R1) includes str.in.re(x, R2) --->
+              //   mark str.in.re(x, R1) as reduced
+              d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
+              remove.insert(m1);
 
-            // We don't need to process m1 anymore
-            break;
+              // We don't need to process m1 anymore
+              break;
+            }
           }
         }
       }
@@ -413,7 +460,7 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 {
   // do not compute intersections if the re intersection mode is none
-  if (options::stringRegExpInterMode() == options::RegExpInterMode::NONE)
+  if (options().strings.stringRegExpInterMode == options::RegExpInterMode::NONE)
   {
     return true;
   }
@@ -436,7 +483,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     }
     RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
     if (rct == RE_C_VARIABLE
-        || (options::stringRegExpInterMode()
+        || (options().strings.stringRegExpInterMode
                 == options::RegExpInterMode::CONSTANT
             && rct != RE_C_CONRETE_CONSTANT))
     {
@@ -444,7 +491,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       // on option.
       continue;
     }
-    if (options::stringRegExpInterMode()
+    if (options().strings.stringRegExpInterMode
         == options::RegExpInterMode::ONE_CONSTANT)
     {
       if (!mi.isNull() && rcti >= RE_C_CONSTANT && rct >= RE_C_CONSTANT)
@@ -656,8 +703,8 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   Node ret = r;
   switch (r.getKind())
   {
-    case REGEXP_EMPTY:
-    case REGEXP_SIGMA:
+    case REGEXP_NONE:
+    case REGEXP_ALLCHAR:
     case REGEXP_RANGE: break;
     case STRING_TO_REGEXP:
     {

@@ -15,8 +15,7 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/node_value.h"
+#include "expr/node.h"
 
 #ifndef CVC5__TYPE_NODE_H
 #define CVC5__TYPE_NODE_H
@@ -29,6 +28,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
 #include "util/cardinality_class.h"
 
 namespace cvc5 {
@@ -218,16 +218,6 @@ private:
   }
 
   /**
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these)
-   * have an operator.  "Little-p parameterized" types (like Array),
-   * are OPERATORs, not PARAMETERIZEDs.
-   */
-  inline Node getOperator() const {
-    Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(d_nv->getOperator());
-  }
-
-  /**
    * Returns the unique id of this node
    *
    * @return the id
@@ -374,10 +364,9 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       Language language = Language::LANG_AUTO) const
+  inline void toStream(std::ostream& out) const
   {
-    d_nv->toStream(out, -1, 0, language);
+    d_nv->toStream(out, -1, 0);
   }
 
   /**
@@ -444,22 +433,6 @@ private:
   bool isWellFounded() const;
 
   /**
-   * Construct and return a ground term of this type.  If the type is
-   * not well founded, this function throws an exception.
-   *
-   * @return a ground term of the type
-   */
-  Node mkGroundTerm() const;
-
-  /**
-   * Construct and return a ground value of this type.  If the type is
-   * not well founded, this function throws an exception.
-   *
-   * @return a ground value of the type
-   */
-  Node mkGroundValue() const;
-
-  /**
    * Is this type a subtype of the given type?
    */
   bool isSubtypeOf(TypeNode t) const;
@@ -484,6 +457,9 @@ private:
 
   /** Is this a string-like type? (string or sequence) */
   bool isStringLike() const;
+
+  /** Is this the integer or real type? */
+  bool isRealOrInt() const;
 
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
@@ -697,10 +673,6 @@ private:
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
   static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
-  /** get ensure type condition
-   *  Return value is a condition that implies that n has type tn.
-  */
-  static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
@@ -726,7 +698,7 @@ private:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out, Node::setlanguage::getLanguage(out));
+  n.toStream(out);
   return out;
 }
 
@@ -973,15 +945,6 @@ inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
 }
 
-inline TypeNode TypeNode::getRangeType() const {
-  if(isTester()) {
-    return NodeManager::currentNM()->booleanType();
-  }
-  Assert(isFunction() || isConstructor() || isSelector())
-      << "Cannot get range type of " << *this;
-  return (*this)[getNumChildren() - 1];
-}
-
 /** Is this a floating-point type of with <code>exp</code> exponent bits
     and <code>sig</code> significand bits */
 inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
@@ -1001,38 +964,6 @@ inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().significandWidth();
 }
-
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.  We mark as __attribute__((used)) so that
- * GCC emits code for it even though static analysis indicates it's
- * never called.
- *
- * Tim's Note: I moved this into the node.h file because this allows gdb
- * to find the symbol, and use it, which is the first standard this code needs
- * to meet. A cleaner solution is welcomed.
- */
-static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 

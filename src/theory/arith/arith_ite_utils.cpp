@@ -59,7 +59,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   switch(n.getKind()){
   case ITE:{
     Node c = n[0], t = n[1], e = n[2];
-    if(n.getType().isReal()){
+    TypeNode tn = n.getType();
+    if (tn.isRealOrInt())
+    {
       Node rc = reduceVariablesInItes(c);
       Node rt = reduceVariablesInItes(t);
       Node re = reduceVariablesInItes(e);
@@ -68,15 +70,15 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
       Node ve = d_varParts[e];
       Node vpite = (vt == ve) ? vt : Node::null();
 
+      NodeManager* nm = NodeManager::currentNM();
       if(vpite.isNull()){
         Node rite = rc.iteNode(rt, re);
         // do not apply
         d_reduceVar[n] = rite;
-        d_constants[n] = mkRationalNode(Rational(0));
+        d_constants[n] = nm->mkConstRealOrInt(tn, Rational(0));
         d_varParts[n] = rite; // treat the ite as a variable
         return rite;
       }else{
-        NodeManager* nm = NodeManager::currentNM();
         Node constantite = rc.iteNode(d_constants[t], d_constants[e]);
         Node sum = nm->mkNode(kind::PLUS, vpite, constantite);
         d_reduceVar[n] = sum;
@@ -84,7 +86,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_varParts[n] = vpite;
         return sum;
       }
-    }else{ // non-arith ite
+    }
+    else
+    {  // non-arith ite
       if(!d_contains.containsTermITE(n)){
         // don't bother adding to d_reduceVar
         return n;
@@ -96,26 +100,29 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
     }
   }break;
   default:
-    if(n.getType().isReal() && Polynomial::isMember(n)){
+  {
+    TypeNode tn = n.getType();
+    if (tn.isRealOrInt() && Polynomial::isMember(n))
+    {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
         newn = n;
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
-        newn = Rewriter::rewrite(newn);
+        newn = rewrite(newn);
         Assert(Polynomial::isMember(newn));
       }else{
         newn = n;
       }
-
+      NodeManager* nm = NodeManager::currentNM();
       Polynomial p = Polynomial::parsePolynomial(newn);
       if(p.isConstant()){
         d_constants[n] = newn;
-        d_varParts[n] = mkRationalNode(Rational(0));
+        d_varParts[n] = nm->mkConstRealOrInt(tn, Rational(0));
         // don't bother adding to d_reduceVar
         return newn;
       }else if(!p.containsConstant()){
-        d_constants[n] = mkRationalNode(Rational(0));
+        d_constants[n] = nm->mkConstRealOrInt(tn, Rational(0));
         d_varParts[n] = newn;
         d_reduceVar[n] = p.getNode();
         return p.getNode();
@@ -126,7 +133,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_reduceVar[n] = newn;
         return newn;
       }
-    }else{
+    }
+    else
+    {
       if(!d_contains.containsTermITE(n)){
         return n;
       }
@@ -138,6 +147,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         return n;
       }
     }
+  }
     break;
   }
   Unreachable();
@@ -179,7 +189,9 @@ const Integer& ArithIteUtils::gcdIte(Node n){
     }else{
       return d_one;
     }
-  }else if(n.getKind() == kind::ITE && n.getType().isReal()){
+  }
+  else if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     const Integer& tgcd = gcdIte(n[1]);
     if(tgcd.isOne()){
       d_gcds[n] = d_one;
@@ -196,8 +208,9 @@ const Integer& ArithIteUtils::gcdIte(Node n){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   if(n.isConst()){
-    Assert(n.getKind() == kind::CONST_RATIONAL);
-    return mkRationalNode(n.getConst<Rational>() * q);
+    Assert(n.getType().isRealOrInt());
+    return NodeManager::currentNM()->mkConstRealOrInt(
+        n.getType(), n.getConst<Rational>() * q);
   }else{
     Assert(n.getKind() == kind::ITE);
     Assert(n.getType().isInteger());
@@ -210,21 +223,22 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == kind::ITE);
-  Assert(n.getType().isReal());
+  Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
+  NodeManager* nm = NodeManager::currentNM();
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
     d_reduceGcd[n] = newIte;
     return newIte;
   }else if(gcd.isZero()){
-    Node zeroNode = mkRationalNode(Rational(0));
+    Node zeroNode = nm->mkConstRealOrInt(n.getType(), Rational(0));
     d_reduceGcd[n] = zeroNode;
     return zeroNode;
   }else{
     Rational divBy(Integer(1), gcd);
     Node redite = reduceIteConstantIteByGCD_rec(n, divBy);
-    Node gcdNode = mkRationalNode(Rational(gcd));
-    Node multIte = NodeManager::currentNM()->mkNode(kind::MULT, gcdNode, redite);
+    Node gcdNode = nm->mkConstRealOrInt(n.getType(), Rational(gcd));
+    Node multIte = nm->mkNode(kind::MULT, gcdNode, redite);
     d_reduceGcd[n] = multIte;
     return multIte;
   }
@@ -234,7 +248,8 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   if(d_reduceGcd.find(n) != d_reduceGcd.end()){
     return d_reduceGcd[n];
   }
-  if(n.getKind() == kind::ITE && n.getType().isReal()){
+  if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     return reduceIteConstantIteByGCD(n);
   }
 
@@ -385,7 +400,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   //Node n = 
   Node n = applySubstitutions(binor);
   if(n != binor){
-    n = Rewriter::rewrite(n);
+    n = rewrite(n);
 
     if(!(n.getKind() == kind::OR &&
 	 n.getNumChildren() == 2 &&

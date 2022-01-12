@@ -30,11 +30,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
+SygusEvalUnfold::SygusEvalUnfold(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds)
+{
+}
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
-  Assert(options::sygusEvalUnfold());
+  Assert(options().quantifiers.sygusEvalUnfold);
   // is this a sygus evaluation function application?
   if (n.getKind() != DT_SYGUS_EVAL)
   {
@@ -96,7 +99,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TNode at = a;
       TNode vt = v;
       Node vn = n.substitute(at, vt);
-      vn = Rewriter::rewrite(vn);
+      vn = rewrite(vn);
       unsigned start = d_node_mv_args_proc[n][vn];
       // get explanation in terms of testers
       std::vector<Node> antec_exp;
@@ -138,7 +141,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
         Node expn;
         // should we unfold?
         bool do_unfold = false;
-        if (options::sygusEvalUnfoldBool())
+        if (options().quantifiers.sygusEvalUnfoldBool)
         {
           Node bTermUse = bTerm;
           if (bTerm.getKind() == APPLY_UF)
@@ -174,7 +177,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
         }
         else
         {
-          EvalSygusInvarianceTest esit;
+          EvalSygusInvarianceTest esit(d_env.getRewriter());
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);
@@ -319,7 +322,7 @@ Node SygusEvalUnfold::unfold(Node en,
   Trace("sygus-eval-unfold-debug")
       << "Applied sygus args : " << ret << std::endl;
   // rewrite
-  ret = Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   Trace("sygus-eval-unfold-debug") << "Rewritten : " << ret << std::endl;
   return ret;
 }

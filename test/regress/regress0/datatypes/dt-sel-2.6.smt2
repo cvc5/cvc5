@@ -3,7 +3,7 @@
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((IntList 0)) (
-((empty) (insert ( head Int ) ( tail IntList ) ))
+((empty) (set.insert ( head Int ) ( tail IntList ) ))
 ))
 
 (declare-fun x () IntList)
@@ -12,7 +12,7 @@
 
 (assert (distinct x y z))
 
-(assert (not ((_ is insert) x)))
-(assert (not ((_ is insert) y)))
+(assert (not ((_ is set.insert) x)))
+(assert (not ((_ is set.insert) y)))
 
 (check-sat)

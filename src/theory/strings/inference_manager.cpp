@@ -35,19 +35,24 @@ InferenceManager::InferenceManager(Env& env,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
-                                   SequencesStatistics& statistics,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, s, pnm, "theory::strings::", false),
+                                   SequencesStatistics& statistics)
+    : InferenceManagerBuffered(env, t, s, "theory::strings::", false),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr),
-      d_ipcl(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr)
+      d_ipc(isProofEnabled()
+                ? new InferProofCons(
+                      context(), env.getProofNodeManager(), d_statistics)
+                : nullptr),
+      d_ipcl(isProofEnabled()
+                 ? new InferProofCons(
+                       context(), env.getProofNodeManager(), d_statistics)
+                 : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -136,7 +141,7 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     eq = d_false;
   }
-  else if (Rewriter::rewrite(eq) == d_true)
+  else if (rewrite(eq) == d_true)
   {
     // if trivial, return
     return false;
@@ -180,13 +185,13 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     processConflict(ii);
     return;
   }
-  else if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
+  else if (asLemma || options().strings.stringInferAsLemmas || !ii.isFact())
   {
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
     addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(ii)));
     return;
   }
-  if (options::stringInferSym())
+  if (options().strings.stringInferSym)
   {
     std::vector<Node> unproc;
     for (const Node& ac : ii.d_premises)
@@ -229,7 +234,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
 bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
 {
   Node eq = a.eqNode(b);
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   if (eq.isConst())
   {
     return false;
@@ -238,7 +243,7 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   addPendingPhaseRequirement(eq, preq);
   addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;
@@ -320,7 +325,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     utils::flattenOp(AND, ec, exp);
   }
   std::vector<Node> noExplain;
-  if (!options::stringRExplainLemmas())
+  if (!options().strings.stringRExplainLemmas)
   {
     // if we aren't regressing the explanation, we add all literals to
     // noExplain and ignore ii.d_ant.

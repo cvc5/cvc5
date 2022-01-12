@@ -18,22 +18,23 @@ include(UseJava)
 find_package(JUnit REQUIRED)
 
 get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
+get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
 
 # specify source files for junit tests
 set(java_test_src_files
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/DatatypeTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/GrammarTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/OpTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/ResultTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/SolverTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/SortTest.java
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/TermTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/DatatypeTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
 )
 
 # build junit tests
-add_custom_target(
-  build-junit-tests
-  ALL
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tests/SolverTest.class
+  DEPENDS JUnit-EP-jar cvc5jar ${java_test_src_files}
   COMMAND
     ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
     -cp ${JUnit_JAR}:${CVC5_JAR_PATH} # add JUnit and cvc5 jar files to the class path
@@ -41,29 +42,28 @@ add_custom_target(
   COMMENT "Build junit tests"
   VERBATIM
 )
-
-# make sure junit jar file is present
-add_dependencies(build-junit-tests JUnit-EP-jar)
-# make sure cvc.jar file is built first
-add_dependencies(build-junit-tests cvc5jar)
-
-get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
-
-# run junit tests
-add_custom_target(
-  run-junit-tests
-  ALL
-  COMMAND
-    # run junit tests
-    ${Java_JAVA_EXECUTABLE}
-    -Djava.library.path=${CVC5_JNI_PATH}
-    -jar ${JUnit_JAR}
-    -cp ${JUnit_JAR}:${CVC5_JAR_PATH}:.
-    -select-package cvc5
-  COMMENT "Run junit tests"
-  VERBATIM
+add_custom_target(build-junit-tests
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/tests/SolverTest.class
 )
+add_dependencies(build-units build-junit-tests)
 
-add_dependencies(run-junit-tests build-junit-tests)
-add_dependencies(units run-junit-tests)
-add_dependencies(check run-junit-tests)
+macro(cvc5_add_java_api_test name)
+  add_test (NAME unit/api/java/${name}
+    COMMAND
+      ${Java_JAVA_EXECUTABLE}
+      -Djava.library.path=${CVC5_JNI_PATH}
+      -jar ${JUnit_JAR}
+      -cp ${JUnit_JAR}:${CVC5_JAR_PATH}:.
+      -select-package tests
+      -n tests.${name}
+  )
+  set_tests_properties(unit/api/java/${name} PROPERTIES LABELS "unit java")
+endmacro()
+
+cvc5_add_java_api_test(DatatypeTest)
+cvc5_add_java_api_test(GrammarTest)
+cvc5_add_java_api_test(OpTest)
+cvc5_add_java_api_test(ResultTest)
+cvc5_add_java_api_test(SolverTest)
+cvc5_add_java_api_test(SortTest)
+cvc5_add_java_api_test(TermTest)

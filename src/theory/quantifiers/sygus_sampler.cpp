@@ -32,12 +32,14 @@
 #include "util/sampler.h"
 #include "util/string.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
 SygusSampler::SygusSampler(Env& env)
-    : d_env(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+    : EnvObj(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -184,7 +186,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
                           << vt << std::endl;
   }
   std::map<unsigned, std::map<Node, std::vector<TypeNode> >::iterator> sts;
-  if (options::sygusSampleGrammar())
+  if (options().quantifiers.sygusSampleGrammar)
   {
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
@@ -200,7 +202,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     {
       Node v = d_vars[j];
       Node r;
-      if (options::sygusSampleGrammar())
+      if (options().quantifiers.sygusSampleGrammar)
       {
         // choose a random start sygus type, if possible
         if (sts[j] != d_var_sygus_types.end())
@@ -513,7 +515,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   {
     unsigned e = tn.getFloatingPointExponentSize();
     unsigned s = tn.getFloatingPointSignificandSize();
-    return nm->mkConst(options::sygusSampleFpUniform()
+    return nm->mkConst(options().quantifiers.sygusSampleFpUniform
                            ? Sampler::pickFpUniform(e, s)
                            : Sampler::pickFpBiased(e, s));
   }
@@ -587,14 +589,14 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       std::vector<Node> sum;
       for (unsigned j = 0, size = vec.size(); j < size; j++)
       {
-        Node digit = nm->mkConst(Rational(vec[j]) * curr);
+        Node digit = nm->mkConstInt(Rational(vec[j]) * curr);
         sum.push_back(digit);
         curr = curr * baser;
       }
       Node ret;
       if (sum.empty())
       {
-        ret = nm->mkConst(Rational(0));
+        ret = nm->mkConstInt(Rational(0));
       }
       else if (sum.size() == 1)
       {
@@ -629,7 +631,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       else
       {
-        return nm->mkConst(sr / rr);
+        return nm->mkConstReal(sr / rr);
       }
     }
   }
@@ -815,10 +817,11 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     }
     if (!ptDisequalConst)
     {
-      Notice() << "Warning: " << bv << " and " << bvr
-               << " evaluate to different (non-constant) values on point:"
-               << std::endl;
-      Notice() << ptOut.str();
+      d_env.verbose(1)
+          << "Warning: " << bv << " and " << bvr
+          << " evaluate to different (non-constant) values on point:"
+          << std::endl;
+      d_env.verbose(1) << ptOut.str();
       return;
     }
     // we have detected unsoundness in the rewriter
@@ -829,7 +832,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     Assert(bve != bvre);
     out << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
-    if (options::sygusRewVerifyAbort())
+    if (options().quantifiers.sygusRewVerifyAbort)
     {
       AlwaysAssert(false)
           << "--sygus-rr-verify detected unsoundness in the rewriter!";

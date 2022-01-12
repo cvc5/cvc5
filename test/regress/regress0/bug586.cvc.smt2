@@ -7,9 +7,9 @@
 
 
 (declare-fun emptyRoleSet () (Set role))
-(assert (= emptyRoleSet (as emptyset (Set role))))
+(assert (= emptyRoleSet (as set.empty (Set role))))
 (declare-fun d () (Array role |__cvc5_record_pos_(Set role)_neg_(Set role)|))
-(assert (= (pos (select d r3)) (singleton r1)))
-(assert (= (pos (select d r2)) (union (singleton r2) (singleton r3))))
-(assert (= (neg (select d r2)) (singleton r1)))
+(assert (= (pos (select d r3)) (set.singleton r1)))
+(assert (= (pos (select d r2)) (set.union (set.singleton r2) (set.singleton r3))))
+(assert (= (neg (select d r2)) (set.singleton r1)))
 (check-sat)

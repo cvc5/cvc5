@@ -111,15 +111,6 @@ class BVSolver : protected EnvObj
    */
   virtual Node getValue(TNode node, bool initialize) { return Node::null(); }
 
-  /** Called by abstraction preprocessing pass. */
-  virtual bool applyAbstraction(const std::vector<Node>& assertions,
-                                std::vector<Node>& new_assertions)
-  {
-    new_assertions.insert(
-        new_assertions.end(), assertions.begin(), assertions.end());
-    return false;
-  };
-
  protected:
   TheoryState& d_state;
   TheoryInferenceManager& d_im;

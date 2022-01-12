@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "options/smt_options.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -32,9 +33,10 @@ class TheoryModel;
 /**
  * A utility for blocking the current model.
  */
-class ModelBlocker
+class ModelBlocker : protected EnvObj
 {
  public:
+  ModelBlocker(Env& e);
   /** get model blocker
    *
    * This returns a disjunction of literals ~L1 V ... V ~Ln with the following
@@ -63,7 +65,7 @@ class ModelBlocker
    * our input. In other words, we do not return ~(x < 0) V ~(w < 0) since the
    * left disjunct is always false.
    */
-  static Node getModelBlocker(
+  Node getModelBlocker(
       const std::vector<Node>& assertions,
       theory::TheoryModel* m,
       options::BlockModelsMode mode,

@@ -35,7 +35,6 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   InferenceManagerBuffered(Env& env,
                            Theory& t,
                            TheoryState& state,
-                           ProofNodeManager* pnm,
                            const std::string& statsName,
                            bool cacheLemmas = true);
   virtual ~InferenceManagerBuffered() {}
@@ -150,9 +149,10 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   /**
    * Send the given theory inference as a lemma on the output channel of this
    * inference manager. This calls TheoryInferenceManager::trustedLemma based
-   * on the provided theory inference.
+   * on the provided theory inference, and returns true if the lemma was
+   * successfully sent.
    */
-  void lemmaTheoryInference(TheoryInference* lem);
+  bool lemmaTheoryInference(TheoryInference* lem);
   /**
    * Add the given theory inference as an internal fact. This calls
    * TheoryInferenceManager::assertInternalFact based on the provided theory

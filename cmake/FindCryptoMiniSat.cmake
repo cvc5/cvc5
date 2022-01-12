@@ -44,6 +44,12 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
 
   include(ExternalProject)
 
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(LIBFILENAME "libcryptominisat5win")
+  else()
+    set(LIBFILENAME "libcryptominisat5")
+  endif()
+
   ExternalProject_Add(
     CryptoMiniSat-EP
     ${COMMON_EP_CONFIG}
@@ -77,7 +83,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   )
 
   set(CryptoMiniSat_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcryptominisat5.a")
+  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/${LIBFILENAME}.a")
 
   add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
   set_target_properties(

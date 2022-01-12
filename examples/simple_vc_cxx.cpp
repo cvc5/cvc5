@@ -47,10 +47,10 @@ int main() {
   Term formula =
       slv.mkTerm(Kind::AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
-  std::cout << "Checking entailment of formula " << formula << " with CVC4."
+  std::cout << "Checking entailment of formula " << formula << " with cvc5."
             << std::endl;
-  std::cout << "CVC4 should report ENTAILED." << std::endl;
-  std::cout << "Result from CVC4 is: " << slv.checkEntailed(formula)
+  std::cout << "cvc5 should report ENTAILED." << std::endl;
+  std::cout << "Result from cvc5 is: " << slv.checkEntailed(formula)
             << std::endl;
 
   return 0;

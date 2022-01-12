@@ -58,6 +58,10 @@ class SkolemCache
    * preconditions below, e.g. where we are considering a' ++ a = b' ++ b.
    *
    * All skolems assume a and b are strings unless otherwise stated.
+   *
+   * Notice that these identifiers are each syntax sugar for constructing a
+   * purification skolem. It is required for the purposes of proof checking
+   * that this only results in calls to SkolemManager::mkPurifySkolem.
    */
   enum SkolemId
   {
@@ -107,21 +111,6 @@ class SkolemCache
     // of b in a as the witness for contains( a, b ).
     SK_FIRST_CTN_PRE,
     SK_FIRST_CTN_POST,
-    // For sequence a and regular expression b,
-    // in_re(a, re.++(_*, b, _*)) =>
-    //    exists k_pre, k_match, k_post.
-    //       a = k_pre ++ k_match ++ k_post ^
-    //       len(k_pre) = indexof_re(x, y, 0) ^
-    //       (forall l. 0 < l < len(k_match) =>
-    //         ~in_re(substr(k_match, 0, l), r)) ^
-    //       in_re(k_match, b)
-    //
-    // k_pre is the prefix before the first, shortest match of b in a. k_match
-    // is the substring of a matched by b. It is either empty or there is no
-    // shorter string that matches b.
-    SK_FIRST_MATCH_PRE,
-    SK_FIRST_MATCH,
-    SK_FIRST_MATCH_POST,
     // For integer b,
     // len( a ) > b =>
     //    exists k. a = k ++ a' ^ len( k ) = b
@@ -129,33 +118,7 @@ class SkolemCache
     // For integer b,
     // b > 0 =>
     //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
-    SK_SUFFIX_REM,
-    // --------------- integer skolems
-    // exists k. ( b occurs k times in a )
-    SK_NUM_OCCUR,
-    // --------------- function skolems
-    // For function k: Int -> Int
-    //   exists k.
-    //     forall 0 <= x <= n,
-    //       k(x) is the end index of the x^th occurrence of b in a
-    //   where n is the number of occurrences of b in a, and k(0)=0.
-    SK_OCCUR_INDEX,
-    // For function k: Int -> Int
-    //   exists k.
-    //     forall 0 <= x < n,
-    //       k(x) is the length of the x^th occurrence of b in a (excluding
-    //       matches of empty strings)
-    //   where b is a regular expression, n is the number of occurrences of b
-    //   in a, and k(0)=0.
-    SK_OCCUR_LEN,
-    // For function k: ((Seq U) x Int) -> U
-    // exists k.
-    // forall s, n.
-    //  k(s, n) is some undefined value of sort U
-    SK_NTH,
-    // Diff index for disequalities
-    // a != b => substr(a,k,1) != substr(b,k,1)
-    SK_DEQ_DIFF
+    SK_SUFFIX_REM
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
@@ -201,6 +164,19 @@ class SkolemCache
    * that could be matched by r.
    */
   static Node mkLengthVar(Node t);
+  /**
+   * Make skolem function, possibly normalizing based on the rewriter of this
+   * class. This method should be used whenever it is not possible to define
+   * a Skolem identifier that amounts to purification of a term.
+   *
+   * Notice that this method is not static or constant since it tracks the
+   * Skolem we construct (in d_allSkolems), which is used for finite model
+   * finding.
+   */
+  Node mkSkolemFun(SkolemFunId id,
+                   TypeNode tn,
+                   Node a = Node::null(),
+                   Node b = Node::null());
 
  private:
   /**

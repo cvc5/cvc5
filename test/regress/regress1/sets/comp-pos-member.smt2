@@ -5,15 +5,15 @@
 
 (declare-fun x () (Set Int))
 
-(assert (subset (comprehension ((z Int)) (>= z 0) (* 3 z)) x))
+(assert (set.subset (set.comprehension ((z Int)) (>= z 0) (* 3 z)) x))
 
 (declare-fun a () Int)
 (declare-fun b () Int)
 (declare-fun c () Int)
 
-(assert (not (member a x)))
-(assert (not (member b x)))
-(assert (not (member c x)))
+(assert (not (set.member a x)))
+(assert (not (set.member b x)))
+(assert (not (set.member c x)))
 (assert (<= 0 a))
 (assert (<= a b))
 (assert (<= b c))

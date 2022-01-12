@@ -16,6 +16,7 @@
 
 #include "theory/bv/bv_solver_bitblast_internal.h"
 
+#include "options/bv_options.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/bv/theory_bv.h"
@@ -103,6 +104,12 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   }
 }
 
+bool BVSolverBitblastInternal::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // Disable equality engine if --bitblast=eager is enabled.
+  return options().bv.bitblastMode != options::BitblastMode::EAGER;
+}
+
 bool BVSolverBitblastInternal::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
@@ -141,7 +148,9 @@ bool BVSolverBitblastInternal::preNotifyFact(
     }
   }
 
-  return false;  // Return false to enable equality engine reasoning in Theory.
+  // Disable the equality engine in --bitblast=eager mode. Otherwise return
+  // false to enable equality engine reasoning in Theory.
+  return options().bv.bitblastMode == options::BitblastMode::EAGER;
 }
 
 TrustNode BVSolverBitblastInternal::explain(TNode n)

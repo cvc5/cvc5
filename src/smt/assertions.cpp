@@ -40,6 +40,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_produceAssertions(false),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
+      d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
       d_assertions()
 {
@@ -47,6 +48,22 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
 
 Assertions::~Assertions()
 {
+}
+
+void Assertions::refresh()
+{
+  if (d_globalDefineFunLemmas != nullptr)
+  {
+    // Global definitions are asserted now to ensure they always exist. This is
+    // done at the beginning of preprocessing, to ensure that definitions take
+    // priority over, e.g. solving during preprocessing. See issue #7479.
+    size_t numGlobalDefs = d_globalDefineFunLemmas->size();
+    for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
+    {
+      addFormula((*d_globalDefineFunLemmas)[i], false, true, false);
+    }
+    d_globalDefineFunLemmasIndex = numGlobalDefs;
+  }
 }
 
 void Assertions::finishInit()
@@ -106,16 +123,6 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
     addFormula(n, true, false, false);
-  }
-  if (d_globalDefineFunLemmas != nullptr)
-  {
-    // Global definitions are asserted at check-sat-time because we have to
-    // make sure that they are always present (they are essentially level
-    // zero assertions)
-    for (const Node& lemma : *d_globalDefineFunLemmas)
-    {
-      addFormula(lemma, false, true, false);
-    }
   }
 }
 
@@ -183,16 +190,19 @@ void Assertions::addFormula(TNode n,
   // Ensure that it does not contain free variables
   if (maybeHasFv)
   {
-    if (expr::hasFreeVar(n))
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(n, wasShadow))
     {
+      std::string varType(wasShadow ? "shadowed" : "free");
       std::stringstream se;
       if (isFunDef)
       {
-        se << "Cannot process function definition with free variable.";
+        se << "Cannot process function definition with " << varType
+           << " variable.";
       }
       else
       {
-        se << "Cannot process assertion with free variable.";
+        se << "Cannot process assertion with " << varType << " variable.";
         if (language::isLangSygus(options().base.inputLanguage))
         {
           // Common misuse of SyGuS is to use top-level assert instead of
@@ -241,9 +251,9 @@ void Assertions::ensureBoolean(const Node& n)
   }
 }
 
-void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
-  d_assertions.setProofGenerator(pppg);
+  d_assertions.enableProofs(pppg);
 }
 
 bool Assertions::isProofEnabled() const

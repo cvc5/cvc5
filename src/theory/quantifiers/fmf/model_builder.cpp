@@ -54,8 +54,8 @@ void QModelBuilder::finishInit()
 }
 
 bool QModelBuilder::optUseModel() {
-  return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound()
-         || options::stringExp();
+  return options().quantifiers.mbqiMode != options::MbqiMode::NONE
+         || options().quantifiers.fmfBound || options().strings.stringExp;
 }
 
 bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {
@@ -65,7 +65,7 @@ bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {
 bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
   d_addedLemmas = 0;
   d_triedLemmas = 0;
-  if (options::fmfFunWellDefinedRelevant())
+  if (options().quantifiers.fmfFunWellDefinedRelevant)
   {
     //traverse equality engine
     std::map< TypeNode, bool > eqc_usort;

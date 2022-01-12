@@ -19,6 +19,7 @@ jobs:
         run: |
             ssh-agent -a $SSH_AUTH_SOCK > /dev/null
             ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
 
       - name: Clone Documentation Repository
         env:
@@ -52,11 +53,17 @@ jobs:
       - name: Unpack artifact
         run: unzip download.zip -d docs-new/
       
+      - name: Check for broken links
+        continue-on-error: true
+        run: |
+          python3 -m pip install linkchecker
+          linkchecker --check-extern docs-new/index.html
+
       - name: Setup Context
         run: |
           HASH=${{ github.event.workflow_run.head_commit.id }}
           ISTAG=${{ startsWith(github.ref, 'refs/tags/') }}
-          if [ "$ISTAG" ] ; then
+          if [ "$ISTAG" = true ] ; then
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified tag $NAME"
           elif [ "${{ github.event.workflow_run.event }}" == "push" ] ; then
@@ -78,13 +85,12 @@ jobs:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           if [ -n "$NAME" ]; then
-            mv docs-new target/docs-$NAME-$HASH
+            cp -r docs-new target/docs-$NAME-$HASH
             cd target/
 
-            (diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH)
-            issame=$?
+            isdiff=$(diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH >&2; echo $?; exit 0)
 
-            if [[ -n $ISTAG && $issame ]]
+            if [[ ("$ISTAG" != true) && ($isdiff = 0) ]]
             then
               echo "Ignored run, documentation is the same as for current master"
             else
@@ -98,6 +104,24 @@ jobs:
 
               git push
             fi
+          else
+            echo "Ignored run"
+          fi
+
+      - name: Update docs for release
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          if [ "$ISTAG" = true ]; then
+            git clone git@github.com:cvc5/docs-releases.git target-releases/
+            cp -r docs-new target-releases/$NAME
+            cd target-releases/
+
+            git add $NAME
+
+            git commit -m "Update docs for $NAME"
+            git push
           else
             echo "Ignored run"
           fi

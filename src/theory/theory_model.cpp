@@ -14,6 +14,7 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -59,6 +60,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH_TOTAL);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -123,7 +126,8 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(tn.mkGroundTerm());
+    NodeManager* nm = NodeManager::currentNM();
+    elements.push_back(nm->mkGroundTerm(tn));
     return elements;
   }
   return *type_refs;
@@ -133,6 +137,7 @@ Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
+  nn = rewrite(nn);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
@@ -142,7 +147,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   else if (nn.getKind() == kind::LAMBDA)
   {
-    if (options::condenseFunctionValues())
+    if (options().theory.condenseFunctionValues)
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
@@ -253,17 +258,12 @@ Node TheoryModel::getModelValue(TNode n) const
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
+      const CardinalityConstraint& cc =
+          ret.getOperator().getConst<CardinalityConstraint>();
       Debug("model-getvalue-debug")
-          << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
-                        <= ret[1].getConst<Rational>().getNumerator());
-    }
-    else if (ret.getKind() == kind::CARDINALITY_VALUE)
-    {
-      Debug("model-getvalue-debug")
-          << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
+          << "get cardinality constraint " << cc.getType() << std::endl;
+      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
+                        <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we an evaluated kind. This can occur if the
@@ -694,11 +694,13 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
 
   if (logicInfo().isHigherOrder())
   {
-    //we must rewrite the function value since the definition needs to be a constant value
+    // we must rewrite the function value since the definition needs to be a
+    // constant value. This does not need to be the case if we are assigning a
+    // lambda to the equivalence class in isolation, so we do not assert that
+    // f_def is constant here.
     f_def = rewrite(f_def);
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
   }
  
   // d_uf_models only stores models for variables
@@ -719,7 +721,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if( n.isVar() && d_uf_terms.find( n )!=d_uf_terms.end() && !hasAssignedFunctionDefinition( n ) ){
+      if (n.isVar() && !hasAssignedFunctionDefinition(n))
+      {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
       }
@@ -727,6 +730,11 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     }
     Trace("model-builder-debug") << "  ...finished." << std::endl;
   }
+}
+
+bool TheoryModel::hasAssignedFunctionDefinition(Node f) const
+{
+  return d_uf_models.find(f) != d_uf_models.end();
 }
 
 std::vector< Node > TheoryModel::getFunctionsToAssign() {
@@ -737,6 +745,11 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
     Assert(!n.isNull());
+    // lambdas do not need assignments
+    if (n.getKind() == LAMBDA)
+    {
+      continue;
+    }
     // should not have been solved for in a substitution
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){

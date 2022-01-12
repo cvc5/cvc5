@@ -124,7 +124,7 @@ void TransitionInference::getConstantSubstitution(
                         const_var.end(),
                         const_subs.begin(),
                         const_subs.end());
-      sn = Rewriter::rewrite(sn);
+      sn = rewrite(sn);
     }
     else
     {
@@ -177,7 +177,7 @@ void TransitionInference::getConstantSubstitution(
         TNode ts = s;
         for (unsigned k = 0, csize = const_subs.size(); k < csize; k++)
         {
-          const_subs[k] = Rewriter::rewrite(const_subs[k].substitute(v, ts));
+          const_subs[k] = rewrite(const_subs[k].substitute(v, ts));
         }
         Trace("cegqi-inv-debug2")
             << "...substitution : " << v << " -> " << s << std::endl;
@@ -258,7 +258,7 @@ void TransitionInference::process(Node n)
     for (unsigned j = 0, dsize = disjuncts.size(); j < dsize; j++)
     {
       Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
-      disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+      disjuncts[j] = rewrite(disjuncts[j].substitute(
           vars.begin(), vars.end(), svars.begin(), svars.end()));
       Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
     }
@@ -269,7 +269,7 @@ void TransitionInference::process(Node n)
       // transition
       Assert(terms.find(true) != terms.end());
       Node next = terms[true];
-      next = Rewriter::rewrite(next.substitute(
+      next = rewrite(next.substitute(
           vars.begin(), vars.end(), svars.begin(), svars.end()));
       Trace("cegqi-inv-debug")
           << "transition next predicate : " << next << std::endl;
@@ -292,7 +292,7 @@ void TransitionInference::process(Node n)
       for (unsigned j = 0, dsize = disjuncts.size(); j < dsize; j++)
       {
         Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
-        disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+        disjuncts[j] = rewrite(disjuncts[j].substitute(
             rvars.begin(), rvars.end(), rsvars.begin(), rsvars.end()));
         Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
       }
@@ -503,7 +503,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   // check if it satisfies the pre/post condition
   Node cc = fwd ? getPostCondition() : getPreCondition();
   Assert(!cc.isNull());
-  Node ccr = Rewriter::rewrite(cc.substitute(
+  Node ccr = rewrite(cc.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
   if (ccr.isConst())
   {
@@ -519,7 +519,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   Assert(!c.isNull());
 
   Assert(d_vars.size() == dt.d_curr.size());
-  Node cr = Rewriter::rewrite(c.substitute(
+  Node cr = rewrite(c.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
   if (cr.isConst())
   {
@@ -548,7 +548,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
     Assert(it->second.find(pv) != it->second.end());
     Node pvs = it->second[pv];
     Assert(d_vars.size() == dt.d_curr.size());
-    Node pvsr = Rewriter::rewrite(pvs.substitute(
+    Node pvsr = rewrite(pvs.substitute(
         d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
     next.push_back(pvsr);
   }
