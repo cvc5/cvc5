@@ -43,8 +43,8 @@ using namespace cvc5::theory::bv;
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
       d_intBlaster(preprocContext->getEnv(),
-                   options::solveBVAsInt(),
-                   options::BVAndIntegerGranularity()) {}
+                   options().smt.solveBVAsInt,
+                   options().smt.BVAndIntegerGranularity) {}
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
