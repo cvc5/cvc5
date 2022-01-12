@@ -20,6 +20,7 @@
 
 #include <unordered_set>
 
+#include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
@@ -44,12 +45,15 @@ namespace prop {
 class PropEngine;
 class CnfStream;
 class SkolemDefManager;
+class ZeroLevelLearner;
 
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
 class TheoryProxy : protected EnvObj, public Registrar
 {
+  using NodeSet = context::CDHashSet<Node>;
+
  public:
   TheoryProxy(Env& env,
               PropEngine* propEngine,
@@ -65,6 +69,17 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
 
+  /**
+   * Notifies this module of the input assertions.
+   * @param assertion The preprocessed input assertions,
+   * @param skolemMap Map from indices in assertion to the Skolem they are
+   * the definition for
+   * @param ppl The preprocessed learned literals, that is, the literals that
+   * hold at top-level, as computed by the circuit propagator.
+   */
+  void notifyInputFormulas(const std::vector<Node>& assertions,
+                           std::unordered_map<size_t, Node>& skolemMap,
+                           const std::vector<Node>& ppl);
   /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
    * definition.
@@ -86,6 +101,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   SatLiteral getNextDecisionEngineRequest(bool& stopSearch);
 
   bool theoryNeedCheck() const;
+
+  /** Is incomplete */
+  bool isIncomplete() const;
 
   /**
    * Notifies of a new variable at a decision level.
@@ -135,6 +153,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Preregister term */
   void preRegister(Node n) override;
 
+  /** Get the zero-level assertions */
+  const std::unordered_set<Node>& getLearnedZeroLevelLiterals() const;
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -168,10 +189,13 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
+
+  /** The zero level learner */
+  std::unique_ptr<ZeroLevelLearner> d_zll;
+
 }; /* class TheoryProxy */
 
 }  // namespace prop
-
 }  // namespace cvc5
 
-#endif /* CVC5__PROP__SAT_H */
+#endif
