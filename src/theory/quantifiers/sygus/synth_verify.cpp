@@ -52,6 +52,9 @@ SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
   {
     d_subOptions.arith.nlExtTangentPlanes = true;
   }
+  // we must use the same setting for datatype selectors, since shared selectors
+  // can appear in solutions
+  d_subOptions.datatypes.dtSharedSelectors = options().datatypes.dtSharedSelectors;
 }
 
 SynthVerify::~SynthVerify() {}
