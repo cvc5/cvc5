@@ -160,7 +160,7 @@ void CardSolver::checkDifferenceRemove(const Node& cardTerm, const Node& n)
 
 void CardSolver::checkLeafBag(const Node& cardTerm, const Node& bag)
 {
-  if (d_cardGraph.count(bag) == 0)
+  if (d_cardGraph[bag].size() == 0)
   {
     std::vector<Node> assertions;
     Node reduction = d_bagReduction.reduceCardOperator(cardTerm, assertions);
