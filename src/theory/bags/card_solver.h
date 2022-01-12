@@ -65,12 +65,15 @@ class CardSolver : protected EnvObj
    *
    */
   void reduceCardinality(const Node& cardTerm);
+  void addChildren(const Node& parent, const std::set<Node>& children);
   /** The solver state object */
   SolverState& d_state;
   /** The inference generator object*/
   InferenceGenerator d_ig;
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
+  NodeManager* d_nm;
+
   /** bag reduction */
   BagReduction d_bagReduction;
 

@@ -196,6 +196,18 @@ class InferenceGenerator
    */
   InferInfo cardUnionDisjoint(Node cardTerm, Node n);
   /**
+   * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
+   * @param n is a term of the form (bag.union_max A B)
+   * @return an inference that represents the following implication
+   * (=> (= C (bag.union_max A B))
+   *     (= (bag.card C)
+   *        (+ (bag.card (bag.difference_subtract A B))
+   *           (bag.card (bag.inter_min A B))
+   *           (bag.card (bag.difference_subtract B A)))))
+   */
+  InferInfo cardUnionMax(
+      Node cardTerm, Node n, Node subtractAB, Node subtractBA, Node interAB);
+  /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param e is a node of Type E

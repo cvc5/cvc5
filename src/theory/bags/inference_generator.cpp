@@ -347,6 +347,24 @@ InferInfo InferenceGenerator::cardUnionDisjoint(Node cardTerm, Node n)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::cardUnionMax(
+    Node cardTerm, Node n, Node subtractAB, Node subtractBA, Node interAB)
+{
+  Assert(cardTerm.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_UNION_MAX && n.getType() == cardTerm[0].getType());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node premise = cardTerm[0].eqNode(n);
+  Node A = n[0];
+  Node B = n[1];
+  Node cardSubtractAB = d_nm->mkNode(BAG_CARD, subtractAB);
+  Node cardSubtractBA = d_nm->mkNode(BAG_CARD, subtractBA);
+  Node cardInterAB = d_nm->mkNode(BAG_CARD, interAB);
+  Node sum = d_nm->mkNode(PLUS, cardSubtractAB, cardSubtractBA, cardInterAB);
+  Node conclusion = cardTerm.eqNode(sum);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
 Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
 {
   Node count = d_nm->mkNode(BAG_COUNT, element, bag);

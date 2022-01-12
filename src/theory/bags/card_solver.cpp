@@ -62,21 +62,19 @@ void CardSolver::checkCardinalityGraph()
       Trace("bags-card") << "[" << bag << "] contains bag " << n << std::endl;
       switch (k)
       {
-        case kind::BAG_EMPTY: checkEmpty(cardTerm, n); break;
-        case kind::BAG_MAKE: checkBagMake(cardTerm, n); break;
-        case kind::BAG_UNION_DISJOINT:
+        case BAG_EMPTY: checkEmpty(cardTerm, n); break;
+        case BAG_MAKE: checkBagMake(cardTerm, n); break;
+        case BAG_UNION_DISJOINT:
         {
           checkUnionDisjoint(cardTerm, n);
           break;
         }
-        case kind::BAG_UNION_MAX: checkUnionMax(cardTerm, n); break;
-        case kind::BAG_INTER_MIN: checkIntersectionMin(cardTerm, n); break;
-        case kind::BAG_DIFFERENCE_SUBTRACT:
+        case BAG_UNION_MAX: checkUnionMax(cardTerm, n); break;
+        case BAG_INTER_MIN: checkIntersectionMin(cardTerm, n); break;
+        case BAG_DIFFERENCE_SUBTRACT:
           checkDifferenceSubtract(cardTerm, n);
           break;
-        case kind::BAG_DIFFERENCE_REMOVE:
-          checkDifferenceRemove(cardTerm, n);
-          break;
+        case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(cardTerm, n); break;
         default: break;
       }
       it++;
@@ -131,6 +129,34 @@ void CardSolver::checkUnionDisjoint(const Node& cardTerm, const Node& n)
 void CardSolver::checkUnionMax(const Node& cardTerm, const Node& n)
 {
   Assert(n.getKind() == BAG_UNION_MAX);
+  Node bag = d_state.getRepresentative(cardTerm[0]);
+  Node A = d_state.getRepresentative(n[0]);
+  Node B = d_state.getRepresentative(n[1]);
+  Node subtractAB = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, A, B);
+  Node subtractBA = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, B, A);
+  Node interAB = d_nm->mkNode(BAG_INTER_MIN, B, A);
+  d_state.registerBag(subtractAB);
+  d_state.registerBag(subtractBA);
+  d_state.registerBag(interAB);
+  Node subtractABRep = d_state.getRepresentative(subtractAB);
+  Node subtractBARep = d_state.getRepresentative(subtractBA);
+  Node interABRep = d_state.getRepresentative(interAB);
+  addChildren(bag, {subtractAB, subtractBA, interAB});
+  InferInfo i = d_ig.cardUnionMax(cardTerm, n, subtractAB, subtractBA, interAB);
+  d_im.lemmaTheoryInference(&i);
+}
+
+void CardSolver::addChildren(const Node& parent, const set<Node>& children)
+{
+  d_cardGraph[parent].insert(children);
+  for (Node child : children)
+  {
+    // if not in the graph
+    if (d_cardGraph.count(child) == 0)
+    {
+      d_cardGraph[child] = {};
+    }
+  }
 }
 
 void CardSolver::checkIntersectionMin(const Node& cardTerm, const Node& n)
