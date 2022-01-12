@@ -76,6 +76,7 @@ bool isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model)
     }
     else
     {
+      Unreachable();
       rans.emplace(node, nl::node_to_ran(repl, node));
     }
   }
