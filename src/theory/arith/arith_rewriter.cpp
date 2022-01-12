@@ -346,11 +346,7 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t){
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
-  if (t.getNumChildren() == 1)
-  {
-    return RewriteResponse(REWRITE_DONE, t[0]);
-  }
+  Assert(t.getNumChildren() > 1);
 
   Rational rational;
   RealAlgebraicNumber ran;
