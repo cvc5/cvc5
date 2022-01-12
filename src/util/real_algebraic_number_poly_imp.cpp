@@ -27,6 +27,9 @@
 #include "base/check.h"
 #include "util/poly_util.h"
 
+#define RAN_UNREACHABLE \
+  Unreachable() << "RealAlgebraicNumber is not available without libpoly."
+
 namespace cvc5 {
 
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
@@ -105,6 +108,7 @@ bool RealAlgebraicNumber::isRational() const
 #ifdef CVC5_POLY_IMP
   return poly::is_rational(getValue());
 #else
+  RAN_UNREACHABLE;
   return true;
 #endif
 }
@@ -113,6 +117,7 @@ Rational RealAlgebraicNumber::toRational() const
 #ifdef CVC5_POLY_IMP
   return poly_utils::toRational(poly::to_rational_approximation(getValue()));
 #else
+  RAN_UNREACHABLE;
   return Rational(0);
 #endif
 }
@@ -173,6 +178,7 @@ RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
   Assert(!isZero(rhs)) << "Can not divide by zero";
   return lhs.getValue() / rhs.getValue();
 #else
+  RAN_UNREACHABLE;
   return lhs;
 #endif
 }
@@ -205,6 +211,7 @@ RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
   Assert(!isZero(ran)) << "Can not invert zero";
   return inverse(ran.getValue());
 #else
+  RAN_UNREACHABLE;
   return ran;
 #endif
 }
@@ -218,6 +225,7 @@ size_t hash<cvc5::RealAlgebraicNumber>::operator()(
 #ifdef CVC5_POLY_IMP
   return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
 #else
+  RAN_UNREACHABLE;
   return 0;
 #endif
 }
