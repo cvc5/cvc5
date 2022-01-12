@@ -803,20 +803,7 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
           NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
     }
   }
-  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-  {
-    const RealAlgebraicNumber& ran =
-        t[0].getOperator().getConst<RealAlgebraicNumber>();
-    if (ran >= Rational(0))
-    {
-      return RewriteResponse(REWRITE_DONE, t[0]);
-    }
-    else
-    {
-      return RewriteResponse(
-          REWRITE_DONE, NodeManager::currentNM()->mkRealAlgebraicNumber(-ran));
-    }
-  }
+  Assert(t[0].getKind() != Kind::REAL_ALGEBRAIC_NUMBER);
   return RewriteResponse(REWRITE_DONE, t);
 }
 
