@@ -32,6 +32,7 @@
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
+#include "util/real_algebraic_number.h"
 
 using namespace cvc5::kind;
 
@@ -89,10 +90,10 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
   }
   if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
-    RealAlgebraicNumber r =
-        -(t[0].getOperator().getConst<RealAlgebraicNumber>());
+    const RealAlgebraicNumber& r =
+        t[0].getOperator().getConst<RealAlgebraicNumber>();
     NodeManager* nm = NodeManager::currentNM();
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(r));
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(-r));
   }
 
   Node noUminus = makeUnaryMinusNode(t[0]);
