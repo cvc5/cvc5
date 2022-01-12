@@ -33,6 +33,7 @@
 #include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
 #include "util/bitvector.h"
+#include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
 #include "util/uninterpreted_sort_value.h"
@@ -1298,6 +1299,16 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
     return mkConstReal(r);
   }
   return mkConstInt(r);
+}
+
+Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
+{
+  if (ran.isRational())
+  {
+    return mkConstReal(ran.toRational());
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER,
+                mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
 }
 
 }  // namespace cvc5

@@ -80,7 +80,7 @@ constant CONST_INTEGER \
 
 constant REAL_ALGEBRAIC_NUMBER_OP \
     class \
-    RealAlgebraicNumber \
+    RealAlgebraicNumber+ \
     ::cvc5::RealAlgebraicNumberHashFunction \
     "util/real_algebraic_number.h" \
     "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
