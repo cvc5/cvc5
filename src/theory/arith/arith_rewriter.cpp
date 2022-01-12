@@ -252,7 +252,8 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t){
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteMinus(TNode t){
+RewriteResponse ArithRewriter::rewriteMinus(TNode t)
+{
   Assert(t.getKind() == kind::MINUS);
   Assert(t.getNumChildren() == 2);
 
@@ -911,13 +912,6 @@ Node ArithRewriter::makeUnaryMinusNode(TNode n){
   NodeManager* nm = NodeManager::currentNM();
   Rational qNegOne(-1);
   return nm->mkNode(kind::MULT, nm->mkConstRealOrInt(n.getType(), qNegOne), n);
-}
-
-Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
-  Node negR = makeUnaryMinusNode(r);
-  Node diff = NodeManager::currentNM()->mkNode(kind::PLUS, l, negR);
-
-  return diff;
 }
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){

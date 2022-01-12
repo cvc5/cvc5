@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -52,6 +53,11 @@ SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
   {
     d_subOptions.arith.nlExtTangentPlanes = true;
   }
+  // we must use the same setting for datatype selectors, since shared selectors
+  // can appear in solutions
+  d_subOptions.datatypes.dtSharedSelectors =
+      options().datatypes.dtSharedSelectors;
+  d_subOptions.datatypes.dtSharedSelectorsWasSetByUser = true;
 }
 
 SynthVerify::~SynthVerify() {}
