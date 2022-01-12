@@ -16,13 +16,13 @@
 
 #include "context/context.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/trust_substitutions.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace prop {
@@ -83,7 +83,8 @@ void ZeroLevelLearner::notifyInputFormulas(
     // output learned literals from preprocessing
     for (const Node& lit : ppl)
     {
-      output(OutputTag::LEARNED_LITS) << "(learned-lit " << lit << " :preprocess)" << std::endl;
+      output(OutputTag::LEARNED_LITS)
+          << "(learned-lit " << lit << " :preprocess)" << std::endl;
     }
   }
   for (const Node& a : assertions)
@@ -129,7 +130,9 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
         {
           // get the original form so that internally generated variables
           // are mapped back to their original form
-          output(OutputTag::LEARNED_LITS) << "(learned-lit " << SkolemManager::getOriginalForm(assertion) << ")" << std::endl;
+          output(OutputTag::LEARNED_LITS)
+              << "(learned-lit " << SkolemManager::getOriginalForm(assertion)
+              << ")" << std::endl;
         }
         return;
       }
