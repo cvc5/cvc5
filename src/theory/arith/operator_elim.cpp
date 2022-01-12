@@ -432,7 +432,8 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     }
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
-    if (options().arith.arithNoPartialFun)
+    // arith-no-partial-fun only impacts division by zero
+    if (options().arith.arithNoPartialFun && id == SkolemFunId::DIV_BY_ZERO)
     {
       // partial function: division, where we treat the skolem function as
       // a constant
