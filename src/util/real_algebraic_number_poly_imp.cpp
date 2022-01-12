@@ -113,15 +113,6 @@ RealAlgebraicNumber::RealAlgebraicNumber(
 
 bool RealAlgebraicNumber::isRational() const
 {
-  return poly::is_rational(getValue());
-}
-Rational RealAlgebraicNumber::toRational() const
-{
-  return poly_utils::toRational(poly::to_rational_approximation(getValue()));
-}
-
-bool RealAlgebraicNumber::isRational() const
-{
 #ifdef CVC5_POLY_IMP
   return poly::is_rational(getValue());
 #else
