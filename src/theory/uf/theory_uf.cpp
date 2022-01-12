@@ -296,14 +296,15 @@ void TheoryUF::preRegisterTerm(TNode node)
     break;
   case kind::UNINTERPRETED_SORT_VALUE:
   {
-    // Abstract values should only appear in models, and should never appear in
-    // constraints. They are unallowed to ever appear in constraints since the
-    // cardinality of an uninterpreted sort may have an upper bound, e.g. if
-    // (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2 is a ill-formed term,
-    // as its existence cannot be assumed.  The parser prevents the user from
-    // ever constructing abstract values. However, they may be exported via
-    // models to API users.  It is thus possible that these abstract values are
-    // asserted back in constraints, hence this check is necessary.
+    // Uninterpreted sort values should only appear in models, and should never
+    // appear in constraints. They are unallowed to ever appear in constraints
+    // since the cardinality of an uninterpreted sort may have an upper bound,
+    // e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2 is a
+    // ill-formed term, as its existence cannot be assumed.  The parser
+    // prevents the user from ever constructing abstract values. However, they
+    // may be exported via models to API users. It is thus possible that these
+    // abstract values are asserted back in constraints, hence this check is
+    // necessary.
     throw LogicException(
         "An uninterpreted constant was preregistered to the UF theory.");
   }
