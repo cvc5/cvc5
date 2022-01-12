@@ -963,7 +963,7 @@ def test_get_uninterpreted_sort_value(solver):
     uSort = solver.mkUninterpretedSort("u")
     x = solver.mkConst(uSort, "x")
     y = solver.mkConst(uSort, "y")
-    solver.assertFormula(solver.mkTerm(kinds.Equal, x, y))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, y))
     assert solver.checkSat().isSat()
     vx = solver.getValue(x)
     vy = solver.getValue(y)

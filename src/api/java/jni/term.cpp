@@ -636,7 +636,9 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getBitVectorValue(
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_cvc5_Term_isUninterpretedSortValue(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_api_Term_isUninterpretedSortValue(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -650,7 +652,9 @@ Java_cvc5_Term_isUninterpretedSortValue(JNIEnv* env, jobject, jlong pointer)
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_cvc5_Term_getUninterpretedSortValue(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_api_Term_getUninterpretedSortValue(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
