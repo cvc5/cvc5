@@ -35,6 +35,7 @@
 #include "theory/type_enumerator.h"
 #include "util/abstract_value.h"
 #include "util/bitvector.h"
+#include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
 
@@ -1301,6 +1302,16 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
     return mkConstReal(r);
   }
   return mkConstInt(r);
+}
+
+Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
+{
+  if (ran.isRational())
+  {
+    return mkConstReal(ran.toRational());
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER,
+                mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
 }
 
 }  // namespace cvc5

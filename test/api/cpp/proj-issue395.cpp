@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -10,13 +10,21 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A real algebraic number constant.
+ * Test for project issue #395
+ *
  */
 
-// these gestures are used to avoid a public header dependence on base/cvc5config.h
+#include <cassert>
 
-#if /* use libpoly */ @CVC5_USE_POLY_IMP@
-#  define CVC5_POLY_IMP
-#endif /* @CVC5_USE_POLY_IMP@ */
+#include "api/cpp/cvc5.h"
 
-#include "util/real_algebraic_number_poly_imp.h"
+using namespace cvc5::api;
+
+int main(void)
+{
+  Solver slv;
+  Sort s1 = slv.getBooleanSort();
+  Sort s2 = slv.getIntegerSort();
+  Sort s5 = slv.mkFunctionSort({s2}, s1);
+  (void) s5.substitute({s1}, {s1});
+}

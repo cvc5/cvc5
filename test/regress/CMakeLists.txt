@@ -1846,6 +1846,7 @@ set(regress_1_tests
   regress1/nl/issue5660-mb-success.smt2
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
+  regress1/nl/issue7924-sqrt-partial.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2094,8 +2095,9 @@ set(regress_1_tests
   regress1/quantifiers/qbv-test-urem-rewrite.smt2
   regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2
   regress1/quantifiers/qcft-smtlib3dbc51.smt2
-  regress1/quantifiers/qe-partial.smt2
   regress1/quantifiers/qe.smt2
+  regress1/quantifiers/qe-partial.smt2
+  regress1/quantifiers/qe-subtypes.smt2
   regress1/quantifiers/qid.smt2
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
@@ -2536,6 +2538,7 @@ set(regress_1_tests
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
   regress1/sygus/issue4083-var-shadow.smt2
+  regress1/sygus/issue7925-dt-share-config.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -2751,6 +2754,7 @@ set(regress_2_tests
   regress2/sygus/min_IC_1.sy
   regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
+  regress2/sygus/no-bad-filter.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy
