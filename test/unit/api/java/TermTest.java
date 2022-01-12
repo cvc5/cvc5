@@ -855,7 +855,7 @@ class TermTest
     assertEquals("f", b7.getBitVectorValue(16));
   }
 
-  @Test void getAbstractValue() throws CVC5ApiException
+  @Test void getUninterpretedSortValue() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
     Sort uSort = d_solver.mkUninterpretedSort("u");
@@ -865,9 +865,9 @@ class TermTest
     assertTrue(d_solver.checkSat().isSat());
     Term vx = d_solver.getValue(x);
     Term vy = d_solver.getValue(y);
-    assertEquals(vx.isAbstractValue(), vy.isAbstractValue());
-    assertDoesNotThrow(() -> vx.getAbstractValue());
-    assertDoesNotThrow(() -> vy.getAbstractValue());
+    assertEquals(vx.isUninterpretedSortValue(), vy.isUninterpretedSortValue());
+    assertDoesNotThrow(() -> vx.getUninterpretedSortValue());
+    assertDoesNotThrow(() -> vy.getUninterpretedSortValue());
   }
 
   @Test void getTuple()

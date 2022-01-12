@@ -958,7 +958,7 @@ def test_get_const_array_base(solver):
     assert one == constarr.getConstArrayBase()
 
 
-def test_get_abstract_value(solver):
+def test_get_uninterpreted_sort_value(solver):
     solver.setOption("produce-models", "true")
     uSort = solver.mkUninterpretedSort("u")
     x = solver.mkConst(uSort, "x")
@@ -967,9 +967,9 @@ def test_get_abstract_value(solver):
     assert solver.checkSat().isSat()
     vx = solver.getValue(x)
     vy = solver.getValue(y)
-    assert vx.isAbstractValue()
-    assert vy.isAbstractValue()
-    assert vx.getAbstractValue() == vy.getAbstractValue()
+    assert vx.isUninterpretedSortValue()
+    assert vy.isUninterpretedSortValue()
+    assert vx.getUninterpretedSortValue() == vy.getUninterpretedSortValue()
 
 
 def test_get_tuple(solver):

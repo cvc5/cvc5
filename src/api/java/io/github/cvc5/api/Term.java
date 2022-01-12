@@ -492,25 +492,25 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getBitVectorValue(long pointer, int base);
 
   /**
-   * @return true if the term is an abstract value.
+   * @return true if the term is an uninterpreted sort value.
    */
-  public boolean isAbstractValue()
+  public boolean isUninterpretedSortValue()
   {
-    return isAbstractValue(pointer);
+    return isUninterpretedSortValue(pointer);
   }
 
-  private native boolean isAbstractValue(long pointer);
+  private native boolean isUninterpretedSortValue(long pointer);
 
   /**
-   * Asserts isAbstractValue().
-   * @return the representation of an abstract value as a string.
+   * Asserts isUninterpretedSortValue().
+   * @return the representation of an uninterpreted sort value as a string.
    */
-  public String getAbstractValue()
+  public String getUninterpretedSortValue()
   {
-    return getAbstractValue(pointer);
+    return getUninterpretedSortValue(pointer);
   }
 
-  private native String getAbstractValue(long pointer);
+  private native String getUninterpretedSortValue(long pointer);
 
   /**
    * @return true if the term is a tuple value.
