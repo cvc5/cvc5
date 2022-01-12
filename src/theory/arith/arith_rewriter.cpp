@@ -278,42 +278,14 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   Assert(node.getKind() == kind::MULT
          || node.getKind() == kind::NONLINEAR_MULT);
 
-  bool foundNeutral = false;
   for (const auto& child : node)
   {
-    if (child.isConst())
+    if (child.isConst() && child.getConst<Rational>().isZero())
     {
-      if (child.getConst<Rational>().isZero())
-      {
-        return RewriteResponse(REWRITE_DONE, child);
-      }
-      if (child.getConst<Rational>().isOne())
-      {
-        foundNeutral = true;
-      }
+      return RewriteResponse(REWRITE_DONE, child);
     }
   }
-  if (!foundNeutral)
-  {
-    return RewriteResponse(REWRITE_DONE, node);
-  }
-  std::vector<TNode> reduced;
-  for (const auto& child : node)
-  {
-    if (!child.isConst() || !child.getConst<Rational>().isOne())
-    {
-      reduced.emplace_back(child);
-    }
-  }
-  switch (reduced.size())
-  {
-    case 0: return RewriteResponse(REWRITE_DONE, node[0]);
-    case 1: return RewriteResponse(REWRITE_DONE, reduced[0]);
-    default:
-      return RewriteResponse(
-          REWRITE_DONE,
-          NodeManager::currentNM()->mkNode(node.getKind(), std::move(reduced)));
-  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 static bool canFlatten(Kind k, TNode t){
