@@ -295,7 +295,8 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
   return nullptr;
 }
 
-bool SkolemManager::isAbstractValue(TNode n) const {
+bool SkolemManager::isAbstractValue(TNode n) const
+{
   AbstractValueAttribute ava;
   return n.getAttribute(ava);
 }

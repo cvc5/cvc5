@@ -29,11 +29,11 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
-#include "expr/skolem_manager.h"
 #include "expr/emptyset.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -534,16 +534,17 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n)) {
+  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+  {
     // abstract value
     std::string s;
-      n.getAttribute(expr::VarNameAttr(), s);
-      out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
-      return;
+    n.getAttribute(expr::VarNameAttr(), s);
+    out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
+    return;
   }
   else if (n.isVar())
   {
-  // variable
+    // variable
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {

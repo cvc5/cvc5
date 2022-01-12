@@ -218,10 +218,10 @@ class SkolemManager
   enum SkolemFlags
   {
     /** default behavior */
-    SKOLEM_DEFAULT = 0,    
+    SKOLEM_DEFAULT = 0,
     /** do not make the name unique by adding the id */
     SKOLEM_EXACT_NAME = 1,
-   /** vars requiring kind BOOLEAN_TERM_VARIABLE */
+    /** vars requiring kind BOOLEAN_TERM_VARIABLE */
     SKOLEM_BOOL_TERM_VAR = 2,
     /** a skolem that stands for an abstract value (used for printing) */
     SKOLEM_ABSTRACT_VALUE = 4,
