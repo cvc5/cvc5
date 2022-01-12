@@ -236,6 +236,13 @@ RewriteResponse ArithRewriter::rewriteRAN(TNode t)
 {
   Assert(t.getKind() == REAL_ALGEBRAIC_NUMBER);
 
+  const RealAlgebraicNumber& r =
+          t.getOperator().getConst<RealAlgebraicNumber>();
+  if (r.isRational())
+  {
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
+  }
+
   return RewriteResponse(REWRITE_DONE, t);
 }
 

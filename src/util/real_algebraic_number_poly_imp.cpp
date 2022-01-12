@@ -108,6 +108,15 @@ RealAlgebraicNumber::RealAlgebraicNumber(
 #endif
 }
 
+bool RealAlgebraicNumber::isRational() const
+{
+  return poly::is_rational(getValue());
+}
+Rational RealAlgebraicNumber::toRational() const
+{
+  return poly_utils::toRational(poly::to_rational_approximation(getValue()));
+}
+
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
 {
 #ifdef CVC5_POLY_IMP
