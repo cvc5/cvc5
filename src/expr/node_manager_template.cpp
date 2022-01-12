@@ -1310,7 +1310,8 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
   {
     return mkConstReal(ran.toRational());
   }
-  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER,
+                mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
 }
 
 }  // namespace cvc5
