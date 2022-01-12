@@ -511,21 +511,6 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isSubsortOf(
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    isComparableTo
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isComparableTo(
-    JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
-  return static_cast<jboolean>(current->isComparableTo(*sort));
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */
