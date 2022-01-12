@@ -1845,6 +1845,7 @@ set(regress_1_tests
   regress1/nl/issue5660-mb-success.smt2
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
+  regress1/nl/issue7924-sqrt-partial.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2093,8 +2094,9 @@ set(regress_1_tests
   regress1/quantifiers/qbv-test-urem-rewrite.smt2
   regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2
   regress1/quantifiers/qcft-smtlib3dbc51.smt2
-  regress1/quantifiers/qe-partial.smt2
   regress1/quantifiers/qe.smt2
+  regress1/quantifiers/qe-partial.smt2
+  regress1/quantifiers/qe-subtypes.smt2
   regress1/quantifiers/qid.smt2
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
