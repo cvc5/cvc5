@@ -394,16 +394,17 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   {
     return RewriteResponse(REWRITE_DONE, poly.getNode());
   }
+  ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
+
   auto* nm = NodeManager::currentNM();
   if (poly.isConstant())
   {
-    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
     return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
   }
-  return RewriteResponse(
-      REWRITE_DONE,
-      nm->mkNode(
-          Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+  return RewriteResponse(REWRITE_DONE,
+                         nm->mkNode(Kind::PLUS,
+                                    nm->mkRealAlgebraicNumber(ran),
+                                    poly.getTail().getNode()));
 }
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
