@@ -44,7 +44,7 @@ EvalResult::EvalResult(const EvalResult& other)
       new (&d_str) String;
       d_str = other.d_str;
       break;
-    case ABSTRACT: new (&d_av) UninterpretedSortValue(other.d_av); break;
+    case UVALUE: new (&d_av) UninterpretedSortValue(other.d_av); break;
     case INVALID: break;
   }
 }
@@ -69,7 +69,7 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
         new (&d_str) String;
         d_str = other.d_str;
         break;
-      case ABSTRACT: new (&d_av) UninterpretedSortValue(other.d_av); break;
+      case UVALUE: new (&d_av) UninterpretedSortValue(other.d_av); break;
       case INVALID: break;
     }
   }
@@ -95,7 +95,7 @@ EvalResult::~EvalResult()
       d_str.~String();
       break;
     }
-    case ABSTRACT:
+    case UVALUE:
     {
       d_av.~UninterpretedSortValue();
       break;
@@ -113,7 +113,7 @@ Node EvalResult::toNode() const
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
     case EvalResult::RATIONAL: return nm->mkConst(CONST_RATIONAL, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
-    case EvalResult::ABSTRACT: return nm->mkConst(d_av);
+    case EvalResult::UVALUE: return nm->mkConst(d_av);
     default:
     {
       Trace("evaluator") << "Missing conversion from " << d_tag << " to node"
@@ -856,7 +856,7 @@ EvalResult Evaluator::evalInternal(
               results[currNode] = EvalResult(lhs.d_str == rhs.d_str);
               break;
             }
-            case EvalResult::ABSTRACT:
+            case EvalResult::UVALUE:
             {
               results[currNode] = EvalResult(lhs.d_av == rhs.d_av);
               break;

@@ -47,7 +47,7 @@ struct EvalResult
     BITVECTOR,
     RATIONAL,
     STRING,
-    ABSTRACT,
+    UVALUE,
     INVALID
   } d_tag;
 
@@ -67,7 +67,7 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
-  EvalResult(const UninterpretedSortValue& av) : d_tag(ABSTRACT), d_av(av) {}
+  EvalResult(const UninterpretedSortValue& av) : d_tag(UVALUE), d_av(av) {}
 
   EvalResult& operator=(const EvalResult& other);
 
