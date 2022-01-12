@@ -136,23 +136,22 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
           if (rat >= 0)
           {
             return RewriteResponse(REWRITE_DONE, t[0]);
-          } else {
-          return RewriteResponse(
-              REWRITE_DONE,
-              NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+          }
+          else
+          {
+            return RewriteResponse(REWRITE_DONE,
+                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                       t[0].getType(), -rat));
+          }
         }
-      }
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::IS_INTEGER:
-    case kind::TO_INTEGER:
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::POW:
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default: Unhandled() << k;
+        return RewriteResponse(REWRITE_DONE, t);
+      case kind::IS_INTEGER:
+      case kind::TO_INTEGER: return RewriteResponse(REWRITE_DONE, t);
+      case kind::TO_REAL:
+      case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
+      case kind::POW: return RewriteResponse(REWRITE_DONE, t);
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unhandled() << k;
     }
   }
 }
@@ -199,17 +198,19 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           if (rat >= 0)
           {
             return RewriteResponse(REWRITE_DONE, t[0]);
-          } else {
-          return RewriteResponse(
-              REWRITE_DONE,
-              NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+          }
+          else
+          {
+            return RewriteResponse(REWRITE_DONE,
+                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                       t[0].getType(), -rat));
+          }
         }
-      }
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
-    case kind::POW:
+        return RewriteResponse(REWRITE_DONE, t);
+      case kind::TO_REAL:
+      case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
+      case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
+      case kind::POW:
       {
         if (t[1].isConst())
         {
