@@ -70,6 +70,8 @@ class Preprocessor : protected EnvObj
    * Clear learned literals from the Boolean propagator.
    */
   void clearLearnedLiterals();
+  /** Get learned literals */
+  std::vector<Node> getLearnedLiterals() const;
   /**
    * Cleanup, which deletes the processing passes owned by this module. This
    * is required to be done explicitly so that passes are deleted before the
