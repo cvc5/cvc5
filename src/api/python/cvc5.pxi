@@ -3258,11 +3258,7 @@ cdef class Term:
 
 	   :return: the representation of an uninterpreted value as a pair of its sort and its index.
 	"""
-        cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedSortValue()
-        cdef Sort sort = Sort(self.solver)
-        sort.csort = p.first
-        i = p.second
-        return (sort, i)
+        return self.cterm.getUninterpretedSortValue()
 
     def isTupleValue(self):
         """:return: True iff this term is a tuple value."""
