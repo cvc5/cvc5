@@ -19,6 +19,4 @@
 #  define CVC5_POLY_IMP
 #endif /* @CVC5_USE_POLY_IMP@ */
 
-#ifdef CVC5_POLY_IMP
-#  include "util/real_algebraic_number_poly_imp.h"
-#endif /* CVC5_POLY_IMP */
+#include "util/real_algebraic_number_poly_imp.h"
