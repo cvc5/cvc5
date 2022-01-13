@@ -15,486 +15,6 @@
 
 # Regression level 0 tests
 set(regress_0_tests
-  piskac/bags/fol_0000001.smt2
-  piskac/bags/fol_0000002.smt2
-  piskac/bags/fol_0000003.smt2
-  piskac/bags/fol_0000004.smt2
-  piskac/bags/fol_0000005.smt2
-  piskac/bags/fol_0000006.smt2
-  piskac/bags/fol_0000007.smt2
-  piskac/bags/fol_0000008.smt2
-  piskac/bags/fol_0000009.smt2
-  piskac/bags/fol_0000010.smt2
-  piskac/bags/fol_0000011.smt2
-  piskac/bags/fol_0000012.smt2
-  piskac/bags/fol_0000013.smt2
-  piskac/bags/fol_0000014.smt2
-  piskac/bags/fol_0000015.smt2
-  piskac/bags/fol_0000016.smt2
-  piskac/bags/fol_0000017.smt2
-  piskac/bags/fol_0000018.smt2
-  piskac/bags/fol_0000019.smt2
-  piskac/bags/fol_0000020.smt2
-  piskac/bags/fol_0000021.smt2
-  piskac/bags/fol_0000022.smt2
-  piskac/bags/fol_0000023.smt2
-  piskac/bags/fol_0000024.smt2
-  piskac/bags/fol_0000025.smt2
-  piskac/bags/fol_0000026.smt2
-  piskac/bags/fol_0000027.smt2
-  piskac/bags/fol_0000028.smt2
-  piskac/bags/fol_0000029.smt2
-  piskac/bags/fol_0000030.smt2
-  piskac/bags/fol_0000031.smt2
-  piskac/bags/fol_0000032.smt2
-  piskac/bags/fol_0000033.smt2
-  piskac/bags/fol_0000034.smt2
-  piskac/bags/fol_0000035.smt2
-  piskac/bags/fol_0000036.smt2
-  piskac/bags/fol_0000037.smt2
-  piskac/bags/fol_0000038.smt2
-  piskac/bags/fol_0000039.smt2
-  piskac/bags/fol_0000040.smt2
-  piskac/bags/fol_0000041.smt2
-  piskac/bags/fol_0000042.smt2
-  piskac/bags/fol_0000043.smt2
-  piskac/bags/fol_0000044.smt2
-  piskac/bags/fol_0000045.smt2
-  piskac/bags/fol_0000046.smt2
-  piskac/bags/fol_0000047.smt2
-  piskac/bags/fol_0000048.smt2
-  piskac/bags/fol_0000049.smt2
-  piskac/bags/fol_0000050.smt2
-  piskac/bags/fol_0000051.smt2
-  piskac/bags/fol_0000052.smt2
-  piskac/bags/fol_0000053.smt2
-  piskac/bags/fol_0000054.smt2
-  piskac/bags/fol_0000055.smt2
-  piskac/bags/fol_0000056.smt2
-  piskac/bags/fol_0000057.smt2
-  piskac/bags/fol_0000058.smt2
-  piskac/bags/fol_0000059.smt2
-  piskac/bags/fol_0000060.smt2
-  piskac/bags/fol_0000061.smt2
-  piskac/bags/fol_0000062.smt2
-  piskac/bags/fol_0000063.smt2
-  piskac/bags/fol_0000064.smt2
-  piskac/bags/fol_0000065.smt2
-  piskac/bags/fol_0000066.smt2
-  piskac/bags/fol_0000067.smt2
-  piskac/bags/fol_0000068.smt2
-  piskac/bags/fol_0000069.smt2
-  piskac/bags/fol_0000070.smt2
-  piskac/bags/fol_0000071.smt2
-  piskac/bags/fol_0000072.smt2
-  piskac/bags/fol_0000073.smt2
-  piskac/bags/fol_0000074.smt2
-  piskac/bags/fol_0000075.smt2
-  piskac/bags/fol_0000076.smt2
-  piskac/bags/fol_0000077.smt2
-  piskac/bags/fol_0000078.smt2
-  piskac/bags/fol_0000079.smt2
-  piskac/bags/fol_0000080.smt2
-  piskac/bags/fol_0000081.smt2
-  piskac/bags/fol_0000082.smt2
-  piskac/bags/fol_0000083.smt2
-  piskac/bags/fol_0000084.smt2
-  piskac/bags/fol_0000085.smt2
-  piskac/bags/fol_0000086.smt2
-  piskac/bags/fol_0000087.smt2
-  piskac/bags/fol_0000088.smt2
-  piskac/bags/fol_0000089.smt2
-  piskac/bags/fol_0000090.smt2
-  piskac/bags/fol_0000091.smt2
-  piskac/bags/fol_0000092.smt2
-  piskac/bags/fol_0000093.smt2
-  piskac/bags/fol_0000094.smt2
-  piskac/bags/fol_0000095.smt2
-  piskac/bags/fol_0000096.smt2
-  piskac/bags/fol_0000097.smt2
-  piskac/bags/fol_0000098.smt2
-  piskac/bags/fol_0000099.smt2
-  piskac/bags/fol_0000100.smt2
-  piskac/bags/fol_0000101.smt2
-  piskac/bags/fol_0000102.smt2
-  piskac/bags/fol_0000103.smt2
-  piskac/bags/fol_0000104.smt2
-  piskac/bags/fol_0000105.smt2
-  piskac/bags/fol_0000106.smt2
-  piskac/bags/fol_0000107.smt2
-  piskac/bags/fol_0000108.smt2
-  piskac/bags/fol_0000109.smt2
-  piskac/bags/fol_0000110.smt2
-  piskac/bags/fol_0000111.smt2
-  piskac/bags/fol_0000112.smt2
-  piskac/bags/fol_0000113.smt2
-  piskac/bags/fol_0000114.smt2
-  piskac/bags/fol_0000115.smt2
-  piskac/bags/fol_0000116.smt2
-  piskac/bags/fol_0000117.smt2
-  piskac/bags/fol_0000118.smt2
-  piskac/bags/fol_0000119.smt2
-  piskac/bags/fol_0000120.smt2
-  piskac/bags_without_duplicates/fol_0000001.smt2
-  piskac/bags_without_duplicates/fol_0000002.smt2
-  piskac/bags_without_duplicates/fol_0000003.smt2
-  piskac/bags_without_duplicates/fol_0000004.smt2
-  piskac/bags_without_duplicates/fol_0000005.smt2
-  piskac/bags_without_duplicates/fol_0000006.smt2
-  piskac/bags_without_duplicates/fol_0000007.smt2
-  piskac/bags_without_duplicates/fol_0000008.smt2
-  piskac/bags_without_duplicates/fol_0000009.smt2
-  piskac/bags_without_duplicates/fol_0000010.smt2
-  piskac/bags_without_duplicates/fol_0000011.smt2
-  piskac/bags_without_duplicates/fol_0000012.smt2
-  piskac/bags_without_duplicates/fol_0000013.smt2
-  piskac/bags_without_duplicates/fol_0000014.smt2
-  piskac/bags_without_duplicates/fol_0000015.smt2
-  piskac/bags_without_duplicates/fol_0000016.smt2
-  piskac/bags_without_duplicates/fol_0000017.smt2
-  piskac/bags_without_duplicates/fol_0000018.smt2
-  piskac/bags_without_duplicates/fol_0000019.smt2
-  piskac/bags_without_duplicates/fol_0000020.smt2
-  piskac/bags_without_duplicates/fol_0000021.smt2
-  piskac/bags_without_duplicates/fol_0000022.smt2
-  piskac/bags_without_duplicates/fol_0000023.smt2
-  piskac/bags_without_duplicates/fol_0000024.smt2
-  piskac/bags_without_duplicates/fol_0000025.smt2
-  piskac/bags_without_duplicates/fol_0000026.smt2
-  piskac/bags_without_duplicates/fol_0000027.smt2
-  piskac/bags_without_duplicates/fol_0000028.smt2
-  piskac/bags_without_duplicates/fol_0000029.smt2
-  piskac/bags_without_duplicates/fol_0000030.smt2
-  piskac/bags_without_duplicates/fol_0000031.smt2
-  piskac/bags_without_duplicates/fol_0000032.smt2
-  piskac/bags_without_duplicates/fol_0000033.smt2
-  piskac/bags_without_duplicates/fol_0000034.smt2
-  piskac/bags_without_duplicates/fol_0000035.smt2
-  piskac/bags_without_duplicates/fol_0000036.smt2
-  piskac/bags_without_duplicates/fol_0000037.smt2
-  piskac/bags_without_duplicates/fol_0000038.smt2
-  piskac/bags_without_duplicates/fol_0000039.smt2
-  piskac/bags_without_duplicates/fol_0000040.smt2
-  piskac/bags_without_duplicates/fol_0000041.smt2
-  piskac/bags_without_duplicates/fol_0000042.smt2
-  piskac/bags_without_duplicates/fol_0000043.smt2
-  piskac/bags_without_duplicates/fol_0000044.smt2
-  piskac/bags_without_duplicates/fol_0000045.smt2
-  piskac/bags_without_duplicates/fol_0000046.smt2
-  piskac/bags_without_duplicates/fol_0000047.smt2
-  piskac/bags_without_duplicates/fol_0000048.smt2
-  piskac/bags_without_duplicates/fol_0000049.smt2
-  piskac/bags_without_duplicates/fol_0000050.smt2
-  piskac/bags_without_duplicates/fol_0000051.smt2
-  piskac/bags_without_duplicates/fol_0000052.smt2
-  piskac/bags_without_duplicates/fol_0000053.smt2
-  piskac/bags_without_duplicates/fol_0000054.smt2
-  piskac/bags_without_duplicates/fol_0000055.smt2
-  piskac/bags_without_duplicates/fol_0000056.smt2
-  piskac/bags_without_duplicates/fol_0000057.smt2
-  piskac/bags_without_duplicates/fol_0000058.smt2
-  piskac/bags_without_duplicates/fol_0000059.smt2
-  piskac/bags_without_duplicates/fol_0000060.smt2
-  piskac/bags_without_duplicates/fol_0000061.smt2
-  piskac/bags_without_duplicates/fol_0000062.smt2
-  piskac/bags_without_duplicates/fol_0000063.smt2
-  piskac/bags_without_duplicates/fol_0000064.smt2
-  piskac/bags_without_duplicates/fol_0000065.smt2
-  piskac/bags_without_duplicates/fol_0000066.smt2
-  piskac/bags_without_duplicates/fol_0000067.smt2
-  piskac/bags_without_duplicates/fol_0000068.smt2
-  piskac/bags_without_duplicates/fol_0000069.smt2
-  piskac/bags_without_duplicates/fol_0000070.smt2
-  piskac/bags_without_duplicates/fol_0000071.smt2
-  piskac/bags_without_duplicates/fol_0000072.smt2
-  piskac/bags_without_duplicates/fol_0000073.smt2
-  piskac/bags_without_duplicates/fol_0000074.smt2
-  piskac/bags_without_duplicates/fol_0000075.smt2
-  piskac/bags_without_duplicates/fol_0000076.smt2
-  piskac/bags_without_duplicates/fol_0000077.smt2
-  piskac/bags_without_duplicates/fol_0000078.smt2
-  piskac/bags_without_duplicates/fol_0000079.smt2
-  piskac/bags_without_duplicates/fol_0000080.smt2
-  piskac/bags_without_duplicates/fol_0000081.smt2
-  piskac/bags_without_duplicates/fol_0000082.smt2
-  piskac/bags_without_duplicates/fol_0000083.smt2
-  piskac/bags_without_duplicates/fol_0000084.smt2
-  piskac/bags_without_duplicates/fol_0000085.smt2
-  piskac/bags_without_duplicates/fol_0000086.smt2
-  piskac/bags_without_duplicates/fol_0000087.smt2
-  piskac/bags_without_duplicates/fol_0000088.smt2
-  piskac/bags_without_duplicates/fol_0000089.smt2
-  piskac/bags_without_duplicates/fol_0000090.smt2
-  piskac/bags_without_duplicates/fol_0000091.smt2
-  piskac/bags_without_duplicates/fol_0000092.smt2
-  piskac/bags_without_duplicates/fol_0000093.smt2
-  piskac/bags_without_duplicates/fol_0000094.smt2
-  piskac/bags_without_duplicates/fol_0000095.smt2
-  piskac/bags_without_duplicates/fol_0000096.smt2
-  piskac/bags_without_duplicates/fol_0000097.smt2
-  piskac/bags_without_duplicates/fol_0000098.smt2
-  piskac/bags_without_duplicates/fol_0000099.smt2
-  piskac/bags_without_duplicates/fol_0000100.smt2
-  piskac/bags_without_duplicates/fol_0000101.smt2
-  piskac/bags_without_duplicates/fol_0000102.smt2
-  piskac/bags_without_duplicates/fol_0000103.smt2
-  piskac/bags_without_duplicates/fol_0000104.smt2
-  piskac/bags_without_duplicates/fol_0000105.smt2
-  piskac/bags_without_duplicates/fol_0000106.smt2
-  piskac/bags_without_duplicates/fol_0000107.smt2
-  piskac/bags_without_duplicates/fol_0000108.smt2
-  piskac/bags_without_duplicates/fol_0000109.smt2
-  piskac/bags_without_duplicates/fol_0000110.smt2
-  piskac/bags_without_duplicates/fol_0000111.smt2
-  piskac/bags_without_duplicates/fol_0000112.smt2
-  piskac/bags_without_duplicates/fol_0000113.smt2
-  piskac/bags_without_duplicates/fol_0000114.smt2
-  piskac/bags_without_duplicates/fol_0000115.smt2
-  piskac/bags_without_duplicates/fol_0000116.smt2
-  piskac/bags_without_duplicates/fol_0000117.smt2
-  piskac/bags_without_duplicates/fol_0000118.smt2
-  piskac/bags_without_duplicates/fol_0000119.smt2
-  piskac/bags_without_duplicates/fol_0000120.smt2
-  piskac/bags_without_card/fol_0000001.smt2
-  piskac/bags_without_card/fol_0000002.smt2
-  piskac/bags_without_card/fol_0000003.smt2
-  piskac/bags_without_card/fol_0000004.smt2
-  piskac/bags_without_card/fol_0000005.smt2
-  piskac/bags_without_card/fol_0000006.smt2
-  piskac/bags_without_card/fol_0000007.smt2
-  piskac/bags_without_card/fol_0000008.smt2
-  piskac/bags_without_card/fol_0000009.smt2
-  piskac/bags_without_card/fol_0000010.smt2
-  piskac/bags_without_card/fol_0000011.smt2
-  piskac/bags_without_card/fol_0000012.smt2
-  piskac/bags_without_card/fol_0000013.smt2
-  piskac/bags_without_card/fol_0000014.smt2
-  piskac/bags_without_card/fol_0000015.smt2
-  piskac/bags_without_card/fol_0000016.smt2
-  piskac/bags_without_card/fol_0000017.smt2
-  piskac/bags_without_card/fol_0000018.smt2
-  piskac/bags_without_card/fol_0000019.smt2
-  piskac/bags_without_card/fol_0000020.smt2
-  piskac/bags_without_card/fol_0000021.smt2
-  piskac/bags_without_card/fol_0000022.smt2
-  piskac/bags_without_card/fol_0000023.smt2
-  piskac/bags_without_card/fol_0000024.smt2
-  piskac/bags_without_card/fol_0000025.smt2
-  piskac/bags_without_card/fol_0000026.smt2
-  piskac/bags_without_card/fol_0000027.smt2
-  piskac/bags_without_card/fol_0000028.smt2
-  piskac/bags_without_card/fol_0000029.smt2
-  piskac/bags_without_card/fol_0000030.smt2
-  piskac/bags_without_card/fol_0000031.smt2
-  piskac/bags_without_card/fol_0000032.smt2
-  piskac/bags_without_card/fol_0000033.smt2
-  piskac/bags_without_card/fol_0000034.smt2
-  piskac/bags_without_card/fol_0000035.smt2
-  piskac/bags_without_card/fol_0000036.smt2
-  piskac/bags_without_card/fol_0000037.smt2
-  piskac/bags_without_card/fol_0000038.smt2
-  piskac/bags_without_card/fol_0000039.smt2
-  piskac/bags_without_card/fol_0000040.smt2
-  piskac/bags_without_card/fol_0000041.smt2
-  piskac/bags_without_card/fol_0000042.smt2
-  piskac/bags_without_card/fol_0000043.smt2
-  piskac/bags_without_card/fol_0000044.smt2
-  piskac/bags_without_card/fol_0000045.smt2
-  piskac/bags_without_card/fol_0000046.smt2
-  piskac/bags_without_card/fol_0000047.smt2
-  piskac/bags_without_card/fol_0000048.smt2
-  piskac/bags_without_card/fol_0000049.smt2
-  piskac/bags_without_card/fol_0000050.smt2
-  piskac/bags_without_card/fol_0000051.smt2
-  piskac/bags_without_card/fol_0000052.smt2
-  piskac/bags_without_card/fol_0000053.smt2
-  piskac/bags_without_card/fol_0000054.smt2
-  piskac/bags_without_card/fol_0000055.smt2
-  piskac/bags_without_card/fol_0000056.smt2
-  piskac/bags_without_card/fol_0000057.smt2
-  piskac/bags_without_card/fol_0000058.smt2
-  piskac/bags_without_card/fol_0000059.smt2
-  piskac/bags_without_card/fol_0000060.smt2
-  piskac/bags_without_card/fol_0000061.smt2
-  piskac/bags_without_card/fol_0000062.smt2
-  piskac/bags_without_card/fol_0000063.smt2
-  piskac/bags_without_card/fol_0000064.smt2
-  piskac/bags_without_card/fol_0000065.smt2
-  piskac/bags_without_card/fol_0000066.smt2
-  piskac/bags_without_card/fol_0000067.smt2
-  piskac/bags_without_card/fol_0000068.smt2
-  piskac/bags_without_card/fol_0000069.smt2
-  piskac/bags_without_card/fol_0000070.smt2
-  piskac/bags_without_card/fol_0000071.smt2
-  piskac/bags_without_card/fol_0000072.smt2
-  piskac/bags_without_card/fol_0000073.smt2
-  piskac/bags_without_card/fol_0000074.smt2
-  piskac/bags_without_card/fol_0000075.smt2
-  piskac/bags_without_card/fol_0000076.smt2
-  piskac/bags_without_card/fol_0000077.smt2
-  piskac/bags_without_card/fol_0000078.smt2
-  piskac/bags_without_card/fol_0000079.smt2
-  piskac/bags_without_card/fol_0000080.smt2
-  piskac/bags_without_card/fol_0000081.smt2
-  piskac/bags_without_card/fol_0000082.smt2
-  piskac/bags_without_card/fol_0000083.smt2
-  piskac/bags_without_card/fol_0000084.smt2
-  piskac/bags_without_card/fol_0000085.smt2
-  piskac/bags_without_card/fol_0000086.smt2
-  piskac/bags_without_card/fol_0000087.smt2
-  piskac/bags_without_card/fol_0000088.smt2
-  piskac/bags_without_card/fol_0000089.smt2
-  piskac/bags_without_card/fol_0000090.smt2
-  piskac/bags_without_card/fol_0000091.smt2
-  piskac/bags_without_card/fol_0000092.smt2
-  piskac/bags_without_card/fol_0000093.smt2
-  piskac/bags_without_card/fol_0000094.smt2
-  piskac/bags_without_card/fol_0000095.smt2
-  piskac/bags_without_card/fol_0000096.smt2
-  piskac/bags_without_card/fol_0000097.smt2
-  piskac/bags_without_card/fol_0000098.smt2
-  piskac/bags_without_card/fol_0000099.smt2
-  piskac/bags_without_card/fol_0000100.smt2
-  piskac/bags_without_card/fol_0000101.smt2
-  piskac/bags_without_card/fol_0000102.smt2
-  piskac/bags_without_card/fol_0000103.smt2
-  piskac/bags_without_card/fol_0000104.smt2
-  piskac/bags_without_card/fol_0000105.smt2
-  piskac/bags_without_card/fol_0000106.smt2
-  piskac/bags_without_card/fol_0000107.smt2
-  piskac/bags_without_card/fol_0000108.smt2
-  piskac/bags_without_card/fol_0000109.smt2
-  piskac/bags_without_card/fol_0000110.smt2
-  piskac/bags_without_card/fol_0000111.smt2
-  piskac/bags_without_card/fol_0000112.smt2
-  piskac/bags_without_card/fol_0000113.smt2
-  piskac/bags_without_card/fol_0000114.smt2
-  piskac/bags_without_card/fol_0000115.smt2
-  piskac/bags_without_card/fol_0000116.smt2
-  piskac/bags_without_card/fol_0000117.smt2
-  piskac/bags_without_card/fol_0000118.smt2
-  piskac/bags_without_card/fol_0000119.smt2
-  piskac/bags_without_card/fol_0000120.smt2
-  piskac/sets/fol_0000001.smt2
-  piskac/sets/fol_0000002.smt2
-  piskac/sets/fol_0000003.smt2
-  piskac/sets/fol_0000004.smt2
-  piskac/sets/fol_0000005.smt2
-  piskac/sets/fol_0000006.smt2
-  piskac/sets/fol_0000007.smt2
-  piskac/sets/fol_0000008.smt2
-  piskac/sets/fol_0000009.smt2
-  piskac/sets/fol_0000010.smt2
-  piskac/sets/fol_0000011.smt2
-  piskac/sets/fol_0000012.smt2
-  piskac/sets/fol_0000013.smt2
-  piskac/sets/fol_0000014.smt2
-  piskac/sets/fol_0000015.smt2
-  piskac/sets/fol_0000016.smt2
-  piskac/sets/fol_0000017.smt2
-  piskac/sets/fol_0000018.smt2
-  piskac/sets/fol_0000019.smt2
-  piskac/sets/fol_0000020.smt2
-  piskac/sets/fol_0000021.smt2
-  piskac/sets/fol_0000022.smt2
-  piskac/sets/fol_0000023.smt2
-  piskac/sets/fol_0000024.smt2
-  piskac/sets/fol_0000025.smt2
-  piskac/sets/fol_0000026.smt2
-  piskac/sets/fol_0000027.smt2
-  piskac/sets/fol_0000028.smt2
-  piskac/sets/fol_0000029.smt2
-  piskac/sets/fol_0000030.smt2
-  piskac/sets/fol_0000031.smt2
-  piskac/sets/fol_0000032.smt2
-  piskac/sets/fol_0000033.smt2
-  piskac/sets/fol_0000034.smt2
-  piskac/sets/fol_0000035.smt2
-  piskac/sets/fol_0000036.smt2
-  piskac/sets/fol_0000037.smt2
-  piskac/sets/fol_0000038.smt2
-  piskac/sets/fol_0000039.smt2
-  piskac/sets/fol_0000040.smt2
-  piskac/sets/fol_0000041.smt2
-  piskac/sets/fol_0000042.smt2
-  piskac/sets/fol_0000043.smt2
-  piskac/sets/fol_0000044.smt2
-  piskac/sets/fol_0000045.smt2
-  piskac/sets/fol_0000046.smt2
-  piskac/sets/fol_0000047.smt2
-  piskac/sets/fol_0000048.smt2
-  piskac/sets/fol_0000049.smt2
-  piskac/sets/fol_0000050.smt2
-  piskac/sets/fol_0000051.smt2
-  piskac/sets/fol_0000052.smt2
-  piskac/sets/fol_0000053.smt2
-  piskac/sets/fol_0000054.smt2
-  piskac/sets/fol_0000055.smt2
-  piskac/sets/fol_0000056.smt2
-  piskac/sets/fol_0000057.smt2
-  piskac/sets/fol_0000058.smt2
-  piskac/sets/fol_0000059.smt2
-  piskac/sets/fol_0000060.smt2
-  piskac/sets/fol_0000061.smt2
-  piskac/sets/fol_0000062.smt2
-  piskac/sets/fol_0000063.smt2
-  piskac/sets/fol_0000064.smt2
-  piskac/sets/fol_0000065.smt2
-  piskac/sets/fol_0000066.smt2
-  piskac/sets/fol_0000067.smt2
-  piskac/sets/fol_0000068.smt2
-  piskac/sets/fol_0000069.smt2
-  piskac/sets/fol_0000070.smt2
-  piskac/sets/fol_0000071.smt2
-  piskac/sets/fol_0000072.smt2
-  piskac/sets/fol_0000073.smt2
-  piskac/sets/fol_0000074.smt2
-  piskac/sets/fol_0000075.smt2
-  piskac/sets/fol_0000076.smt2
-  piskac/sets/fol_0000077.smt2
-  piskac/sets/fol_0000078.smt2
-  piskac/sets/fol_0000079.smt2
-  piskac/sets/fol_0000080.smt2
-  piskac/sets/fol_0000081.smt2
-  piskac/sets/fol_0000082.smt2
-  piskac/sets/fol_0000083.smt2
-  piskac/sets/fol_0000084.smt2
-  piskac/sets/fol_0000085.smt2
-  piskac/sets/fol_0000086.smt2
-  piskac/sets/fol_0000087.smt2
-  piskac/sets/fol_0000088.smt2
-  piskac/sets/fol_0000089.smt2
-  piskac/sets/fol_0000090.smt2
-  piskac/sets/fol_0000091.smt2
-  piskac/sets/fol_0000092.smt2
-  piskac/sets/fol_0000093.smt2
-  piskac/sets/fol_0000094.smt2
-  piskac/sets/fol_0000095.smt2
-  piskac/sets/fol_0000096.smt2
-  piskac/sets/fol_0000097.smt2
-  piskac/sets/fol_0000098.smt2
-  piskac/sets/fol_0000099.smt2
-  piskac/sets/fol_0000100.smt2
-  piskac/sets/fol_0000101.smt2
-  piskac/sets/fol_0000102.smt2
-  piskac/sets/fol_0000103.smt2
-  piskac/sets/fol_0000104.smt2
-  piskac/sets/fol_0000105.smt2
-  piskac/sets/fol_0000106.smt2
-  piskac/sets/fol_0000107.smt2
-  piskac/sets/fol_0000108.smt2
-  piskac/sets/fol_0000109.smt2
-  piskac/sets/fol_0000110.smt2
-  piskac/sets/fol_0000111.smt2
-  piskac/sets/fol_0000112.smt2
-  piskac/sets/fol_0000113.smt2
-  piskac/sets/fol_0000114.smt2
-  piskac/sets/fol_0000115.smt2
-  piskac/sets/fol_0000116.smt2
-  piskac/sets/fol_0000117.smt2
-  piskac/sets/fol_0000118.smt2
-  piskac/sets/fol_0000119.smt2
-  piskac/sets/fol_0000120.smt2
   regress0/arith/ackermann.real.smt2
   regress0/arith/arith-eq.smt2
   regress0/arith/arith-mixed-types-no-tighten.smt2
@@ -589,6 +109,7 @@ set(regress_0_tests
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4927-unsat-cores.smt2
+  regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
@@ -1218,6 +739,7 @@ set(regress_0_tests
   regress0/named-expr-use.smt2
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
+  regress0/nl/combined-uf.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -1355,6 +877,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
@@ -1575,8 +1098,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
-  regress0/seq/intseq_dt.smt2
   regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1585,6 +1108,18 @@ set(regress_0_tests
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/rev.smt2
+  regress0/seq/seqa-model-unsound-dd.smt2
+  regress0/seq/array/array1.smt2
+  regress0/seq/array/array2.smt2
+  regress0/seq/array/array3.smt2
+  regress0/seq/array/array4.smt2
+  regress0/seq/array/distinct-update.smt2
+  regress0/seq/array/model-dd-1220.smt2
+  regress0/seq/array/nth-concat.smt2
+  regress0/seq/array/update-fallback.smt2
+  regress0/seq/array/update-word-eq.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1600,71 +1135,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
-  regress0/seq/quant_len_trigger.smt2
-  regress0/bags/abt-min.smt2
-  regress0/bags/abt-te-exh.smt2
-  regress0/bags/abt-te-exh2.smt2
-  regress0/bags/card-2.smt2
-  regress0/bags/card-3sets.cvc.smt2
-  regress0/bags/card.smt2
-  regress0/bags/card3-ground.smt2
-  # set.comprehension operator
-  #regress0/bags/comp-qf-error.smt2
-  # set.complement
-  #regress0/bags/complement.cvc.smt2
-  # set.complement
-  # regress0/bags/complement2.cvc.smt2
-  # set.complement
-  # regress0/bags/complement3.cvc.smt2
-  regress0/bags/cvc-sample.cvc.smt2
-  regress0/bags/dt-simp-mem.smt2
-  regress0/bags/emptyset.smt2
-  regress0/bags/eqtest.smt2
-  regress0/bags/error1.smt2
-  regress0/bags/error2.smt2
-  regress0/bags/insert.smt2
-  # set.universe
-  # regress0/bags/int-real-univ-unsat.smt2
-  # set.nivser
-  #regress0/bags/int-real-univ.smt2
-  regress0/bags/jan24/deepmeas0.hs.fqout.cvc4.47.smt2
-  regress0/bags/jan24/deepmeas0.hs.fqout.small.smt2
-  regress0/bags/jan27/ListConcat.hs.fqout.177minimized.smt2
-  regress0/bags/jan27/ListConcat.hs.fqout.cvc4.177.smt2
-  regress0/bags/jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2
-  regress0/bags/jan30/UniqueZipper.hs.fqout.minimized10.smt2
-  regress0/bags/jan30/UniqueZipper.hs.fqout.minimized1832.smt2
-  regress0/bags/mar2014/sharing-preregister.smt2
-  regress0/bags/mar2014/small.smt2
-  regress0/bags/mar2014/smaller.smt2
-  # set.universe
-  # regress0/bags/nonvar-univ.smt2
-  # set.universe
-  # regress0/bags/pre-proc-univ.smt2
-  regress0/bags/rec_copy_loop_check_heap_access_43_4.smt2
-  regress0/bags/setel-eq.smt2
-  regress0/bags/sets-deq-dd.smt2
-  regress0/bags/sets-equal.smt2
-  regress0/bags/sets-extr.smt2
-  regress0/bags/sets-inter.smt2
-  regress0/bags/sets-new.smt2
-  regress0/bags/sets-of-sets-subtypes.smt2
-  regress0/bags/sets-poly-int-real.smt2
-  regress0/bags/sets-poly-nonint.smt2
-  regress0/bags/sets-sample.smt2
-  regress0/bags/sets-sharing.smt2
-  regress0/bags/sets-testlemma-ints.smt2
-  regress0/bags/sets-testlemma-reals.smt2
-  regress0/bags/sets-testlemma.smt2
-  regress0/bags/sets-union.smt2
-  regress0/bags/sharing-simp.smt2
-  regress0/bags/union-1a-flip.smt2
-  regress0/bags/union-1a.smt2
-  regress0/bags/union-1b-flip.smt2
-  regress0/bags/union-1b.smt2
-  regress0/bags/union-2.smt2
-  # set.universe set.complement
-  # regress0/bags/univset-simp.smt2
+  regress0/seq/update-eq-unsat.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -2159,7 +1630,6 @@ set(regress_1_tests
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
-  regress1/bags/card3.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -2334,6 +1804,7 @@ set(regress_1_tests
   regress1/issue4335-unsat-core.smt2
   regress1/issue5101-alira-subtypes.smt2
   regress1/issue5739-rtf-processed.smt2
+  regress1/issue7902-abd-subsolver-uc.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2375,6 +1846,7 @@ set(regress_1_tests
   regress1/nl/issue5660-mb-success.smt2
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
+  regress1/nl/issue7924-sqrt-partial.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2562,6 +2034,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
+  regress1/quantifiers/issue5373-1-qe-inc.smt2 
+  regress1/quantifiers/issue5373-2.smt2 
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
@@ -2621,8 +2095,9 @@ set(regress_1_tests
   regress1/quantifiers/qbv-test-urem-rewrite.smt2
   regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2
   regress1/quantifiers/qcft-smtlib3dbc51.smt2
-  regress1/quantifiers/qe-partial.smt2
   regress1/quantifiers/qe.smt2
+  regress1/quantifiers/qe-partial.smt2
+  regress1/quantifiers/qe-subtypes.smt2
   regress1/quantifiers/qid.smt2
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
@@ -2639,6 +2114,7 @@ set(regress_1_tests
   regress1/quantifiers/seu169+1.smt2
   regress1/quantifiers/seq-solved-enum.smt2
   regress1/quantifiers/seq-unsolved-ematch.smt2
+  regress1/quantifiers/seqa-unsat-unknown-110921.smt2
   regress1/quantifiers/small-pipeline-fixpoint-3.smt2
   regress1/quantifiers/smtcomp-qbv-053118.smt2
   regress1/quantifiers/smtlib384a03.smt2
@@ -2797,79 +2273,6 @@ set(regress_1_tests
   regress1/sets/set-comp-sat.smt2
   regress1/sets/sharingbug.smt2
   regress1/sets/univ-set-uf-elim.smt2
-  regress1/sets_to_bags/choose.cvc.smt2
-  regress1/sets_to_bags/choose1.smt2
-  regress1/sets_to_bags/choose2.smt2
-  regress1/sets_to_bags/choose3.smt2
-  regress1/sets_to_bags/choose4.smt2
-  regress1/sets_to_bags/issue5705-cg-subtyping.smt2
-  regress1/sets_to_bags/ListElem.hs.fqout.cvc4.38.smt2
-  regress1/sets_to_bags/ListElts.hs.fqout.cvc4.317.smt2
-  regress1/sets_to_bags/TalkingAboutSets.hs.fqout.cvc4.3577.smt2
-  regress1/sets_to_bags/UniqueZipper.hs.1030minimized.cvc4.smt2
-  regress1/sets_to_bags/UniqueZipper.hs.1030minimized2.cvc4.smt2
-  regress1/sets_to_bags/UniqueZipper.hs.fqout.cvc4.10.smt2
-  regress1/sets_to_bags/UniqueZipper.hs.fqout.cvc4.1832.smt2
-  # regress1/sets_to_bags/arjun-set-univ.cvc.smt2 (set.complement)
-  regress1/sets_to_bags/card-3.smt2
-  regress1/sets_to_bags/card-4.smt2
-  regress1/sets_to_bags/card-5.smt2
-  regress1/sets_to_bags/card-6.smt2
-  regress1/sets_to_bags/card-7.smt2
-  regress1/sets_to_bags/card-vc6-minimized.smt2
-  regress1/sets_to_bags/comp-intersect.smt2
-  # regress1/sets_to_bags/comp-odd.smt2 (bag.comprehension)
-  # regress1/sets_to_bags/comp-positive.smt2 (bag.comprehension)
-  # regress1/sets_to_bags/comp-pos-member.smt2 (bag.comprehension)
-  regress1/sets_to_bags/copy_check_heap_access_33_4.smt2
-  regress1/sets_to_bags/deepmeas0.hs.fqout.cvc4.41.smt2
-  regress1/sets_to_bags/finite-type/bug3663.smt2
-  regress1/sets_to_bags/finite-type/sets-card-arrcolor.smt2
-  regress1/sets_to_bags/finite-type/sets-card-arrunit.smt2
-  # regress1/sets_to_bags/finite-type/sets-card-bool-1.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-bool-2.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-bool-3.smt2 (bag.universe)
-  regress1/sets_to_bags/finite-type/sets-card-bool-4.smt2
-  # regress1/sets_to_bags/finite-type/sets-card-bool-rec.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-bv-1.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-bv-2.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-bv-3.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-bv-4.smt2 (bag.universe)
-  regress1/sets_to_bags/finite-type/sets-card-color.smt2
-  regress1/sets_to_bags/finite-type/sets-card-color-sat.smt2
-  # regress1/sets_to_bags/finite-type/sets-card-datatype-1.smt2 (bag.universe)
-  # regress1/sets_to_bags/finite-type/sets-card-datatype-2.smt2 (bag.universe)
-  regress1/sets_to_bags/finite-type/sets-card-neg-mem-union-1.smt2
-  regress1/sets_to_bags/fuzz14418.smt2
-  regress1/sets_to_bags/fuzz15201.smt2
-  regress1/sets_to_bags/fuzz31811.smt2
-  # regress1/sets_to_bags/infinite-type/sets-card-array-int-1.smt2 (bag.universe)
-  # regress1/sets_to_bags/infinite-type/sets-card-array-int-2.smt2 (bag.universe)
-  # regress1/sets_to_bags/infinite-type/sets-card-int-1.smt2 (bag.universe)
-  # regress1/sets_to_bags/infinite-type/sets-card-int-2.smt2 (bag.universe)
-  regress1/sets_to_bags/insert_invariant_37_2.smt2
-  regress1/sets_to_bags/is_singleton1.smt2
-  regress1/sets_to_bags/issue2568.smt2
-  regress1/sets_to_bags/issue2904.smt2
-  # regress1/sets_to_bags/issue4124-need-check.smt2 (relational operator)
-  regress1/sets_to_bags/issue4370-2-lemma-ee-iter.smt2
-  regress1/sets_to_bags/issue4370-4-lemma-ee-iter.smt2
-  regress1/sets_to_bags/issue4391-card-lasso.smt2
-  regress1/sets_to_bags/issue5271.smt2
-  regress1/sets_to_bags/issue5309.smt2
-  # regress1/sets_to_bags/issue5342.smt2 (bag.comprehension)
-  # regress1/sets_to_bags/issue5342_difference_version.smt2 (bag.universe)
-  regress1/sets_to_bags/issue5942-witness.smt2
-  regress1/sets_to_bags/lemmabug-ListElts317minimized.smt2
-  # regress1/sets_to_bags/proj-issue164.smt2 (relational operator)
-  regress1/sets_to_bags/proj-issue178.smt2
-  regress1/sets_to_bags/remove_check_free_31_6.smt2
-  regress1/sets_to_bags/sets-disequal.smt2
-  regress1/sets_to_bags/sets-tuple-poly.cvc.smt2
-  regress1/sets_to_bags/sets-uc-wrong.smt2
-  regress1/sets_to_bags/set-comp-sat.smt2
-  regress1/sets_to_bags/sharingbug.smt2
-  regress1/sets_to_bags/univ-set-uf-elim.smt2
   regress1/simplification_bug4.smt2
   regress1/sqrt2-sort-inf-unk.smt2
   regress1/strings/artemis-0512-nonterm.smt2
@@ -2930,6 +2333,7 @@ set(regress_1_tests
   regress1/strings/issue5610-2-infer-proxy.smt2
   regress1/strings/issue5611-deq-norm-emp.smt2
   regress1/strings/issue5692-infer-proxy.smt2
+  regress1/strings/issue5780-repeat-skolem.smt2
   regress1/strings/issue5940-skc-len-conc.smt2
   regress1/strings/issue5940-2-skc-len-conc.smt2
   regress1/strings/issue6057-replace-re.smt2
@@ -3024,6 +2428,7 @@ set(regress_1_tests
   regress1/strings/rew-check1.smt2
   regress1/strings/seq-cardinality.smt2
   regress1/strings/seq-quant-infinite-branch.smt2
+  regress1/strings/seq-skeleton-gap.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
@@ -3093,6 +2498,7 @@ set(regress_1_tests
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
   regress1/sygus/incremental-stream-ex.sy
+  regress1/sygus/incremental-stream-ex2.sy
   regress1/sygus/int-any-const.sy
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
@@ -3132,6 +2538,7 @@ set(regress_1_tests
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
   regress1/sygus/issue4083-var-shadow.smt2
+  regress1/sygus/issue7925-dt-share-config.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -3347,6 +2754,7 @@ set(regress_2_tests
   regress2/sygus/min_IC_1.sy
   regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
+  regress2/sygus/no-bad-filter.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy

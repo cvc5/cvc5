@@ -44,10 +44,7 @@ EvalResult::EvalResult(const EvalResult& other)
       new (&d_str) String;
       d_str = other.d_str;
       break;
-    case UCONST:
-      new (&d_uc)
-          UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
-      break;
+    case UVALUE: new (&d_av) UninterpretedSortValue(other.d_av); break;
     case INVALID: break;
   }
 }
@@ -72,10 +69,7 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
         new (&d_str) String;
         d_str = other.d_str;
         break;
-      case UCONST:
-        new (&d_uc)
-            UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
-        break;
+      case UVALUE: new (&d_av) UninterpretedSortValue(other.d_av); break;
       case INVALID: break;
     }
   }
@@ -101,9 +95,9 @@ EvalResult::~EvalResult()
       d_str.~String();
       break;
     }
-    case UCONST:
+    case UVALUE:
     {
-      d_uc.~UninterpretedConstant();
+      d_av.~UninterpretedSortValue();
       break;
     }
     default: break;
@@ -119,7 +113,7 @@ Node EvalResult::toNode() const
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
     case EvalResult::RATIONAL: return nm->mkConst(CONST_RATIONAL, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
-    case EvalResult::UCONST: return nm->mkConst(d_uc);
+    case EvalResult::UVALUE: return nm->mkConst(d_av);
     default:
     {
       Trace("evaluator") << "Missing conversion from " << d_tag << " to node"
@@ -415,11 +409,11 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(r);
           break;
         }
-        case kind::UNINTERPRETED_CONSTANT:
+        case kind::UNINTERPRETED_SORT_VALUE:
         {
-          const UninterpretedConstant& uc =
-              currNodeVal.getConst<UninterpretedConstant>();
-          results[currNode] = EvalResult(uc);
+          const UninterpretedSortValue& av =
+              currNodeVal.getConst<UninterpretedSortValue>();
+          results[currNode] = EvalResult(av);
           break;
         }
         case kind::PLUS:
@@ -475,7 +469,12 @@ EvalResult Evaluator::evalInternal(
             }
             res = res / results[currNode[i]].d_rat;
           }
-          if (!divbyzero)
+          if (divbyzero)
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          else
           {
             results[currNode] = EvalResult(res);
           }
@@ -862,9 +861,9 @@ EvalResult Evaluator::evalInternal(
               results[currNode] = EvalResult(lhs.d_str == rhs.d_str);
               break;
             }
-            case EvalResult::UCONST:
+            case EvalResult::UVALUE:
             {
-              results[currNode] = EvalResult(lhs.d_uc == rhs.d_uc);
+              results[currNode] = EvalResult(lhs.d_av == rhs.d_av);
               break;
             }
 
@@ -900,10 +899,8 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
-          results[currNode] = EvalResult();
-          evalAsNode[currNode] =
-              needsReconstruct ? reconstruct(currNode, results, evalAsNode)
-                               : currNodeVal;
+          processUnhandled(
+              currNode, currNodeVal, evalAsNode, results, needsReconstruct);
         }
       }
     }
@@ -974,6 +971,16 @@ Node Evaluator::reconstruct(TNode n,
   // Return node, without rewriting. Notice we do not need to substitute here
   // since all substitutions should already have been applied recursively.
   return nn;
+}
+
+void Evaluator::processUnhandled(TNode n,
+                                 TNode nv,
+                                 std::unordered_map<TNode, Node>& evalAsNode,
+                                 std::unordered_map<TNode, EvalResult>& results,
+                                 bool needsReconstruct) const
+{
+  results[n] = EvalResult();
+  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
 }
 
 }  // namespace theory

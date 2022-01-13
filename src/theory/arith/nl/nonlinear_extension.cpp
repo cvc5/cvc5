@@ -283,28 +283,55 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                 d_approximations,
                                 d_witnesses,
                                 options().smt.modelWitnessValue);
+    for (auto& am : arithModel)
+    {
+      Node val = getModelValue(am.first);
+      if (!val.isNull())
+      {
+        am.second = val;
+      }
+    }
   }
 }
 
-void NonlinearExtension::finalizeModel(TheoryModel* tm)
+Node NonlinearExtension::getModelValue(TNode var) const
 {
-  Trace("nl-ext") << "NonlinearExtension::finalizeModel" << std::endl;
-
-  for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
+  if (auto it = d_approximations.find(var); it != d_approximations.end())
   {
-    if (a.second.second.isNull())
+    if (it->second.second.isNull())
     {
-      tm->recordApproximation(a.first, a.second.first);
+      return it->second.first;
+    }
+    return Node::null();
+  }
+  if (auto it = d_witnesses.find(var); it != d_witnesses.end())
+  {
+    return it->second;
+  }
+  return Node::null();
+}
+
+bool NonlinearExtension::assertModel(TheoryModel* tm, TNode var) const
+{
+  if (auto it = d_approximations.find(var); it != d_approximations.end())
+  {
+    const auto& approx = it->second;
+    if (approx.second.isNull())
+    {
+      tm->recordApproximation(var, approx.first);
     }
     else
     {
-      tm->recordApproximation(a.first, a.second.first, a.second.second);
+      tm->recordApproximation(var, approx.first, approx.second);
     }
+    return true;
   }
-  for (const auto& vw : d_witnesses)
+  if (auto it = d_witnesses.find(var); it != d_witnesses.end())
   {
-    tm->recordApproximation(vw.first, vw.second);
+    tm->recordApproximation(var, it->second);
+    return true;
   }
+  return false;
 }
 
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)

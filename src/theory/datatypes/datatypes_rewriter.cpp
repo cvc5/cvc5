@@ -27,6 +27,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/tuple_project_op.h"
 #include "util/rational.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;

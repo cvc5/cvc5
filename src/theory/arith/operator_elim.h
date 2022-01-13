@@ -128,6 +128,9 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
    * if the logic is linear.
    */
   void checkNonLinearLogic(Node term);
+
+  /** Whether we should use a partial function for the given id */
+  bool usePartialFunction(SkolemFunId id) const;
 };
 
 }  // namespace arith

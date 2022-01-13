@@ -277,6 +277,8 @@ libcvc5_add_sources(
   prop/skolem_def_manager.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
+  prop/zero_level_learner.cpp
+  prop/zero_level_learner.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
   smt/abstract_values.cpp
@@ -352,6 +354,8 @@ libcvc5_add_sources(
   smt_util/boolean_simplification.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
+  theory/arith/arith_evaluator.cpp
+  theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp

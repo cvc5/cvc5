@@ -457,20 +457,9 @@ bool SygusReconstruct::notify(Node s,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs)
 {
-  for (size_t i = 0; i < vars.size(); ++i)
-  {
-    // We consider sygus variables as ground terms. So, if they are not equal to
-    // their substitution, then s is not matchable with n and we try the next
-    // term s. Example: If s = (+ z x) and n = (+ z y), then s is not matchable
-    // with n and we return true
-    if (d_sygusVars.find(vars[i]) != d_sygusVars.cend() && vars[i] != subs[i])
-    {
-      return true;
-    }
-  }
-  // Note: false here means that we finally found an s that is matchable with n,
-  // so we should not add n to the pool
-  return false;
+  // If we are too aggressive in filtering enumerated shapes, we may miss some
+  // that speedup reconstruction time. So, for now, we disable filtering.
+  return true;
 }
 
 void SygusReconstruct::clear()

@@ -55,7 +55,7 @@ void SygusEnumerator::initialize(Node e)
   Trace("sygus-enum") << "SygusEnumerator::initialize " << e << std::endl;
   d_enum = e;
   // allocate the default callback
-  if (d_sec == nullptr && options::sygusSymBreakDynamic())
+  if (d_sec == nullptr && options().datatypes.sygusSymBreakDynamic)
   {
     d_secd =
         std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_stats);
@@ -65,7 +65,7 @@ void SygusEnumerator::initialize(Node e)
   Assert(d_etype.isDatatype());
   Assert(d_etype.getDType().isSygus());
   d_tlEnum = getMasterEnumForType(d_etype);
-  d_abortSize = options::sygusAbortSize();
+  d_abortSize = options().datatypes.sygusAbortSize;
 
   // if we don't have a term database, we don't register symmetry breaking
   // lemmas
@@ -147,7 +147,7 @@ Node SygusEnumerator::getCurrent()
     if (cs > d_abortSize)
     {
       std::stringstream ss;
-      ss << "Maximum term size (" << options::sygusAbortSize()
+      ss << "Maximum term size (" << options().datatypes.sygusAbortSize
          << ") for enumerative SyGuS exceeded.";
       throw LogicException(ss.str());
     }

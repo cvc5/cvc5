@@ -410,26 +410,6 @@ def test_mk_rounding_mode(solver):
     solver.mkRoundingMode(pycvc5.RoundTowardZero)
 
 
-def test_mk_abstract_value(solver):
-    solver.mkAbstractValue("1")
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue("0")
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue("-1")
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue("1.2")
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue("1/2")
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue("asdf")
-
-    solver.mkAbstractValue(1)
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue(-1)
-    with pytest.raises(ValueError):
-        solver.mkAbstractValue(0)
-
-
 def test_mk_floating_point(solver):
     t1 = solver.mkBitVector(8)
     t2 = solver.mkBitVector(4)
@@ -1338,6 +1318,7 @@ def test_get_value3(solver):
 
 def test_declare_sep_heap(solver):
     solver.setLogic("ALL")
+    solver.setOption("incremental", "false")
     integer = solver.getIntegerSort()
     solver.declareSepHeap(integer, integer)
     # cannot declare separation logic heap more than once
@@ -2099,16 +2080,6 @@ def test_declare_pool(solver):
     nullSort = pycvc5.Sort(solver)
     with pytest.raises(RuntimeError):
         solver.declarePool("i", nullSort, [])
-
-
-def test_declare_sep_heap(solver):
-    solver.setLogic("ALL")
-    integer = solver.getIntegerSort()
-    solver.declareSepHeap(integer, integer)
-    # cannot declare separation logic heap more than once
-    with pytest.raises(RuntimeError):
-        solver.declareSepHeap(integer, integer)
-
 
 def test_define_fun_global(solver):
     bSort = solver.getBooleanSort()
