@@ -579,7 +579,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
-  Assert(node.getNumChildren() >= 2);
+  Assert(t.getNumChildren() >= 2);
 
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
