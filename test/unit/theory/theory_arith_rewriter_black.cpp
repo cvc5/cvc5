@@ -41,6 +41,14 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   {
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
+    n = d_nodeManager->mkNode(Kind::MULT, n, n);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.getConst<Rational>(), Rational(2));
+  }
+  {
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
+    Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::MINUS, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
