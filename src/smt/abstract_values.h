@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__ABSTRACT_VALUES_H
-#define CVC5__SMT__ABSTRACT_VALUES_H
+#ifndef CVC5__SMT__UNINTERPRETED_SORT_VALUES_H
+#define CVC5__SMT__UNINTERPRETED_SORT_VALUES_H
 
 #include <unordered_map>
 

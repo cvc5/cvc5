@@ -231,6 +231,21 @@ RewriteResponse ArithRewriter::rewriteConstant(TNode t){
   return RewriteResponse(REWRITE_DONE, t);
 }
 
+RewriteResponse ArithRewriter::rewriteRAN(TNode t)
+{
+  Assert(t.getKind() == REAL_ALGEBRAIC_NUMBER);
+
+  const RealAlgebraicNumber& r =
+      t.getOperator().getConst<RealAlgebraicNumber>();
+  if (r.isRational())
+  {
+    return RewriteResponse(
+        REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
+  }
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
 RewriteResponse ArithRewriter::rewriteVariable(TNode t){
   Assert(t.isVar());
 
@@ -286,6 +301,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     return rewriteVariable(t);
   }else{
     switch(Kind k = t.getKind()){
+      case kind::REAL_ALGEBRAIC_NUMBER: return rewriteRAN(t);
       case kind::MINUS: return rewriteMinus(t);
       case kind::UMINUS: return rewriteUMinus(t, true);
       case kind::DIVISION:
@@ -348,6 +364,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }else{
     Trace("arith-rewriter") << "postRewriteTerm: " << t << std::endl;
     switch(t.getKind()){
+      case kind::REAL_ALGEBRAIC_NUMBER: return rewriteRAN(t);
       case kind::MINUS: return rewriteMinus(t);
       case kind::UMINUS: return rewriteUMinus(t, false);
       case kind::DIVISION:
@@ -571,7 +588,10 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   if (poly.containsConstant())
   {
     ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    poly = poly.getTail();
+    if (!poly.isConstant())
+    {
+      poly = poly.getTail();
+    }
   }
 
   auto* nm = NodeManager::currentNM();
