@@ -469,7 +469,11 @@ EvalResult Evaluator::evalInternal(
             }
             res = res / results[currNode[i]].d_rat;
           }
-          if (!divbyzero)
+          if (divbyzero)
+          {
+            processUnhandled(currNode, currNodeVal, results, evalAsNode, needsReconstruct);
+          }
+          else
           {
             results[currNode] = EvalResult(res);
           }
@@ -894,10 +898,7 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
-          results[currNode] = EvalResult();
-          evalAsNode[currNode] =
-              needsReconstruct ? reconstruct(currNode, results, evalAsNode)
-                               : currNodeVal;
+          processUnhandled(currNode, currNodeVal, results, evalAsNode, needsReconstruct);
         }
       }
     }
@@ -968,6 +969,19 @@ Node Evaluator::reconstruct(TNode n,
   // Return node, without rewriting. Notice we do not need to substitute here
   // since all substitutions should already have been applied recursively.
   return nn;
+}
+
+void Evaluator::processUnhandled(TNode n, TNode nv,
+    std::unordered_map<TNode, Node>& evalAsNode,
+    std::unordered_map<TNode, EvalResult>& results,
+    bool needsReconstruct
+                                )
+{
+
+          results[n] = EvalResult();
+          evalAsNode[n] =
+              needsReconstruct ? reconstruct(n, results, evalAsNode)
+                               : nv;
 }
 
 }  // namespace theory

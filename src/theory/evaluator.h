@@ -159,6 +159,11 @@ class Evaluator
   Node reconstruct(TNode n,
                    std::unordered_map<TNode, EvalResult>& eresults,
                    std::unordered_map<TNode, Node>& evalAsNode) const;
+  /** Process unhandled */
+  void processUnhandled(TNode n, TNode nv,
+    std::unordered_map<TNode, Node>& evalAsNode,
+    std::unordered_map<TNode, EvalResult>& results,
+    bool needsReconstruct);
   /** The (optional) rewriter to be used */
   Rewriter* d_rr;
   /** The cardinality of the alphabet of strings */
