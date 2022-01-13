@@ -581,7 +581,10 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   if (poly.containsConstant())
   {
     ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    poly = poly.getTail();
+    if (!poly.isConstant())
+    {
+      poly = poly.getTail();
+    }
   }
 
   auto* nm = NodeManager::currentNM();
