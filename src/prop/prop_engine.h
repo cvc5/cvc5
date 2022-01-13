@@ -31,7 +31,6 @@
 
 namespace cvc5 {
 
-class Env;
 class ResourceManager;
 class ProofNodeManager;
 class TheoryEngine;
@@ -109,9 +108,11 @@ class PropEngine : protected EnvObj
    * @param skolemMap a map which says which skolem (if any) each assertion
    * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
    * assertion, then skolemMap may contain the entry { i -> k }.
+   * @param ppl the list of preprocessed learned literals
    */
   void assertInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap);
+                           std::unordered_map<size_t, Node>& skolemMap,
+                           const std::vector<Node>& ppl);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -292,6 +293,9 @@ class PropEngine : protected EnvObj
 
   /** Return the prop engine proof for assumption-based unsat cores. */
   std::shared_ptr<ProofNode> getRefutation();
+
+  /** Get the zero-level assertions */
+  const std::unordered_set<Node>& getLearnedZeroLevelLiterals() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

@@ -43,6 +43,9 @@ class ArithRewriter : public TheoryRewriter
   TrustNode expandDefinition(Node node) override;
 
  private:
+  static RewriteResponse preRewriteAtom(TNode t);
+  static RewriteResponse postRewriteAtom(TNode t);
+
   static Node makeSubtractionNode(TNode l, TNode r);
   static Node makeUnaryMinusNode(TNode n);
 
@@ -70,9 +73,6 @@ class ArithRewriter : public TheoryRewriter
 
   static RewriteResponse preRewriteTranscendental(TNode t);
   static RewriteResponse postRewriteTranscendental(TNode t);
-
-  static RewriteResponse preRewriteAtom(TNode t);
-  static RewriteResponse postRewriteAtom(TNode t);
 
   static bool isAtom(TNode n);
 
