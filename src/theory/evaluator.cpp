@@ -472,7 +472,7 @@ EvalResult Evaluator::evalInternal(
           if (divbyzero)
           {
             processUnhandled(
-                currNode, currNodeVal, results, evalAsNode, needsReconstruct);
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
           }
           else
           {
@@ -900,7 +900,7 @@ EvalResult Evaluator::evalInternal(
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
           processUnhandled(
-              currNode, currNodeVal, results, evalAsNode, needsReconstruct);
+              currNode, currNodeVal, evalAsNode, results, needsReconstruct);
         }
       }
     }

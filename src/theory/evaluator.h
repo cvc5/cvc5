@@ -159,7 +159,12 @@ class Evaluator
   Node reconstruct(TNode n,
                    std::unordered_map<TNode, EvalResult>& eresults,
                    std::unordered_map<TNode, Node>& evalAsNode) const;
-  /** Process unhandled */
+  /**
+   * Process unhandled, called when n cannot be evaluated. This updates
+   * evalAsNode and results with the proper entries for this case. The term
+   * nv is the (Node) value of n if it exists, otherwise if needsReconstruct
+   * is true, the value of n is reconstructed based on evalAsNode and results.
+   */
   void processUnhandled(TNode n,
                         TNode nv,
                         std::unordered_map<TNode, Node>& evalAsNode,
