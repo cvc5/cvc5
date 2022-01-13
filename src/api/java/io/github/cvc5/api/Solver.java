@@ -1194,45 +1194,6 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkRoundingMode(long pointer, int rm);
 
   /**
-   * Create uninterpreted constant.
-   * @param sort Sort of the constant
-   * @param index Index of the constant
-   */
-  public Term mkUninterpretedConst(Sort sort, int index) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(index, "index");
-    long termPointer = mkUninterpretedConst(pointer, sort.getPointer(), index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkUninterpretedConst(long pointer, long sortPointer, int index);
-
-  /**
-   * Create an abstract value constant.
-   * @param index Index of the abstract value
-   */
-  public Term mkAbstractValue(String index)
-  {
-    long termPointer = mkAbstractValue(pointer, index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkAbstractValue(long pointer, String index);
-
-  /**
-   * Create an abstract value constant.
-   * @param index Index of the abstract value
-   */
-  public Term mkAbstractValue(long index) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(index, "index");
-    long termPointer = mkAbstractValue(pointer, index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkAbstractValue(long pointer, long index);
-
-  /**
    * Create a floating-point constant.
    * @param exp Size of the exponent
    * @param sig Size of the significand

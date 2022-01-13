@@ -26,10 +26,10 @@
 
 #include "base/output.h"
 #include "expr/node.h"
-#include "expr/uninterpreted_constant.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {
@@ -47,7 +47,7 @@ struct EvalResult
     BITVECTOR,
     RATIONAL,
     STRING,
-    UCONST,
+    UVALUE,
     INVALID
   } d_tag;
 
@@ -58,7 +58,7 @@ struct EvalResult
     BitVector d_bv;
     Rational d_rat;
     String d_str;
-    UninterpretedConstant d_uc;
+    UninterpretedSortValue d_av;
   };
 
   EvalResult(const EvalResult& other);
@@ -67,7 +67,7 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
-  EvalResult(const UninterpretedConstant& u) : d_tag(UCONST), d_uc(u) {}
+  EvalResult(const UninterpretedSortValue& av) : d_tag(UVALUE), d_av(av) {}
 
   EvalResult& operator=(const EvalResult& other);
 

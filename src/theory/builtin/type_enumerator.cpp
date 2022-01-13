@@ -16,6 +16,7 @@
 #include "theory/builtin/type_enumerator.h"
 
 #include "theory/builtin/theory_builtin_rewriter.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {
@@ -51,7 +52,7 @@ Node UninterpretedSortEnumerator::operator*()
     throw NoMoreValuesException(getType());
   }
   return NodeManager::currentNM()->mkConst(
-      UninterpretedConstant(getType(), d_count));
+      UninterpretedSortValue(getType(), d_count));
 }
 
 UninterpretedSortEnumerator& UninterpretedSortEnumerator::operator++()

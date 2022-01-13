@@ -32,7 +32,10 @@
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
+<<<<<<< HEAD
 #include "util/poly_util.h"
+=======
+>>>>>>> upstream/master
 #include "util/real_algebraic_number.h"
 
 using namespace cvc5::kind;
@@ -524,11 +527,7 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t){
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
-  if (t.getNumChildren() == 1)
-  {
-    return RewriteResponse(REWRITE_DONE, t[0]);
-  }
+  Assert(t.getNumChildren() > 1);
 
   Rational rational;
   RealAlgebraicNumber ran;
@@ -564,8 +563,11 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
     Monomial::combineAdjacentMonomials(monomials);
     polynomials.emplace_back(Polynomial::mkPolynomial(monomials));
   }
-  polynomials.emplace_back(
-      Polynomial::mkPolynomial(Constant::mkConstant(rational)));
+  if (!rational.isZero())
+  {
+    polynomials.emplace_back(
+        Polynomial::mkPolynomial(Constant::mkConstant(rational)));
+  }
 
   Polynomial poly = Polynomial::sumPolynomials(polynomials);
 
@@ -573,16 +575,20 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   {
     return RewriteResponse(REWRITE_DONE, poly.getNode());
   }
+  if (poly.containsConstant())
+  {
+    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
+    poly = poly.getTail();
+  }
+
   auto* nm = NodeManager::currentNM();
   if (poly.isConstant())
   {
-    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
     return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
   }
   return RewriteResponse(
       REWRITE_DONE,
-      nm->mkNode(
-          Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+      nm->mkNode(Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
