@@ -36,6 +36,26 @@ class ArithConstantTypeRule
 };
 
 /**
+ * Type rule for real algebraic numbers.
+ * Returns `realType`.
+ */
+class ArithRealAlgebraicNumberOpTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
+ * Type rule for real algebraic numbers.
+ * Returns `realType`.
+ */
+class ArithRealAlgebraicNumberTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
  * Type rule for arithmetic relations. Returns Boolean. Throws a type error
  * if the types of the children are not arithmetic or not comparable.
  */

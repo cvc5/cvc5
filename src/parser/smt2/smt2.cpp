@@ -327,16 +327,6 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-api::Term Smt2::getExpressionForNameAndType(const std::string& name,
-                                            api::Sort t)
-{
-  if (isAbstractValue(name))
-  {
-    return mkAbstractValue(name);
-  }
-  return Parser::getExpressionForNameAndType(name, t);
-}
-
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
   if ((v2_6() || sygus()) && strictModeEnabled())
@@ -828,13 +818,6 @@ bool Smt2::isAbstractValue(const std::string& name)
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-api::Term Smt2::mkAbstractValue(const std::string& name)
-{
-  Assert(isAbstractValue(name));
-  // remove the '@'
-  return d_solver->mkAbstractValue(name.substr(1));
-}
-
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
   Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
@@ -1005,42 +988,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term constVal = args[0];
 
-    // To parse array constants taking reals whose values are specified by
-    // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
-    // the fact that (/ 1 3) is the division of constants 1 and 3, and not
-    // the resulting constant rational value. Thus, we must construct the
-    // resulting rational here. This also is applied for integral real values
-    // like 5.0 which are converted to (/ 5 1) to distinguish them from
-    // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero. A similar issue happens for
-    // negative integers and reals, with unary minus.
-    // NOTE this should be applied more eagerly when UMINUS/DIVISION is
-    // constructed.
-    bool isNeg = false;
-    if (constVal.getKind() == api::UMINUS)
-    {
-      isNeg = true;
-      constVal = constVal[0];
-    }
-    if (constVal.getKind() == api::DIVISION && isConstInt(constVal[0])
-        && isConstInt(constVal[1]))
-    {
-      std::stringstream sdiv;
-      sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
-      constVal = d_solver->mkReal(sdiv.str());
-    }
-    else if (isConstInt(constVal) && isNeg)
-    {
-      std::stringstream sneg;
-      sneg << "-" << constVal;
-      constVal = d_solver->mkInteger(sneg.str());
-    }
-    else
-    {
-      constVal = args[0];
-    }
-
-    if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
+    if (p.d_type.getArrayElementSort() != constVal.getSort())
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
@@ -1138,8 +1086,29 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     else if (kind == api::MINUS && args.size() == 1)
     {
+      if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
+      {
+        // (- n) denotes a negative value
+        std::stringstream suminus;
+        suminus << "-" << args[0].getIntegerValue();
+        api::Term ret = d_solver->mkInteger(suminus.str());
+        Debug("parser") << "applyParseOp: return negative constant " << ret
+                        << std::endl;
+        return ret;
+      }
       api::Term ret = d_solver->mkTerm(api::UMINUS, args[0]);
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
+      return ret;
+    }
+    else if (kind == api::DIVISION && args.size() == 2 && isConstInt(args[0])
+             && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign() > 0)
+    {
+      // (/ m n) or (/ (- m) n) denote values in reals
+      std::stringstream sdiv;
+      sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
+      api::Term ret = d_solver->mkReal(sdiv.str());
+      Debug("parser") << "applyParseOp: return rational constant " << ret
+                      << std::endl;
       return ret;
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
@@ -1249,7 +1218,7 @@ bool Smt2::isConstInt(const api::Term& t)
   api::Kind k = t.getKind();
   // !!! Note when arithmetic subtyping is eliminated, this will update to
   // CONST_INTEGER.
-  return k == api::CONST_RATIONAL;
+  return k == api::CONST_RATIONAL && t.getSort().isInteger();
 }
 
 }  // namespace parser
