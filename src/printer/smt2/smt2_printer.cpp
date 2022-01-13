@@ -33,7 +33,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
-#include "expr/uninterpreted_constant.h"
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -55,6 +55,7 @@
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 
@@ -322,11 +323,12 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
-    
-    case kind::UNINTERPRETED_CONSTANT: {
-      const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
+
+    case kind::UNINTERPRETED_SORT_VALUE:
+    {
+      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as @" << uc << " " << n.getType() << ")";
+      ss << "(as " << av << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -522,7 +524,7 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
     }
-    else
+    else if (k != kind::UNINTERPRETED_SORT_VALUE)
     {
       // use type ascription
       out << "(as ";
@@ -532,9 +534,17 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  // variable
-  if (n.isVar())
+  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
   {
+    // abstract value
+    std::string s;
+    n.getAttribute(expr::VarNameAttr(), s);
+    out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
+    return;
+  }
+  else if (n.isVar())
+  {
+    // variable
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {

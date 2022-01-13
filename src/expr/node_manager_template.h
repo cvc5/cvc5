@@ -686,8 +686,8 @@ class NodeManager
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
 
-  /** Make a new abstract value with the given type. */
-  Node mkAbstractValue(const TypeNode& type);
+  /** Make a new uninterpreted sort value with the given type. */
+  Node mkUninterpretedSortValue(const TypeNode& type);
 
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
