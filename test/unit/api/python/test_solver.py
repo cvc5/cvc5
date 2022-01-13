@@ -1002,43 +1002,6 @@ def test_mk_const_array(solver):
         slv.mkConstArray(arrSort, zero2)
 
 
-#def test_declare_datatype(solver):
-#  lin = solver.mkDatatypeConstructorDecl("lin")
-#  ctors0 = [lin]
-#  solver.declareDatatype("", ctors0)
-#
-#  nil = solver.mkDatatypeConstructorDecl("nil")
-#  ctors1 = [nil]
-#  solver.declareDatatype("a", ctors1)
-#
-#  cons = solver.mkDatatypeConstructorDecl("cons")
-#  nil2 = solver.mkDatatypeConstructorDecl("nil")
-#  ctors2 = [cons, nil2]
-#  solver.declareDatatype("b", ctors2)
-#
-#  cons2 = solver.mkDatatypeConstructorDecl("cons")
-#  nil3 = solver.mkDatatypeConstructorDecl("nil")
-#  ctors3 = [cons2, nil3]
-#  solver.declareDatatype("", ctors3)
-#
-#  # must have at least one constructor
-#  ctors4 = []
-#  with pytest.raises(RuntimeError):
-#      solver.declareDatatype("C", ctors4)
-#  
-#  # constructors may not be reused
-#  ctor1 = solver.mkDatatypeConstructorDecl("_x21")
-#  ctor2 = solver.mkDatatypeConstructorDecl("_x31")
-#  s3 = solver.declareDatatype("_x17", [ctor1, ctor2])
-#  with pytest.raises(RuntimeError):
-#      solver.declareDatatype("_x86", [ctor1, ctor2])
-#  
-#  # constructor belongs to different solver instance
-#  slv = pycvc5.Solver()
-#  with pytest.raises(RuntimeError):
-#      solver.declareDatatype("a", ctors1)
-
-
 def test_declare_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -1101,98 +1064,75 @@ def test_define_fun(solver):
         slv.defineFun("ff", [b12, b22], bvSort2, v1)
 
 
-#def test_define_fun_rec(solver):
-#    bvSort = solver.mkBitVectorSort(32)
-#    funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
-#    funSort2 = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
-#                                     solver.getIntegerSort())
-#    b1 = solver.mkVar(bvSort, "b1")
-#    b11 = solver.mkVar(bvSort, "b1")
-#    b2 = solver.mkVar(solver.getIntegerSort(), "b2")
-#    b3 = solver.mkVar(funSort2, "b3")
-#    v1 = solver.mkConst(bvSort, "v1")
-#    v2 = solver.mkConst(solver.getIntegerSort(), "v2")
-#    v3 = solver.mkConst(funSort2, "v3")
-#    f1 = solver.mkConst(funSort1, "f1")
-#    f2 = solver.mkConst(funSort2, "f2")
-#    f3 = solver.mkConst(bvSort, "f3")
-#    solver.defineFunRec("f", [], bvSort, v1)
-#    solver.defineFunRec("ff", [b1, b2], bvSort, v1)
-#    solver.defineFunRec(f1, [b1, b11], v1)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec("fff", [b1], bvSort, v3)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec("ff", [b1, v2], bvSort, v1)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec("ffff", [b1], funSort2, v3)
-#    # b3 has function sort, which is allowed as an argument
-#    solver.defineFunRec("fffff", [b1, b3], bvSort, v1)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec(f1, [b1], v1)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec(f1, [b1, b11], v2)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec(f1, [b1, b11], v3)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec(f2, [b1], v2)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec(f3, [b1], v1)
-#
-#    slv = pycvc5.Solver()
-#    bvSort2 = slv.mkBitVectorSort(32)
-#    v12 = slv.mkConst(bvSort2, "v1")
-#    b12 = slv.mkVar(bvSort2, "b1")
-#    b22 = slv.mkVar(slv.getIntegerSort(), "b2")
-#    slv.defineFunRec("f", [], bvSort2, v12)
-#    slv.defineFunRec("ff", [b12, b22], bvSort2, v12)
-#    with pytest.raises(RuntimeError):
-#        slv.defineFunRec("f", [], bvSort, v12)
-#    with pytest.raises(RuntimeError):
-#        slv.defineFunRec("f", [], bvSort2, v1)
-#    with pytest.raises(RuntimeError):
-#        slv.defineFunRec("ff", [b1, b22], bvSort2, v12)
-#    with pytest.raises(RuntimeError):
-#        slv.defineFunRec("ff", [b12, b2], bvSort2, v12)
-#    with pytest.raises(RuntimeError):
-#        slv.defineFunRec("ff", [b12, b22], bvSort, v12)
-#    with pytest.raises(RuntimeError):
-#        slv.defineFunRec("ff", [b12, b22], bvSort2, v1)
+def test_define_fun_rec(solver):
+    bvSort = solver.mkBitVectorSort(32)
+    funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
+    funSort2 = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
+                                     solver.getIntegerSort())
+    b1 = solver.mkVar(bvSort, "b1")
+    b11 = solver.mkVar(bvSort, "b1")
+    b2 = solver.mkVar(solver.getIntegerSort(), "b2")
+    b3 = solver.mkVar(funSort2, "b3")
+    v1 = solver.mkConst(bvSort, "v1")
+    v2 = solver.mkConst(solver.getIntegerSort(), "v2")
+    v3 = solver.mkConst(funSort2, "v3")
+    f1 = solver.mkConst(funSort1, "f1")
+    f2 = solver.mkConst(funSort2, "f2")
+    f3 = solver.mkConst(bvSort, "f3")
+    solver.defineFunRec("f", [], bvSort, v1)
+    solver.defineFunRec("ff", [b1, b2], bvSort, v1)
+    solver.defineFunRec(f1, [b1, b11], v1)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec("fff", [b1], bvSort, v3)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec("ff", [b1, v2], bvSort, v1)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec("ffff", [b1], funSort2, v3)
+    # b3 has function sort, which is allowed as an argument
+    solver.defineFunRec("fffff", [b1, b3], bvSort, v1)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec(f1, [b1], v1)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec(f1, [b1, b11], v2)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec(f1, [b1, b11], v3)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec(f2, [b1], v2)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec(f3, [b1], v1)
+
+    slv = pycvc5.Solver()
+    bvSort2 = slv.mkBitVectorSort(32)
+    v12 = slv.mkConst(bvSort2, "v1")
+    b12 = slv.mkVar(bvSort2, "b1")
+    b22 = slv.mkVar(slv.getIntegerSort(), "b2")
+    slv.defineFunRec("f", [], bvSort2, v12)
+    slv.defineFunRec("ff", [b12, b22], bvSort2, v12)
+    with pytest.raises(RuntimeError):
+        slv.defineFunRec("f", [], bvSort, v12)
+    with pytest.raises(RuntimeError):
+        slv.defineFunRec("f", [], bvSort2, v1)
+    with pytest.raises(RuntimeError):
+        slv.defineFunRec("ff", [b1, b22], bvSort2, v12)
+    with pytest.raises(RuntimeError):
+        slv.defineFunRec("ff", [b12, b2], bvSort2, v12)
+    with pytest.raises(RuntimeError):
+        slv.defineFunRec("ff", [b12, b22], bvSort, v12)
+    with pytest.raises(RuntimeError):
+        slv.defineFunRec("ff", [b12, b22], bvSort2, v1)
 
 
-#def test_define_fun_rec_wrong_logic(solver):
-#    solver.setLogic("QF_BV")
-#    bvSort = solver.mkBitVectorSort(32)
-#    funSort = solver.mkFunctionSort([bvSort, bvSort], bvSort)
-#    b = solver.mkVar(bvSort, "b")
-#    v = solver.mkConst(bvSort, "v")
-#    f = solver.mkConst(funSort, "f")
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec("f", [], bvSort, v)
-#    with pytest.raises(RuntimeError):
-#        solver.defineFunRec(f, [b, b], v)
-
-def test_define_fun_rec_global(solver):
-  bSort = solver.getBooleanSort()
-  fSort = solver.mkFunctionSort(bSort, bSort)
-
-  solver.push()
-  bTrue = solver.mkBoolean(True)
-  # (define-fun f () Bool true)
-  f = solver.defineFunRec("f", [], bSort, bTrue, True)
-  b = solver.mkVar(bSort, "b")
-  gSym = solver.mkConst(fSort, "g")
-  # (define-fun g (b Bool) Bool b)
-  g = solver.defineFunRec(gSym, [b], b, True)
-
-  # (assert (or (not f) (not (g true))))
-  solver.assertFormula(solver.mkTerm(
-      Kind.Or, f.notTerm(), solver.mkTerm(Kind.ApplyUf, g, bTrue).notTerm()))
-  assert solver.checkSat().isUnsat()
-  solver.pop()
-  # (assert (or (not f) (not (g true))))
-  solver.assertFormula(solver.mkTerm(
-      Kind.Or, f.notTerm(), solver.mkTerm(Kind.ApplyUf, g, bTrue).notTerm()))
-  solver.checkSat().isUnsat()
+def test_define_fun_rec_wrong_logic(solver):
+    solver.setLogic("QF_BV")
+    bvSort = solver.mkBitVectorSort(32)
+    funSort = solver.mkFunctionSort([bvSort, bvSort], bvSort)
+    b = solver.mkVar(bvSort, "b")
+    v = solver.mkConst(bvSort, "v")
+    f = solver.mkConst(funSort, "f")
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec("f", [], bvSort, v)
+    with pytest.raises(RuntimeError):
+        solver.defineFunRec(f, [b, b], v)
 
 
 def test_uf_iteration(solver):
