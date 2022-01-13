@@ -99,6 +99,15 @@ void Preprocessor::clearLearnedLiterals()
   d_propagator.getLearnedLiterals().clear();
 }
 
+std::vector<Node> Preprocessor::getLearnedLiterals() const
+{
+  if (d_ppContext == nullptr)
+  {
+    return {};
+  }
+  return d_ppContext->getLearnedLiterals();
+}
+
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
 Node Preprocessor::expandDefinitions(const Node& n)
