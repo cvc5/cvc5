@@ -471,7 +471,8 @@ EvalResult Evaluator::evalInternal(
           }
           if (divbyzero)
           {
-            processUnhandled(currNode, currNodeVal, results, evalAsNode, needsReconstruct);
+            processUnhandled(
+                currNode, currNodeVal, results, evalAsNode, needsReconstruct);
           }
           else
           {
@@ -898,7 +899,8 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
-          processUnhandled(currNode, currNodeVal, results, evalAsNode, needsReconstruct);
+          processUnhandled(
+              currNode, currNodeVal, results, evalAsNode, needsReconstruct);
         }
       }
     }
@@ -971,17 +973,14 @@ Node Evaluator::reconstruct(TNode n,
   return nn;
 }
 
-void Evaluator::processUnhandled(TNode n, TNode nv,
-    std::unordered_map<TNode, Node>& evalAsNode,
-    std::unordered_map<TNode, EvalResult>& results,
-    bool needsReconstruct
-                                )
+void Evaluator::processUnhandled(TNode n,
+                                 TNode nv,
+                                 std::unordered_map<TNode, Node>& evalAsNode,
+                                 std::unordered_map<TNode, EvalResult>& results,
+                                 bool needsReconstruct)
 {
-
-          results[n] = EvalResult();
-          evalAsNode[n] =
-              needsReconstruct ? reconstruct(n, results, evalAsNode)
-                               : nv;
+  results[n] = EvalResult();
+  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : nv;
 }
 
 }  // namespace theory
