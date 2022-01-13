@@ -273,12 +273,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
                        Sort sort, Term term, bint glbl) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
                           Sort sort, Term term, bint glbl) except +
-        Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
-                          Sort sort, Term term) except +
         Term defineFunRec(Term fun, const vector[Term]& bound_vars,
                           Term term, bint glbl) except +
-        Term defineFunRec(Term fun, const vector[Term]& bound_vars,
-                          Term term) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         vector[Term] getAssertions() except +

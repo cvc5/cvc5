@@ -1897,15 +1897,13 @@ cdef class Solver:
                                            <bint> glbl)
         return fun
 
-    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, bool_or_term, glbl=None):
+    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         """Define recursive functions.
 
         Supports two uses:
 
         - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
-        - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term)``
         - ``Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)``
-        - ``Term defineFunRec(Term fun, List[Term] bound_vars, Term term)``
 
 
         SMT-LIB:
@@ -1927,33 +1925,18 @@ cdef class Solver:
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
 
-        if isinstance(sym_or_fun, str):
-            if glbl is not None:
-                term.cterm = self.csolver.defineFunRec(
-                                                    (<str?> sym_or_fun).encode(),
-                                                    <const vector[c_Term]&> v,
-                                                    (<Sort?> sort_or_term).csort,
-                                                    (<Term?> bool_or_term).cterm,
-                                                    <bint> glbl)
-#            else:
-#                term.cterm = self.csolver.defineFunRec(
-#                                                    (<str?> sym_or_fun).encode(),
-#                                                    <const vector[c_Term]&> v,
-#                                                    (<Sort?> sort_or_term).csort,
-#                                                    (<Term?> bool_or_term).cterm)
+        if t is not None:
+            term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
+                                                <const vector[c_Term] &> v,
+                                                (<Sort?> sort_or_term).csort,
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
-            assert isinstance(sym_or_fun, Term)
-            if glbl is not None:
-                term.cterm = self.csolver.defineFunRec(
-                                                       (<Term?> sym_or_fun).cterm,
-                                                       <const vector[c_Term]&> v,
-                                                       (<Term?> sort_or_term).cterm,
-                                                       <bint> glbl)
-            else:
-                term.cterm = self.csolver.defineFunRec(
-                                                       (<Term?> sym_or_fun).cterm,
-                                                       <const vector[c_Term]&> v,
-                                                       (<Term?> sort_or_term).cterm)
+            term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
+                                                   <const vector[c_Term]&> v,
+                                                   (<Term?> sort_or_term).cterm,
+                                                   <bint> glbl)
+
         return term
 
     def defineFunsRec(self, funs, bound_vars, terms):
