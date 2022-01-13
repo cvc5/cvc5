@@ -579,17 +579,50 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
+  Assert(node.getNumChildren() >= 2);
 
-  Polynomial res = Polynomial::mkOne();
+  Rational rational = Rational(1);
+  RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
+  Polynomial poly = Polynomial::mkOne();
 
-  for(TNode::iterator i = t.begin(), end = t.end(); i != end; ++i){
-    Node curr = *i;
-    Polynomial currPoly = Polynomial::parsePolynomial(curr);
-
-    res = res * currPoly;
+  for (const auto& child : t)
+  {
+    if (child.isConst())
+    {
+      if (child.getConst<Rational>().isZero())
+      {
+        return RewriteResponse(REWRITE_DONE, child);
+      }
+      rational *= child.getConst<Rational>();
+    }
+    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      ran *= child.getOperator().getConst<RealAlgebraicNumber>();
+    }
+    else
+    {
+      poly = poly * Polynomial::parsePolynomial(child);
+    }
   }
 
-  return RewriteResponse(REWRITE_DONE, res.getNode());
+  if (!rational.isOne())
+  {
+    poly = poly * rational;
+  }
+  if (isOne(ran))
+  {
+    return RewriteResponse(REWRITE_DONE, poly.getNode());
+  }
+  auto* nm = NodeManager::currentNM();
+  if (poly.isConstant())
+  {
+    ran *= RealAlgebraicNumber(poly.getHead().getConstant().getValue());
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
+  }
+  return RewriteResponse(
+      REWRITE_DONE,
+      nm->mkNode(
+          Kind::MULT, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
