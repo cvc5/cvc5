@@ -32,10 +32,6 @@
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
-<<<<<<< HEAD
-#include "util/poly_util.h"
-=======
->>>>>>> upstream/master
 #include "util/real_algebraic_number.h"
 
 using namespace cvc5::kind;
