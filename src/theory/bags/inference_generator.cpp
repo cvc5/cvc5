@@ -303,64 +303,71 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::cardEmpty(Node cardTerm, Node n)
+InferInfo InferenceGenerator::cardEmpty(const std::pair<Node, Node>& pair,
+                                        Node n)
 {
-  Assert(cardTerm.getKind() == BAG_CARD);
-  Assert(n.getKind() == BAG_EMPTY && n.getType() == cardTerm[0].getType());
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_EMPTY && n.getType() == pair.first[0].getType());
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
-  Node premise = cardTerm[0].eqNode(n);
-  Node conclusion = cardTerm.eqNode(d_zero);
+  Node premise = pair.first[0].eqNode(n);
+  Node conclusion = pair.second.eqNode(d_zero);
   inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::cardBagMake(Node cardTerm, Node n)
+InferInfo InferenceGenerator::cardBagMake(const std::pair<Node, Node>& pair,
+                                          Node n)
 {
-  Assert(cardTerm.getKind() == BAG_CARD);
-  Assert(n.getKind() == BAG_MAKE && n.getType() == cardTerm[0].getType());
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_MAKE && n.getType() == pair.first[0].getType());
   //(=>
   //  (and (= A (bag x c)) (>= 0 c))
   //  (= (bag.card A) c))
   Node c = n[1];
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
   Node nonNegative = d_nm->mkNode(GEQ, c, d_zero);
-  Node premise = cardTerm[0].eqNode(n).andNode(nonNegative);
-  Node conclusion = cardTerm.eqNode(c);
+  Node premise = pair.first[0].eqNode(n).andNode(nonNegative);
+  Node conclusion = pair.second.eqNode(c);
   inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::cardUnionDisjoint(Node cardTerm, Node n)
+InferInfo InferenceGenerator::cardUnionDisjoint(
+    const std::pair<Node, Node>& pair, Node n)
 {
-  Assert(cardTerm.getKind() == BAG_CARD);
+  Assert(pair.first.getKind() == BAG_CARD);
   Assert(n.getKind() == BAG_UNION_DISJOINT
-         && n.getType() == cardTerm[0].getType());
+         && n.getType() == pair.first[0].getType());
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
-  Node premise = cardTerm[0].eqNode(n);
+  Node premise = pair.first[0].eqNode(n);
   Node A = n[0];
   Node B = n[1];
   Node cardA = d_nm->mkNode(BAG_CARD, A);
   Node cardB = d_nm->mkNode(BAG_CARD, B);
   Node sum = d_nm->mkNode(PLUS, cardA, cardB);
-  Node conclusion = cardTerm.eqNode(sum);
+  Node conclusion = pair.second.eqNode(sum);
   inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::cardUnionMax(
-    Node cardTerm, Node n, Node subtractAB, Node subtractBA, Node interAB)
+InferInfo InferenceGenerator::cardUnionMax(const std::pair<Node, Node>& pair,
+                                           Node n,
+                                           Node subtractAB,
+                                           Node subtractBA,
+                                           Node interAB)
 {
-  Assert(cardTerm.getKind() == BAG_CARD);
-  Assert(n.getKind() == BAG_UNION_MAX && n.getType() == cardTerm[0].getType());
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_UNION_MAX
+         && n.getType() == pair.first[0].getType());
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
-  Node premise = cardTerm[0].eqNode(n);
+  Node premise = pair.first[0].eqNode(n);
   Node A = n[0];
   Node B = n[1];
   Node cardSubtractAB = d_nm->mkNode(BAG_CARD, subtractAB);
   Node cardSubtractBA = d_nm->mkNode(BAG_CARD, subtractBA);
   Node cardInterAB = d_nm->mkNode(BAG_CARD, interAB);
   Node sum = d_nm->mkNode(PLUS, cardSubtractAB, cardSubtractBA, cardInterAB);
-  Node conclusion = cardTerm.eqNode(sum);
+  Node conclusion = pair.second.eqNode(sum);
   inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }

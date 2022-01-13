@@ -51,17 +51,32 @@ Node SolverState::registerCountTerm(TNode n)
   return count.eqNode(skolem);
 }
 
-void SolverState::registerCardinalityTerm(TNode n)
+Node SolverState::registerCardinalityTerm(TNode n)
 {
   Assert(n.getKind() == BAG_CARD);
-  d_cardTerms.insert(n);
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(cardTerm, "bag.card");
+  d_cardTerms[cardTerm] = skolem;
+  return cardTerm.eqNode(skolem).andNode(skolem.eqNode(n));
 }
 
-bool SolverState::hasCardinalityTerm() const { return d_cardTerms.size() == 0; }
+Node SolverState::getCardinalityTerm(TNode n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  return d_cardTerms[cardTerm];
+}
+
+bool SolverState::hasCardinalityTerms() const { return !d_cardTerms.empty(); }
 
 const std::set<Node>& SolverState::getBags() { return d_bags; }
 
-const std::set<Node>& SolverState::getCardinalityTerms() { return d_cardTerms; }
+const std::map<Node, Node>& SolverState::getCardinalityTerms()
+{
+  return d_cardTerms;
+}
 
 std::set<Node> SolverState::getElements(Node B)
 {
@@ -140,7 +155,8 @@ std::vector<Node> SolverState::collectBagsAndCountTerms()
       }
       if (k == BAG_CARD)
       {
-        registerCardinalityTerm(n);
+        Node lemma = registerCardinalityTerm(n);
+        lemmas.push_back(lemma);
       }
       ++it;
     }

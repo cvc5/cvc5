@@ -321,11 +321,75 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       Node value = m->getRepresentative(countSkolem);
       elementReps[key] = value;
     }
-    Node rep = NormalForm::constructBagFromElements(tn, elementReps);
-    rep = rewrite(rep);
-    Trace("bags-model") << "rep of " << n << " is: " << rep << std::endl;
-    m->assertEquality(rep, n, true);
-    m->assertSkeleton(rep);
+    Node constructedBag = NormalForm::constructBagFromElements(tn, elementReps);
+    constructedBag = rewrite(constructedBag);
+    Trace("bags-model") << "constructed bag for " << n
+                        << " is: " << constructedBag << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    if (d_state.hasCardinalityTerms())
+    {
+      if (d_cardSolver.isLeaf(n))
+      {
+        Node constructedBagCard = rewrite(nm->mkNode(BAG_CARD, constructedBag));
+        Trace("bags-model")
+            << "constructed bag cardinality: " << constructedBagCard
+            << std::endl;
+        Node rCard = nm->mkNode(BAG_CARD, r);
+        Node rCardSkolem = d_state.getCardinalityTerm(rCard);
+        Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
+        if (!rCardSkolem.isNull())
+        {
+          Node rCardModelValue = d_valuation.getModelValue(rCard);
+          const Rational& rCardRational = rCardModelValue.getConst<Rational>();
+          const Rational& constructedRational =
+              constructedBagCard.getConst<Rational>();
+          Trace("bags-model")
+              << "constructedRational : " << constructedRational << std::endl;
+          Trace("bags-model")
+              << "rCardRational : " << rCardRational << std::endl;
+          Assert(constructedRational <= rCardRational);
+          TypeNode elementType = r.getType().getBagElementType();
+          if (constructedRational < rCardRational
+              && elementType.getCardinality().isInfinite())
+          {
+            TypeEnumerator enumerator(elementType);
+            // look for a new element not encountered before
+            Node newElement = *enumerator;
+            while (elementReps.count(newElement) > 0)
+            {
+              newElement = *(++enumerator);
+            }
+            Trace("bags-model") << "newElement is " << newElement << std::endl;
+            Rational difference = rCardRational - constructedRational;
+            Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
+            Node slackBag = nm->mkBag(elementType, newElement, multiplicity);
+            constructedBag =
+                nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
+            constructedBag = rewrite(constructedBag);
+            Trace("bags-model") << "constructed bag for " << n
+                                << " is: " << constructedBag << std::endl;
+          }
+        }
+      }
+      else
+      {
+        std::set<Node> children = d_cardSolver.getChildren(n);
+        Assert(!children.empty());
+        constructedBag = nm->mkConst(EmptyBag(r.getType()));
+        for (Node child : children)
+        {
+          Trace("bags-model")
+              << "child bag for " << n << " is: " << child << std::endl;
+          constructedBag =
+              nm->mkNode(BAG_UNION_DISJOINT, child, constructedBag);
+        }
+        constructedBag = rewrite(constructedBag);
+        Trace("bags-model") << "constructed bag for " << n
+                            << " is: " << constructedBag << std::endl;
+      }
+    }
+    m->assertEquality(constructedBag, n, true);
+    m->assertSkeleton(constructedBag);
   }
   return true;
 }

@@ -47,26 +47,38 @@ class CardSolver : protected EnvObj
    * add lemmas related to cardinality constraints
    */
   void checkCardinalityGraph();
+  /**
+   * @param bag a node of a bag type
+   * @return whether the given node is a leaf in the cardinality graph
+   */
+  bool isLeaf(const Node& bag);
+
+  /**
+   * @param bag a node of a bag type
+   * @return a set of children for that bag in the cardinality graph
+   */
+  std::set<Node> getChildren(Node bag);
 
  private:
   /** apply inference rules for empty bags */
-  void checkEmpty(const Node& cardTerm, const Node& n);
+  void checkEmpty(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for bag make */
-  void checkBagMake(const Node& cardTerm, const Node& n);
+  void checkBagMake(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for union disjoint */
-  void checkUnionDisjoint(const Node& cardTerm, const Node& n);
+  void checkUnionDisjoint(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for union max */
-  void checkUnionMax(const Node& cardTerm, const Node& n);
+  void checkUnionMax(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for intersection_min operator */
-  void checkIntersectionMin(const Node& cardTerm, const Node& n);
+  void checkIntersectionMin(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for difference subtract */
-  void checkDifferenceSubtract(const Node& cardTerm, const Node& n);
+  void checkDifferenceSubtract(const std::pair<Node, Node>& pair,
+                               const Node& n);
   /** apply inference rules for difference remove */
-  void checkDifferenceRemove(const Node& cardTerm, const Node& n);
+  void checkDifferenceRemove(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for leaves in the cardinality graph
    *
    */
-  void checkLeafBag(const Node& cardTerm, const Node& bag);
+  void checkLeafBag(const std::pair<Node, Node>& pair, const Node& bag);
   void addChildren(const Node& parent, const std::set<Node>& children);
   /** The solver state object */
   SolverState& d_state;
@@ -79,6 +91,15 @@ class CardSolver : protected EnvObj
   /** bag reduction */
   BagReduction d_bagReduction;
 
+  /**
+   * A map from bags to sets of bags with the invariant that each key bag is the
+   * disjoint union of each set in the value.
+   * Example:
+   * C -> {{A, B}, {X,Y, Z}}
+   * implies we have the constraints
+   * (= C (bag.union_disjoint A B))
+   * (= C (bag.union_disjoint X Y Z))
+   */
   std::map<Node, std::set<std::set<Node>>> d_cardGraph;
 
   /** Commonly used constants */

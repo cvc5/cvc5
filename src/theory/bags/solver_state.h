@@ -50,9 +50,14 @@ class SolverState : public TheoryState
   /**
    * @param n has the form (bag.card A)
    */
-  void registerCardinalityTerm(TNode n);
+  Node registerCardinalityTerm(TNode n);
 
-  bool hasCardinalityTerm() const;
+  /**
+   * @param n has the form (bag.card A)
+   */
+  Node getCardinalityTerm(TNode n);
+
+  bool hasCardinalityTerms() const;
 
   /** get all bag terms that are representatives in the equality engine.
    * This function is valid after the current solver is initialized during
@@ -63,7 +68,7 @@ class SolverState : public TheoryState
   /**
    * get all cardinality terms
    */
-  const std::set<Node>& getCardinalityTerms();
+  const std::map<Node, Node>& getCardinalityTerms();
 
   /**
    * @pre B is a registered bag
@@ -114,7 +119,8 @@ class SolverState : public TheoryState
   std::map<Node, std::vector<std::pair<Node, Node>>> d_bagElements;
   /** Disequal bag terms */
   std::set<Node> d_deq;
-  std::set<Node> d_cardTerms;
+  /** a map from card terms to their skolem variables */
+  std::map<Node, Node> d_cardTerms;
 }; /* class SolverState */
 
 }  // namespace bags

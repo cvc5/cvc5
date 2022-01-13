@@ -177,7 +177,7 @@ class InferenceGenerator
    * (=> (= A (as bag.empty (Bag E)))
    *     (= (bag.card A) 0))
    */
-  InferInfo cardEmpty(Node cardTerm, Node n);
+  InferInfo cardEmpty(const std::pair<Node, Node>& pair, Node n);
   /**
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is a node of the form (bag x c) of type (Bag E)
@@ -186,7 +186,7 @@ class InferenceGenerator
    *     (and (= A (bag x c)) (>= 0 c))
    *     (= (bag.card A) c))
    */
-  InferInfo cardBagMake(Node cardTerm, Node n);
+  InferInfo cardBagMake(const std::pair<Node, Node>& pair, Node n);
   /**
    * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
    * @param n is a term of the form (bag.union_disjoint A B)
@@ -194,7 +194,7 @@ class InferenceGenerator
    * (=> (= C (bag.union_disjoint A B))
    *     (= (bag.card C) (+ (bag.card A) (bag.card B))))
    */
-  InferInfo cardUnionDisjoint(Node cardTerm, Node n);
+  InferInfo cardUnionDisjoint(const std::pair<Node, Node>& pair, Node n);
   /**
    * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
    * @param n is a term of the form (bag.union_max A B)
@@ -205,8 +205,11 @@ class InferenceGenerator
    *           (bag.card (bag.inter_min A B))
    *           (bag.card (bag.difference_subtract B A)))))
    */
-  InferInfo cardUnionMax(
-      Node cardTerm, Node n, Node subtractAB, Node subtractBA, Node interAB);
+  InferInfo cardUnionMax(const std::pair<Node, Node>& pair,
+                         Node n,
+                         Node subtractAB,
+                         Node subtractBA,
+                         Node interAB);
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
