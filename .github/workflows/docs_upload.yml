@@ -62,7 +62,7 @@ jobs:
       - name: Setup Context
         run: |
           HASH=${{ github.event.workflow_run.head_commit.id }}
-          ISTAG=${{ startsWith(github.ref, 'refs/tags/') }}
+          ISTAG=${{ endsWith(github.ref, github.event.workflow_run.head_branch) }}
           if [ "$ISTAG" = true ] ; then
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified tag $NAME"

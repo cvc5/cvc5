@@ -220,11 +220,12 @@ void SmtSolver::processAssertions(Assertions& as)
   {
     d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
+    const std::vector<Node>& ppl = d_pp.getLearnedLiterals();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    d_propEngine->assertInputFormulas(assertions, ism);
+    d_propEngine->assertInputFormulas(assertions, ism, ppl);
   }
 
   // clear the current assertions
