@@ -77,18 +77,59 @@ std::set<Node> CardSolver::getChildren(Node bag)
   Node rep = d_state.getRepresentative(bag);
   if (d_cardGraph[rep].empty())
   {
-    return std::set<Node>();
+    return {};
   }
   return *d_cardGraph[rep].begin();
 }
 
 void CardSolver::checkCardinalityGraph()
 {
-  const std::set<Node>& bags = d_state.getBags();
+  generateRelatedCardinalityTerms();
+
+  for (const auto& pair : d_state.getCardinalityTerms())
+  {
+    Trace("bags-card") << "cardTerm: " << pair << std::endl;
+    Assert(pair.first.getKind() == BAG_CARD);
+    Assert(d_state.hasTerm(pair.first[0]));
+    Node bag = d_state.getRepresentative(pair.first[0]);
+    Trace("bags-card") << "bag rep: " << bag << std::endl;
+    // enumerate all bag terms with bag operators
+    eq::EqClassIterator it =
+        eq::EqClassIterator(bag, d_state.getEqualityEngine());
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      Kind k = n.getKind();
+      Trace("bags-card") << "[" << bag << "] contains bag " << n << std::endl;
+      switch (k)
+      {
+        case BAG_EMPTY: checkEmpty(pair, n); break;
+        case BAG_MAKE: checkBagMake(pair, n); break;
+        case BAG_UNION_DISJOINT:
+        {
+          checkUnionDisjoint(pair, n);
+          break;
+        }
+        case BAG_UNION_MAX: checkUnionMax(pair, n); break;
+        case BAG_INTER_MIN: checkIntersectionMin(pair, n); break;
+        case BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(pair, n); break;
+        case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
+        default: break;
+      }
+      it++;
+    }
+    // if the bag is a leaf in the graph, then we reduce its cardinality
+    checkLeafBag(pair, bag);
+  }
+}
+
+void CardSolver::generateRelatedCardinalityTerms()
+{
+  const set<Node>& bags = d_state.getBags();
   for (const auto& pair : d_state.getCardinalityTerms())
   {
     Node rep = d_state.getRepresentative(pair.first[0]);
-    Trace("bags-card") << "bag rep: " << rep << std::endl;
+    Trace("bags-card") << "bag rep: " << rep << endl;
     // enumerate all bag terms that are related to the current bag
     for (const auto& bag : bags)
     {
@@ -128,6 +169,7 @@ void CardSolver::checkCardinalityGraph()
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
               Node inter = d_nm->mkNode(BAG_INTER_MIN, A, B);
+              d_state.registerBag(inter);
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
             }
             break;
@@ -140,42 +182,6 @@ void CardSolver::checkCardinalityGraph()
         it++;
       }
     }
-  }
-
-  for (const auto& pair : d_state.getCardinalityTerms())
-  {
-    Trace("bags-card") << "cardTerm: " << pair << std::endl;
-    Assert(pair.first.getKind() == BAG_CARD);
-    Assert(d_state.hasTerm(pair.first[0]));
-    Node bag = d_state.getRepresentative(pair.first[0]);
-    Trace("bags-card") << "bag rep: " << bag << std::endl;
-    // enumerate all bag terms with bag operators
-    eq::EqClassIterator it =
-        eq::EqClassIterator(bag, d_state.getEqualityEngine());
-    while (!it.isFinished())
-    {
-      Node n = (*it);
-      Kind k = n.getKind();
-      Trace("bags-card") << "[" << bag << "] contains bag " << n << std::endl;
-      switch (k)
-      {
-        case BAG_EMPTY: checkEmpty(pair, n); break;
-        case BAG_MAKE: checkBagMake(pair, n); break;
-        case BAG_UNION_DISJOINT:
-        {
-          checkUnionDisjoint(pair, n);
-          break;
-        }
-        case BAG_UNION_MAX: checkUnionMax(pair, n); break;
-        case BAG_INTER_MIN: checkIntersectionMin(pair, n); break;
-        case BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(pair, n); break;
-        case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
-        default: break;
-      }
-      it++;
-    }
-    // if the bag is a leaf in the graph, then we reduce its cardinality
-    checkLeafBag(pair, bag);
   }
 }
 

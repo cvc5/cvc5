@@ -60,6 +60,17 @@ class CardSolver : protected EnvObj
   std::set<Node> getChildren(Node bag);
 
  private:
+  /**
+   * Generate all cardinality terms needed in the cardinality graph.
+   * Example:
+   * If (bag.card B) is a term, and (bag.union_max A B) is a term, then
+   * the following cardinality terms would be added:
+   *  (bag.card (bag.union_max A B))
+   *  (bag.card A)
+   *  (bag.card (bag.inter_min A B))
+   */
+  void generateRelatedCardinalityTerms();
+
   /** apply inference rules for empty bags */
   void checkEmpty(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for bag make */
