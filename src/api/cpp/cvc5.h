@@ -4286,9 +4286,9 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * logics supported by quantifier elimination are LRA and LIA.
    *
-   * @note Quantifier Elimination is is only complete for LRA and LIA.
+   * @note Quantifier Elimination is only complete for LRA and LIA.
    *
    * @param q a quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
@@ -4317,7 +4317,7 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * logics supported by quantifier elimination are LRA and LIA.
    * @param q a quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
    *          where
