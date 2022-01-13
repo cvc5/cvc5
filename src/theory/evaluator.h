@@ -169,7 +169,7 @@ class Evaluator
                         TNode nv,
                         std::unordered_map<TNode, Node>& evalAsNode,
                         std::unordered_map<TNode, EvalResult>& results,
-                        bool needsReconstruct);
+                        bool needsReconstruct) const;
   /** The (optional) rewriter to be used */
   Rewriter* d_rr;
   /** The cardinality of the alphabet of strings */

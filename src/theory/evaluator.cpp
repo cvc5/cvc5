@@ -977,10 +977,10 @@ void Evaluator::processUnhandled(TNode n,
                                  TNode nv,
                                  std::unordered_map<TNode, Node>& evalAsNode,
                                  std::unordered_map<TNode, EvalResult>& results,
-                                 bool needsReconstruct)
+                                 bool needsReconstruct) const
 {
   results[n] = EvalResult();
-  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : nv;
+  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
 }
 
 }  // namespace theory
