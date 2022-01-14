@@ -679,7 +679,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       {
         case 0: base.emplace_back(nm->mkConstReal(Rational(1))); break;
         case 1: base.emplace_back(d[0]); break;
-        default: base.emplace_back(nm->mkNode(Kind::MULT, d));
+        default: base.emplace_back(nm->mkNode(Kind::NONLINEAR_MULT, d));
       }
     }
     Node res = nm->mkNode(Kind::PLUS, std::move(base));
@@ -713,7 +713,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
-  std::sort(leafs.begin(), leafs.end());
+  std::sort(leafs.begin(), leafs.end(), Variable::VariableNodeCmp());
 
   Assert(!rational.isZero());
   if (!isOne(ran))
