@@ -178,17 +178,18 @@ void ArraySolver::checkTerms(Kind k)
       }
       else if (ck != CONST_SEQUENCE)
       {
-        if (k==STRING_UPDATE)
+        if (k == STRING_UPDATE)
         {
           // If the term we are updating is atomic, but the update itself
           // not atomic, then we will apply the inverse version of the update
           // concat rule, based on the normal form of the term itself.
           rself = d_state.getRepresentative(t);
           NormalForm& nfSelf = d_csolver.getNormalForm(rself);
-          if (nfSelf.d_nf.size()>1)
+          if (nfSelf.d_nf.size() > 1)
           {
             isNfChildrenForSelf = true;
-            nfChildren.insert(nfChildren.end(), nfSelf.d_nf.begin(), nfSelf.d_nf.end());
+            nfChildren.insert(
+                nfChildren.end(), nfSelf.d_nf.begin(), nfSelf.d_nf.end());
           }
         }
         if (!isNfChildrenForSelf)
@@ -207,7 +208,7 @@ void ArraySolver::checkTerms(Kind k)
         // nth/update falls on each character below, which must have a size
         // greater than one.
         std::vector<Node> chars = Word::getChars(nf.d_nf[0]);
-        Assert (chars.size()>1);
+        Assert(chars.size() > 1);
         nfChildren.insert(nfChildren.end(), chars.begin(), chars.end());
       }
     }
@@ -315,7 +316,9 @@ void ArraySolver::checkTerms(Kind k)
       {
         eq = t.eqNode(finalc);
       }
-      iid = isNfChildrenForSelf ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE :  InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
+      iid = isNfChildrenForSelf
+                ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
+                : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
     }
     else
     {
