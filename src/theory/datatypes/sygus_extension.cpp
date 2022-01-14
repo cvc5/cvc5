@@ -1047,7 +1047,7 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = extendedRewrite(bv);
+    Node bvr = d_tds->rewriteNode(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
