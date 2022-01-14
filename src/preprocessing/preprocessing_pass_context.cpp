@@ -37,7 +37,7 @@ PreprocessingPassContext::PreprocessingPassContext(
 {
 }
 
-theory::TrustSubstitutionMap&
+const theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions() const
 {
   return d_env.getTopLevelSubstitutions();
@@ -85,7 +85,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
-  getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
+  d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
 }
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
@@ -93,7 +93,12 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                PfRule id,
                                                const std::vector<Node>& args)
 {
-  getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
+  d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
+}
+
+void PreprocessingPassContext::addSubstitutions(theory::TrustSubstitutionMap& tm)
+{
+  d_env.getTopLevelSubstitutions().addSubstitutions(tm);
 }
 
 }  // namespace preprocessing
