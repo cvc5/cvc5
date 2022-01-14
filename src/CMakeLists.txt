@@ -283,6 +283,8 @@ libcvc5_add_sources(
   prop/skolem_def_manager.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
+  prop/zero_level_learner.cpp
+  prop/zero_level_learner.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
   smt/abstract_values.cpp

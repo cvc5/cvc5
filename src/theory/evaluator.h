@@ -26,10 +26,10 @@
 
 #include "base/output.h"
 #include "expr/node.h"
-#include "expr/uninterpreted_constant.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {
@@ -47,7 +47,7 @@ struct EvalResult
     BITVECTOR,
     RATIONAL,
     STRING,
-    UCONST,
+    UVALUE,
     INVALID
   } d_tag;
 
@@ -58,7 +58,7 @@ struct EvalResult
     BitVector d_bv;
     Rational d_rat;
     String d_str;
-    UninterpretedConstant d_uc;
+    UninterpretedSortValue d_av;
   };
 
   EvalResult(const EvalResult& other);
@@ -67,7 +67,7 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
-  EvalResult(const UninterpretedConstant& u) : d_tag(UCONST), d_uc(u) {}
+  EvalResult(const UninterpretedSortValue& av) : d_tag(UVALUE), d_av(av) {}
 
   EvalResult& operator=(const EvalResult& other);
 
@@ -159,6 +159,17 @@ class Evaluator
   Node reconstruct(TNode n,
                    std::unordered_map<TNode, EvalResult>& eresults,
                    std::unordered_map<TNode, Node>& evalAsNode) const;
+  /**
+   * Process unhandled, called when n cannot be evaluated. This updates
+   * evalAsNode and results with the proper entries for this case. The term
+   * nv is the (Node) value of n if it exists, otherwise if needsReconstruct
+   * is true, the value of n is reconstructed based on evalAsNode and results.
+   */
+  void processUnhandled(TNode n,
+                        TNode nv,
+                        std::unordered_map<TNode, Node>& evalAsNode,
+                        std::unordered_map<TNode, EvalResult>& results,
+                        bool needsReconstruct) const;
   /** The (optional) rewriter to be used */
   Rewriter* d_rr;
   /** The cardinality of the alphabet of strings */

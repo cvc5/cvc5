@@ -877,6 +877,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2

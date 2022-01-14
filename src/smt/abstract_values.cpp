@@ -16,6 +16,7 @@
 #include "smt/abstract_values.h"
 
 #include "expr/ascription_type.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 
 namespace cvc5 {
@@ -44,13 +45,14 @@ Node AbstractValues::mkAbstractValue(TNode n)
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
-    val = d_nm->mkAbstractValue(n.getType());
+    val = d_nm->getSkolemManager()->mkDummySkolem(
+        "a",
+        n.getType(),
+        "an abstract value",
+        SkolemManager::SKOLEM_ABSTRACT_VALUE);
     d_abstractValueMap.addSubstitution(val, n);
   }
-  // We are supposed to ascribe types to all abstract values that go out.
-  Node ascription = d_nm->mkConst(AscriptionType(n.getType()));
-  Node retval = d_nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
-  return retval;
+  return val;
 }
 
 }  // namespace smt
