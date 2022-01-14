@@ -34,7 +34,10 @@ SubstitutionMap::SubstitutionMap(context::Context* context)
 std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions()
 {
   std::unordered_map<Node, Node> subs;
-  for (NodeMap::const_iterator it = subMap.begin(), it_end = subMap.end(); it != it_end; ++ it) {
+  for (NodeMap::const_iterator it = subMap.begin(), it_end = subMap.end();
+       it != it_end;
+       ++it)
+  {
     subs[(*it).first] = (*it).second;
   }
   return subs;
