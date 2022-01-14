@@ -179,6 +179,10 @@ void ArraySolver::checkTerms(Kind k)
       {
         if (k==STRING_UPDATE)
         {
+          // If the term we are updating is atomic, but the update itself
+          // is equal to a concatenation, then we will apply the inverse
+          // version of the inverse based on the normal form of the update
+          // term itself.
           NormalForm& nfSelf = d_csolver.getNormalForm(t);
           if (nfSelf.size()>1)
           {
@@ -229,6 +233,9 @@ void ArraySolver::checkTerms(Kind k)
       Node cc;
       if (k == STRING_UPDATE && isNfChildrenForSelf)
       {
+        // component for the reverse form of the update inference is a fresh
+        // variable, in particular, the purification variable for the substring
+        // of the term we are updating.
         Node sstr = nm->mkNode(STRING_SUBSTR, t[0], currSum, clen);
         cc = skc->mkSkolemCached(sstr, SkolemCache::SkolemId::SK_PURIFY, "z");
       }
@@ -297,7 +304,7 @@ void ArraySolver::checkTerms(Kind k)
       Node finalc = utils::mkConcat(cchildren, t.getType());
       Node lhs = isNfChildrenForSelf ? t[0] : t;
       eq = lhs.eqNode(finalc);
-      iid = InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
+      iid = isNfChildrenForSelf ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE :  InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
     }
     else
     {
