@@ -78,6 +78,26 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     EXPECT_EQ(n.getConst<Rational>(), Rational(2));
   }
   {
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
+    Node s = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
+    Node a = d_nodeManager->mkNode(Kind::MULT, s, s, s);
+    Node b = d_nodeManager->mkNode(Kind::MULT, s, s);
+    Node n = d_nodeManager->mkNode(Kind::MULT, a, b, a);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
+    EXPECT_EQ(n.getConst<Rational>(), Rational(16));
+  }
+  {
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
+    Node x = d_nodeManager->mkBoundVar("x", d_nodeManager->realType());
+    Node s = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
+    Node a = d_nodeManager->mkNode(Kind::MULT, s, x, s);
+    Node b = d_nodeManager->mkNode(Kind::MULT, x, s);
+    Node n = d_nodeManager->mkNode(Kind::MULT, a, b, a);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    std::cout << n << std::endl;
+  }
+  {
     RealAlgebraicNumber twosqrt2({-8, 0, 1}, 2, 3);
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
