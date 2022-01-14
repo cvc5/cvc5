@@ -86,11 +86,12 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
-  if (isOutputOn(OutputTag::LEARNED_LITS))
+  if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
   {
     Node eq = lhs.eqNode(rhs);
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
+    output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
   }
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
 }
@@ -100,11 +101,12 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                PfRule id,
                                                const std::vector<Node>& args)
 {
-  if (isOutputOn(OutputTag::LEARNED_LITS))
+  if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
   {
     Node eq = lhs.eqNode(rhs);
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
+    output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
   }
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
 }
@@ -112,7 +114,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
 void PreprocessingPassContext::addSubstitutions(
     theory::TrustSubstitutionMap& tm)
 {
-  if (isOutputOn(OutputTag::LEARNED_LITS))
+  if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
   {
     std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
     for (const std::pair<const Node, Node>& s : subs)
@@ -120,6 +122,7 @@ void PreprocessingPassContext::addSubstitutions(
       Node eq = s.first.eqNode(s.second);
       output(OutputTag::LEARNED_LITS)
           << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
+      output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
     }
   }
   d_env.getTopLevelSubstitutions().addSubstitutions(tm);
