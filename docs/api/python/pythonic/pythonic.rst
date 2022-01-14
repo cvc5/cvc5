@@ -1,4 +1,4 @@
-z3py compatibility Python API
+Pythonic API
 =========================================
 
 .. only:: not bindings_python
@@ -16,7 +16,7 @@ It does not (currently) support these cvc5 features:
 * unsatisfiable cores
 * syntax-guided synthesis (SyGuS)
 
-It does not support the following features of Z3Py:
+It does not (currently) support the following features of Z3Py:
 
 * Patterns for quantifier instantiation
 * Pseudo-boolean counting constraints: AtMost, AtLeast, ...
