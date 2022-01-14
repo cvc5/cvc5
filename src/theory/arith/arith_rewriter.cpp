@@ -661,14 +661,25 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         base.emplace_back(child);
       }
     }
+    Trace("arith-rewriter") << "base: " << base << std::endl;
+    Trace("arith-rewriter") << "dist:" << std::endl;
+    for (const auto& d: dist)
+    {
+      Trace("arith-rewriter") << "\t" << d << std::endl;
+    }
 
     for (auto& d: dist)
+    {
+      d.insert(d.end(), base.begin(), base.end());
+    }
+    base.clear();
+    for (const auto& d: dist)
     {
       switch (d.size())
       {
         case 0: base.emplace_back(nm->mkConstReal(Rational(1))); break;
         case 1: base.emplace_back(d[0]); break;
-        default: base.emplace_back(nm->mkNode(Kind::MULT, std::move(d)));
+        default: base.emplace_back(nm->mkNode(Kind::MULT, d));
       }
     }
     Node res = nm->mkNode(Kind::PLUS, std::move(base));
