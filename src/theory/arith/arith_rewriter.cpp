@@ -465,32 +465,19 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
+RewriteResponse ArithRewriter::preRewriteMult(TNode node)
+{
+  Assert(node.getKind() == kind::MULT
+         || node.getKind() == kind::NONLINEAR_MULT);
 
-RewriteResponse ArithRewriter::preRewriteMult(TNode t){
-  Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
-
-  if(t.getNumChildren() == 2){
-    if (t[0].isConst() && t[0].getConst<Rational>().isOne())
+  for (const auto& child : node)
+  {
+    if (child.isConst() && child.getConst<Rational>().isZero())
     {
-      return RewriteResponse(REWRITE_DONE, t[1]);
-    }
-    if (t[1].isConst() && t[1].getConst<Rational>().isOne())
-    {
-      return RewriteResponse(REWRITE_DONE, t[0]);
+      return RewriteResponse(REWRITE_DONE, child);
     }
   }
-
-  // Rewrite multiplications with a 0 argument and to 0
-  for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-    if ((*i).isConst())
-    {
-      if((*i).getConst<Rational>().isZero()) {
-        TNode zero = (*i);
-        return RewriteResponse(REWRITE_DONE, zero);
-      }
-    }
-  }
-  return RewriteResponse(REWRITE_DONE, t);
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 static bool canFlatten(Kind k, TNode t){
