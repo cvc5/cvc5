@@ -111,6 +111,7 @@ void ArraySolver::checkTerms(Kind k)
     NormalForm& nf = d_csolver.getNormalForm(r);
     Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
     std::vector<Node> nfChildren;
+    bool isNfChildrenForSelf = false;
     if (nf.d_nf.empty())
     {
       // updates should have been reduced (UPD_EMPTYSTR)
@@ -176,18 +177,33 @@ void ArraySolver::checkTerms(Kind k)
       }
       else if (ck != CONST_SEQUENCE)
       {
-        // otherwise, if the normal form is not a constant sequence, the
-        // equivalence class is pure wrt concatenation.
-        d_currTerms[k].push_back(t);
-        continue;
+        if (k==STRING_UPDATE)
+        {
+          NormalForm& nfSelf = d_csolver.getNormalForm(t);
+          if (nfSelf.size()>1)
+          {
+            isNfChildrenForSelf = true;
+            nfChildren.insert(nfChildren.end(), nfSelf.d_nf.begin(), nfSelf.d_nf.end());
+          }
+        }
+        if (!isNfChildrenForSelf)
+        {
+          // otherwise, if the normal form is not a constant sequence, the
+          // equivalence class is pure wrt concatenation.
+          d_currTerms[k].push_back(t);
+          continue;
+        }
       }
-      // if the normal form is a constant sequence, it is treated as a
-      // concatenation. We split per character and case split on whether the
-      // nth/update falls on each character below, which must have a size
-      // greater than one.
-      std::vector<Node> chars = Word::getChars(nf.d_nf[0]);
-      Assert (chars.size()>1);
-      nfChildren.insert(nfChildren.end(), chars.begin(), chars.end());
+      else
+      {
+        // if the normal form is a constant sequence, it is treated as a
+        // concatenation. We split per character and case split on whether the
+        // nth/update falls on each character below, which must have a size
+        // greater than one.
+        std::vector<Node> chars = Word::getChars(nf.d_nf[0]);
+        Assert (chars.size()>1);
+        nfChildren.insert(nfChildren.end(), chars.begin(), chars.end());
+      }
     }
     else
     {
@@ -198,23 +214,30 @@ void ArraySolver::checkTerms(Kind k)
     std::vector<Node> cond;
     std::vector<Node> cchildren;
     std::vector<Node> lacc;
+    SkolemCache* skc = d_termReg.getSkolemCache();
     for (const Node& c : nfChildren)
     {
       Trace("seq-array-debug") << "...process " << c << std::endl;
       Node clen = nm->mkNode(STRING_LENGTH, c);
       Node currIndex = t[1];
+      Node currSum = d_zero;
       if (!lacc.empty())
       {
-        Node currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+        currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
         currIndex = nm->mkNode(MINUS, currIndex, currSum);
       }
       Node cc;
+      if (k == STRING_UPDATE && isNfChildrenForSelf)
+      {
+        Node sstr = nm->mkNode(STRING_SUBSTR, t[0], currSum, clen);
+        cc = skc->mkSkolemCached(sstr, SkolemCache::SkolemId::SK_PURIFY, "z");
+      }
       // If it is a constant of length one, then the update/nth is determined
       // in this interval. Notice this is done here as
       // an optimization to short cut introducing terms like
       // (seq.nth (seq.unit c) i), which by construction is only relevant in
       // the context where i = 0, hence we replace by c here.
-      if (c.getKind() == CONST_SEQUENCE)
+      else if (c.getKind() == CONST_SEQUENCE)
       {
         const Sequence& seq = c.getConst<Sequence>();
         if (seq.size() == 1)
@@ -252,6 +275,12 @@ void ArraySolver::checkTerms(Kind k)
         Trace("seq-array-debug") << "......condition " << cf << std::endl;
         cond.push_back(cf);
       }
+      else if (k == STRING_UPDATE && isNfChildrenForSelf)
+      {
+        Node eq = c.eqNode(cc);
+        Trace("seq-array-debug") << "......condition " << eq << std::endl;
+        cond.push_back(eq);
+      }
     }
     // z = (seq.++ x y) =>
     // (seq.update z n l) =
@@ -266,7 +295,8 @@ void ArraySolver::checkTerms(Kind k)
     if (k == STRING_UPDATE)
     {
       Node finalc = utils::mkConcat(cchildren, t.getType());
-      eq = t.eqNode(finalc);
+      Node lhs = isNfChildrenForSelf ? t[0] : t;
+      eq = lhs.eqNode(finalc);
       iid = InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
     }
     else
