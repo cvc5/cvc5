@@ -108,6 +108,7 @@ void ArraySolver::checkTerms(Kind k)
       continue;
     }
     Node r = d_state.getRepresentative(t[0]);
+    Node rself;
     NormalForm& nf = d_csolver.getNormalForm(r);
     Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
     std::vector<Node> nfChildren;
@@ -182,7 +183,8 @@ void ArraySolver::checkTerms(Kind k)
           // If the term we are updating is atomic, but the update itself
           // not atomic, then we will apply the inverse version of the update
           // concat rule, based on the normal form of the term itself.
-          NormalForm& nfSelf = d_csolver.getNormalForm(t);
+          rself = d_state.getRepresentative(t);
+          NormalForm& nfSelf = d_csolver.getNormalForm(rself);
           if (nfSelf.d_nf.size()>1)
           {
             isNfChildrenForSelf = true;
@@ -332,7 +334,14 @@ void ArraySolver::checkTerms(Kind k)
       iid = InferenceId::STRINGS_ARRAY_NTH_CONCAT;
     }
     std::vector<Node> exp;
-    d_im.addToExplanation(r, t[0], exp);
+    if (isNfChildrenForSelf)
+    {
+      d_im.addToExplanation(rself, t, exp);
+    }
+    else
+    {
+      d_im.addToExplanation(r, t[0], exp);
+    }
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
     exp.push_back(t[0].eqNode(nf.d_base));
     if (d_eqProc.find(eq) == d_eqProc.end())
