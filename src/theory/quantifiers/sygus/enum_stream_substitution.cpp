@@ -194,7 +194,7 @@ Node EnumStreamPermutation::getNext()
         << " ......perm builtin is " << bultin_perm_value;
     if (options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
     {
-      bultin_perm_value = extendedRewrite(bultin_perm_value);
+      bultin_perm_value = d_tds->rewriteNode(bultin_perm_value);
       Trace("synth-stream-concrete-debug")
           << " and rewrites to " << bultin_perm_value;
     }
