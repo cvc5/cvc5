@@ -106,39 +106,6 @@ void TheoryProxy::notifyInputFormulas(
   }
 }
 
-void TheoryProxy::notifyInputFormulas(
-    const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
-{
-  // notify the theory engine of preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(assertions);
-  // Now, notify the theory proxy of the assertions and skolem definitions.
-  // Notice we do this before asserting the formulas to the CNF stream below,
-  // since (preregistration) lemmas may occur during calls to assertInternal.
-  // These lemmas we want to be notified about after the theory proxy has
-  // been notified about all input assertions.
-  std::unordered_map<size_t, Node>::iterator it;
-  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
-  {
-    // is the assertion a skolem definition?
-    it = skolemMap.find(i);
-    Node skolem;
-    if (it != skolemMap.end())
-    {
-      skolem = it->second;
-    }
-    notifyAssertion(assertions[i], skolem, false);
-  }
-
-  // the zero-level learner needs to be notified of the input assertions, to
-  // determine what is learnable
-  if (d_zll != nullptr)
-  {
-    d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
-  }
-}
-
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())

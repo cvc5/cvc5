@@ -69,9 +69,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
 
-  void notifyInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap,
-                           const std::vector<Node>& ppl);
   /**
    * Notifies this module of the input assertions.
    * @param assertion The preprocessed input assertions,
