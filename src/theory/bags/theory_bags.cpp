@@ -339,7 +339,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
         Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
         if (!rCardSkolem.isNull())
         {
-          Node rCardModelValue = d_valuation.getModelValue(rCard);
+          Node rCardModelValue = m->getRepresentative(rCardSkolem);
           const Rational& rCardRational = rCardModelValue.getConst<Rational>();
           const Rational& constructedRational =
               constructedBagCard.getConst<Rational>();
