@@ -31,6 +31,7 @@ namespace quantifiers {
 class ExampleEvalCache;
 class SygusStatistics;
 class SygusSampler;
+class TermDbSygus;
 
 /**
  * Base class for callbacks in the fast enumerator. This allows a user to
