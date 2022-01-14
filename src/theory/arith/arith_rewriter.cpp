@@ -664,11 +664,16 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
     for (auto& d: dist)
     {
-      base.emplace_back(nm->mkNode(Kind::MULT, std::move(d)));
+      switch (d.size())
+      {
+        case 0: base.emplace_back(nm->mkConstReal(Rational(1))); break;
+        case 1: base.emplace_back(d[1]); break;
+        default: base.emplace_back(nm->mkNode(Kind::MULT, std::move(d)));
+      }
     }
     Node res = nm->mkNode(Kind::PLUS, std::move(base));
     Trace("arith-rewriter") << "-> " << res << std::endl;
-    return RewriteResponse(REWRITE_AGAIN, res);
+    return RewriteResponse(REWRITE_AGAIN_FULL, res);
   }
 
   Rational rational = Rational(1);

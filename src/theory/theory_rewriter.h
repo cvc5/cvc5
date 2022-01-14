@@ -42,17 +42,8 @@ enum RewriteStatus
   REWRITE_AGAIN_FULL
 }; /* enum RewriteStatus */
 
-inline std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
-{
-  switch (rs)
-  {
-    case RewriteStatus::REWRITE_DONE:       return os << "DONE      ";
-    case RewriteStatus::REWRITE_AGAIN:      return os << "AGAIN     ";
-    case RewriteStatus::REWRITE_AGAIN_FULL: return os << "AGAIN_FULL";
-  }
-  Unreachable();
-  return os;
-}
+/** Print a RewriteStatus to an output stream */
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs);
 
 /**
  * Instances of this class serve as response codes from
