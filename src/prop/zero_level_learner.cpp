@@ -16,6 +16,8 @@
 
 #include "context/context.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
@@ -76,6 +78,15 @@ void ZeroLevelLearner::notifyInputFormulas(
     visited.insert(atom);
     d_pplAtoms.insert(atom);
   }
+  if (isOutputOn(OutputTag::LEARNED_LITS))
+  {
+    // output learned literals from preprocessing
+    for (const Node& lit : ppl)
+    {
+      output(OutputTag::LEARNED_LITS)
+          << "(learned-lit " << lit << " :preprocess)" << std::endl;
+    }
+  }
   for (const Node& a : assertions)
   {
     getAtoms(a, visited, d_ppnAtoms);
@@ -115,6 +126,14 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
         d_levelZeroAssertsLearned.insert(assertion);
         Trace("level-zero-assert")
             << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
+        if (isOutputOn(OutputTag::LEARNED_LITS))
+        {
+          // get the original form so that internally generated variables
+          // are mapped back to their original form
+          output(OutputTag::LEARNED_LITS)
+              << "(learned-lit " << SkolemManager::getOriginalForm(assertion)
+              << ")" << std::endl;
+        }
         return true;
       }
     }

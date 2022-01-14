@@ -31,7 +31,14 @@ namespace prop {
 class PropEngine;
 
 /**
- * The proxy class that allows the SatSolver to communicate with the theories
+ * The module for processing literals that are learned at decision level zero.
+ *
+ * This tracks the literals that are asserted at decision level zero. It
+ * computes which literals are "learnable", which currently is limited to those
+ * that are over atoms that appear in the input assertions.
+ *
+ * The module can be queried for the set of learned literals, and also is
+ * responsible for printing the literals it learns.
  */
 class ZeroLevelLearner : protected EnvObj
 {

@@ -327,16 +327,6 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-api::Term Smt2::getExpressionForNameAndType(const std::string& name,
-                                            api::Sort t)
-{
-  if (isAbstractValue(name))
-  {
-    return mkAbstractValue(name);
-  }
-  return Parser::getExpressionForNameAndType(name, t);
-}
-
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
   if ((v2_6() || sygus()) && strictModeEnabled())
@@ -826,13 +816,6 @@ bool Smt2::isAbstractValue(const std::string& name)
 {
   return name.length() >= 2 && name[0] == '@' && name[1] != '0'
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
-}
-
-api::Term Smt2::mkAbstractValue(const std::string& name)
-{
-  Assert(isAbstractValue(name));
-  // remove the '@'
-  return d_solver->mkAbstractValue(name.substr(1));
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)

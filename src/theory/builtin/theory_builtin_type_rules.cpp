@@ -17,17 +17,17 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
-#include "expr/uninterpreted_constant.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-TypeNode UninterpretedConstantTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check)
+TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
+                                                     TNode n,
+                                                     bool check)
 {
-  return n.getConst<UninterpretedConstant>().getType();
+  return n.getConst<UninterpretedSortValue>().getType();
 }
 
 /**
