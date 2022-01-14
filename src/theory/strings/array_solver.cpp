@@ -183,7 +183,7 @@ void ArraySolver::checkTerms(Kind k)
           // not atomic, then we will apply the inverse version of the update
           // concat rule, based on the normal form of the term itself.
           NormalForm& nfSelf = d_csolver.getNormalForm(t);
-          if (nfSelf.size()>1)
+          if (nfSelf.d_nf.size()>1)
           {
             isNfChildrenForSelf = true;
             nfChildren.insert(nfChildren.end(), nfSelf.d_nf.begin(), nfSelf.d_nf.end());
