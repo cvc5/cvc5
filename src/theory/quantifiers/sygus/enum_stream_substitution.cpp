@@ -125,7 +125,7 @@ Node EnumStreamPermutation::getNext()
   {
     d_first = false;
     Node bultin_value = d_tds->sygusToBuiltin(d_value, d_value.getType());
-    d_perm_values.insert(extendedRewrite(bultin_value));
+    d_perm_values.insert(d_tds->rewriteNode(bultin_value));
     return d_value;
   }
   unsigned n_classes = d_perm_state_class.size();
@@ -514,7 +514,7 @@ Node EnumStreamSubstitution::getNext()
       d_tds->sygusToBuiltin(comb_value, comb_value.getType());
   if (options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
   {
-    builtin_comb_value = extendedRewrite(builtin_comb_value);
+    builtin_comb_value = d_tds->rewriteNode(builtin_comb_value);
   }
   if (Trace.isOn("synth-stream-concrete"))
   {
