@@ -279,6 +279,13 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
     return RewriteResponse(REWRITE_DONE,
                            nm->mkConstRealOrInt(t[0].getType(), neg));
   }
+  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    const RealAlgebraicNumber& r =
+        t[0].getOperator().getConst<RealAlgebraicNumber>();
+    NodeManager* nm = NodeManager::currentNM();
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(-r));
+  }
 
   Node noUminus = makeUnaryMinusNode(t[0]);
   if(pre)
