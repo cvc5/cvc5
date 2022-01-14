@@ -79,7 +79,7 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
-      if (normalized.isConst())
+      if (TheoryModel::isEvaluationResult(normalized))
       {
         return normalized;
       }
@@ -101,7 +101,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
     // Members of exclusion set must have values, otherwise we are not yet
     // assignable.
     Node er = eset[i];
-    if (er.isConst())
+    if (TheoryModel::isEvaluationResult(er))
     {
       // already processed
       continue;
@@ -737,7 +737,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             }
             if (!normalized.isNull())
             {
-              Assert(normalized.isConst());
+              Assert(TheoryModel::isEvaluationResult(normalized));
               typeConstSet.add(tb, normalized);
               assignConstantRep(tm, *i2, normalized);
               Trace("model-builder") << "    Eval: Setting constant rep of "
@@ -776,7 +776,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Trace("model-builder") << "    Normalizing rep (" << rep
                                    << "), normalized to (" << normalized << ")"
                                    << endl;
-            if (normalized.isConst())
+            if (TheoryModel::isEvaluationResult(normalized))
             {
               changed = true;
               typeConstSet.add(tb, normalized);
@@ -1208,7 +1208,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!ri.isConst())
+        if (!TheoryModel::isEvaluationResult(ri))
         {
           childrenConst = false;
         }
@@ -1255,7 +1255,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
       Node rc = m->getRepresentative(un[j]);
       Trace("model-builder-debug2") << "    get rep : " << un[j] << " returned "
                                     << rc << std::endl;
-      Assert(rc.isConst());
+      Assert(TheoryModel::isEvaluationResult(rc));
       children.push_back(rc);
     }
     Node simp = NodeManager::currentNM()->mkNode(un.getKind(), children);

@@ -357,6 +357,13 @@ class TheoryModel : protected EnvObj
    */
   std::string debugPrintModelEqc() const;
 
+  /**
+   * Checks whether a node is an evaluation result, i.e., whether it is a proper
+   * constant-like value. This includes `node.isConst()`, but also real
+   * algebraic numbers.
+   */
+  static bool isEvaluationResult(TNode node);
+
  protected:
   /** Unique name of this model */
   std::string d_name;
