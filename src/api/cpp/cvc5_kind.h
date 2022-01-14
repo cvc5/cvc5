@@ -64,27 +64,16 @@ enum Kind : int32_t
   /* Builtin --------------------------------------------------------------- */
 
   /**
-   * Uninterpreted constant.
-   *
-   * Parameters:
-   *   - 1: Sort of the constant
-   *   - 2: Index of the constant
-   *
-   * Create with:
-   *   - `Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const`
-   */
-  UNINTERPRETED_CONSTANT,
-  /**
-   * Abstract value (other than uninterpreted sort constants).
+   * Abstract value.
    *
    * Parameters:
    *   - 1: Index of the abstract value
    *
    * Create with:
-   *   - `Solver::mkAbstractValue(const std::string& index) const`
-   *   - `Solver::mkAbstractValue(uint64_t index) const`
+   *   - `Solver::mkUninterpretedSortValue(const std::string& index) const`
+   *   - `Solver::mkUninterpretedSortValue(uint64_t index) const`
    */
-  ABSTRACT_VALUE,
+  UNINTERPRETED_SORT_VALUE,
 #if 0
   /* Built-in operator */
   BUILTIN,

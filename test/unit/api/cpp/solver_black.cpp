@@ -454,24 +454,6 @@ TEST_F(TestApiBlackSolver, mkRoundingMode)
   ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 }
 
-TEST_F(TestApiBlackSolver, mkAbstractValue)
-{
-  ASSERT_NO_THROW(d_solver.mkAbstractValue(std::string("1")));
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("0")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("-1")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("1.2")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue("1/2"), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue("asdf"), CVC5ApiException);
-
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((uint32_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int32_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((uint64_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int64_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int32_t)-1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int64_t)-1));
-  ASSERT_THROW(d_solver.mkAbstractValue(0), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, mkFloatingPoint)
 {
   Term t1 = d_solver.mkBitVector(8);

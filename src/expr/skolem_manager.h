@@ -217,9 +217,14 @@ class SkolemManager
    */
   enum SkolemFlags
   {
-    SKOLEM_DEFAULT = 0,    /**< default behavior */
-    SKOLEM_EXACT_NAME = 1, /**< do not make the name unique by adding the id */
-    SKOLEM_BOOL_TERM_VAR = 2 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+    /** default behavior */
+    SKOLEM_DEFAULT = 0,
+    /** do not make the name unique by adding the id */
+    SKOLEM_EXACT_NAME = 1,
+    /** vars requiring kind BOOLEAN_TERM_VARIABLE */
+    SKOLEM_BOOL_TERM_VAR = 2,
+    /** a skolem that stands for an abstract value (used for printing) */
+    SKOLEM_ABSTRACT_VALUE = 4,
   };
   /**
    * This makes a skolem of same type as bound variable v, (say its type is T),
@@ -404,6 +409,10 @@ class SkolemManager
    * the proof generator that was provided in a call to mkSkolem above.
    */
   ProofGenerator* getProofGenerator(Node q) const;
+
+  /** Returns true if n is a skolem that stands for an abstract value */
+  bool isAbstractValue(TNode n) const;
+
   /**
    * Convert to witness form, which gets the witness form of a skolem k.
    * Notice this method is *not* recursive, instead, it is a simple attribute
@@ -440,6 +449,7 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
+
   /** Get or make skolem attribute for term w, which may be a witness term */
   Node mkSkolemInternal(Node w,
                         const std::string& prefix,

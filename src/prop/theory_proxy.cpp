@@ -19,11 +19,14 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "expr/node_algorithm.h"
+#include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
+#include "prop/zero_level_learner.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
@@ -44,10 +47,16 @@ TheoryProxy::TheoryProxy(Env& env,
       d_decisionEngine(decisionEngine),
       d_dmNeedsActiveDefs(d_decisionEngine->needsActiveSkolemDefs()),
       d_theoryEngine(theoryEngine),
-      d_queue(env.getContext()),
+      d_queue(context()),
       d_tpp(env, *theoryEngine),
-      d_skdm(skdm)
+      d_skdm(skdm),
+      d_zll(nullptr)
 {
+  bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS);
+  if (trackTopLevelLearned)
+  {
+    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
+  }
 }
 
 TheoryProxy::~TheoryProxy() {
@@ -60,6 +69,39 @@ void TheoryProxy::presolve()
 {
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
+}
+
+void TheoryProxy::notifyInputFormulas(
+    const std::vector<Node>& assertions,
+    std::unordered_map<size_t, Node>& skolemMap,
+    const std::vector<Node>& ppl)
+{
+  // notify the theory engine of preprocessed assertions
+  d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  // Now, notify the theory proxy of the assertions and skolem definitions.
+  // Notice we do this before asserting the formulas to the CNF stream below,
+  // since (preregistration) lemmas may occur during calls to assertInternal.
+  // These lemmas we want to be notified about after the theory proxy has
+  // been notified about all input assertions.
+  std::unordered_map<size_t, Node>::iterator it;
+  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
+  {
+    // is the assertion a skolem definition?
+    it = skolemMap.find(i);
+    Node skolem;
+    if (it != skolemMap.end())
+    {
+      skolem = it->second;
+    }
+    notifyAssertion(assertions[i], skolem, false);
+  }
+
+  // the zero-level learner needs to be notified of the input assertions, to
+  // determine what is learnable
+  if (d_zll != nullptr)
+  {
+    d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
+  }
 }
 
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
@@ -83,6 +125,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
+    if (d_zll != nullptr)
+    {
+      // check if this corresponds to a zero-level asserted literal
+      d_zll->notifyAsserted(assertion);
+    }
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
     if (d_dmNeedsActiveDefs)
@@ -177,6 +224,11 @@ bool TheoryProxy::theoryNeedCheck() const {
   return d_theoryEngine->needCheck();
 }
 
+bool TheoryProxy::isIncomplete() const
+{
+  return d_theoryEngine->isIncomplete();
+}
+
 TNode TheoryProxy::getNode(SatLiteral lit) {
   return d_cnfStream->getNode(lit);
 }
@@ -236,6 +288,12 @@ void TheoryProxy::getSkolems(TNode node,
 }
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
+
+const std::unordered_set<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
+{
+  Assert(d_zll != nullptr);
+  return d_zll->getLearnedZeroLevelLiterals();
+}
 
 }  // namespace prop
 }  // namespace cvc5
