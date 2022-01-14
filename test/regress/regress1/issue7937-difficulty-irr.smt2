@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-difficulty
+; COMMAND-LINE: --produce-difficulty -q
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const x Bool)
