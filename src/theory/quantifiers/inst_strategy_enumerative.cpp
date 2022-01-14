@@ -56,7 +56,7 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
       return true;
     }
   }
-  if (options().quantifiers.fullSaturateQuant)
+  if (options().quantifiers.enumInst)
   {
     if (e >= Theory::EFFORT_LAST_CALL)
     {
@@ -78,7 +78,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       // we only add when interleaved with other strategies
       doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
-    if (options().quantifiers.fullSaturateQuant && !doCheck)
+    if (options().quantifiers.enumInst && !doCheck)
     {
       if (!d_qstate.getValuation().needCheck())
       {
@@ -93,13 +93,13 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
   Assert(!d_qstate.isInConflict());
   double clSet = 0;
-  if (Trace.isOn("fs-engine"))
+  if (Trace.isOn("enum-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("fs-engine") << "---Full Saturation Round, effort = " << e << "---"
+    Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
                        << std::endl;
   }
-  unsigned rstart = options().quantifiers.fullSaturateQuantRd ? 0 : 1;
+  unsigned rstart = options().quantifiers.enumInstRd ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
   unsigned addedLemmas = 0;
   // First try in relevant domain of all quantified formulas, if no
@@ -160,11 +160,11 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       }
     }
   }
-  if (Trace.isOn("fs-engine"))
+  if (Trace.isOn("enum-engine"))
   {
-    Trace("fs-engine") << "Added lemmas = " << addedLemmas << std::endl;
+    Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("fs-engine") << "Finished full saturation engine, time = "
+    Trace("enum-engine") << "Finished full saturation engine, time = "
                        << (clSet2 - clSet) << std::endl;
   }
   if (d_fullSaturateLimit > 0)
