@@ -82,16 +82,23 @@ std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
   return d_llm.getLearnedLiterals();
 }
 
+void PreprocessingPassContext::printSubstitution(const Node& lhs,
+                                               const Node& rhs) const
+{
+
+    Node eq = lhs.eqNode(rhs);
+    output(OutputTag::LEARNED_LITS)
+        << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
+    output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
+}
+
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
   if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
   {
-    Node eq = lhs.eqNode(rhs);
-    output(OutputTag::LEARNED_LITS)
-        << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
-    output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
+    printSubstitution(lhs, rhs);
   }
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
 }
@@ -103,10 +110,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
 {
   if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
   {
-    Node eq = lhs.eqNode(rhs);
-    output(OutputTag::LEARNED_LITS)
-        << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
-    output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
+    printSubstitution(lhs, rhs);
   }
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
 }
@@ -119,10 +123,7 @@ void PreprocessingPassContext::addSubstitutions(
     std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
     for (const std::pair<const Node, Node>& s : subs)
     {
-      Node eq = s.first.eqNode(s.second);
-      output(OutputTag::LEARNED_LITS)
-          << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
-      output(OutputTag::SUBS)  << "(substitution " << eq << ")" << std::endl;
+      printSubstitution(s.first, s.second);
     }
   }
   d_env.getTopLevelSubstitutions().addSubstitutions(tm);
