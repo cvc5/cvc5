@@ -1,4 +1,4 @@
-; COMMAND-LINE: --full-saturate-quant --enum-inst-stratify
+; COMMAND-LINE: --enum-inst --enum-inst-stratify
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-sort $$unsorted 0)
