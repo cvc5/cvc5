@@ -18,6 +18,7 @@
 
 #include "theory/arith/arith_rewriter.h"
 
+#include <optional>
 #include <set>
 #include <sstream>
 #include <stack>
@@ -56,36 +57,50 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
   }
 }
 
+template<typename Iterable>
+std::optional<TNode> getZeroChild(const Iterable& parent)
+{
+  for (const auto& node: parent)
+  {
+    if (node.isConst() && node.template getConst<Rational>().isZero())
+    {
+      return node;
+    }
+  }
+  return std::nullopt;
+}
+
 }  // namespace
 
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
 {
+  Trace("arith-rewriter") << "preRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
-    return preRewriteAtom(t);
+    auto res = preRewriteAtom(t);
+    Trace("arith-rewriter") << res.d_status << " -> " << res.d_node << std::endl;
+    return res;
   }
-  return preRewriteTerm(t);
+  auto res = preRewriteTerm(t);
+  Trace("arith-rewriter") << res.d_status << " -> " << res.d_node << std::endl;
+  return res;
 }
 
 RewriteResponse ArithRewriter::postRewrite(TNode t)
 {
+
+  Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
-    RewriteResponse response = postRewriteAtom(t);
-    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
-    {
-      Comparison::parseNormalForm(response.d_node);
-    }
-    return response;
+    auto res = postRewriteAtom(t);
+    Trace("arith-rewriter") << res.d_status << " -> " << res.d_node << std::endl;
+    return res;
   }
-  RewriteResponse response = postRewriteTerm(t);
-  if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
-  {
-    Polynomial::parsePolynomial(response.d_node);
-  }
-  return response;
+  auto res = postRewriteTerm(t);
+  Trace("arith-rewriter") << res.d_status << " -> " << res.d_node << std::endl;
+  return res;
 }
 
 RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
@@ -437,58 +452,68 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-RewriteResponse ArithRewriter::preRewriteMult(TNode node)
+void flatten(TNode t, Kind k, std::vector<TNode>& children)
 {
-  Assert(node.getKind() == kind::MULT
-         || node.getKind() == kind::NONLINEAR_MULT);
-
-  for (const auto& child : node)
+  Assert(t.getKind() == k);
+  for (const auto& child: t)
   {
-    if (child.isConst() && child.getConst<Rational>().isZero())
+    if (child.getKind() == k)
     {
-      return RewriteResponse(REWRITE_DONE, child);
+      flatten(child, k, children);
+    }
+    else
+    {
+      children.emplace_back(child);
     }
   }
-  return RewriteResponse(REWRITE_DONE, node);
 }
 
-static bool canFlatten(Kind k, TNode t){
-  for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-    TNode child = *i;
-    if(child.getKind() == k){
-      return true;
+void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+{
+  Assert(t.getKind() == k1 || t.getKind() == k2);
+  for (const auto& child: t)
+  {
+    if (child.getKind() == k1 || child.getKind() == k2)
+    {
+      flatten(child, k1, k2, children);
+    }
+    else
+    {
+      children.emplace_back(child);
     }
   }
-  return false;
 }
 
-static void flatten(std::vector<TNode>& pb, Kind k, TNode t){
-  if(t.getKind() == k){
-    for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-      TNode child = *i;
-      if(child.getKind() == k){
-        flatten(pb, k, child);
-      }else{
-        pb.push_back(child);
-      }
-    }
-  }else{
-    pb.push_back(t);
-  }
+Node flatten(TNode t, Kind k)
+{
+  std::vector<TNode> children;
+  flatten(t, k, children);
+  Assert(children.size() >= 2);
+  return NodeManager::currentNM()->mkNode(k, std::move(children));
 }
 
-static Node flatten(Kind k, TNode t){
-  std::vector<TNode> pb;
-  flatten(pb, k, t);
-  Assert(pb.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k, pb);
+Node flatten(TNode t, Kind k1, Kind k2)
+{
+  std::vector<TNode> children;
+  flatten(t, k1, k2, children);
+  Assert(children.size() >= 2);
+  return NodeManager::currentNM()->mkNode(k1, std::move(children));
 }
 
+bool canFlatten(TNode t, Kind k)
+{
+  return std::any_of(t.begin(), t.end(), [k](TNode child){ return child.getKind() == k; });
+}
+bool canFlatten(TNode t, Kind k1, Kind k2)
+{
+  return std::any_of(t.begin(), t.end(), [k1, k2](TNode child){ return child.getKind() == k1 || child.getKind() == k2; });
+}
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
 
-  if(canFlatten(kind::PLUS, t)){
-    return RewriteResponse(REWRITE_DONE, flatten(kind::PLUS, t));
+  if (canFlatten(t, Kind::PLUS))
+  {
+    return RewriteResponse(REWRITE_DONE, flatten(t, kind::PLUS));
   }else{
     return RewriteResponse(REWRITE_DONE, t);
   }
@@ -497,6 +522,11 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t){
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
   Assert(t.getNumChildren() > 1);
+
+  if (canFlatten(t, Kind::PLUS))
+  {
+    return RewriteResponse(REWRITE_AGAIN, flatten(t, kind::PLUS));
+  }
 
   Rational rational;
   RealAlgebraicNumber ran;
@@ -563,20 +593,96 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
       nm->mkNode(Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
+RewriteResponse ArithRewriter::preRewriteMult(TNode node)
+{
+  Assert(node.getKind() == kind::MULT
+         || node.getKind() == kind::NONLINEAR_MULT);
+
+  if (auto res = getZeroChild(node); res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
 
+  Trace("arith-rewriter") << "postRewriteMult " << t << std::endl;
+  
+  auto* nm = NodeManager::currentNM();
+
+  std::vector<TNode> children;
+  flatten(t, Kind::MULT, Kind::NONLINEAR_MULT, children);
+
+  if (auto res = getZeroChild(t); res)
+  {
+    Trace("arith-rewriter") << "-> " << *res << std::endl;
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
+
+  // Distribute over addition
+  if (std::any_of(children.begin(), children.end(), [](TNode child){ return child.getKind() == Kind::PLUS; }))
+  {
+    Trace("arith-rewriter") << "Distributing " << t << std::endl;
+    std::vector<Node> base;
+    std::vector<std::vector<TNode>> dist;
+    dist.emplace_back();
+
+    for (const auto& child : children)
+    {
+      if (child.getKind() == Kind::PLUS)
+      {
+        bool first = true;
+        size_t len = dist.size();
+        for (const auto& cc: child)
+        {
+          if (first)
+          {
+            for (auto& d: dist)
+            {
+              d.emplace_back(cc);
+            }
+            first = false;
+          }
+          else
+          {
+            for (size_t i = 0; i < len; ++i)
+            {
+              dist.emplace_back(dist[i]);
+              dist.back().back() = cc;
+            }
+          }
+        }
+      }
+      else
+      {
+        base.emplace_back(child);
+      }
+    }
+
+    for (auto& d: dist)
+    {
+      base.emplace_back(nm->mkNode(Kind::MULT, std::move(d)));
+    }
+    Node res = nm->mkNode(Kind::PLUS, std::move(base));
+    Trace("arith-rewriter") << "-> " << res << std::endl;
+    return RewriteResponse(REWRITE_AGAIN, res);
+  }
+
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
-  Polynomial poly = Polynomial::mkOne();
+  std::vector<TNode> leafs;
 
-  for (const auto& child : t)
+  for (const auto& child : children)
   {
+    Trace("arith-rewriter") << "Mult child " << child << std::endl;
     if (child.isConst())
     {
       if (child.getConst<Rational>().isZero())
       {
+        Trace("arith-rewriter") << "-> " << child << std::endl;
         return RewriteResponse(REWRITE_DONE, child);
       }
       rational *= child.getConst<Rational>();
@@ -587,28 +693,38 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
     else
     {
-      poly = poly * Polynomial::parsePolynomial(child);
+      leafs.emplace_back(child);
     }
   }
 
-  if (!rational.isOne())
+  Assert(!rational.isZero());
+  if (!isOne(ran))
   {
-    poly = poly * rational;
+    leafs.insert(leafs.begin(), nm->mkRealAlgebraicNumber(ran));
   }
-  if (isOne(ran))
+  Node nlmult;
+  switch (leafs.size())
   {
-    return RewriteResponse(REWRITE_DONE, poly.getNode());
+    case 0:
+      Trace("arith-rewriter") << "-> " << rational << std::endl;
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rational));
+    case 1: nlmult = leafs[0]; break;
+    default:
+      nlmult = nm->mkNode(
+            Kind::NONLINEAR_MULT, std::move(leafs));
   }
-  auto* nm = NodeManager::currentNM();
-  if (poly.isConstant())
+  if (rational.isOne())
   {
-    ran *= RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
+    Trace("arith-rewriter") << "-> " << nlmult << std::endl;
+    return RewriteResponse(
+        REWRITE_DONE,
+        nlmult);
   }
+  nlmult = nm->mkNode(Kind::MULT, nm->mkConstReal(rational), nlmult);
+  Trace("arith-rewriter") << "-> " << nlmult << std::endl;
   return RewriteResponse(
       REWRITE_DONE,
-      nm->mkNode(
-          Kind::MULT, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+      nlmult);
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
