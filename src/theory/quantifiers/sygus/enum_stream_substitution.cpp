@@ -192,7 +192,7 @@ Node EnumStreamPermutation::getNext()
     bultin_perm_value = d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
         << " ......perm builtin is " << bultin_perm_value;
-    if (options().datatypes.sygusSymBreakDynamic)
+    if (options().datatypes.sygusRewriter!=options::SygusRewriterMode::NONE)
     {
       bultin_perm_value = extendedRewrite(bultin_perm_value);
       Trace("synth-stream-concrete-debug")
@@ -512,7 +512,7 @@ Node EnumStreamSubstitution::getNext()
   // construction (unless it's equiv to a constant, e.g. true / false)
   Node builtin_comb_value =
       d_tds->sygusToBuiltin(comb_value, comb_value.getType());
-  if (options().datatypes.sygusSymBreakDynamic)
+  if (options().datatypes.sygusRewriter!=options::SygusRewriterMode::NONE)
   {
     builtin_comb_value = extendedRewrite(builtin_comb_value);
   }

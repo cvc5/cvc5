@@ -1575,9 +1575,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     opts.quantifiers.sygusRewSynth = true;
     // we should not use the extended rewriter, since we are interested
     // in rewrites that are not in the main rewriter
-    if (!opts.quantifiers.sygusExtRewWasSetByUser)
+    if (!opts.datatypes.sygusRewriterWasSetByUser)
     {
-      opts.quantifiers.sygusExtRew = false;
+      opts.datatypes.sygusRewriter = options::SygusRewriterMode::BASIC;
     }
   }
   // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm

@@ -102,12 +102,22 @@ name   = "Datatypes Theory"
   help       = "use aggressive checks for simple sygus symmetry breaking lemmas"
 
 [[option]]
-  name       = "sygusSymBreakDynamic"
+  name       = "sygusRewriter"
   category   = "regular"
-  long       = "sygus-sym-break-dynamic"
-  type       = "bool"
-  default    = "true"
-  help       = "dynamic sygus symmetry breaking lemmas"
+  long       = "sygus-rewriter=MODE"
+  type       = "SygusRewriterMode"
+  default    = "EXTENDED"
+  help       = "if and how to apply rewriting for sygus symmetry breaking"
+  help_mode  = "Modes for apply rewriting for sygus symmetry breaking."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use the rewriter."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Use the basic rewriter."
+[[option.mode.EXTENDED]]
+  name = "extended"
+  help = "Use the extended rewriter."
 
 [[option]]
   name       = "sygusSymBreakPbe"

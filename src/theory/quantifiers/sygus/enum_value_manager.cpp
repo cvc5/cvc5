@@ -108,7 +108,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
                || options().quantifiers.sygusActiveGenMode
                       == options::SygusActiveGenMode::AUTO);
         // create the enumerator callback
-        if (options().datatypes.sygusSymBreakDynamic)
+        if (options().datatypes.sygusRewriter!=options::SygusRewriterMode::NONE)
         {
           std::ostream* out = nullptr;
           if (options().quantifiers.sygusRewVerify)

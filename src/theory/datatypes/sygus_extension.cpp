@@ -1624,7 +1624,7 @@ void SygusExtension::check()
 
         // register the search value ( prog -> progv ), this may invoke symmetry
         // breaking
-        if (!isExc && options().datatypes.sygusSymBreakDynamic)
+        if (!isExc && options().datatypes.sygusRewriter!=options::SygusRewriterMode::NONE)
         {
           bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
           // check that it is unique up to theory-specific rewriting and
