@@ -1794,9 +1794,10 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   // relevant will be skipped.
   std::unordered_set<TNode> relevantAssertions;
   bool hasRelevantAssertions = false;
-  if (d_relManager!=nullptr)
+  if (d_relManager != nullptr)
   {
-    relevantAssertions = d_relManager->getRelevantAssertions(hasRelevantAssertions);
+    relevantAssertions =
+        d_relManager->getRelevantAssertions(hasRelevantAssertions);
   }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
@@ -1806,7 +1807,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
-        if (hasRelevantAssertions && relevantAssertions.find(assertion)==relevantAssertions.end())
+        if (hasRelevantAssertions
+            && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
           continue;
