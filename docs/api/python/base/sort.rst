@@ -1,6 +1,6 @@
 Sort
 ================
 
-.. autoclass:: pycvc5.Sort
+.. autoclass:: cvc5.Sort
     :members:
     :undoc-members:

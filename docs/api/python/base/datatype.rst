@@ -1,6 +1,6 @@
 Datatype
 ========
 
-.. autoclass:: pycvc5.Datatype
+.. autoclass:: cvc5.Datatype
     :members:
     :undoc-members:
