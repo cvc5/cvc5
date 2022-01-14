@@ -20,6 +20,18 @@
 namespace cvc5 {
 namespace theory {
 
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
+{
+  switch (rs)
+  {
+    case RewriteStatus::REWRITE_DONE:       return os << "DONE";
+    case RewriteStatus::REWRITE_AGAIN:      return os << "AGAIN";
+    case RewriteStatus::REWRITE_AGAIN_FULL: return os << "AGAIN_FULL";
+  }
+  Unreachable();
+  return os;
+}
+
 TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
                                            Node n,
                                            Node nr,
