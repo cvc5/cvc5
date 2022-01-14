@@ -1019,11 +1019,10 @@ Node SolverEngine::getValue(const Node& ex) const
          || resultNode.getType().isSubtypeOf(expectedType))
       << "Run with -t smt for details.";
 
-  // Ensure it's an evaluation result (constant or const-ish like real algebraic
+  // Ensure it's a value (constant or const-ish like real algebraic
   // numbers), or a lambda (for uninterpreted functions). This assertion only
   // holds for models that do not have approximate values.
-  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
-         || TheoryModel::isEvaluationResult(resultNode));
+  Assert(m->hasApproximations() || TheoryModel::isValue(resultNode));
 
   if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
   {
