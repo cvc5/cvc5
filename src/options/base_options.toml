@@ -193,6 +193,11 @@ name   = "Base"
   help = "print input literals that hold globally"
   description = "With ``-o learned-lits``, cvc5 prints input literals that it has learned to hold globally."
   example-file = "regress0/printer/learned-lit-output.smt2"
+[[option.mode.SUBS]]
+  name = "subs"
+  help = "print top-level substitutions learned during preprocessing"
+  description = "With ``-o subs``, cvc5 prints top-level substitutions learned during preprocessing."
+  example-file = "regress0/printer/subs-output.smt2"
 
 # Stores then enabled output tags.
 [[option]]
