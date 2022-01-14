@@ -741,7 +741,7 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 Node TermDbSygus::rewriteNode(Node n) const
 {
   Node res;
-  if (options().datatypes.sygusRewriter==options::SygusRewriterMode::EXTENDED)
+  if (options().datatypes.sygusRewriter == options::SygusRewriterMode::EXTENDED)
   {
     res = extendedRewrite(n);
   }

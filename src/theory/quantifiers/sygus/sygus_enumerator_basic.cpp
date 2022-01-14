@@ -40,7 +40,7 @@ bool EnumValGeneratorBasic::increment()
     return false;
   }
   d_currTerm = *d_te;
-  if (options().datatypes.sygusRewriter!=options::SygusRewriterMode::NONE)
+  if (options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
   {
     Node nextb = d_tds->sygusToBuiltin(d_currTerm);
     nextb = extendedRewrite(nextb);
