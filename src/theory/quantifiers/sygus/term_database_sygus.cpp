@@ -458,8 +458,7 @@ void TermDbSygus::registerEnumerator(Node e,
 
   // determine if we are actively-generated
   bool isActiveGen = false;
-  if (options().quantifiers.sygusEnumMode
-      != options::SygusEnumMode::SMART)
+  if (options().quantifiers.sygusEnumMode != options::SygusEnumMode::SMART)
   {
     if (erole == ROLE_ENUM_MULTI_SOLUTION || erole == ROLE_ENUM_CONSTRAINED)
     {
@@ -487,8 +486,7 @@ void TermDbSygus::registerEnumerator(Node e,
     {
       // If the enumerator is the single function-to-synthesize, if auto is
       // enabled, we infer whether it is better to enable active generation.
-      if (options().quantifiers.sygusEnumMode
-          == options::SygusEnumMode::AUTO)
+      if (options().quantifiers.sygusEnumMode == options::SygusEnumMode::AUTO)
       {
         // We use active generation if the grammar of the enumerator does not
         // have ITE and does not have Boolean connectives. Experimentally, it
