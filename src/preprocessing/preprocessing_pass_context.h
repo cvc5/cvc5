@@ -80,7 +80,7 @@ class PreprocessingPassContext : protected EnvObj
   void spendResource(Resource r);
 
   /** Get a reference to the top-level substitution map */
-  const theory::TrustSubstitutionMap& getTopLevelSubstitutions() const;
+  theory::TrustSubstitutionMap& getTopLevelSubstitutions() const;
 
   /** Record symbols in assertions
    *

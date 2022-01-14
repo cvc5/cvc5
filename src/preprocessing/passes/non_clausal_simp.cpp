@@ -118,8 +118,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // No conflict, go through the literals and solve them
   context::Context* u = userContext();
   Rewriter* rw = d_env.getRewriter();
-  const TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
-  CVC5_UNUSED const SubstitutionMap& top_level_substs = ttls.get();
+  TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
+  CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
@@ -395,7 +395,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // Note that we don't have to keep rhs's in full solved form
   // because SubstitutionMap::apply does a fixed-point iteration when
   // substituting
-  d_preprocContext.addSubstitutions(*newSubstitutions.get());
+  d_preprocContext->addSubstitutions(*newSubstitutions.get());
 
   if (!learnedLitsToConjoin.empty())
   {
