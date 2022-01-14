@@ -125,9 +125,8 @@ class PreprocessingPassContext : protected EnvObj
 
  private:
   /** Helper method for printing substitutions */
-  void printSubstitution(const Node& lhs,
-                       const Node& rhs) const;
-  
+  void printSubstitution(const Node& lhs, const Node& rhs) const;
+
   /** Pointer to the theory engine associated with this context. */
   TheoryEngine* d_theoryEngine;
   /** Pointer to the prop engine associated with this context. */
