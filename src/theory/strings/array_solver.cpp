@@ -284,7 +284,7 @@ void ArraySolver::checkTerms(Kind k)
       }
       else if (k == STRING_UPDATE && isNfChildrenForSelf)
       {
-        Node ccu = m->mkNode(STRING_UPDATE, cc, currIndex, t[2]);
+        Node ccu = nm->mkNode(STRING_UPDATE, cc, currIndex, t[2]);
         Node eq = c.eqNode(ccu);
         Trace("seq-array-debug") << "......condition " << eq << std::endl;
         cond.push_back(eq);
@@ -303,8 +303,16 @@ void ArraySolver::checkTerms(Kind k)
     if (k == STRING_UPDATE)
     {
       Node finalc = utils::mkConcat(cchildren, t.getType());
-      Node lhs = isNfChildrenForSelf ? t[0] : t;
-      eq = lhs.eqNode(finalc);
+      if (isNfChildrenForSelf)
+      {
+        eq = t[0].eqNode(finalc);
+        cond.push_back(eq);
+        eq = nm->mkAnd(cond);
+      }
+      else
+      {
+        eq = t.eqNode(finalc);
+      }
       iid = isNfChildrenForSelf ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE :  InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
     }
     else
