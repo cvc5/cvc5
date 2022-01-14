@@ -86,20 +86,12 @@ name   = "Datatypes Theory"
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
-  name       = "sygusSymBreak"
+  name       = "sygusSimpleSymBreak"
   category   = "regular"
-  long       = "sygus-sym-break"
+  long       = "sygus-simple-sym-break"
   type       = "bool"
   default    = "true"
   help       = "simple sygus symmetry breaking lemmas"
-
-[[option]]
-  name       = "sygusSymBreakAgg"
-  category   = "regular"
-  long       = "sygus-sym-break-agg"
-  type       = "bool"
-  default    = "true"
-  help       = "use aggressive checks for simple sygus symmetry breaking lemmas"
 
 [[option]]
   name       = "sygusRewriter"
