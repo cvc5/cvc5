@@ -667,7 +667,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       switch (d.size())
       {
         case 0: base.emplace_back(nm->mkConstReal(Rational(1))); break;
-        case 1: base.emplace_back(d[1]); break;
+        case 1: base.emplace_back(d[0]); break;
         default: base.emplace_back(nm->mkNode(Kind::MULT, std::move(d)));
       }
     }
