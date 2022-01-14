@@ -505,7 +505,7 @@ name   = "Quantifiers"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
-  help       = "resort to full effort techniques instead of answering unknown due to quantifiers. Currently enables enumerative instantiation"
+  help       = "resort to full effort techniques instead of answering unknown due to limited quantifier reasoning. Currently enables enumerative instantiation"
 
 [[option]]
   name       = "enumInst"
