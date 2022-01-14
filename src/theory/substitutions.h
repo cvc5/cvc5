@@ -93,6 +93,8 @@ class SubstitutionMap
  public:
   SubstitutionMap(context::Context* context = nullptr);
 
+  /** Get substitutions in this object as a raw map */
+  std::unordered_map<Node, Node> getSubstitutions();
   /**
    * Adds a substitution from x to t.
    */
