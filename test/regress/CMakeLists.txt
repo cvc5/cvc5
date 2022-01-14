@@ -2376,6 +2376,7 @@ set(regress_1_tests
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
   regress1/strings/issue7677-test-const-rv.smt2 
+  regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
