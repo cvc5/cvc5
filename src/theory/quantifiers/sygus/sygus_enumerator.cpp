@@ -59,7 +59,7 @@ void SygusEnumerator::initialize(Node e)
       && options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
   {
     d_secd =
-        std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_stats);
+        std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_tds, d_stats);
     d_sec = d_secd.get();
   }
   d_etype = d_enum.getType();
