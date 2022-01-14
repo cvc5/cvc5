@@ -803,5 +803,10 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
+bool TheoryModel::isEvaluationResult(TNode node)
+{
+  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+}
+
 }  // namespace theory
 }  // namespace cvc5
