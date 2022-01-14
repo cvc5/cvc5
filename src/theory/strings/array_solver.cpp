@@ -180,9 +180,8 @@ void ArraySolver::checkTerms(Kind k)
         if (k==STRING_UPDATE)
         {
           // If the term we are updating is atomic, but the update itself
-          // is equal to a concatenation, then we will apply the inverse
-          // version of the inverse based on the normal form of the update
-          // term itself.
+          // not atomic, then we will apply the inverse version of the update
+          // concat rule, based on the normal form of the term itself.
           NormalForm& nfSelf = d_csolver.getNormalForm(t);
           if (nfSelf.size()>1)
           {
@@ -192,8 +191,9 @@ void ArraySolver::checkTerms(Kind k)
         }
         if (!isNfChildrenForSelf)
         {
-          // otherwise, if the normal form is not a constant sequence, the
-          // equivalence class is pure wrt concatenation.
+          // otherwise, if the normal form is not a constant sequence, and we
+          // are not a non-atomic update term, then this term will be given to
+          // the core array solver.
           d_currTerms[k].push_back(t);
           continue;
         }
@@ -284,7 +284,8 @@ void ArraySolver::checkTerms(Kind k)
       }
       else if (k == STRING_UPDATE && isNfChildrenForSelf)
       {
-        Node eq = c.eqNode(cc);
+        Node ccu = m->mkNode(STRING_UPDATE, cc, currIndex, t[2]);
+        Node eq = c.eqNode(ccu);
         Trace("seq-array-debug") << "......condition " << eq << std::endl;
         cond.push_back(eq);
       }
