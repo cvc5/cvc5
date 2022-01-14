@@ -236,10 +236,11 @@ RewriteResponse ArithRewriter::rewriteRAN(TNode t)
   Assert(t.getKind() == REAL_ALGEBRAIC_NUMBER);
 
   const RealAlgebraicNumber& r =
-          t.getOperator().getConst<RealAlgebraicNumber>();
+      t.getOperator().getConst<RealAlgebraicNumber>();
   if (r.isRational())
   {
-    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
+    return RewriteResponse(
+        REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
   }
 
   return RewriteResponse(REWRITE_DONE, t);
@@ -280,10 +281,10 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
   }
   if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
-    RealAlgebraicNumber r =
-        -(t[0].getOperator().getConst<RealAlgebraicNumber>());
+    const RealAlgebraicNumber& r =
+        t[0].getOperator().getConst<RealAlgebraicNumber>();
     NodeManager* nm = NodeManager::currentNM();
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(r));
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(-r));
   }
 
   Node noUminus = makeUnaryMinusNode(t[0]);
@@ -441,42 +442,14 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   Assert(node.getKind() == kind::MULT
          || node.getKind() == kind::NONLINEAR_MULT);
 
-  bool foundNeutral = false;
   for (const auto& child : node)
   {
-    if (child.isConst())
+    if (child.isConst() && child.getConst<Rational>().isZero())
     {
-      if (child.getConst<Rational>().isZero())
-      {
-        return RewriteResponse(REWRITE_DONE, child);
-      }
-      if (child.getConst<Rational>().isOne())
-      {
-        foundNeutral = true;
-      }
+      return RewriteResponse(REWRITE_DONE, child);
     }
   }
-  if (!foundNeutral)
-  {
-    return RewriteResponse(REWRITE_DONE, node);
-  }
-  std::vector<TNode> reduced;
-  for (const auto& child : node)
-  {
-    if (!child.isConst() || !child.getConst<Rational>().isOne())
-    {
-      reduced.emplace_back(child);
-    }
-  }
-  switch (reduced.size())
-  {
-    case 0: return RewriteResponse(REWRITE_DONE, node[0]);
-    case 1: return RewriteResponse(REWRITE_DONE, reduced[0]);
-    default:
-      return RewriteResponse(
-          REWRITE_DONE,
-          NodeManager::currentNM()->mkNode(node.getKind(), std::move(reduced)));
-  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 static bool canFlatten(Kind k, TNode t){
@@ -574,7 +547,10 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   if (poly.containsConstant())
   {
     ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    poly = poly.getTail();
+    if (!poly.isConstant())
+    {
+      poly = poly.getTail();
+    }
   }
 
   auto* nm = NodeManager::currentNM();
@@ -589,11 +565,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
-
-  if (t.getNumChildren() == 1)
-  {
-    return RewriteResponse(REWRITE_DONE, t[0]);
-  }
+  Assert(t.getNumChildren() >= 2);
 
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
@@ -619,8 +591,10 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
-  poly = poly * rational;
-
+  if (!rational.isOne())
+  {
+    poly = poly * rational;
+  }
   if (isOne(ran))
   {
     return RewriteResponse(REWRITE_DONE, poly.getNode());
