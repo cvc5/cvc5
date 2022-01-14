@@ -12,7 +12,7 @@ function testwith {
   shift
   DEBUG=$1
   shift
-  CARGS="--tlimit=120000 $@"
+  CARGS="--tlimit=120000 --proof-granularity=theory-rewrite $@"
   echo "Run [$TESTNAME]: make regress -j8 CVC5_REGRESSION_ARGS=$CARGS"
   make regress -j8 CVC5_REGRESSION_ARGS="$CARGS" >& results_$TESTNAME.txt
   cat results_$TESTNAME.txt | grep "(Failed)" > temp.txt
