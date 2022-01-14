@@ -691,7 +691,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
 
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
-  bool doSymBreak = options().datatypes.sygusSimpleSymBreak;
+  bool doSymBreak = options().datatypes.sygusSimpleSymBreak!=options::SygusSimpleSymBreakMode::NONE;
   if (isAnyConstant || depth > 2)
   {
     doSymBreak = false;

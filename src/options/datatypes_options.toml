@@ -88,11 +88,21 @@ name   = "Datatypes Theory"
 [[option]]
   name       = "sygusSimpleSymBreak"
   category   = "regular"
-  long       = "sygus-simple-sym-break"
-  type       = "bool"
-  default    = "true"
-  help       = "simple sygus symmetry breaking lemmas"
-
+  long       = "sygus-simple-sym-break=MODE"
+  type       = "SygusSimpleSymBreakMode"
+  default    = "AGG"
+  help       = "if and how to apply simple symmetry breaking for smart enumeration"
+  help_mode  = "Modes for applying simple symmetry breaking for smart enumeration."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not apply simple symmetry breaking."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Apply basic simple symmetry breaking."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Apply aggressive simple symmetry breaking."
+  
 [[option]]
   name       = "sygusRewriter"
   category   = "regular"
@@ -100,7 +110,7 @@ name   = "Datatypes Theory"
   type       = "SygusRewriterMode"
   default    = "EXTENDED"
   help       = "if and how to apply rewriting for sygus symmetry breaking"
-  help_mode  = "Modes for apply rewriting for sygus symmetry breaking."
+  help_mode  = "Modes for applying rewriting for sygus symmetry breaking."
 [[option.mode.NONE]]
   name = "none"
   help = "Do not use the rewriter."

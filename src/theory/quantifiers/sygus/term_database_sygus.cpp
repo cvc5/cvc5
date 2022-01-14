@@ -857,7 +857,7 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
     }
     return true;
   }
-  if (!options().datatypes.sygusSymBreakAgg)
+  if (options().datatypes.sygusSimpleSymBreak!=SygusSimpleSymBreakMode::AGG)
   {
     return false;
   }
