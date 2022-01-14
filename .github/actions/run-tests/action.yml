@@ -39,8 +39,8 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.check-python-bindings }}" != "true" ]]; then exit 0; fi
-        echo PYTHONPATH set to "$PYTHONPATH:$(dirname $(find ${{ inputs.build-dir }}/install/lib -name 'cvc5' -type d))"
-        export PYTHONPATH="$PYTHONPATH:$(dirname $(find ${{ inputs.build-dir }}/install/lib -name "cvc5" -type d))"
+        echo PYTHONPATH is "$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install/lib -name 'cvc5_base_py_api*')))"
+        export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install/lib -name 'cvc5_base_py_api*')))"
         python3 -c "import cvc5"
 
     - name: Check Examples
