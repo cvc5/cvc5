@@ -357,6 +357,12 @@ class TheoryModel : protected EnvObj
    */
   std::string debugPrintModelEqc() const;
 
+  /**
+   * Is the node n a "value"? This is true if n is constant, a constant-like
+   * value (e.g. a real algebraic number) or if n is a lambda.
+   */
+  static bool isValue(TNode node);
+
  protected:
   /** Unique name of this model */
   std::string d_name;
