@@ -53,7 +53,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_zll(nullptr),
       d_deepRestart(false, userContext())
 {
-  bool trackTopLevelLearned = options().smt.deepRestart || isOutputOn(OutputTag::LEARNED_LITS);
+  bool trackTopLevelLearned =
+      options().smt.deepRestart || isOutputOn(OutputTag::LEARNED_LITS);
   if (trackTopLevelLearned)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);

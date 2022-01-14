@@ -436,7 +436,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                                         ? options::SimplificationMode::NONE
                                         : options::SimplificationMode::BATCH;
     }
-    if (opts.smt.deepRestart && opts.smt.simplificationMode == options::SimplificationMode::NONE)
+    if (opts.smt.deepRestart
+        && opts.smt.simplificationMode == options::SimplificationMode::NONE)
     {
       std::stringstream ss;
       ss << "Deep restart requires non-clausal simplification";
