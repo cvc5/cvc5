@@ -97,7 +97,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
-                       << std::endl;
+                         << std::endl;
   }
   unsigned rstart = options().quantifiers.enumInstRd ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
@@ -165,7 +165,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("enum-engine") << "Finished full saturation engine, time = "
-                       << (clSet2 - clSet) << std::endl;
+                         << (clSet2 - clSet) << std::endl;
   }
   if (d_enumInstLimit > 0)
   {
