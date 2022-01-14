@@ -1300,57 +1300,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRoundingMode(
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkUninterpretedConst
- * Signature: (JJI)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUninterpretedConst(
-    JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jint index)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
-  Term* retPointer =
-      new Term(solver->mkUninterpretedConst(*sort, (int32_t)index));
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Solver
- * Method:    mkAbstractValue
- * Signature: (JLjava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_mkAbstractValue__JLjava_lang_String_2(
-    JNIEnv* env, jobject, jlong pointer, jstring jIndex)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  const char* s = env->GetStringUTFChars(jIndex, nullptr);
-  std::string cIndex(s);
-  Term* retPointer = new Term(solver->mkAbstractValue(cIndex));
-  env->ReleaseStringUTFChars(jIndex, s);
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Solver
- * Method:    mkAbstractValue
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkAbstractValue__JJ(
-    JNIEnv* env, jobject, jlong pointer, jlong index)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkAbstractValue((uint64_t)index));
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Solver
  * Method:    mkFloatingPoint
  * Signature: (JIIJ)J
  */
