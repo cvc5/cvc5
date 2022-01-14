@@ -100,7 +100,6 @@ void CardSolver::checkCardinalityGraph()
     {
       Node n = (*it);
       Kind k = n.getKind();
-      Trace("bags-card") << "[" << bag << "] contains bag " << n << std::endl;
       switch (k)
       {
         case BAG_EMPTY: checkEmpty(pair, n); break;
@@ -169,13 +168,37 @@ void CardSolver::generateRelatedCardinalityTerms()
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
               Node inter = d_nm->mkNode(BAG_INTER_MIN, A, B);
+              Node subtractAB =
+                  d_nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, A, B);
+              Node subtractBA =
+                  d_nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, B, A);
+              d_state.registerBag(inter);
+              d_state.registerBag(subtractAB);
+              d_state.registerBag(subtractBA);
+              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
+              d_state.registerCardinalityTerm(
+                  d_nm->mkNode(BAG_CARD, subtractAB));
+              d_state.registerCardinalityTerm(
+                  d_nm->mkNode(BAG_CARD, subtractBA));
+            }
+            break;
+          }
+          case BAG_INTER_MIN: break;
+          case BAG_DIFFERENCE_SUBTRACT:
+          {
+            Node A = d_state.getRepresentative(n[0]);
+            Node B = d_state.getRepresentative(n[1]);
+            if (A == rep || B == rep)
+            {
+              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
+              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
+              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
+              Node inter = d_nm->mkNode(BAG_INTER_MIN, A, B);
               d_state.registerBag(inter);
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
             }
             break;
           }
-          case BAG_INTER_MIN: break;
-          case BAG_DIFFERENCE_SUBTRACT: break;
           case BAG_DIFFERENCE_REMOVE: break;
           default: break;
         }
@@ -226,7 +249,7 @@ void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
-  addChildren(bag, {subtractAB, subtractBA, interAB});
+  addChildren(bag, {subtractABRep, interABRep, subtractBARep});
   InferInfo i = d_ig.cardUnionMax(pair, n, subtractAB, subtractBA, interAB);
   d_im.lemmaTheoryInference(&i);
 }
@@ -237,7 +260,10 @@ void CardSolver::addChildren(const Node& parent, const set<Node>& children)
   {
     d_cardGraph[parent] = {children};
   }
-  d_cardGraph[parent].insert(children);
+  if (d_cardGraph[parent].count(children) == 0)
+  {
+    d_cardGraph[parent].insert(children);
+  }
   for (Node child : children)
   {
     // if not in the graph
@@ -252,12 +278,36 @@ void CardSolver::checkIntersectionMin(const std::pair<Node, Node>& pair,
                                       const Node& n)
 {
   Assert(n.getKind() == BAG_INTER_MIN);
+  Node bag = d_state.getRepresentative(pair.first[0]);
+  Node A = d_state.getRepresentative(n[0]);
+  Node B = d_state.getRepresentative(n[1]);
+  Node subtractAB = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, A, B);
+  Node subtractBA = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, B, A);
+  Node interAB = d_nm->mkNode(BAG_INTER_MIN, B, A);
+  d_state.registerBag(subtractAB);
+  d_state.registerBag(subtractBA);
+  d_state.registerBag(interAB);
+  Node subtractABRep = d_state.getRepresentative(subtractAB);
+  Node subtractBARep = d_state.getRepresentative(subtractBA);
+  Node interABRep = d_state.getRepresentative(interAB);
+  addChildren(A, {subtractABRep, interABRep});
+  addChildren(B, {interABRep, subtractBARep});
+  InferInfo i =
+      d_ig.cardIntersectionMin(pair, n, subtractAB, subtractBA, interAB);
+  d_im.lemmaTheoryInference(&i);
 }
 
 void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
                                          const Node& n)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
+  Node bag = d_state.getRepresentative(pair.first[0]);
+  Node A = d_state.getRepresentative(n[0]);
+  Node B = d_state.getRepresentative(n[1]);
+  Node interAB = d_nm->mkNode(BAG_INTER_MIN, B, A);
+  d_state.registerBag(interAB);
+  Node interABRep = d_state.getRepresentative(interAB);
+  addChildren(A, {bag, interABRep});
 }
 
 void CardSolver::checkDifferenceRemove(const std::pair<Node, Node>& pair,

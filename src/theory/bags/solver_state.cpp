@@ -38,6 +38,10 @@ void SolverState::registerBag(TNode n)
 {
   Assert(n.getType().isBag());
   d_bags.insert(n);
+  if (!d_ee->hasTerm(n))
+  {
+    d_ee->addTerm(n);
+  }
 }
 
 Node SolverState::registerCountTerm(TNode n)
@@ -47,13 +51,22 @@ Node SolverState::registerCountTerm(TNode n)
   Node bag = getRepresentative(n[1]);
   Node count = d_nm->mkNode(BAG_COUNT, element, bag);
   Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(count, "bag.count");
-  d_bagElements[bag].push_back(std::make_pair(element, skolem));
+  std::pair<Node, Node> pair = std::make_pair(element, skolem);
+  if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
+      == d_bagElements[bag].end())
+  {
+    d_bagElements[bag].push_back(pair);
+  }
   return count.eqNode(skolem);
 }
 
 Node SolverState::registerCardinalityTerm(TNode n)
 {
   Assert(n.getKind() == BAG_CARD);
+  if (!d_ee->hasTerm(n))
+  {
+    d_ee->addTerm(n);
+  }
   Node bag = getRepresentative(n[0]);
   Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
   Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(cardTerm, "bag.card");
