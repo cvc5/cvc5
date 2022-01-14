@@ -702,6 +702,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
+  std::sort(leafs.begin(), leafs.end());
+
   Assert(!rational.isZero());
   if (!isOne(ran))
   {
