@@ -40,7 +40,10 @@ class SygusSampler;
 class SygusEnumeratorCallback : protected EnvObj
 {
  public:
-  SygusEnumeratorCallback(Env& env, Node e, TermDbSygus * tds = nullptr, SygusStatistics* s = nullptr);
+  SygusEnumeratorCallback(Env& env,
+                          Node e,
+                          TermDbSygus* tds = nullptr,
+                          SygusStatistics* s = nullptr);
   virtual ~SygusEnumeratorCallback() {}
   /**
    * Add term, return true if the term should be considered in the enumeration.
@@ -76,7 +79,7 @@ class SygusEnumeratorCallback : protected EnvObj
   /** The type of enum */
   TypeNode d_tn;
   /** Term database sygus */
-  TermDbSygus * d_tds;
+  TermDbSygus* d_tds;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
 };
@@ -86,7 +89,7 @@ class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
  public:
   SygusEnumeratorCallbackDefault(Env& env,
                                  Node e,
-                                 TermDbSygus * tds = nullptr,
+                                 TermDbSygus* tds = nullptr,
                                  SygusStatistics* s = nullptr,
                                  ExampleEvalCache* eec = nullptr,
                                  SygusSampler* ssrv = nullptr,

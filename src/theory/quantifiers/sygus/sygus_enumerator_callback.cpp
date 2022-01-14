@@ -27,7 +27,7 @@ namespace quantifiers {
 
 SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
                                                  Node e,
-    TermDbSygus * tds, 
+                                                 TermDbSygus* tds,
                                                  SygusStatistics* s)
     : EnvObj(env), d_enum(e), d_tds(tds), d_stats(s)
 {
@@ -37,7 +37,7 @@ SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
 bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
-  Node bnr = d_tds==nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
+  Node bnr = d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
   if (d_stats != nullptr)
   {
     ++(d_stats->d_enumTermsRewrite);
@@ -67,7 +67,7 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 SygusEnumeratorCallbackDefault::SygusEnumeratorCallbackDefault(
     Env& env,
     Node e,
-    TermDbSygus * tds, 
+    TermDbSygus* tds,
     SygusStatistics* s,
     ExampleEvalCache* eec,
     SygusSampler* ssrv,
