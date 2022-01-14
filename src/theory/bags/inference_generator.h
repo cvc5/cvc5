@@ -210,6 +210,13 @@ class InferenceGenerator
                          Node subtractAB,
                          Node subtractBA,
                          Node interAB);
+
+  InferInfo cardIntersectionMin(const std::pair<Node, Node>& pair,
+                                Node n,
+                                Node subtractAB,
+                                Node subtractBA,
+                                Node interAB);
+
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)

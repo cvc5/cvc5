@@ -589,6 +589,7 @@ set(regress_0_tests
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4927-unsat-cores.smt2
+  regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
@@ -1218,6 +1219,7 @@ set(regress_0_tests
   regress0/named-expr-use.smt2
   regress0/nl/all-logic.smt2
   regress0/nl/coeff-sat.smt2
+  regress0/nl/combined-uf.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
@@ -1355,6 +1357,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
@@ -1575,8 +1578,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
-  regress0/seq/intseq_dt.smt2
   regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1585,6 +1588,18 @@ set(regress_0_tests
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/rev.smt2
+  regress0/seq/seqa-model-unsound-dd.smt2
+  regress0/seq/array/array1.smt2
+  regress0/seq/array/array2.smt2
+  regress0/seq/array/array3.smt2
+  regress0/seq/array/array4.smt2
+  regress0/seq/array/distinct-update.smt2
+  regress0/seq/array/model-dd-1220.smt2
+  regress0/seq/array/nth-concat.smt2
+  regress0/seq/array/update-fallback.smt2
+  regress0/seq/array/update-word-eq.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1600,7 +1615,9 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
+<<<<<<<<< Temporary merge branch 1
   regress0/seq/update-eq-unsat.smt2
+=========
   regress0/seq/quant_len_trigger.smt2
   regress0/bags/abt-min.smt2
   regress0/bags/abt-te-exh.smt2
@@ -1666,6 +1683,7 @@ set(regress_0_tests
   regress0/bags/union-2.smt2
   # set.universe set.complement
   # regress0/bags/univset-simp.smt2
+>>>>>>>>> Temporary merge branch 2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -2565,8 +2583,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
-  regress1/quantifiers/issue5373-1-qe-inc.smt2
-  regress1/quantifiers/issue5373-2.smt2
+  regress1/quantifiers/issue5373-1-qe-inc.smt2 
+  regress1/quantifiers/issue5373-2.smt2 
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
