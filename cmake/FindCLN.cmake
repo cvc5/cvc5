@@ -74,7 +74,7 @@ if(NOT CLN_FOUND_SYSTEM)
   if(BUILD_SHARED_LIBS)
     set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
   else()
-    set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
+    set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
   endif()
 endif()
 
