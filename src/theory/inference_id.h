@@ -694,8 +694,10 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_CONCAT,
   // nth over extract
   STRINGS_ARRAY_NTH_EXTRACT,
-  // nth over update
-  STRINGS_ARRAY_NTH_UPDATE,
+  // nth over update (equal indices)
+  STRINGS_ARRAY_NTH_UPDATE_EQ,
+  // nth over update (disequal indices)
+  STRINGS_ARRAY_NTH_UPDATE_DEQ,
   // reasoning about the nth term from update term
   STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
   // nth over update when updated with an unit term
@@ -794,6 +796,8 @@ enum class InferenceId
   STRINGS_REGISTER_TERM,
   // a split during collect model info
   STRINGS_CMI_SPLIT,
+  // a split on the equality of indices between an nth and an update term
+  STRINGS_INDEX_SPLIT,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory
