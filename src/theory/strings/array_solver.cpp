@@ -119,10 +119,12 @@ void ArraySolver::checkTerms(Kind k)
 void ArraySolver::checkTerm(Node t, bool checkInv)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Kind k = t.getKind();
   Node r = d_state.getRepresentative(t[0]);
   Node rself;
   NormalForm& nf = d_csolver.getNormalForm(r);
   Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
+  std::vector<Node> nfChildren;
   if (checkInv)
   {
     if (k != STRING_UPDATE)
@@ -146,13 +148,12 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   }
   else
   {
-    std::vector<Node> nfChildren;
     if (nf.d_nf.empty())
     {
       // updates should have been reduced (UPD_EMPTYSTR)
       Assert(k != STRING_UPDATE);
       Trace("seq-array-debug") << "...empty" << std::endl;
-      continue;
+      return;
     }
     else if (nf.d_nf.size() == 1)
     {
@@ -208,7 +209,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
           d_eqProc.insert(eq);
           d_im.sendInference(exp, eq, iid);
         }
-        continue;
+        return;
       }
       else if (ck != CONST_SEQUENCE)
       {
@@ -231,7 +232,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
           // are not a non-atomic update term, then this term will be given to
           // the core array solver.
           d_currTerms[k].push_back(t);
-          continue;
+          return;
         }
       }
       else
