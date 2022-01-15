@@ -232,8 +232,8 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
           // are not a non-atomic update term, then this term will be given to
           // the core array solver.
           d_currTerms[k].push_back(t);
-          return;
         }
+        return;
       }
       else
       {
