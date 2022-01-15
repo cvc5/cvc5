@@ -627,53 +627,106 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   {
     Trace("arith-rewriter") << "Distributing " << t << std::endl;
     std::vector<Node> base;
-    std::vector<std::vector<TNode>> dist;
-    dist.emplace_back();
+    std::unordered_map<Node,Rational> dist;
+    //std::vector<std::vector<TNode>> dist;
+    dist.emplace(nm->mkConstReal(Rational(1)), Rational(1));
 
     for (const auto& child : children)
     {
+      Trace("arith-rewriter") << "multiplying " << child << " to" << std::endl;
+      Trace("arith-rewriter") << "base: " << base << std::endl;
+      Trace("arith-rewriter") << "dist:" << std::endl;
+      for (const auto& d: dist)
+      {
+        Trace("arith-rewriter") << "\t" << d.second << " * " << d.first << std::endl;
+      }
       if (child.getKind() == Kind::PLUS)
       {
-        bool first = true;
-        size_t len = dist.size();
-        for (const auto& cc: child)
+        std::unordered_map<Node,Rational> newdist;
+
+        for (const auto& d: dist)
         {
-          if (first)
+          for (const auto& cc: child)
           {
-            for (auto& d: dist)
+            if (cc.isConst())
             {
-              d.emplace_back(cc);
+              auto it = newdist.find(d.first);
+              if (it == newdist.end())
+              {
+                newdist.emplace(d.first, d.second + cc.getConst<Rational>());
+              }
+              else
+              {
+                it->second += cc.getConst<Rational>();
+              }
+              continue;
             }
-            first = false;
-          }
-          else
-          {
-            for (size_t i = 0; i < len; ++i)
+            std::vector<TNode> newc;
+            if (d.first.getKind() == Kind::MULT || d.first.getKind() == Kind::NONLINEAR_MULT)
             {
-              dist.emplace_back(dist[i]);
-              dist.back().back() = cc;
+              newc.insert(newc.end(), d.first.begin(), d.first.end());
+            }
+            else
+            {
+              newc.emplace_back(d.first);
+            }
+            if (cc.getKind() == Kind::MULT || cc.getKind() == Kind::NONLINEAR_MULT)
+            {
+              newc.insert(newc.end(), cc.begin(), cc.end());
+            }
+            else
+            {
+              newc.emplace_back(cc);
+            }
+            std::sort(newc.begin(), newc.end(), Variable::VariableNodeCmp());
+            Node newmult;
+
+            switch (newc.size())
+            {
+              case 0: newmult = nm->mkConstReal(Rational(1)); break;
+              case 1: newmult = newc[0]; break;
+              default: newmult = nm->mkNode(Kind::NONLINEAR_MULT, std::move(newc));
+            }
+            Trace("arith-rewriter") << "newmult = " << newmult << std::endl;
+
+            auto it = newdist.find(newmult);
+            if (it == newdist.end())
+            {
+              newdist.emplace(newmult, d.second);
+            }
+            else
+            {
+              it->second += d.second;
             }
           }
         }
+
+        dist = std::move(newdist);
       }
       else
       {
         base.emplace_back(child);
       }
     }
+    Trace("arith-rewriter") << "final: " << base << std::endl;
     Trace("arith-rewriter") << "base: " << base << std::endl;
     Trace("arith-rewriter") << "dist:" << std::endl;
     for (const auto& d: dist)
     {
-      Trace("arith-rewriter") << "\t" << d << std::endl;
+      Trace("arith-rewriter") << "\t" << d.second << " * " << d.first << std::endl;
     }
+
+    std::vector<std::vector<Node>> raw;
 
     for (auto& d: dist)
     {
-      d.insert(d.end(), base.begin(), base.end());
+      raw.emplace_back();
+      raw.back().emplace_back(nm->mkConstReal(d.second));
+      raw.back().insert(raw.back().end(), d.first.begin(), d.first.end());
+      raw.back().insert(raw.back().end(), base.begin(), base.end());
     }
     base.clear();
-    for (const auto& d: dist)
+    for (const auto& d: raw)
     {
       switch (d.size())
       {
