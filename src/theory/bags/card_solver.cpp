@@ -173,7 +173,9 @@ void CardSolver::generateRelatedCardinalityTerms()
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
-              Node inter = d_nm->mkNode(BAG_INTER_MIN, A, B);
+              // break the intersection symmetry using the node id
+              Node inter = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
+                                  : d_nm->mkNode(BAG_INTER_MIN, B, A);
               Node subtractAB =
                   d_nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, A, B);
               Node subtractBA =
@@ -199,7 +201,9 @@ void CardSolver::generateRelatedCardinalityTerms()
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
-              Node inter = d_nm->mkNode(BAG_INTER_MIN, A, B);
+              // break the intersection symmetry using the node id
+              Node inter = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
+                                  : d_nm->mkNode(BAG_INTER_MIN, B, A);
               d_state.registerBag(inter);
               d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
             }
@@ -248,7 +252,9 @@ void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
   Node B = d_state.getRepresentative(n[1]);
   Node subtractAB = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, A, B);
   Node subtractBA = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, B, A);
-  Node interAB = d_nm->mkNode(BAG_INTER_MIN, B, A);
+  // break the intersection symmetry using the node id
+  Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
+                        : d_nm->mkNode(BAG_INTER_MIN, B, A);
   d_state.registerBag(subtractAB);
   d_state.registerBag(subtractBA);
   d_state.registerBag(interAB);
@@ -289,7 +295,9 @@ void CardSolver::checkIntersectionMin(const std::pair<Node, Node>& pair,
   Node B = d_state.getRepresentative(n[1]);
   Node subtractAB = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, A, B);
   Node subtractBA = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, B, A);
-  Node interAB = d_nm->mkNode(BAG_INTER_MIN, B, A);
+  // break the intersection symmetry using the node id
+  Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
+                        : d_nm->mkNode(BAG_INTER_MIN, B, A);
   d_state.registerBag(subtractAB);
   d_state.registerBag(subtractBA);
   d_state.registerBag(interAB);
@@ -310,7 +318,9 @@ void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
   Node bag = d_state.getRepresentative(pair.first[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
-  Node interAB = d_nm->mkNode(BAG_INTER_MIN, B, A);
+  // break the intersection symmetry using the node id
+  Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
+                        : d_nm->mkNode(BAG_INTER_MIN, B, A);
   d_state.registerBag(interAB);
   Node interABRep = d_state.getRepresentative(interAB);
   addChildren(A, {bag, interABRep});
