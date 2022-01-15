@@ -53,6 +53,14 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::nonNegativeCardinality(Node n)
+{
+  InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
+  Node gte = d_nm->mkNode(GEQ, n, d_zero);
+  inferInfo.d_conclusion = gte;
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::bagMake(Node n)
 {
   Assert(n.getKind() == BAG_MAKE);

@@ -120,6 +120,12 @@ void CardSolver::checkCardinalityGraph()
     // if the bag is a leaf in the graph, then we reduce its cardinality
     checkLeafBag(pair, bag);
   }
+
+  for (const auto& pair : d_state.getCardinalityTerms())
+  {
+    InferInfo i = d_ig.nonNegativeCardinality(pair.second);
+    d_im.lemmaTheoryInference(&i);
+  }
 }
 
 void CardSolver::generateRelatedCardinalityTerms()

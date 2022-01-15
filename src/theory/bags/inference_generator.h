@@ -46,6 +46,7 @@ class InferenceGenerator
    *   (>= (bag.count e A) 0)
    */
   InferInfo nonNegativeCount(Node n, Node e);
+  InferInfo nonNegativeCardinality(Node n);
 
   /**
    * @param n is (bag x c) of type (Bag E)

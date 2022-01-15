@@ -350,7 +350,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
           Assert(constructedRational <= rCardRational);
           TypeNode elementType = r.getType().getBagElementType();
           if (constructedRational < rCardRational
-              && elementType.getCardinality().isInfinite())
+              && !d_env.isFiniteType(elementType))
           {
             TypeEnumerator enumerator(elementType);
             // look for a new element not encountered before
