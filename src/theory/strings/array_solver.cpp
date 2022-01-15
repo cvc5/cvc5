@@ -201,9 +201,9 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
         d_im.addToExplanation(r, t[0], exp);
         Node eq = nm->mkNode(ITE,
-                              t[1].eqNode(d_zero),
-                              t.eqNode(thenBranch),
-                              t.eqNode(elseBranch));
+                             t[1].eqNode(d_zero),
+                             t.eqNode(thenBranch),
+                             t.eqNode(elseBranch));
         if (d_eqProc.find(eq) == d_eqProc.end())
         {
           d_eqProc.insert(eq);
@@ -351,9 +351,8 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     {
       eq = t.eqNode(finalc);
     }
-    iid = checkInv
-              ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
-              : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
+    iid = checkInv ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
+                   : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
   }
   else
   {

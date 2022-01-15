@@ -86,7 +86,7 @@ class ArraySolver : protected EnvObj
   /** check terms of given kind */
   void checkTerms(Kind k);
   /** check inferences for the given term
-   * 
+   *
    * @param t the term to check
    * @param checkInv Whether we are checking the inverse of the rule
    */
