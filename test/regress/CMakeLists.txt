@@ -1735,75 +1735,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
-<<<<<<<<< Temporary merge branch 1
   regress0/seq/update-eq-unsat.smt2
-=========
-  regress0/seq/quant_len_trigger.smt2
-  regress0/bags/abt-min.smt2
-  regress0/bags/abt-te-exh.smt2
-  regress0/bags/abt-te-exh2.smt2
-  regress0/bags/card-2.smt2
-  regress0/bags/card-3sets.cvc.smt2
-  regress0/bags/card.smt2
-  regress0/bags/card3-ground.smt2
-  # set.comprehension operator
-  #regress0/bags/comp-qf-error.smt2
-  # set.complement
-  #regress0/bags/complement.cvc.smt2
-  # set.complement
-  # regress0/bags/complement2.cvc.smt2
-  # set.complement
-  # regress0/bags/complement3.cvc.smt2
-  regress0/bags/cvc-sample.cvc.smt2
-  regress0/bags/dt-simp-mem.smt2
-  regress0/bags/emptyset.smt2
-  regress0/bags/eqtest.smt2
-  regress0/bags/error1.smt2
-  regress0/bags/error2.smt2
-  regress0/bags/insert.smt2
-  # set.universe
-  # regress0/bags/int-real-univ-unsat.smt2
-  # set.nivser
-  #regress0/bags/int-real-univ.smt2
-  regress0/bags/jan24/deepmeas0.hs.fqout.cvc4.47.smt2
-  regress0/bags/jan24/deepmeas0.hs.fqout.small.smt2
-  regress0/bags/jan27/ListConcat.hs.fqout.177minimized.smt2
-  regress0/bags/jan27/ListConcat.hs.fqout.cvc4.177.smt2
-  regress0/bags/jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2
-  regress0/bags/jan30/UniqueZipper.hs.fqout.minimized10.smt2
-  regress0/bags/jan30/UniqueZipper.hs.fqout.minimized1832.smt2
-  regress0/bags/mar2014/sharing-preregister.smt2
-  regress0/bags/mar2014/small.smt2
-  regress0/bags/mar2014/smaller.smt2
-  # set.universe
-  # regress0/bags/nonvar-univ.smt2
-  # set.universe
-  # regress0/bags/pre-proc-univ.smt2
-  regress0/bags/rec_copy_loop_check_heap_access_43_4.smt2
-  regress0/bags/setel-eq.smt2
-  regress0/bags/sets-deq-dd.smt2
-  regress0/bags/sets-equal.smt2
-  regress0/bags/sets-extr.smt2
-  regress0/bags/sets-inter.smt2
-  regress0/bags/sets-new.smt2
-  regress0/bags/sets-of-sets-subtypes.smt2
-  regress0/bags/sets-poly-int-real.smt2
-  regress0/bags/sets-poly-nonint.smt2
-  regress0/bags/sets-sample.smt2
-  regress0/bags/sets-sharing.smt2
-  regress0/bags/sets-testlemma-ints.smt2
-  regress0/bags/sets-testlemma-reals.smt2
-  regress0/bags/sets-testlemma.smt2
-  regress0/bags/sets-union.smt2
-  regress0/bags/sharing-simp.smt2
-  regress0/bags/union-1a-flip.smt2
-  regress0/bags/union-1a.smt2
-  regress0/bags/union-1b-flip.smt2
-  regress0/bags/union-1b.smt2
-  regress0/bags/union-2.smt2
-  # set.universe set.complement
-  # regress0/bags/univset-simp.smt2
->>>>>>>>> Temporary merge branch 2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
