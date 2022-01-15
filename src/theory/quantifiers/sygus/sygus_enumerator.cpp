@@ -1152,7 +1152,7 @@ bool SygusEnumerator::TermEnumMasterInterp::increment()
   {
     tc.pushEnumSizeIndex();
     d_currSize++;
-    d_currNumConsts = d_currNumConsts * options::sygusActiveGenEnumConsts();
+    d_currNumConsts = d_currNumConsts * options::sygusEnumFastNumConsts();
     d_nextIndexEnd = d_nextIndexEnd + d_currNumConsts;
   }
   ++d_te;

@@ -406,6 +406,8 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_UPDATE_UNIT";
     case InferenceId::STRINGS_ARRAY_UPDATE_CONCAT:
       return "STRINGS_ARRAY_UPDATE_CONCAT";
+    case InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE:
+      return "STRINGS_ARRAY_UPDATE_CONCAT_INVERSE";
     case InferenceId::STRINGS_ARRAY_NTH_UNIT: return "STRINGS_ARRAY_NTH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_CONCAT:
       return "STRINGS_ARRAY_NTH_CONCAT";

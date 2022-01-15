@@ -42,6 +42,9 @@ enum RewriteStatus
   REWRITE_AGAIN_FULL
 }; /* enum RewriteStatus */
 
+/** Print a RewriteStatus to an output stream */
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs);
+
 /**
  * Instances of this class serve as response codes from
  * TheoryRewriter::preRewrite() and TheoryRewriter::postRewrite(). The response
