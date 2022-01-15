@@ -93,7 +93,6 @@ void ArraySolver::checkArrayEager()
 void ArraySolver::checkTerms(Kind k)
 {
   Assert(k == STRING_UPDATE || k == SEQ_NTH);
-  NodeManager* nm = NodeManager::currentNM();
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
   std::vector<Node> terms = d_esolver.getActive(k);
@@ -101,18 +100,53 @@ void ArraySolver::checkTerms(Kind k)
   {
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     Assert(t.getKind() == k);
-    if (k == STRING_UPDATE && !d_termReg.isHandledUpdate(t))
+    if (k == STRING_UPDATE)
     {
-      // not handled by procedure
-      Trace("seq-array-debug") << "...unhandled" << std::endl;
-      continue;
+      if (!d_termReg.isHandledUpdate(t))
+      {
+        // not handled by procedure
+        Trace("seq-array-debug") << "...unhandled" << std::endl;
+        continue;
+      }
+      // for update terms, also check the inverse inference
+      checkTerm(t, true);
     }
-    Node r = d_state.getRepresentative(t[0]);
-    Node rself;
-    NormalForm& nf = d_csolver.getNormalForm(r);
-    Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
+    // check the normal inference
+    checkTerm(t, false);
+  }
+}
+
+void ArraySolver::checkTerm(Node t, bool checkInv)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node r = d_state.getRepresentative(t[0]);
+  Node rself;
+  NormalForm& nf = d_csolver.getNormalForm(r);
+  Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
+  if (checkInv)
+  {
+    if (k != STRING_UPDATE)
+    {
+      return;
+    }
+    // If the term we are updating is atomic, but the update itself
+    // not atomic, then we will apply the inverse version of the update
+    // concat rule, based on the normal form of the term itself.
+    rself = d_state.getRepresentative(t);
+    NormalForm& nfSelf = d_csolver.getNormalForm(rself);
+    if (nfSelf.d_nf.size() > 1)
+    {
+      nfChildren.insert(
+          nfChildren.end(), nfSelf.d_nf.begin(), nfSelf.d_nf.end());
+    }
+    else
+    {
+      return;
+    }
+  }
+  else
+  {
     std::vector<Node> nfChildren;
-    bool isNfChildrenForSelf = false;
     if (nf.d_nf.empty())
     {
       // updates should have been reduced (UPD_EMPTYSTR)
@@ -166,9 +200,9 @@ void ArraySolver::checkTerms(Kind k)
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
         d_im.addToExplanation(r, t[0], exp);
         Node eq = nm->mkNode(ITE,
-                             t[1].eqNode(d_zero),
-                             t.eqNode(thenBranch),
-                             t.eqNode(elseBranch));
+                              t[1].eqNode(d_zero),
+                              t.eqNode(thenBranch),
+                              t.eqNode(elseBranch));
         if (d_eqProc.find(eq) == d_eqProc.end())
         {
           d_eqProc.insert(eq);
@@ -178,6 +212,7 @@ void ArraySolver::checkTerms(Kind k)
       }
       else if (ck != CONST_SEQUENCE)
       {
+        bool isAtomic = true;
         if (k == STRING_UPDATE)
         {
           // If the term we are updating is atomic, but the update itself
@@ -187,12 +222,10 @@ void ArraySolver::checkTerms(Kind k)
           NormalForm& nfSelf = d_csolver.getNormalForm(rself);
           if (nfSelf.d_nf.size() > 1)
           {
-            isNfChildrenForSelf = true;
-            nfChildren.insert(
-                nfChildren.end(), nfSelf.d_nf.begin(), nfSelf.d_nf.end());
+            isAtomic = false;
           }
         }
-        if (!isNfChildrenForSelf)
+        if (isAtomic)
         {
           // otherwise, if the normal form is not a constant sequence, and we
           // are not a non-atomic update term, then this term will be given to
@@ -216,146 +249,146 @@ void ArraySolver::checkTerms(Kind k)
     {
       nfChildren.insert(nfChildren.end(), nf.d_nf.begin(), nf.d_nf.end());
     }
-    // otherwise, we are the concatenation of the components
-    // NOTE: for nth, split on index vs component lengths, do not introduce ITE
-    std::vector<Node> cond;
-    std::vector<Node> cchildren;
-    std::vector<Node> lacc;
-    SkolemCache* skc = d_termReg.getSkolemCache();
-    for (const Node& c : nfChildren)
+  }
+  // otherwise, we are the concatenation of the components
+  // NOTE: for nth, split on index vs component lengths, do not introduce ITE
+  std::vector<Node> cond;
+  std::vector<Node> cchildren;
+  std::vector<Node> lacc;
+  SkolemCache* skc = d_termReg.getSkolemCache();
+  for (const Node& c : nfChildren)
+  {
+    Trace("seq-array-debug") << "...process " << c << std::endl;
+    Node clen = nm->mkNode(STRING_LENGTH, c);
+    Node currIndex = t[1];
+    Node currSum = d_zero;
+    if (!lacc.empty())
     {
-      Trace("seq-array-debug") << "...process " << c << std::endl;
-      Node clen = nm->mkNode(STRING_LENGTH, c);
-      Node currIndex = t[1];
-      Node currSum = d_zero;
-      if (!lacc.empty())
-      {
-        currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
-        currIndex = nm->mkNode(MINUS, currIndex, currSum);
-      }
-      Node cc;
-      if (k == STRING_UPDATE && isNfChildrenForSelf)
-      {
-        // component for the reverse form of the update inference is a fresh
-        // variable, in particular, the purification variable for the substring
-        // of the term we are updating.
-        Node sstr = nm->mkNode(STRING_SUBSTR, t[0], currSum, clen);
-        cc = skc->mkSkolemCached(sstr, SkolemCache::SkolemId::SK_PURIFY, "z");
-      }
-      // If it is a constant of length one, then the update/nth is determined
-      // in this interval. Notice this is done here as
-      // an optimization to short cut introducing terms like
-      // (seq.nth (seq.unit c) i), which by construction is only relevant in
-      // the context where i = 0, hence we replace by c here.
-      else if (c.getKind() == CONST_SEQUENCE)
-      {
-        const Sequence& seq = c.getConst<Sequence>();
-        if (seq.size() == 1)
-        {
-          if (k == STRING_UPDATE)
-          {
-            cc = nm->mkNode(ITE, t[1].eqNode(d_zero), t[2], c);
-          }
-          else
-          {
-            cc = seq.getVec()[0];
-          }
-        }
-      }
-      // if we did not process as a constant of length one
-      if (cc.isNull())
+      currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+      currIndex = nm->mkNode(MINUS, currIndex, currSum);
+    }
+    Node cc;
+    if (k == STRING_UPDATE && checkInv)
+    {
+      // component for the reverse form of the update inference is a fresh
+      // variable, in particular, the purification variable for the substring
+      // of the term we are updating.
+      Node sstr = nm->mkNode(STRING_SUBSTR, t[0], currSum, clen);
+      cc = skc->mkSkolemCached(sstr, SkolemCache::SkolemId::SK_PURIFY, "z");
+    }
+    // If it is a constant of length one, then the update/nth is determined
+    // in this interval. Notice this is done here as
+    // an optimization to short cut introducing terms like
+    // (seq.nth (seq.unit c) i), which by construction is only relevant in
+    // the context where i = 0, hence we replace by c here.
+    else if (c.getKind() == CONST_SEQUENCE)
+    {
+      const Sequence& seq = c.getConst<Sequence>();
+      if (seq.size() == 1)
       {
         if (k == STRING_UPDATE)
         {
-          cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
+          cc = nm->mkNode(ITE, t[1].eqNode(d_zero), t[2], c);
         }
         else
         {
-          Assert(k == SEQ_NTH);
-          cc = nm->mkNode(SEQ_NTH, c, currIndex);
+          cc = seq.getVec()[0];
         }
       }
-      Trace("seq-array-debug") << "......component " << cc << std::endl;
-      cchildren.push_back(cc);
-      lacc.push_back(clen);
-      if (k == SEQ_NTH)
-      {
-        Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
-        Node cf = nm->mkNode(LT, t[1], currSumPost);
-        Trace("seq-array-debug") << "......condition " << cf << std::endl;
-        cond.push_back(cf);
-      }
-      else if (k == STRING_UPDATE && isNfChildrenForSelf)
-      {
-        Node ccu = nm->mkNode(STRING_UPDATE, cc, currIndex, t[2]);
-        Node eq = c.eqNode(ccu);
-        Trace("seq-array-debug") << "......condition " << eq << std::endl;
-        cond.push_back(eq);
-      }
     }
-    // z = (seq.++ x y) =>
-    // (seq.update z n l) =
-    //   (seq.++ (seq.update x n 1) (seq.update y (- n len(x)) 1))
-    // z = (seq.++ x y) =>
-    // (seq.nth z n) =
-    //    (ite (or (< n 0) (>= n (+ (str.len x) (str.len y)))) (Uf z n)
-    //    (ite (< n (str.len x)) (seq.nth x n)
-    //      (seq.nth y (- n (str.len x)))))
-    InferenceId iid;
-    Node eq;
-    if (k == STRING_UPDATE)
+    // if we did not process as a constant of length one
+    if (cc.isNull())
     {
-      Node finalc = utils::mkConcat(cchildren, t.getType());
-      if (isNfChildrenForSelf)
+      if (k == STRING_UPDATE)
       {
-        eq = t[0].eqNode(finalc);
-        cond.push_back(eq);
-        eq = nm->mkAnd(cond);
+        cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
       }
       else
       {
-        eq = t.eqNode(finalc);
+        Assert(k == SEQ_NTH);
+        cc = nm->mkNode(SEQ_NTH, c, currIndex);
       }
-      iid = isNfChildrenForSelf
-                ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
-                : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
+    }
+    Trace("seq-array-debug") << "......component " << cc << std::endl;
+    cchildren.push_back(cc);
+    lacc.push_back(clen);
+    if (k == SEQ_NTH)
+    {
+      Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+      Node cf = nm->mkNode(LT, t[1], currSumPost);
+      Trace("seq-array-debug") << "......condition " << cf << std::endl;
+      cond.push_back(cf);
+    }
+    else if (k == STRING_UPDATE && checkInv)
+    {
+      Node ccu = nm->mkNode(STRING_UPDATE, cc, currIndex, t[2]);
+      Node eq = c.eqNode(ccu);
+      Trace("seq-array-debug") << "......condition " << eq << std::endl;
+      cond.push_back(eq);
+    }
+  }
+  // z = (seq.++ x y) =>
+  // (seq.update z n l) =
+  //   (seq.++ (seq.update x n 1) (seq.update y (- n len(x)) 1))
+  // z = (seq.++ x y) =>
+  // (seq.nth z n) =
+  //    (ite (or (< n 0) (>= n (+ (str.len x) (str.len y)))) (Uf z n)
+  //    (ite (< n (str.len x)) (seq.nth x n)
+  //      (seq.nth y (- n (str.len x)))))
+  InferenceId iid;
+  Node eq;
+  if (k == STRING_UPDATE)
+  {
+    Node finalc = utils::mkConcat(cchildren, t.getType());
+    if (checkInv)
+    {
+      eq = t[0].eqNode(finalc);
+      cond.push_back(eq);
+      eq = nm->mkAnd(cond);
     }
     else
     {
-      std::reverse(cchildren.begin(), cchildren.end());
-      std::reverse(cond.begin(), cond.end());
-      Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
-      eq = t.eqNode(cchildren[0]);
-      for (size_t i = 1, ncond = cond.size(); i < ncond; i++)
-      {
-        eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
-      }
-      Node ufa = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
-      Node oobCond =
-          nm->mkNode(OR, nm->mkNode(LT, t[1], d_zero), cond[0].notNode());
-      eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
-      iid = InferenceId::STRINGS_ARRAY_NTH_CONCAT;
+      eq = t.eqNode(finalc);
     }
-    std::vector<Node> exp;
-    if (isNfChildrenForSelf)
+    iid = checkInv
+              ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
+              : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
+  }
+  else
+  {
+    std::reverse(cchildren.begin(), cchildren.end());
+    std::reverse(cond.begin(), cond.end());
+    Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
+    eq = t.eqNode(cchildren[0]);
+    for (size_t i = 1, ncond = cond.size(); i < ncond; i++)
     {
-      d_im.addToExplanation(rself, t, exp);
-      NormalForm& nfSelf = d_csolver.getNormalForm(rself);
-      exp.insert(exp.end(), nfSelf.d_exp.begin(), nfSelf.d_exp.end());
-      exp.push_back(t.eqNode(nfSelf.d_base));
+      eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
     }
-    else
-    {
-      d_im.addToExplanation(r, t[0], exp);
-      exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-      exp.push_back(t[0].eqNode(nf.d_base));
-    }
-    if (d_eqProc.find(eq) == d_eqProc.end())
-    {
-      d_eqProc.insert(eq);
-      Trace("seq-array") << "- send lemma - " << eq << std::endl;
-      d_im.sendInference(exp, eq, iid);
-    }
+    Node ufa = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
+    Node oobCond =
+        nm->mkNode(OR, nm->mkNode(LT, t[1], d_zero), cond[0].notNode());
+    eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
+    iid = InferenceId::STRINGS_ARRAY_NTH_CONCAT;
+  }
+  std::vector<Node> exp;
+  if (checkInv)
+  {
+    d_im.addToExplanation(rself, t, exp);
+    NormalForm& nfSelf = d_csolver.getNormalForm(rself);
+    exp.insert(exp.end(), nfSelf.d_exp.begin(), nfSelf.d_exp.end());
+    exp.push_back(t.eqNode(nfSelf.d_base));
+  }
+  else
+  {
+    d_im.addToExplanation(r, t[0], exp);
+    exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
+    exp.push_back(t[0].eqNode(nf.d_base));
+  }
+  if (d_eqProc.find(eq) == d_eqProc.end())
+  {
+    d_eqProc.insert(eq);
+    Trace("seq-array") << "- send lemma - " << eq << std::endl;
+    d_im.sendInference(exp, eq, iid);
   }
 }
 
