@@ -803,9 +803,10 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-bool TheoryModel::isEvaluationResult(TNode node)
+bool TheoryModel::isValue(TNode node)
 {
-  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER
+         || node.getKind() == Kind::LAMBDA;
 }
 
 }  // namespace theory

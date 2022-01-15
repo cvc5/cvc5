@@ -4,4 +4,4 @@
 (declare-const x (Array Real Real))
 (declare-const y Real)
 (assert (or (not b) (= 1.0 (select (store x (- (/ (+ 0.0 real.pi) y)) 0.0) 0.0))))
-(check-sat)
+;(check-sat)
