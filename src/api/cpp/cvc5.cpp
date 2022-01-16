@@ -7634,6 +7634,9 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAssertions)
+      << "Cannot get value unless produce-assertions is enabled "
+         "(try --produce-assertions)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
