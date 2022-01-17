@@ -1,4 +1,4 @@
-; COMMAND-LINE: --full-saturate-quant --full-saturate-quant-limit=2
+; COMMAND-LINE: --enum-inst --enum-inst-limit=2
 ; EXPECT: unsat
 
 ;; produced by cvc4_16.drv ;;

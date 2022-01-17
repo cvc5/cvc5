@@ -686,6 +686,8 @@ enum class InferenceId
   STRINGS_ARRAY_UPDATE_UNIT,
   // update over conatenation
   STRINGS_ARRAY_UPDATE_CONCAT,
+  // update over conatenation, inverse
+  STRINGS_ARRAY_UPDATE_CONCAT_INVERSE,
   // nth over unit
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation

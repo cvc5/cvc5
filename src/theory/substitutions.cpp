@@ -31,6 +31,16 @@ SubstitutionMap::SubstitutionMap(context::Context* context)
 {
 }
 
+std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions()
+{
+  std::unordered_map<Node, Node> subs;
+  for (const auto& sub : d_substitutions)
+  {
+    subs.emplace(sub.first, sub.second);
+  }
+  return subs;
+}
+
 struct substitution_stack_element {
   TNode d_node;
   bool d_children_added;
@@ -181,8 +191,8 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 
 void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateCache)
 {
-  SubstitutionMap::NodeMap::const_iterator it = subMap.begin();
-  SubstitutionMap::NodeMap::const_iterator it_end = subMap.end();
+  NodeMap::const_iterator it = subMap.begin();
+  NodeMap::const_iterator it_end = subMap.end();
   for (; it != it_end; ++ it) {
     Assert(d_substitutions.find((*it).first) == d_substitutions.end());
     d_substitutions[(*it).first] = (*it).second;
