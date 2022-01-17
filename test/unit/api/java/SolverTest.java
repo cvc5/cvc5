@@ -433,25 +433,6 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
   }
 
-  @Test void mkAbstractValue() throws CVC5ApiException
-  {
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue(("1")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(("0")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(("-1")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(("1.2")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue("1/2"));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue("asdf"));
-
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((int) 1));
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((int) 1));
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((long) 1));
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((long) 1));
-    // java does not have specific types for unsigned integers, therefore the two lines below do not
-    // make sense in java. assertDoesNotThrow(() -> d_solver.mkAbstractValue((int)-1));
-    // assertDoesNotThrow(() -> d_solver.mkAbstractValue((long)-1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(0));
-  }
-
   @Test void mkFloatingPoint() throws CVC5ApiException
   {
     Term t1 = d_solver.mkBitVector(8);

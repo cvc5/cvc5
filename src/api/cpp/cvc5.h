@@ -1466,12 +1466,12 @@ class CVC5_EXPORT Term
   /**
    * @return true if the term is an abstract value.
    */
-  bool isAbstractValue() const;
+  bool isUninterpretedSortValue() const;
   /**
-   * Asserts isAbstractValue().
-   * @return the representation of an abstract value as a string.
+   * Asserts isUninterpretedSortValue().
+   * @return the representation of an uninterpreted sort value as a string.
    */
-  std::string getAbstractValue() const;
+  std::string getUninterpretedSortValue() const;
 
   /**
    * @return true if the term is a tuple value.
@@ -1553,19 +1553,6 @@ class CVC5_EXPORT Term
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
-
-  /**
-   * @return true if the term is a value from an uninterpreted sort.
-   */
-  bool isUninterpretedValue() const;
-  /**
-  bool @return() const;
-   * Asserts isUninterpretedValue().
-   * @return the representation of an uninterpreted value as a pair of its
-  sort and its
-   * index.
-   */
-  std::pair<Sort, int32_t> getUninterpretedValue() const;
 
  protected:
   /**
@@ -3677,27 +3664,6 @@ class CVC5_EXPORT Solver
    * @param rm the floating point rounding mode this constant represents
    */
   Term mkRoundingMode(RoundingMode rm) const;
-
-  /**
-   * Create uninterpreted constant.
-   * @param sort Sort of the constant
-   * @param index Index of the constant
-   */
-  Term mkUninterpretedConst(const Sort& sort, int32_t index) const;
-
-  /**
-   * Create an abstract value constant.
-   * The given index needs to be a positive integer in base 10.
-   * @param index Index of the abstract value
-   */
-  Term mkAbstractValue(const std::string& index) const;
-
-  /**
-   * Create an abstract value constant.
-   * The given index needs to be positive.
-   * @param index Index of the abstract value
-   */
-  Term mkAbstractValue(uint64_t index) const;
 
   /**
    * Create a floating-point constant.

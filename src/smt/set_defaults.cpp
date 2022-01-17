@@ -677,6 +677,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
+      Trace("smt")
+          << "Disabling shared selectors for quantified logic without SyGuS"
+          << std::endl;
       opts.datatypes.dtSharedSelectors = false;
     }
   }
@@ -1255,6 +1258,11 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
+  if (opts.quantifiers.fullSaturateQuant)
+  {
+    Trace("smt") << "enabling enum-inst for full-saturate-quant" << std::endl;
+    opts.quantifiers.enumInst = true;
+  }
   if (opts.arrays.arraysExp)
   {
     // Allows to answer sat more often by default.
