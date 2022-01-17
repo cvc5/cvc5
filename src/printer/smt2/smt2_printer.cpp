@@ -52,6 +52,7 @@
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
+#include "util/real_algebraic_number.h"
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
@@ -651,6 +652,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
       stillNeedToPrintParams = false;
       break;
+    case kind::REAL_ALGEBRAIC_NUMBER:
+    {
+      const RealAlgebraicNumber& ran = n.getOperator().getConst<RealAlgebraicNumber>();
+      out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
+      break;
+    }
     case kind::INDEXED_ROOT_PREDICATE_OP:
     {
       const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
