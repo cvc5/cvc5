@@ -2031,13 +2031,13 @@ cdef class Solver:
         return self.csolver.getOption(option.encode())
 
     def getOptionNames(self):
-        """Get all option names that can be used with `setOption`, `getOption`
-        and `getOptionInfo`.
-        :return: all option names
-        """
+       """Get all option names that can be used with `setOption`, `getOption`
+       and `getOptionInfo`.
+       :return: all option names
+       """
        result = []
        for n in self.csolver.getOptionNames():
-         result += [n.decode()]
+           result += [n.decode()]
        return result
 
     def getUnsatAssumptions(self):
