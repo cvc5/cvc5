@@ -94,7 +94,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *       TermsToRecons'' = {}
  *       for each subfield type T of T0
  *         for each t in TermsToRecons'[T]
- *           TermsToRecons'[T] += t
+ *           TermsToRecons[T] += t
  *           for each s[zs] in Pool[T]
  *             TermsToRecons'' += matchNewObs(t, s[zs])
  *         TermsToRecons' = TermsToRecons''
@@ -109,7 +109,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *     Sub = {} // substitution map from zs to corresponding new vars ks
  *     for each (z, st) in {zs -> sts}
  *       // let X be the theory the solver is invoked with
- *       if exists (k, ts) in Obs s.t. !=_X ts[0] = st
+ *       if exists (k, ts) in Obs s.t. |=_X ts[0] = st
  *         ts += st
  *         Sub[z] = k
  *       else

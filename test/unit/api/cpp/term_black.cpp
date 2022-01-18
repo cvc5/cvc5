@@ -903,18 +903,19 @@ TEST_F(TestApiBlackTerm, getBitVector)
   ASSERT_EQ("f", b7.getBitVectorValue(16));
 }
 
-TEST_F(TestApiBlackTerm, getAbstractValue)
+TEST_F(TestApiBlackTerm, getUninterpretedSortValue)
 {
-  Term v1 = d_solver.mkAbstractValue(1);
-  Term v2 = d_solver.mkAbstractValue("15");
-  Term v3 = d_solver.mkAbstractValue("18446744073709551617");
-
-  ASSERT_TRUE(v1.isAbstractValue());
-  ASSERT_TRUE(v2.isAbstractValue());
-  ASSERT_TRUE(v3.isAbstractValue());
-  ASSERT_EQ("1", v1.getAbstractValue());
-  ASSERT_EQ("15", v2.getAbstractValue());
-  ASSERT_EQ("18446744073709551617", v3.getAbstractValue());
+  d_solver.setOption("produce-models", "true");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  d_solver.assertFormula(d_solver.mkTerm(EQUAL, x, y));
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+  Term vx = d_solver.getValue(x);
+  Term vy = d_solver.getValue(y);
+  ASSERT_TRUE(vx.isUninterpretedSortValue());
+  ASSERT_TRUE(vy.isUninterpretedSortValue());
+  ASSERT_EQ(vx.getUninterpretedSortValue(), vy.getUninterpretedSortValue());
 }
 
 TEST_F(TestApiBlackTerm, getTuple)
@@ -1012,19 +1013,6 @@ TEST_F(TestApiBlackTerm, getSequence)
   ASSERT_EQ(std::vector<Term>({i1}), s3.getSequenceValue());
   ASSERT_EQ(std::vector<Term>({i2}), s4.getSequenceValue());
   ASSERT_EQ(std::vector<Term>({i1, i1, i2}), s5.getSequenceValue());
-}
-
-TEST_F(TestApiBlackTerm, getUninterpretedConst)
-{
-  Sort s = d_solver.mkUninterpretedSort("test");
-  Term t1 = d_solver.mkUninterpretedConst(s, 3);
-  Term t2 = d_solver.mkUninterpretedConst(s, 5);
-
-  ASSERT_TRUE(t1.isUninterpretedValue());
-  ASSERT_TRUE(t2.isUninterpretedValue());
-
-  ASSERT_EQ(std::make_pair(s, 3), t1.getUninterpretedValue());
-  ASSERT_EQ(std::make_pair(s, 5), t2.getUninterpretedValue());
 }
 
 TEST_F(TestApiBlackTerm, substitute)

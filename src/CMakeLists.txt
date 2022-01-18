@@ -277,6 +277,8 @@ libcvc5_add_sources(
   prop/skolem_def_manager.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
+  prop/zero_level_learner.cpp
+  prop/zero_level_learner.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
   smt/abstract_values.cpp
@@ -894,8 +896,6 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
   theory/quantifiers/sygus/sygus_enumerator.h
-  theory/quantifiers/sygus/sygus_enumerator_basic.cpp
-  theory/quantifiers/sygus/sygus_enumerator_basic.h
   theory/quantifiers/sygus/sygus_enumerator_callback.cpp
   theory/quantifiers/sygus/sygus_enumerator_callback.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp

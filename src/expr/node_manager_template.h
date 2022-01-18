@@ -686,8 +686,8 @@ class NodeManager
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
 
-  /** Make a new abstract value with the given type. */
-  Node mkAbstractValue(const TypeNode& type);
+  /** Make a new uninterpreted sort value with the given type. */
+  Node mkUninterpretedSortValue(const TypeNode& type);
 
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
@@ -750,6 +750,23 @@ class NodeManager
    * on the type tn.
    */
   Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
+
+  /**
+   * Make a real algebraic number node from a RealAlgebraicNumber.
+   * If the real algebraic number is found to be rational, this method returns a
+   * node of kind CONST_RATIONAL. Otherwise, it returns a node of kind
+   * REAL_ALGEBRIAC_NUMBER.
+   *
+   * It is, unfortunately, not entirely possible to provide the usual uniqueness
+   * guarantees for real algebraic number nodes. As a REAL_ALGEBRIAC_NUMBER node
+   * may turn out to be rational later on, it may be semantically equal to a
+   * CONST_RATIONAL node, although the comparison operator would always return
+   * false. For this reason, comparisons should be performed by evaluating (i.e.
+   * rewriting) the EQUAL predicate, or by inspecting the values manually. Note
+   * that the comparison operators for RealAlgebraicNumber properly support
+   * Rational as well.
+   */
+  Node mkRealAlgebraicNumber(const RealAlgebraicNumber& ran);
 
   /** Create a node with children. */
   TypeNode mkTypeNode(Kind kind, TypeNode child1);
