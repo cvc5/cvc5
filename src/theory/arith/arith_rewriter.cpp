@@ -741,7 +741,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
-  std::vector<TNode> leafs;
+  std::vector<Node> leafs;
 
   for (const auto& child : children)
   {
@@ -770,31 +770,27 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(!rational.isZero());
   if (!isOne(ran))
   {
+    ran *= rational;
+    rational = Rational(1);
     leafs.insert(leafs.begin(), nm->mkRealAlgebraicNumber(ran));
   }
-  Node nlmult;
   switch (leafs.size())
   {
-    case 0:
-      Trace("arith-rewriter") << "-> " << rational << std::endl;
-      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rational));
-    case 1: nlmult = leafs[0]; break;
+    case 0: return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rational));
+    case 1: if (rational.isOne())
+    {
+      return RewriteResponse(REWRITE_DONE, leafs[0]);
+    }
+    return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::MULT, nm->mkConstReal(rational), leafs[0]));
     default:
-      nlmult = nm->mkNode(
-            Kind::NONLINEAR_MULT, std::move(leafs));
+      if (rational.isOne())
+      {
+        return RewriteResponse(REWRITE_DONE, nm->mkNode(
+            Kind::NONLINEAR_MULT, std::move(leafs)));
+      }
+      return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::MULT, nm->mkConstReal(rational), nm->mkNode(
+            Kind::NONLINEAR_MULT, std::move(leafs))));
   }
-  if (rational.isOne())
-  {
-    Trace("arith-rewriter") << "-> " << nlmult << std::endl;
-    return RewriteResponse(
-        REWRITE_DONE,
-        nlmult);
-  }
-  nlmult = nm->mkNode(Kind::MULT, nm->mkConstReal(rational), nlmult);
-  Trace("arith-rewriter") << "-> " << nlmult << std::endl;
-  return RewriteResponse(
-      REWRITE_DONE,
-      nlmult);
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
