@@ -690,7 +690,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
               }
               continue;
             }
-            std::vector<TNode> newc;
+            std::vector<Node> newc;
             addToMultiplication(newc, d.first);
             addToMultiplication(newc, cc);
             
