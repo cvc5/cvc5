@@ -765,15 +765,21 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
-  std::sort(leafs.begin(), leafs.end(), Variable::VariableNodeCmp());
-
-  Assert(!rational.isZero());
+  Assert(!isZero(rational));
+  if (ran.isRational())
+  {
+    rational *= ran.toRational();
+    ran = RealAlgebraicNumber(Integer(1));
+  }
   if (!isOne(ran))
   {
     ran *= rational;
-    rational = Rational(1);
+    rational = 1;
     leafs.insert(leafs.begin(), nm->mkRealAlgebraicNumber(ran));
   }
+
+  std::sort(leafs.begin(), leafs.end(), Variable::VariableNodeCmp());
+
   switch (leafs.size())
   {
     case 0: return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rational));
