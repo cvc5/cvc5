@@ -251,8 +251,9 @@ bool ArraysProperties::isWellFounded(TypeNode type)
 Node ArraysProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.getKind() == kind::ARRAY_TYPE);
+  NodeManager* nm = NodeManager::currentNM();
   TypeNode elemType = type.getArrayConstituentType();
-  Node elem = elemType.mkGroundTerm();
+  Node elem = nm->mkGroundTerm(elemType);
   if (elem.isConst())
   {
     return NodeManager::currentNM()->mkConst(ArrayStoreAll(type, elem));
@@ -316,7 +317,7 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
           n, "eqrange upper index type does not match array index type");
     }
     if (!indexType.isBitVector() && !indexType.isFloatingPoint()
-        && !indexType.isInteger() && !indexType.isReal())
+        && !indexType.isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n,

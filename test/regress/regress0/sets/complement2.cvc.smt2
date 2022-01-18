@@ -6,6 +6,6 @@
 (declare-fun a () (Set Atom))
 (declare-fun b () (Set Atom))
 (declare-fun c () Atom)
-(assert (= a (complement a)))
-(assert (member c a))
+(assert (= a (set.complement a)))
+(assert (set.member c a))
 (check-sat)

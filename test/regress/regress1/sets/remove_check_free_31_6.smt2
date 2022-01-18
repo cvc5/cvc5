@@ -76,22 +76,22 @@
    :named btwn_step_10))
 
 (assert (! (forall ((?f FldLoc))
-           (or (member (ep$0 ?f sk_?X_30$0 null$0) sk_?X_30$0)
+           (or (set.member (ep$0 ?f sk_?X_30$0 null$0) sk_?X_30$0)
                (= null$0 (ep$0 ?f sk_?X_30$0 null$0))))
    :named entry-point3_10))
 
 (assert (! (forall ((?f FldLoc))
-           (or (member (ep$0 ?f sk_?X_30$0 lst_1$0) sk_?X_30$0)
+           (or (set.member (ep$0 ?f sk_?X_30$0 lst_1$0) sk_?X_30$0)
                (= lst_1$0 (ep$0 ?f sk_?X_30$0 lst_1$0))))
    :named entry-point3_11))
 
 (assert (! (forall ((?f FldLoc))
-           (or (member (ep$0 ?f sk_?X_30$0 curr_3$0) sk_?X_30$0)
+           (or (set.member (ep$0 ?f sk_?X_30$0 curr_3$0) sk_?X_30$0)
                (= curr_3$0 (ep$0 ?f sk_?X_30$0 curr_3$0))))
    :named entry-point3_12))
 
 (assert (! (forall ((?f FldLoc))
-           (or (member (ep$0 ?f sk_?X_30$0 tmp_2$0) sk_?X_30$0)
+           (or (set.member (ep$0 ?f sk_?X_30$0 tmp_2$0) sk_?X_30$0)
                (= tmp_2$0 (ep$0 ?f sk_?X_30$0 tmp_2$0))))
    :named entry-point3_13))
 
@@ -117,42 +117,42 @@
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
            (or (Btwn$0 ?f null$0 (ep$0 ?f sk_?X_30$0 null$0) ?y)
-               (not (Btwn$0 ?f null$0 ?y ?y)) (not (member ?y sk_?X_30$0))))
+               (not (Btwn$0 ?f null$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))))
    :named entry-point4_10))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
            (or (Btwn$0 ?f lst_1$0 (ep$0 ?f sk_?X_30$0 lst_1$0) ?y)
-               (not (Btwn$0 ?f lst_1$0 ?y ?y)) (not (member ?y sk_?X_30$0))))
+               (not (Btwn$0 ?f lst_1$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))))
    :named entry-point4_11))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
            (or (Btwn$0 ?f curr_3$0 (ep$0 ?f sk_?X_30$0 curr_3$0) ?y)
-               (not (Btwn$0 ?f curr_3$0 ?y ?y)) (not (member ?y sk_?X_30$0))))
+               (not (Btwn$0 ?f curr_3$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))))
    :named entry-point4_12))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
            (or (Btwn$0 ?f tmp_2$0 (ep$0 ?f sk_?X_30$0 tmp_2$0) ?y)
-               (not (Btwn$0 ?f tmp_2$0 ?y ?y)) (not (member ?y sk_?X_30$0))))
+               (not (Btwn$0 ?f tmp_2$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))))
    :named entry-point4_13))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
-           (or (not (Btwn$0 ?f null$0 ?y ?y)) (not (member ?y sk_?X_30$0))
-               (member (ep$0 ?f sk_?X_30$0 null$0) sk_?X_30$0)))
+           (or (not (Btwn$0 ?f null$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))
+               (set.member (ep$0 ?f sk_?X_30$0 null$0) sk_?X_30$0)))
    :named entry-point2_10))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
-           (or (not (Btwn$0 ?f lst_1$0 ?y ?y)) (not (member ?y sk_?X_30$0))
-               (member (ep$0 ?f sk_?X_30$0 lst_1$0) sk_?X_30$0)))
+           (or (not (Btwn$0 ?f lst_1$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))
+               (set.member (ep$0 ?f sk_?X_30$0 lst_1$0) sk_?X_30$0)))
    :named entry-point2_11))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
-           (or (not (Btwn$0 ?f curr_3$0 ?y ?y)) (not (member ?y sk_?X_30$0))
-               (member (ep$0 ?f sk_?X_30$0 curr_3$0) sk_?X_30$0)))
+           (or (not (Btwn$0 ?f curr_3$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))
+               (set.member (ep$0 ?f sk_?X_30$0 curr_3$0) sk_?X_30$0)))
    :named entry-point2_12))
 
 (assert (! (forall ((?f FldLoc) (?y Loc))
-           (or (not (Btwn$0 ?f tmp_2$0 ?y ?y)) (not (member ?y sk_?X_30$0))
-               (member (ep$0 ?f sk_?X_30$0 tmp_2$0) sk_?X_30$0)))
+           (or (not (Btwn$0 ?f tmp_2$0 ?y ?y)) (not (set.member ?y sk_?X_30$0))
+               (set.member (ep$0 ?f sk_?X_30$0 tmp_2$0) sk_?X_30$0)))
    :named entry-point2_13))
 
 (assert (! (= (read$0 (write$0 next$0 curr_3$0 (read$0 next$0 tmp_2$0)) curr_3$0)
@@ -181,59 +181,59 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 curr_2$0)
-                    (member l1 (lseg_domain$0 next$0 lst$0 curr_2$0))
+                    (set.member l1 (lseg_domain$0 next$0 lst$0 curr_2$0))
                     (not (= l1 curr_2$0)))
                (and
                     (or (= l1 curr_2$0)
                         (not (Btwn$0 next$0 lst$0 l1 curr_2$0)))
-                    (not (member l1 (lseg_domain$0 next$0 lst$0 curr_2$0))))))
+                    (not (set.member l1 (lseg_domain$0 next$0 lst$0 curr_2$0))))))
    :named lseg_footprint_20))
 
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 curr_3$0 l1 null$0)
-                    (member l1 (lseg_domain$0 next$0 curr_3$0 null$0))
+                    (set.member l1 (lseg_domain$0 next$0 curr_3$0 null$0))
                     (not (= l1 null$0)))
                (and
                     (or (= l1 null$0)
                         (not (Btwn$0 next$0 curr_3$0 l1 null$0)))
-                    (not (member l1 (lseg_domain$0 next$0 curr_3$0 null$0))))))
+                    (not (set.member l1 (lseg_domain$0 next$0 curr_3$0 null$0))))))
    :named lseg_footprint_21))
 
-(assert (! (not (member tmp_2$0 FP_2$0)) :named check_free_31_6))
+(assert (! (not (set.member tmp_2$0 FP_2$0)) :named check_free_31_6))
 
-(assert (! (not (member null$0 Alloc$0)) :named framecondition_of_remove_loop_18_4_15))
+(assert (! (not (set.member null$0 Alloc$0)) :named framecondition_of_remove_loop_18_4_15))
 
 (assert (! (not (= lst$0 null$0)) :named if_else_13_6_4))
 
-(assert (! (= FP_Caller$0 (union FP$0 FP_Caller$0))
+(assert (! (= FP_Caller$0 (set.union FP$0 FP_Caller$0))
    :named precondition_of_remove_10_11_20))
 
 (assert (! (= sk_?X_33$0 FP$0) :named precondition_of_remove_10_11_21))
 
 (assert (! (lseg_struct$0 sk_?X_32$0 next$0 lst$0 curr_2$0) :named invariant_18_4_62))
 
-(assert (! (= FP$0 (union FP_1$0 FP$0)) :named invariant_18_4_63))
+(assert (! (= FP$0 (set.union FP_1$0 FP$0)) :named invariant_18_4_63))
 
 (assert (! (= sk_?X_31$0 (lseg_domain$0 next$0 curr_2$0 null$0))
    :named invariant_18_4_64))
 
-(assert (! (= sk_?X_30$0 (union sk_?X_31$0 sk_?X_32$0)) :named invariant_18_4_65))
+(assert (! (= sk_?X_30$0 (set.union sk_?X_31$0 sk_?X_32$0)) :named invariant_18_4_65))
 
-(assert (! (= (as emptyset SetLoc) (as emptyset SetLoc)) :named invariant_18_4_66))
+(assert (! (= (as set.empty SetLoc) (as set.empty SetLoc)) :named invariant_18_4_66))
 
 (assert (! (lseg_struct$0 sk_?X_28$0 next$0 curr_3$0 null$0)
    :named invariant_18_4_67))
 
-(assert (! (= sk_?X_29$0 (union sk_?X_28$0 sk_?X_27$0)) :named invariant_18_4_68))
+(assert (! (= sk_?X_29$0 (set.union sk_?X_28$0 sk_?X_27$0)) :named invariant_18_4_68))
 
 (assert (! (= sk_?X_28$0 (lseg_domain$0 next$0 curr_3$0 null$0))
    :named invariant_18_4_69))
 
-(assert (! (= (as emptyset SetLoc) (intersection sk_?X_27$0 sk_?X_28$0))
+(assert (! (= (as set.empty SetLoc) (set.inter sk_?X_27$0 sk_?X_28$0))
    :named invariant_18_4_70))
 
-(assert (! (= Alloc$0 (union FP_Caller$0 Alloc$0))
+(assert (! (= Alloc$0 (set.union FP_Caller$0 Alloc$0))
    :named initial_footprint_of_remove_10_11_10))
 
 (assert (! (Frame$0 FP_1$0 Alloc$0 next$0 next$0)
@@ -245,8 +245,8 @@
 (assert (! (= curr_2$0 lst$0) :named assign_17_4_4))
 
 (assert (! (= FP_2$0
-     (union (setminus FP$0 FP_1$0)
-       (union (intersection Alloc$0 FP_1$0) (setminus Alloc$0 Alloc$0))))
+     (set.union (set.minus FP$0 FP_1$0)
+       (set.union (set.inter Alloc$0 FP_1$0) (set.minus Alloc$0 Alloc$0))))
    :named framecondition_of_remove_loop_18_4_17))
 
 (assert (! (or (Btwn$0 next$0 lst$0 curr_2$0 curr_2$0)
@@ -263,35 +263,35 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst_1$0 l1 curr_3$0)
-                    (member l1 (lseg_domain$0 next$0 lst_1$0 curr_3$0))
+                    (set.member l1 (lseg_domain$0 next$0 lst_1$0 curr_3$0))
                     (not (= l1 curr_3$0)))
                (and
                     (or (= l1 curr_3$0)
                         (not (Btwn$0 next$0 lst_1$0 l1 curr_3$0)))
-                    (not (member l1 (lseg_domain$0 next$0 lst_1$0 curr_3$0))))))
+                    (not (set.member l1 (lseg_domain$0 next$0 lst_1$0 curr_3$0))))))
    :named lseg_footprint_22))
 
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 null$0)
-                    (member l1 (lseg_domain$0 next$0 lst$0 null$0))
+                    (set.member l1 (lseg_domain$0 next$0 lst$0 null$0))
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 lst$0 l1 null$0)))
-                    (not (member l1 (lseg_domain$0 next$0 lst$0 null$0))))))
+                    (not (set.member l1 (lseg_domain$0 next$0 lst$0 null$0))))))
    :named lseg_footprint_23))
 
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 curr_2$0 l1 null$0)
-                    (member l1 (lseg_domain$0 next$0 curr_2$0 null$0))
+                    (set.member l1 (lseg_domain$0 next$0 curr_2$0 null$0))
                     (not (= l1 null$0)))
                (and
                     (or (= l1 null$0)
                         (not (Btwn$0 next$0 curr_2$0 l1 null$0)))
-                    (not (member l1 (lseg_domain$0 next$0 curr_2$0 null$0))))))
+                    (not (set.member l1 (lseg_domain$0 next$0 curr_2$0 null$0))))))
    :named lseg_footprint_24))
 
-(assert (! (not (member null$0 Alloc$0)) :named initial_footprint_of_remove_10_11_11))
+(assert (! (not (set.member null$0 Alloc$0)) :named initial_footprint_of_remove_10_11_11))
 
 (assert (! (not (= tmp_2$0 null$0)) :named if_else_28_8_2))
 
@@ -311,7 +311,7 @@
 
 (assert (! (= sk_?X_30$0 FP_1$0) :named invariant_18_4_74))
 
-(assert (! (= (as emptyset SetLoc) (intersection sk_?X_32$0 sk_?X_31$0))
+(assert (! (= (as set.empty SetLoc) (set.inter sk_?X_32$0 sk_?X_31$0))
    :named invariant_18_4_75))
 
 (assert (! (not (= curr_3$0 null$0)) :named invariant_18_4_76))
@@ -320,22 +320,22 @@
    :named invariant_18_4_77))
 
 (assert (! (= sk_?X_29$0
-     (union (intersection Alloc$0 FP_1$0) (setminus Alloc$0 Alloc$0)))
+     (set.union (set.inter Alloc$0 FP_1$0) (set.minus Alloc$0 Alloc$0)))
    :named invariant_18_4_78))
 
 (assert (! (= sk_?X_27$0 (lseg_domain$0 next$0 lst_1$0 curr_3$0))
    :named invariant_18_4_79))
 
-(assert (! (= (as emptyset SetLoc) (as emptyset SetLoc)) :named invariant_18_4_80))
+(assert (! (= (as set.empty SetLoc) (as set.empty SetLoc)) :named invariant_18_4_80))
 
-(assert (! (= Alloc$0 (union FP_2$0 Alloc$0))
+(assert (! (= Alloc$0 (set.union FP_2$0 Alloc$0))
    :named framecondition_of_remove_loop_18_4_18))
 
 (assert (! (= tmp_2$0 (read$0 next$0 curr_3$0)) :named assign_27_4_2))
 
 (assert (! (= lst_1$0 lst$0) :named framecondition_of_remove_loop_18_4_19))
 
-(assert (! (= FP_Caller_1$0 (setminus FP_Caller$0 FP$0)) :named assign_13_2_5))
+(assert (! (= FP_Caller_1$0 (set.minus FP_Caller$0 FP$0)) :named assign_13_2_5))
 
 (assert (! (or (Btwn$0 next$0 lst_1$0 curr_3$0 curr_3$0)
        (not (lseg_struct$0 sk_?X_27$0 next$0 lst_1$0 curr_3$0)))

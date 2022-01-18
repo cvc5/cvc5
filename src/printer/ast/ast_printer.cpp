@@ -24,7 +24,6 @@
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
 
 using namespace std;
 
@@ -71,7 +70,7 @@ void AstPrinter::toStream(std::ostream& out,
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     // constant
     out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, n);
+    n.constToStream(out);
   }
   else if (n.isClosure())
   {

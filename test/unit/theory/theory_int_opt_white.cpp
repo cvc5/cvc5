@@ -18,11 +18,11 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::smt;
+
 namespace cvc5 {
-
-using namespace theory;
-using namespace smt;
-
 namespace test {
 
 class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
@@ -44,8 +44,8 @@ class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteIntOpt, max)
 {
-  Node ub = d_nodeManager->mkConst(Rational("100"));
-  Node lb = d_nodeManager->mkConst(Rational("0"));
+  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -75,8 +75,8 @@ TEST_F(TestTheoryWhiteIntOpt, max)
 
 TEST_F(TestTheoryWhiteIntOpt, min)
 {
-  Node ub = d_nodeManager->mkConst(Rational("100"));
-  Node lb = d_nodeManager->mkConst(Rational("0"));
+  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -106,8 +106,8 @@ TEST_F(TestTheoryWhiteIntOpt, min)
 
 TEST_F(TestTheoryWhiteIntOpt, result)
 {
-  Node ub = d_nodeManager->mkConst(Rational("100"));
-  Node lb = d_nodeManager->mkConst(Rational("0"));
+  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -134,9 +134,9 @@ TEST_F(TestTheoryWhiteIntOpt, result)
 
 TEST_F(TestTheoryWhiteIntOpt, open_interval)
 {
-  Node ub1 = d_nodeManager->mkConst(Rational("100"));
-  Node lb1 = d_nodeManager->mkConst(Rational("0"));
-  Node lb2 = d_nodeManager->mkConst(Rational("110"));
+  Node ub1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node lb2 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("110"));
 
   Node cost1 = d_nodeManager->mkVar(*d_intType);
   Node cost2 = d_nodeManager->mkVar(*d_intType);

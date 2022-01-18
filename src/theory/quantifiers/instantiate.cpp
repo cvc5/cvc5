@@ -152,7 +152,7 @@ bool Instantiate::addInstantiation(Node q,
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cegqi())
+    else if (options().quantifiers.cegqi)
     {
       Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
@@ -198,7 +198,7 @@ bool Instantiate::addInstantiation(Node q,
   // lead to very small gains).
 
   // check for positive entailment
-  if (options::instNoEntail())
+  if (options().quantifiers.instNoEntail)
   {
     // should check consistency of equality engine
     // (if not aborting on utility's reset)
@@ -216,7 +216,7 @@ bool Instantiate::addInstantiation(Node q,
   }
 
   // check based on instantiation level
-  if (options::instMaxLevel() != -1)
+  if (options().quantifiers.instMaxLevel != -1)
   {
     TermDb* tdb = d_treg.getTermDatabase();
     for (Node& t : terms)
@@ -362,7 +362,7 @@ bool Instantiate::addInstantiation(Node q,
       }
     }
   }
-  if (options::instMaxLevel() != -1)
+  if (options().quantifiers.instMaxLevel != -1)
   {
     if (doVts)
     {
@@ -447,7 +447,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // check whether we are still redundant
     bool success = false;
     // check entailment, only if option is set
-    if (options::instNoEntail())
+    if (options().quantifiers.instNoEntail)
     {
       Trace("inst-exp-fail") << "  check entailment" << std::endl;
       success = echeck->isEntailed(q[1], subs, false, true);
@@ -505,7 +505,7 @@ bool Instantiate::existsInstantiation(Node q,
                                       const std::vector<Node>& terms,
                                       bool modEq)
 {
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
@@ -593,7 +593,7 @@ Node Instantiate::getInstantiation(Node q,
 bool Instantiate::recordInstantiationInternal(Node q,
                                               const std::vector<Node>& terms)
 {
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie" << std::endl;
@@ -612,7 +612,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
 bool Instantiate::removeInstantiationInternal(Node q,
                                               const std::vector<Node>& terms)
 {
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
@@ -637,8 +637,7 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
 void Instantiate::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node> >& tvecs)
 {
-
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     std::map<Node, CDInstMatchTrie*>::const_iterator it =
         d_c_inst_match_trie.find(q);
@@ -661,7 +660,7 @@ void Instantiate::getInstantiationTermVectors(
 void Instantiate::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node> > >& insts)
 {
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     for (const auto& t : d_c_inst_match_trie)
     {
@@ -707,9 +706,9 @@ void Instantiate::notifyEndRound()
           << " * " << i.second << " for " << i.first << std::endl;
     }
   }
-  if (d_env.isOutputOn(options::OutputTag::INST))
+  if (isOutputOn(OutputTag::INST))
   {
-    bool req = !options::printInstFull();
+    bool req = !options().printer.printInstFull;
     for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
       Node name;
@@ -717,9 +716,8 @@ void Instantiate::notifyEndRound()
       {
         continue;
       }
-      d_env.getOutput(options::OutputTag::INST)
-          << "(num-instantiations " << name << " " << i.second << ")"
-          << std::endl;
+      output(OutputTag::INST) << "(num-instantiations " << name << " "
+                              << i.second << ")" << std::endl;
     }
   }
 }

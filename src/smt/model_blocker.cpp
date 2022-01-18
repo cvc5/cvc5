@@ -111,7 +111,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
             {
               // rewrite, this ensures that e.g. the propositional value of
               // quantified formulas can be queried
-              n = theory::Rewriter::rewrite(n);
+              n = rewrite(n);
               Node vn = m->getValue(n);
               Assert(vn.isConst());
               if (vn.getConst<bool>() == cpol)

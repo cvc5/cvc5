@@ -15,7 +15,7 @@ properties parametric
 properties check presolve
 
 # constants
-constant EMPTYSET \
+constant SET_EMPTY\
   class \
   EmptySet \
   ::cvc5::EmptySetHashFunction \
@@ -36,25 +36,25 @@ enumerator SET_TYPE \
     "theory/sets/theory_sets_type_enumerator.h"
 
 # operators
-operator UNION          2  "set union"
-operator INTERSECTION   2  "set intersection"
-operator SETMINUS       2  "set subtraction"
-operator SUBSET         2  "subset predicate; first parameter a subset of second"
-operator MEMBER         2  "set membership predicate; first parameter a member of second"
+operator SET_UNION          2  "set union"
+operator SET_INTER   2  "set intersection"
+operator SET_MINUS          2  "set subtraction"
+operator SET_SUBSET         2  "subset predicate; first parameter a subset of second"
+operator SET_MEMBER         2  "set membership predicate; first parameter a member of second"
 
-constant SINGLETON_OP \
+constant SET_SINGLETON_OP \
   class \
-  SingletonOp \
-  ::cvc5::SingletonOpHashFunction \
+  SetSingletonOp \
+  ::cvc5::SetSingletonOpHashFunction \
   "theory/sets/singleton_op.h" \
   "operator for singletons; payload is an instance of the cvc5::SingletonOp class"
-parameterized SINGLETON SINGLETON_OP 1  \
+parameterized SET_SINGLETON SET_SINGLETON_OP 1  \
 "constructs a set of a single element. First parameter is a SingletonOp. Second is a term"
 
-operator INSERT         2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
-operator CARD           1  "set cardinality operator"
-operator COMPLEMENT     1  "set COMPLEMENT (with respect to finite universe)"
-nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be interpreted as subsets of it."
+operator SET_INSERT         2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
+operator SET_CARD           1  "set cardinality operator"
+operator SET_COMPLEMENT     1  "set complement (with respect to finite universe)"
+nullaryoperator SET_UNIVERSE "(finite) universe set, all set variables must be interpreted as subsets of it."
 
 # A set comprehension is specified by:
 # (1) a bound variable list x1 ... xn,
@@ -69,48 +69,53 @@ nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be i
 # that there are infinitely many y that satisfy the left hand side of the
 # equivalence above. The same limitation occurs more generally when combining
 # finite sets with quantified formulas.
-operator COMPREHENSION 3 "set comprehension specified by a bound variable list, a predicate, and a term."
+operator SET_COMPREHENSION 3 "set comprehension specified by a bound variable list, a predicate, and a term."
 
 # The operator choose returns an element from a given set.
 # If set A = {x}, then the term (choose A) is equivalent to the term x.
 # If the set is empty, then (choose A) is an arbitrary value.
 # If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
-operator CHOOSE        1  "return an element in the set given as a parameter"
+operator SET_CHOOSE        1  "return an element in the set given as a parameter"
 
 # The operator is_singleton returns whether the given set is a singleton
-operator IS_SINGLETON  1  "return whether the given set is a singleton"
+operator SET_IS_SINGLETON  1  "return whether the given set is a singleton"
 
-operator JOIN 		   2  "set join"
-operator PRODUCT 	   2  "set cartesian product"
-operator TRANSPOSE 	   1  "set transpose"
-operator TCLOSURE      1  "set transitive closure"
-operator JOIN_IMAGE	   2  "set join image"
-operator IDEN 	   	   1  "set identity"
+# The set.map operator applies the first argument, a function of type (-> T1 T2), to every element
+# of the second argument, a set of type (Set T1), and returns a set of type (Set T2).
+operator SET_MAP           2  "set map function"
 
-typerule UNION          ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
-typerule INTERSECTION   ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
-typerule SETMINUS       ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
-typerule SUBSET         ::cvc5::theory::sets::SubsetTypeRule
-typerule MEMBER         ::cvc5::theory::sets::MemberTypeRule
-typerule SINGLETON_OP   "SimpleTypeRule<RBuiltinOperator>"
-typerule SINGLETON      ::cvc5::theory::sets::SingletonTypeRule
-typerule EMPTYSET       ::cvc5::theory::sets::EmptySetTypeRule
-typerule INSERT         ::cvc5::theory::sets::InsertTypeRule
-typerule CARD           ::cvc5::theory::sets::CardTypeRule
-typerule COMPLEMENT     ::cvc5::theory::sets::ComplementTypeRule
-typerule UNIVERSE_SET   ::cvc5::theory::sets::UniverseSetTypeRule
-typerule COMPREHENSION  ::cvc5::theory::sets::ComprehensionTypeRule
-typerule CHOOSE         ::cvc5::theory::sets::ChooseTypeRule
-typerule IS_SINGLETON   ::cvc5::theory::sets::IsSingletonTypeRule
+operator RELATION_JOIN 		   2  "relation join"
+operator RELATION_PRODUCT 	   2  "relation cartesian product"
+operator RELATION_TRANSPOSE    1  "relation transpose"
+operator RELATION_TCLOSURE     1  "relation transitive closure"
+operator RELATION_JOIN_IMAGE   2  "relation join image"
+operator RELATION_IDEN 	   	   1  "relation identity"
 
-typerule JOIN 			::cvc5::theory::sets::RelBinaryOperatorTypeRule
-typerule PRODUCT 		::cvc5::theory::sets::RelBinaryOperatorTypeRule
-typerule TRANSPOSE 		::cvc5::theory::sets::RelTransposeTypeRule
-typerule TCLOSURE 	    ::cvc5::theory::sets::RelTransClosureTypeRule
-typerule JOIN_IMAGE	    ::cvc5::theory::sets::JoinImageTypeRule
-typerule IDEN 			::cvc5::theory::sets::RelIdenTypeRule
+typerule SET_UNION          ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule SET_INTER   ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule SET_MINUS          ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule SET_SUBSET         ::cvc5::theory::sets::SubsetTypeRule
+typerule SET_MEMBER         ::cvc5::theory::sets::MemberTypeRule
+typerule SET_SINGLETON_OP   "SimpleTypeRule<RBuiltinOperator>"
+typerule SET_SINGLETON      ::cvc5::theory::sets::SingletonTypeRule
+typerule SET_EMPTY          ::cvc5::theory::sets::EmptySetTypeRule
+typerule SET_INSERT         ::cvc5::theory::sets::InsertTypeRule
+typerule SET_CARD           ::cvc5::theory::sets::CardTypeRule
+typerule SET_COMPLEMENT     ::cvc5::theory::sets::ComplementTypeRule
+typerule SET_UNIVERSE       ::cvc5::theory::sets::UniverseSetTypeRule
+typerule SET_COMPREHENSION  ::cvc5::theory::sets::ComprehensionTypeRule
+typerule SET_CHOOSE         ::cvc5::theory::sets::ChooseTypeRule
+typerule SET_IS_SINGLETON   ::cvc5::theory::sets::IsSingletonTypeRule
+typerule SET_MAP            ::cvc5::theory::sets::SetMapTypeRule
 
-construle UNION         ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
-construle SINGLETON     ::cvc5::theory::sets::SingletonTypeRule
+typerule RELATION_JOIN 			::cvc5::theory::sets::RelBinaryOperatorTypeRule
+typerule RELATION_PRODUCT 		::cvc5::theory::sets::RelBinaryOperatorTypeRule
+typerule RELATION_TRANSPOSE 		::cvc5::theory::sets::RelTransposeTypeRule
+typerule RELATION_TCLOSURE 	    ::cvc5::theory::sets::RelTransClosureTypeRule
+typerule RELATION_JOIN_IMAGE	    ::cvc5::theory::sets::JoinImageTypeRule
+typerule RELATION_IDEN 			::cvc5::theory::sets::RelIdenTypeRule
+
+construle SET_UNION         ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+construle SET_SINGLETON     ::cvc5::theory::sets::SingletonTypeRule
 
 endtheory

@@ -36,6 +36,18 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
+TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
+{
+  return nodeManager->realType();
+}
+TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
+                                                       TNode n,
+                                                       bool check)
+{
+  return nodeManager->realType();
+}
+
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
@@ -59,7 +71,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
     }
     if (check)
     {
-      if (!childType.isReal())
+      if (!childType.isRealOrInt())
       {
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting an arithmetic subterm");
@@ -81,6 +93,29 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
       return (isInteger && !isDivision ? integerType : realType);
     }
   }
+}
+
+TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check)
+{
+  if (check)
+  {
+    Assert(n.getNumChildren() == 2);
+    TypeNode t1 = n[0].getType(check);
+    if (!t1.isRealOrInt())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting an arithmetic term for arithmetic relation");
+    }
+    TypeNode t2 = n[1].getType(check);
+    if (!t1.isComparableTo(t2))
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting arithmetic terms of comparable type");
+    }
+  }
+  return nodeManager->booleanType();
 }
 
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
@@ -165,7 +200,7 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
           n, "expecting boolean term as first argument");
     }
     TypeNode t2 = n[1].getType(check);
-    if (!t2.isReal())
+    if (!t2.isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n, "expecting polynomial as second argument");

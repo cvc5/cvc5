@@ -531,12 +531,12 @@ bool ITECompressor::compress(AssertionPipeline* assertionsToPreprocess)
   d_incoming.computeReachability(assertionsToPreprocess->ref());
 
   ++(d_statistics.d_compressCalls);
-  Chat() << "Computed reachability" << endl;
+  verbose(2) << "Computed reachability" << endl;
 
   bool nofalses = true;
   const std::vector<Node>& assertions = assertionsToPreprocess->ref();
   size_t original_size = assertions.size();
-  Chat() << "compressing " << original_size << endl;
+  verbose(2) << "compressing " << original_size << endl;
   for (size_t i = 0; i < original_size && nofalses; ++i)
   {
     Node assertion = assertions[i];
@@ -675,7 +675,7 @@ bool ITESimplifier::leavesAreConst(TNode e)
 
 void ITESimplifier::clearSimpITECaches()
 {
-  Chat() << "clear ite caches " << endl;
+  verbose(2) << "clear ite caches " << endl;
   for (size_t i = 0, N = d_allocatedConstantLeaves.size(); i < N; ++i)
   {
     NodeVec* curr = d_allocatedConstantLeaves[i];
@@ -698,7 +698,7 @@ void ITESimplifier::clearSimpITECaches()
 bool ITESimplifier::doneALotOfWorkHeuristic() const
 {
   static const size_t SIZE_BOUND = 1000;
-  Chat() << "d_citeEqConstApplications size " << d_citeEqConstApplications
+  verbose(2) << "d_citeEqConstApplications size " << d_citeEqConstApplications
          << endl;
   return (d_citeEqConstApplications > SIZE_BOUND);
 }

@@ -116,9 +116,10 @@ Result checkWithSubsolver(Node query,
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
       // default model
+      NodeManager* nm = NodeManager::currentNM();
       for (const Node& v : vars)
       {
-        modelVals.push_back(v.getType().mkGroundTerm());
+        modelVals.push_back(nm->mkGroundTerm(v.getType()));
       }
     }
     return r;

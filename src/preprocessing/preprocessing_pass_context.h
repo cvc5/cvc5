@@ -79,7 +79,11 @@ class PreprocessingPassContext : protected EnvObj
   /** Spend resource in the resource manager of the associated Env. */
   void spendResource(Resource r);
 
-  /** Get a reference to the top-level substitution map */
+  /**
+   * Get a reference to the top-level substitution map. Note that all
+   * substitutions added to this map should use the addSubstitution methods
+   * below for the purposes of proper debugging information.
+   */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions() const;
 
   /** Record symbols in assertions
@@ -116,9 +120,13 @@ class PreprocessingPassContext : protected EnvObj
                        const Node& rhs,
                        PfRule id,
                        const std::vector<Node>& args);
-
+  /** Add top level substitutions for a substitution map */
+  void addSubstitutions(theory::TrustSubstitutionMap& tm);
 
  private:
+  /** Helper method for printing substitutions */
+  void printSubstitution(const Node& lhs, const Node& rhs) const;
+
   /** Pointer to the theory engine associated with this context. */
   TheoryEngine* d_theoryEngine;
   /** Pointer to the prop engine associated with this context. */

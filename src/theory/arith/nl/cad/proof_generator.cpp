@@ -21,6 +21,8 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/indexed_root_predicate.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -94,7 +96,7 @@ CADProofGenerator::CADProofGenerator(context::Context* ctx,
     : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-  d_zero = NodeManager::currentNM()->mkConst<Rational>(0);
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 void CADProofGenerator::startNewProof()

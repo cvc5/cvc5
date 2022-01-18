@@ -292,11 +292,14 @@ class TheoryEngineModelBuilder : protected EnvObj
                           Node eqc);
   /** is codatatype value match
    *
-   * This returns true if v is r{ eqc -> t } for some t.
-   * If this function returns true, then t above is
-   * stored in eqc_m.
+   * Takes as arguments a codatatype value v, and a codatatype term r of the
+   * same sort.
+   *
+   * It returns true if it is possible that the value of r will be forced to
+   * be equal to v during model construction. A return value of false indicates
+   * that it is safe to use value v to avoid merging with r.
    */
-  bool isCdtValueMatch(Node v, Node r, Node eqc, Node& eqc_m);
+  static bool isCdtValueMatch(Node v, Node r);
   //------------------------------------end for codatatypes
 
   //---------------------------------for debugging finite model finding

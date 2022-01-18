@@ -36,6 +36,11 @@ class SortTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   Sort create_datatype_sort() throws CVC5ApiException
   {
     DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
@@ -65,6 +70,24 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getIntegerSort() == d_solver.getNullSort());
     assertDoesNotThrow(() -> d_solver.getIntegerSort() != d_solver.getNullSort());
     assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(d_solver.getNullSort()));
+  }
+
+  @Test void hasGetSymbol() throws CVC5ApiException
+  {
+    Sort n = d_solver.getNullSort();
+    Sort b = d_solver.getBooleanSort();
+    Sort s0 = d_solver.mkParamSort("s0");
+    Sort s1 = d_solver.mkParamSort("|s1\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasSymbol());
+    assertFalse(b.hasSymbol());
+    assertTrue(s0.hasSymbol());
+    assertTrue(s1.hasSymbol());
+
+    assertThrows(CVC5ApiException.class, () -> n.getSymbol());
+    assertThrows(CVC5ApiException.class, () -> b.getSymbol());
+    assertEquals(s0.getSymbol(), "s0");
+    assertEquals(s1.getSymbol(), "|s1\\|");
   }
 
   @Test void isBoolean()
@@ -259,14 +282,6 @@ class SortTest
     assertTrue(d_solver.getIntegerSort().isSubsortOf(d_solver.getRealSort()));
     assertFalse(d_solver.getIntegerSort().isSubsortOf(d_solver.getBooleanSort()));
     assertDoesNotThrow(() -> d_solver.getNullSort().isSubsortOf(d_solver.getNullSort()));
-  }
-
-  @Test void isComparableTo()
-  {
-    assertTrue(d_solver.getIntegerSort().isComparableTo(d_solver.getIntegerSort()));
-    assertTrue(d_solver.getIntegerSort().isComparableTo(d_solver.getRealSort()));
-    assertFalse(d_solver.getIntegerSort().isComparableTo(d_solver.getBooleanSort()));
-    assertDoesNotThrow(() -> d_solver.getNullSort().isComparableTo(d_solver.getNullSort()));
   }
 
   @Test void getDatatype() throws CVC5ApiException
@@ -558,21 +573,14 @@ class SortTest
     Sort realSort = d_solver.getRealSort();
     assertTrue(intSort.isSubsortOf(realSort));
     assertFalse(realSort.isSubsortOf(intSort));
-    assertTrue(intSort.isComparableTo(realSort));
-    assertTrue(realSort.isComparableTo(intSort));
 
     Sort arraySortII = d_solver.mkArraySort(intSort, intSort);
     Sort arraySortIR = d_solver.mkArraySort(intSort, realSort);
-    assertFalse(arraySortII.isComparableTo(intSort));
-    // we do not support subtyping for arrays
-    assertFalse(arraySortII.isComparableTo(arraySortIR));
 
     Sort setSortI = d_solver.mkSetSort(intSort);
     Sort setSortR = d_solver.mkSetSort(realSort);
     // we don't support subtyping for sets
-    assertFalse(setSortI.isComparableTo(setSortR));
     assertFalse(setSortI.isSubsortOf(setSortR));
-    assertFalse(setSortR.isComparableTo(setSortI));
     assertFalse(setSortR.isSubsortOf(setSortI));
   }
 

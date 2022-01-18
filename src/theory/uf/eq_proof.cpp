@@ -91,8 +91,8 @@ void EqProof::cleanReflPremises(std::vector<Node>& premises) const
   if (newPremises.size() != size)
   {
     Trace("eqproof-conv") << "EqProof::cleanReflPremises: removed "
-                          << (newPremises.size() >= size
-                                  ? newPremises.size() - size
+                          << (size >= newPremises.size()
+                                  ? size - newPremises.size()
                                   : 0)
                           << " refl premises from " << premises << "\n";
     premises.clear();
@@ -138,6 +138,8 @@ bool EqProof::expandTransitivityForDisequalities(
   // if no equality of the searched form, nothing to do
   if (offending == size)
   {
+    Trace("eqproof-conv")
+        << "EqProof::expandTransitivityForDisequalities: no need.\n";
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -967,6 +969,7 @@ Node EqProof::addToProof(CDProof* p,
   if (d_id == MERGED_THROUGH_REFLEXIVITY
       || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
+    Trace("eqproof-conv") << "EqProof::addToProof: refl step\n";
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]});
@@ -1170,7 +1173,9 @@ Node EqProof::addToProof(CDProof* p,
         }
       }
     }
-    Assert(p->hasStep(conclusion));
+    Assert(p->hasStep(conclusion) || assumptions.count(conclusion))
+        << "Conclusion " << conclusion
+        << " does not have a step in the proof neither it's an assumption.\n";
     visited[d_node] = conclusion;
     return conclusion;
   }

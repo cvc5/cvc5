@@ -15,7 +15,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 if __name__ == "__main__":
     slv = pycvc5.Solver()

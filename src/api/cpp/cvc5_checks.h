@@ -43,6 +43,14 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                \
   ? (void)0 : OstreamVoider() & CVC5ApiRecoverableExceptionStream().ostream()
 
+/**
+ * The base check macro for throwing unsupported exceptions.
+ * Throws a CVC5ApiUnsupportedException if 'cond' is false.
+ */
+#define CVC5_API_UNSUPPORTED_CHECK(cond) \
+  CVC5_PREDICT_TRUE(cond)                \
+  ? (void)0 : OstreamVoider() & CVC5ApiUnsupportedExceptionStream().ostream()
+
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
 /* -------------------------------------------------------------------------- */
@@ -290,9 +298,9 @@ namespace api {
  * Term check for member functions of classes other than class Solver.
  * Check if each term in both the given container is not null, associated with
  * the solver object this object is associated with, and their sorts are
- * pairwise comparable to.
+ * pairwise equal.
  */
-#define CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_COMPARABLE_TO(terms1, terms2)  \
+#define CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms1, terms2)  \
   do                                                                        \
   {                                                                         \
     size_t i = 0;                                                           \
@@ -309,8 +317,8 @@ namespace api {
           this->d_solver == t2.d_solver, "term", terms2, i)                 \
           << "a term associated with the solver this object is associated " \
              "with";                                                        \
-      CVC5_API_CHECK(t1.getSort().isComparableTo(t2.getSort()))             \
-          << "Expecting terms of comparable sort at index " << i;           \
+      CVC5_API_CHECK(t1.getSort() == t2.getSort())                          \
+          << "Expecting terms of the same sort at index " << i;             \
       i += 1;                                                               \
     }                                                                       \
   } while (0)
@@ -438,8 +446,6 @@ namespace api {
     CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
     CVC5_API_CHECK(this == sort.d_solver)                   \
         << "Given sort is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)  \
-        << "first-class sort as codomain sort";             \
     CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)   \
         << "function sort as codomain sort";                \
   } while (0)

@@ -807,7 +807,7 @@ bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
 Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 {
   Node c = d_candidate;
-  if (!d_solution.isNull() && !options::sygusStream())
+  if (!d_solution.isNull() && !options().quantifiers.sygusStream)
   {
     // already has a solution
     return d_solution;
@@ -974,7 +974,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     if (!cmp_indices.empty())
     {
       // we check invariance with respect to a negative contains test
-      NegContainsSygusInvarianceTest ncset;
+      NegContainsSygusInvarianceTest ncset(d_env.getRewriter());
       if (isConditional)
       {
         ncset.setUniversal();

@@ -28,7 +28,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -183,8 +182,6 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // forall A. exists x. ~( A( x ) => ~input( x ) )
   res = SygusUtils::mkSygusConjecture({abd}, res, {instAttr});
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
-
-  res = theory::Rewriter::rewrite(res);
 
   Trace("sygus-abduct") << "Generate: " << res << std::endl;
 

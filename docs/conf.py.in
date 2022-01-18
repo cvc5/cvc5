@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 
+import os
 import sys
 
 # add path to enable extensions
@@ -18,6 +19,7 @@ sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
 # path to python api
 sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
+sys.path.insert(0, '${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP')
 
 if("${BUILD_BINDINGS_PYTHON}" == "ON"):
         tags.add('bindings_python')
@@ -44,6 +46,7 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinxcontrib.programoutput',
         'sphinx_tabs.tabs',
+        'autoenum',
         'examples',
         'include_build_file',
 ]
@@ -68,12 +71,62 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_theme_options = {}
+html_theme_options = {
+    'navigation_depth': 5
+}
 html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
 html_show_sourcelink = False
 
 html_extra_path = []
+
+# -- Configuration for examples extension ------------------------------------
+# Configuration for tabs: title, language and group for detecting missing files
+examples_types = {
+        '\.cpp$': {
+                'title': 'C++',
+                'lang': 'c++',
+                'group': 'c++'
+        },
+        '\.java$': {
+                'title': 'Java',
+                'lang': 'java',
+                'group': 'java'
+        },
+        '^<examples>.*\.py$': {
+                'title': 'Python (base)',
+                'lang': 'python',
+                'group': 'py-regular'
+        },
+        '^<z3pycompat>.*\.py$': {
+                'title': 'Python (pythonic)',
+                'lang': 'python',
+                'group': 'py-z3pycompat'
+        },
+        '\.smt2$': {
+                'title': 'SMT-LIBv2',
+                'lang': 'smtlib',
+                'group': 'smt2'
+        },
+        '\.sy$': {
+                'title': 'SyGuS',
+                'lang': 'smtlib',
+                'group': 'smt2'
+        },
+}
+# Special file patterns
+examples_file_patterns = {
+        '^<examples>(.*)': {
+                'local': '/../examples{}',
+                'url': 'https://github.com/cvc5/cvc5/tree/master/examples{}',
+                'urlname': 'examples{}',
+        },
+        '<z3pycompat>(.*)': {
+                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
+                'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
+                'urlname': 'cvc5_z3py_compat:{}',
+        }
+}
 
 # -- C++ / Breathe configuration ---------------------------------------------
 breathe_default_project = "cvc5"

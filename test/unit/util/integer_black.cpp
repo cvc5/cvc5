@@ -333,16 +333,67 @@ TEST_F(TestUtilBlackInteger, pow)
   ASSERT_EQ(Integer(-1000), Integer(-10).pow(3));
 }
 
-TEST_F(TestUtilBlackInteger, overly_long)
+TEST_F(TestUtilBlackInteger, overly_long_signed)
+{
+  int64_t sl = std::numeric_limits<int64_t>::max();
+  Integer i(sl);
+  if constexpr (sizeof(unsigned long) == sizeof(uint64_t))
+  {
+    ASSERT_EQ(i.getLong(), sl);
+  }
+  ASSERT_NO_THROW(i.getSigned64());
+  ASSERT_EQ(i.getSigned64(), sl);
+  i = i + 1;
+  ASSERT_THROW(i.getSigned64(), IllegalArgumentException);
+}
+
+TEST_F(TestUtilBlackInteger, overly_long_unsigned)
 {
   uint64_t ul = std::numeric_limits<uint64_t>::max();
   Integer i(ul);
-  ASSERT_EQ(i.getUnsignedLong(), ul);
+  if constexpr (sizeof(unsigned long) == sizeof(uint64_t))
+  {
+    ASSERT_EQ(i.getUnsignedLong(), ul);
+  }
   ASSERT_THROW(i.getLong(), IllegalArgumentException);
+  ASSERT_NO_THROW(i.getUnsigned64());
+  ASSERT_EQ(i.getUnsigned64(), ul);
   uint64_t ulplus1 = ul + 1;
   ASSERT_EQ(ulplus1, 0);
   i = i + 1;
   ASSERT_THROW(i.getUnsignedLong(), IllegalArgumentException);
+}
+
+TEST_F(TestUtilBlackInteger, getSigned64)
+{
+  {
+    int64_t i = std::numeric_limits<int64_t>::max();
+    Integer a(i);
+    EXPECT_EQ(a.getSigned64(), i);
+    EXPECT_THROW((a + 1).getSigned64(), IllegalArgumentException);
+  }
+  {
+    int64_t i = std::numeric_limits<int64_t>::min();
+    Integer a(i);
+    EXPECT_EQ(a.getSigned64(), i);
+    EXPECT_THROW((a - 1).getSigned64(), IllegalArgumentException);
+  }
+}
+
+TEST_F(TestUtilBlackInteger, getUnsigned64)
+{
+  {
+    uint64_t i = std::numeric_limits<uint64_t>::max();
+    Integer a(i);
+    EXPECT_EQ(a.getUnsigned64(), i);
+    EXPECT_THROW((a + 1).getUnsigned64(), IllegalArgumentException);
+  }
+  {
+    uint64_t i = std::numeric_limits<uint64_t>::min();
+    Integer a(i);
+    EXPECT_EQ(a.getUnsigned64(), i);
+    EXPECT_THROW((a - 1).getUnsigned64(), IllegalArgumentException);
+  }
 }
 
 TEST_F(TestUtilBlackInteger, testBit)

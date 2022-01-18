@@ -21,12 +21,12 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_bitblast_internal.h"
-#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 #include "theory/trust_substitutions.h"
+#include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
 namespace theory {
@@ -49,11 +49,6 @@ TheoryBV::TheoryBV(Env& env,
   {
     case options::BVSolver::BITBLAST:
       d_internal.reset(new BVSolverBitblast(env, &d_state, d_im, d_pnm));
-      break;
-
-    case options::BVSolver::LAYERED:
-      d_internal.reset(new BVSolverLayered(
-          env, *this, context(), userContext(), d_pnm, name));
       break;
 
     default:
@@ -393,12 +388,6 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
   }
 
   d_internal->ppStaticLearn(in, learned);
-}
-
-bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions,
-                                std::vector<Node>& new_assertions)
-{
-  return d_internal->applyAbstraction(assertions, new_assertions);
 }
 
 Node TheoryBV::getValue(TNode node)

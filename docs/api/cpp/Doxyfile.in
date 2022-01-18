@@ -270,6 +270,8 @@ TAB_SIZE               = 4
 # a double escape (\\{ and \\})
 
 ALIASES                =
+ALIASES += "rst=\verbatim embed:rst"
+ALIASES += "endrst=\endverbatim"
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For

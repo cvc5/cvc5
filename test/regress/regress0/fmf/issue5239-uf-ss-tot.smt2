@@ -2,5 +2,5 @@
 (set-info :status sat)
 (declare-sort a 0)
 (declare-fun b () a)
-(assert (fmf.card b 2))
+(assert (_ fmf.card a 2))
 (check-sat)

@@ -221,8 +221,8 @@ class TheoryModel : protected EnvObj
    * kind k in getModelValue. We distinguish four categories of kinds:
    *
    * [1] "Evaluated"
-   * This includes (standard) interpreted symbols like NOT, PLUS, UNION, etc.
-   * These operators can be characterized by the invariant that they are
+   * This includes (standard) interpreted symbols like NOT, PLUS, SET_UNION,
+   * etc. These operators can be characterized by the invariant that they are
    * "evaluatable". That is, if they are applied to only constants, the rewriter
    * is guaranteed to rewrite the application to a constant. When getting
    * the model value of <k>( t1...tn ) where k is a kind of this category, we
@@ -340,7 +340,7 @@ class TheoryModel : protected EnvObj
   /** assign function value f to definition f_def */
   void assignFunctionDefinition( Node f, Node f_def );
   /** have we assigned function f? */
-  bool hasAssignedFunctionDefinition( Node f ) const { return d_uf_models.find( f )!=d_uf_models.end(); }
+  bool hasAssignedFunctionDefinition(Node f) const;
   /** get the list of functions to assign. 
   * This list will contain all terms of function type that are terms in d_equalityEngine.
   * If higher-order is enabled, we ensure that this list is sorted by type size.
@@ -356,6 +356,12 @@ class TheoryModel : protected EnvObj
    * engine.
    */
   std::string debugPrintModelEqc() const;
+
+  /**
+   * Is the node n a "value"? This is true if n is constant, a constant-like
+   * value (e.g. a real algebraic number) or if n is a lambda.
+   */
+  static bool isValue(TNode node);
 
  protected:
   /** Unique name of this model */

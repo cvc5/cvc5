@@ -18,8 +18,6 @@ configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
 
 libcvc5_add_sources(
-  abstract_value.cpp
-  abstract_value.h
   bin_heap.h
   bitvector.cpp
   bitvector.h
@@ -29,6 +27,8 @@ libcvc5_add_sources(
   cardinality_class.cpp
   cardinality_class.h
   dense_map.h
+  didyoumean.cpp
+  didyoumean.h
   divisible.cpp
   divisible.h
   floatingpoint.cpp
@@ -74,6 +74,8 @@ libcvc5_add_sources(
   statistics_value.h
   string.cpp
   string.h
+  uninterpreted_sort_value.cpp
+  uninterpreted_sort_value.h
   unsafe_interrupt_exception.h
   utility.cpp
   utility.h

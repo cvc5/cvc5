@@ -17,6 +17,7 @@
 #define CVC5__INTERACTIVE_SHELL_H
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 namespace cvc5 {
@@ -55,13 +56,13 @@ class InteractiveShell
   /**
    * Return the internal parser being used.
    */
-  parser::Parser* getParser() { return d_parser; }
+  parser::Parser* getParser() { return d_parser.get(); }
 
  private:
   api::Solver* d_solver;
   std::istream& d_in;
   std::ostream& d_out;
-  parser::Parser* d_parser;
+  std::unique_ptr<parser::Parser> d_parser;
   bool d_quit;
   bool d_usingEditline;
 

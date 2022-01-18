@@ -34,7 +34,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
                                      Valuation valuation)
     : Theory(THEORY_QUANTIFIERS, env, out, valuation),
-      d_rewriter(env.getOptions()),
+      d_rewriter(env.getRewriter(), options()),
       d_qstate(env, valuation, logicInfo()),
       d_qreg(env),
       d_treg(env, d_qstate, d_qreg),
@@ -54,7 +54,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
   // post-construction.
   d_quantEngine = d_qengine.get();
 
-  if (options::macrosQuant())
+  if (options().quantifiers.macrosQuant)
   {
     d_qmacros.reset(new QuantifiersMacros(d_qreg));
   }
@@ -112,7 +112,7 @@ Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
   if (d_qmacros != nullptr)
   {
     bool reqGround =
-        options::macrosQuantMode() != options::MacrosQuantMode::ALL;
+        options().quantifiers.macrosQuantMode != options::MacrosQuantMode::ALL;
     Node eq = d_qmacros->solve(tin.getProven(), reqGround);
     if (!eq.isNull())
     {

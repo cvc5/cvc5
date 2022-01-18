@@ -50,11 +50,8 @@ Node FpExpandDefs::minUF(Node node)
     args[0] = t;
     args[1] = t;
     fun = sm->mkDummySkolem("floatingpoint_min_zero_case",
-                            nm->mkFunctionType(args,
-                                               nm->mkBitVectorType(1U)
-                                                   ),
-                            "floatingpoint_min_zero_case",
-                            NodeManager::SKOLEM_EXACT_NAME);
+                            nm->mkFunctionType(args, nm->mkBitVectorType(1U)),
+                            "floatingpoint_min_zero_case");
     d_minMap.insert(t, fun);
   }
   else
@@ -84,11 +81,8 @@ Node FpExpandDefs::maxUF(Node node)
     args[0] = t;
     args[1] = t;
     fun = sm->mkDummySkolem("floatingpoint_max_zero_case",
-                            nm->mkFunctionType(args,
-                                               nm->mkBitVectorType(1U)
-                                                   ),
-                            "floatingpoint_max_zero_case",
-                            NodeManager::SKOLEM_EXACT_NAME);
+                            nm->mkFunctionType(args, nm->mkBitVectorType(1U)),
+                            "floatingpoint_max_zero_case");
     d_maxMap.insert(t, fun);
   }
   else
@@ -121,8 +115,7 @@ Node FpExpandDefs::toUBVUF(Node node)
     args[1] = source;
     fun = sm->mkDummySkolem("floatingpoint_to_ubv_out_of_range_case",
                             nm->mkFunctionType(args, target),
-                            "floatingpoint_to_ubv_out_of_range_case",
-                            NodeManager::SKOLEM_EXACT_NAME);
+                            "floatingpoint_to_ubv_out_of_range_case");
     d_toUBVMap.insert(p, fun);
   }
   else
@@ -155,8 +148,7 @@ Node FpExpandDefs::toSBVUF(Node node)
     args[1] = source;
     fun = sm->mkDummySkolem("floatingpoint_to_sbv_out_of_range_case",
                             nm->mkFunctionType(args, target),
-                            "floatingpoint_to_sbv_out_of_range_case",
-                            NodeManager::SKOLEM_EXACT_NAME);
+                            "floatingpoint_to_sbv_out_of_range_case");
     d_toSBVMap.insert(p, fun);
   }
   else
@@ -183,8 +175,7 @@ Node FpExpandDefs::toRealUF(Node node)
     args[0] = t;
     fun = sm->mkDummySkolem("floatingpoint_to_real_infinity_and_NaN_case",
                             nm->mkFunctionType(args, nm->realType()),
-                            "floatingpoint_to_real_infinity_and_NaN_case",
-                            NodeManager::SKOLEM_EXACT_NAME);
+                            "floatingpoint_to_real_infinity_and_NaN_case");
     d_toRealMap.insert(t, fun);
   }
   else

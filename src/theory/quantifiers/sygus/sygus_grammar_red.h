@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -36,10 +37,10 @@ class TermDbSygus;
  * where tn is a sygus tn. Then, use getRedundant and/or isRedundant to get the
  * indicies of the constructors of tn that are redundant.
  */
-class SygusRedundantCons
+class SygusRedundantCons : protected EnvObj
 {
  public:
-  SygusRedundantCons() {}
+  SygusRedundantCons(Env& env) : EnvObj(env) {}
   ~SygusRedundantCons() {}
   /** register type tn
    *

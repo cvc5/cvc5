@@ -15,7 +15,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 if __name__ == "__main__":
   # Create a solver
@@ -64,15 +64,15 @@ if __name__ == "__main__":
   one = solver.mkReal(1);
 
   # Next, we construct the term x + y
-  xPlusY = solver.mkTerm(kinds.Plus, x, y);
+  xPlusY = solver.mkTerm(Kind.Plus, x, y);
 
   # Now we can define the constraints.
   # They use the operators +, <=, and <.
   # In the API, these are denoted by Plus, Leq, and Lt.
-  constraint1 = solver.mkTerm(kinds.Lt, zero, x);
-  constraint2 = solver.mkTerm(kinds.Lt, zero, y);
-  constraint3 = solver.mkTerm(kinds.Lt, xPlusY, one);
-  constraint4 = solver.mkTerm(kinds.Leq, x, y);
+  constraint1 = solver.mkTerm(Kind.Lt, zero, x);
+  constraint2 = solver.mkTerm(Kind.Lt, zero, y);
+  constraint3 = solver.mkTerm(Kind.Lt, xPlusY, one);
+  constraint4 = solver.mkTerm(Kind.Leq, x, y);
 
   # Now we assert the constraints to the solver.
   solver.assertFormula(constraint1);
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
   # It is also possible to get values for compound terms,
   # even if those did not appear in the original formula.
-  xMinusY = solver.mkTerm(kinds.Minus, x, y);
+  xMinusY = solver.mkTerm(Kind.Minus, x, y);
   xMinusYVal = solver.getValue(xMinusY);
   
   # We can now obtain the values as python values
@@ -132,11 +132,11 @@ if __name__ == "__main__":
   # Next, we assert the same assertions above with integers.
   # This time, we inline the construction of terms
   # to the assertion command.
-  solver.assertFormula(solver.mkTerm(kinds.Lt, solver.mkInteger(0), a));
-  solver.assertFormula(solver.mkTerm(kinds.Lt, solver.mkInteger(0), b));
+  solver.assertFormula(solver.mkTerm(Kind.Lt, solver.mkInteger(0), a));
+  solver.assertFormula(solver.mkTerm(Kind.Lt, solver.mkInteger(0), b));
   solver.assertFormula(
-      solver.mkTerm(kinds.Lt, solver.mkTerm(kinds.Plus, a, b), solver.mkInteger(1)));
-  solver.assertFormula(solver.mkTerm(kinds.Leq, a, b));
+      solver.mkTerm(Kind.Lt, solver.mkTerm(Kind.Plus, a, b), solver.mkInteger(1)));
+  solver.assertFormula(solver.mkTerm(Kind.Leq, a, b));
 
   # We check whether the revised assertion is satisfiable.
   r2 = solver.checkSat();

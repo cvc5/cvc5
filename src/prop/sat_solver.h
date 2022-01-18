@@ -25,7 +25,6 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_node_manager.h"
-#include "prop/bv_sat_solver_notify.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
@@ -117,30 +116,6 @@ public:
 
 };/* class SatSolver */
 
-
-class BVSatSolverInterface: public SatSolver {
-public:
-
-  virtual ~BVSatSolverInterface() {}
-  /** Interface for notifications */
-
-  virtual void setNotify(BVSatSolverNotify* notify) = 0;
-
-  virtual void markUnremovable(SatLiteral lit) = 0;
-
-  virtual void getUnsatCore(SatClause& unsatCore) = 0;
-
-  virtual void addMarkerLiteral(SatLiteral lit) = 0;
-
-  virtual SatValue propagate() = 0;
-
-  virtual void explain(SatLiteral lit, std::vector<SatLiteral>& explanation) = 0;
-
-  virtual SatValue assertAssumption(SatLiteral lit, bool propagate = false) = 0;
-
-  virtual void popAssumption() = 0;
-
-};/* class BVSatSolverInterface */
 
 class CDCLTSatSolverInterface : public SatSolver
 {

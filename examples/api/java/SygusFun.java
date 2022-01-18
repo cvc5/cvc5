@@ -56,84 +56,85 @@ public class SygusFun
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    Solver slv = new Solver();
-
-    // required options
-    slv.setOption("lang", "sygus2");
-    slv.setOption("incremental", "false");
-
-    // set the logic
-    slv.setLogic("LIA");
-
-    Sort integer = slv.getIntegerSort();
-    Sort bool = slv.getBooleanSort();
-
-    // declare input variables for the functions-to-synthesize
-    Term x = slv.mkVar(integer, "x");
-    Term y = slv.mkVar(integer, "y");
-
-    // declare the grammar non-terminals
-    Term start = slv.mkVar(integer, "Start");
-    Term start_bool = slv.mkVar(bool, "StartBool");
-
-    // define the rules
-    Term zero = slv.mkInteger(0);
-    Term one = slv.mkInteger(1);
-
-    Term plus = slv.mkTerm(PLUS, start, start);
-    Term minus = slv.mkTerm(MINUS, start, start);
-    Term ite = slv.mkTerm(ITE, start_bool, start, start);
-
-    Term And = slv.mkTerm(AND, start_bool, start_bool);
-    Term Not = slv.mkTerm(NOT, start_bool);
-    Term leq = slv.mkTerm(LEQ, start, start);
-
-    // create the grammar object
-    Grammar g = slv.mkSygusGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
-
-    // bind each non-terminal to its rules
-    g.addRules(start, new Term[] {zero, one, x, y, plus, minus, ite});
-    g.addRules(start_bool, new Term[] {And, Not, leq});
-
-    // declare the functions-to-synthesize. Optionally, provide the grammar
-    // constraints
-    Term max = slv.synthFun("max", new Term[] {x, y}, integer, g);
-    Term min = slv.synthFun("min", new Term[] {x, y}, integer);
-
-    // declare universal variables.
-    Term varX = slv.mkSygusVar(integer, "x");
-    Term varY = slv.mkSygusVar(integer, "y");
-
-    Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
-    Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);
-
-    // add semantic constraints
-    // (constraint (>= (max x y) x))
-    slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varX));
-
-    // (constraint (>= (max x y) y))
-    slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varY));
-
-    // (constraint (or (= x (max x y))
-    //                 (= y (max x y))))
-    slv.addSygusConstraint(
-        slv.mkTerm(OR, slv.mkTerm(EQUAL, max_x_y, varX), slv.mkTerm(EQUAL, max_x_y, varY)));
-
-    // (constraint (= (+ (max x y) (min x y))
-    //                (+ x y)))
-    slv.addSygusConstraint(
-        slv.mkTerm(EQUAL, slv.mkTerm(PLUS, max_x_y, min_x_y), slv.mkTerm(PLUS, varX, varY)));
-
-    // print solutions if available
-    if (slv.checkSynth().isUnsat())
+    try (Solver slv = new Solver())
     {
-      // Output should be equivalent to:
-      // (
-      //   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
-      //   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
-      // )
-      Term[] terms = new Term[] {max, min};
-      Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
+      // required options
+      slv.setOption("lang", "sygus2");
+      slv.setOption("incremental", "false");
+
+      // set the logic
+      slv.setLogic("LIA");
+
+      Sort integer = slv.getIntegerSort();
+      Sort bool = slv.getBooleanSort();
+
+      // declare input variables for the functions-to-synthesize
+      Term x = slv.mkVar(integer, "x");
+      Term y = slv.mkVar(integer, "y");
+
+      // declare the grammar non-terminals
+      Term start = slv.mkVar(integer, "Start");
+      Term start_bool = slv.mkVar(bool, "StartBool");
+
+      // define the rules
+      Term zero = slv.mkInteger(0);
+      Term one = slv.mkInteger(1);
+
+      Term plus = slv.mkTerm(PLUS, start, start);
+      Term minus = slv.mkTerm(MINUS, start, start);
+      Term ite = slv.mkTerm(ITE, start_bool, start, start);
+
+      Term And = slv.mkTerm(AND, start_bool, start_bool);
+      Term Not = slv.mkTerm(NOT, start_bool);
+      Term leq = slv.mkTerm(LEQ, start, start);
+
+      // create the grammar object
+      Grammar g = slv.mkSygusGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
+
+      // bind each non-terminal to its rules
+      g.addRules(start, new Term[] {zero, one, x, y, plus, minus, ite});
+      g.addRules(start_bool, new Term[] {And, Not, leq});
+
+      // declare the functions-to-synthesize. Optionally, provide the grammar
+      // constraints
+      Term max = slv.synthFun("max", new Term[] {x, y}, integer, g);
+      Term min = slv.synthFun("min", new Term[] {x, y}, integer);
+
+      // declare universal variables.
+      Term varX = slv.mkSygusVar(integer, "x");
+      Term varY = slv.mkSygusVar(integer, "y");
+
+      Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
+      Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);
+
+      // add semantic constraints
+      // (constraint (>= (max x y) x))
+      slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varX));
+
+      // (constraint (>= (max x y) y))
+      slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varY));
+
+      // (constraint (or (= x (max x y))
+      //                 (= y (max x y))))
+      slv.addSygusConstraint(
+          slv.mkTerm(OR, slv.mkTerm(EQUAL, max_x_y, varX), slv.mkTerm(EQUAL, max_x_y, varY)));
+
+      // (constraint (= (+ (max x y) (min x y))
+      //                (+ x y)))
+      slv.addSygusConstraint(
+          slv.mkTerm(EQUAL, slv.mkTerm(PLUS, max_x_y, min_x_y), slv.mkTerm(PLUS, varX, varY)));
+
+      // print solutions if available
+      if (slv.checkSynth().isUnsat())
+      {
+        // Output should be equivalent to:
+        // (
+        //   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
+        //   (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
+        // )
+        Term[] terms = new Term[] {max, min};
+        Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
+      }
     }
   }
 }

@@ -153,10 +153,9 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         && d_auto_gen_trigger[1][f].empty() && !QuantAttributes::hasPattern(f))
     {
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
-      if (d_env.isOutputOn(options::OutputTag::TRIGGER))
+      if (isOutputOn(OutputTag::TRIGGER))
       {
-        d_env.getOutput(options::OutputTag::TRIGGER)
-            << "(no-trigger " << f << ")" << std::endl;
+        output(OutputTag::TRIGGER) << "(no-trigger " << f << ")" << std::endl;
       }
     }
   }

@@ -28,18 +28,19 @@ JustificationStrategy::JustificationStrategy(Env& env)
       d_assertions(
           userContext(),
           context(),
-          options::jhRlvOrder()),  // assertions are user-context dependent
+          options()
+              .decision.jhRlvOrder),  // assertions are user-context dependent
       d_skolemAssertions(
           context(), context()),  // skolem assertions are SAT-context dependent
       d_justified(context()),
       d_stack(context()),
       d_lastDecisionLit(context()),
       d_currStatusDec(false),
-      d_useRlvOrder(options::jhRlvOrder()),
-      d_decisionStopOnly(options::decisionMode()
+      d_useRlvOrder(options().decision.jhRlvOrder),
+      d_decisionStopOnly(options().decision.decisionMode
                          == options::DecisionMode::STOPONLY),
-      d_jhSkMode(options::jhSkolemMode()),
-      d_jhSkRlvMode(options::jhSkolemRlvMode())
+      d_jhSkMode(options().decision.jhSkolemMode),
+      d_jhSkRlvMode(options().decision.jhSkolemRlvMode)
 {
 }
 

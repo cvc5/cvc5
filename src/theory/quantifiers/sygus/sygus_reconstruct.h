@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/match_trie.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
@@ -93,7 +94,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *       TermsToRecons'' = {}
  *       for each subfield type T of T0
  *         for each t in TermsToRecons'[T]
- *           TermsToRecons'[T] += t
+ *           TermsToRecons[T] += t
  *           for each s[zs] in Pool[T]
  *             TermsToRecons'' += matchNewObs(t, s[zs])
  *         TermsToRecons' = TermsToRecons''
@@ -108,7 +109,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *     Sub = {} // substitution map from zs to corresponding new vars ks
  *     for each (z, st) in {zs -> sts}
  *       // let X be the theory the solver is invoked with
- *       if exists (k, ts) in Obs s.t. !=_X ts[0] = st
+ *       if exists (k, ts) in Obs s.t. |=_X ts[0] = st
  *         ts += st
  *         Sub[z] = k
  *       else
@@ -138,7 +139,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *           push(Stack, k'')
  * }
  */
-class SygusReconstruct : public expr::NotifyMatch
+class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
 {
  public:
   /**
@@ -298,8 +299,6 @@ class SygusReconstruct : public expr::NotifyMatch
   void printPool(
       const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
 
-  /** Reference to the env */
-  Env& d_env;
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** reference to the statistics of parent */

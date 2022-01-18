@@ -18,9 +18,9 @@ package io.github.cvc5.api;
 import java.io.IOException;
 import java.util.*;
 
-public class Solver implements IPointer
+public class Solver implements IPointer, AutoCloseable
 {
-  private final long pointer;
+  private long pointer;
 
   public long getPointer()
   {
@@ -31,14 +31,32 @@ public class Solver implements IPointer
 
   public void deletePointer()
   {
-    deletePointer(pointer);
+    if (pointer != 0)
+    {
+      deletePointer(pointer);
+    }
+    pointer = 0;
   }
 
   private static native void deletePointer(long pointer);
 
-  @Override public void finalize()
+  // store pointers for terms, sorts, etc
+  List<AbstractPointer> abstractPointers = new ArrayList<>();
+
+  @Override public void close()
   {
-    deletePointer(pointer);
+    // delete heap memory for terms, sorts, etc
+    for (int i = abstractPointers.size() - 1; i >= 0; i--)
+    {
+      abstractPointers.get(i).deletePointer();
+    }
+    // delete the heap memory for this solver
+    deletePointer();
+  }
+
+  void addAbstractPointer(AbstractPointer abstractPointer)
+  {
+    abstractPointers.add(abstractPointer);
   }
 
   static
@@ -236,6 +254,8 @@ public class Solver implements IPointer
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
+   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @param unresolvedSorts the set of unresolved sorts
@@ -399,6 +419,39 @@ public class Solver implements IPointer
   }
 
   private native long mkUninterpretedSort(long pointer, String symbol);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUnresolvedSort(pointer, symbol, arity);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUnresolvedSort(long pointer, String symbol, int arity);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
 
   /**
    * Create a sort constructor sort.
@@ -621,10 +674,9 @@ public class Solver implements IPointer
   /**
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
-   *   (e.g. BITVECTOR_EXTRACT)
-   * Note: in this case, the Op simply wraps the Kind.
-   * The Kind can be used in mkTerm directly without
-   *   creating an op first.
+   *   (e.g. BITVECTOR_EXTRACT).
+   * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
+   *          in mkTerm directly without creating an op first.
    * @param kind the kind to wrap
    */
   public Op mkOp(Kind kind)
@@ -833,28 +885,40 @@ public class Solver implements IPointer
   private native long mkReal(long pointer, long num, long den);
 
   /**
-   * Create a regular expression empty term.
-   * @return the empty term
+   * Create a regular expression none (re.none) term.
+   * @return the none term
    */
-  public Term mkRegexpEmpty()
+  public Term mkRegexpNone()
   {
-    long termPointer = mkRegexpEmpty(pointer);
+    long termPointer = mkRegexpNone(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpEmpty(long pointer);
+  private native long mkRegexpNone(long pointer);
 
   /**
-   * Create a regular expression sigma term.
-   * @return the sigma term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  public Term mkRegexpSigma()
+  public Term mkRegexpAll()
   {
-    long termPointer = mkRegexpSigma(pointer);
+    long termPointer = mkRegexpAll(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpSigma(long pointer);
+  private native long mkRegexpAll(long pointer);
+
+  /**
+   * Create a regular expression allchar (re.allchar) term.
+   * @return the allchar term
+   */
+  public Term mkRegexpAllchar()
+  {
+    long termPointer = mkRegexpAllchar(pointer);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkRegexpAllchar(long pointer);
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -987,7 +1051,7 @@ public class Solver implements IPointer
   /**
    * Create a bit-vector constant of given size and value.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @apiNote The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -1007,7 +1071,7 @@ public class Solver implements IPointer
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @apiNote The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
@@ -1128,45 +1192,6 @@ public class Solver implements IPointer
   }
 
   private native long mkRoundingMode(long pointer, int rm);
-
-  /**
-   * Create uninterpreted constant.
-   * @param sort Sort of the constant
-   * @param index Index of the constant
-   */
-  public Term mkUninterpretedConst(Sort sort, int index) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(index, "index");
-    long termPointer = mkUninterpretedConst(pointer, sort.getPointer(), index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkUninterpretedConst(long pointer, long sortPointer, int index);
-
-  /**
-   * Create an abstract value constant.
-   * @param index Index of the abstract value
-   */
-  public Term mkAbstractValue(String index)
-  {
-    long termPointer = mkAbstractValue(pointer, index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkAbstractValue(long pointer, String index);
-
-  /**
-   * Create an abstract value constant.
-   * @param index Index of the abstract value
-   */
-  public Term mkAbstractValue(long index) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(index, "index");
-    long termPointer = mkAbstractValue(pointer, index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkAbstractValue(long pointer, long index);
 
   /**
    * Create a floating-point constant.
@@ -1592,47 +1617,6 @@ public class Solver implements IPointer
       long sortPointer,
       long termPointer,
       boolean global);
-
-  /**
-   * Define n-ary function in the current context.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term)
-  {
-    return defineFun(fun, boundVars, term, false);
-  }
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term, boolean global)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer =
-        defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(this, termPointer);
-  }
-
-  private native long defineFun(
-      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
 
   /**
    * Define recursive function in the current context.
@@ -2075,37 +2059,36 @@ public class Solver implements IPointer
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  public void declareSeparationHeap(Sort locSort, Sort dataSort)
+  public void declareSepHeap(Sort locSort, Sort dataSort)
   {
-    declareSeparationHeap(pointer, locSort.getPointer(), dataSort.getPointer());
+    declareSepHeap(pointer, locSort.getPointer(), dataSort.getPointer());
   }
 
-  private native void declareSeparationHeap(
-      long pointer, long locSortPointer, long dataSortPointer);
+  private native void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer);
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  public Term getSeparationHeap()
+  public Term getValueSepHeap()
   {
-    long termPointer = getSeparationHeap(pointer);
+    long termPointer = getValueSepHeap(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationHeap(long pointer);
+  private native long getValueSepHeap(long pointer);
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  public Term getSeparationNilTerm()
+  public Term getValueSepNil()
   {
-    long termPointer = getSeparationNilTerm(pointer);
+    long termPointer = getValueSepNil(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationNilTerm(long pointer);
+  private native long getValueSepNil(long pointer);
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
@@ -2161,7 +2144,7 @@ public class Solver implements IPointer
    * {@code
    * ( get-interpol <conj> )
    * }
-   * Requires to enable option 'produce-interpols'.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -2180,7 +2163,7 @@ public class Solver implements IPointer
    * {@code
    * ( get-interpol <conj> <g> )
    * }
-   * Requires to enable option 'produce-interpols'.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
@@ -2194,6 +2177,35 @@ public class Solver implements IPointer
 
   private native boolean getInterpolant(
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
+
+  /**
+   * Get the next interpolant. Can only be called immediately after a successful
+   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * syntactically different interpolant wrt the last returned interpolant if
+   * successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol-next)
+   *
+   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * set to a mode different from 'none'.
+   * \endverbatim
+   *
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid,
+   *        where A is the current set of assertions and B is given in the input
+   *        by conj on the last call to getInterpolant.
+   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   */
+  public boolean getInterpolantNext(Term output)
+  {
+    return getInterpolantNext(pointer, output.getPointer());
+  }
+
+  private native boolean getInterpolantNext(long pointer, long outputPointer);
 
   /**
    * Get an abduct.
@@ -2235,6 +2247,26 @@ public class Solver implements IPointer
 
   private native boolean getAbduct(
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
+
+  /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   * SMT-LIB:
+   * {@code
+   * ( get-abduct-next )
+   * }
+   * Requires enabling incremental mode and option 'produce-abducts'
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj in the last call to getAbduct.
+   * @return true if it gets C successfully, false otherwise
+   */
+  public boolean getAbductNext(Term output) {
+    return getAbductNext(pointer, output.getPointer());
+  }
+
+  private native boolean getAbductNext(long pointer, long outputPointer);
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -2367,9 +2399,10 @@ public class Solver implements IPointer
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * If needed, convert this term to a given sort. Note that the sort of the
-   * term must be convertible into the target sort. Currently only Int to Real
-   * conversions are supported.
+   * If needed, convert this term to a given sort.
+   *
+   * @apiNote The sort of the term must be convertible into the target sort.
+   *          Currently only Int to Real conversions are supported.
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
@@ -2571,7 +2604,8 @@ public class Solver implements IPointer
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   public Result checkSynth()
   {
@@ -2580,6 +2614,26 @@ public class Solver implements IPointer
   }
 
   private native long checkSynth(long pointer);
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   * SyGuS v2:
+   * {@code
+   *   ( check-synth-next )
+   * }
+   * @return the result of the check, which is UNSAT if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  public Result checkSynthNext()
+  {
+    long resultPointer = checkSynthNext(pointer);
+    return new Result(this, resultPointer);
+  }
+
+  private native long checkSynthNext(long pointer);
 
   /**
    * Get the synthesis solution of the given term. This method should be called

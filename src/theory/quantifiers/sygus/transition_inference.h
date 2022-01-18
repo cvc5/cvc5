@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
-
+#include "smt/env_obj.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
@@ -111,10 +111,10 @@ enum TraceIncStatus
  * The invariant-to-synthesize can either be explicitly given, via a call
  * to initialize( f, vars ), or otherwise inferred if this method is not called.
  */
-class TransitionInference
+class TransitionInference : protected EnvObj
 {
  public:
-  TransitionInference() : d_complete(false) {}
+  TransitionInference(Env& env) : EnvObj(env), d_complete(false) {}
   /** Process the conjecture n
    *
    * This initializes this class with information related to viewing it as a

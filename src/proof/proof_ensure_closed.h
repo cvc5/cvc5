@@ -28,7 +28,7 @@ class ProofNode;
 /**
  * Debug check closed on Trace c. Context ctx is string for debugging.
  * This method throws an assertion failure if pg cannot provide a closed
- * proof for fact proven. This is checked only if --proof-eager-checking
+ * proof for fact proven. This is checked only if --proof-check=eager
  * is enabled or the Trace c is enabled.
  *
  * @param reqGen Whether we consider a null generator to be a failure.

@@ -35,6 +35,11 @@ class SolverTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   @Test void recoverableException() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
@@ -102,6 +107,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkArraySort(boolSort, boolSort));
+    slv.close();
   }
 
   @Test void mkBitVectorSort() throws CVC5ApiException
@@ -132,6 +138,7 @@ class SolverTest
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSort(throwsDtypeSpec));
+    slv.close();
   }
 
   @Test void mkDatatypeSorts() throws CVC5ApiException
@@ -160,7 +167,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(throwsDecls));
 
     /* with unresolved sorts */
-    Sort unresList = d_solver.mkUninterpretedSort("ulist");
+    Sort unresList = d_solver.mkUnresolvedSort("ulist", 1);
     Set<Sort> unresSorts = new HashSet<>();
     unresSorts.add(unresList);
     DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
@@ -175,6 +182,29 @@ class SolverTest
 
     assertThrows(
         CVC5ApiException.class, () -> slv.mkDatatypeSorts(Arrays.asList(udecls), unresSorts));
+    slv.close();
+
+    /* mutually recursive with unresolved parameterized sorts */
+    Sort p0 = d_solver.mkParamSort("p0");
+    Sort p1 = d_solver.mkParamSort("p1");
+    Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
+    Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+    DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
+    DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+    DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
+    ctordecl0.addSelector("s0", u1.instantiate(new Sort[] {p0}));
+    DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
+    ctordecl1.addSelector("s1", u0.instantiate(new Sort[] {p1}));
+    dtdecl0.addConstructor(ctordecl0);
+    dtdecl1.addConstructor(ctordecl1);
+    Sort[] dt_sorts =
+        d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1}, new Sort[] {u0, u1});
+    Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
+    Term t1 = d_solver.mkConst(isort1, "t");
+    Term t0 = d_solver.mkTerm(APPLY_SELECTOR,
+        t1.getSort().getDatatype().getConstructor("c1").getSelector("s1").getSelectorTerm(),
+        t1);
+    assertEquals(dt_sorts[0].instantiate(new Sort[] {d_solver.getBooleanSort()}), t0.getSort());
 
     /* Note: More tests are in datatype_api_black. */
   }
@@ -227,6 +257,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> slv.mkFunctionSort(sorts1, slv.getIntegerSort()));
     assertThrows(
         CVC5ApiException.class, () -> slv.mkFunctionSort(sorts2, d_solver.getIntegerSort()));
+    slv.close();
   }
 
   @Test void mkParamSort() throws CVC5ApiException
@@ -248,6 +279,7 @@ class SolverTest
     Solver slv = new Solver();
     assertThrows(
         CVC5ApiException.class, () -> slv.mkPredicateSort(new Sort[] {d_solver.getIntegerSort()}));
+    slv.close();
   }
 
   @Test void mkRecordSort() throws CVC5ApiException
@@ -263,6 +295,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkRecordSort(fields));
+    slv.close();
   }
 
   @Test void mkSetSort() throws CVC5ApiException
@@ -272,6 +305,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkSetSort(d_solver.mkBitVectorSort(4)));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkSetSort(d_solver.mkBitVectorSort(4)));
+    slv.close();
   }
 
   @Test void mkBagSort() throws CVC5ApiException
@@ -281,6 +315,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkBagSort(d_solver.mkBitVectorSort(4)));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkBagSort(d_solver.mkBitVectorSort(4)));
+    slv.close();
   }
 
   @Test void mkSequenceSort() throws CVC5ApiException
@@ -290,12 +325,21 @@ class SolverTest
         () -> d_solver.mkSequenceSort(d_solver.mkSequenceSort(d_solver.getIntegerSort())));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkSequenceSort(d_solver.getIntegerSort()));
+    slv.close();
   }
 
   @Test void mkUninterpretedSort() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkUninterpretedSort("u"));
     assertDoesNotThrow(() -> d_solver.mkUninterpretedSort(""));
+  }
+
+  @Test void mkUnresolvedSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u"));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("u", 1));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort(""));
+    assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
   }
 
   @Test void mkSortConstructorSort() throws CVC5ApiException
@@ -316,6 +360,7 @@ class SolverTest
     Solver slv = new Solver();
     assertThrows(
         CVC5ApiException.class, () -> slv.mkTupleSort(new Sort[] {d_solver.getIntegerSort()}));
+    slv.close();
   }
 
   @Test void mkBitVector() throws CVC5ApiException
@@ -374,6 +419,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkVar(d_solver.getNullSort(), "a"));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkVar(boolSort, "x"));
+    slv.close();
   }
 
   @Test void mkBoolean() throws CVC5ApiException
@@ -385,25 +431,6 @@ class SolverTest
   @Test void mkRoundingMode() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
-  }
-
-  @Test void mkAbstractValue() throws CVC5ApiException
-  {
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue(("1")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(("0")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(("-1")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(("1.2")));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue("1/2"));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue("asdf"));
-
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((int) 1));
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((int) 1));
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((long) 1));
-    assertDoesNotThrow(() -> d_solver.mkAbstractValue((long) 1));
-    // java does not have specific types for unsigned integers, therefore the two lines below do not
-    // make sense in java. assertDoesNotThrow(() -> d_solver.mkAbstractValue((int)-1));
-    // assertDoesNotThrow(() -> d_solver.mkAbstractValue((long)-1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractValue(0));
   }
 
   @Test void mkFloatingPoint() throws CVC5ApiException
@@ -422,6 +449,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
+    slv.close();
   }
 
   @Test void mkCardinalityConstraint() throws CVC5ApiException
@@ -429,13 +457,11 @@ class SolverTest
     Sort su = d_solver.mkUninterpretedSort("u");
     Sort si = d_solver.getIntegerSort();
     assertDoesNotThrow(() -> d_solver.mkCardinalityConstraint(su, 3));
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(si, 3));
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(su, 0));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(si, 3));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(su, 0));
     Solver slv = new Solver();
-    assertThrows(
-        CVC5ApiException.class, () -> slv.mkCardinalityConstraint(su, 3));
+    assertThrows(CVC5ApiException.class, () -> slv.mkCardinalityConstraint(su, 3));
+    slv.close();
   }
 
   @Test void mkEmptySet() throws CVC5ApiException
@@ -446,6 +472,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkEmptySet(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(d_solver.getBooleanSort()));
     assertThrows(CVC5ApiException.class, () -> slv.mkEmptySet(s));
+    slv.close();
   }
 
   @Test void mkEmptyBag() throws CVC5ApiException
@@ -457,6 +484,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(d_solver.getBooleanSort()));
 
     assertThrows(CVC5ApiException.class, () -> slv.mkEmptyBag(s));
+    slv.close();
   }
 
   @Test void mkEmptySequence() throws CVC5ApiException
@@ -466,6 +494,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkEmptySequence(s));
     assertDoesNotThrow(() -> d_solver.mkEmptySequence(d_solver.getBooleanSort()));
     assertThrows(CVC5ApiException.class, () -> slv.mkEmptySequence(s));
+    slv.close();
   }
 
   @Test void mkFalse() throws CVC5ApiException
@@ -614,18 +643,25 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkReal(val4, val4));
   }
 
-  @Test void mkRegexpEmpty()
+  @Test void mkRegexpNone()
   {
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
-    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
   }
 
-  @Test void mkRegexpSigma()
+  @Test void mkRegexpAll()
   {
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
-    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAll()));
+  }
+
+  @Test void mkRegexpAllchar()
+  {
+    Sort strSort = d_solver.getStringSort();
+    Term s = d_solver.mkConst(strSort, "s");
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
   }
 
   @Test void mkSepEmp()
@@ -639,6 +675,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkSepNil(d_solver.getNullSort()));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkSepNil(d_solver.getIntegerSort()));
+    slv.close();
   }
 
   @Test void mkString()
@@ -664,8 +701,8 @@ class SolverTest
 
     // mkTerm(Kind kind) const
     assertDoesNotThrow(() -> d_solver.mkTerm(PI));
-    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_EMPTY));
-    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_SIGMA));
+    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_NONE));
+    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_ALLCHAR));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(CONST_BITVECTOR));
 
     // mkTerm(Kind kind, Term child) const
@@ -704,6 +741,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(EQUAL, v2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(EQUAL, v3));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(DISTINCT, v6));
+    slv.close();
   }
 
   @Test void mkTermFromOp() throws CVC5ApiException
@@ -804,6 +842,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm2, v3));
     assertThrows(CVC5ApiException.class, () -> slv.mkTerm(opterm2, v4));
+    slv.close();
   }
 
   @Test void mkTrue()
@@ -844,6 +883,7 @@ class SolverTest
         ()
             -> slv.mkTuple(new Sort[] {slv.mkBitVectorSort(3)},
                 new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    slv.close();
   }
 
   @Test void mkUniverseSet()
@@ -852,6 +892,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkUniverseSet(d_solver.getNullSort()));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkUniverseSet(d_solver.getBooleanSort()));
+    slv.close();
   }
 
   @Test void mkConst()
@@ -870,6 +911,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkConst(boolSort));
+    slv.close();
   }
 
   @Test void mkConstArray()
@@ -892,6 +934,7 @@ class SolverTest
     Sort arrSort2 = slv.mkArraySort(slv.getIntegerSort(), slv.getIntegerSort());
     assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort2, zero));
     assertThrows(CVC5ApiException.class, () -> slv.mkConstArray(arrSort, zero2));
+    slv.close();
   }
 
   @Test void declareDatatype()
@@ -914,6 +957,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.declareDatatype(("a"), ctors1));
+    slv.close();
   }
 
   @Test void declareFun() throws CVC5ApiException
@@ -932,6 +976,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.declareFun("f1", new Sort[] {}, bvSort));
+    slv.close();
   }
 
   @Test void declareSort()
@@ -959,38 +1004,25 @@ class SolverTest
   @Test void defineFun() throws CVC5ApiException
   {
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    Sort funSort1 = d_solver.mkFunctionSort(new Sort[] {bvSort, bvSort}, bvSort);
-    Sort funSort2 =
+    Sort funSort =
         d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"), d_solver.getIntegerSort());
     Term b1 = d_solver.mkVar(bvSort, "b1");
-    Term b11 = d_solver.mkVar(bvSort, "b1");
     Term b2 = d_solver.mkVar(d_solver.getIntegerSort(), "b2");
-    Term b3 = d_solver.mkVar(funSort2, "b3");
+    Term b3 = d_solver.mkVar(funSort, "b3");
     Term v1 = d_solver.mkConst(bvSort, "v1");
-    Term v2 = d_solver.mkConst(d_solver.getIntegerSort(), "v2");
-    Term v3 = d_solver.mkConst(funSort2, "v3");
-    Term f1 = d_solver.mkConst(funSort1, "f1");
-    Term f2 = d_solver.mkConst(funSort2, "f2");
-    Term f3 = d_solver.mkConst(bvSort, "f3");
+    Term v2 = d_solver.mkConst(funSort, "v2");
     assertDoesNotThrow(() -> d_solver.defineFun("f", new Term[] {}, bvSort, v1));
     assertDoesNotThrow(() -> d_solver.defineFun("ff", new Term[] {b1, b2}, bvSort, v1));
-    assertDoesNotThrow(() -> d_solver.defineFun(f1, new Term[] {b1, b11}, v1));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.defineFun("ff", new Term[] {v1, b2}, bvSort, v1));
 
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[] {b1}, bvSort, v3));
+        CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[] {b1}, bvSort, v2));
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort2, v3));
+        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort, v2));
 
     // b3 has function sort, which is allowed as an argument
     assertDoesNotThrow(() -> d_solver.defineFun("fffff", new Term[] {b1, b3}, bvSort, v1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {v1, b11}, v1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {b1}, v1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {b1, b11}, v2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {b1, b11}, v3));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f2, new Term[] {b1}, v2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f3, new Term[] {b1}, v1));
 
     Solver slv = new Solver();
     Sort bvSort2 = slv.mkBitVectorSort(32);
@@ -1007,20 +1039,19 @@ class SolverTest
         CVC5ApiException.class, () -> slv.defineFun("ff", new Term[] {b12, b22}, bvSort, v12));
     assertThrows(
         CVC5ApiException.class, () -> slv.defineFun("ff", new Term[] {b12, b22}, bvSort2, v1));
+    slv.close();
   }
 
   @Test void defineFunGlobal()
   {
     Sort bSort = d_solver.getBooleanSort();
-    Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
 
     Term bTrue = d_solver.mkBoolean(true);
     // (define-fun f () Bool true)
     Term f = d_solver.defineFun("f", new Term[] {}, bSort, bTrue, true);
     Term b = d_solver.mkVar(bSort, "b");
-    Term gSym = d_solver.mkConst(fSort, "g");
     // (define-fun g (b Bool) Bool b)
-    Term g = d_solver.defineFun(gSym, new Term[] {b}, b, true);
+    Term g = d_solver.defineFun("g", new Term[] {b}, bSort, b, true);
 
     // (assert (or (not f) (not (g true))))
     d_solver.assertFormula(
@@ -1089,6 +1120,7 @@ class SolverTest
 
     assertThrows(
         CVC5ApiException.class, () -> slv.defineFunRec("ff", new Term[] {b12, b22}, bvSort2, v1));
+    slv.close();
   }
 
   @Test void defineFunRecWrongLogic() throws CVC5ApiException
@@ -1216,6 +1248,7 @@ class SolverTest
         ()
             -> slv.defineFunsRec(
                 new Term[] {f12, f22}, new Term[][] {{b12, b112}, {b42}}, new Term[] {v12, v2}));
+    slv.close();
   }
 
   @Test void defineFunsRecWrongLogic() throws CVC5ApiException
@@ -1283,6 +1316,84 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getInfo("asdf"));
   }
 
+  @Test void getAbduct() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "false");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output = d_solver.getNullTerm();
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj, output));
+    // We expect the resulting output to be a boolean formula
+    assertTrue(!output.isNull() && output.getSort().isBoolean());
+
+    // try with a grammar, a simple grammar admitting true
+    Sort bsort = d_solver.getBooleanSort();
+    Term truen = d_solver.mkBoolean(true);
+    Term start = d_solver.mkVar(bsort);
+    Term output2  = d_solver.getNullTerm();
+    Grammar g = d_solver.mkSygusGrammar(new Term[] {}, new Term[] {start});
+    Term conj2 = d_solver.mkTerm(GT, x, zero);
+    assertDoesNotThrow(() -> g.addRule(start, truen));
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj2, g, output2));
+    // abduct must be true
+    assertEquals(output2, truen);
+  }
+
+  @Test void getAbduct2() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("incremental", "false");
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output  = d_solver.getNullTerm();
+    // Fails due to option not set
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getAbduct(conj, output));
+  }
+
+  @Test void getAbductNext() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "true");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+
+    // Assumptions for abduction: x > 0
+    d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+    // Conjecture for abduction: y > 0
+    Term conj = d_solver.mkTerm(GT, y, zero);
+    Term output = d_solver.getNullTerm();
+    // Call the abduction api, while the resulting abduct is the output
+    assertTrue(d_solver.getAbduct(conj, output));
+    Term output2 = d_solver.getNullTerm();
+    assertTrue(d_solver.getAbductNext(output2));
+    // should produce a different output
+    assertNotEquals(output, output2);
+  }
+
+
   @Test void getInterpolant() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
@@ -1307,6 +1418,31 @@ class SolverTest
 
     // We expect the resulting output to be a boolean formula
     assertTrue(output.getSort().isBoolean());
+  }
+
+  @Test void getInterpolantNext() throws CVC5ApiException
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-interpols", "default");
+    d_solver.setOption("incremental", "true");
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    Term z = d_solver.mkConst(intSort, "z");
+
+    d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+    d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+    Term conj = d_solver.mkTerm(
+        OR, d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero), d_solver.mkTerm(LT, z, zero));
+    Term output = d_solver.getNullTerm();
+    d_solver.getInterpolant(conj, output);
+    Term output2 = d_solver.getNullTerm();
+    d_solver.getInterpolantNext(output2);
+
+    // We expect the next output to be distinct
+    assertNotEquals(output, output2);
   }
 
   @Test void getOp() throws CVC5ApiException
@@ -1406,16 +1542,18 @@ class SolverTest
     }
     {
       // mode option
-      OptionInfo info = d_solver.getOptionInfo("output");
+      OptionInfo info = d_solver.getOptionInfo("simplification");
       assertions.clear();
-      assertions.add(() -> assertEquals("output", info.getName()));
+      assertions.add(() -> assertEquals("simplification", info.getName()));
       assertions.add(
-          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+          () -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
-      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
-      assertions.add(() -> assertEquals("OutputTag::NONE", modeInfo.getCurrentValue()));
-      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+      assertions.add(() -> assertEquals("batch", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("batch", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertEquals(2, modeInfo.getModes().length));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
     }
     assertAll(assertions);
   }
@@ -1596,6 +1734,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getValue(x));
+    slv.close();
   }
 
   @Test void getModelDomainElements()
@@ -1622,7 +1761,7 @@ class SolverTest
     Term x = d_solver.mkVar(uSort, "x");
     Term y = d_solver.mkVar(uSort, "y");
     Term eq = d_solver.mkTerm(EQUAL, x, y);
-    Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, x, y);
     Term f = d_solver.mkTerm(FORALL, bvl, eq);
     d_solver.assertFormula(f);
     d_solver.checkSat();
@@ -1690,39 +1829,42 @@ class SolverTest
   @Test void getQuantifierElimination()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.getQuantifierElimination(d_solver.getNullTerm()));
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.getQuantifierElimination(new Solver().mkBoolean(false)));
+    Solver slv = new Solver();
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.getQuantifierElimination(slv.mkBoolean(false)));
 
     assertDoesNotThrow(() -> d_solver.getQuantifierElimination(forall));
+    slv.close();
   }
 
   @Test void getQuantifierEliminationDisjunct()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.getQuantifierEliminationDisjunct(d_solver.getNullTerm()));
 
+    Solver slv = new Solver();
     assertThrows(CVC5ApiException.class,
-        () -> d_solver.getQuantifierEliminationDisjunct(new Solver().mkBoolean(false)));
+        () -> d_solver.getQuantifierEliminationDisjunct(slv.mkBoolean(false)));
 
     assertDoesNotThrow(() -> d_solver.getQuantifierEliminationDisjunct(forall));
+    slv.close();
   }
 
-  @Test void declareSeparationHeap() throws CVC5ApiException
+  @Test void declareSepHeap() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
+    d_solver.setOption("incremental", "false");
     Sort integer = d_solver.getIntegerSort();
-    assertDoesNotThrow(() -> d_solver.declareSeparationHeap(integer, integer));
+    assertDoesNotThrow(() -> d_solver.declareSepHeap(integer, integer));
     // cannot declare separation logic heap more than once
-    assertThrows(CVC5ApiException.class, () -> d_solver.declareSeparationHeap(integer, integer));
+    assertThrows(CVC5ApiException.class, () -> d_solver.declareSepHeap(integer, integer));
   }
 
   /**
@@ -1734,7 +1876,7 @@ class SolverTest
   {
     Sort integer = solver.getIntegerSort();
     // declare the separation heap
-    solver.declareSeparationHeap(integer, integer);
+    solver.declareSepHeap(integer, integer);
     Term x = solver.mkConst(integer, "x");
     Term p = solver.mkConst(integer, "p");
     Term heap = solver.mkTerm(SEP_PTO, p, x);
@@ -1744,26 +1886,26 @@ class SolverTest
     solver.checkSat();
   }
 
-  @Test void getSeparationHeapTerm1() throws CVC5ApiException
+  @Test void getValueSepHeap1() throws CVC5ApiException
   {
     d_solver.setLogic("QF_BV");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm2() throws CVC5ApiException
+  @Test void getValueSepHeap2() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "false");
     checkSimpleSeparationConstraints(d_solver);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm3() throws CVC5ApiException
+  @Test void getValueSepHeap3() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1771,10 +1913,10 @@ class SolverTest
     Term t = d_solver.mkFalse();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm4() throws CVC5ApiException
+  @Test void getValueSepHeap4() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1782,38 +1924,38 @@ class SolverTest
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm5() throws CVC5ApiException
+  @Test void getValueSepHeap5() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     checkSimpleSeparationConstraints(d_solver);
-    assertDoesNotThrow(() -> d_solver.getSeparationHeap());
+    assertDoesNotThrow(() -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationNilTerm1() throws CVC5ApiException
+  @Test void getValueSepNil1() throws CVC5ApiException
   {
     d_solver.setLogic("QF_BV");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm2() throws CVC5ApiException
+  @Test void getValueSepNil2() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "false");
     checkSimpleSeparationConstraints(d_solver);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm3() throws CVC5ApiException
+  @Test void getValueSepNil3() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1821,10 +1963,10 @@ class SolverTest
     Term t = d_solver.mkFalse();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm4() throws CVC5ApiException
+  @Test void getValueSepNil4() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1832,16 +1974,16 @@ class SolverTest
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm5() throws CVC5ApiException
+  @Test void getValueSepNil5() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     checkSimpleSeparationConstraints(d_solver);
-    assertDoesNotThrow(() -> d_solver.getSeparationNilTerm());
+    assertDoesNotThrow(() -> d_solver.getValueSepNil());
   }
 
   @Test void push1()
@@ -1925,8 +2067,10 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.blockModelValues(new Term[] {}));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.blockModelValues(new Term[] {d_solver.getNullTerm()}));
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.blockModelValues(new Term[] {new Solver().mkBoolean(false)}));
+    Solver slv = new Solver();
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.blockModelValues(new Term[] {slv.mkBoolean(false)}));
+    slv.close();
   }
 
   @Test void blockModelValues2() throws CVC5ApiException
@@ -2064,6 +2208,7 @@ class SolverTest
     d_solver.defineFunsRec(new Term[] {f1, f2}, new Term[][] {{b1, b2}, {b3}}, new Term[] {v1, v2});
     assertDoesNotThrow(() -> d_solver.simplify(f1));
     assertDoesNotThrow(() -> d_solver.simplify(f2));
+    slv.close();
   }
 
   @Test void assertFormula()
@@ -2072,6 +2217,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.assertFormula(d_solver.getNullTerm()));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.assertFormula(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void checkEntailed()
@@ -2081,6 +2227,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.checkEntailed(d_solver.mkTrue()));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.checkEntailed(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void checkEntailed1()
@@ -2096,6 +2243,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.checkEntailed(z));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.checkEntailed(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void checkEntailed2()
@@ -2146,6 +2294,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.checkEntailed(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void checkSat() throws CVC5ApiException
@@ -2162,6 +2311,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.checkSatAssuming(d_solver.mkTrue()));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.checkSatAssuming(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void checkSatAssuming1() throws CVC5ApiException
@@ -2177,6 +2327,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.checkSatAssuming(z));
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.checkSatAssuming(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void checkSatAssuming2() throws CVC5ApiException
@@ -2227,6 +2378,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.checkSatAssuming(d_solver.mkTrue()));
+    slv.close();
   }
 
   @Test void setLogic() throws CVC5ApiException
@@ -2276,6 +2428,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkSygusVar(boolSort));
+    slv.close();
   }
 
   @Test void mkSygusGrammar() throws CVC5ApiException
@@ -2306,6 +2459,7 @@ class SolverTest
         () -> slv.mkSygusGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
     assertThrows(CVC5ApiException.class,
         () -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
+    slv.close();
   }
 
   @Test void synthFun() throws CVC5ApiException
@@ -2343,6 +2497,7 @@ class SolverTest
         CVC5ApiException.class, () -> slv.synthFun("", new Term[] {}, d_solver.getBooleanSort()));
     assertThrows(CVC5ApiException.class,
         () -> slv.synthFun("f1", new Term[] {x}, d_solver.getBooleanSort()));
+    slv.close();
   }
 
   @Test void synthInv() throws CVC5ApiException
@@ -2382,6 +2537,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.addSygusConstraint(boolTerm));
+    slv.close();
   }
 
   @Test void addSygusAssume()
@@ -2396,6 +2552,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.addSygusAssume(boolTerm));
+    slv.close();
   }
 
   @Test void addSygusInvConstraint() throws CVC5ApiException
@@ -2460,6 +2617,7 @@ class SolverTest
         CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre22, trans, post22));
     assertThrows(
         CVC5ApiException.class, () -> slv.addSygusInvConstraint(inv22, pre22, trans22, post));
+    slv.close();
   }
 
   @Test void getSynthSolution() throws CVC5ApiException
@@ -2483,6 +2641,7 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getSynthSolution(f));
+    slv.close();
   }
 
   @Test void getSynthSolutions() throws CVC5ApiException
@@ -2508,6 +2667,37 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getSynthSolutions(new Term[] {x}));
+    slv.close();
+  }
+  @Test void checkSynthNext() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+    d_solver.checkSynthNext();
+    assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
+  }
+
+  @Test void checkSynthNext2() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "false");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    d_solver.checkSynth();
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
+  }
+
+  @Test void checkSynthNext3() throws CVC5ApiException
+  {
+    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("incremental", "true");
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
   }
 
   @Test void tupleProject() throws CVC5ApiException
@@ -2519,7 +2709,7 @@ class SolverTest
     Term[] elements = new Term[] {d_solver.mkBoolean(true),
         d_solver.mkInteger(3),
         d_solver.mkString("C"),
-        d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+        d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
     Term tuple = d_solver.mkTuple(sorts, elements);
 
@@ -2556,8 +2746,8 @@ class SolverTest
       assertEquals(elements[indices[i]], simplifiedTerm);
     }
 
-    assertEquals("((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (singleton "
-            + "\"Z\")))",
+    assertEquals("((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" "
+            + "(set.singleton \"Z\")))",
         projection.toString());
   }
 }

@@ -33,7 +33,7 @@ int main() {
   Term x = slv.mkVar(integer, "x");
 
   // make forall x. P( x )
-  Term var_list = slv.mkTerm(Kind::BOUND_VAR_LIST, x);
+  Term var_list = slv.mkTerm(Kind::VARIABLE_LIST, x);
   Term px = slv.mkTerm(Kind::APPLY_UF, p, x);
   Term quantpospx = slv.mkTerm(Kind::FORALL, var_list, px);
   std::cout << "Made expression : " << quantpospx << std::endl;

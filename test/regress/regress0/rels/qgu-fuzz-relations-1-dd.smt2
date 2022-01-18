@@ -1,5 +1,5 @@
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun d () (Tuple Int Int))
-(assert (= (as emptyset (Set (Tuple Int Int))) (join (singleton (tuple 1 0)) (singleton d))))
+(assert (= (as set.empty (Set (Tuple Int Int))) (rel.join (set.singleton (tuple 1 0)) (set.singleton d))))
 (check-sat)

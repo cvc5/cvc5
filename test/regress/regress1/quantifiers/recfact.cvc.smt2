@@ -1,4 +1,9 @@
 ; EXPECT: unsat
+; COMMAND-LINE:
+; COMMAND-LINE: --produce-proofs
+;; The second command line option, other than the default, is to test
+;; unsat core checking with proofs, which at one point had issues for
+;; this benchmark due to cycle detection in LazyCDProofChain
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :fmf-fun true)

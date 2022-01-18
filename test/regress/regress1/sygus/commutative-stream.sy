@@ -3,7 +3,7 @@
 ; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")
 ; EXIT: 1
 
-; COMMAND-LINE: --lang=sygus2 --sygus-stream --sygus-abort-size=2 --sygus-active-gen=none --decision=justification
+; COMMAND-LINE: --lang=sygus2 --sygus-stream --sygus-abort-size=2 --sygus-enum=smart --decision=justification
 
 (set-logic LIA)
 

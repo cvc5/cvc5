@@ -14,27 +14,25 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api")
-set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/jni")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api")
+set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/jni")
 file(MAKE_DIRECTORY ${JNI_DIR})
 
 # Generate Kind.java
 configure_file(genkinds.py.in genkinds.py)
 
 set(JAVA_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api/Kind.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind.java"
 )
 
 add_custom_command(
   OUTPUT
     ${JAVA_KIND_FILE}
-  BYPRODUCTS
-    ${JAVA_KIND_FILE}
   COMMAND
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api/Kind"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
@@ -76,14 +74,12 @@ set(JAVA_FILES
 
 # specify generated jni headers
 set(JNI_HEADERS
-  ${JNI_DIR}/cvc5_Solver.h
+  ${JNI_DIR}/io_github_cvc5_api_Solver.h
 )
 
 # generate jni headers
 add_custom_command(
   OUTPUT
-    ${JNI_HEADERS}
-  BYPRODUCTS
     ${JNI_HEADERS}
   COMMAND
     # generate jni header files
@@ -109,7 +105,7 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-add_library(cvc5jni SHARED
+add_library(cvc5jni
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/datatype_constructor.cpp
@@ -133,7 +129,7 @@ target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
-target_link_libraries(cvc5jni PRIVATE cvc5-shared)
+target_link_libraries(cvc5jni PRIVATE cvc5)
 
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
 
@@ -144,6 +140,20 @@ add_jar(cvc5jar
   VERSION ${CVC5_VERSION}
   OUTPUT_NAME cvc5
 )
-set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
-add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5-shared)
+add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
+
+# install in the same directory of cvc5-targets
+install(TARGETS cvc5jni
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install_jar(cvc5jar DESTINATION share/java)
+
+install_jar_exports(
+  TARGETS cvc5jar
+  NAMESPACE cvc5::
+  FILE cvc5JavaTargets.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
+)

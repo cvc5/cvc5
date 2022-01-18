@@ -2,23 +2,6 @@ id     = "SMT"
 name   = "SMT Layer"
 
 [[option]]
-  name       = "dumpModeString"
-  category   = "common"
-  long       = "dump=MODE"
-  type       = "std::string"
-  help       = "dump preprocessed assertions, etc., see --dump=help"
-  predicates = ["setDumpMode"]
-
-[[option]]
-  name       = "dumpToFileName"
-  category   = "common"
-  long       = "dump-to=FILE"
-  type       = "ManagedOut"
-  help       = "all dumping goes to FILE (instead of stdout)"
-  predicates = ["setDumpStream"]
-  includes   = ["<iostream>", "options/managed_streams.h"]
-
-[[option]]
   name       = "ackermann"
   category   = "regular"
   long       = "ackermann"
@@ -190,7 +173,6 @@ name   = "SMT Layer"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 [[option.mode.PP_ONLY]]
   name = "pp-only"
-  help = "Not producing unsat cores, but tracking proofs of preprocessing (internal only)."
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -394,7 +376,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -412,10 +394,21 @@ name   = "SMT Layer"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
+
+[[option]]
+  name       = "bvToIntUsePow2"
+  category   = "undocumented"
+  long       = "bv-to-int-use-pow2"
+  type       = "bool"
+  default    = "false"
+  help       = "use internal pow2 operator when translating shift notes"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
-  category   = "undocumented"
+  category   = "expert"
   long       = "bvand-integer-granularity=N"
   type       = "uint64_t"
   default    = "1"
@@ -423,7 +416,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "iandMode"
-  category   = "undocumented"
+  category   = "expert"
   long       = "iand-mode=mode"
   type       = "IandMode"
   default    = "VALUE"
@@ -441,7 +434,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -449,7 +442,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
@@ -457,7 +450,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceInterpols"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-interpols=MODE"
   type       = "ProduceInterpols"
   default    = "NONE"
@@ -484,7 +477,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceAbducts"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-abducts"
   type       = "bool"
   default    = "false"

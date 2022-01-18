@@ -4,6 +4,6 @@
 (set-logic QF_LIA)
 (declare-fun x () Int)
 (check-sat)
-(define t (not (= x 0)))
+(define-const t Bool (not (= x 0)))
 (assert t)
 (check-sat)

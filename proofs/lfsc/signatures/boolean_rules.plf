@@ -45,7 +45,7 @@
 
 (declare not_and (! c1 term (! c2 term (! p1 (holds (not c1)) (! r (^ (sc_not_and c1) c2) (holds c2))))))
 
-(declare not_and_rev (! c1 term (! c2 term (! p1 (holds c1) (! r (^ (sc_not_and_rev c1) c2) (holds c2))))))
+(declare not_and_rev (! c1 term (! c2 term (! p1 (holds c1) (! r (^ (sc_not_and_rev c1) c2) (holds (not c2)))))))
 
 ; Process scope, which is used to translate PfRule::SCOPE. It runs the side
 ; condition sc_process_scope on f to generate an equivalent formula g.

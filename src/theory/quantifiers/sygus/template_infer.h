@@ -21,6 +21,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 
 namespace cvc5 {
@@ -31,10 +32,10 @@ namespace quantifiers {
  * This class infers templates for an invariant-to-synthesize based on the
  * template mode. It uses the transition inference to choose a template.
  */
-class SygusTemplateInfer
+class SygusTemplateInfer : protected EnvObj
 {
  public:
-  SygusTemplateInfer() {}
+  SygusTemplateInfer(Env& env);
   ~SygusTemplateInfer() {}
   /**
    * Initialize this class for synthesis conjecture q. If applicable, the

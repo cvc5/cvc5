@@ -32,6 +32,8 @@
 namespace cvc5 {
 namespace theory {
 
+class Rewriter;
+
 /**
  * The type for the Substitutions mapping output by
  * Theory::simplify(), TheoryEngine::simplify(), and
@@ -63,7 +65,7 @@ class SubstitutionMap
   bool d_cacheInvalidated;
 
   /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeCache& cache);
+  Node internalSubstitute(TNode t, NodeCache& cache, std::set<TNode>* tracker);
 
   /** Helper class to invalidate cache on user pop */
   class CacheInvalidator : public context::ContextNotifyObj
@@ -91,6 +93,8 @@ class SubstitutionMap
  public:
   SubstitutionMap(context::Context* context = nullptr);
 
+  /** Get substitutions in this object as a raw map */
+  std::unordered_map<Node, Node> getSubstitutions();
   /**
    * Adds a substitution from x to t.
    */
@@ -101,6 +105,8 @@ class SubstitutionMap
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
+  /** Size of the substitutions */
+  size_t size() const { return d_substitutions.size(); }
   /**
    * Returns true iff x is in the substitution map
    */
@@ -125,16 +131,17 @@ class SubstitutionMap
   }
 
   /**
-   * Apply the substitutions to the node.
+   * Apply the substitutions to the node, optionally rewrite if a non-null
+   * Rewriter pointer is passed.
    */
-  Node apply(TNode t, bool doRewrite = false);
+  Node apply(TNode t, Rewriter* r = nullptr, std::set<TNode>* tracker = nullptr);
 
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t, bool doRewrite = false) const
+  Node apply(TNode t, Rewriter* r = nullptr) const
   {
-    return const_cast<SubstitutionMap*>(this)->apply(t, doRewrite);
+    return const_cast<SubstitutionMap*>(this)->apply(t, r);
   }
 
   iterator begin() { return d_substitutions.begin(); }
@@ -151,7 +158,10 @@ class SubstitutionMap
    * Print to the output stream
    */
   void print(std::ostream& out) const;
-  void debugPrint() const;
+
+  void invalidateCache() {
+    d_cacheInvalidated = true;
+  }
 
 }; /* class SubstitutionMap */
 

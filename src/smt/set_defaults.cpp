@@ -33,7 +33,6 @@
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -46,8 +45,8 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-SetDefaults::SetDefaults(bool isInternalSubsolver)
-    : d_isInternalSubsolver(isInternalSubsolver)
+SetDefaults::SetDefaults(Env& env, bool isInternalSubsolver)
+    : EnvObj(env), d_isInternalSubsolver(isInternalSubsolver)
 {
 }
 
@@ -63,6 +62,12 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+  // internal-only options
+  if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY)
+  {
+    throw OptionException(
+        std::string("Unsat core mode pp-only is for internal use only."));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -87,7 +92,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
     }
-    opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
@@ -100,7 +104,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
     {
-      Notice()
+      verbose(1)
           << "Overriding OFF unsat-core mode since cores were requested.\n";
     }
     opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
@@ -116,8 +120,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
     {
-      Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
-                  "were requested.\n";
+      verbose(1) << "Forcing full-proof mode for unsat cores mode since proofs "
+                    "were requested.\n";
     }
     // enable unsat cores, because they are available as a consequence of proofs
     opts.smt.unsatCores = true;
@@ -129,7 +133,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.produceProofsWasSetByUser)
     {
-      Notice()
+      verbose(1)
           << "Forcing proof production since new unsat cores were requested.\n";
     }
     opts.smt.produceProofs = true;
@@ -139,28 +143,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   Assert(opts.smt.unsatCores
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
 
-  // new unsat core specific restrictions for proofs
-  if (opts.smt.unsatCores
-      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
-  {
-    // no fine-graininess
-    if (!opts.proof.proofGranularityModeWasSetByUser)
-    {
-      opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
-    }
-  }
-
-  if (opts.bv.bitvectorAigSimplificationsWasSetByUser)
-  {
-    Notice() << "SolverEngine: setting bitvectorAig" << std::endl;
-    opts.bv.bitvectorAig = true;
-  }
-  if (opts.bv.bitvectorAlgebraicBudgetWasSetByUser)
-  {
-    Notice() << "SolverEngine: setting bitvectorAlgebraicSolver" << std::endl;
-    opts.bv.bitvectorAlgebraicSolver = true;
-  }
-  
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
   {
@@ -169,8 +151,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       opts.smt.unsatCores = false;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      Notice() << "SolverEngine: turning off produce-proofs due to "
-               << reasonNoProofs.str() << "." << std::endl;
+      verbose(1) << "SolverEngine: turning off produce-proofs due to "
+                 << reasonNoProofs.str() << "." << std::endl;
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
     }
@@ -197,7 +179,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()
+                   && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
@@ -217,7 +200,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
             "for the combination of bit-vectors with arrays or uinterpreted "
             "functions. Try --bitblast=lazy"));
       }
-      Notice()
+      verbose(1)
           << "SolverEngine: setting bit-blast mode to lazy to support model"
           << "generation" << std::endl;
       opts.bv.bitblastMode = options::BitblastMode::LAZY;
@@ -276,8 +259,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(std::string(
           "Ackermannization currently does not support model generation."));
     }
-    Notice() << "SolverEngine: turn off ackermannization to support model"
-             << "generation" << std::endl;
+    verbose(1) << "SolverEngine: turn off ackermannization to support model"
+               << "generation" << std::endl;
     opts.smt.ackermann = false;
   }
 
@@ -369,26 +352,15 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-
-  // sygus core connective requires unsat cores
-  if (opts.quantifiers.sygusCoreConnective)
-  {
-    opts.smt.unsatCores = true;
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
-    {
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
-    }
-  }
-
   if ((opts.smt.checkModels || opts.smt.checkSynthSol || opts.smt.produceAbducts
        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
        || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
        || opts.smt.blockModelsMode != options::BlockModelsMode::NONE
-       || opts.smt.produceProofs)
+       || opts.smt.produceProofs || isSygus(opts))
       && !opts.smt.produceAssertions)
   {
-    Notice() << "SolverEngine: turning on produce-assertions to support "
-             << "option requiring assertions." << std::endl;
+    verbose(1) << "SolverEngine: turning on produce-assertions to support "
+               << "option requiring assertions." << std::endl;
     opts.smt.produceAssertions = true;
   }
 
@@ -475,7 +447,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
             "bool-to-bv != off not supported with CBQI BV for quantified "
             "logics");
       }
-      Notice()
+      verbose(1)
           << "SolverEngine: turning off bool-to-bitvector to support CBQI BV"
           << std::endl;
       opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
@@ -487,7 +459,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       && (opts.smt.produceAssignments || opts.quantifiers.sygusRewSynthCheck
           || usesSygus(opts)))
   {
-    Notice() << "SolverEngine: turning on produce-models" << std::endl;
+    verbose(1) << "SolverEngine: turning on produce-models" << std::endl;
     opts.smt.produceModels = true;
   }
   
@@ -592,17 +564,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
-    Notice() << "SolverEngine: turning off bool-to-bv for non-bv logic: "
-             << logic.getLogicString() << std::endl;
+    verbose(1) << "SolverEngine: turning off bool-to-bv for non-bv logic: "
+               << logic.getLogicString() << std::endl;
     opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
-  }
-
-  if (!opts.bv.bvEagerExplanationsWasSetByUser
-      && logic.isTheoryEnabled(THEORY_ARRAYS)
-      && logic.isTheoryEnabled(THEORY_BV))
-  {
-    Trace("smt") << "enabling eager bit-vector explanations " << std::endl;
-    opts.bv.bvEagerExplanations = true;
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
@@ -713,6 +677,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
+      Trace("smt")
+          << "Disabling shared selectors for quantified logic without SyGuS"
+          << std::endl;
       opts.datatypes.dtSharedSelectors = false;
     }
   }
@@ -740,7 +707,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       if (opts.theory.relevanceFilterWasSetByUser)
       {
-        Warning() << "SolverEngine: turning on relevance filtering to support "
+        Trace("smt") << "SolverEngine: turning on relevance filtering to support "
                      "--nl-ext-rlv="
                   << opts.arith.nlRlvMode << std::endl;
       }
@@ -777,8 +744,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         ss << "Cannot use " << sOptNoModel << " with model generation.";
         throw OptionException(ss.str());
       }
-      Notice() << "SolverEngine: turning off produce-models to support "
-               << sOptNoModel << std::endl;
+      verbose(1) << "SolverEngine: turning off produce-models to support "
+                 << sOptNoModel << std::endl;
       opts.smt.produceModels = false;
     }
     if (opts.smt.produceAssignments)
@@ -790,8 +757,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
            << " with model generation (produce-assignments).";
         throw OptionException(ss.str());
       }
-      Notice() << "SolverEngine: turning off produce-assignments to support "
-               << sOptNoModel << std::endl;
+      verbose(1) << "SolverEngine: turning off produce-assignments to support "
+                 << sOptNoModel << std::endl;
       opts.smt.produceAssignments = false;
     }
     if (opts.smt.checkModels)
@@ -803,8 +770,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
            << " with model generation (check-models).";
         throw OptionException(ss.str());
       }
-      Notice() << "SolverEngine: turning off check-models to support "
-               << sOptNoModel << std::endl;
+      verbose(1) << "SolverEngine: turning off check-models to support "
+                 << sOptNoModel << std::endl;
       opts.smt.checkModels = false;
     }
   }
@@ -826,6 +793,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
     {
       opts.arith.nlCad = true;
+      opts.arith.nlCadVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -833,6 +801,19 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       if (!opts.arith.nlRlvModeWasSetByUser)
       {
         opts.arith.nlRlvMode = options::NlRlvMode::INTERLEAVE;
+      }
+    }
+  }
+  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
+           && logic.areRealsUsed() && !logic.areIntegersUsed())
+  {
+    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    {
+      opts.arith.nlCad = true;
+      opts.arith.nlCadVarElim = true;
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::LIGHT;
       }
     }
   }
@@ -846,8 +827,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
     else
     {
-      Notice() << "Cannot use --nl-cad without configuring with --poly."
-               << std::endl;
+      verbose(1) << "Cannot use --nl-cad without configuring with --poly."
+                 << std::endl;
       opts.arith.nlCad = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
@@ -909,7 +890,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
   {
-    Notice()
+    verbose(1)
         << "Disabling bv-assert-input since it is incompatible with proofs."
         << std::endl;
     opts.bv.bvAssertInput = false;
@@ -917,11 +898,10 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
-      && !opts.bv.bvSolverWasSetByUser
-      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+      && !opts.bv.bvSolverWasSetByUser)
   {
-    Notice() << "Forcing internal bit-vector solver due to proof production."
-             << std::endl;
+    verbose(1) << "Forcing internal bit-vector solver due to proof production."
+               << std::endl;
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
   return false;
@@ -970,9 +950,9 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "unconstrained simplification";
       return true;
     }
-    Notice() << "SolverEngine: turning off unconstrained simplification to "
-                "support incremental solving"
-             << std::endl;
+    verbose(1) << "SolverEngine: turning off unconstrained simplification to "
+                  "support incremental solving"
+               << std::endl;
     opts.smt.unconstrainedSimp = false;
   }
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
@@ -989,9 +969,9 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "sygus inference";
       return true;
     }
-    Notice() << "SolverEngine: turning off sygus inference to support "
-                "incremental solving"
-             << std::endl;
+    verbose(1) << "SolverEngine: turning off sygus inference to support "
+                  "incremental solving"
+               << std::endl;
     opts.quantifiers.sygusInference = false;
   }
   if (opts.quantifiers.sygusInst)
@@ -1001,9 +981,9 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "sygus inst";
       return true;
     }
-    Notice() << "SolverEngine: turning off sygus inst to support "
-                "incremental solving"
-             << std::endl;
+    verbose(1) << "SolverEngine: turning off sygus inst to support "
+                  "incremental solving"
+               << std::endl;
     opts.quantifiers.sygusInst = false;
   }
   if (opts.smt.solveIntAsBV > 0)
@@ -1017,7 +997,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   opts.uf.ufssFairnessMonotone = false;
   opts.quantifiers.globalNegate = false;
   opts.quantifiers.cegqiNestedQE = false;
-  opts.bv.bvAbstraction = false;
   opts.arith.arithMLTrick = false;
 
   return false;
@@ -1033,9 +1012,9 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "simplification";
       return true;
     }
-    Notice() << "SolverEngine: turning off simplification to support unsat "
-                "cores"
-             << std::endl;
+    verbose(1) << "SolverEngine: turning off simplification to support unsat "
+                  "cores"
+               << std::endl;
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
   }
 
@@ -1046,8 +1025,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "learned rewrites";
       return true;
     }
-    Notice() << "SolverEngine: turning off learned rewrites to support "
-                "unsat cores\n";
+    verbose(1) << "SolverEngine: turning off learned rewrites to support "
+                  "unsat cores\n";
     opts.smt.learnedRewrite = false;
   }
 
@@ -1058,8 +1037,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "pseudoboolean rewrites";
       return true;
     }
-    Notice() << "SolverEngine: turning off pseudoboolean rewrites to support "
-                "unsat cores\n";
+    verbose(1) << "SolverEngine: turning off pseudoboolean rewrites to support "
+                  "unsat cores\n";
     opts.arith.pbRewrites = false;
   }
 
@@ -1070,8 +1049,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "sort inference";
       return true;
     }
-    Notice() << "SolverEngine: turning off sort inference to support unsat "
-                "cores\n";
+    verbose(1) << "SolverEngine: turning off sort inference to support unsat "
+                  "cores\n";
     opts.smt.sortInference = false;
   }
 
@@ -1082,8 +1061,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "pre-skolemization";
       return true;
     }
-    Notice() << "SolverEngine: turning off pre-skolemization to support "
-                "unsat cores\n";
+    verbose(1) << "SolverEngine: turning off pre-skolemization to support "
+                  "unsat cores\n";
     opts.quantifiers.preSkolemQuant = false;
   }
 
@@ -1094,8 +1073,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "bv-to-bool";
       return true;
     }
-    Notice() << "SolverEngine: turning off bitvector-to-bool to support "
-                "unsat cores\n";
+    verbose(1) << "SolverEngine: turning off bitvector-to-bool to support "
+                  "unsat cores\n";
     opts.bv.bitvectorToBool = false;
   }
 
@@ -1106,7 +1085,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "bool-to-bv != off";
       return true;
     }
-    Notice() << "SolverEngine: turning off bool-to-bv to support unsat cores\n";
+    verbose(1)
+        << "SolverEngine: turning off bool-to-bv to support unsat cores\n";
     opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
   }
 
@@ -1117,7 +1097,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "bv-intro-pow2";
       return true;
     }
-    Notice()
+    verbose(1)
         << "SolverEngine: turning off bv-intro-pow2 to support unsat cores";
     opts.bv.bvIntroducePow2 = false;
   }
@@ -1129,7 +1109,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "repeat-simp";
       return true;
     }
-    Notice()
+    verbose(1)
         << "SolverEngine: turning off repeat-simp to support unsat cores\n";
     opts.smt.repeatSimp = false;
   }
@@ -1141,15 +1121,9 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "global-negate";
       return true;
     }
-    Notice() << "SolverEngine: turning off global-negate to support unsat "
-                "cores\n";
+    verbose(1) << "SolverEngine: turning off global-negate to support unsat "
+                  "cores\n";
     opts.quantifiers.globalNegate = false;
-  }
-
-  if (opts.bv.bitvectorAig)
-  {
-    reason << "bitblast-aig";
-    return true;
   }
 
   if (opts.smt.doITESimp)
@@ -1164,9 +1138,9 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "unconstrained simplification";
       return true;
     }
-    Notice() << "SolverEngine: turning off unconstrained simplification to "
-                "support unsat cores"
-             << std::endl;
+    verbose(1) << "SolverEngine: turning off unconstrained simplification to "
+                  "support unsat cores"
+               << std::endl;
     opts.smt.unconstrainedSimp = false;
   }
   return false;
@@ -1175,9 +1149,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
 bool SetDefaults::safeUnsatCores(const Options& opts) const
 {
   // whether we want to force safe unsat cores, i.e., if we are in the default
-  // ASSUMPTIONS mode or PP_ONLY, since other ones are experimental
-  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
-         || opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
+  // ASSUMPTIONS mode, since other ones are experimental
+  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
 bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
@@ -1211,7 +1184,7 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
     needsUf = true;
     if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
     {
-      Notice()
+      verbose(1)
           << "Enabling linear integer arithmetic because strings are enabled"
           << std::endl;
       log.enableTheory(THEORY_ARITH);
@@ -1220,26 +1193,20 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
     }
     else if (!logic.areIntegersUsed())
     {
-      Notice() << "Enabling integer arithmetic because strings are enabled"
-               << std::endl;
+      verbose(1) << "Enabling integer arithmetic because strings are enabled"
+                 << std::endl;
       log.enableIntegers();
     }
     logic = log;
     logic.lock();
   }
-  if (opts.bv.bvAbstraction)
-  {
-    // bv abstraction may require UF
-    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
-    needsUf = true;
-  }
-  else if (opts.quantifiers.preSkolemQuantNested
-           && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
+  if (opts.quantifiers.preSkolemQuantNested
+      && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
   {
     // if pre-skolem nested is explictly set, then we require UF. If it is
     // not explicitly set, it is disabled below if UF is not present.
-    Notice() << "Enabling UF because preSkolemQuantNested requires it."
-             << std::endl;
+    verbose(1) << "Enabling UF because preSkolemQuantNested requires it."
+               << std::endl;
     needsUf = true;
   }
   if (needsUf
@@ -1265,8 +1232,8 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
       LogicInfo log(logic.getUnlockedCopy());
       if (!needsUf)
       {
-        Notice() << "Enabling UF because " << logic << " requires it."
-                 << std::endl;
+        verbose(1) << "Enabling UF because " << logic << " requires it."
+                   << std::endl;
       }
       log.enableTheory(THEORY_UF);
       logic = log;
@@ -1279,8 +1246,8 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
     {
       // enable integers
       LogicInfo log(logic.getUnlockedCopy());
-      Notice() << "Enabling integers because arithMLTrick requires it."
-               << std::endl;
+      verbose(1) << "Enabling integers because arithMLTrick requires it."
+                 << std::endl;
       log.enableIntegers();
       logic = log;
       logic.lock();
@@ -1291,6 +1258,11 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
+  if (opts.quantifiers.fullSaturateQuant)
+  {
+    Trace("smt") << "enabling enum-inst for full-saturate-quant" << std::endl;
+    opts.quantifiers.enumInst = true;
+  }
   if (opts.arrays.arraysExp)
   {
     // Allows to answer sat more often by default.
@@ -1308,8 +1280,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 
   if (opts.quantifiers.instMaxLevel != -1)
   {
-    Notice() << "SolverEngine: turning off cbqi to support instMaxLevel"
-             << std::endl;
+    verbose(1) << "SolverEngine: turning off cbqi to support instMaxLevel"
+               << std::endl;
     opts.quantifiers.cegqi = false;
   }
 
@@ -1608,9 +1580,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     opts.quantifiers.sygusRewSynth = true;
     // we should not use the extended rewriter, since we are interested
     // in rewrites that are not in the main rewriter
-    if (!opts.quantifiers.sygusExtRewWasSetByUser)
+    if (!opts.datatypes.sygusRewriterWasSetByUser)
     {
-      opts.quantifiers.sygusExtRew = false;
+      opts.datatypes.sygusRewriter = options::SygusRewriterMode::BASIC;
     }
   }
   // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm

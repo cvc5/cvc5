@@ -7,7 +7,7 @@
 (declare-fun E () (Set Int))
 (set-info :status sat)
 
-(assert (= A (union D C)))
-(assert (not (= A (union E A))))
+(assert (= A (set.union D C)))
+(assert (not (= A (set.union E A))))
 
 (check-sat)

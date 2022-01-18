@@ -85,6 +85,12 @@ class DTypeConstructor
    * DType must be resolved.
    */
   Node getConstructor() const;
+  /**
+   * Get the specialized constructor term of this constructor, which is
+   * the constructor wrapped in a APPLY_TYPE_ASCRIPTION. This is required
+   * for constructing applications of constructors for parametric datatypes.
+   */
+  Node getInstantiatedConstructor(TypeNode returnType) const;
 
   /**
    * Get the tester operator of this constructor.  The
@@ -139,7 +145,7 @@ class DTypeConstructor
    * "cons" constructor type for lists of int---namely,
    * "int -> list[int] -> list[int]".
    */
-  TypeNode getSpecializedConstructorType(TypeNode returnType) const;
+  TypeNode getInstantiatedConstructorType(TypeNode returnType) const;
 
   /**
    * Return the cardinality of this constructor (the product of the

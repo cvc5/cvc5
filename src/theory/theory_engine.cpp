@@ -30,10 +30,8 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
-#include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -145,19 +143,19 @@ void TheoryEngine::finishInit()
   CVC5_FOR_EACH_THEORY;
 
   // Initialize the theory combination architecture
-  if (options::tcMode() == options::TcMode::CARE_GRAPH)
+  if (options().theory.tcMode == options::TcMode::CARE_GRAPH)
   {
     d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
   }
   else
   {
     Unimplemented() << "TheoryEngine::finishInit: theory combination mode "
-                    << options::tcMode() << " not supported";
+                    << options().theory.tcMode << " not supported";
   }
   // create the relevance filter if any option requires it
-  if (options::relevanceFilter() || options::produceDifficulty())
+  if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
-    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
+    d_relManager.reset(new RelevanceManager(d_env, Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -223,7 +221,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_relManager(nullptr),
       d_inConflict(context(), false),
       d_inSatMode(false),
-      d_hasShutDown(false),
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
@@ -247,7 +244,7 @@ TheoryEngine::TheoryEngine(Env& env)
     d_theoryOut[theoryId] = NULL;
   }
 
-  if (options::sortInference())
+  if (options().smt.sortInference)
   {
     d_sortInfer.reset(new SortInference(env));
   }
@@ -257,7 +254,6 @@ TheoryEngine::TheoryEngine(Env& env)
 }
 
 TheoryEngine::~TheoryEngine() {
-  Assert(d_hasShutDown);
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if(d_theoryTable[theoryId] != NULL) {
@@ -349,54 +345,6 @@ void TheoryEngine::printAssertions(const char* tag) {
   }
 }
 
-void TheoryEngine::dumpAssertions(const char* tag) {
-  if (Dump.isOn(tag)) {
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "Starting completeness check");
-    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-      Theory* theory = d_theoryTable[theoryId];
-      if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        printer.toStreamCmdSetInfo(out, "notes", "Completeness check");
-        printer.toStreamCmdPush(out);
-
-        // Dump the shared terms
-        if (d_logicInfo.isSharingEnabled()) {
-          printer.toStreamCmdSetInfo(out, "notes", "Shared terms");
-          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
-          for (unsigned i = 0; it != it_end; ++ it, ++i) {
-              stringstream ss;
-              ss << (*it);
-              printer.toStreamCmdSetInfo(out, "notes", ss.str());
-          }
-        }
-
-        // Dump the assertions
-        printer.toStreamCmdSetInfo(out, "notes", "Assertions");
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for (; it != it_end; ++ it) {
-          // Get the assertion
-          Node assertionNode = (*it).d_assertion;
-          // Purify all the terms
-
-          if ((*it).d_isPreregistered)
-          {
-            printer.toStreamCmdSetInfo(out, "notes", "Preregistered");
-          }
-          else
-          {
-            printer.toStreamCmdSetInfo(out, "notes", "Shared assertion");
-          }
-          printer.toStreamCmdAssert(out, assertionNode);
-        }
-        printer.toStreamCmdCheckSat(out);
-
-        printer.toStreamCmdPop(out);
-      }
-    }
-  }
-}
-
 /**
  * Check all (currently-active) theories for conflicts.
  * @param effort the effort level to use
@@ -441,7 +389,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       // to indicate that its information must be recomputed.
       if (d_relManager != nullptr)
       {
-        d_relManager->resetRound();
+        d_relManager->beginRound();
       }
       d_tc->resetRound();
     }
@@ -536,19 +484,21 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
-    if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      // Do post-processing of model from the theories (e.g. used for THEORY_SEP
-      // to construct heap model)
-      d_tc->postProcessModel(d_incomplete.get());
+    if (Theory::fullEffort(effort))
+    {
+      if (d_relManager != nullptr)
+      {
+        d_relManager->endRound();
+      }
+      if (!d_inConflict && !needCheck())
+      {
+        // Do post-processing of model from the theories (e.g. used for
+        // THEORY_SEP to construct heap model)
+        d_tc->postProcessModel(d_incomplete.get());
+      }
     }
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
-  }
-  // If fulleffort, check all theories
-  if(Dump.isOn("theory::fullcheck") && Theory::fullEffort(effort)) {
-    if (!d_inConflict && !needCheck()) {
-      dumpAssertions("theory::fullcheck");
-    }
   }
 }
 
@@ -594,9 +544,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                                 << conflict[i] << endl;
         return false;
       }
-      if (conflict[i] != Rewriter::rewrite(conflict[i])) {
-        Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                                << conflict[i] << " vs " << Rewriter::rewrite(conflict[i]) << endl;
+      if (conflict[i] != rewrite(conflict[i]))
+      {
+        Debug("properConflict")
+            << "Bad conflict is due to atom not in normal form: " << conflict[i]
+            << " vs " << rewrite(conflict[i]) << endl;
         return false;
       }
     }
@@ -611,9 +563,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                               << conflict << endl;
       return false;
     }
-    if (conflict != Rewriter::rewrite(conflict)) {
-      Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                              << conflict << " vs " << Rewriter::rewrite(conflict) << endl;
+    if (conflict != rewrite(conflict))
+    {
+      Debug("properConflict")
+          << "Bad conflict is due to atom not in normal form: " << conflict
+          << " vs " << rewrite(conflict) << endl;
       return false;
     }
   }
@@ -633,7 +587,7 @@ TheoryModel* TheoryEngine::getBuiltModel()
   Assert(d_tc != nullptr);
   // If this method was called, we should be in SAT mode, and produceModels
   // should be true.
-  AlwaysAssert(options::produceModels());
+  AlwaysAssert(options().smt.produceModels);
   if (!d_inSatMode)
   {
     // not available, perhaps due to interuption.
@@ -761,20 +715,6 @@ bool TheoryEngine::isRelevant(Node lit) const
   return true;
 }
 
-void TheoryEngine::shutdown() {
-  // Set this first; if a Theory shutdown() throws an exception,
-  // at least the destruction of the TheoryEngine won't confound
-  // matters.
-  d_hasShutDown = true;
-
-  // Shutdown all the theories
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
-      theoryOf(theoryId)->shutdown();
-    }
-  }
-}
-
 theory::Theory::PPAssertStatus TheoryEngine::solve(
     TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
@@ -823,7 +763,7 @@ void TheoryEngine::notifyPreprocessedAssertions(
   }
   if (d_relManager != nullptr)
   {
-    d_relManager->notifyPreprocessedAssertions(assertions);
+    d_relManager->notifyPreprocessedAssertions(assertions, true);
   }
 }
 
@@ -961,7 +901,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
              && assertion[0].getKind() == kind::EQUAL));
 
   // Normalize
-  Node normalizedLiteral = Rewriter::rewrite(assertion);
+  Node normalizedLiteral = rewrite(assertion);
 
   // See if it rewrites false directly -> conflict
   if (normalizedLiteral.isConst()) {
@@ -1123,14 +1063,14 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
-    bool& success)
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
 {
   // if we are not in SAT mode, or there is no relevance manager, we fail
   if (!d_inSatMode || d_relManager == nullptr)
   {
     success = false;
-    return d_emptyRelevantSet;
+    // return empty set
+    return std::unordered_set<TNode>();
   }
   return d_relManager->getRelevantAssertions(success);
 }
@@ -1141,13 +1081,19 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_relManager->getDifficultyMap(dmap);
 }
 
+theory::IncompleteId TheoryEngine::getIncompleteId() const
+{
+  return d_incompleteId.get();
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
     // the model value of a constant must be itself
     return var;
   }
-  Assert(d_sharedSolver->isShared(var));
+  Assert(d_sharedSolver->isShared(var))
+      << "node " << var << " is not shared" << std::endl;
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
@@ -1268,7 +1214,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
     }
 
     // Rewrite the equality
-    Node eqNormalized = Rewriter::rewrite(atoms[i]);
+    Node eqNormalized = rewrite(atoms[i]);
 
     Debug("theory::atoms") << "TheoryEngine::ensureLemmaAtoms(): " << eq
                            << " with nf " << eqNormalized << endl;
@@ -1351,15 +1297,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
-  if(Dump.isOn("t-lemmas")) {
-    // we dump the negation of the lemma, to show validity of the lemma
-    Node n = lemma.negate();
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "theory lemma: expect valid");
-    printer.toStreamCmdCheckSatAssuming(out, {n});
-  }
-
   // assert the lemma
   d_propEngine->assertLemma(tlemma, p);
 
@@ -1372,10 +1309,10 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (isLemmaPropertyNeedsJustify(p))
+    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
-      d_relManager->notifyPreprocessedAssertion(retLemma);
-      d_relManager->notifyPreprocessedAssertions(skAsserts);
+      d_relManager->notifyPreprocessedAssertion(retLemma, false);
+      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
   }
@@ -1411,13 +1348,6 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 
   // Mark that we are in conflict
   markInConflict();
-
-  if(Dump.isOn("t-conflicts")) {
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "theory conflict: expect unsat");
-    printer.toStreamCmdCheckSatAssuming(out, {conflict});
-  }
 
   // In the multiple-theories case, we need to reconstruct the conflict
   if (d_logicInfo.isSharingEnabled()) {
@@ -1793,7 +1723,7 @@ TrustNode TheoryEngine::getExplanation(
           continue;
         }
         // otherwise should hold by rewriting
-        Assert(Rewriter::rewrite(tConc) == Rewriter::rewrite(tExp));
+        Assert(rewrite(tConc) == rewrite(tExp));
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
@@ -1858,6 +1788,17 @@ TrustNode TheoryEngine::getExplanation(
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
+  bool hasFailure = false;
+  std::stringstream serror;
+  // If possible, get the list of relevant assertions. Those that are not
+  // relevant will be skipped.
+  std::unordered_set<TNode> relevantAssertions;
+  bool hasRelevantAssertions = false;
+  if (d_relManager != nullptr)
+  {
+    relevantAssertions =
+        d_relManager->getRelevantAssertions(hasRelevantAssertions);
+  }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1866,7 +1807,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
-        if (!isRelevant(assertion))
+        if (hasRelevantAssertions
+            && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
           continue;
@@ -1884,7 +1826,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             if (val == d_false)
             {
               // Always an error if it is false
-              InternalError() << ss.str();
+              hasFailure = true;
+              serror << ss.str();
             }
             else
             {
@@ -1892,12 +1835,16 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
               // assertions with unevaluable operators, e.g. transcendental
               // functions. It also may happen for separation logic, where
               // check-model support is limited.
-              Warning() << ss.str();
+              warning() << ss.str();
             }
           }
         }
       }
     }
+  }
+  if (hasFailure)
+  {
+    InternalError() << serror.str();
   }
 }
 

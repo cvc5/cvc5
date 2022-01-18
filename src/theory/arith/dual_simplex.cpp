@@ -89,7 +89,6 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   Result::Sat result = Result::SAT_UNKNOWN;
 
-  static const bool verbose = false;
   exactResult |= d_varOrderPivotLimit < 0;
 
   uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
@@ -103,22 +102,6 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       d_errorSet.setSelectionRule(d_heuristicRule);
       if(searchForFeasibleSolution(numDifferencePivots)){
         result = Result::UNSAT;
-      }
-    }
-
-    if (verbose && numDifferencePivots > 0)
-    {
-      if (result == Result::UNSAT)
-      {
-        CVC5Message() << "diff order found unsat" << endl;
-      }
-      else if (d_errorSet.errorEmpty())
-      {
-        CVC5Message() << "diff order found model" << endl;
-      }
-      else
-      {
-        CVC5Message() << "diff order missed" << endl;
       }
     }
   }
@@ -140,21 +123,6 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       if (searchForFeasibleSolution(d_varOrderPivotLimit))
       {
         result = Result::UNSAT;
-      }
-      if (verbose)
-      {
-        if (result == Result::UNSAT)
-        {
-          CVC5Message() << "restricted var order found unsat" << endl;
-        }
-        else if (d_errorSet.errorEmpty())
-        {
-          CVC5Message() << "restricted var order found model" << endl;
-        }
-        else
-        {
-          CVC5Message() << "restricted var order missed" << endl;
-        }
       }
     }
   }

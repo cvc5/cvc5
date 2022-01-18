@@ -93,7 +93,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
     Node r =
-        selectorIndex < 0 ? t.getType().mkGroundTerm() : t[0][selectorIndex];
+        selectorIndex < 0 ? nm->mkGroundTerm(t.getType()) : t[0][selectorIndex];
     return t.eqNode(r);
   }
   else if (id == PfRule::DT_SPLIT)

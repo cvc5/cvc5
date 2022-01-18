@@ -25,7 +25,7 @@ using namespace cvc5::api;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_api_Sort_deletePointer(JNIEnv*,
-                                                                  jclass,
+                                                                  jobject,
                                                                   jlong pointer)
 {
   delete reinterpret_cast<Sort*>(pointer);
@@ -71,6 +71,36 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_compareTo(JNIEnv* env,
   }
   return static_cast<jint>(1);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Sort
+ * Method:    hasSymbol
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_hasSymbol(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->hasSymbol());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Sort
+ * Method:    getSymbol
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_getSymbol(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return env->NewStringUTF(current->getSymbol().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*
@@ -481,21 +511,6 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isSubsortOf(
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    isComparableTo
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isComparableTo(
-    JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
-  return static_cast<jboolean>(current->isComparableTo(*sort));
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */
@@ -655,7 +670,7 @@ Java_io_github_cvc5_api_Sort_getConstructorDomainSorts(JNIEnv* env,
   std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = reinterpret_cast<jlong> (new Sort(sorts[i]));
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());

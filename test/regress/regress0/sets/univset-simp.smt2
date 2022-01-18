@@ -12,12 +12,12 @@
 
 (declare-fun x () Int)
 
-(assert (not (member 0 a)))
-(assert (member 0 b))
-(assert (not (member 1 c)))
-(assert (member 2 d))
-(assert (= e (as univset (Set Int))))
-(assert (= f (complement d)))
-(assert (not (member x (as univset (Set Int)))))
+(assert (not (set.member 0 a)))
+(assert (set.member 0 b))
+(assert (not (set.member 1 c)))
+(assert (set.member 2 d))
+(assert (= e (as set.universe (Set Int))))
+(assert (= f (set.complement d)))
+(assert (not (set.member x (as set.universe (Set Int)))))
 
 (check-sat)

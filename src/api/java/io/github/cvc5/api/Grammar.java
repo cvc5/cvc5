@@ -30,16 +30,11 @@ public class Grammar extends AbstractPointer
 
   private static native long copyGrammar(long pointer);
 
-  protected static native void deletePointer(long pointer);
+  protected native void deletePointer(long pointer);
 
   public long getPointer()
   {
     return pointer;
-  }
-
-  @Override public void finalize()
-  {
-    deletePointer(pointer);
   }
 
   // endregion

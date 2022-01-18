@@ -19,10 +19,10 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+using namespace cvc5::preprocessing::passes;
+
 namespace cvc5 {
-
-using namespace preprocessing::passes;
-
 namespace test {
 
 class TestPPWhiteForeignTheoryRewrite : public TestSmt
@@ -35,7 +35,7 @@ TEST_F(TestPPWhiteForeignTheoryRewrite, simplify)
   std::cout << "len(x) >= 0 is simplified to true" << std::endl;
   Node x = d_nodeManager->mkVar("x", d_nodeManager->stringType());
   Node len_x = d_nodeManager->mkNode(kind::STRING_LENGTH, x);
-  Node zero = d_nodeManager->mkConst<Rational>(0);
+  Node zero = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, 0);
   Node geq1 = d_nodeManager->mkNode(kind::GEQ, len_x, zero);
   Node tt = d_nodeManager->mkConst<bool>(true);
   Node simplified1 = ftr.foreignRewrite(geq1);

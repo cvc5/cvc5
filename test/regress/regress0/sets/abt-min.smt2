@@ -12,11 +12,11 @@
 (declare-fun b2 () Atom)
 
 (assert (forall ((b Atom)) (or 
-(member v (k t0 b))
-(member v (k t1 b))
+(set.member v (k t0 b))
+(set.member v (k t1 b))
 ) ))
 
-(assert (not (member v (k t2 b2))))
+(assert (not (set.member v (k t2 b2))))
 
 (check-sat)
 

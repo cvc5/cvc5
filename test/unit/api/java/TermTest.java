@@ -39,6 +39,11 @@ class TermTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   @Test void eq()
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
@@ -212,6 +217,21 @@ class TermTest
     // list datatype constructor and selector operator terms
     Term consOpTerm = list.getConstructorTerm("cons");
     Term nilOpTerm = list.getConstructorTerm("nil");
+  }
+
+  @Test void hasGetSymbol() throws CVC5ApiException
+  {
+    Term n = d_solver.getNullTerm();
+    Term t = d_solver.mkBoolean(true);
+    Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasSymbol());
+    assertFalse(t.hasSymbol());
+    assertTrue(c.hasSymbol());
+
+    assertThrows(CVC5ApiException.class, () -> n.getSymbol());
+    assertThrows(CVC5ApiException.class, () -> t.getSymbol());
+    assertEquals(c.getSymbol(), "|\\|");
   }
 
   @Test void isNull() throws CVC5ApiException
@@ -693,6 +713,7 @@ class TermTest
 
     assertTrue(int1.isIntegerValue());
     assertEquals(int1.getIntegerValue().toString(), "-18446744073709551616");
+    assertEquals(int1.getRealOrIntegerValueSign(), -1);
     assertTrue(int2.isIntegerValue());
     assertEquals(int2.getIntegerValue().toString(), "-18446744073709551615");
     assertTrue(int3.isIntegerValue());
@@ -709,10 +730,12 @@ class TermTest
     assertEquals(int6.getIntegerValue().intValue(), 0);
     assertEquals(int6.getIntegerValue().intValue(), 0);
     assertEquals(int6.getIntegerValue().toString(), "0");
+    assertEquals(int6.getRealOrIntegerValueSign(), 0);
     assertTrue(int7.isIntegerValue());
     assertEquals(int7.getIntegerValue().intValue(), 10);
     assertEquals(int7.getIntegerValue().intValue(), 10);
     assertEquals(int7.getIntegerValue().toString(), "10");
+    assertEquals(int7.getRealOrIntegerValueSign(), 1);
     assertTrue(int8.isIntegerValue());
     assertEquals(int8.getIntegerValue().longValue(), 4294967295L);
     assertEquals(int8.getIntegerValue().toString(), "4294967295");
@@ -832,18 +855,19 @@ class TermTest
     assertEquals("f", b7.getBitVectorValue(16));
   }
 
-  @Test void getAbstractValue() throws CVC5ApiException
+  @Test void getUninterpretedSortValue() throws CVC5ApiException
   {
-    Term v1 = d_solver.mkAbstractValue(1);
-    Term v2 = d_solver.mkAbstractValue("15");
-    Term v3 = d_solver.mkAbstractValue("18446744073709551617");
-
-    assertTrue(v1.isAbstractValue());
-    assertTrue(v2.isAbstractValue());
-    assertTrue(v3.isAbstractValue());
-    assertEquals("1", v1.getAbstractValue());
-    assertEquals("15", v2.getAbstractValue());
-    assertEquals("18446744073709551617", v3.getAbstractValue());
+    d_solver.setOption("produce-models", "true");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    d_solver.assertFormula(d_solver.mkTerm(EQUAL, x, y));
+    assertTrue(d_solver.checkSat().isSat());
+    Term vx = d_solver.getValue(x);
+    Term vy = d_solver.getValue(y);
+    assertEquals(vx.isUninterpretedSortValue(), vy.isUninterpretedSortValue());
+    assertDoesNotThrow(() -> vx.getUninterpretedSortValue());
+    assertDoesNotThrow(() -> vy.getUninterpretedSortValue());
   }
 
   @Test void getTuple()
@@ -890,10 +914,10 @@ class TermTest
     Term i2 = d_solver.mkInteger(7);
 
     Term s1 = d_solver.mkEmptySet(s);
-    Term s2 = d_solver.mkTerm(Kind.SINGLETON, i1);
-    Term s3 = d_solver.mkTerm(Kind.SINGLETON, i1);
-    Term s4 = d_solver.mkTerm(Kind.SINGLETON, i2);
-    Term s5 = d_solver.mkTerm(Kind.UNION, s2, d_solver.mkTerm(Kind.UNION, s3, s4));
+    Term s2 = d_solver.mkTerm(Kind.SET_SINGLETON, i1);
+    Term s3 = d_solver.mkTerm(Kind.SET_SINGLETON, i1);
+    Term s4 = d_solver.mkTerm(Kind.SET_SINGLETON, i2);
+    Term s5 = d_solver.mkTerm(Kind.SET_UNION, s2, d_solver.mkTerm(Kind.SET_UNION, s3, s4));
 
     assertTrue(s1.isSetValue());
     assertTrue(s2.isSetValue());
@@ -946,19 +970,6 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i1}), Arrays.asList(s3.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i2}), Arrays.asList(s4.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
-  }
-
-  @Test void getUninterpretedConst() throws CVC5ApiException
-  {
-    Sort s = d_solver.mkUninterpretedSort("test");
-    Term t1 = d_solver.mkUninterpretedConst(s, 3);
-    Term t2 = d_solver.mkUninterpretedConst(s, 5);
-
-    assertTrue(t1.isUninterpretedValue());
-    assertTrue(t2.isUninterpretedValue());
-
-    assertEquals(new Pair<Sort, Integer>(s, 3), t1.getUninterpretedValue());
-    assertEquals(new Pair<Sort, Integer>(s, 5), t2.getUninterpretedValue());
   }
 
   @Test void substitute()

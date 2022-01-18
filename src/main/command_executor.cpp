@@ -200,23 +200,20 @@ bool solverInvoke(api::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    std::ostream& ss = solver->getOutput("raw-benchmark");
-    cmd->toStream(ss);
+    cmd->toStream(solver->getOutput("raw-benchmark"));
   }
 
-  if (solver->getOptionInfo("parse-only").boolValue())
+  // In parse-only mode, we do not invoke any of the commands except define-fun
+  // commands. We invoke define-fun commands because they add function names
+  // to the symbol table.
+  if (solver->getOptionInfo("parse-only").boolValue()
+      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
+      && dynamic_cast<ResetCommand*>(cmd) == nullptr)
   {
     return true;
   }
 
   cmd->invoke(solver, sm, out);
-  // ignore the error if the command-verbosity is 0 for this command
-  std::string commandName =
-      std::string("command-verbosity:") + cmd->getCommandName();
-  if (solver->getOption(commandName) == "0")
-  {
-    return true;
-  }
   return !cmd->fail();
 }
 

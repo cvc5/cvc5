@@ -48,7 +48,7 @@ class CardinalityExtension : protected EnvObj
    * Information for incremental conflict/clique finding for a
    * particular sort.
    */
-  class SortModel
+  class SortModel : protected EnvObj
   {
    private:
     std::map< Node, std::vector< int > > d_totality_lems;
@@ -281,7 +281,8 @@ class CardinalityExtension : protected EnvObj
     void simpleCheckCardinality();
 
    public:
-    SortModel(TypeNode tn,
+    SortModel(Env& env,
+              TypeNode tn,
               TheoryState& state,
               TheoryInferenceManager& im,
               CardinalityExtension* thss);
@@ -426,7 +427,7 @@ class CardinalityExtension : protected EnvObj
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
-   * context. It is enabled by options::ufssFairness(). For details, see
+   * context. It is enabled by the ufssFairness option. For details, see
    * the extension to multiple sorts in Section 6.3 of Reynolds et al,
    * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
    */

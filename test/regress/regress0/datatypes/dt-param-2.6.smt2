@@ -2,7 +2,7 @@
 (set-info :status sat)
 (declare-datatypes ( (Tree 1) (TreeList 1) ) (
 (par ( X ) ( ( node ( value X ) ( children ( TreeList X )) )))
-(par ( Y ) ( ( empty ) ( insert ( head ( Tree Y )) ( tail ( TreeList Y ))) ))
+(par ( Y ) ( ( empty ) ( set.insert ( head ( Tree Y )) ( tail ( TreeList Y ))) ))
 ))
 
 
@@ -13,7 +13,7 @@
 
 (assert (distinct x y z))
 (assert (= (value x) 5))
-(assert ((_ is insert) (children y)))
+(assert ((_ is set.insert) (children y)))
 (assert (= (value (head (children y))) 7))
 
 (declare-sort U 0)
@@ -23,7 +23,7 @@
 
 (assert (distinct a b c))
 
-(assert ((_ is insert) (children a)))
+(assert ((_ is set.insert) (children a)))
 
 
 (declare-fun d () (Tree (Tree Int)))
