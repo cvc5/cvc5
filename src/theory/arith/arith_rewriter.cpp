@@ -18,6 +18,7 @@
 
 #include "theory/arith/arith_rewriter.h"
 
+#include <optional>
 #include <set>
 #include <sstream>
 #include <stack>
@@ -42,6 +43,7 @@ namespace arith {
 
 namespace {
 
+/** Evaluate the given relation based on values l and r */
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
 {
@@ -54,6 +56,76 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     case Kind::GT: return l > r;
     default: Unreachable(); return false;
   }
+}
+
+/** Flatten the given node (with child nodes of the same kind) into a vector */
+void flatten(TNode t, std::vector<TNode>& children)
+{
+  Kind k = t.getKind();
+  for (const auto& child : t)
+  {
+    if (child.getKind() == k)
+    {
+      flatten(child, children);
+    }
+    else
+    {
+      children.emplace_back(child);
+    }
+  }
+}
+
+/**
+ * Flatten the given node (with child nodes of one of the given kinds) into a
+ * vector.
+ */
+void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+{
+  Assert(t.getKind() == k1 || t.getKind() == k2);
+  for (const auto& child : t)
+  {
+    if (child.getKind() == k1 || child.getKind() == k2)
+    {
+      flatten(child, k1, k2, children);
+    }
+    else
+    {
+      children.emplace_back(child);
+    }
+  }
+}
+
+/** Flatten the given node (with child nodes of the same kind) */
+Node flatten(TNode t)
+{
+  Kind k = t.getKind();
+  bool canFlatten = std::any_of(
+      t.begin(), t.end(), [k](TNode child) { return child.getKind() == k; });
+  if (!canFlatten)
+  {
+    return t;
+  }
+  std::vector<TNode> children;
+  flatten(t, children);
+  Assert(children.size() >= 2);
+  return NodeManager::currentNM()->mkNode(t.getKind(), std::move(children));
+}
+
+/**
+ * Check whether the parent has a child that is a constant zero.
+ * If so, return this child. Otherwise, return std::nullopt.
+ */
+template <typename Iterable>
+std::optional<TNode> getZeroChild(const Iterable& parent)
+{
+  for (const auto& node : parent)
+  {
+    if (node.isConst() && node.template getConst<Rational>().isZero())
+    {
+      return node;
+    }
+  }
+  return std::nullopt;
 }
 
 }  // namespace
@@ -480,51 +552,22 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-static bool canFlatten(Kind k, TNode t){
-  for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-    TNode child = *i;
-    if(child.getKind() == k){
-      return true;
-    }
-  }
-  return false;
-}
-
-static void flatten(std::vector<TNode>& pb, Kind k, TNode t){
-  if(t.getKind() == k){
-    for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-      TNode child = *i;
-      if(child.getKind() == k){
-        flatten(pb, k, child);
-      }else{
-        pb.push_back(child);
-      }
-    }
-  }else{
-    pb.push_back(t);
-  }
-}
-
-static Node flatten(Kind k, TNode t){
-  std::vector<TNode> pb;
-  flatten(pb, k, t);
-  Assert(pb.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k, pb);
-}
-
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
-  if(canFlatten(kind::PLUS, t)){
-    return RewriteResponse(REWRITE_DONE, flatten(kind::PLUS, t));
-  }else{
-    return RewriteResponse(REWRITE_DONE, t);
-  }
+  return RewriteResponse(REWRITE_DONE, flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
   Assert(t.getNumChildren() > 1);
+
+  {
+    Node flat = flatten(t);
+    if (flat != t)
+    {
+      return RewriteResponse(REWRITE_AGAIN, flat);
+    }
+  }
 
   Rational rational;
   RealAlgebraicNumber ran;
