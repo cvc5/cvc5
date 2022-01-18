@@ -164,8 +164,8 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
     EXPECT_EQ(n, a);
   }
   {
-    Node a = d_nodeManager->mkConstReal(Rational(3,2));
-    Node b = d_nodeManager->mkConstReal(Rational(-3,2));
+    Node a = d_nodeManager->mkConstReal(Rational(3, 2));
+    Node b = d_nodeManager->mkConstReal(Rational(-3, 2));
     Node m = d_nodeManager->mkNode(Kind::ABS, a);
     Node n = d_nodeManager->mkNode(Kind::ABS, b);
     m = d_slvEngine->getRewriter()->rewrite(m);
@@ -195,7 +195,7 @@ TEST_F(TestTheoryArithRewriterBlack, distribute)
     Node sum = d_nodeManager->mkNode(Kind::PLUS, a, b);
     Node prod = d_nodeManager->mkNode(Kind::MULT, std::vector<Node>(40, sum));
     prod = d_slvEngine->getRewriter()->rewrite(prod);
-    //std::cout << prod << std::endl;
+    // std::cout << prod << std::endl;
   }
 }
 
