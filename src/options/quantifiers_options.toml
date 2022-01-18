@@ -1261,14 +1261,6 @@ name   = "Quantifiers"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
-  name       = "sygusExtRew"
-  category   = "regular"
-  long       = "sygus-ext-rew"
-  type       = "bool"
-  default    = "true"
-  help       = "use extended rewriter for sygus"
-
-[[option]]
   name       = "cegisSample"
   category   = "regular"
   long       = "cegis-sample=MODE"
