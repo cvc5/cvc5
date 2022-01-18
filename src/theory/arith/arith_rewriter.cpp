@@ -162,6 +162,10 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, TNode prod
   else
   {
     it->second += multiplicity;
+    if (isZero(it->second))
+    {
+      sum.erase(it);
+    }
   }
 }
 
@@ -209,7 +213,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
 
   for (const auto& factor: factors)
   {
-    if (factor.getKind() != Kind::MULT)
+    if (factor.getKind() != Kind::PLUS)
     {
       base.emplace_back(factor);
       continue;
