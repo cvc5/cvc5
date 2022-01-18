@@ -294,6 +294,14 @@ public:
 
       // this is now slightly off of the old variable order.
 
+      bool nIsRAN = n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+      bool mIsRAN = m.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+
+      if (mIsRAN != nIsRAN)
+      {
+        return nIsRAN ? -1 : 1;
+      }
+
       bool nIsInteger = n.getType().isInteger();
       bool mIsInteger = m.getType().isInteger();
 
