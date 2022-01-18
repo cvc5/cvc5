@@ -43,6 +43,30 @@ namespace arith {
 
 namespace {
 
+template<typename T>
+Node mkMult(T&& factors)
+{
+  auto* nm = NodeManager::currentNM();
+  switch (factors.size())
+  {
+    case 0: return nm->mkConstInt(Rational(1));
+    case 1: return factors[0];
+    default: return nm->mkNode(Kind::NONLINEAR_MULT, std::forward<T>(factors));
+  }
+}
+
+template<typename T>
+Node mkSum(T&& summands)
+{
+  auto* nm = NodeManager::currentNM();
+  switch (summands.size())
+  {
+    case 0: return nm->mkConstInt(Rational(0));
+    case 1: return summands[0];
+    default: return nm->mkNode(Kind::PLUS, std::forward<T>(summands));
+  }
+}
+
 /** Evaluate the given relation based on values l and r */
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
@@ -79,7 +103,7 @@ void flatten(TNode t, std::vector<TNode>& children)
  * Flatten the given node (with child nodes of one of the given kinds) into a
  * vector.
  */
-void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+[[maybe_unused]] void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
 {
   Assert(t.getKind() == k1 || t.getKind() == k2);
   for (const auto& child : t)
@@ -126,6 +150,142 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
     }
   }
   return std::nullopt;
+}
+
+void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, TNode product, const RealAlgebraicNumber& multiplicity)
+{
+  auto it = sum.find(product);
+  if (it == sum.end())
+  {
+    sum.emplace(product, multiplicity);
+  }
+  else
+  {
+    it->second += multiplicity;
+  }
+}
+
+void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplicity, TNode n)
+{
+  switch (n.getKind())
+  {
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      product.insert(product.end(), n.begin(), n.end());
+      break;
+    case Kind::REAL_ALGEBRAIC_NUMBER:
+      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
+      break;
+    default:
+      if (n.isConst())
+      {
+        multiplicity *= n.getConst<Rational>();
+      }
+      else
+      {
+        product.emplace_back(n);
+      }
+  }
+}
+
+Node distributeMultiplication(const std::vector<TNode>& factors)
+{
+  if (Trace.isOn("arith-rewriter"))
+  {
+    Trace("arith-rewriter") << "Distributing" << std::endl;
+    for (const auto& f: factors)
+    {
+      Trace("arith-rewriter") << "\t" << f << std::endl;
+    }
+  }
+  auto* nm = NodeManager::currentNM();
+  // factors that are not sums
+  std::vector<Node> base;
+  // maps products to their (possibly real algebraic) multiplicities.
+  // The current (intermediate) value is the sum of these (multiplied by the base factors).
+  std::unordered_map<Node, RealAlgebraicNumber> sum;
+  // Add a base summand
+  sum.emplace(nm->mkConstReal(Rational(1)), RealAlgebraicNumber(Integer(1)));
+
+  for (const auto& factor: factors)
+  {
+    if (factor.getKind() != Kind::MULT)
+    {
+      base.emplace_back(factor);
+      continue;
+    }
+    // temporary to store factor * sum, will be moved to sum at the end
+    std::unordered_map<Node, RealAlgebraicNumber> newsum;
+
+    for (const auto& summand : sum)
+    {
+      for (const auto& child: factor)
+      {
+        // add summand * child to newsum
+        RealAlgebraicNumber multiplicity = summand.second;
+        if (child.isConst())
+        {
+          multiplicity *= child.getConst<Rational>();
+          addToDistSum(newsum, summand.first, multiplicity);
+          continue;
+        }
+        if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+        {
+          multiplicity *= child.getOperator().getConst<RealAlgebraicNumber>();
+          addToDistSum(newsum, summand.first, multiplicity);
+          continue;
+        }
+
+        // construct the new product
+        std::vector<Node> newProduct;
+        addToDistProduct(newProduct, multiplicity, summand.first);
+        addToDistProduct(newProduct, multiplicity, child);
+        std::sort(newProduct.begin(), newProduct.end(), Variable::VariableNodeCmp());
+        Node newprod;
+        switch (newProduct.size())
+        {
+          case 0: newprod = nm->mkConstReal(Rational(1)); break;
+          case 1: newprod = newProduct[0]; break;
+          default: newprod = nm->mkNode(Kind::NONLINEAR_MULT, std::move(newProduct));
+        }
+        addToDistSum(newsum, newprod, multiplicity);
+      }
+    }
+
+    sum = std::move(newsum);
+  }
+  // now mult(factors) == base * add(sum)
+
+  // Now construct the sum as nodes
+  std::vector<Node> children;
+  for (const auto& summand: sum)
+  {
+    const RealAlgebraicNumber& mult = summand.second;
+    if (isZero(mult))
+    {
+    }
+    else if (isOne(mult))
+    {
+      children.emplace_back(summand.first);
+    }
+    else if (mult.isRational())
+    {
+      children.emplace_back(
+        nm->mkNode(Kind::MULT, nm->mkConstReal(mult.toRational()),
+        summand.first)
+      );
+    }
+    else
+    {
+      std::vector<Node> nlProd;
+      nlProd.emplace_back(nm->mkRealAlgebraicNumber(mult));
+      nlProd.insert(nlProd.end(), summand.first.begin(), summand.first.end());
+      children.emplace_back(mkMult(std::move(nlProd)));
+    }
+  }
+  // now mult(factors) == add(children)
+
+  return mkSum(std::move(children));
 }
 
 }  // namespace
@@ -646,6 +806,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         return child.getKind() == Kind::PLUS;
       }))
   {
+    return RewriteResponse(REWRITE_AGAIN, distributeMultiplication(children));
     Trace("arith-rewriter") << "Distributing " << t << std::endl;
     std::vector<Node> base;
     std::unordered_map<Node, Rational> dist;
