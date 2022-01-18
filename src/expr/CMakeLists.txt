@@ -60,6 +60,8 @@ libcvc5_add_sources(
   node_visitor.h
   skolem_manager.cpp
   skolem_manager.h
+  subtype_elim_node_converter.cpp
+  subtype_elim_node_converter.h
   symbol_manager.cpp
   symbol_manager.h
   symbol_table.cpp
@@ -91,8 +93,6 @@ libcvc5_add_sources(
   subs.h
   sygus_datatype.cpp
   sygus_datatype.h
-  uninterpreted_constant.cpp
-  uninterpreted_constant.h
   variadic_trie.cpp
   variadic_trie.h
 )

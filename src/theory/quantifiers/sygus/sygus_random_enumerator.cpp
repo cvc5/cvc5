@@ -75,7 +75,7 @@ Node SygusRandomEnumerator::incrementH()
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Random& rnd = Random::getRandom();
-  double p = options::sygusActiveGenRandomP();
+  double p = options().quantifiers.sygusEnumRandomP;
 
   Node mainSkolem = sm->mkDummySkolem("sygus_rand", d_tn);
   // List of skolems with no corresponding constructor.

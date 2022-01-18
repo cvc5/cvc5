@@ -458,8 +458,7 @@ void TermDbSygus::registerEnumerator(Node e,
 
   // determine if we are actively-generated
   bool isActiveGen = false;
-  if (options().quantifiers.sygusActiveGenMode
-      != options::SygusActiveGenMode::NONE)
+  if (options().quantifiers.sygusEnumMode != options::SygusEnumMode::SMART)
   {
     if (erole == ROLE_ENUM_MULTI_SOLUTION || erole == ROLE_ENUM_CONSTRAINED)
     {
@@ -487,8 +486,7 @@ void TermDbSygus::registerEnumerator(Node e,
     {
       // If the enumerator is the single function-to-synthesize, if auto is
       // enabled, we infer whether it is better to enable active generation.
-      if (options().quantifiers.sygusActiveGenMode
-          == options::SygusActiveGenMode::AUTO)
+      if (options().quantifiers.sygusEnumMode == options::SygusEnumMode::AUTO)
       {
         // We use active generation if the grammar of the enumerator does not
         // have ITE and does not have Boolean connectives. Experimentally, it
@@ -520,8 +518,8 @@ void TermDbSygus::registerEnumerator(Node e,
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic = isActiveGen
-                       && options().quantifiers.sygusActiveGenMode
-                              == options::SygusActiveGenMode::VAR_AGNOSTIC;
+                       && options().quantifiers.sygusEnumMode
+                              == options::SygusEnumMode::VAR_AGNOSTIC;
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {
@@ -741,7 +739,7 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 Node TermDbSygus::rewriteNode(Node n) const
 {
   Node res;
-  if (options().quantifiers.sygusExtRew)
+  if (options().datatypes.sygusRewriter == options::SygusRewriterMode::EXTENDED)
   {
     res = extendedRewrite(n);
   }
@@ -857,7 +855,8 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
     }
     return true;
   }
-  if (!options().datatypes.sygusSymBreakAgg)
+  if (options().datatypes.sygusSimpleSymBreak
+      != options::SygusSimpleSymBreakMode::AGG)
   {
     return false;
   }

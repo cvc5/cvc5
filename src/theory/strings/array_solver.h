@@ -85,6 +85,12 @@ class ArraySolver : protected EnvObj
  private:
   /** check terms of given kind */
   void checkTerms(Kind k);
+  /** check inferences for the given term
+   *
+   * @param t the term to check
+   * @param checkInv Whether we are checking the inverse of the rule
+   */
+  void checkTerm(Node t, bool checkInv);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
