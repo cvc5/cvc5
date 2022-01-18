@@ -43,6 +43,7 @@ namespace arith {
 
 namespace {
 
+/** Evaluate the given relation based on values l and r */
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
 {
@@ -57,6 +58,63 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
   }
 }
 
+/** Flatten the given node (with child nodes of the same kind) into a vector */
+void flatten(TNode t, std::vector<TNode>& children)
+{
+  Kind k = t.getKind();
+  for (const auto& child : t)
+  {
+    if (child.getKind() == k)
+    {
+      flatten(child, children);
+    }
+    else
+    {
+      children.emplace_back(child);
+    }
+  }
+}
+
+/**
+ * Flatten the given node (with child nodes of one of the given kinds) into a
+ * vector.
+ */
+void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+{
+  Assert(t.getKind() == k1 || t.getKind() == k2);
+  for (const auto& child : t)
+  {
+    if (child.getKind() == k1 || child.getKind() == k2)
+    {
+      flatten(child, k1, k2, children);
+    }
+    else
+    {
+      children.emplace_back(child);
+    }
+  }
+}
+
+/** Flatten the given node (with child nodes of the same kind) */
+Node flatten(TNode t)
+{
+  Kind k = t.getKind();
+  bool canFlatten = std::any_of(
+      t.begin(), t.end(), [k](TNode child) { return child.getKind() == k; });
+  if (!canFlatten)
+  {
+    return t;
+  }
+  std::vector<TNode> children;
+  flatten(t, children);
+  Assert(children.size() >= 2);
+  return NodeManager::currentNM()->mkNode(t.getKind(), std::move(children));
+}
+
+/**
+ * Check whether the parent has a child that is a constant zero.
+ * If so, return this child. Otherwise, return std::nullopt.
+ */
 template <typename Iterable>
 std::optional<TNode> getZeroChild(const Iterable& parent)
 {
@@ -453,85 +511,21 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-void flatten(TNode t, Kind k, std::vector<TNode>& children)
-{
-  Assert(t.getKind() == k);
-  for (const auto& child : t)
-  {
-    if (child.getKind() == k)
-    {
-      flatten(child, k, children);
-    }
-    else
-    {
-      children.emplace_back(child);
-    }
-  }
-}
-
-void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
-{
-  Assert(t.getKind() == k1 || t.getKind() == k2);
-  for (const auto& child : t)
-  {
-    if (child.getKind() == k1 || child.getKind() == k2)
-    {
-      flatten(child, k1, k2, children);
-    }
-    else
-    {
-      children.emplace_back(child);
-    }
-  }
-}
-
-Node flatten(TNode t, Kind k)
-{
-  std::vector<TNode> children;
-  flatten(t, k, children);
-  Assert(children.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k, std::move(children));
-}
-
-Node flatten(TNode t, Kind k1, Kind k2)
-{
-  std::vector<TNode> children;
-  flatten(t, k1, k2, children);
-  Assert(children.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k1, std::move(children));
-}
-
-bool canFlatten(TNode t, Kind k)
-{
-  return std::any_of(
-      t.begin(), t.end(), [k](TNode child) { return child.getKind() == k; });
-}
-bool canFlatten(TNode t, Kind k1, Kind k2)
-{
-  return std::any_of(t.begin(), t.end(), [k1, k2](TNode child) {
-    return child.getKind() == k1 || child.getKind() == k2;
-  });
-}
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
-  if (canFlatten(t, Kind::PLUS))
-  {
-    return RewriteResponse(REWRITE_DONE, flatten(t, kind::PLUS));
-  }
-  else
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
+  return RewriteResponse(REWRITE_DONE, flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
   Assert(t.getNumChildren() > 1);
 
-  if (canFlatten(t, Kind::PLUS))
   {
-    return RewriteResponse(REWRITE_AGAIN, flatten(t, kind::PLUS));
+    Node flat = flatten(t);
+    if (flat != t)
+    {
+      return RewriteResponse(REWRITE_AGAIN, flat);
+    }
   }
 
   Rational rational;
@@ -642,9 +636,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   std::vector<TNode> children;
   flatten(t, Kind::MULT, Kind::NONLINEAR_MULT, children);
 
-  if (auto res = getZeroChild(t); res)
+  if (auto res = getZeroChild(children); res)
   {
-    Trace("arith-rewriter") << "-> " << *res << std::endl;
     return RewriteResponse(REWRITE_DONE, *res);
   }
 
