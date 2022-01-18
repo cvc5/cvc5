@@ -611,6 +611,26 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+namespace {
+
+void addToMultiplication(std::vector<Node>& product, TNode n)
+{
+  switch (n.getKind())
+  {
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      product.insert(product.end(), n.begin(), n.end());
+      break;
+    default:
+      if (!(n.isConst() && n.getConst<Rational>().isOne()))
+      {
+        product.emplace_back(n);
+      }
+  }
+}
+
+}
+
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
@@ -671,28 +691,12 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
               continue;
             }
             std::vector<TNode> newc;
-            if (d.first.getKind() == Kind::MULT
-                || d.first.getKind() == Kind::NONLINEAR_MULT)
-            {
-              newc.insert(newc.end(), d.first.begin(), d.first.end());
-            }
-            else if (!(d.first.isConst()
-                       && d.first.getConst<Rational>().isOne()))
-            {
-              newc.emplace_back(d.first);
-            }
-            if (cc.getKind() == Kind::MULT
-                || cc.getKind() == Kind::NONLINEAR_MULT)
-            {
-              newc.insert(newc.end(), cc.begin(), cc.end());
-            }
-            else
-            {
-              newc.emplace_back(cc);
-            }
+            addToMultiplication(newc, d.first);
+            addToMultiplication(newc, cc);
+            
             std::sort(newc.begin(), newc.end(), Variable::VariableNodeCmp());
+            
             Node newmult;
-
             switch (newc.size())
             {
               case 0: newmult = nm->mkConstReal(Rational(1)); break;
@@ -736,15 +740,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       raw.emplace_back();
       raw.back().emplace_back(nm->mkConstReal(d.second));
 
-      if (d.first.getKind() == Kind::MULT
-          || d.first.getKind() == Kind::NONLINEAR_MULT)
-      {
-        raw.back().insert(raw.back().end(), d.first.begin(), d.first.end());
-      }
-      else
-      {
-        raw.back().emplace_back(d.first);
-      }
+      addToMultiplication(raw.back(), d.first);
+
       raw.back().insert(raw.back().end(), base.begin(), base.end());
       Trace("arith-rewriter")
           << "raw " << d << " -> " << raw.back() << std::endl;
