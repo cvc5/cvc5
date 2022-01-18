@@ -666,7 +666,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
               }
               else
               {
-                it->second *= cc.getConst<Rational>();
+                it->second += d.second * cc.getConst<Rational>();
               }
               continue;
             }
@@ -676,7 +676,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
             {
               newc.insert(newc.end(), d.first.begin(), d.first.end());
             }
-            else
+            else if (!(d.first.isConst()
+                       && d.first.getConst<Rational>().isOne()))
             {
               newc.emplace_back(d.first);
             }
@@ -720,7 +721,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         base.emplace_back(child);
       }
     }
-    Trace("arith-rewriter") << "final: " << base << std::endl;
     Trace("arith-rewriter") << "base: " << base << std::endl;
     Trace("arith-rewriter") << "dist:" << std::endl;
     for (const auto& d : dist)
@@ -731,12 +731,23 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
     std::vector<std::vector<Node>> raw;
 
-    for (auto& d : dist)
+    for (const auto& d : dist)
     {
       raw.emplace_back();
       raw.back().emplace_back(nm->mkConstReal(d.second));
-      raw.back().insert(raw.back().end(), d.first.begin(), d.first.end());
+
+      if (d.first.getKind() == Kind::MULT
+          || d.first.getKind() == Kind::NONLINEAR_MULT)
+      {
+        raw.back().insert(raw.back().end(), d.first.begin(), d.first.end());
+      }
+      else
+      {
+        raw.back().emplace_back(d.first);
+      }
       raw.back().insert(raw.back().end(), base.begin(), base.end());
+      Trace("arith-rewriter")
+          << "raw " << d << " -> " << raw.back() << std::endl;
     }
     base.clear();
     for (const auto& d : raw)
