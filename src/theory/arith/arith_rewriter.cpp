@@ -977,14 +977,21 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
     {
       return RewriteResponse(REWRITE_DONE, t[0]);
     }
-    else
-    {
-      return RewriteResponse(
-          REWRITE_DONE,
-          NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
-    }
+    return RewriteResponse(
+        REWRITE_DONE,
+        NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
   }
-  Assert(t[0].getKind() != Kind::REAL_ALGEBRAIC_NUMBER);
+  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    const RealAlgebraicNumber& ran =
+        t[0].getOperator().getConst<RealAlgebraicNumber>();
+    if (ran >= RealAlgebraicNumber())
+    {
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    return RewriteResponse(
+        REWRITE_DONE, NodeManager::currentNM()->mkRealAlgebraicNumber(-ran));
+  }
   return RewriteResponse(REWRITE_DONE, t);
 }
 
