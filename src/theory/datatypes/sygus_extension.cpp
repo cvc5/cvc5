@@ -691,7 +691,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
 
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
-  bool doSymBreak = options().datatypes.sygusSymBreak;
+  bool doSymBreak = options().datatypes.sygusSimpleSymBreak
+                    != options::SygusSimpleSymBreakMode::NONE;
   if (isAnyConstant || depth > 2)
   {
     doSymBreak = false;
@@ -1047,7 +1048,7 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = extendedRewrite(bv);
+    Node bvr = d_tds->rewriteNode(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
@@ -1624,7 +1625,9 @@ void SygusExtension::check()
 
         // register the search value ( prog -> progv ), this may invoke symmetry
         // breaking
-        if (!isExc && options().datatypes.sygusSymBreakDynamic)
+        if (!isExc
+            && options().datatypes.sygusRewriter
+                   != options::SygusRewriterMode::NONE)
         {
           bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
           // check that it is unique up to theory-specific rewriting and

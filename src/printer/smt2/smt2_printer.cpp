@@ -33,7 +33,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
-#include "expr/uninterpreted_constant.h"
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -52,9 +52,11 @@
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
+#include "util/real_algebraic_number.h"
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 
@@ -322,11 +324,12 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
-    
-    case kind::UNINTERPRETED_CONSTANT: {
-      const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
+
+    case kind::UNINTERPRETED_SORT_VALUE:
+    {
+      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as @" << uc << " " << n.getType() << ")";
+      ss << "(as " << av << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -522,7 +525,7 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
     }
-    else
+    else if (k != kind::UNINTERPRETED_SORT_VALUE)
     {
       // use type ascription
       out << "(as ";
@@ -532,9 +535,17 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  // variable
-  if (n.isVar())
+  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
   {
+    // abstract value
+    std::string s;
+    n.getAttribute(expr::VarNameAttr(), s);
+    out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
+    return;
+  }
+  else if (n.isVar())
+  {
+    // variable
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
@@ -641,6 +652,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
       stillNeedToPrintParams = false;
       break;
+    case kind::REAL_ALGEBRAIC_NUMBER:
+    {
+      const RealAlgebraicNumber& ran = n.getOperator().getConst<RealAlgebraicNumber>();
+      out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
+      break;
+    }
     case kind::INDEXED_ROOT_PREDICATE_OP:
     {
       const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();

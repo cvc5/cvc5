@@ -16,7 +16,6 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -25,6 +24,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -79,7 +79,7 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
-      if (normalized.isConst())
+      if (TheoryModel::isValue(normalized))
       {
         return normalized;
       }
@@ -101,7 +101,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
     // Members of exclusion set must have values, otherwise we are not yet
     // assignable.
     Node er = eset[i];
-    if (er.isConst())
+    if (TheoryModel::isValue(er))
     {
       // already processed
       continue;
@@ -123,11 +123,6 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
   Trace("model-build-aes") << "isAssignerActive: active!" << std::endl;
   a.d_isActive = true;
   return true;
-}
-
-bool TheoryEngineModelBuilder::isValue(TNode n)
-{
-  return n.getKind() == kind::LAMBDA || n.isConst();
 }
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
@@ -325,7 +320,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
       unsigned card = eqc_usort_count[tn];
       Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
       unsigned index =
-          v.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+          v.getConst<UninterpretedSortValue>().getIndex().toUnsignedInt();
       Trace("model-builder-debug") << "  Index is " << index << std::endl;
       return index > 0 && index >= card;
     }
@@ -508,7 +503,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // applicable. We check if n is a value here, e.g. a term for which
       // isConst returns true, or a lambda. The latter is required only for
       // higher-order.
-      if (isValue(n))
+      if (TheoryModel::isValue(n))
       {
         Assert(constRep.isNull());
         constRep = n;
@@ -737,7 +732,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             }
             if (!normalized.isNull())
             {
-              Assert(normalized.isConst());
+              Assert(TheoryModel::isValue(normalized));
               typeConstSet.add(tb, normalized);
               assignConstantRep(tm, *i2, normalized);
               Trace("model-builder") << "    Eval: Setting constant rep of "
@@ -776,7 +771,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Trace("model-builder") << "    Normalizing rep (" << rep
                                    << "), normalized to (" << normalized << ")"
                                    << endl;
-            if (normalized.isConst())
+            if (TheoryModel::isValue(normalized))
             {
               changed = true;
               typeConstSet.add(tb, normalized);
@@ -1208,7 +1203,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!ri.isConst())
+        if (!TheoryModel::isValue(ri))
         {
           childrenConst = false;
         }
@@ -1255,7 +1250,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
       Node rc = m->getRepresentative(un[j]);
       Trace("model-builder-debug2") << "    get rep : " << un[j] << " returned "
                                     << rc << std::endl;
-      Assert(rc.isConst());
+      Assert(TheoryModel::isValue(rc));
       children.push_back(rc);
     }
     Node simp = NodeManager::currentNM()->mkNode(un.getKind(), children);

@@ -879,6 +879,7 @@ set(regress_0_tests
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/print_subs.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
@@ -1135,6 +1136,8 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
+  regress0/seq/update-concat-non-atomic.smt2
+  regress0/seq/update-concat-non-atomic2.smt2
   regress0/seq/update-eq-unsat.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
@@ -1290,6 +1293,7 @@ set(regress_0_tests
   regress0/strings/parser-syms.cvc.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
+  regress0/strings/proj-issue409-re-loop-none.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1805,6 +1809,7 @@ set(regress_1_tests
   regress1/issue5101-alira-subtypes.smt2
   regress1/issue5739-rtf-processed.smt2
   regress1/issue7902-abd-subsolver-uc.smt2
+  regress1/issue7937-difficulty-irr.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2372,6 +2377,7 @@ set(regress_1_tests
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
   regress1/strings/issue7677-test-const-rv.smt2 
+  regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-active-gen=random --sygus-out=status
+; COMMAND-LINE: --sygus-enum=random --sygus-out=status
 ; EXPECT: unsat
 
 (set-logic BV)

@@ -190,11 +190,13 @@ void RelevanceManager::computeRelevance()
 bool RelevanceManager::computeRelevanceFor(TNode input)
 {
   int32_t val = justify(input);
-  if (val != 1)
+  if (val == -1)
   {
     // if we are in full effort check and fail to justify, then we should
     // give a failure and set success to false, or otherwise calls to
-    // isRelevant cannot be trusted.
+    // isRelevant cannot be trusted. It might also be the case that the
+    // assertion has no value (val == 0), since it may correspond to an
+    // irrelevant Skolem definition, in this case we don't throw a warning.
     if (d_inFullEffortCheck)
     {
       std::stringstream serr;

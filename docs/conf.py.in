@@ -94,12 +94,12 @@ examples_types = {
                 'group': 'java'
         },
         '^<examples>.*\.py$': {
-                'title': 'Python',
+                'title': 'Python (base)',
                 'lang': 'python',
                 'group': 'py-regular'
         },
         '^<z3pycompat>.*\.py$': {
-                'title': 'Python z3py',
+                'title': 'Python (pythonic)',
                 'lang': 'python',
                 'group': 'py-z3pycompat'
         },

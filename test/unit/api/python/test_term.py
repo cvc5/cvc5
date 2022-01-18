@@ -958,17 +958,18 @@ def test_get_const_array_base(solver):
     assert one == constarr.getConstArrayBase()
 
 
-def test_get_abstract_value(solver):
-    v1 = solver.mkAbstractValue(1)
-    v2 = solver.mkAbstractValue("15")
-    v3 = solver.mkAbstractValue("18446744073709551617")
-
-    assert v1.isAbstractValue()
-    assert v2.isAbstractValue()
-    assert v3.isAbstractValue()
-    assert "1" == v1.getAbstractValue()
-    assert "15" == v2.getAbstractValue()
-    assert "18446744073709551617" == v3.getAbstractValue()
+def test_get_uninterpreted_sort_value(solver):
+    solver.setOption("produce-models", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, y))
+    assert solver.checkSat().isSat()
+    vx = solver.getValue(x)
+    vy = solver.getValue(y)
+    assert vx.isUninterpretedSortValue()
+    assert vy.isUninterpretedSortValue()
+    assert vx.getUninterpretedSortValue() == vy.getUninterpretedSortValue()
 
 
 def test_get_tuple(solver):
@@ -1043,18 +1044,6 @@ def test_get_sequence(solver):
     assert [i1] == s3.getSequenceValue()
     assert [i2] == s4.getSequenceValue()
     assert [i1, i1, i2] == s5.getSequenceValue()
-
-
-def test_get_uninterpreted_const(solver):
-    s = solver.mkUninterpretedSort("test")
-    t1 = solver.mkUninterpretedConst(s, 3)
-    t2 = solver.mkUninterpretedConst(s, 5)
-
-    assert t1.isUninterpretedValue()
-    assert t2.isUninterpretedValue()
-
-    assert (s, 3) == t1.getUninterpretedValue()
-    assert (s, 5) == t2.getUninterpretedValue()
 
 
 def test_get_floating_point(solver):
