@@ -90,7 +90,6 @@ RewriteResponse ArithRewriter::preRewrite(TNode t)
 
 RewriteResponse ArithRewriter::postRewrite(TNode t)
 {
-
   Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
@@ -653,11 +652,11 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
               auto it = newdist.find(d.first);
               if (it == newdist.end())
               {
-                newdist.emplace(d.first, d.second + cc.getConst<Rational>());
+                newdist.emplace(d.first, d.second * cc.getConst<Rational>());
               }
               else
               {
-                it->second += cc.getConst<Rational>();
+                it->second *= cc.getConst<Rational>();
               }
               continue;
             }
