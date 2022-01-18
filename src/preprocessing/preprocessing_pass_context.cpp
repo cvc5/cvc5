@@ -20,6 +20,7 @@
 #include "smt/env.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -85,7 +86,7 @@ std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
 void PreprocessingPassContext::printSubstitution(const Node& lhs,
                                                  const Node& rhs) const
 {
-  Node eq = lhs.eqNode(rhs);
+  Node eq =  SkolemManager::getOriginalForm(lhs.eqNode(rhs));
   output(OutputTag::LEARNED_LITS)
       << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
   output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;

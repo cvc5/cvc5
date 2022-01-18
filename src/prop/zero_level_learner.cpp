@@ -84,7 +84,7 @@ void ZeroLevelLearner::notifyInputFormulas(
     for (const Node& lit : ppl)
     {
       output(OutputTag::LEARNED_LITS)
-          << "(learned-lit " << lit << " :preprocess)" << std::endl;
+          << "(learned-lit " <<  SkolemManager::getOriginalForm(lit) << " :preprocess)" << std::endl;
     }
   }
   for (const Node& a : assertions)
