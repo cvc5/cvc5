@@ -1108,6 +1108,8 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
+  regress0/seq/nth-oob.smt2
+  regress0/seq/nth-update.smt2
   regress0/seq/proj-issue340.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/rev.smt2

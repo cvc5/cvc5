@@ -123,7 +123,14 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                          InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
                          false,
                          true);
-      return;
+
+      exp.clear();
+      lem = nm->mkNode(OR, cond, n.eqNode(n[0]));
+      d_im.sendInference(exp,
+                         lem,
+                         InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+                         false,
+                         true);
     }
 
     for (const auto& nthIdxs : d_indexMap)
@@ -142,71 +149,23 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node i = n[1];
       for (Node j : indexes)
       {
-        if (n[2].getKind() == SEQ_UNIT)
-        {
-          // Special case for updates using unit
-          //
-          // x = update(s, n, unit(t))
-          // y = nth(x, m)
-          // -----------------------------------------
-          // n != m => nth(x, m) = nth(s, m)
-          Node left = n[1].eqNode(j).notNode();
-          Node nth1 = nm->mkNode(SEQ_NTH, termProxy, j);
-          Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
-          Node right = nm->mkNode(EQUAL, nth1, nth2);
-          Node lem = nm->mkNode(IMPLIES, left, right);
+        Node nth = nm->mkNode(SEQ_NTH, termProxy, j);
+        Node nthInBounds =
+            nm->mkNode(AND,
+                       nm->mkNode(LEQ, nm->mkConstInt(0), j),
+                       nm->mkNode(LT, j, nm->mkNode(STRING_LENGTH, n[0])));
+        Node idxEq = i.eqNode(j);
+        Node updateVal = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(0));
+        Node iteNthInBounds = nm->mkNode(
+            ITE, i.eqNode(j), updateVal, nm->mkNode(SEQ_NTH, n[0], j));
+        Node uf = SkolemCache::mkSkolemSeqNth(n[0].getType(), "Uf");
+        Node ufj = nm->mkNode(APPLY_UF, uf, n, j);
+        Node rhs = nm->mkNode(ITE, nthInBounds, iteNthInBounds, ufj);
+        Node lem = nth.eqNode(rhs);
 
-          std::vector<Node> exp;
-          d_im.addToExplanation(termProxy, n, exp);
-          sendInference(
-              exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT);
-          return;
-        }
-
-        if (d_state.areEqual(i, j))
-        {
-          Node nth = nm->mkNode(SEQ_NTH, termProxy, j);
-          Node cond =
-              nm->mkNode(AND,
-                         nm->mkNode(LEQ, nm->mkConstInt(0), j),
-                         nm->mkNode(LT, j, nm->mkNode(STRING_LENGTH, n[0])));
-          Node uf = SkolemCache::mkSkolemSeqNth(n[0].getType(), "Uf");
-          Node ufj = nm->mkNode(APPLY_UF, uf, n[0], j);
-          Node cases = nm->mkNode(
-              ITE, cond, nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(0)), ufj);
-          Node lem = nm->mkNode(EQUAL, nth, cases);
-          // n = m =>
-          //   nth(update(s, n, t), m) =
-          //     ite(0 <= m < |s|, nth(t, 0), Uf(s, m))
-          std::vector<Node> exp;
-          d_im.addToExplanation(termProxy, n, exp);
-          d_im.addToExplanation(i.eqNode(j), exp);
-          sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_EQ);
-        }
-        else if (d_state.areDisequal(i, j))
-        {
-          Node nth = nm->mkNode(SEQ_NTH, termProxy, j);
-          Node cond =
-              nm->mkNode(AND,
-                         nm->mkNode(LEQ, nm->mkConstInt(0), j),
-                         nm->mkNode(LT, j, nm->mkNode(STRING_LENGTH, n[0])));
-          Node uf = SkolemCache::mkSkolemSeqNth(n[0].getType(), "Uf");
-          Node ufj = nm->mkNode(APPLY_UF, uf, n, j);
-          Node cases = nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, n[0], j), ufj);
-          Node lem = nm->mkNode(EQUAL, nth, cases);
-          // n != m =>
-          //   nth(update(s, n, t), m) =
-          //     ite(0 <= m < |s|, nth(s, m), Uf(update(s, n, t), m))
-          std::vector<Node> exp;
-          d_im.addToExplanation(termProxy, n, exp);
-          d_im.addToExplanation(i.eqNode(j).notNode(), exp);
-          sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_DEQ);
-        }
-        else
-        {
-          // Split on whether the indices are equal or disequal
-          d_im.sendSplit(i, j, InferenceId::STRINGS_INDEX_SPLIT);
-        }
+        std::vector<Node> exp;
+        d_im.addToExplanation(termProxy, n, exp);
+        sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_EQ);
       }
     }
   }
