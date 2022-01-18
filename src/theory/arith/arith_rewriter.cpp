@@ -18,7 +18,6 @@
 
 #include "theory/arith/arith_rewriter.h"
 
-#include <optional>
 #include <set>
 #include <sstream>
 #include <stack>
@@ -109,23 +108,6 @@ Node flatten(TNode t)
   flatten(t, children);
   Assert(children.size() >= 2);
   return NodeManager::currentNM()->mkNode(t.getKind(), std::move(children));
-}
-
-/**
- * Check whether the parent has a child that is a constant zero.
- * If so, return this child. Otherwise, return std::nullopt.
- */
-template <typename Iterable>
-std::optional<TNode> getZeroChild(const Iterable& parent)
-{
-  for (const auto& node : parent)
-  {
-    if (node.isConst() && node.template getConst<Rational>().isZero())
-    {
-      return node;
-    }
-  }
-  return std::nullopt;
 }
 
 }  // namespace
