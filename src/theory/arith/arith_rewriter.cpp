@@ -161,7 +161,12 @@ void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplic
   {
     case Kind::MULT:
     case Kind::NONLINEAR_MULT:
-      product.insert(product.end(), n.begin(), n.end());
+      for (const auto& child: n)
+      {
+        // make sure constants are properly extracted.
+        // recursion is safe, as mult is already flattened
+        addToDistProduct(product, multiplicity, child);
+      }
       break;
     case Kind::REAL_ALGEBRAIC_NUMBER:
       multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
