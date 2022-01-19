@@ -78,7 +78,10 @@ void flatten(TNode t, std::vector<TNode>& children)
  * Flatten the given node (with child nodes of one of the given kinds) into a
  * vector.
  */
-[[maybe_unused]] void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+[[maybe_unused]] void flatten(TNode t,
+                              Kind k1,
+                              Kind k2,
+                              std::vector<TNode>& children)
 {
   Assert(t.getKind() == k1 || t.getKind() == k2);
   for (const auto& child : t)
