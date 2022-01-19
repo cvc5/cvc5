@@ -25,8 +25,8 @@ if (BUILD_BINDINGS_PYTHON)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
-        DEPENDS cvc5_base_py_api
+        DEPENDS cvc5-python-base
     )
 
-    add_dependencies(docs-python cvc5_base_py_api z3pycompat-EP)
+    add_dependencies(docs-python cvc5-python-base z3pycompat-EP)
 endif()
