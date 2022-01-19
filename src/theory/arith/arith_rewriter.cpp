@@ -80,30 +80,32 @@ ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
 {
+  Trace("arith-rewriter") << "preRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
-    return preRewriteAtom(t);
+    auto res = preRewriteAtom(t);
+    Trace("arith-rewriter")
+        << res.d_status << " -> " << res.d_node << std::endl;
+    return res;
   }
-  return preRewriteTerm(t);
+  auto res = preRewriteTerm(t);
+  Trace("arith-rewriter") << res.d_status << " -> " << res.d_node << std::endl;
+  return res;
 }
 
 RewriteResponse ArithRewriter::postRewrite(TNode t)
 {
+  Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
-    RewriteResponse response = postRewriteAtom(t);
-    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
-    {
-      Comparison::parseNormalForm(response.d_node);
-    }
-    return response;
+    auto res = postRewriteAtom(t);
+    Trace("arith-rewriter")
+        << res.d_status << " -> " << res.d_node << std::endl;
+    return res;
   }
-  RewriteResponse response = postRewriteTerm(t);
-  if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
-  {
-    Polynomial::parsePolynomial(response.d_node);
-  }
-  return response;
+  auto res = postRewriteTerm(t);
+  Trace("arith-rewriter") << res.d_status << " -> " << res.d_node << std::endl;
+  return res;
 }
 
 RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
