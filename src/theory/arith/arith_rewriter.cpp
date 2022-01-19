@@ -194,12 +194,12 @@ void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplic
 
 Node distributeMultiplication(const std::vector<TNode>& factors)
 {
-  if (Trace.isOn("arith-rewriter"))
+  if (Trace.isOn("arith-rewriter-distribute"))
   {
-    Trace("arith-rewriter") << "Distributing" << std::endl;
+    Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
     for (const auto& f: factors)
     {
-      Trace("arith-rewriter") << "\t" << f << std::endl;
+      Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
     }
   }
   auto* nm = NodeManager::currentNM();
@@ -260,12 +260,12 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToDistSum(newsum, newprod, multiplicity);
       }
     }
-    Trace("arith-rewriter") << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter") << "base: " << basemultiplicity << " * " << base << std::endl;
-    Trace("arith-rewriter") << "sum:" << std::endl;
+    Trace("arith-rewriter-distribute") << "multiplied with " << factor << std::endl;
+    Trace("arith-rewriter-distribute") << "base: " << basemultiplicity << " * " << base << std::endl;
+    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
     for (const auto& summand : newsum)
     {
-      Trace("arith-rewriter")
+      Trace("arith-rewriter-distribute")
           << "\t" << summand.second << " * " << summand.first << std::endl;
     }
 
