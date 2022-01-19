@@ -827,10 +827,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
 
-  Trace("arith-rewriter") << "postRewriteMult " << t << std::endl;
-
-  auto* nm = NodeManager::currentNM();
-
   std::vector<TNode> children;
   flatten(t, Kind::MULT, Kind::NONLINEAR_MULT, children);
 
@@ -845,112 +841,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       }))
   {
     return RewriteResponse(REWRITE_AGAIN_FULL, distributeMultiplication(children));
-    Trace("arith-rewriter") << "Distributing " << t << std::endl;
-    std::vector<Node> base;
-    std::unordered_map<Node, Rational> dist;
-    // std::vector<std::vector<TNode>> dist;
-    dist.emplace(nm->mkConstReal(Rational(1)), Rational(1));
-
-    for (const auto& child : children)
-    {
-      Trace("arith-rewriter") << "multiplying " << child << " to" << std::endl;
-      Trace("arith-rewriter") << "base: " << base << std::endl;
-      Trace("arith-rewriter") << "dist:" << std::endl;
-      for (const auto& d : dist)
-      {
-        Trace("arith-rewriter")
-            << "\t" << d.second << " * " << d.first << std::endl;
-      }
-      if (child.getKind() == Kind::PLUS)
-      {
-        std::unordered_map<Node, Rational> newdist;
-
-        for (const auto& d : dist)
-        {
-          for (const auto& cc : child)
-          {
-            if (cc.isConst())
-            {
-              auto it = newdist.find(d.first);
-              if (it == newdist.end())
-              {
-                newdist.emplace(d.first, d.second * cc.getConst<Rational>());
-              }
-              else
-              {
-                it->second += d.second * cc.getConst<Rational>();
-              }
-              continue;
-            }
-            std::vector<Node> newc;
-            addToMultiplication(newc, d.first);
-            addToMultiplication(newc, cc);
-            
-            std::sort(newc.begin(), newc.end(), Variable::VariableNodeCmp());
-            
-            Node newmult;
-            switch (newc.size())
-            {
-              case 0: newmult = nm->mkConstReal(Rational(1)); break;
-              case 1: newmult = newc[0]; break;
-              default:
-                newmult = nm->mkNode(Kind::NONLINEAR_MULT, std::move(newc));
-            }
-            Trace("arith-rewriter") << "newmult = " << newmult << std::endl;
-
-            auto it = newdist.find(newmult);
-            if (it == newdist.end())
-            {
-              newdist.emplace(newmult, d.second);
-            }
-            else
-            {
-              it->second += d.second;
-            }
-          }
-        }
-
-        dist = std::move(newdist);
-      }
-      else
-      {
-        base.emplace_back(child);
-      }
-    }
-    Trace("arith-rewriter") << "base: " << base << std::endl;
-    Trace("arith-rewriter") << "dist:" << std::endl;
-    for (const auto& d : dist)
-    {
-      Trace("arith-rewriter")
-          << "\t" << d.second << " * " << d.first << std::endl;
-    }
-
-    std::vector<std::vector<Node>> raw;
-
-    for (const auto& d : dist)
-    {
-      raw.emplace_back();
-      raw.back().emplace_back(nm->mkConstReal(d.second));
-
-      addToMultiplication(raw.back(), d.first);
-
-      raw.back().insert(raw.back().end(), base.begin(), base.end());
-      Trace("arith-rewriter")
-          << "raw " << d << " -> " << raw.back() << std::endl;
-    }
-    base.clear();
-    for (const auto& d : raw)
-    {
-      switch (d.size())
-      {
-        case 0: base.emplace_back(nm->mkConstReal(Rational(1))); break;
-        case 1: base.emplace_back(d[0]); break;
-        default: base.emplace_back(nm->mkNode(Kind::NONLINEAR_MULT, d));
-      }
-    }
-    Node res = nm->mkNode(Kind::PLUS, std::move(base));
-    Trace("arith-rewriter") << "-> " << res << std::endl;
-    return RewriteResponse(REWRITE_AGAIN_FULL, res);
   }
 
   Rational rational = Rational(1);
@@ -978,6 +868,8 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       leafs.emplace_back(child);
     }
   }
+
+  auto* nm = NodeManager::currentNM();
 
   Assert(!isZero(rational));
   if (ran.isRational())
