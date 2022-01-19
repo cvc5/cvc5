@@ -91,6 +91,8 @@ class CardSolver : protected EnvObj
    */
   void checkLeafBag(const std::pair<Node, Node>& pair, const Node& bag);
   void addChildren(const Node& parent, const std::set<Node>& children);
+  void mergeChildren(const std::set<Node>& set1, const std::set<Node>& set2);
+  std::set<Node> getLeaves(const std::set<Node>& set);
   /** The solver state object */
   SolverState& d_state;
   /** The inference generator object*/

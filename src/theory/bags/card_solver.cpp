@@ -268,20 +268,33 @@ void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
 
 void CardSolver::addChildren(const Node& parent, const set<Node>& children)
 {
+  // make sure parent is in the graph
   if (d_cardGraph.count(parent) == 0)
   {
-    d_cardGraph[parent] = {children};
+    d_cardGraph[parent] = {};
   }
-  if (d_cardGraph[parent].count(children) == 0)
-  {
-    d_cardGraph[parent].insert(children);
-  }
+  // make sure children are in the graph
   for (Node child : children)
   {
     // if not in the graph
     if (d_cardGraph.count(child) == 0)
     {
       d_cardGraph[child] = {};
+    }
+  }
+
+  if (d_cardGraph[parent].count(children) == 0)
+  {
+    if (d_cardGraph[parent].size() == 0)
+    {
+      d_cardGraph[parent].insert(children);
+    }
+    else
+    {
+      // merge with the first set
+      const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
+      d_cardGraph[parent].insert(children);
+      mergeChildren(oldChildren, children);
     }
   }
 }
@@ -375,6 +388,42 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
       }
     }
   }
+}
+
+void CardSolver::mergeChildren(const set<Node>& set1, const set<Node>& set2)
+{
+  Trace("bags-card") << "CardSolver::mergeChildren set1: " << set1 << std::endl;
+  Trace("bags-card") << "CardSolver::mergeChildren set2: " << set2 << std::endl;
+  std::set<Node> leaves1 = getLeaves(set1);
+  Trace("bags-card") << "leaves1: " << leaves1 << std::endl;
+  std::set<Node> leaves2 = getLeaves(set2);
+  Trace("bags-card") << "leaves2: " << leaves2 << std::endl;
+
+  for (Node n1 : leaves1)
+  {
+    std::set<Node> children;
+    for (Node n2 : leaves2)
+    {
+      Node inter = n1 <= n2 ? d_nm->mkNode(BAG_INTER_MIN, n1, n2)
+                            : d_nm->mkNode(BAG_INTER_MIN, n2, n1);
+      d_state.registerBag(inter);
+      Node rep = d_state.getRepresentative(inter);
+      children.insert(rep);
+    }
+    Trace("bags-card") << "new leaves: " << children << std::endl;
+  }
+}
+std::set<Node> CardSolver::getLeaves(const set<Node>& set)
+{
+  std::set<Node> leaves;
+  for (Node n : set)
+  {
+    if (d_cardGraph[n].empty())
+    {
+      leaves.insert(n);
+    }
+  }
+  return leaves;
 }
 
 }  // namespace bags
