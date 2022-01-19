@@ -214,6 +214,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
 
   for (const auto& factor: factors)
   {
+    // Subtractions are rewritten already, we only need to care about additions
     Assert(factor.getKind() != Kind::MINUS);
     Assert(factor.getKind() != Kind::UMINUS || (factor[0].isConst() || factor[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER));
     if (factor.getKind() != Kind::PLUS)
