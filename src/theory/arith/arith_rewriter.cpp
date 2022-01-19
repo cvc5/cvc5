@@ -605,6 +605,15 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     }
   }
 
+  if (atom.getKind() == Kind::EQUAL)
+  {
+    if (left > right)
+    {
+      return RewriteResponse(REWRITE_DONE, right.eqNode(left));
+    }
+    return RewriteResponse(REWRITE_DONE, atom);
+  }
+
   Polynomial pleft = Polynomial::parsePolynomial(left);
   Polynomial pright = Polynomial::parsePolynomial(right);
 
