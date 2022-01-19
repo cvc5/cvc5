@@ -83,6 +83,64 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
   }
 }
 
+/**
+ * Add a new summand, consisting of the product and the multiplicity, to a sum
+ * as used in the distribution of multiplication. Either adds the summand as a
+ * new entry to sum, or adds the multiplicity to an already existing summand.
+ *
+ * Invariant:
+ *   add(s.n * s.ran for s in sum')
+ *   = add(s.n * s.ran for s in sum) + multiplicity * product
+ */
+void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, TNode product, const RealAlgebraicNumber& multiplicity)
+{
+  auto it = sum.find(product);
+  if (it == sum.end())
+  {
+    sum.emplace(product, multiplicity);
+  }
+  else
+  {
+    it->second += multiplicity;
+    if (isZero(it->second))
+    {
+      sum.erase(it);
+    }
+  }
+}
+
+/**
+ * Adds a factor n to a product, consisting of the numerical multiplicity and
+ * the remaining (non-numerical) factors. If n is a product itself, its children
+ * are merged into a product. If n is a constant or a real algebraic number, it
+ * is multiplied to the multiplicity. Otherwise, n is added to product.
+ *
+ * Invariant:
+ *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
+ */
+void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplicity, TNode n)
+{
+  switch (n.getKind())
+  {
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      product.insert(product.end(), n.begin(), n.end());
+      break;
+    case Kind::REAL_ALGEBRAIC_NUMBER:
+      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
+      break;
+    default:
+      if (n.isConst())
+      {
+        multiplicity *= n.getConst<Rational>();
+      }
+      else
+      {
+        product.emplace_back(n);
+      }
+  }
+}
+
 }  // namespace
 
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
