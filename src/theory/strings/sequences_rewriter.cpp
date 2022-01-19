@@ -1166,15 +1166,24 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
 Node SequencesRewriter::rewriteLoopRegExp(TNode node)
 {
   Assert(node.getKind() == REGEXP_LOOP);
-  Node retNode = node;
+  uint32_t l = utils::getLoopMinOccurrences(node);
+  uint32_t u = utils::getLoopMaxOccurrences(node);
   Node r = node[0];
-  if (r.getKind() == REGEXP_STAR)
+  Node retNode = node;
+
+  NodeManager* nm = NodeManager::currentNM();
+  if (u < l)
+  {
+    // ((_ re.loop l u) r) --> re.none if u < l
+    std::vector<Node> nvec;
+    retNode = nm->mkNode(REGEXP_NONE, nvec);
+    return returnRewrite(node, retNode, Rewrite::RE_LOOP_NONE);
+  }
+  else if (r.getKind() == REGEXP_STAR)
   {
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
   }
-  NodeManager* nm = NodeManager::currentNM();
-  cvc5::Rational rMaxInt(String::maxSize());
-  uint32_t l = utils::getLoopMinOccurrences(node);
+
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
   {
@@ -1184,13 +1193,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
       vec_nodes.size() == 0
           ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
           : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
-  uint32_t u = utils::getLoopMaxOccurrences(node);
-  if (u < l)
-  {
-    std::vector<Node> nvec;
-    retNode = nm->mkNode(REGEXP_NONE, nvec);
-  }
-  else if (u == l)
+  if (u == l)
   {
     retNode = n;
   }
