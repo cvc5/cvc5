@@ -284,14 +284,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToDistProduct(newProduct, multiplicity, summand.first);
         addToDistProduct(newProduct, multiplicity, child);
         std::sort(newProduct.begin(), newProduct.end(), Variable::VariableNodeCmp());
-        Node newprod;
-        switch (newProduct.size())
-        {
-          case 0: newprod = nm->mkConstReal(Rational(1)); break;
-          case 1: newprod = newProduct[0]; break;
-          default: newprod = nm->mkNode(Kind::NONLINEAR_MULT, std::move(newProduct));
-        }
-        addToDistSum(newsum, newprod, multiplicity);
+        addToDistSum(newsum, mkMult(std::move(newProduct)), multiplicity);
       }
     }
     Trace("arith-rewriter-distribute") << "multiplied with " << factor << std::endl;
