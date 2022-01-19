@@ -435,6 +435,19 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_update)
     // Same normal form for:
     //
     // (seq.update
+    //   (seq.unit x))
+    //   0
+    //   (seq.unit w))
+    //
+    // (seq.unit w)
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, sx, zero, sw);
+    sameNormalForm(n, sw);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
     //   (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
     //   0
     //   (seq.unit w))
