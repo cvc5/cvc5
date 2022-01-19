@@ -43,6 +43,7 @@ namespace arith {
 
 namespace {
 
+/** Make a nonlinear multiplication from the given factors */
 template<typename T>
 Node mkMult(T&& factors)
 {
@@ -55,6 +56,7 @@ Node mkMult(T&& factors)
   }
 }
 
+/** Make a sum from the given summands */
 template<typename T>
 Node mkSum(T&& summands)
 {
@@ -152,6 +154,15 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
   return std::nullopt;
 }
 
+/**
+ * Add a new summand, consisting of the product and the multiplicity, to a sum
+ * as used in the distribution of multiplication. Either adds the summand as a
+ * new entry to sum, or adds the multiplicity to an already existing summand.
+ *
+ * Invariant:
+ *   add(s.n * s.ran for s in sum')
+ *   = add(s.n * s.ran for s in sum) + multiplicity * product
+ */
 void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 {
   auto it = sum.find(product);
@@ -169,6 +180,15 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, TNode prod
   }
 }
 
+/**
+ * Adds a factor n to a product, consisting of the numerical multiplicity and
+ * the remaining (non-numerical) factors. If n is a product itself, its children
+ * are merged into a product. If n is a constant or a real algebraic number, it
+ * is multiplied to the multiplicity. Otherwise, n is added to product.
+ *
+ * Invariant:
+ *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
+ */
 void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplicity, TNode n)
 {
   switch (n.getKind())
@@ -192,6 +212,19 @@ void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplic
   }
 }
 
+/**
+ * Distribute a multiplication over one or more additions. The multiplication
+ * is given as the list of its factors. Though this method also works if none
+ * of these factors is an addition, there is no point of calling this method
+ * in this case. The result is the resulting sum after expanding the product
+ * and pushing the multiplication inside the addition.
+ * 
+ * The method maintains a `sum` as a mapping from Node to RealAlgebraicNumber.
+ * The nodes can be understood as monomials, or generally non-value parts of
+ * the product, while the real algebraic numbers are the multiplicities of these
+ * monomials or products. This allows to combine summands with identical
+ * monomials immediately and avoid a potential blow-up.
+ */
 Node distributeMultiplication(const std::vector<TNode>& factors)
 {
   if (Trace.isOn("arith-rewriter-distribute"))
@@ -203,7 +236,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
     }
   }
   auto* nm = NodeManager::currentNM();
-  // factors that are not sums
+  // factors that are not sums, separated into numerical and non-numerical
   RealAlgebraicNumber basemultiplicity(Integer(1));
   std::vector<Node> base;
   // maps products to their (possibly real algebraic) multiplicities.
@@ -212,6 +245,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // Add a base summand
   sum.emplace(nm->mkConstReal(Rational(1)), RealAlgebraicNumber(Integer(1)));
 
+  // multiply factors one by one to basmultiplicity * base * sum
   for (const auto& factor: factors)
   {
     // Subtractions are rewritten already, we only need to care about additions
