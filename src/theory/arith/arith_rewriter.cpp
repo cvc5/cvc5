@@ -747,12 +747,40 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
 
   // maps products to their (possibly real algebraic) multiplicities.
   // The current (intermediate) value is the sum of these (multiplied by the base factors).
+  RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
 
   for (const auto& child: t)
   {
-
+    std::vector<Node> monomial;
+    RealAlgebraicNumber multiplicity(Integer(1));
+    addToDistProduct(monomial, multiplicity, child);
+    if (monomial.empty())
+    {
+      base += multiplicity;
+      continue;
+    }
+    addToDistSum(sum, mkMult(std::move(monomial)), multiplicity);
   }
+
+  auto* nm = NodeManager::currentNM();
+  std::vector<Node> summands = distSumToSum(std::nullopt, {}, sum);
+  if (summands.empty())
+  {
+    return RewriteResponse(REWRITE_AGAIN, nm->mkRealAlgebraicNumber(base));
+  }
+  if (!isZero(base))
+  {
+    if (base.isRational())
+    {
+      summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
+    }
+    else
+    {
+      summands.insert(summands.begin(), nm->mkRealAlgebraicNumber(base));
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, mkSum(std::move(summands)));
 
   Rational rational;
   RealAlgebraicNumber ran;
@@ -809,7 +837,6 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
     }
   }
 
-  auto* nm = NodeManager::currentNM();
   if (poly.isConstant())
   {
     return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
