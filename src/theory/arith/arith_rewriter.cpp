@@ -141,6 +141,120 @@ void addToDistProduct(std::vector<Node>& product, RealAlgebraicNumber& multiplic
   }
 }
 
+/**
+ * Distribute a multiplication over one or more additions. The multiplication
+ * is given as the list of its factors. Though this method also works if none
+ * of these factors is an addition, there is no point of calling this method
+ * in this case. The result is the resulting sum after expanding the product
+ * and pushing the multiplication inside the addition.
+ * 
+ * The method maintains a `sum` as a mapping from Node to RealAlgebraicNumber.
+ * The nodes can be understood as monomials, or generally non-value parts of
+ * the product, while the real algebraic numbers are the multiplicities of these
+ * monomials or products. This allows to combine summands with identical
+ * monomials immediately and avoid a potential blow-up.
+ */
+Node distributeMultiplication(const std::vector<TNode>& factors)
+{
+  if (Trace.isOn("arith-rewriter-distribute"))
+  {
+    Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
+    for (const auto& f: factors)
+    {
+      Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
+    }
+  }
+  auto* nm = NodeManager::currentNM();
+  // factors that are not sums, separated into numerical and non-numerical
+  RealAlgebraicNumber basemultiplicity(Integer(1));
+  std::vector<Node> base;
+  // maps products to their (possibly real algebraic) multiplicities.
+  // The current (intermediate) value is the sum of these (multiplied by the base factors).
+  std::unordered_map<Node, RealAlgebraicNumber> sum;
+  // Add a base summand
+  sum.emplace(nm->mkConstReal(Rational(1)), RealAlgebraicNumber(Integer(1)));
+
+  // multiply factors one by one to basmultiplicity * base * sum
+  for (const auto& factor: factors)
+  {
+    // Subtractions are rewritten already, we only need to care about additions
+    Assert(factor.getKind() != Kind::MINUS);
+    Assert(factor.getKind() != Kind::UMINUS || (factor[0].isConst() || factor[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER));
+    if (factor.getKind() != Kind::PLUS)
+    {
+      Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
+      addToDistProduct(base, basemultiplicity, factor);
+      continue;
+    }
+    // temporary to store factor * sum, will be moved to sum at the end
+    std::unordered_map<Node, RealAlgebraicNumber> newsum;
+
+    for (const auto& summand : sum)
+    {
+      for (const auto& child: factor)
+      {
+        // add summand * child to newsum
+        RealAlgebraicNumber multiplicity = summand.second;
+        if (child.isConst())
+        {
+          multiplicity *= child.getConst<Rational>();
+          addToDistSum(newsum, summand.first, multiplicity);
+          continue;
+        }
+        if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+        {
+          multiplicity *= child.getOperator().getConst<RealAlgebraicNumber>();
+          addToDistSum(newsum, summand.first, multiplicity);
+          continue;
+        }
+
+        // construct the new product
+        std::vector<Node> newProduct;
+        addToDistProduct(newProduct, multiplicity, summand.first);
+        addToDistProduct(newProduct, multiplicity, child);
+        std::sort(newProduct.begin(), newProduct.end(), Variable::VariableNodeCmp());
+        addToDistSum(newsum, mkMult(std::move(newProduct)), multiplicity);
+      }
+    }
+    Trace("arith-rewriter-distribute") << "multiplied with " << factor << std::endl;
+    Trace("arith-rewriter-distribute") << "base: " << basemultiplicity << " * " << base << std::endl;
+    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
+    for (const auto& summand : newsum)
+    {
+      Trace("arith-rewriter-distribute")
+          << "\t" << summand.second << " * " << summand.first << std::endl;
+    }
+
+    sum = std::move(newsum);
+  }
+  // now mult(factors) == base * add(sum)
+
+  // construct the sum as nodes
+  std::vector<Node> children;
+  for (const auto& summand: sum)
+  {
+    if (isZero(summand.second)) continue;
+    RealAlgebraicNumber mult = basemultiplicity * summand.second;
+    std::vector<Node> product = base;
+    addToDistProduct(product, mult, summand.first);
+    if (mult.isRational())
+    {
+      if (!isOne(mult))
+      {
+        product.emplace_back(nm->mkConstReal(mult.toRational()));
+      }
+    }
+    else
+    {
+      product.emplace_back(nm->mkRealAlgebraicNumber(mult));
+    }
+    children.emplace_back(mkMult(std::move(product)));
+  }
+  // now mult(factors) == add(children)
+
+  return mkSum(std::move(children));
+}
+
 }  // namespace
 
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
