@@ -755,8 +755,22 @@ Polynomial Comparison::normalizedVariablePart() const {
   case kind::EQUAL:
   case kind::DISTINCT:
     {
+      Polynomial result = getLeft() - getRight();
+      Assert(!result.isConstant());
+      if (result.containsConstant())
+      {
+        result = result.getTail();
+      }
+      if (!result.leadingCoefficientIsPositive())
+      {
+        result = -result;
+      }
+      return result;
+
+
       Polynomial left = getLeft();
       Polynomial right = getRight();
+
       if(right.isConstant()){
         return left;
       }else{
@@ -1095,16 +1109,11 @@ bool Comparison::isNormalLT() const {
   }
 }
 
-
-bool Comparison::isNormalEqualityOrDisequality() const {
-  return Polynomial::isMember(getNode()[0]) && Polynomial::isMember(getNode()[1]);
-}
-
 /** This must be (= qvarlist qpolynomial) or (= zmonomial zpolynomial)*/
 bool Comparison::isNormalEquality() const {
   Assert(getNode().getKind() == kind::EQUAL);
-  return Theory::theoryOf(getNode()[0].getType()) == THEORY_ARITH &&
-         isNormalEqualityOrDisequality();
+  if (Theory::theoryOf(getNode()[0].getType()) != THEORY_ARITH) return false;
+  return Polynomial::isMember(getNode()[0]) && Polynomial::isMember(getNode()[1]);
 }
 
 /**
@@ -1115,8 +1124,8 @@ bool Comparison::isNormalDistinct() const {
   Assert(getNode().getKind() == kind::NOT);
   Assert(getNode()[0].getKind() == kind::EQUAL);
 
-  return Theory::theoryOf(getNode()[0][0].getType()) == THEORY_ARITH &&
-         isNormalEqualityOrDisequality();
+  if (Theory::theoryOf(getNode()[0][0].getType()) != THEORY_ARITH) return false;
+  return Polynomial::isMember(getNode()[0][0]) && Polynomial::isMember(getNode()[0][1]);
 }
 
 Node Comparison::mkRatEquality(const Polynomial& p){
