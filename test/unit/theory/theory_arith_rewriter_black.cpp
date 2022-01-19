@@ -86,11 +86,11 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 uint64_t binomial(uint64_t n, uint64_t k)
 {
   uint64_t result = 1;
-  uint64_t nextmult = k+1;
+  uint64_t nextmult = k + 1;
   uint64_t nextdiv = 2;
-  while (nextmult <= n || nextdiv <= n-k)
+  while (nextmult <= n || nextdiv <= n - k)
   {
-    while (nextdiv <= n-k && result % nextdiv == 0)
+    while (nextdiv <= n - k && result % nextdiv == 0)
     {
       result /= nextdiv;
       ++nextdiv;
@@ -103,7 +103,6 @@ uint64_t binomial(uint64_t n, uint64_t k)
   }
   return result;
 }
-
 
 TEST_F(TestTheoryArithRewriterBlack, distribute)
 {
@@ -125,7 +124,8 @@ TEST_F(TestTheoryArithRewriterBlack, distribute)
       Rational fac = binomial(n, k);
       if (!fac.isOne())
       {
-        mon = d_nodeManager->mkNode(Kind::MULT, d_nodeManager->mkConstInt(fac), mon);
+        mon = d_nodeManager->mkNode(
+            Kind::MULT, d_nodeManager->mkConstInt(fac), mon);
       }
       reference.emplace_back(mon);
     }
