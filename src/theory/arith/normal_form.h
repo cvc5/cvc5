@@ -1391,7 +1391,6 @@ private:
 
   bool isNormalEquality() const;
   bool isNormalDistinct() const;
-  bool isNormalEqualityOrDisequality() const;
 
   bool allIntegralVariables() const {
     return getLeft().allIntegralVariables() && getRight().allIntegralVariables();
