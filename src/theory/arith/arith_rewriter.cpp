@@ -98,7 +98,7 @@ struct ProductNodeComparator
 
     Assert(a.getKind() != Kind::MULT);
     Assert(b.getKind() != Kind::MULT);
-    
+
     bool aIsMult = a.getKind() == Kind::NONLINEAR_MULT;
     bool bIsMult = b.getKind() == Kind::NONLINEAR_MULT;
     if (aIsMult != bIsMult) return !aIsMult;
@@ -186,7 +186,10 @@ void flatten(TNode t, std::vector<TNode>& children)
  * Flatten the given node (with child nodes of one of the given kinds) into a
  * vector.
  */
-[[maybe_unused]] void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+[[maybe_unused]] void flatten(TNode t,
+                              Kind k1,
+                              Kind k2,
+                              std::vector<TNode>& children)
 {
   Assert(t.getKind() == k1 || t.getKind() == k2);
   for (const auto& child : t)
@@ -306,7 +309,10 @@ void addToDistProduct(std::vector<Node>& product,
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-std::vector<Node> distSumToSum(const std::optional<RealAlgebraicNumber>& basemultiplicity, const std::vector<Node>& base, const std::unordered_map<Node, RealAlgebraicNumber>& sum)
+std::vector<Node> distSumToSum(
+    const std::optional<RealAlgebraicNumber>& basemultiplicity,
+    const std::vector<Node>& base,
+    const std::unordered_map<Node, RealAlgebraicNumber>& sum)
 {
   auto* nm = NodeManager::currentNM();
   // construct the sum as nodes
@@ -321,10 +327,11 @@ std::vector<Node> distSumToSum(const std::optional<RealAlgebraicNumber>& basemul
     std::sort(product.begin(), product.end(), LeafNodeComparator());
     summands.emplace_back(mkMult(std::move(product)), mult);
   }
-  std::sort(summands.begin(), summands.end(),
-    [](const auto& a, const auto& b) { return ProductNodeComparator()(a.first, b.first); });
+  std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
+    return ProductNodeComparator()(a.first, b.first);
+  });
   std::vector<Node> children;
-  for (const auto& s: summands)
+  for (const auto& s : summands)
   {
     if (s.second.isRational())
     {
@@ -334,8 +341,9 @@ std::vector<Node> distSumToSum(const std::optional<RealAlgebraicNumber>& basemul
       }
       else
       {
-        children.emplace_back(nm->mkNode(Kind::MULT, nm->mkConstReal(s.second.toRational()), s.first));
-      } 
+        children.emplace_back(nm->mkNode(
+            Kind::MULT, nm->mkConstReal(s.second.toRational()), s.first));
+      }
     }
     else
     {
@@ -422,8 +430,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         std::vector<Node> newProduct;
         addToDistProduct(newProduct, multiplicity, summand.first);
         addToDistProduct(newProduct, multiplicity, child);
-        std::sort(
-            newProduct.begin(), newProduct.end(), LeafNodeComparator());
+        std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
         addToDistSum(newsum, mkMult(std::move(newProduct)), multiplicity);
       }
     }
@@ -828,12 +835,14 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-RewriteResponse ArithRewriter::preRewritePlus(TNode t){
+RewriteResponse ArithRewriter::preRewritePlus(TNode t)
+{
   Assert(t.getKind() == kind::PLUS);
   return RewriteResponse(REWRITE_DONE, flatten(t));
 }
 
-RewriteResponse ArithRewriter::postRewritePlus(TNode t){
+RewriteResponse ArithRewriter::postRewritePlus(TNode t)
+{
   Assert(t.getKind() == kind::PLUS);
   Assert(t.getNumChildren() > 1);
 
@@ -841,11 +850,12 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   flatten(t, children);
 
   // maps products to their (possibly real algebraic) multiplicities.
-  // The current (intermediate) value is the sum of these (multiplied by the base factors).
+  // The current (intermediate) value is the sum of these (multiplied by the
+  // base factors).
   RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
 
-  for (const auto& child: t)
+  for (const auto& child : t)
   {
     std::vector<Node> monomial;
     RealAlgebraicNumber multiplicity(Integer(1));
