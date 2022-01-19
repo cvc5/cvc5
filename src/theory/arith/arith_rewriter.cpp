@@ -43,6 +43,51 @@ namespace arith {
 
 namespace {
 
+/**
+ * Implements an ordering on arithmetic leaf nodes, excluding rationals. As this
+ * comparator is meant to be used on children of Kind::NONLINEAR_MULT, we expect
+ * rationals to be handled separately. Furthermore, we expect there to be only a
+ * single real algebraic number.
+ * It broadly categorizes leaf nodes into real algebraic numbers, integers,
+ * variables, and the rest. The ordering is build as follows:
+ * - real algebraic numbers come first
+ * - integer terms come before real terms
+ * - variables come before non-variable terms
+ * - finally, fall back to node ordering
+ */
+struct LeafNodeComparator
+{
+  /** Implements operator<(a, b) as described above */
+  bool operator()(TNode a, TNode b)
+  {
+    if (a == b) return false;
+
+    bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    if (aIsRAN != bIsRAN)
+    {
+      return aIsRAN;
+    }
+    Assert(!aIsRAN && !bIsRAN) << "real algebraic numbers should be combined";
+
+    bool aIsInt = a.getType().isInteger();
+    bool bIsInt = b.getType().isInteger();
+    if (aIsInt != bIsInt)
+    {
+      return aIsInt;
+    }
+
+    bool aIsVar = a.isVar();
+    bool bIsVar = b.isVar();
+    if (aIsVar != bIsVar)
+    {
+      return aIsVar;
+    }
+
+    return a < b;
+  }
+};
+
 /** Make a nonlinear multiplication from the given factors */
 template <typename T>
 Node mkMult(T&& factors)
@@ -328,7 +373,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToDistProduct(newProduct, multiplicity, summand.first);
         addToDistProduct(newProduct, multiplicity, child);
         std::sort(
-            newProduct.begin(), newProduct.end(), Variable::VariableNodeCmp());
+            newProduct.begin(), newProduct.end(), LeafNodeComparator());
         addToDistSum(newsum, mkMult(std::move(newProduct)), multiplicity);
       }
     }
@@ -920,7 +965,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     leafs.insert(leafs.begin(), nm->mkRealAlgebraicNumber(ran));
   }
 
-  std::sort(leafs.begin(), leafs.end(), Variable::VariableNodeCmp());
+  std::sort(leafs.begin(), leafs.end(), LeafNodeComparator());
 
   switch (leafs.size())
   {
