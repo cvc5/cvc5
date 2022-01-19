@@ -813,6 +813,22 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
 
+  std::vector<TNode> children;
+  flatten(t, Kind::MULT, Kind::NONLINEAR_MULT, children);
+
+  if (auto res = getZeroChild(children); res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
+
+  // Distribute over addition
+  if (std::any_of(children.begin(), children.end(), [](TNode child) {
+        return child.getKind() == Kind::PLUS;
+      }))
+  {
+    return RewriteResponse(REWRITE_AGAIN_FULL, distributeMultiplication(children));
+  }
+
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
   Polynomial poly = Polynomial::mkOne();
