@@ -50,7 +50,7 @@ namespace {
  * It broadly categorizes leaf nodes into real algebraic numbers, integers,
  * variables, and the rest. The ordering is built as follows:
  * - real algebraic numbers come first
- * - integer terms come before real terms
+ * - real terms come before integer terms
  * - variables come before non-variable terms
  * - finally, fall back to node ordering
  */
@@ -68,7 +68,7 @@ struct LeafNodeComparator
 
     bool aIsInt = a.getType().isInteger();
     bool bIsInt = b.getType().isInteger();
-    if (aIsInt != bIsInt) return aIsInt;
+    if (aIsInt != bIsInt) return !aIsInt;
 
     bool aIsVar = a.isVar();
     bool bIsVar = b.isVar();
