@@ -2117,7 +2117,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
       // if len(p) = i and len(r) = len(x)
       prefix.emplace_back(x);
       prefix.insert(prefix.end(), suffix.begin(), suffix.end());
-      Node ret = nm->mkNode(STRING_CONCAT, prefix);
+      Node ret = utils::mkConcat(prefix, node.getType());
       return returnRewrite(node, ret, Rewrite::UPD_EVAL_SYM);
     }
   }
