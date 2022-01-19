@@ -222,6 +222,38 @@ void addToDistProduct(std::vector<Node>& product,
 }
 
 /**
+ * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
+ * given as list of terms suitable to be passed to mkSum().
+ */
+std::vector<Node> distSumToSum(const std::optional<RealAlgebraicNumber>& basemultiplicity, const std::vector<Node>& base, const std::unordered_map<Node, RealAlgebraicNumber>& sum)
+{
+  auto* nm = NodeManager::currentNM();
+  // construct the sum as nodes
+  std::vector<Node> children;
+  for (const auto& summand : sum)
+  {
+    if (isZero(summand.second)) continue;
+    RealAlgebraicNumber mult = summand.second;
+    if (basemultiplicity) mult *= *basemultiplicity;
+    std::vector<Node> product = base;
+    addToDistProduct(product, mult, summand.first);
+    if (mult.isRational())
+    {
+      if (!isOne(mult))
+      {
+        product.emplace_back(nm->mkConstReal(mult.toRational()));
+      }
+    }
+    else
+    {
+      product.emplace_back(nm->mkRealAlgebraicNumber(mult));
+    }
+    children.emplace_back(mkMult(std::move(product)));
+  }
+  return children;
+}
+
+/**
  * Distribute a multiplication over one or more additions. The multiplication
  * is given as the list of its factors. Though this method also works if none
  * of these factors is an addition, there is no point of calling this method
@@ -315,30 +347,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  // construct the sum as nodes
-  std::vector<Node> children;
-  for (const auto& summand : sum)
-  {
-    if (isZero(summand.second)) continue;
-    RealAlgebraicNumber mult = basemultiplicity * summand.second;
-    std::vector<Node> product = base;
-    addToDistProduct(product, mult, summand.first);
-    if (mult.isRational())
-    {
-      if (!isOne(mult))
-      {
-        product.emplace_back(nm->mkConstReal(mult.toRational()));
-      }
-    }
-    else
-    {
-      product.emplace_back(nm->mkRealAlgebraicNumber(mult));
-    }
-    children.emplace_back(mkMult(std::move(product)));
-  }
-  // now mult(factors) == add(children)
-
-  return mkSum(std::move(children));
+  return mkSum(distSumToSum(basemultiplicity, base, sum));
 }
 
 }  // namespace
