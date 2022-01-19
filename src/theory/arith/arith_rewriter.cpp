@@ -84,6 +84,23 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
 }
 
 /**
+ * Check whether the parent has a child that is a constant zero.
+ * If so, return this child. Otherwise, return std::nullopt.
+ */
+template <typename Iterable>
+std::optional<TNode> getZeroChild(const Iterable& parent)
+{
+  for (const auto& node : parent)
+  {
+    if (node.isConst() && node.template getConst<Rational>().isZero())
+    {
+      return node;
+    }
+  }
+  return std::nullopt;
+}
+
+/**
  * Add a new summand, consisting of the product and the multiplicity, to a sum
  * as used in the distribution of multiplication. Either adds the summand as a
  * new entry to sum, or adds the multiplicity to an already existing summand.
