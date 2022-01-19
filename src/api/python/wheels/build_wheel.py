@@ -142,14 +142,14 @@ class CMakeBuild(build_ext):
             os.mkdir(extdir)
 
         # copy the library over. we need to consider other users that are not on linux
-        # module is a directory called cvc5_base_py_api_module
-        cvc5_base_py_api_module = os.path.join(python_build_dir, "cvc5")
+        # module is a directory called cvc5_python_base_module
+        cvc5_python_base_module = os.path.join(python_build_dir, "cvc5")
         dst_name = os.path.join(extdir, "cvc5")
         if os.path.isdir(dst_name):
             # remove, then replace
             shutil.rmtree(dst_name)
 
-        shutil.copytree(cvc5_base_py_api_module, dst_name)
+        shutil.copytree(cvc5_python_base_module, dst_name)
 
 
 version_suffix = os.getenv('VERSION_SUFFIX', '')

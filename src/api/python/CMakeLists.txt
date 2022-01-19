@@ -47,8 +47,6 @@ find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
-set(BASE_PY_API_PYPI_NAME "cvc5")
-set(BASE_PY_API_PACKAGE_NAME "cvc5")
 
 # Generate cvc5kinds.{pxd,pyx}
 configure_file(genkinds.py.in genkinds.py)
@@ -138,7 +136,7 @@ if ("${IN_VIRTUALENV}" STREQUAL "NO")
   set(INSTALL_CMD "${INSTALL_CMD}
           --prefix=${CMAKE_INSTALL_PREFIX}
           --single-version-externally-managed
-          --record=${BASE_PY_API_PACKAGE_NAME}-installed-files.txt")
+          --record=cvc5-installed-files.txt")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")
