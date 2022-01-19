@@ -858,26 +858,6 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-namespace {
-
-void addToMultiplication(std::vector<Node>& product, TNode n)
-{
-  switch (n.getKind())
-  {
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      product.insert(product.end(), n.begin(), n.end());
-      break;
-    default:
-      if (!(n.isConst() && n.getConst<Rational>().isOne()))
-      {
-        product.emplace_back(n);
-      }
-  }
-}
-
-}
-
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
