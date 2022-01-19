@@ -79,5 +79,16 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   }
 }
 
+TEST_F(TestTheoryArithRewriterBlack, distribute)
+{
+  {
+    Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
+    Node b = d_nodeManager->mkBoundVar("b", d_nodeManager->realType());
+    Node sum = d_nodeManager->mkNode(Kind::PLUS, a, b);
+    Node prod = d_nodeManager->mkNode(Kind::MULT, std::vector<Node>(40, sum));
+    prod = d_slvEngine->getRewriter()->rewrite(prod);
+  }
+}
+
 }  // namespace test
 }  // namespace cvc5
