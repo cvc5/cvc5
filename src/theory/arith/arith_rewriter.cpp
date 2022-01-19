@@ -310,7 +310,7 @@ std::vector<Node> distSumToSum(const std::optional<RealAlgebraicNumber>& basemul
 {
   auto* nm = NodeManager::currentNM();
   // construct the sum as nodes
-  std::vector<Node> children;
+  std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
   for (const auto& summand : sum)
   {
     if (isZero(summand.second)) continue;
@@ -318,18 +318,32 @@ std::vector<Node> distSumToSum(const std::optional<RealAlgebraicNumber>& basemul
     if (basemultiplicity) mult *= *basemultiplicity;
     std::vector<Node> product = base;
     addToDistProduct(product, mult, summand.first);
-    if (mult.isRational())
+    std::sort(product.begin(), product.end(), LeafNodeComparator());
+    summands.emplace_back(mkMult(std::move(product)), mult);
+  }
+  std::sort(summands.begin(), summands.end(),
+    [](const auto& a, const auto& b) { return ProductNodeComparator()(a.first, b.first); });
+  std::vector<Node> children;
+  for (const auto& s: summands)
+  {
+    if (s.second.isRational())
     {
-      if (!isOne(mult))
+      if (isOne(s.second))
       {
-        product.emplace_back(nm->mkConstReal(mult.toRational()));
+        children.emplace_back(s.first);
       }
+      else
+      {
+        children.emplace_back(nm->mkNode(Kind::MULT, nm->mkConstReal(s.second.toRational()), s.first));
+      } 
     }
     else
     {
-      product.emplace_back(nm->mkRealAlgebraicNumber(mult));
+      std::vector<Node> prod;
+      prod.emplace_back(nm->mkRealAlgebraicNumber(s.second));
+      prod.insert(prod.end(), s.first.begin(), s.first.end());
+      children.emplace_back(mkMult(std::move(prod)));
     }
-    children.emplace_back(mkMult(std::move(product)));
   }
   return children;
 }
