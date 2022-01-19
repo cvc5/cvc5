@@ -125,7 +125,13 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                          true);
 
       exp.clear();
-      lem = nm->mkNode(OR, cond, n.eqNode(n[0]));
+      lem = nm->mkNode(OR,
+                       nm->mkNode(AND,
+                                  nm->mkNode(SEQ_NTH, n, n[1])
+                                      .eqNode(nm->mkNode(SEQ_NTH, n[0], n[1]))
+                                      .notNode(),
+                                  cond),
+                       n.eqNode(n[0]));
       d_im.sendInference(exp,
                          lem,
                          InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
