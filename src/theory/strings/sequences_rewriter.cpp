@@ -1762,10 +1762,18 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     }
   }
 
-  if (s.getKind() == SEQ_UNIT && i.isConst() && i.getConst<Rational>().isZero())
+  std::vector<Node> prefix, suffix;
+  utils::getConcat(s, suffix);
+  if ((i.isConst() && i.getConst<Rational>().isZero())
+      || d_stringsEntail.stripSymbolicLength(suffix, prefix, 1, i, true))
   {
-    Node ret = s[0];
-    return returnRewrite(node, ret, Rewrite::SEQ_NTH_UNIT);
+    if (suffix.size() > 0 && suffix[0].getKind() == SEQ_UNIT)
+    {
+      // (seq.nth (seq.++ prefix (seq.unit x) suffix) n) ---> x
+      // if len(prefix) = n
+      Node ret = suffix[0][0];
+      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_SYM);
+    }
   }
 
   return node;
@@ -2085,11 +2093,39 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     }
   }
 
+  NodeManager* nm = NodeManager::currentNM();
+  Node zero = nm->mkConstInt(0);
+  Node sLen = nm->mkNode(STRING_LENGTH, s);
+  if (d_arithEntail.check(zero, i, true) || d_arithEntail.check(i, sLen))
+  {
+    // (seq.update s i x) ---> s if x < 0 or x >= len(s)
+    Node ret = s;
+    return returnRewrite(node, ret, Rewrite::UPD_OOB);
+  }
+
+  std::vector<Node> prefix, suffix;
+  utils::getConcat(s, suffix);
+  if ((i.isConst() && i.getConst<Rational>().isZero())
+      || d_stringsEntail.stripSymbolicLength(suffix, prefix, 1, i, true))
+  {
+    Node updateLen = nm->mkNode(STRING_LENGTH, x);
+    std::vector<Node> replaced;
+    if (d_stringsEntail.stripSymbolicLength(
+            suffix, replaced, 1, updateLen, true))
+    {
+      // (seq.update (seq.++ p r s) i x) ---> (seq.++ p x s)
+      // if len(p) = i and len(r) = len(x)
+      prefix.emplace_back(x);
+      prefix.insert(prefix.end(), suffix.begin(), suffix.end());
+      Node ret = nm->mkNode(STRING_CONCAT, prefix);
+      return returnRewrite(node, ret, Rewrite::UPD_EVAL_SYM);
+    }
+  }
+
   if (s.getKind() == STRING_REV && d_stringsEntail.checkLengthOne(x))
   {
     // str.update(str.rev(s), n, t) --->
     //   str.rev(str.update(s, len(s) - (n + 1), t))
-    NodeManager* nm = NodeManager::currentNM();
     Node idx = nm->mkNode(MINUS,
                           nm->mkNode(STRING_LENGTH, s),
                           nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
