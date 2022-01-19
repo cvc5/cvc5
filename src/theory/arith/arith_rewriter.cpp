@@ -864,7 +864,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
 
-  for (const auto& child : t)
+  for (const auto& child : children)
   {
     std::vector<Node> monomial;
     RealAlgebraicNumber multiplicity(Integer(1));
