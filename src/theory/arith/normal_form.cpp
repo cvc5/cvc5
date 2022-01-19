@@ -1097,56 +1097,7 @@ bool Comparison::isNormalLT() const {
 
 
 bool Comparison::isNormalEqualityOrDisequality() const {
-  Polynomial pleft = getLeft();
-
-  if(pleft.numMonomials() == 1){
-    Monomial mleft = pleft.getHead();
-    if(mleft.isConstant()){
-      return false;
-    }else{
-      Polynomial pright = getRight();
-      if(allIntegralVariables()){
-        const Rational& lcoeff = mleft.getConstant().getValue();
-        if(pright.isConstant()){
-          return pright.isIntegral() && lcoeff.isOne();
-        }
-        Polynomial varRight = pright.containsConstant() ? pright.getTail() : pright;
-        if(lcoeff.sgn() <= 0){
-          return false;
-        }else{
-          Integer lcm = lcoeff.getDenominator().lcm(varRight.denominatorLCM());
-          Integer g = lcoeff.getNumerator().gcd(varRight.numeratorGCD());
-          Debug("nf::tmp") << lcm << " " << g << endl;
-          if(!lcm.isOne()){
-            return false;
-          }else if(!g.isOne()){
-            return false;
-          }else{
-            Monomial absMinRight = varRight.selectAbsMinimum();
-            Debug("nf::tmp") << mleft.getNode() << " " << absMinRight.getNode() << endl;
-            if( mleft.absCmp(absMinRight) < 0){
-              return true;
-            }else{
-              return (!(absMinRight.absCmp(mleft)< 0)) && mleft < absMinRight;
-            }
-          }
-        }
-      }else{
-        if(mleft.coefficientIsOne()){
-          Debug("nf::tmp")
-            << "dfklj " << mleft.getNode() << endl
-            << pright.getNode() << endl
-            << pright.variableMonomialAreStrictlyGreater(mleft)
-            << endl;
-          return pright.variableMonomialAreStrictlyGreater(mleft);
-        }else{
-          return false;
-        }
-      }
-    }
-  }else{
-    return false;
-  }
+  return Polynomial::isMember(getNode()[0]) && Polynomial::isMember(getNode()[1]);
 }
 
 /** This must be (= qvarlist qpolynomial) or (= zmonomial zpolynomial)*/
