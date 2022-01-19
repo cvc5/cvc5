@@ -204,7 +204,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   auto* nm = NodeManager::currentNM();
   // factors that are not sums
-  RealAlgebraicNumber basemultiplicity;
+  RealAlgebraicNumber basemultiplicity(Integer(1));
   std::vector<Node> base;
   // maps products to their (possibly real algebraic) multiplicities.
   // The current (intermediate) value is the sum of these (multiplied by the base factors).
@@ -258,7 +258,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
       }
     }
     Trace("arith-rewriter") << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter") << "base: " << base << std::endl;
+    Trace("arith-rewriter") << "base: " << basemultiplicity << " * " << base << std::endl;
     Trace("arith-rewriter") << "sum:" << std::endl;
     for (const auto& summand : newsum)
     {
