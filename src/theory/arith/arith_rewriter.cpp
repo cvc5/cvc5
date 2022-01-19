@@ -84,6 +84,26 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
 }
 
 /**
+ * Flatten the given node (with child nodes of one of the given kinds) into a
+ * vector.
+ */
+void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
+{
+  Assert(t.getKind() == k1 || t.getKind() == k2);
+  for (const auto& child : t)
+  {
+    if (child.getKind() == k1 || child.getKind() == k2)
+    {
+      flatten(child, k1, k2, children);
+    }
+    else
+    {
+      children.emplace_back(child);
+    }
+  }
+}
+
+/**
  * Check whether the parent has a child that is a constant zero.
  * If so, return this child. Otherwise, return std::nullopt.
  */
@@ -812,6 +832,14 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
+
+  std::vector<TNode> children;
+  flatten(t, Kind::MULT, Kind::NONLINEAR_MULT, children);
+
+  if (auto res = getZeroChild(children); res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
 
   // Distribute over addition
   if (std::any_of(children.begin(), children.end(), [](TNode child) {
