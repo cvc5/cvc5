@@ -187,15 +187,57 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
   }
 }
 
+/**
+ * Return n! / (k! * (n-k)!). Tries to avoid overflows by keeping the
+ * intermediate values small.
+ */
+uint64_t binomial(uint64_t n, uint64_t k)
+{
+  uint64_t result = 1;
+  uint64_t nextmult = k+1;
+  uint64_t nextdiv = 2;
+  while (nextmult <= n || nextdiv <= n-k)
+  {
+    while (nextdiv <= n-k && result % nextdiv == 0)
+    {
+      result /= nextdiv;
+      ++nextdiv;
+    }
+    if (nextmult <= n)
+    {
+      result *= nextmult;
+      ++nextmult;
+    }
+  }
+  return result;
+}
+
 TEST_F(TestTheoryArithRewriterBlack, distribute)
 {
   {
+    constexpr size_t n = 10;
     Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
     Node b = d_nodeManager->mkBoundVar("b", d_nodeManager->realType());
     Node sum = d_nodeManager->mkNode(Kind::PLUS, a, b);
-    Node prod = d_nodeManager->mkNode(Kind::MULT, std::vector<Node>(40, sum));
+    Node prod = d_nodeManager->mkNode(Kind::MULT, std::vector<Node>(n, sum));
     prod = d_slvEngine->getRewriter()->rewrite(prod);
-    // std::cout << prod << std::endl;
+
+    std::vector<Node> reference;
+    for (size_t k = 0; k <= n; ++k)
+    {
+      std::vector<Node> mult;
+      mult.insert(mult.end(), n - k, a);
+      mult.insert(mult.end(), k, b);
+      Node mon = d_nodeManager->mkNode(Kind::NONLINEAR_MULT, std::move(mult));
+      Rational fac = binomial(n, k);
+      if (!fac.isOne())
+      {
+        mon = d_nodeManager->mkNode(Kind::MULT, d_nodeManager->mkConstInt(fac), mon);
+      }
+      reference.emplace_back(mon);
+    }
+    Node ref = d_nodeManager->mkNode(Kind::PLUS, std::move(reference));
+    EXPECT_EQ(ref, prod);
   }
 }
 
