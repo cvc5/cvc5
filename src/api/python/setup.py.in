@@ -31,5 +31,5 @@ setup(name='cvc5',
       zip_safe=False,
       packages=['cvc5'],
       package_dir={'':'${CMAKE_CURRENT_BINARY_DIR}'},
-      package_data={'': ['cvc5_base_py_api*.so']},
+      package_data={'': ['cvc5_python_base*.so']},
       extras_require={'test': ['pytest']})
