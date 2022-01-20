@@ -81,6 +81,21 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_EXTRACT);
     }
   }
+  for (size_t i = 0; i < nthTerms.size(); i++)
+  {
+    for (size_t j = i + 1; j < nthTerms.size(); j++)
+    {
+      Node x = nthTerms[i][0];
+      Node y = nthTerms[j][0];
+      Node n = nthTerms[i][1];
+      Node m = nthTerms[j][1];
+      if (d_state.areEqual(n, m) && !d_state.areEqual(x, y)
+          && !d_state.areDisequal(x, y))
+      {
+        d_im.sendSplit(x, y, InferenceId::STRINGS_ARRAY_EQ_SPLIT);
+      }
+    }
+  }
 }
 
 void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
@@ -96,8 +111,6 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     // note that the term could rewrites to a skolem
     // get proxy variable for the update term as t
     Node termProxy = d_termReg.getProxyVariableFor(n);
-    std::vector<Node> exp;
-    d_im.addToExplanation(termProxy, n, exp);
 
     if (d_registeredUpdates.find(n) == d_registeredUpdates.end())
     {
@@ -117,11 +130,27 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node body2 = nm->mkNode(SEQ_NTH, n[0], n[1]);
       Node right = nm->mkNode(ITE, cond, body1, body2);
       Node lem = nm->mkNode(EQUAL, left, right);
+
+      std::vector<Node> exp;
+      d_im.addToExplanation(termProxy, n, exp);
       d_im.sendInference(exp,
                          lem,
                          InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
                          false,
                          true);
+
+      // update(s, n, t)
+      // ------------------------
+      // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t)) ||
+      // s = update(s, n, t)
+      lem = nm->mkNode(
+          OR,
+          nm->mkNode(AND,
+                     left.eqNode(nm->mkNode(SEQ_NTH, n[0], n[1])).notNode(),
+                     cond),
+          n.eqNode(n[0]));
+      d_im.sendInference(
+          exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, false, true);
     }
 
     for (const auto& nthIdxs : d_indexMap)
@@ -137,46 +166,31 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       const std::set<Node>& indexes = nthIdxs.second;
       Trace("seq-array-core-debug") << "  check nth for " << seq
                                     << " with indices " << indexes << std::endl;
+      Node i = n[1];
       for (Node j : indexes)
       {
-        if (n[2].getKind() == SEQ_UNIT)
-        {
-          // Special case for updates using unit
-          //
-          // x = update(s, n, unit(t))
-          // y = nth(x, m)
-          // -----------------------------------------
-          // n != m => nth(x, m) = nth(s, m)
-          Node left = n[1].eqNode(j).notNode();
-          Node nth1 = nm->mkNode(SEQ_NTH, termProxy, j);
-          Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
-          Node right = nm->mkNode(EQUAL, nth1, nth2);
-          Node lem = nm->mkNode(IMPLIES, left, right);
-          sendInference(
-              exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT);
-          continue;
-        }
-
-        // Regular case
-        //
-        // x = update(s, n, t)
-        // y = nth(x, m)
-        // -----------------------------------------
-        // y = ite(n <= m < n + len(t), nth(t, m - n), nth(s, m))
+        // nth(update(s, n, t), m)
+        // ------------------------
+        // nth(update(s, n, t)) =
+        //   ite(0 <= m < len(s),
+        //     ite(n = m, nth(t, 0), nth(s, m)),
+        //     Uf(update(s, n, t), m))
         Node nth = nm->mkNode(SEQ_NTH, termProxy, j);
-        Node cond = nm->mkNode(
-            AND,
-            nm->mkNode(LEQ, n[1], j),
-            nm->mkNode(
-                LT,
-                j,
-                nm->mkNode(PLUS, n[1], nm->mkNode(STRING_LENGTH, n[2]))));
-        Node cases =
-            nm->mkNode(ITE,
-                       cond,
-                       nm->mkNode(SEQ_NTH, n[2], nm->mkNode(MINUS, j, n[1])),
-                       nm->mkNode(SEQ_NTH, n[0], j));
-        Node lem = nm->mkNode(EQUAL, nth, cases);
+        Node nthInBounds =
+            nm->mkNode(AND,
+                       nm->mkNode(LEQ, nm->mkConstInt(0), j),
+                       nm->mkNode(LT, j, nm->mkNode(STRING_LENGTH, n[0])));
+        Node idxEq = i.eqNode(j);
+        Node updateVal = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(0));
+        Node iteNthInBounds = nm->mkNode(
+            ITE, i.eqNode(j), updateVal, nm->mkNode(SEQ_NTH, n[0], j));
+        Node uf = SkolemCache::mkSkolemSeqNth(n[0].getType(), "Uf");
+        Node ufj = nm->mkNode(APPLY_UF, uf, n, j);
+        Node rhs = nm->mkNode(ITE, nthInBounds, iteNthInBounds, ufj);
+        Node lem = nth.eqNode(rhs);
+
+        std::vector<Node> exp;
+        d_im.addToExplanation(termProxy, n, exp);
         sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
       }
     }
