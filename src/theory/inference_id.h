@@ -694,12 +694,12 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_CONCAT,
   // nth over extract
   STRINGS_ARRAY_NTH_EXTRACT,
-  // nth over update (equal indices)
-  STRINGS_ARRAY_NTH_UPDATE_EQ,
-  // nth over update (disequal indices)
-  STRINGS_ARRAY_NTH_UPDATE_DEQ,
+  // nth over update
+  STRINGS_ARRAY_NTH_UPDATE,
   // reasoning about the nth term from update term
   STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+  // reasoning about whether an update changes a term or not
+  STRINGS_ARRAY_UPDATE_BOUND,
   // nth over update when updated with an unit term
   STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
   // nth over reverse

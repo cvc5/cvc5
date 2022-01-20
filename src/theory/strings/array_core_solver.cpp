@@ -124,19 +124,18 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                          false,
                          true);
 
-      exp.clear();
-      lem = nm->mkNode(OR,
-                       nm->mkNode(AND,
-                                  nm->mkNode(SEQ_NTH, n, n[1])
-                                      .eqNode(nm->mkNode(SEQ_NTH, n[0], n[1]))
-                                      .notNode(),
-                                  cond),
-                       n.eqNode(n[0]));
-      d_im.sendInference(exp,
-                         lem,
-                         InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
-                         false,
-                         true);
+      // update(s, n, t)
+      // ------------------------
+      // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t)) ||
+      // s = update(s, n, t)
+      lem = nm->mkNode(
+          OR,
+          nm->mkNode(AND,
+                     left.eqNode(nm->mkNode(SEQ_NTH, n[0], n[1])).notNode(),
+                     cond),
+          n.eqNode(n[0]));
+      d_im.sendInference(
+          exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, false, true);
     }
 
     for (const auto& nthIdxs : d_indexMap)
@@ -155,6 +154,12 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node i = n[1];
       for (Node j : indexes)
       {
+        // nth(update(s, n, t), m)
+        // ------------------------
+        // nth(update(s, n, t)) =
+        //   ite(0 <= m < len(s),
+        //     ite(n = m, nth(t, 0), nth(s, m)),
+        //     Uf(update(s, n, t), m))
         Node nth = nm->mkNode(SEQ_NTH, termProxy, j);
         Node nthInBounds =
             nm->mkNode(AND,
@@ -171,7 +176,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
 
         std::vector<Node> exp;
         d_im.addToExplanation(termProxy, n, exp);
-        sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE_EQ);
+        sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
       }
     }
   }

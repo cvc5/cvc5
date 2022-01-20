@@ -413,12 +413,12 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_NTH_CONCAT";
     case InferenceId::STRINGS_ARRAY_NTH_EXTRACT:
       return "STRINGS_ARRAY_NTH_EXTRACT";
-    case InferenceId::STRINGS_ARRAY_NTH_UPDATE_EQ:
-      return "STRINGS_ARRAY_NTH_UPDATE_EQ";
-    case InferenceId::STRINGS_ARRAY_NTH_UPDATE_DEQ:
-      return "STRINGS_ARRAY_NTH_UPDATE_DEQ";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE:
+      return "STRINGS_ARRAY_NTH_UPDATE";
     case InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE:
       return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
+    case InferenceId::STRINGS_ARRAY_UPDATE_BOUND:
+      return "STRINGS_ARRAY_UPDATE_BOUND";
     case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
       return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
