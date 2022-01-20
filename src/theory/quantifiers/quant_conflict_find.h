@@ -262,7 +262,7 @@ class QuantConflictFind : public QuantifiersModule
     return d_effort == QuantConflictFind::EFFORT_CONFLICT;
   }
 
-  TNode getZero(Kind k);
+  TNode getZero(TypeNode tn, Kind k);
 
  private:
   /** check quantified formula

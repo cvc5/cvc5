@@ -787,7 +787,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
       if( d_vars[index].getKind()==PLUS || d_vars[index].getKind()==MULT ){
         Kind k = d_vars[index].getKind();
         std::vector< TNode > children;
-        for( unsigned j=0; j<d_vars[index].getNumChildren(); j++ ){
+        for( unsigned j=0, nchild = d_vars[index].getNumChildren(); j<nchild; j++ ){
           int vn = getVarNum( d_vars[index][j] );
           if( vn!=-1 ){
             TNode vv = getCurrentValue( d_vars[index][j] );
@@ -801,7 +801,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
                   break;
                 }
               }else{
-                Node z = d_parent->getZero(k);
+                Node z = d_parent->getZero(d_vars[index].getType(), k);
                 if( !z.isNull() ){
                   size_t vni = static_cast<size_t>(vn);
                   Trace("qcf-tconstraint-debug") << "...set " << d_vars[vn] << " = " << z << std::endl;
@@ -826,7 +826,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
           if( slv_v!=-1 ){
             Node lhs;
             if( children.empty() ){
-              lhs = d_parent->getZero(k);
+              lhs = d_parent->getZero(d_vars[index].getType(), k);
             }else if( children.size()==1 ){
               lhs = children[0];
             }else{
