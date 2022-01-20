@@ -32,6 +32,8 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -236,7 +238,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   NodeBuilder reasonBuilder(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
-  Node reason = safeConstructNary(reasonBuilder);
+  Node reason = mkAndFromBuilder(reasonBuilder);
   std::shared_ptr<ProofNode> pf{};
   if (isProofEnabled())
   {
@@ -278,7 +280,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
     pf = d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
   }
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason, pf);
@@ -303,7 +305,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     pf->printDebug(Debug("arith::cong::notzero"));
     Debug("arith::cong::notzero") << std::endl;
   }
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
   if (isProofEnabled())
   {
     if (c->getType() == ConstraintType::Disequality)
@@ -329,11 +331,12 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       TNode isZero = d_watchedEqualities[s];
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
-      const auto sumPf = d_pnm->mkNode(
-          PfRule::MACRO_ARITH_SCALE_SUM_UB,
-          {isZeroPf, pf},
-          // Trick for getting correct, opposing signs.
-          {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});
+      const auto sumPf =
+          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                        {isZeroPf, pf},
+                        // Trick for getting correct, opposing signs.
+                        {nm->mkConst(CONST_RATIONAL, Rational(-1 * cSign)),
+                         nm->mkConst(CONST_RATIONAL, Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
@@ -355,7 +358,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     return true;
   }
 
-  Node rewritten = Rewriter::rewrite(x);
+  Node rewritten = rewrite(x);
 
   //Need to still propagate this!
   if(rewritten.getKind() == kind::CONST_BOOLEAN){
@@ -633,7 +636,9 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   ArithVar x = c->getVariable();
   Node xAsNode = d_avariables.asNode(x);
-  Node asRational = mkRationalNode(c->getValue().getNoninfinitesimalPart());
+  NodeManager* nm = NodeManager::currentNM();
+  Node asRational = nm->mkConstRealOrInt(
+      xAsNode.getType(), c->getValue().getNoninfinitesimalPart());
 
   // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!
@@ -642,7 +647,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   NodeBuilder nb(Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
@@ -662,10 +667,12 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   NodeBuilder nb(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(nb);
   auto pfUb = ub->externalExplainByAssertions(nb);
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
 
   Node xAsNode = d_avariables.asNode(x);
-  Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());
+  NodeManager* nm = NodeManager::currentNM();
+  Node asRational = nm->mkConstRealOrInt(
+      xAsNode.getType(), lb->getValue().getNoninfinitesimalPart());
 
   // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!

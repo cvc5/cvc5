@@ -62,7 +62,7 @@ class CADProofGenerator
   /** Start a new recursive call */
   void startRecursive();
   /** Finish the current recursive call */
-  void endRecursive();
+  void endRecursive(size_t intervalId);
   /** Start a new scope, corresponding to a guess in CDCAC */
   void startScope();
   /** Finish a scope and add the (generalized) sample that was refuted */
@@ -79,7 +79,7 @@ class CADProofGenerator
   void pruneChildren(F&& f)
   {
     d_current->pruneChildren(
-        [&f](std::size_t i, const detail::TreeProofNode& tpn) { return f(i); });
+        [&f](const detail::TreeProofNode& tpn) { return f(tpn.d_objectId); });
   }
 
   /**
@@ -102,7 +102,8 @@ class CADProofGenerator
                  const poly::Assignment& a,
                  poly::SignCondition& sc,
                  const poly::Interval& interval,
-                 Node constraint);
+                 Node constraint,
+                 size_t intervalId);
 
   /**
    * Constructs the (generalized) interval that is to be excluded from a

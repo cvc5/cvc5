@@ -1,0 +1,7 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-datatype x ((C (s (-> Int Int)))))
+(declare-fun x1 () x)
+(declare-fun x2 () x)
+(assert (distinct x1 x2))
+(check-sat)

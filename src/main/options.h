@@ -25,19 +25,10 @@
 namespace cvc5::main {
 
 /**
- * Print overall command-line option usage message, prefixed by
- * "msg"---which could be an error message causing the usage
- * output in the first place, e.g. "no such option --foo"
+ * Print overall command-line option usage message to the given output stream
+ * with binary being the command to run cvc5.
  */
-void printUsage(const std::string& msg, std::ostream& os);
-
-/**
- * Print command-line option usage message for only the most-commonly
- * used options.  The message is prefixed by "msg"---which could be
- * an error message causing the usage output in the first place, e.g.
- * "no such option --foo"
- */
-void printShortUsage(const std::string& msg, std::ostream& os);
+void printUsage(const std::string& binary, std::ostream& os);
 
 /**
  * Initialize the Options object options based on the given

@@ -14,7 +14,6 @@
 ##
 
 find_package(GTest REQUIRED)
-include(GoogleTest)
 
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -37,43 +36,52 @@ set(CVC5_UNIT_TEST_FLAGS_BLACK
 
 # Generate and add unit test.
 macro(cvc5_add_unit_test is_white name output_dir)
-  set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
-  add_executable(${name} ${test_src})
-  target_compile_definitions(${name} PRIVATE ${CVC5_UNIT_TEST_FLAGS_BLACK})
-  gtest_add_tests(TARGET ${name})
-  target_link_libraries(${name} PUBLIC main-test GMP_SHARED)
-  target_link_libraries(${name} PUBLIC GTest::Main)
-  target_link_libraries(${name} PUBLIC GTest::GTest)
+  # Only enable white box unit tests if the compiler supports it and the build
+  # requires it
+  if((NOT ${is_white}) OR ENABLE_WHITEBOX_UNIT_TESTING)
+    set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
+    add_executable(${name} ${test_src})
+    target_compile_definitions(${name} PRIVATE ${CVC5_UNIT_TEST_FLAGS_BLACK})
+    target_link_libraries(${name} PUBLIC main-test GMP)
+    target_link_libraries(${name} PUBLIC GTest::Main)
+    target_link_libraries(${name} PUBLIC GTest::GTest)
 
-  if(USE_POLY)
-    # Make libpoly headers available for tests
-    target_include_directories(${name} PRIVATE "${Poly_INCLUDE_DIR}")
-  endif()
+    if(USE_POLY)
+      # Make libpoly headers available for tests
+      target_include_directories(${name} PRIVATE "${Poly_INCLUDE_DIR}")
+    endif()
 
-  if(${is_white})
-    target_compile_options(${name} PRIVATE -fno-access-control)
+    if(${is_white})
+      target_compile_options(${name} PRIVATE -fno-access-control)
+    endif()
+
+    # Disable the Wunused-comparison warnings for the unit tests.
+    # We check for `-Wunused-comparison` and then add `-Wno-unused-comparison`
+    check_cxx_compiler_flag("-Wunused-comparison" HAVE_CXX_FLAGWunused_comparison)
+    if(HAVE_CXX_FLAGWunused_comparison)
+      target_compile_options(${name} PRIVATE -Wno-unused-comparison)
+    endif()
+    add_dependencies(build-units ${name})
+    # Generate into bin/test/unit/<output_dir>.
+    set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
+    set_target_properties(${name}
+      PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
+    # The test target is prefixed with test identifier 'unit/' and the path,
+    # e.g., for '<output_dir>/myunittest.h'
+    #   we create test target 'unit/<output_dir>/myunittest'
+    #   and run it with 'ctest -R "example/<output_dir>/myunittest"'.
+    if("${output_dir}" STREQUAL "")
+      set(test_name unit/${name})
+    else()
+      if("${output_dir}" STREQUAL "api")
+        set(test_name unit/${output_dir}/cpp/${name})
+      else()
+        set(test_name unit/${output_dir}/${name})
+      endif()
+    endif()
+    add_test(${test_name} ${test_bin_dir}/${name})
+    set_tests_properties(${test_name} PROPERTIES LABELS "unit")
   endif()
-  # Disable the Wunused-comparison warnings for the unit tests.
-  check_cxx_compiler_flag("-Wno-unused-comparison" HAVE_FLAGWno_unused_comparison)
-  if(HAVE_FLAGWno_unused_comparison)
-    target_compile_options(${name} PRIVATE -Wno-unused-comparison)
-  endif()
-  add_dependencies(build-units ${name})
-  # Generate into bin/test/unit/<output_dir>.
-  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
-  set_target_properties(${name}
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
-  # The test target is prefixed with test identifier 'unit/' and the path,
-  # e.g., for '<output_dir>/myunittest.h'
-  #   we create test target 'unit/<output_dir>/myunittest'
-  #   and run it with 'ctest -R "example/<output_dir>/myunittest"'.
-  if("${output_dir}" STREQUAL "")
-    set(test_name unit/${name})
-  else()
-    set(test_name unit/${output_dir}/${name})
-  endif()
-  add_test(${test_name} ${test_bin_dir}/${name})
-  set_tests_properties(${test_name} PROPERTIES LABELS "unit")
 endmacro()
 
 macro(cvc5_add_unit_test_black name output_dir)
@@ -83,14 +91,19 @@ macro(cvc5_add_unit_test_white name output_dir)
   cvc5_add_unit_test(TRUE ${name} ${output_dir})
 endmacro()
 
+# API black box unit tests are always enabled
 add_subdirectory(api)
-add_subdirectory(base)
-add_subdirectory(context)
-add_subdirectory(node)
-add_subdirectory(main)
-add_subdirectory(parser)
-add_subdirectory(printer)
-add_subdirectory(prop)
-add_subdirectory(theory)
-add_subdirectory(preprocessing)
-add_subdirectory(util)
+
+if(ENABLE_UNIT_TESTING)
+  add_subdirectory(base)
+  add_subdirectory(context)
+  add_subdirectory(main)
+  add_subdirectory(node)
+  add_subdirectory(options)
+  add_subdirectory(parser)
+  add_subdirectory(printer)
+  add_subdirectory(prop)
+  add_subdirectory(theory)
+  add_subdirectory(preprocessing)
+  add_subdirectory(util)
+endif()

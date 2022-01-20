@@ -6,12 +6,12 @@
 (declare-fun C () (Set E))
 (assert
   (and
-    (= (as emptyset (Set E))
-       (intersection A B))
-    (subset C (union A B))
-    (>= (card C) 5)
-    (<= (card A) 2)
-    (<= (card B) 2)
+    (= (as set.empty (Set E))
+       (set.inter A B))
+    (set.subset C (set.union A B))
+    (>= (set.card C) 5)
+    (<= (set.card A) 2)
+    (<= (set.card B) 2)
   )
 )
 (check-sat)

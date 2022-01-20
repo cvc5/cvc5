@@ -46,12 +46,14 @@ detail::TreeProofNode& LazyTreeProofGenerator::getCurrent()
   Assert(!d_stack.empty()) << "Proof construction has already been finished.";
   return *d_stack.back();
 }
-void LazyTreeProofGenerator::setCurrent(PfRule rule,
+void LazyTreeProofGenerator::setCurrent(size_t objectId,
+                                        PfRule rule,
                                         const std::vector<Node>& premise,
                                         std::vector<Node> args,
                                         Node proven)
 {
   detail::TreeProofNode& pn = getCurrent();
+  pn.d_objectId = objectId;
   pn.d_rule = rule;
   pn.d_premise = premise;
   pn.d_args = args;

@@ -19,7 +19,7 @@
 %            Maximal clause size   :   18 (   3 average)
 %            Number of predicates  :   18 (   1 propositional; 0-3 arity)
 %            Number of functors    :   11 (  11 constant; 0-0 arity)
-%            Number of variables   :   11 (   0 singleton)
+%            Number of variables   :   11 (   0 set.singleton)
 %            Maximal term depth    :    1 (   1 average)
 % SPC      : CNF_SAT_EPR
 

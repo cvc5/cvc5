@@ -162,20 +162,26 @@ private:
   //std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int maxRounds = -1, const DeltaRational* threshold = NULL);
 
 private:
-  static bool decomposeTerm(Node term, Rational& m, Node& p, Rational& c);
-  static bool decomposeLiteral(Node lit, Kind& k, int& dir, Rational& lm,  Node& lp, Rational& rm, Node& rp, Rational& dm, Node& dp, DeltaRational& sep);
-  static void setToMin(int sgn, std::pair<Node, DeltaRational>& min, const std::pair<Node, DeltaRational>& e);
+ static bool decomposeTerm(Node t, Rational& m, Node& p, Rational& c);
+ bool decomposeLiteral(Node lit,
+                       Kind& k,
+                       int& dir,
+                       Rational& lm,
+                       Node& lp,
+                       Rational& rm,
+                       Node& rp,
+                       Rational& dm,
+                       Node& dp,
+                       DeltaRational& sep);
+ static void setToMin(int sgn,
+                      std::pair<Node, DeltaRational>& min,
+                      const std::pair<Node, DeltaRational>& e);
 
-  /**
-   * The map between arith variables to nodes.
-   */
-  //ArithVarNodeMap d_arithvarNodeMap;
+ typedef ArithVariables::var_iterator var_iterator;
+ var_iterator var_begin() const { return d_partialModel.var_begin(); }
+ var_iterator var_end() const { return d_partialModel.var_end(); }
 
-  typedef ArithVariables::var_iterator var_iterator;
-  var_iterator var_begin() const { return d_partialModel.var_begin(); }
-  var_iterator var_end() const { return d_partialModel.var_end(); }
-
-  NodeSet d_setupNodes;
+ NodeSet d_setupNodes;
 public:
   bool isSetup(Node n) const {
     return d_setupNodes.find(n) != d_setupNodes.end();
@@ -684,11 +690,10 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel(std::ostream& out) const;
 
-  inline bool done() const { return d_containing.done(); }
-  inline TNode get() { return d_containing.get(); }
-  inline bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
-  inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
-  inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
+  bool done() const { return d_containing.done(); }
+  bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
+  TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
+  void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   bool outputTrustedLemma(TrustNode lem, InferenceId id);
   bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);

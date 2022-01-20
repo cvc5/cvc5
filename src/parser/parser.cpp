@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -531,11 +530,11 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   api::Kind k = t.getKind();
-  if (k == api::EMPTYSET)
+  if (k == api::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == api::EMPTYBAG)
+  else if (k == api::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
@@ -555,7 +554,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == api::UNIVERSE_SET)
+  else if (k == api::SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }
@@ -584,7 +583,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       // lookup by name
       api::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getSpecializedConstructorTerm(s);
+      t = dc.getInstantiatedConstructorTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
@@ -735,6 +734,25 @@ size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
 void Parser::pushScope(bool isUserContext)
 {
   d_symman->pushScope(isUserContext);
+}
+
+void Parser::pushGetValueScope()
+{
+  pushScope();
+  // we must bind all relevant uninterpreted constants, which coincide with
+  // the set of uninterpreted constants that are printed in the definition
+  // of a model.
+  std::vector<api::Sort> declareSorts = d_symman->getModelDeclareSorts();
+  Trace("parser") << "Push get value scope, with " << declareSorts.size()
+                  << " declared sorts" << std::endl;
+  for (const api::Sort& s : declareSorts)
+  {
+    std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
+    for (const api::Term& e : elements)
+    {
+      defineVar(e.getUninterpretedSortValue(), e);
+    }
+  }
 }
 
 void Parser::popScope()

@@ -25,6 +25,8 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
+ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
+
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
                                    options::BlockModelsMode mode,
@@ -109,7 +111,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
             {
               // rewrite, this ensures that e.g. the propositional value of
               // quantified formulas can be queried
-              n = theory::Rewriter::rewrite(n);
+              n = rewrite(n);
               Node vn = m->getValue(n);
               Assert(vn.isConst());
               if (vn.getConst<bool>() == cpol)

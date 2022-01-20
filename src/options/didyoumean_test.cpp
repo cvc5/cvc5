@@ -163,9 +163,6 @@ set<string> getDebugTags() {
   a.insert("bv-subtheory-inequality");
   a.insert("bv-to-bool");
   a.insert("bva");
-  a.insert("bvminisat");
-  a.insert("bvminisat::explain");
-  a.insert("bvminisat::search");
   a.insert("cegqi");
   a.insert("cegqi-debug");
   a.insert("cegqi-prop-as-dec");

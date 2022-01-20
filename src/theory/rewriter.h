@@ -46,10 +46,6 @@ class Rewriter {
    * use on the node.
    */
   static Node rewrite(TNode node);
-  /**
-   * !!! Temporary until static access to rewriter is eliminated.
-   */
-  static Node callExtendedRewrite(TNode node, bool aggr = true);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -159,6 +155,11 @@ class Rewriter {
 
   void clearCachesInternal();
 
+  /**
+   * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
+   */
+  bool hasRewrittenWithProofs(TNode n) const;
+
   /** The resource manager, for tracking resource usage */
   ResourceManager* d_resourceManager;
 
@@ -167,6 +168,12 @@ class Rewriter {
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
+  /**
+   * Nodes rewritten with proofs. Since d_tpg contains a reference to all
+   * nodes that have been rewritten with proofs, we can keep only a TNode
+   * here.
+   */
+  std::unordered_set<TNode> d_tpgNodes;
 #ifdef CVC5_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
 #endif /* CVC5_ASSERTIONS */

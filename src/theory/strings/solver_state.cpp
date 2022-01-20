@@ -34,7 +34,7 @@ SolverState::SolverState(Env& env, Valuation& v)
       d_pendingConflictSet(env.getContext(), false),
       d_pendingConflict(InferenceId::UNKNOWN)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
@@ -77,7 +77,8 @@ TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
 Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
 {
   Assert(areEqual(t, te));
-  Node lt = utils::mkNLength(te);
+  Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, t);
+  lt = rewrite(lt);
   if (hasTerm(lt))
   {
     // use own length if it exists, leads to shorter explanation
@@ -90,14 +91,17 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
     // typically shouldnt be necessary
     lengthTerm = t;
   }
+  else
+  {
+    lengthTerm = lengthTerm[0];
+  }
   Debug("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
                    << std::endl;
   if (te != lengthTerm)
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp)
@@ -113,7 +117,8 @@ Node SolverState::explainNonEmpty(Node s)
   {
     return s.eqNode(emp).negate();
   }
-  Node sLen = utils::mkNLength(s);
+  Node sLen = NodeManager::currentNM()->mkNode(STRING_LENGTH, s);
+  sLen = rewrite(sLen);
   if (areDisequal(sLen, d_zero))
   {
     return sLen.eqNode(d_zero).negate();
@@ -135,13 +140,14 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   return false;
 }
 
-void SolverState::setPendingPrefixConflictWhen(Node conf)
+void SolverState::setPendingMergeConflict(Node conf, InferenceId id)
 {
-  if (conf.isNull() || d_pendingConflictSet.get())
+  if (d_pendingConflictSet.get())
   {
+    // already set conflict
     return;
   }
-  InferInfo iiPrefixConf(InferenceId::STRINGS_PREFIX_CONFLICT);
+  InferInfo iiPrefixConf(id);
   iiPrefixConf.d_conc = d_false;
   utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);
@@ -188,7 +194,6 @@ void SolverState::separateByLength(
   // not have an associated length in the mappings above, if the length of
   // an equivalence class is unknown.
   std::map<unsigned, std::vector<Node> > eqc_to_strings;
-  NodeManager* nm = NodeManager::currentNM();
   for (const Node& eqc : n)
   {
     Assert(d_ee->getRepresentative(eqc) == eqc);
@@ -197,7 +202,6 @@ void SolverState::separateByLength(
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (!lt.isNull())
     {
-      lt = nm->mkNode(STRING_LENGTH, lt);
       Node r = d_ee->getRepresentative(lt);
       std::pair<Node, TypeNode> lkey(r, tnEqc);
       if (eqc_to_leqc.find(lkey) == eqc_to_leqc.end())

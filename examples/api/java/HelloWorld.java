@@ -13,15 +13,17 @@
  * A very simple CVC5 tutorial example.
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 
 public class HelloWorld
 {
   public static void main(String[] args)
   {
-    Solver slv = new Solver();
-    Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
+    try (Solver slv = new Solver())
+    {
+      Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
 
-    System.out.println(helloworld + " is " + slv.checkEntailed(helloworld));
+      System.out.println(helloworld + " is " + slv.checkEntailed(helloworld));
+    }
   }
 }

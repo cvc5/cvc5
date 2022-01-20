@@ -40,8 +40,7 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
                               Theory& t,
                               QuantifiersState& state,
                               QuantifiersRegistry& qr,
-                              TermRegistry& tr,
-                              ProofNodeManager* pnm);
+                              TermRegistry& tr);
   ~QuantifiersInferenceManager();
   /** get instantiate utility */
   Instantiate* getInstantiate();

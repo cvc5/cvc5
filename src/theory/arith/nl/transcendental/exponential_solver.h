@@ -19,6 +19,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -40,10 +41,10 @@ struct TranscendentalState;
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class ExponentialSolver
+class ExponentialSolver : protected EnvObj
 {
  public:
-  ExponentialSolver(TranscendentalState* tstate);
+  ExponentialSolver(Env& env, TranscendentalState* tstate);
   ~ExponentialSolver();
 
   /**

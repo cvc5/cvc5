@@ -76,6 +76,10 @@ const char* toString(Rewrite r)
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
+    case Rewrite::RE_INTER_CONST_CONST_CONFLICT:
+      return "RE_INTER_CONST_CONST_CONFLICT";
+    case Rewrite::RE_INTER_CONST_RE_CONFLICT:
+      return "RE_INTER_CONST_RE_CONFLICT";
     case Rewrite::RE_CHAR_IN_STR_STAR: return "RE_CHAR_IN_STR_STAR";
     case Rewrite::RE_CONCAT: return "RE_CONCAT";
     case Rewrite::RE_CONCAT_FLATTEN: return "RE_CONCAT_FLATTEN";
@@ -85,7 +89,9 @@ const char* toString(Rewrite r)
     case Rewrite::RE_EMPTY_IN_STR_STAR: return "RE_EMPTY_IN_STR_STAR";
     case Rewrite::RE_IN_DIST_CHAR_STAR: return "RE_IN_DIST_CHAR_STAR";
     case Rewrite::RE_IN_SIGMA_STAR: return "RE_IN_SIGMA_STAR";
+    case Rewrite::RE_IN_CHAR_MODULUS_STAR: return "RE_IN_CHAR_MODULUS_STAR";
     case Rewrite::RE_LOOP: return "RE_LOOP";
+    case Rewrite::RE_LOOP_NONE: return "RE_LOOP_NONE";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";
     case Rewrite::RE_OR_ALL: return "RE_OR_ALL";
     case Rewrite::RE_SIMPLE_CONSUME: return "RE_SIMPLE_CONSUME";
@@ -145,10 +151,13 @@ const char* toString(Rewrite r)
     case Rewrite::SS_STRIP_END_PT: return "SS_STRIP_END_PT";
     case Rewrite::SS_STRIP_START_PT: return "SS_STRIP_START_PT";
     case Rewrite::UPD_EVAL: return "UPD_EVAL";
+    case Rewrite::UPD_EVAL_SYM: return "UPD_EVAL_SYM";
     case Rewrite::UPD_EMPTYSTR: return "UPD_EMPTYSTR";
     case Rewrite::UPD_CONST_INDEX_MAX_OOB: return "UPD_CONST_INDEX_MAX_OOB";
     case Rewrite::UPD_CONST_INDEX_NEG: return "UPD_CONST_INDEX_NEG";
     case Rewrite::UPD_CONST_INDEX_OOB: return "UPD_CONST_INDEX_OOB";
+    case Rewrite::UPD_REV: return "UPD_REV";
+    case Rewrite::UPD_OOB: return "UPD_OOB";
     case Rewrite::STOI_CONCAT_NONNUM: return "STOI_CONCAT_NONNUM";
     case Rewrite::STOI_EVAL: return "STOI_EVAL";
     case Rewrite::STR_CONV_CONST: return "STR_CONV_CONST";
@@ -218,6 +227,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";
     case Rewrite::SEQ_NTH_TOTAL_OOB: return "SEQ_NTH_TOTAL_OOB";
+    case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     default: return "?";
   }
 }

@@ -1,4 +1,4 @@
 (set-logic ALL)
 (set-info :status unsat)
-(assert (member 5 (as emptyset (Set Int) )))
+(assert (set.member 5 (as set.empty (Set Int) )))
 (check-sat)

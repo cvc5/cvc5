@@ -253,13 +253,13 @@ i)))
 (+ (- i a_last) (- b_first 1)))))) :pattern ((select
   (concat1 a a_first a_last b b_first b_last) i)) )))))
 
-(declare-fun singleton (natural Int) (Array Int natural))
+(declare-fun set.singleton (natural Int) (Array Int natural))
 
 ;; singleton_def
   (assert
   (forall ((v natural))
   (forall ((i Int))
-  (! (= (select (singleton v i) i) v) :pattern ((select (singleton v i)
+  (! (= (select (set.singleton v i) i) v) :pattern ((select (set.singleton v i)
 i)) ))))
 
 (declare-fun compare ((Array Int natural) Int Int (Array Int natural) Int

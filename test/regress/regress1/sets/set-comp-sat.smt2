@@ -10,9 +10,9 @@
 (declare-fun x () (Set U))
 
 
-(assert (subset x (comprehension ((z U)) (not (= z a)) z)))
+(assert (set.subset x (set.comprehension ((z U)) (not (= z a)) z)))
 
-(assert (not (member b x)))
-(assert (member c x))
+(assert (not (set.member b x)))
+(assert (set.member c x))
 
 (check-sat)

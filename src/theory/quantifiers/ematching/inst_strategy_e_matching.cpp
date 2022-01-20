@@ -153,10 +153,9 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         && d_auto_gen_trigger[1][f].empty() && !QuantAttributes::hasPattern(f))
     {
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
-      if (d_env.isOutputOn(options::OutputTag::TRIGGER))
+      if (isOutputOn(OutputTag::TRIGGER))
       {
-        d_env.getOutput(options::OutputTag::TRIGGER)
-            << "(no-trigger " << f << ")" << std::endl;
+        output(OutputTag::TRIGGER) << "(no-trigger " << f << ")" << std::endl;
       }
     }
   }
@@ -339,20 +338,18 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                           TriggerDatabase::TR_GET_OLD,
                           d_num_trigger_vars[f]);
     }
-    if (tr == nullptr)
+    // if we generated a trigger above, add it
+    if (tr != nullptr)
     {
-      // did not generate a trigger
-      continue;
-    }
-    addTrigger(tr, f);
-    if (tr->isMultiTrigger())
-    {
-      // only add a single multi-trigger
-      continue;
+      addTrigger(tr, f);
+      if (tr->isMultiTrigger())
+      {
+        // only add a single multi-trigger
+        continue;
+      }
     }
     // if we are generating additional triggers...
-    size_t index = 0;
-    if (index < patTerms.size())
+    if (patTerms.size() > 1)
     {
       // check if similar patterns exist, and if so, add them additionally
       unsigned nqfs_curr = 0;
@@ -361,7 +358,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         nqfs_curr =
             d_quant_rel->getNumQuantifiersForSymbol(patTerms[0].getOperator());
       }
-      index++;
+      size_t index = 1;
       bool success = true;
       while (success && index < patTerms.size()
              && d_is_single_trigger[patTerms[index]])
@@ -527,16 +524,22 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     Trace("auto-gen-trigger-debug")
         << "...required polarity for " << pat << " is " << rpol
         << ", eq=" << rpoleq << std::endl;
+    // Currently, we have ad-hoc treatment for relational triggers that
+    // are not handled by RelationalMatchGen.
+    bool isAdHocRelationalTrigger =
+        TriggerTermInfo::isRelationalTrigger(pat)
+        && !TriggerTermInfo::isUsableRelationTrigger(pat);
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);
-      if (TriggerTermInfo::isRelationalTrigger(pat))
+      if (isAdHocRelationalTrigger)
       {
         pat = rpol == -1 ? pat.negate() : pat;
       }
       else
       {
-        Assert(TriggerTermInfo::isAtomicTrigger(pat));
+        Assert(TriggerTermInfo::isAtomicTrigger(pat)
+               || TriggerTermInfo::isUsableRelationTrigger(pat));
         if (pat.getType().isBoolean() && rpoleq.isNull())
         {
           if (options().quantifiers.literalMatchMode
@@ -575,13 +578,10 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       }
       Trace("auto-gen-trigger-debug") << "...got : " << pat << std::endl;
     }
-    else
+    else if (isAdHocRelationalTrigger)
     {
-      if (TriggerTermInfo::isRelationalTrigger(pat))
-      {
-        // consider both polarities
-        addPatternToPool(f, pat.negate(), num_fv, mpat);
-      }
+      // consider both polarities
+      addPatternToPool(f, pat.negate(), num_fv, mpat);
     }
     addPatternToPool(f, pat, num_fv, mpat);
   }

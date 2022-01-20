@@ -10,12 +10,12 @@
 (declare-fun f (U) U)
 
 (assert (forall ((x Int) (z U))
-(=> (member x (S (f z)))
+(=> (set.member x (S (f z)))
 (P x z))))
 
 ; need model of U size 2 to satisfy these
 (declare-fun a () U)
-(assert (member 77 (S a)))
+(assert (set.member 77 (S a)))
 (assert (not (P 77 a)))
 
 ; unsat

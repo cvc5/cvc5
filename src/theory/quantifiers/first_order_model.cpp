@@ -294,7 +294,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     }
     else
     {
-      if (options::fmfFreshDistConst())
+      if (options().quantifiers.fmfFreshDistConst)
       {
         mbt = d_treg.getTermDatabase()->getOrMakeTypeFreshVariable(tn);
       }

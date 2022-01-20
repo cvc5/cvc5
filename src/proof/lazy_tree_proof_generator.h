@@ -31,9 +31,13 @@ namespace detail {
  * A node directly represents a ProofNode that is eventually constructed from
  * it. The Nodes of the additional field d_premise are added to d_children as
  * new assumptions via ASSUME.
+ * The object id can be used to store an arbitrary id to identify tree nodes
+ * and map them back to some other type, for example during pruning.
  */
 struct TreeProofNode
 {
+  /** Storage for some custom object identifier, used for pruning */
+  size_t d_objectId;
   /** The proof rule */
   PfRule d_rule = PfRule::UNKNOWN;
   /** Assumptions used as premise for this proof step */
@@ -145,7 +149,8 @@ class LazyTreeProofGenerator : public ProofGenerator
    */
   detail::TreeProofNode& getCurrent();
   /** Set the current node / proof step */
-  void setCurrent(PfRule rule,
+  void setCurrent(size_t objectId,
+                  PfRule rule,
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);
@@ -174,7 +179,7 @@ class LazyTreeProofGenerator : public ProofGenerator
     std::size_t pos = 0;
     for (std::size_t size = children.size(); cur < size; ++cur)
     {
-      if (f(cur, children[pos]))
+      if (f(children[pos]))
       {
         if (cur != pos)
         {

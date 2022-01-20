@@ -25,10 +25,10 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+
 namespace cvc5 {
-
-using namespace theory;
-
 namespace test {
 
 class TestTheoryWhiteEvaluator : public TestSmt
@@ -103,8 +103,8 @@ TEST_F(TestTheoryWhiteEvaluator, strIdOf)
 {
   Node a = d_nodeManager->mkConst(String("A"));
   Node empty = d_nodeManager->mkConst(String(""));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node two = d_nodeManager->mkConst(Rational(2));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
 
   std::vector<Node> args;
   std::vector<Node> vals;
@@ -150,14 +150,14 @@ TEST_F(TestTheoryWhiteEvaluator, code)
   {
     Node n = d_nodeManager->mkNode(kind::STRING_TO_CODE, a);
     Node r = eval.eval(n, args, vals);
-    ASSERT_EQ(r, d_nodeManager->mkConst(Rational(65)));
+    ASSERT_EQ(r, d_nodeManager->mkConst(CONST_RATIONAL, Rational(65)));
   }
 
   // (str.code "") ---> -1
   {
     Node n = d_nodeManager->mkNode(kind::STRING_TO_CODE, empty);
     Node r = eval.eval(n, args, vals);
-    ASSERT_EQ(r, d_nodeManager->mkConst(Rational(-1)));
+    ASSERT_EQ(r, d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1)));
   }
 }
 }  // namespace test

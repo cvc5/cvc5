@@ -28,8 +28,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-SplitZeroCheck::SplitZeroCheck(ExtState* data)
-    : d_data(data), d_zero_split(d_data->d_env.getUserContext())
+SplitZeroCheck::SplitZeroCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data), d_zero_split(d_data->d_env.getUserContext())
 {
 }
 
@@ -40,7 +40,7 @@ void SplitZeroCheck::check()
     Node v = d_data->d_ms_vars[i];
     if (d_zero_split.insert(v))
     {
-      Node eq = Rewriter::rewrite(v.eqNode(d_data->d_zero));
+      Node eq = rewrite(v.eqNode(d_data->d_zero));
       Node lem = eq.orNode(eq.negate());
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())

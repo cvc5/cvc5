@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__SOLVER_ENGINE_H
-#define CVC5__SOLVER_ENGINE_H
+#ifndef CVC5__SMT__SOLVER_ENGINE_H
+#define CVC5__SMT__SOLVER_ENGINE_H
 
 #include <map>
 #include <memory>
@@ -26,7 +26,6 @@
 #include "context/cdhashmap_forward.h"
 #include "cvc5_export.h"
 #include "options/options.h"
-#include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
@@ -80,11 +79,8 @@ namespace smt {
 class SolverEngineState;
 class AbstractValues;
 class Assertions;
-class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
-class OptionsManager;
-class Preprocessor;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
@@ -455,9 +451,12 @@ class CVC5_EXPORT SolverEngine
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    *
+   * @param isNext Whether we are asking for the next synthesis solution (if
+   * using incremental).
+   *
    * @throw Exception
    */
-  Result checkSynth();
+  Result checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -565,6 +564,16 @@ class CVC5_EXPORT SolverEngine
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& solMap);
+  /**
+   * Same as above, but used for getting synthesis solutions from a "subsolver"
+   * that has been initialized to assert the synthesis conjecture as a
+   * normal assertion.
+   *
+   * This method returns true if we are in a state immediately preceded by
+   * a successful call to checkSat, where this SolverEngine has an asserted
+   * synthesis conjecture.
+   */
+  bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
   /**
    * Do quantifier elimination.
@@ -608,13 +617,8 @@ class CVC5_EXPORT SolverEngine
    * extended command get-qe-disjunct, which can be used
    * for incrementally computing the result of a
    * quantifier elimination.
-   *
-   * The argument strict is whether to output
-   * warnings, such as when an unexpected logic is used.
-   *
-   * throw@ Exception
    */
-  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
@@ -628,12 +632,18 @@ class CVC5_EXPORT SolverEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+  bool getInterpolant(const Node& conj,
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Node& conj, Node& interpol);
+  /**
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
+   *
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
+   */
+  bool getInterpolantNext(Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -649,8 +659,13 @@ class CVC5_EXPORT SolverEngine
    */
   bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getAbduct(const Node& conj, Node& abd);
+  /**
+   * Get next abduct. This can only be called immediately after a successful
+   * call to getAbduct or getAbductNext.
+   *
+   * Returns true if an abduct was found, and sets abd to the abduct.
+   */
+  bool getAbductNext(Node& abd);
 
   /**
    * Get list of quantified formulas that were instantiated on the last call
@@ -847,14 +862,8 @@ class CVC5_EXPORT SolverEngine
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
-  /** Permit access to the underlying dump manager. */
-  smt::DumpManager* getDumpManager();
-
   /** Get the printer used by this SMT engine */
   const Printer& getPrinter() const;
-
-  /** Get the output manager for this SMT engine */
-  OutputManager& getOutputManager();
 
   /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
@@ -1033,6 +1042,12 @@ class CVC5_EXPORT SolverEngine
    * changes.
    */
   std::vector<Node> getAssertionsInternal();
+
+  /**
+   * Return a reference to options like for `EnvObj`.
+   */
+  const Options& options() const;
+
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
@@ -1055,8 +1070,6 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<smt::Assertions> d_asserts;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
-  /** Node manager listener */
-  std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
@@ -1096,16 +1109,9 @@ class CVC5_EXPORT SolverEngine
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
 
-  /**
-   * Verbosity of various commands.
-   */
-  std::map<std::string, int> d_commandVerbosity;
-
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
 
-  /** the output manager for commands */
-  mutable OutputManager d_outMgr;
   /**
    * The global scope object. Upon creation of this SolverEngine, it becomes the
    * SolverEngine in scope. It says the SolverEngine in scope until it is

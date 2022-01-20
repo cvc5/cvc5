@@ -222,8 +222,6 @@ std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v){
   return o;
 }
 
-void Constraint::debugPrint() const { CVC5Message() << *this << endl; }
-
 ValueCollection::ValueCollection()
   : d_lowerBound(NullConstraint),
     d_upperBound(NullConstraint),
@@ -521,7 +519,7 @@ TrustNode Constraint::externalExplainByAssertions() const
 {
   NodeBuilder nb(kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
-  Node exp = safeConstructNary(nb);
+  Node exp = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     std::vector<Node> assumptions;
@@ -535,7 +533,7 @@ TrustNode Constraint::externalExplainByAssertions() const
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
+        getLiteral(), NodeManager::currentNM()->mkAnd(assumptions), pf);
   }
   return TrustNode::mkTrustPropExp(getLiteral(), exp);
 }
@@ -698,8 +696,6 @@ bool Constraint::sanityChecking(Node n) const {
     return false;
   }
 }
-
-void ConstraintRule::debugPrint() const { print(std::cerr, false); }
 
 ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
   Assert(p < d_antecedents.size());
@@ -1126,10 +1122,11 @@ TrustNode Constraint::split()
     auto nGeqPf = d_database->d_pnm->mkAssume(geqNode.negate());
     auto ltPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
-    auto sumPf = d_database->d_pnm->mkNode(
-        PfRule::MACRO_ARITH_SCALE_SUM_UB,
-        {gtPf, ltPf},
-        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+    auto sumPf =
+        d_database->d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                                  {gtPf, ltPf},
+                                  {nm->mkConst(CONST_RATIONAL, Rational(-1)),
+                                   nm->mkConst(CONST_RATIONAL, Rational(1))});
     auto botPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
@@ -1551,12 +1548,9 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
   Assert(!isInternalAssumption());
   NodeBuilder nb(Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
-  Node n = safeConstructNary(nb);
+  Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
-    // Check that the literal we're explaining via this constraint actually
-    // matches the constraint's canonical literal.
-    Assert(Rewriter::rewrite(lit) == getLiteral());
     std::vector<Node> assumptions;
     if (n.getKind() == Kind::AND)
     {
@@ -1573,7 +1567,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        lit, safeConstructNary(Kind::AND, assumptions), pf);
+        lit, NodeManager::currentNM()->mkAnd(assumptions), pf);
   }
   else
   {
@@ -1589,7 +1583,7 @@ TrustNode Constraint::externalExplainConflict() const
   auto pf1 = externalExplainByAssertions(nb);
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
-  Node n = safeConstructNary(nb);
+  Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     auto pfNot2 = d_database->d_pnm->mkNode(
@@ -1627,7 +1621,7 @@ TrustNode Constraint::externalExplainConflict() const
     }
     auto confPf = d_database->d_pnm->mkScope(bot, lits);
     return d_database->d_pfGen->mkTrustNode(
-        safeConstructNary(Kind::AND, lits), confPf, true);
+        NodeManager::currentNM()->mkAnd(lits), confPf, true);
   }
   else
   {
@@ -1688,7 +1682,7 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
     ConstraintCP v_i = *i;
     v_i->externalExplain(nb, order);
   }
-  return safeConstructNary(nb);
+  return mkAndFromBuilder(nb);
 }
 
 std::shared_ptr<ProofNode> Constraint::externalExplain(
@@ -1812,7 +1806,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           std::vector<Node> farkasCoeffs;
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConst<Rational>(r));
+            farkasCoeffs.push_back(nm->mkConst(CONST_RATIONAL, Rational(r)));
           }
 
           // Apply the scaled-sum rule.
@@ -2092,7 +2086,8 @@ Node Constraint::getProofLiteral() const
     default: Unreachable() << d_type;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node constPart = nm->mkConst<Rational>(d_value.getNoninfinitesimalPart());
+  Node constPart =
+      nm->mkConst(CONST_RATIONAL, Rational(d_value.getNoninfinitesimalPart()));
   Node posLit = nm->mkNode(cmp, varPart, constPart);
   return neg ? posLit.negate() : posLit;
 }
@@ -2116,13 +2111,13 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
                                    {d_pnm->mkAssume(lb.negate())},
                                    {b->getNegation()->getProofLiteral()});
     int sndSign = negateSecond ? -1 : 1;
-    auto bot_pf =
-        d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                      {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
-                                     {pf_neg_la, pf_neg_lb},
-                                     {nm->mkConst<Rational>(-1 * sndSign),
-                                      nm->mkConst<Rational>(sndSign)})},
-                      {nm->mkConst(false)});
+    auto bot_pf = d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                       {pf_neg_la, pf_neg_lb},
+                       {nm->mkConst(CONST_RATIONAL, Rational(-1 * sndSign)),
+                        nm->mkConst(CONST_RATIONAL, Rational(sndSign))})},
+        {nm->mkConst(false)});
     std::vector<Node> as;
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {
       return n.negate();

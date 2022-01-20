@@ -14,8 +14,8 @@
 
 (assert (forall ((b Atom) (c Atom)) 
 (or 
-(member v (k (singleton n) (j (singleton b) a)))
-(= (as emptyset (Set Atom)) (d (j (singleton b) a) (singleton n)))
+(set.member v (k (set.singleton n) (j (set.singleton b) a)))
+(= (as set.empty (Set Atom)) (d (j (set.singleton b) a) (set.singleton n)))
 )
 )
 )

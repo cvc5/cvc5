@@ -73,15 +73,17 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   bool keep = true;
 
   // ----- check redundancy based on variables
-  if (options::sygusRewSynthFilterOrder()
-      || options::sygusRewSynthFilterNonLinear())
+  if (options().quantifiers.sygusRewSynthFilterOrder
+      || options().quantifiers.sygusRewSynthFilterNonLinear)
   {
-    bool nor = d_ss->checkVariables(bn,
-                                    options::sygusRewSynthFilterOrder(),
-                                    options::sygusRewSynthFilterNonLinear());
-    bool eqor = d_ss->checkVariables(beq_n,
-                                     options::sygusRewSynthFilterOrder(),
-                                     options::sygusRewSynthFilterNonLinear());
+    bool nor = d_ss->checkVariables(
+        bn,
+        options().quantifiers.sygusRewSynthFilterOrder,
+        options().quantifiers.sygusRewSynthFilterNonLinear);
+    bool eqor = d_ss->checkVariables(
+        beq_n,
+        options().quantifiers.sygusRewSynthFilterOrder,
+        options().quantifiers.sygusRewSynthFilterNonLinear);
     Trace("cr-filter-debug")
         << "Variables ok? : " << nor << " " << eqor << std::endl;
     if (eqor || nor)
@@ -118,7 +120,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   }
 
   // ----- check rewriting redundancy
-  if (keep && options::sygusRewSynthFilterCong())
+  if (keep && options().quantifiers.sygusRewSynthFilterCong)
   {
     // When using sygus types, this filtering applies to the builtin versions
     // of n and eq_n. This means that we may filter out a rewrite rule for one
@@ -135,7 +137,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     }
   }
 
-  if (keep && options::sygusRewSynthFilterMatch())
+  if (keep && options().quantifiers.sygusRewSynthFilterMatch)
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
@@ -186,13 +188,13 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
   // ----- check rewriting redundancy
-  if (options::sygusRewSynthFilterCong())
+  if (options().quantifiers.sygusRewSynthFilterCong)
   {
     Trace("cr-filter-debug") << "Add rewrite pair..." << std::endl;
     Assert(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
   }
-  if (options::sygusRewSynthFilterMatch())
+  if (options().quantifiers.sygusRewSynthFilterMatch)
   {
     // cache based on the builtin type
     TypeNode tn = bn.getType();
@@ -258,7 +260,7 @@ bool CandidateRewriteFilter::notify(Node s,
     Node nrs =
         nr.substitute(vars.begin(), vars.end(), esubs.begin(), esubs.end());
     bool areEqual = (nrs == d_curr_pair_rhs);
-    if (!areEqual && options::sygusRewSynthFilterCong())
+    if (!areEqual && options().quantifiers.sygusRewSynthFilterCong)
     {
       // if dynamic rewriter is available, consult it
       areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);

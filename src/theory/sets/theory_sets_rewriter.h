@@ -74,6 +74,15 @@ private:
    * Returns true if elementTerm is in setTerm, where both terms are constants.
    */
   bool checkConstantMembership(TNode elementTerm, TNode setTerm);
+ /**
+  *  rewrites for n include:
+  *  - (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
+  *  - (set.map f (set.singleton x)) = (set.singleton (apply f x))
+  *  - (set.map f (set.union A B)) =
+  *       (set.union (set.map f A) (set.map f B))
+  *  where f: T1 -> T2
+  */
+ RewriteResponse postRewriteMap(TNode n);
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets

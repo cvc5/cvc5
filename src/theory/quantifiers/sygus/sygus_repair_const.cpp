@@ -230,12 +230,11 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // make the satisfiability query
   std::unique_ptr<SolverEngine> repcChecker;
   // initialize the subsolver using the standard method
-  initializeSubsolver(
-      repcChecker,
-      d_env.getOptions(),
-      d_env.getLogicInfo(),
-      Options::current().quantifiers.sygusRepairConstTimeoutWasSetByUser,
-      options::sygusRepairConstTimeout());
+  initializeSubsolver(repcChecker,
+                      d_env.getOptions(),
+                      d_env.getLogicInfo(),
+                      options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
+                      options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus
   repcChecker->setOption("miniscope-quant", "true");
   repcChecker->setOption("miniscope-quant-fv", "true");

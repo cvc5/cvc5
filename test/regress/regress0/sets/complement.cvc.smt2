@@ -5,5 +5,5 @@
 (declare-sort Atom 0)
 (declare-fun a () (Set (Tuple Atom)))
 (declare-fun b () (Set (Tuple Atom)))
-(assert (= a (complement b)))
+(assert (= a (set.complement b)))
 (check-sat)

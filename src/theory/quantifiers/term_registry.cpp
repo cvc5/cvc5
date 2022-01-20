@@ -44,14 +44,15 @@ TermRegistry::TermRegistry(Env& env,
       d_sygusTdb(nullptr),
       d_qmodel(nullptr)
 {
-  if (options::sygus() || options::sygusInst())
+  if (options().quantifiers.sygus || options().quantifiers.sygusInst)
   {
     // must be constructed here since it is required for datatypes finistInit
     d_sygusTdb.reset(new TermDbSygus(env, qs));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug")
-      << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
+      << "Initialize model, mbqi : " << options().quantifiers.mbqiMode
+      << std::endl;
 }
 
 void TermRegistry::finishInit(FirstOrderModel* fm,
@@ -69,7 +70,7 @@ void TermRegistry::presolve()
 {
   d_presolve = false;
   // add all terms to database
-  if (options::incrementalSolving() && !options::termDbCd())
+  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
   {
     Trace("quant-engine-proc")
         << "Add presolve cache " << d_presolveCache.size() << std::endl;
@@ -84,19 +85,20 @@ void TermRegistry::presolve()
 void TermRegistry::addTerm(Node n, bool withinQuant)
 {
   // don't add terms in quantifier bodies
-  if (withinQuant && !options::registerQuantBodyTerms())
+  if (withinQuant && !options().quantifiers.registerQuantBodyTerms)
   {
     return;
   }
-  if (options::incrementalSolving() && !options::termDbCd())
+  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
   {
     d_presolveCache.insert(n);
   }
   // only wait if we are doing incremental solving
-  if (!d_presolve || !options::incrementalSolving() || options::termDbCd())
+  if (!d_presolve || !options().base.incrementalSolving
+      || options().quantifiers.termDbCd)
   {
     d_termDb->addTerm(n);
-    if (d_sygusTdb.get() && options::sygusEvalUnfold())
+    if (d_sygusTdb.get() && options().quantifiers.sygusEvalUnfold)
     {
       d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
     }

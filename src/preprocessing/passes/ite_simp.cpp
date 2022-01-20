@@ -22,7 +22,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/theory_engine.h"
 
@@ -33,6 +32,87 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
+
+Node mkAssocAnd(const std::vector<Node>& children)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (children.size() == 0)
+  {
+    return nm->mkConst(true);
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  else
+  {
+    const uint32_t max = kind::metakind::getMaxArityForKind(kind::AND);
+    const uint32_t min = kind::metakind::getMinArityForKind(kind::AND);
+
+    Assert(min <= children.size());
+
+    unsigned int numChildren = children.size();
+    if (numChildren <= max)
+    {
+      return nm->mkNode(kind::AND, children);
+    }
+
+    typedef std::vector<Node>::const_iterator const_iterator;
+    const_iterator it = children.begin();
+    const_iterator end = children.end();
+
+    /* The new top-level children and the children of each sub node */
+    std::vector<Node> newChildren;
+    std::vector<Node> subChildren;
+
+    while (it != end && numChildren > max)
+    {
+      /* Grab the next max children and make a node for them. */
+      for (const_iterator next = it + max; it != next; ++it, --numChildren)
+      {
+        subChildren.push_back(*it);
+      }
+      Node subNode = nm->mkNode(kind::AND, subChildren);
+      newChildren.push_back(subNode);
+      subChildren.clear();
+    }
+
+    /* If there's children left, "top off" the Expr. */
+    if (numChildren > 0)
+    {
+      /* If the leftovers are too few, just copy them into newChildren;
+       * otherwise make a new sub-node  */
+      if (numChildren < min)
+      {
+        for (; it != end; ++it)
+        {
+          newChildren.push_back(*it);
+        }
+      }
+      else
+      {
+        for (; it != end; ++it)
+        {
+          subChildren.push_back(*it);
+        }
+        Node subNode = nm->mkNode(kind::AND, subChildren);
+        newChildren.push_back(subNode);
+      }
+    }
+
+    /* It's inconceivable we could have enough children for this to fail
+     * (more than 2^32, in most cases?). */
+    AlwaysAssert(newChildren.size() <= max)
+        << "Too many new children in mkAssociative";
+
+    /* It would be really weird if this happened (it would require
+     * min > 2, for one thing), but let's make sure. */
+    AlwaysAssert(newChildren.size() >= min)
+        << "Too few new children in mkAssociative";
+
+    return nm->mkNode(kind::AND, newChildren);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -71,7 +151,7 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
   assertionsToPreprocess->resize(before);
   size_t lastBeforeItes = assertionsToPreprocess->getRealAssertionsEnd() - 1;
   intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
-  Node newLast = cvc5::util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
+  Node newLast = mkAssocAnd(intoConjunction);
   assertionsToPreprocess->replace(lastBeforeItes, newLast);
   Assert(assertionsToPreprocess->size() == before);
 }
@@ -99,9 +179,9 @@ Node ITESimp::simpITE(util::ITEUtilities* ite_utils, TNode assertion)
 
     if (options().smt.simplifyWithCareEnabled)
     {
-      Chat() << "starting simplifyWithCare()" << endl;
+      verbose(2) << "starting simplifyWithCare()" << endl;
       Node postSimpWithCare = ite_utils->simplifyWithCare(res_rewritten);
-      Chat() << "ending simplifyWithCare()"
+      verbose(2) << "ending simplifyWithCare()"
              << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
       result = rewrite(postSimpWithCare);
     }
@@ -130,14 +210,14 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
       NodeManager* nm = NodeManager::currentNM();
       if (nm->poolSize() >= options().smt.zombieHuntThreshold)
       {
-        Chat() << "..ite simplifier did quite a bit of work.. "
+        verbose(2) << "..ite simplifier did quite a bit of work.. "
                << nm->poolSize() << endl;
-        Chat() << "....node manager contains " << nm->poolSize()
+        verbose(2) << "....node manager contains " << nm->poolSize()
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
         d_env.getRewriter()->clearCaches();
         nm->reclaimZombiesUntil(options().smt.zombieHuntThreshold);
-        Chat() << "....node manager contains " << nm->poolSize()
+        verbose(2) << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
       }
     }

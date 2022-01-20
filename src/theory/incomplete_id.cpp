@@ -35,11 +35,15 @@ const char* toString(IncompleteId i)
       return "QUANTIFIERS_RECORDED_INST";
     case IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS:
       return "QUANTIFIERS_MAX_INST_ROUNDS";
+    case IncompleteId::QUANTIFIERS_SYGUS_SOLVED:
+      return "QUANTIFIERS_SYGUS_SOLVED";
     case IncompleteId::SEP: return "SEP";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";
     case IncompleteId::STRINGS_LOOP_SKIP: return "STRINGS_LOOP_SKIP";
     case IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY:
       return "STRINGS_REGEXP_NO_SIMPLIFY";
+    case IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY:
+      return "SEQ_FINITE_DYNAMIC_CARDINALITY";
     case IncompleteId::UF_HO_EXT_DISABLED: return "UF_HO_EXT_DISABLED";
     case IncompleteId::UF_CARD_DISABLED: return "UF_CARD_DISABLED";
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";

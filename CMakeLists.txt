@@ -48,9 +48,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
-if(ABC_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
-endif()
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
 endif()
@@ -73,6 +70,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
+option(BUILD_SHARED_LIBS          "Build shared libraries and binary")
 cvc5_option(ENABLE_ASAN           "Enable ASAN build")
 cvc5_option(ENABLE_UBSAN          "Enable UBSan build")
 cvc5_option(ENABLE_TSAN           "Enable TSan build")
@@ -80,15 +78,11 @@ cvc5_option(ENABLE_ASSERTIONS     "Enable assertions")
 cvc5_option(ENABLE_COMP_INC_TRACK
             "Enable optimizations for incremental SMT-COMP tracks")
 cvc5_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
-cvc5_option(ENABLE_DUMPING        "Enable dumping")
 cvc5_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
 cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
-cvc5_option(ENABLE_STATIC_LIBRARY "Enable building static library")
-cvc5_option(ENABLE_STATIC_BINARY
-            "Build static binaries with statically linked system libraries")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
 # >> 2-valued: ON OFF
@@ -103,7 +97,6 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
-cvc5_option(USE_ABC           "Use ABC for AIG bit-blasting")
 cvc5_option(USE_CLN           "Use CLN instead of GMP")
 cvc5_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 cvc5_option(USE_GLPK          "Use GLPK simplex solver")
@@ -120,7 +113,6 @@ option(USE_PYTHON2            "Force Python 2 (deprecated)")
 # installed via the corresponding contrib/get-* script and if not found, we
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
-set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
 # Prepend binaries with prefix on make install
@@ -132,6 +124,10 @@ option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
+
+# Link against static system libraries
+cvc5_option(STATIC_BINARY "Link against static system libraries \
+(enabled by default for static builds)")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -184,7 +180,7 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
-add_check_c_cxx_flag("-Wno-unused-private-field")
+add_check_c_cxx_supression_flag("-Wno-unused-private-field")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
@@ -198,7 +194,7 @@ add_check_cxx_flag("-fno-extern-tls-init")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
-add_check_cxx_flag("-Wno-class-memaccess")
+add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
@@ -222,18 +218,6 @@ endif ()
 
 if(ENABLE_IPO)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-
-#-----------------------------------------------------------------------------#
-# Option defaults (three-valued options (cvc5_option(...)))
-#
-# These options are only set if their value is IGNORE. Otherwise, the user
-# already set the option, which we don't want to overwrite.
-
-if(ENABLE_STATIC_BINARY)
-  message(STATUS "Enable static library for static binary build.")
-  cvc5_set_option(ENABLE_STATIC_LIBRARY ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -266,10 +250,22 @@ endif()
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 
-# Set visibility to default if unit tests are enabled
+# Set visibility to default if unit tests are enabled. If unit tests are
+# enabled, we also check if we can execute white box unit tests (some versions
+# of Clang have issues with the required flag).
+set(ENABLE_WHITEBOX_UNIT_TESTING OFF)
 if(ENABLE_UNIT_TESTING)
   set(CMAKE_CXX_VISIBILITY_PRESET default)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
+
+  # Check if Clang version has the bug that was fixed in
+  # https://reviews.llvm.org/D93104
+  set(ENABLE_WHITEBOX_UNIT_TESTING ON)
+  check_cxx_compiler_flag("-faccess-control" HAVE_CXX_FLAGfaccess_control)
+  if(NOT HAVE_CXX_FLAGfaccess_control)
+    set(ENABLE_WHITEBOX_UNIT_TESTING OFF)
+    message(STATUS "Disabling white box unit tests")
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -281,6 +277,20 @@ enable_testing()
 
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
+
+if(BUILD_SHARED_LIBS)
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .a)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .so .dylib .a)
+  endif()
+else()
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
+  endif()
+endif()
 
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
@@ -321,29 +331,14 @@ endif()
 
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
-  APPEND_COVERAGE_COMPILER_FLAGS()
+  append_coverage_compiler_flags()
   add_definitions(-DCVC5_COVERAGE)
-  # Note: The ctest command returns a non-zero exit code if tests fail or run
-  # into a timeout. As a consequence, the coverage report is not generated. To
-  # prevent this we always return with exit code 0 after the ctest command has
-  # finished.
-  setup_target_for_coverage_gcovr_html(
-    NAME coverage-test
-    EXECUTABLE
-      ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $$ARGS || exit 0
-    DEPENDS
-      build-tests)
-
-  # Adds targets `coverage` and `coverage-reset` for manually generating
-  # coverage reports for specific executions.
-  #
-  # Target coverage-reset resets all the coverage counters to zero, while
-  # target coverage will generate a coverage report for all executions since
-  # the last coverage-reset.
-  setup_target_for_coverage_lcov_no_executable(
+  setup_code_coverage_fastcov(
     NAME coverage
-    DEPENDENCIES cvc5-bin)
+    PATH "${PROJECT_SOURCE_DIR}"
+    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    DEPENDENCIES cvc5-bin
+  )
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
@@ -362,10 +357,6 @@ if(ENABLE_MUZZLE)
   add_definitions(-DCVC5_MUZZLE)
 endif()
 
-if(ENABLE_DUMPING)
-  add_definitions(-DCVC5_DUMPING)
-endif()
-
 if(ENABLE_PROFILING)
   add_definitions(-DCVC5_PROFILING)
   add_check_c_cxx_flag("-pg")
@@ -382,11 +373,6 @@ endif()
 if(ENABLE_VALGRIND)
   find_package(Valgrind REQUIRED)
   add_definitions(-DCVC5_VALGRIND)
-endif()
-
-if(USE_ABC)
-  find_package(ABC REQUIRED)
-  add_definitions(-DCVC5_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 find_package(CaDiCaL REQUIRED)
@@ -459,12 +445,18 @@ endif()
 # Provide targets to inspect iwyu suggestions
 
 include(IWYU)
+include(fuzzing-murxla)
 
 #-----------------------------------------------------------------------------#
 
 include(ConfigureCvc5)
-if(ENABLE_STATIC_BINARY)
+if(BUILD_SHARED_LIBS)
+  set(CVC5_STATIC_BUILD OFF)
+else()
   set(CVC5_STATIC_BUILD ON)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    cvc5_set_option(STATIC_BINARY ON)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -472,6 +464,10 @@ endif()
 
 add_subdirectory(src)
 
+if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
+  message(STATUS "Python bindings can only be built in a shared build.")
+  set(BUILD_BINDINGS_PYTHON OFF)
+endif()
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)
@@ -479,7 +475,6 @@ endif()
 
 if(BUILD_BINDINGS_JAVA)
   add_subdirectory(src/api/java)
-  message(WARNING "Java API is currently under development.")
 endif()
 
 if(BUILD_DOCS)
@@ -487,6 +482,8 @@ if(BUILD_DOCS)
 endif()
 
 add_subdirectory(test)
+
+include(target-graphs)
 
 #-----------------------------------------------------------------------------#
 # Package configuration
@@ -502,9 +499,9 @@ include(CMakePackageConfigHelpers)
 # (in the assumption that only reasonably experienced users use this and
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
-if(NOT ENABLE_STATIC_BINARY)
+if(BUILD_SHARED_LIBS)
   # Get the libraries that cvc5 links against
-  get_target_property(libs cvc5-shared INTERFACE_LINK_LIBRARIES)
+  get_target_property(libs cvc5 INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
   foreach(lib ${libs})
     # Filter out those that are linked dynamically and come from deps/install
@@ -600,7 +597,6 @@ print_config("Assertions                " ${ENABLE_ASSERTIONS})
 print_config("Debug symbols             " ${ENABLE_DEBUG_SYMBOLS})
 print_config("Debug context mem mgr     " ${ENABLE_DEBUG_CONTEXT_MM})
 message("")
-print_config("Dumping                   " ${ENABLE_DUMPING})
 print_config("Muzzle                    " ${ENABLE_MUZZLE})
 print_config("Statistics                " ${ENABLE_STATISTICS})
 print_config("Tracing                   " ${ENABLE_TRACING})
@@ -613,14 +609,12 @@ print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Static library            " ${ENABLE_STATIC_LIBRARY})
-print_config("Static binary             " ${ENABLE_STATIC_BINARY})
+print_config("Shared build              " ${BUILD_SHARED_LIBS})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
 print_config("Interprocedural opt.      " ${ENABLE_IPO})
 message("")
-print_config("ABC                       " ${USE_ABC})
 print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT} FOUND_SYSTEM ${CryptoMiniSat_FOUND_SYSTEM})
 print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
@@ -636,9 +630,6 @@ print_config("Editline                  " ${USE_EDITLINE})
 message("")
 print_config("Api docs                  " ${BUILD_DOCS})
 message("")
-if(ABC_DIR)
-  print_config("ABC dir                   " ${ABC_DIR})
-endif()
 if(GLPK_DIR)
   print_config("GLPK dir                  " ${GLPK_DIR})
 endif()

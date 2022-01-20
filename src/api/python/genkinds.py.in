@@ -39,97 +39,49 @@ DEFAULT_PREFIX = 'kinds'
 ################ Comments and Macro Tokens ############
 PYCOMMENT           = '#'
 
-####################### Code Blocks ###################
-CDEF_KIND = "    cdef Kind "
-
 KINDS_PXD_TOP = \
 r"""cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api":
-    cdef cppclass Kind:
-        pass
-
-
-# Kind declarations: See cpp/cvc5_kind.h for additional information
-cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api::Kind":
+    enum Kind:
 """
 
 KINDS_PXI_TOP = \
-r"""# distutils: language = c++
+r'''# distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
-from cvc5kinds cimport *
-import sys
-from types import ModuleType
+from cvc5kinds cimport Kind as c_Kind
+from enum import Enum
 
-from libcpp.string cimport string
-from libcpp.unordered_map cimport unordered_map
+class Kind(Enum):
+    """The Kinds enum"""
+    def __new__(cls, value, doc):
+        self = object.__new__(cls)
+        self._value_ = value
+        self.__doc__ = doc
+        return self
+'''
 
-# these maps are used for creating a kind
-# it is needed for dynamically making a kind
-# e.g. for getKind()
-cdef unordered_map[int, Kind] int2kind
-cdef unordered_map[int, string] int2name
-
-cdef class kind:
-    cdef Kind k
-    cdef str name
-    def __cinit__(self, int kindint):
-        self.k = int2kind[kindint]
-        self.name = str(int2name[kindint])
-
-    def __eq__(self, kind other):
-        return (<int> self.k) == (<int> other.k)
-
-    def __ne__(self, kind other):
-        return (<int> self.k) != (<int> other.k)
-
-    def __hash__(self):
-        return hash((<int> self.k, self.name))
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
-
-    def as_int(self):
-        return <int> self.k
-
-# create a kinds submodule
-kinds = ModuleType('kinds')
-kinds.__file__ = kinds.__name__ + ".py"
-"""
-
-KINDS_ATTR_TEMPLATE = \
-r"""
-int2kind[<int> {kind}] = {kind}
-int2name[<int> {kind}] = b"{name}"
-cdef kind {name} = kind(<int> {kind})
-setattr(kinds, "{name}", {name})
-"""
-
+KINDS_ATTR_TEMPLATE = r'''    {name}=c_Kind.{kind}, """{doc}"""
+'''
 
 def gen_pxd(parser: KindsParser, filename):
-    f = open(filename, "w")
-    f.write(KINDS_PXD_TOP)
-    # include the format_name docstring in the generated file
-    # could be helpful for users to see the formatting rules
-    for line in parser.format_name.__doc__.split(NL):
-        f.write(PYCOMMENT)
-        if not line.isspace():
-            f.write(line)
-        f.write(NL)
-    for kind in parser.kinds:
-        f.write(CDEF_KIND + kind + NL)
-    f.close()
+    with open(filename, "w") as f:
+        # include the format_name docstring in the generated file
+        # could be helpful for users to see the formatting rules
+        for line in parser.format_name.__doc__.split(NL):
+            f.write(PYCOMMENT)
+            if not line.isspace():
+                f.write(line)
+            f.write(NL)
+        f.write(KINDS_PXD_TOP)
+        for kind in parser.kinds:
+            f.write('       {},\n'.format(kind))
 
 def gen_pxi(parser : KindsParser, filename):
-    f = open(filename, "w")
-    pxi = KINDS_PXI_TOP
-    for kind, name in parser.kinds.items():
-        pxi += KINDS_ATTR_TEMPLATE.format(name=name, kind=kind)
-    f.write(pxi)
-    f.close()
-
+    with open(filename, "w") as f:
+        f.write(KINDS_PXI_TOP)
+        for kind, name in parser.kinds.items():
+            doc = parser.kinds_doc.get(name, '')
+            f.write(KINDS_ATTR_TEMPLATE.format(name=name, kind=kind, doc=doc))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Read a kinds header file and generate a '

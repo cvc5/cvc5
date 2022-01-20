@@ -5,8 +5,8 @@
 (declare-fun A () (Set Bool))
 (declare-fun B () (Set Bool))
 (declare-fun universe () (Set Bool))
-(assert (= (card A) 2))
-(assert (= (card B) 2))
-(assert (= universe (as univset (Set Bool))))
+(assert (= (set.card A) 2))
+(assert (= (set.card B) 2))
+(assert (= universe (as set.universe (Set Bool))))
 (check-sat)
 

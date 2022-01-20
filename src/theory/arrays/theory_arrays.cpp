@@ -81,7 +81,7 @@ TheoryArrays::TheoryArrays(Env& env,
       d_ppFacts(userContext()),
       d_rewriter(env.getRewriter(), d_pnm),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_literalsToPropagate(context()),
       d_literalsToPropagateIndex(context(), 0),
       d_isPreRegistered(context()),
@@ -296,7 +296,19 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
 
 TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
-  // first, see if we need to expand definitions
+  // first, check for logic exceptions
+  Kind k = term.getKind();
+  if (!options().arrays.arraysExp)
+  {
+    if (k == kind::EQ_RANGE)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << k
+         << " not supported in default mode, try --arrays-exp";
+      throw LogicException(ss.str());
+    }
+  }
+  // see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(term);
   if (!texp.isNull())
   {
@@ -309,7 +321,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   d_ppEqualityEngine.addTerm(term);
   NodeManager* nm = NodeManager::currentNM();
   Node ret;
-  switch (term.getKind()) {
+  switch (k)
+  {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
@@ -810,27 +823,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
   if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
     d_equalityEngine->addTriggerPredicate(node);
   }
-}
-
-void TheoryArrays::explain(TNode literal, Node& explanation)
-{
-  ++d_numExplain;
-  Debug("arrays") << spaces(context()->getLevel()) << "TheoryArrays::explain("
-                  << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  // Do the work
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL)
-  {
-    d_equalityEngine->explainEquality(
-        atom[0], atom[1], polarity, assumptions, nullptr);
-  }
-  else
-  {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
-  }
-  explanation = mkAnd(assumptions);
 }
 
 TrustNode TheoryArrays::explain(TNode literal)
@@ -1802,7 +1794,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
 void TheoryArrays::propagateRowLemma(RowLemmaType lem)
 {
   Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. "
-                        "options::arraysPropagate() = "
+                        "arraysPropagate = "
                      << options().arrays.arraysPropagate << std::endl;
 
   TNode a, b, i, j;

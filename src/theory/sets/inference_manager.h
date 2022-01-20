@@ -39,7 +39,7 @@ class InferenceManager : public InferenceManagerBuffered
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  InferenceManager(Env& env, Theory& t, SolverState& s, ProofNodeManager* pnm);
+  InferenceManager(Env& env, Theory& t, SolverState& s);
   /**
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.

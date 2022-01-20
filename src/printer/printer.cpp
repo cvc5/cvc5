@@ -16,6 +16,7 @@
 
 #include <string>
 
+#include "expr/node_manager_attributes.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
@@ -23,7 +24,6 @@
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
@@ -202,9 +202,8 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
 {
-  std::stringstream vs;
-  vs << v;
-  toStreamCmdDeclareFunction(out, vs.str(), v.getType());
+  std::string vs = v.getAttribute(expr::VarNameAttr());
+  toStreamCmdDeclareFunction(out, vs, v.getType());
 }
 
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
@@ -351,6 +350,10 @@ void Printer::toStreamCmdCheckSynth(std::ostream& out) const
 {
   printUnknownCommand(out, "check-synth");
 }
+void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "check-synth-next");
+}
 
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
@@ -402,6 +405,11 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
   printUnknownCommand(out, "get-interpol");
 }
 
+void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-interpol-next");
+}
+
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
                                    const std::string& name,
                                    Node conj,
@@ -410,8 +418,14 @@ void Printer::toStreamCmdGetAbduct(std::ostream& out,
   printUnknownCommand(out, "get-abduct");
 }
 
+void Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-abduct-next");
+}
+
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
-                                                  Node n) const
+                                                  Node n,
+                                                  bool doFull) const
 {
   printUnknownCommand(out, "get-quantifier-elimination");
 }

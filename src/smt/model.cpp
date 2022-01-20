@@ -15,8 +15,8 @@
 
 #include "smt/model.h"
 
-#include "expr/expr_iomanip.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "printer/printer.h"
 
 namespace cvc5 {
@@ -28,8 +28,10 @@ Model::Model(bool isKnownSat, const std::string& inputName)
 }
 
 std::ostream& operator<<(std::ostream& out, const Model& m) {
-  expr::ExprDag::Scope scope(out, false);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, m);
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, m);
   return out;
 }
 

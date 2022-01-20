@@ -17,6 +17,7 @@
 #include "theory/strings/base_solver.h"
 
 #include "expr/sequence.h"
+#include "options/quantifiers_options.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -31,8 +32,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
-    : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
+BaseSolver::BaseSolver(Env& env,
+                       SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr)
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
@@ -45,7 +49,7 @@ void BaseSolver::checkInit()
   // build term index
   d_eqcInfo.clear();
   d_termIndex.clear();
-  d_stringsEqc.clear();
+  d_stringLikeEqc.clear();
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
@@ -64,7 +68,7 @@ void BaseSolver::checkInit()
       std::map<Kind, TermIndex>& tti = d_termIndex[tn];
       if (tn.isStringLike())
       {
-        d_stringsEqc.push_back(eqc);
+        d_stringLikeEqc.push_back(eqc);
         emps = Word::mkEmptyWord(tn);
       }
       Node var;
@@ -343,7 +347,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     Node c;
     if (isConst)
     {
-      c = utils::mkNConcat(vecc, n.getType());
+      c = d_termReg.mkNConcat(vecc, n.getType());
     }
     if (!isConst || !d_state.areEqual(n, c))
     {
@@ -420,7 +424,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           {
             // The equivalence class is not entailed to be equal to a constant
             // and we found a better concatenation
-            Node nct = utils::mkNConcat(vecnc, n.getType());
+            Node nct = d_termReg.mkNConcat(vecnc, n.getType());
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
             bei.d_bestScore = contentSize;
@@ -511,7 +515,7 @@ void BaseSolver::checkCardinality()
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
   std::map<TypeNode, std::vector<std::vector<Node> > > cols;
   std::map<TypeNode, std::vector<Node> > lts;
-  d_state.separateByLength(d_stringsEqc, cols, lts);
+  d_state.separateByLength(d_stringLikeEqc, cols, lts);
   for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
   {
     checkCardinalityType(c.first, c.second, lts[c.first]);
@@ -539,8 +543,41 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // infinite cardinality, we are fine
       return;
     }
-    // TODO (cvc4-projects #23): how to handle sequence for finite types?
-    return;
+    // we check the cardinality class of the type, assuming that FMF is
+    // disabled.
+    if (isCardinalityClassFinite(etn.getCardinalityClass(), false))
+    {
+      Cardinality c = etn.getCardinality();
+      bool smallCardinality = false;
+      if (!c.isLargeFinite())
+      {
+        Integer ci = c.getFiniteCardinality();
+        if (ci.fitsUnsignedInt())
+        {
+          smallCardinality = true;
+          typeCardSize = ci.toUnsignedInt();
+        }
+      }
+      if (!smallCardinality)
+      {
+        // if it is large finite, then there is no way we could have
+        // constructed that many terms in memory, hence there is nothing
+        // to do.
+        return;
+      }
+    }
+    else
+    {
+      Assert(options().quantifiers.finiteModelFind);
+      // we are in a case where the cardinality of the type is infinite
+      // if not FMF, and finite given the Env's option value for FMF. In this
+      // case, FMF must be true, and the cardinality is finite and dynamic
+      // (i.e. it depends on the model's finite interpretation for uninterpreted
+      // sorts). We do not know how to handle this case, we set incomplete.
+      // TODO (cvc4-projects #23): how to handle sequence for finite types?
+      d_im.setIncomplete(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
+      return;
+    }
   }
   // for each collection
   for (unsigned i = 0, csize = cols.size(); i < csize; ++i)
@@ -570,8 +607,8 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     if (lr.isConst())
     {
       // if constant, compare
-      Node cmp = nm->mkNode(GEQ, lr, nm->mkConst(Rational(card_need)));
-      cmp = Rewriter::rewrite(cmp);
+      Node cmp = nm->mkNode(GEQ, lr, nm->mkConstInt(Rational(card_need)));
+      cmp = rewrite(cmp);
       needsSplit = !cmp.getConst<bool>();
     }
     else
@@ -584,7 +621,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       bool success = true;
       while (r < card_need && success)
       {
-        Node rr = nm->mkConst(Rational(r));
+        Node rr = nm->mkConstInt(Rational(r));
         if (d_state.areDisequal(rr, lr))
         {
           r++;
@@ -634,7 +671,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                           << std::endl;
     if (int_k + 1 > ei->d_cardinalityLemK.get())
     {
-      Node k_node = nm->mkConst(Rational(int_k));
+      Node k_node = nm->mkConstInt(Rational(int_k));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
       std::vector<Node> expn;
@@ -652,7 +689,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       }
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
       Node cons = nm->mkNode(GEQ, len, k_node);
-      cons = Rewriter::rewrite(cons);
+      cons = rewrite(cons);
       ei->d_cardinalityLemK.set(int_k + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {
@@ -724,9 +761,9 @@ Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
   return Node::null();
 }
 
-const std::vector<Node>& BaseSolver::getStringEqc() const
+const std::vector<Node>& BaseSolver::getStringLikeEqc() const
 {
-  return d_stringsEqc;
+  return d_stringLikeEqc;
 }
 
 Node BaseSolver::TermIndex::add(TNode n,

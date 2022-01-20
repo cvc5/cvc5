@@ -1,4 +1,4 @@
-(set-logic UFLIA)
+(set-logic UFDTLIA)
 (set-info :status sat)
 (set-option :finite-model-find true)
 (declare-sort a 0)

@@ -7,18 +7,18 @@
 (declare-fun S () (Set list))
 
 ; can use simple unification to infer bounds on x and y
-(assert (forall ((x Int) (y list)) (=> (member (cons x y) S) (P x))))
+(assert (forall ((x Int) (y list)) (=> (set.member (cons x y) S) (P x))))
 
-(assert (member (cons 4 (cons 1 nil)) S))
-(assert (member (cons 2 nil) S))
+(assert (set.member (cons 4 (cons 1 nil)) S))
+(assert (set.member (cons 2 nil) S))
 
 ; should construct instantiation involving selectors for l 
 (declare-fun l () list)
 (assert ((_ is cons) l))
-(assert (member l S))
+(assert (set.member l S))
 
 ; should not contribute to instantiations
-(assert (member nil S))
+(assert (set.member nil S))
 
 (assert (not (P 1)))
 (assert (not (P 0)))

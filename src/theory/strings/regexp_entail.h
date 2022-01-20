@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/attribute.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
@@ -34,6 +35,7 @@ namespace strings {
 class RegExpEntail
 {
  public:
+  RegExpEntail(Rewriter* r);
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -113,8 +115,14 @@ class RegExpEntail
    * Given regular expression n, if this method returns a non-null value c, then
    * x in n entails len( x ) = c.
    */
-  static Node getFixedLengthForRegexp(Node n);
+  static Node getFixedLengthForRegexp(TNode n);
 
+  /**
+   * Get constant lower or upper bound on the lengths of strings that occur in
+   * regular expression n. Return null if a constant bound cannot be determined.
+   * This method will always worst case return 0 as a lower bound.
+   */
+  Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
@@ -129,6 +137,20 @@ class RegExpEntail
    * @return True if the inclusion can be shown, false otherwise
    */
   static bool regExpIncludes(Node r1, Node r2);
+
+ private:
+  /** Set bound cache, used for getConstantBoundLengthForRegexp */
+  static void setConstantBoundCache(TNode n, Node ret, bool isLower);
+  /**
+   * Get bound cache, store in c and return true if the bound for n has been
+   * computed. Used for getConstantBoundLengthForRegexp.
+   */
+  static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
+  /** Arithmetic entailment module */
+  ArithEntail d_aent;
+  /** Common constants */
+  Node d_zero;
+  Node d_one;
 };
 
 }  // namespace strings

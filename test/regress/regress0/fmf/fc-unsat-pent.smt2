@@ -15,6 +15,6 @@
 (assert (not (= d e)))
 (assert (not (= e a)))
 
-(assert (fmf.card c 2))
+(assert (_ fmf.card U 2))
 
 (check-sat)

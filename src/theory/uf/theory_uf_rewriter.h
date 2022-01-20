@@ -35,11 +35,11 @@ class TheoryUfRewriter : public TheoryRewriter
 {
  public:
   TheoryUfRewriter(bool isHigherOrder = false);
+  /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
-
+  /** pre-rewrite */
   RewriteResponse preRewrite(TNode node) override;
-
- public:  // conversion between HO_APPLY AND APPLY_UF
+  // conversion between HO_APPLY AND APPLY_UF
   // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a)
   // b)
   static Node getHoApplyForApplyUf(TNode n);
@@ -62,6 +62,10 @@ class TheoryUfRewriter : public TheoryRewriter
    * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
   static bool canUseAsApplyUfOperator(TNode n);
+
+ private:
+  /** Entry point for rewriting lambdas */
+  static Node rewriteLambda(Node node);
   /** Is the logic higher-order? */
   bool d_isHigherOrder;
 }; /* class TheoryUfRewriter */

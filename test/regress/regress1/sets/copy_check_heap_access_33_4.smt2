@@ -46,19 +46,19 @@
 (assert (! (forall ((l1 Loc) (l2 Loc))
            (or (not Axiom_1$0)
                (or (<= (read$0 data$0 l1) (read$0 data$0 l2))
-                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (member l1 sk_?X_4$0))
-                   (not (member l2 sk_?X_4$0)))))
+                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (set.member l1 sk_?X_4$0))
+                   (not (set.member l2 sk_?X_4$0)))))
    :named sortedness_3))
 
 (assert (! (= (read$1 next$0 null$0) null$0) :named read_null_1))
 
-(assert (! (not (member tmp_2$0 Alloc$0)) :named new_31_11))
+(assert (! (not (set.member tmp_2$0 Alloc$0)) :named new_31_11))
 
-(assert (! (not (member null$0 Alloc$0)) :named initial_footprint_of_copy_23_11_2))
+(assert (! (not (set.member null$0 Alloc$0)) :named initial_footprint_of_copy_23_11_2))
 
 (assert (! (not (= lst$0 null$0)) :named if_else_26_6))
 
-(assert (! (= FP_Caller$0 (union FP$0 FP_Caller$0))
+(assert (! (= FP_Caller$0 (set.union FP$0 FP_Caller$0))
    :named precondition_of_copy_23_11_4))
 
 (assert (! (= sk_?X_4$0 FP$0) :named precondition_of_copy_23_11_5))
@@ -67,7 +67,7 @@
 
 (assert (! (= cp_2$0 res_1$0) :named assign_32_4))
 
-(assert (! (= FP_1$0 (union FP$0 (singleton tmp_2$0))) :named assign_31_11))
+(assert (! (= FP_1$0 (set.union FP$0 (set.singleton tmp_2$0))) :named assign_31_11))
 
 (assert (! (or (and (Btwn$0 next$0 lst$0 null$0 null$0) Axiom_1$0)
        (not (slseg_struct$0 sk_?X_4$0 data$0 next$0 lst$0 null$0)))
@@ -76,13 +76,13 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 null$0)
-                    (member l1 (slseg_domain$0 data$0 next$0 lst$0 null$0))
+                    (set.member l1 (slseg_domain$0 data$0 next$0 lst$0 null$0))
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 lst$0 l1 null$0)))
-                    (not (member l1 (slseg_domain$0 data$0 next$0 lst$0 null$0))))))
+                    (not (set.member l1 (slseg_domain$0 data$0 next$0 lst$0 null$0))))))
    :named slseg_footprint_2))
 
-(assert (! (not (member curr_2$0 FP_1$0)) :named check_heap_access_33_4))
+(assert (! (not (set.member curr_2$0 FP_1$0)) :named check_heap_access_33_4))
 
 (assert (! (not (= tmp_2$0 null$0)) :named new_31_11_1))
 
@@ -92,14 +92,14 @@
 (assert (! (= sk_?X_4$0 (slseg_domain$0 data$0 next$0 lst$0 null$0))
    :named precondition_of_copy_23_11_7))
 
-(assert (! (= Alloc$0 (union FP_Caller$0 Alloc$0))
+(assert (! (= Alloc$0 (set.union FP_Caller$0 Alloc$0))
    :named initial_footprint_of_copy_23_11_3))
 
 (assert (! (= curr_2$0 lst$0) :named assign_30_4))
 
-(assert (! (= FP_Caller_1$0 (setminus FP_Caller$0 FP$0)) :named assign_26_2_1))
+(assert (! (= FP_Caller_1$0 (set.minus FP_Caller$0 FP$0)) :named assign_26_2_1))
 
-(assert (! (= Alloc_1$0 (union Alloc$0 (singleton tmp_2$0))) :named assign_31_11_1))
+(assert (! (= Alloc_1$0 (set.union Alloc$0 (set.singleton tmp_2$0))) :named assign_31_11_1))
 
 (assert (! (forall ((?x Loc)) (Btwn$0 next$0 ?x ?x ?x)) :named btwn_refl_1))
 

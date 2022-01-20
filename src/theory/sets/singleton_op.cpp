@@ -21,29 +21,29 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, const SingletonOp& op)
+std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op)
 {
-  return out << "(singleton_op " << op.getType() << ')';
+  return out << "(SetSingletonOp " << op.getType() << ')';
 }
 
-size_t SingletonOpHashFunction::operator()(const SingletonOp& op) const
+size_t SetSingletonOpHashFunction::operator()(const SetSingletonOp& op) const
 {
   return std::hash<TypeNode>()(op.getType());
 }
 
-SingletonOp::SingletonOp(const TypeNode& elementType)
+SetSingletonOp::SetSingletonOp(const TypeNode& elementType)
     : d_type(new TypeNode(elementType))
 {
 }
 
-SingletonOp::SingletonOp(const SingletonOp& op)
+SetSingletonOp::SetSingletonOp(const SetSingletonOp& op)
     : d_type(new TypeNode(op.getType()))
 {
 }
 
-const TypeNode& SingletonOp::getType() const { return *d_type; }
+const TypeNode& SetSingletonOp::getType() const { return *d_type; }
 
-bool SingletonOp::operator==(const SingletonOp& op) const
+bool SetSingletonOp::operator==(const SetSingletonOp& op) const
 {
   return getType() == op.getType();
 }

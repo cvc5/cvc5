@@ -117,7 +117,7 @@ void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
   replace(i, trn.getNode(), trn.getGenerator());
 }
 
-void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
   d_pppg = pppg;
 }
@@ -186,7 +186,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
         lcp->addLazyStep(d_nodes[i], d_pppg);
         lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
       }
-      if (newConjr != newConj)
+      if (!CDProof::isSame(newConjr, newConj))
       {
         lcp->addStep(
             newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});

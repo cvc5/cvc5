@@ -22,6 +22,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass.h"
 #include "smt/env_obj.h"
 #include "util/resource_manager.h"
 
@@ -29,8 +30,6 @@ namespace cvc5 {
 
 namespace preprocessing {
 class AssertionPipeline;
-class PreprocessingPass;
-class PreprocessingPassContext;
 }
 
 namespace smt {
@@ -111,7 +110,10 @@ class ProcessAssertions : protected EnvObj
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
-  void dumpAssertions(const char* key, Assertions& as);
+  void dumpAssertions(const std::string& key, Assertions& as);
+  /** apply pass */
+  preprocessing::PreprocessingPassResult applyPass(const std::string& pass,
+                                                   Assertions& as);
 };
 
 }  // namespace smt

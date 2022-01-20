@@ -96,6 +96,10 @@ class ArithEntail
    * checkWithAssumption(x + (str.len y) = 0, 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
   bool checkWithAssumption(Node assumption,
                            Node a,
@@ -114,6 +118,10 @@ class ArithEntail
    * checkWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
   bool checkWithAssumptions(std::vector<Node> assumptions,
                             Node a,
@@ -133,8 +141,13 @@ class ArithEntail
    *     if and only if
    *   check( a, strict ) = true.
    */
-  Node getConstantBound(Node a, bool isLower = true);
+  Node getConstantBound(TNode a, bool isLower = true);
 
+  /**
+   * Get constant bound on the length of s, if it can be determined. This
+   * method will always worst case return 0 as a lower bound.
+   */
+  Node getConstantBoundLength(TNode s, bool isLower = true) const;
   /**
    * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
    * original inequality still holds. Returns true if the original inequality
@@ -179,8 +192,17 @@ class ArithEntail
   void getArithApproximations(Node a,
                               std::vector<Node>& approx,
                               bool isOverApprox = false);
+  /** Set bound cache */
+  static void setConstantBoundCache(TNode n, Node ret, bool isLower);
+  /**
+   * Get bound cache, store in c and return true if the bound for n has been
+   * computed. Used for getConstantBound and getConstantBoundLength.
+   */
+  static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
   /** The underlying rewriter */
   Rewriter* d_rr;
+  /** Constant zero */
+  Node d_zero;
 };
 
 }  // namespace strings

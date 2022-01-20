@@ -278,7 +278,8 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
     if (!hasConstant)
     {
       // add an arbitrary one
-      Node op = st.mkGroundTerm();
+      NodeManager* nm = NodeManager::currentNM();
+      Node op = nm->mkGroundTerm(st);
       // use same naming convention as SygusDatatype
       std::stringstream ss;
       ss << getName() << "_" << getNumConstructors() << "_" << op;
@@ -866,11 +867,8 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode stype = nm->mkSelectorType(dtt, t);
-  Node nindex = nm->mkConst(Rational(index));
-  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR,
-                           stype,
-                           nindex,
-                           NodeManager::SKOLEM_NO_NOTIFY);
+  Node nindex = nm->mkConstInt(Rational(index));
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

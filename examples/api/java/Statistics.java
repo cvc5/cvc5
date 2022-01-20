@@ -10,12 +10,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of accessing CVC4's statistics using the Java API.
+ * An example of accessing cvc5's statistics using the Java API.
  */
 
-import static cvc5.Kind.*;
+import static io.github.cvc5.api.Kind.*;
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 import java.util.List;
 import java.util.Map;
 
@@ -23,43 +23,45 @@ public class Statistics
 {
   public static void main(String[] args)
   {
-    Solver solver = getSolver();
-    // Get the statistics from the `Solver` and iterate over them. The
-    // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
-    cvc5.Statistics stats = solver.getStatistics();
-    // short version
-    System.out.println("Short version:");
-    System.out.println(stats);
-
-    System.out.println("-------------------------------------------------------");
-
-    System.out.println("Long version:");
-
-    // long version
-    for (Pair<String, Stat> pair : stats)
+    try (Solver solver = new Solver())
     {
-      Stat stat = pair.second;
-      if (stat.isInt())
+      // Get the statistics from the `Solver` and iterate over them. The
+      // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
+      io.github.cvc5.api.Statistics stats = solver.getStatistics();
+      // short version
+      System.out.println("Short version:");
+      System.out.println(stats);
+
+      System.out.println("-------------------------------------------------------");
+
+      System.out.println("Long version:");
+
+      // long version
+      for (Pair<String, Stat> pair : stats)
       {
-        System.out.println(pair.first + " = " + stat.getInt());
-      }
-      else if (stat.isDouble())
-      {
-        System.out.println(pair.first + " = " + stat.getDouble());
-      }
-      else if (stat.isString())
-      {
-        System.out.println(pair.first + " = " + stat.getString());
-      }
-      else if (stat.isHistogram())
-      {
-        System.out.println("-------------------------------------------------------");
-        System.out.println(pair.first + " : Map");
-        for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
+        Stat stat = pair.second;
+        if (stat.isInt())
         {
-          System.out.println(entry.getKey() + " = " + entry.getValue());
+          System.out.println(pair.first + " = " + stat.getInt());
         }
-        System.out.println("-------------------------------------------------------");
+        else if (stat.isDouble())
+        {
+          System.out.println(pair.first + " = " + stat.getDouble());
+        }
+        else if (stat.isString())
+        {
+          System.out.println(pair.first + " = " + stat.getString());
+        }
+        else if (stat.isHistogram())
+        {
+          System.out.println("-------------------------------------------------------");
+          System.out.println(pair.first + " : Map");
+          for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
+          {
+            System.out.println(entry.getKey() + " = " + entry.getValue());
+          }
+          System.out.println("-------------------------------------------------------");
+        }
       }
     }
   }
@@ -156,55 +158,55 @@ public class Statistics
     Term isEmpty1 = solver.mkTerm(EQUAL, males, emptySetTerm);
     Term isEmpty2 = solver.mkTerm(EQUAL, females, emptySetTerm);
 
-    // (assert (= people (as univset (Set (Tuple Person)))))
+    // (assert (= people (as set.universe (Set (Tuple Person)))))
     Term peopleAreTheUniverse = solver.mkTerm(EQUAL, people, universeSet);
-    // (assert (not (= males (as emptyset (Set (Tuple Person))))))
+    // (assert (not (= males (as set.empty (Set (Tuple Person))))))
     Term maleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty1);
-    // (assert (not (= females (as emptyset (Set (Tuple Person))))))
+    // (assert (not (= females (as set.empty (Set (Tuple Person))))))
     Term femaleSetIsNotEmpty = solver.mkTerm(NOT, isEmpty2);
 
-    // (assert (= (intersection males females) (as emptyset (Set (Tuple
+    // (assert (= (set.inter males females) (as set.empty (Set (Tuple
     // Person)))))
-    Term malesFemalesIntersection = solver.mkTerm(INTERSECTION, males, females);
+    Term malesFemalesIntersection = solver.mkTerm(SET_INTER, males, females);
     Term malesAndFemalesAreDisjoint = solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
 
-    // (assert (not (= father (as emptyset (Set (Tuple Person Person))))))
-    // (assert (not (= mother (as emptyset (Set (Tuple Person Person))))))
+    // (assert (not (= father (as set.empty (Set (Tuple Person Person))))))
+    // (assert (not (= mother (as set.empty (Set (Tuple Person Person))))))
     Term isEmpty3 = solver.mkTerm(EQUAL, father, emptyRelationTerm);
     Term isEmpty4 = solver.mkTerm(EQUAL, mother, emptyRelationTerm);
     Term fatherIsNotEmpty = solver.mkTerm(NOT, isEmpty3);
     Term motherIsNotEmpty = solver.mkTerm(NOT, isEmpty4);
 
     // fathers are males
-    // (assert (subset (join father people) males))
-    Term fathers = solver.mkTerm(JOIN, father, people);
-    Term fathersAreMales = solver.mkTerm(SUBSET, fathers, males);
+    // (assert (set.subset (rel.join father people) males))
+    Term fathers = solver.mkTerm(RELATION_JOIN, father, people);
+    Term fathersAreMales = solver.mkTerm(SET_SUBSET, fathers, males);
 
     // mothers are females
-    // (assert (subset (join mother people) females))
-    Term mothers = solver.mkTerm(JOIN, mother, people);
-    Term mothersAreFemales = solver.mkTerm(SUBSET, mothers, females);
+    // (assert (set.subset (rel.join mother people) females))
+    Term mothers = solver.mkTerm(RELATION_JOIN, mother, people);
+    Term mothersAreFemales = solver.mkTerm(SET_SUBSET, mothers, females);
 
-    // (assert (= parent (union father mother)))
-    Term unionFatherMother = solver.mkTerm(UNION, father, mother);
+    // (assert (= parent (set.union father mother)))
+    Term unionFatherMother = solver.mkTerm(SET_UNION, father, mother);
     Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
 
-    // (assert (= parent (union father mother)))
-    Term transitiveClosure = solver.mkTerm(TCLOSURE, parent);
+    // (assert (= descendant (rel.tclosure parent)))
+    Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
     Term descendantFormula = solver.mkTerm(EQUAL, descendant, transitiveClosure);
 
-    // (assert (= parent (union father mother)))
-    Term transpose = solver.mkTerm(TRANSPOSE, descendant);
+    // (assert (= ancestor (rel.transpose descendant)))
+    Term transpose = solver.mkTerm(RELATION_TRANSPOSE, descendant);
     Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transpose);
 
-    // (assert (forall ((x Person)) (not (member (mkTuple x x) ancestor))))
+    // (assert (forall ((x Person)) (not (set.member (mkTuple x x) ancestor))))
     Term var = solver.mkVar(personSort, "x");
     DatatypeConstructor constructor = tupleArity2.getDatatype().getConstructor(0);
     Term xxTuple = solver.mkTerm(APPLY_CONSTRUCTOR, constructor.getConstructorTerm(), var, var);
-    Term member = solver.mkTerm(MEMBER, xxTuple, ancestor);
+    Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
     Term notMember = solver.mkTerm(NOT, member);
 
-    Term quantifiedVariables = solver.mkTerm(BOUND_VAR_LIST, var);
+    Term quantifiedVariables = solver.mkTerm(VARIABLE_LIST, var);
     Term noSelfAncestor = solver.mkTerm(FORALL, quantifiedVariables, notMember);
 
     // formulas

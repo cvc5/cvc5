@@ -11,8 +11,8 @@
 
 
 
-(assert (= F (insert x y (singleton z))))
-(assert (subset F A))
+(assert (= F (set.insert x y (set.singleton z))))
+(assert (set.subset F A))
 (assert (= x y))
 
 

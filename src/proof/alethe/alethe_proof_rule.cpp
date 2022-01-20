@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "proof/proof_checker.h"
+
 namespace cvc5 {
 
 namespace proof {
@@ -90,7 +92,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::NOT_ITE1: return "not_ite1";
     case AletheRule::NOT_ITE2: return "not_ite2";
     case AletheRule::ITE_INTRO: return "ite_intro";
-    case AletheRule::DUPLICATED_LITERALS: return "duplicate_literals";
+    case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
     case AletheRule::ITE_SIMPLIFY: return "ite_simplify";
     case AletheRule::EQ_SIMPLIFY: return "eq_simplify";
@@ -114,7 +116,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
-    case AletheRule::REORDER: return "reorder";
+    case AletheRule::REORDERING: return "reordering";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";
@@ -125,6 +127,16 @@ std::ostream& operator<<(std::ostream& out, AletheRule id)
 {
   out << aletheRuleToString(id);
   return out;
+}
+
+AletheRule getAletheRule(Node n)
+{
+  uint32_t id;
+  if (ProofRuleChecker::getUInt32(n, id))
+  {
+    return static_cast<AletheRule>(id);
+  }
+  return AletheRule::UNDEFINED;
 }
 
 }  // namespace proof

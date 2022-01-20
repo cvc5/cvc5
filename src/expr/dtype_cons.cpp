@@ -49,11 +49,10 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
   Assert(!isResolved());
   Assert(!selectorType.isNull());
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node sel = sm->mkDummySkolem(
-      "unresolved_" + selectorName,
-      selectorType,
-      "is an unresolved selector type placeholder",
-      NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
+  Node sel = sm->mkDummySkolem("unresolved_" + selectorName,
+                               selectorType,
+                               "is an unresolved selector type placeholder",
+                               SkolemManager::SKOLEM_EXACT_NAME);
   // can use null updater for now
   Node nullNode;
   Trace("datatypes") << "DTypeConstructor::addArg: " << sel << std::endl;
@@ -82,6 +81,16 @@ Node DTypeConstructor::getConstructor() const
 {
   Assert(isResolved());
   return d_constructor;
+}
+
+Node DTypeConstructor::getInstantiatedConstructor(TypeNode returnType) const
+{
+  Assert(isResolved());
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      kind::APPLY_TYPE_ASCRIPTION,
+      nm->mkConst(AscriptionType(getInstantiatedConstructorType(returnType))),
+      d_constructor);
 }
 
 Node DTypeConstructor::getTester() const
@@ -117,12 +126,12 @@ unsigned DTypeConstructor::getWeight() const
 
 size_t DTypeConstructor::getNumArgs() const { return d_args.size(); }
 
-TypeNode DTypeConstructor::getSpecializedConstructorType(
+TypeNode DTypeConstructor::getInstantiatedConstructorType(
     TypeNode returnType) const
 {
   Assert(isResolved());
   Assert(returnType.isDatatype())
-      << "DTypeConstructor::getSpecializedConstructorType: expected datatype, "
+      << "DTypeConstructor::getInstantiatedConstructorType: expected datatype, "
          "got "
       << returnType;
   TypeNode ctn = d_constructor.getType();
@@ -411,7 +420,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     else
     {
       // call mkGroundValue or mkGroundTerm based on isValue
-      arg = isValue ? selType.mkGroundValue() : selType.mkGroundTerm();
+      arg = isValue ? nm->mkGroundValue(selType) : nm->mkGroundTerm(selType);
     }
     if (arg.isNull())
     {
@@ -440,7 +449,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                             << ", ascribe to " << t << std::endl;
     groundTerms[0] = nm->mkNode(
         APPLY_TYPE_ASCRIPTION,
-        nm->mkConst(AscriptionType(getSpecializedConstructorType(t))),
+        nm->mkConst(AscriptionType(getInstantiatedConstructorType(t))),
         groundTerms[0]);
     groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   }
@@ -457,7 +466,7 @@ void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
     TypeNode ctype;
     if (domainType.isParametricDatatype())
     {
-      ctype = getSpecializedConstructorType(domainType);
+      ctype = getInstantiatedConstructorType(domainType);
     }
     else
     {
@@ -562,17 +571,15 @@ bool DTypeConstructor::resolve(
     }
     // Internally, selectors (and updaters) are fresh internal skolems which
     // we constructor via mkDummySkolem.
-    arg->d_selector = sm->mkDummySkolem(
-        argName,
-        nm->mkSelectorType(self, range),
-        "is a selector",
-        NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
+    arg->d_selector = sm->mkDummySkolem(argName,
+                                        nm->mkSelectorType(self, range),
+                                        "is a selector",
+                                        SkolemManager::SKOLEM_EXACT_NAME);
     std::string updateName("update_" + argName);
-    arg->d_updater = sm->mkDummySkolem(
-        updateName,
-        nm->mkDatatypeUpdateType(self, range),
-        "is a selector",
-        NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
+    arg->d_updater = sm->mkDummySkolem(updateName,
+                                       nm->mkDatatypeUpdateType(self, range),
+                                       "is a selector",
+                                       SkolemManager::SKOLEM_EXACT_NAME);
     // must set indices to ensure datatypes::utils::indexOf works
     arg->d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
     arg->d_selector.setAttribute(DTypeIndexAttr(), index);
@@ -600,16 +607,14 @@ bool DTypeConstructor::resolve(
   // The name of the tester variable does not matter, it is only used
   // internally.
   std::string testerName("is_" + d_name);
-  d_tester = sm->mkDummySkolem(
-      testerName,
-      nm->mkTesterType(self),
-      "is a tester",
-      NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-  d_constructor = sm->mkDummySkolem(
-      getName(),
-      nm->mkConstructorType(argTypes, self),
-      "is a constructor",
-      NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
+  d_tester = sm->mkDummySkolem(testerName,
+                               nm->mkTesterType(self),
+                               "is a tester",
+                               SkolemManager::SKOLEM_EXACT_NAME);
+  d_constructor = sm->mkDummySkolem(getName(),
+                                    nm->mkConstructorType(argTypes, self),
+                                    "is a constructor",
+                                    SkolemManager::SKOLEM_EXACT_NAME);
   Assert(d_constructor.getType().isConstructor());
   // associate constructor with all selectors
   for (std::shared_ptr<DTypeSelector> sel : d_args)

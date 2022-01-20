@@ -44,6 +44,9 @@ enum class IncompleteId
   QUANTIFIERS_RECORDED_INST,
   // incomplete due to limited number of allowed instantiation rounds
   QUANTIFIERS_MAX_INST_ROUNDS,
+  // we solved a negated synthesis conjecture and will terminate as a subsolver
+  // with unknown
+  QUANTIFIERS_SYGUS_SOLVED,
   // incomplete due to separation logic
   SEP,
   // relations were used in combination with set cardinality constraints
@@ -52,6 +55,11 @@ enum class IncompleteId
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership
   STRINGS_REGEXP_NO_SIMPLIFY,
+  // incomplete due to sequence of a dynamic finite type (e.g. a type that
+  // we know is finite, but its exact cardinality is not fixed. For example,
+  // when finite model finding is enabled, uninterpreted sorts have a
+  // cardinality that depends on their interpretation in the current model).
+  SEQ_FINITE_DYNAMIC_CARDINALITY,
   // HO extensionality axiom was disabled
   UF_HO_EXT_DISABLED,
   // UF+cardinality solver was disabled

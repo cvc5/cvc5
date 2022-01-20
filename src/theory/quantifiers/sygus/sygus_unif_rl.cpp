@@ -52,7 +52,7 @@ void SygusUnifRl::initializeCandidate(
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
   StrategyRestrictions restrictions;
-  if (options::sygusBoolIteReturnConst())
+  if (options().quantifiers.sygusBoolIteReturnConst)
   {
     restrictions.d_iteReturnBoolConst = true;
   }
@@ -67,7 +67,7 @@ void SygusUnifRl::initializeCandidate(
     d_cand_to_hd_count[f] = 0;
   }
   // check whether we are using condition enumeration
-  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  options::SygusUnifPiMode mode = options().quantifiers.sygusUnifPi;
   d_useCondPool = mode == options::SygusUnifPiMode::CENUM
                   || mode == options::SygusUnifPiMode::CENUM_IGAIN;
   d_useCondPoolIGain = mode == options::SygusUnifPiMode::CENUM_IGAIN;
@@ -188,10 +188,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
-      Node new_f = sm->mkDummySkolem(ss.str(),
-                                     nb[0].getType(),
-                                     "head of unif evaluation point",
-                                     NodeManager::SKOLEM_EXACT_NAME);
+      Node new_f = sm->mkDummySkolem(
+          ss.str(), nb[0].getType(), "head of unif evaluation point");
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify")
           << "...new enum " << new_f << " for candidate " << nb[0] << "\n";

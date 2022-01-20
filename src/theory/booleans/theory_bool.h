@@ -39,6 +39,8 @@ class TheoryBool : public Theory {
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
 
+  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
+
   std::string identify() const override;
 
  private:

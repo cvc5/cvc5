@@ -19,6 +19,7 @@
 #include "context/cdlist.h"
 #include "omt/omt_optimizer.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "smt/assertions.h"
@@ -34,7 +35,7 @@ namespace smt {
 std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
 {
   // check the output language first
-  Language lang = language::SetLanguage::getLanguage(out);
+  Language lang = options::ioutils::getOutputLang(out);
   if (!language::isLangSmt2(lang))
   {
     Unimplemented()
@@ -68,7 +69,7 @@ std::ostream& operator<<(std::ostream& out,
                          const OptimizationObjective& objective)
 {
   // check the output language first
-  Language lang = language::SetLanguage::getLanguage(out);
+  Language lang = options::ioutils::getOutputLang(out);
   if (!language::isLangSmt2(lang))
   {
     Unimplemented()

@@ -611,7 +611,7 @@ public:
    *
    * Return term t with a type ascription applied to it. This is used for
    * syntax like (as t T) in smt2 and t::T in the CVC language. This includes:
-   * - (as emptyset (Set T))
+   * - (as set.empty (Set T))
    * - (as emptybag (Bag T))
    * - (as univset (Set T))
    * - (as sep.nil T)
@@ -623,8 +623,8 @@ public:
    *
    * Notice that method is not necessarily a cast. In actuality, the above terms
    * should be understood as symbols indexed by types. However, SMT-LIB does not
-   * permit types as indices, so we must use, e.g. (as emptyset (Set T))
-   * instead of (_ emptyset (Set T)).
+   * permit types as indices, so we must use, e.g. (as set.empty (Set T))
+   * instead of (_ set.empty (Set T)).
    *
    * @param t The term to ascribe a type
    * @param s The sort to ascribe
@@ -715,6 +715,14 @@ public:
    * other pushes and pops only have an impact on the symbol table.
    */
   void pushScope(bool isUserContext = false);
+
+  /** Push scope for get-value
+   *
+   * This pushes a scope by a call to pushScope that binds all relevant bindings
+   * required for parsing the SMT-LIB command `get-value`. This includes
+   * all uninterpreted constant values in user-defined uninterpreted sorts.
+   */
+  void pushGetValueScope();
 
   void popScope();
 

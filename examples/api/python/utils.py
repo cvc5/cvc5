@@ -15,7 +15,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 # Get the string version of define-fun command.
 # @param f the function to print
@@ -33,8 +33,7 @@ def define_fun_to_string(f, params, body):
     for i in range(0, len(params)):
         if i > 0:
             result += " "
-        else:
-            result += "(" + str(params[i]) + " " + str(params[i].getSort()) + ")"
+        result += "(" + str(params[i]) + " " + str(params[i].getSort()) + ")"
     result += ") " + str(sort) + " " + str(body) + ")"
     return result
 
@@ -48,7 +47,7 @@ def print_synth_solutions(terms, sols):
     result = ""
     for i in range(0, len(terms)):
         params = []
-        if sols[i].getKind() == kinds.Lambda:
+        if sols[i].getKind() == Kind.Lambda:
             params += sols[i][0]
             body = sols[i][1]
         result += "  " + define_fun_to_string(terms[i], params, body) + "\n"

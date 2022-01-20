@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --nl-ext=none --no-check-models
 ; EXPECT: sat
+; REQUIRES: poly
 (set-logic QF_NRA)
 (set-info :status sat)
 (declare-fun _substvar_15_ () Real)                                                                                                                                 

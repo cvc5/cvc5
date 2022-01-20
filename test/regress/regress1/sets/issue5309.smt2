@@ -2,6 +2,6 @@
 (set-info :status sat)
 (declare-const zero Int)
 (declare-fun A () (Set Int))
-(assert (exists ((x Int)) (= A (singleton x))))
-(assert (member (- zero) A))
+(assert (exists ((x Int)) (= A (set.singleton x))))
+(assert (set.member (- zero) A))
 (check-sat)

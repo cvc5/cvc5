@@ -68,7 +68,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
 TEST_F(TestTheoryWhiteArith, assert)
 {
   Node x = d_nodeManager->mkVar(*d_realType);
-  Node c = d_nodeManager->mkConst<Rational>(d_zero);
+  Node c = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, d_zero);
 
   Node gt = d_nodeManager->mkNode(GT, x, c);
   Node leq = Rewriter::rewrite(gt.notNode());
@@ -83,9 +83,9 @@ TEST_F(TestTheoryWhiteArith, int_normal_form)
 {
   Node x = d_nodeManager->mkVar(*d_intType);
   Node xr = d_nodeManager->mkVar(*d_realType);
-  Node c0 = d_nodeManager->mkConst<Rational>(d_zero);
-  Node c1 = d_nodeManager->mkConst<Rational>(d_one);
-  Node c2 = d_nodeManager->mkConst<Rational>(Rational(2));
+  Node c0 = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, d_zero);
+  Node c1 = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, d_one);
+  Node c2 = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational(2));
 
   Node geq0 = d_nodeManager->mkNode(GEQ, x, c0);
   Node geq1 = d_nodeManager->mkNode(GEQ, x, c1);

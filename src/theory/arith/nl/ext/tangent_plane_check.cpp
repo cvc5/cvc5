@@ -24,12 +24,17 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-TangentPlaneCheck::TangentPlaneCheck(ExtState* data) : d_data(data) {}
+TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data)
+{
+}
 
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
@@ -90,7 +95,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               {
                 Node do_extend = nm->mkNode(
                     (p == 1 || p == 3) ? Kind::GT : Kind::LT, curr_v, pt_v);
-                do_extend = Rewriter::rewrite(do_extend);
+                do_extend = rewrite(do_extend);
                 if (do_extend == d_data->d_true)
                 {
                   for (unsigned q = 0; q < 2; q++)
@@ -141,15 +146,16 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               if (d_data->isProofEnabled())
               {
                 proof = d_data->getProof();
-                proof->addStep(tlem,
-                               PfRule::ARITH_MULT_TANGENT,
-                               {},
-                               {t,
-                                a,
-                                b,
-                                a_v,
-                                b_v,
-                                nm->mkConst(Rational(d == 0 ? -1 : 1))});
+                proof->addStep(
+                    tlem,
+                    PfRule::ARITH_MULT_TANGENT,
+                    {},
+                    {t,
+                     a,
+                     b,
+                     a_v,
+                     b_v,
+                     nm->mkConst(CONST_RATIONAL, Rational(d == 0 ? -1 : 1))});
               }
               d_data->d_im.addPendingLemma(tlem,
                                            InferenceId::ARITH_NL_TANGENT_PLANE,

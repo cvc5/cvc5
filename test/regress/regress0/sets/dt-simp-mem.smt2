@@ -4,6 +4,6 @@
 (declare-fun x1 () D)
 (declare-fun S () (Set D))
 (declare-fun P (D) Bool)
-(assert (member x1 S))
-(assert (=> (member (A 0) S) (P x1)))
+(assert (set.member x1 S))
+(assert (=> (set.member (A 0) S) (P x1)))
 (check-sat)

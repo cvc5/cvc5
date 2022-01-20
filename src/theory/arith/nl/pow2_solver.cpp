@@ -42,9 +42,9 @@ Pow2Solver::Pow2Solver(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_two = nm->mkConst(Rational(2));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_two = nm->mkConstInt(Rational(2));
 }
 
 Pow2Solver::~Pow2Solver() {}
@@ -188,10 +188,9 @@ Node Pow2Solver::valueBasedLemma(Node i)
 
   NodeManager* nm = NodeManager::currentNM();
   Node valC = nm->mkNode(POW2, valX);
-  valC = Rewriter::rewrite(valC);
+  valC = rewrite(valC);
 
-  Node lem = nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
-  return lem;
+  return nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
 }
 
 }  // namespace nl

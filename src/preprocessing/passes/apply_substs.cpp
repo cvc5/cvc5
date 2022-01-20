@@ -21,7 +21,7 @@
 #include "context/cdo.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/rewriter.h"
+#include "smt/env.h"
 #include "theory/substitutions.h"
 
 namespace cvc5 {
@@ -36,7 +36,7 @@ ApplySubsts::ApplySubsts(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ApplySubsts::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Chat() << "applying substitutions..." << std::endl;
+  verbose(2) << "applying substitutions..." << std::endl;
   Trace("apply-substs") << "ApplySubsts::processAssertions(): "
                         << "applying substitutions" << std::endl;
   // TODO(#1255): Substitutions in incremental mode should be managed with a
@@ -55,7 +55,8 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                           << std::endl;
     d_preprocContext->spendResource(Resource::PreprocessStep);
     assertionsToPreprocess->replaceTrusted(
-        i, tlsm.applyTrusted((*assertionsToPreprocess)[i]));
+        i,
+        tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
   }

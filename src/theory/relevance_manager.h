@@ -21,8 +21,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
+#include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
 
@@ -71,29 +75,43 @@ class TheoryModel;
  * selection is computed lazily, i.e. only when someone asks if a literal is
  * relevant, and only at most once per FULL effort check.
  */
-class RelevanceManager
+class RelevanceManager : protected EnvObj
 {
-  typedef context::CDList<Node> NodeList;
+  using RlvPair = std::pair<Node, uint32_t>;
+  using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
+  using NodeList = context::CDList<Node>;
+  using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList>>;
+  using NodeSet = context::CDHashSet<Node>;
+  using RlvPairIntMap =
+      context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
 
  public:
   /**
-   * @param lemContext The context which lemmas live at
+   * @param env The environment
    * @param val The valuation class, for computing what is relevant.
    */
-  RelevanceManager(context::Context* lemContext, Valuation val);
+  RelevanceManager(Env& env, Valuation val);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
    * adding them to the PropEngine.
+   *
+   * @param assertions The assertions
+   * @param isInput Whether the assertions are preprocessed input assertions;
+   * this flag is false for lemmas.
    */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions,
+                                    bool isInput);
   /** Singleton version of above */
-  void notifyPreprocessedAssertion(Node n);
+  void notifyPreprocessedAssertion(Node n, bool isInput);
   /**
-   * Reset round, called at the beginning of a full effort check in
+   * Begin round, called at the beginning of a full effort check in
    * TheoryEngine.
    */
-  void resetRound();
+  void beginRound();
+  /** End round, called at the end of a full effort check in TheoryEngine. */
+  void endRound();
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a
@@ -101,7 +119,13 @@ class RelevanceManager
    * with "sat". This means that theories can query this during FULL or
    * LAST_CALL efforts, through the Valuation class.
    */
-  bool isRelevant(Node lit);
+  bool isRelevant(TNode lit);
+  /**
+   * Get the explanation for literal lit is relevant. This returns the
+   * preprocessed assertion that was the reason why the literal was relevant
+   * in the current context. It returns null if the literal is not relevant.
+   */
+  TNode getExplanationForRelevant(TNode lit);
   /**
    * Get the current relevant selection (see above). This computes this set
    * if not already done so. This call is valid during a full effort check in
@@ -111,10 +135,13 @@ class RelevanceManager
    * the assertions we are notified of. This should never happen.
    *
    * The value of this return is only valid if success was not updated to false.
+   *
+   * Note that this returns a context-independent set to the user, which
+   * copies the assertions.
    */
-  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
-  void notifyLemma(Node n);
+  void notifyLemma(TNode n);
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m);
   /**
@@ -123,6 +150,16 @@ class RelevanceManager
   void getDifficultyMap(std::map<Node, Node>& dmap);
 
  private:
+  /**
+   * Called when an input assertion is added, this populates d_atomMap.
+   */
+  void addInputToAtomsMap(TNode input);
+  /**
+   * Compute relevance for input assertion input. This returns false and
+   * sets d_fullEffortCheckFail to true if we are at full effort and input
+   * fails to be computed.
+   */
+  bool computeRelevanceFor(TNode input);
   /**
    * Add the set of assertions to the formulas known to this class. This
    * method handles optimizations such as breaking apart top-level applications
@@ -139,38 +176,48 @@ class RelevanceManager
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
    */
-  int justify(TNode n, std::unordered_map<TNode, int>& cache);
-  /** Is the top symbol of cur a Boolean connective? */
-  bool isBooleanConnective(TNode cur);
+  int32_t justify(TNode n);
   /**
    * Update justify last child. This method is a helper function for justify,
    * which is called at the moment that Boolean connective formula cur
-   * has a new child that has been computed in the justify cache.
+   * has a new child that has been computed in the justify cache maintained
+   * by this class.
    *
    * @param cur The Boolean connective formula
    * @param childrenJustify The values of the previous children (not including
    * the current one)
-   * @param cache The justify cache
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(TNode cur,
-                              std::vector<int>& childrenJustify,
-                              std::unordered_map<TNode, int>& cache);
+  bool updateJustifyLastChild(const RlvPair& cur,
+                              std::vector<int32_t>& childrenJustify);
+  /** Return the explanation for why atom is relevant, if it exists */
+  TNode getExplanationForRelevantInternal(TNode atom) const;
+  /** Get the list of assertions that contain atom */
+  NodeList* getInputListFor(TNode atom, bool doMake = true);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
   NodeList d_input;
-  /** The current relevant selection. */
-  std::unordered_set<TNode> d_rset;
-  /** Have we computed the relevant selection this round? */
-  bool d_computed;
+  /** Map from atoms to the list of input assertions that are contained in */
+  NodeListMap d_atomMap;
+  /**
+   * The current relevant selection, SAT-context dependent, includes
+   * literals that are definitely relevant in this context.
+   */
+  NodeSet d_rset;
+  /** Are we in a full effort check? */
+  bool d_inFullEffortCheck;
+  /** Have we failed to justify a formula in a full effort check? */
+  bool d_fullEffortCheckFail;
   /**
    * Did we succeed in computing the relevant selection? If this is false, there
    * was a syncronization issue between the input formula and the satisfying
    * assignment since this class found that the input formula was not satisfied
    * by the assignment. This should never happen, but if it does, this class
    * aborts and indicates that all literals are relevant.
+   *
+   * This flag is only valid at FULL effort.
    */
   bool d_success;
   /** Are we tracking the sources of why a literal is relevant */
@@ -186,7 +233,19 @@ class RelevanceManager
    * Map from the domain of d_rset to the assertion in d_input that is the
    * reason why that literal is currently relevant.
    */
-  std::map<TNode, TNode> d_rsetExp;
+  NodeMap d_rsetExp;
+  /** For computing polarity on terms */
+  PolarityTermContext d_ptctx;
+  /**
+   * Set of nodes that we have justified (SAT context dependent). This is SAT
+   * context dependent to avoid repeated calls to justify for uses of
+   * the relevance manager at standard effort. Notice that we pair each node
+   * with its polarity. We take into account the polarity of the node when
+   * computing relevance, where a node is only relevant if it is asserted
+   * and either does not have a polarity in the overall formula, or if its
+   * asserted value matches its polarity.
+   */
+  RlvPairIntMap d_jcache;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };

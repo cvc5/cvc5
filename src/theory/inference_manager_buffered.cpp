@@ -27,10 +27,9 @@ namespace theory {
 InferenceManagerBuffered::InferenceManagerBuffered(Env& env,
                                                    Theory& t,
                                                    TheoryState& state,
-                                                   ProofNodeManager* pnm,
                                                    const std::string& statsName,
                                                    bool cacheLemmas)
-    : TheoryInferenceManager(env, t, state, pnm, statsName, cacheLemmas),
+    : TheoryInferenceManager(env, t, state, statsName, cacheLemmas),
       d_processingPendingLemmas(false)
 {
 }
@@ -59,7 +58,7 @@ bool InferenceManagerBuffered::addPendingLemma(Node lem,
   if (checkCache)
   {
     // check if it is unique up to rewriting
-    Node lemr = Rewriter::rewrite(lem);
+    Node lemr = rewrite(lem);
     if (hasCachedLemma(lemr, p))
     {
       return false;
@@ -162,14 +161,14 @@ std::size_t InferenceManagerBuffered::numPendingFacts() const
   return d_pendingFact.size();
 }
 
-void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
+bool InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
 {
   // process this lemma
   LemmaProperty p = LemmaProperty::NONE;
   TrustNode tlem = lem->processLemma(p);
   Assert(!tlem.isNull());
   // send the lemma
-  trustedLemma(tlem, lem->getId(), p);
+  return trustedLemma(tlem, lem->getId(), p);
 }
 
 void InferenceManagerBuffered::assertInternalFactTheoryInference(
