@@ -81,17 +81,18 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_EXTRACT);
     }
   }
-  for (uint i=0; i < nthTerms.size(); i++) {
-    for (uint j=i+1; j < nthTerms.size(); j++) {
-       std::vector<Node> exp;
-       Node x = nthTerms[i][0];
-       Node y = nthTerms[j][0];
-       Node n = nthTerms[i][1];
-       Node m = nthTerms[j][1];
-       if (d_state.areEqual(n, m)) {
-         Node lem = nm->mkNode(OR, nm->mkNode(EQUAL, x, y), nm->mkNode(DISTINCT, x, y));
-           sendInference(exp, lem, InferenceId::STRINGS_ARRAY_EQ_SPLIT);
-       }
+  for (size_t i = 0; i < nthTerms.size(); i++)
+  {
+    for (size_t j = i + 1; j < nthTerms.size(); j++)
+    {
+      Node x = nthTerms[i][0];
+      Node y = nthTerms[j][0];
+      Node n = nthTerms[i][1];
+      Node m = nthTerms[j][1];
+      if (d_state.areEqual(n, m))
+      {
+        d_im.sendSplit(x, y, InferenceId::STRINGS_ARRAY_EQ_SPLIT);
+      }
     }
   }
 }
