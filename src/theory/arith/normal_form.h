@@ -925,7 +925,12 @@ public:
   }
 
   bool containsConstant() const {
-    return getHead().isConstant();
+    if (singleton())
+    {
+      return getHead().isConstant();
+    }
+    const Node& n = getNode();
+    return Monomial::parseMonomial(n[n.getNumChildren() - 1]).isConstant();
   }
 
   uint32_t size() const{
@@ -939,6 +944,31 @@ public:
 
   Monomial getHead() const {
     return *(begin());
+  }
+
+
+  Polynomial getNonConstPart() const {
+    if (!containsConstant()) return *this;
+    if (singleton())
+    {
+      Assert(isConstant());
+      return mkZero();
+    }
+    std::vector<Monomial> subrange(begin(), end());
+    Assert(subrange.back().isConstant());
+    subrange.pop_back();
+    return mkPolynomial(subrange);
+  }
+
+  Constant getConstant() const {
+    Assert(containsConstant());
+    if (singleton())
+    {
+      Assert(getHead().isConstant());
+      return getHead().getConstant();
+    }
+    const Node& n = getNode();
+    return Monomial::parseMonomial(n[n.getNumChildren() - 1]).getConstant();
   }
 
   Polynomial getTail() const {
@@ -1431,6 +1461,7 @@ public:
 
   SumPair toSumPair() const;
 
+  /** Obtain `left - right` without a possible constant part */
   Polynomial normalizedVariablePart() const;
   DeltaRational normalizedDeltaRational() const;
 

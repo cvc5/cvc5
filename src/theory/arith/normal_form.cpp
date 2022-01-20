@@ -759,7 +759,7 @@ Polynomial Comparison::normalizedVariablePart() const {
       Assert(!result.isConstant());
       if (result.containsConstant())
       {
-        result = result.getTail();
+        result = result.getNonConstPart();
       }
       if (!result.leadingCoefficientIsPositive())
       {
@@ -809,11 +809,11 @@ DeltaRational Comparison::normalizedDeltaRational() const {
   case kind::EQUAL:
   case kind::DISTINCT:
     {
-      Polynomial right = getRight();
-      Monomial firstRight = right.getHead();
-      if(firstRight.isConstant()){
-        DeltaRational c = DeltaRational(firstRight.getConstant().getValue(), 0);
-        Polynomial left = getLeft();
+      Polynomial result = getLeft() - getRight();
+      if (result.containsConstant())
+      {
+        DeltaRational c = DeltaRational(result.getConstant().getValue(), 0);
+        Polynomial left = result.getNonConstPart();
         if(!left.allIntegralVariables()){
           return c;
           //this is a qpolynomial and the sign of the leading
@@ -821,16 +821,14 @@ DeltaRational Comparison::normalizedDeltaRational() const {
         } else{
           // the polynomial may be a z polynomial in which case
           // taking the diff is the simplest and obviously correct means
-          Polynomial diff = right.singleton() ? left : left - right.getTail();
-          if(diff.leadingCoefficientIsPositive()){
+          if(left.leadingCoefficientIsPositive()){
             return c;
           }else{
             return -c;
           }
         }
-      }else{ // The constant is 0 sign cannot change
-        return DeltaRational(0, 0);
       }
+      return DeltaRational(0, 0);
     }
     default: Unhandled() << cmpKind;
   }
