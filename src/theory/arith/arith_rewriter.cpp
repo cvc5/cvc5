@@ -159,10 +159,52 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     case Kind::LT: return l < r;
     case Kind::LEQ: return l <= r;
     case Kind::EQUAL: return l == r;
+    case Kind::DISTINCT: return l != r;
     case Kind::GEQ: return l >= r;
     case Kind::GT: return l > r;
     default: Unreachable(); return false;
   }
+}
+
+std::optional<RewriteResponse> tryEvaluateRelation(Kind rel, TNode left, TNode right)
+{
+  auto* nm = NodeManager::currentNM();
+  if (left.isConst())
+  {
+    const Rational& l = left.getConst<Rational>();
+    if (right.isConst())
+    {
+      const Rational& r = right.getConst<Rational>();
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+    }
+    else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      const RealAlgebraicNumber& r =
+          right.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+    }
+  }
+  else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    const RealAlgebraicNumber& l =
+        left.getOperator().getConst<RealAlgebraicNumber>();
+    if (right.isConst())
+    {
+      const Rational& r = right.getConst<Rational>();
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+    }
+    else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    {
+      const RealAlgebraicNumber& r =
+          right.getOperator().getConst<RealAlgebraicNumber>();
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+    }
+  }
+  return {};
 }
 
 /** Flatten the given node (with child nodes of the same kind) into a vector */
@@ -239,34 +281,6 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
 }
 
 /**
- * Add a new summand, consisting of the product and the multiplicity, to a sum
- * as used in the distribution of multiplication. Either adds the summand as a
- * new entry to sum, or adds the multiplicity to an already existing summand.
- *
- * Invariant:
- *   add(s.n * s.ran for s in sum')
- *   = add(s.n * s.ran for s in sum) + multiplicity * product
- */
-void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum,
-                  TNode product,
-                  const RealAlgebraicNumber& multiplicity)
-{
-  auto it = sum.find(product);
-  if (it == sum.end())
-  {
-    sum.emplace(product, multiplicity);
-  }
-  else
-  {
-    it->second += multiplicity;
-    if (isZero(it->second))
-    {
-      sum.erase(it);
-    }
-  }
-}
-
-/**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
  * the remaining (non-numerical) factors. If n is a product itself, its children
  * are merged into a product. If n is a constant or a real algebraic number, it
@@ -306,16 +320,72 @@ void addToDistProduct(std::vector<Node>& product,
 }
 
 /**
+ * Add a new summand, consisting of the product and the multiplicity, to a sum
+ * as used in the distribution of multiplication. Either adds the summand as a
+ * new entry to sum, or adds the multiplicity to an already existing summand.
+ *
+ * Invariant:
+ *   add(s.n * s.ran for s in sum')
+ *   = add(s.n * s.ran for s in sum) + multiplicity * product
+ */
+void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum,
+                  TNode product,
+                  const RealAlgebraicNumber& multiplicity)
+{
+  auto it = sum.find(product);
+  if (it == sum.end())
+  {
+    sum.emplace(product, multiplicity);
+  }
+  else
+  {
+    it->second += multiplicity;
+    if (isZero(it->second))
+    {
+      sum.erase(it);
+    }
+  }
+}
+
+void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebraicNumber& base, TNode n, bool negate = false)
+{
+  if (n.getKind() == Kind::PLUS)
+  {
+    for (const auto& child: n)
+    {
+      addToDistSum(sum, base, child, negate);
+    }
+    return;
+  }
+  std::vector<Node> monomial;
+  RealAlgebraicNumber multiplicity(Integer(1));
+  if (negate)
+  {
+    multiplicity = Integer(-1);
+  }
+  addToDistProduct(monomial, multiplicity, n);
+  if (monomial.empty())
+  {
+    base += multiplicity;
+  }
+  else
+  {
+    addToDistSum(sum, mkMult(std::move(monomial)), multiplicity);
+  }
+}
+
+/**
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
 std::vector<Node> distSumToSum(
     const std::optional<RealAlgebraicNumber>& basemultiplicity,
     const std::vector<Node>& base,
-    const std::unordered_map<Node, RealAlgebraicNumber>& sum)
+    const std::unordered_map<Node, RealAlgebraicNumber>& sum,
+    RealAlgebraicNumber* normalizeConstant = nullptr)
 {
   auto* nm = NodeManager::currentNM();
-  // construct the sum as nodes
+  // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
   for (const auto& summand : sum)
   {
@@ -330,6 +400,28 @@ std::vector<Node> distSumToSum(
   std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
     return ProductNodeComparator()(a.first, b.first);
   });
+  if (summands.empty()) return {};
+  if (normalizeConstant != nullptr)
+  {
+    // normalize: make the leading coefficient one
+    // Attention: we can only use a const reference here, because this coefficient is the last one that we will change in the loop below!
+    RealAlgebraicNumber lcoeff = summands.back().second;
+    if (sgn(lcoeff) < 0) lcoeff = -lcoeff;
+    Trace("arith-rewriter") << "Normalizing based on " << lcoeff << std::endl;
+    if (!isOne(lcoeff))
+    {
+      Trace("arith-rewriter") << "\t" << *normalizeConstant << " / " << lcoeff << std::endl;
+      *normalizeConstant = *normalizeConstant / lcoeff;
+      Trace("arith-rewriter") << "\t-> " << *normalizeConstant << std::endl;
+      for (auto& s : summands)
+      {
+        Trace("arith-rewriter") << "\t" << s.second << " * " << s.first << " / " << lcoeff << std::endl;
+        s.second = s.second / lcoeff;
+        Trace("arith-rewriter") << "\t-> " << s.second << " * " << s.first << std::endl;
+      }
+    }
+    Trace("arith-rewriter") << "Done normalizing based on " << lcoeff << std::endl;
+  }
   std::vector<Node> children;
   for (const auto& s : summands)
   {
@@ -565,47 +657,16 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
 
   // left |><| right
+  Kind kind = atom.getKind();
   TNode left = atom[0];
   TNode right = atom[1];
 
-  auto* nm = NodeManager::currentNM();
-  if (left.isConst())
+  if (auto response = tryEvaluateRelation(kind, left, right); response)
   {
-    const Rational& l = left.getConst<Rational>();
-    if (right.isConst())
-    {
-      const Rational& r = right.getConst<Rational>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
-    }
-    else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      const RealAlgebraicNumber& r =
-          right.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
-    }
-  }
-  else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-  {
-    const RealAlgebraicNumber& l =
-        left.getOperator().getConst<RealAlgebraicNumber>();
-    if (right.isConst())
-    {
-      const Rational& r = right.getConst<Rational>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
-    }
-    else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      const RealAlgebraicNumber& r =
-          right.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(atom.getKind(), l, r)));
-    }
+    return *response;
   }
 
-  if (atom.getKind() == Kind::EQUAL)
+  if (kind == Kind::EQUAL)
   {
     if (left > right)
     {
@@ -614,15 +675,36 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, atom);
   }
 
-  Polynomial pleft = Polynomial::parsePolynomial(left);
-  Polynomial pright = Polynomial::parsePolynomial(right);
+  auto* nm = NodeManager::currentNM();
 
-  Debug("arith::rewriter") << "pleft " << pleft.getNode() << std::endl;
-  Debug("arith::rewriter") << "pright " << pright.getNode() << std::endl;
+  bool negate = false;
 
-  Comparison cmp = Comparison::mkComparison(atom.getKind(), pleft, pright);
-  Assert(cmp.isNormalForm());
-  return RewriteResponse(REWRITE_DONE, cmp.getNode());
+  switch (atom.getKind())
+  {
+    case Kind::LEQ: kind = Kind::GEQ; negate = true; break;
+    case Kind::LT: kind = Kind::GT; negate = true; break;
+    default: break;
+  }
+
+  RealAlgebraicNumber base;
+  std::unordered_map<Node, RealAlgebraicNumber> sum;
+  addToDistSum(sum, base, left, negate);
+  addToDistSum(sum, base, right, !negate);
+
+  Node newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base));
+  Node newright = base.isRational() ? nm->mkConstReal(-base.toRational()) : nm->mkRealAlgebraicNumber(-base);
+
+  if (auto response = tryEvaluateRelation(kind, newleft, newright); response)
+  {
+    return *response;
+  }
+
+  if (kind == Kind::DISTINCT)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::EQUAL, newleft, newright).notNode());
+  }
+
+  return RewriteResponse(REWRITE_DONE, nm->mkNode(kind, newleft, newright));
 }
 
 bool ArithRewriter::isAtom(TNode n) {
@@ -866,15 +948,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
 
   for (const auto& child : children)
   {
-    std::vector<Node> monomial;
-    RealAlgebraicNumber multiplicity(Integer(1));
-    addToDistProduct(monomial, multiplicity, child);
-    if (monomial.empty())
-    {
-      base += multiplicity;
-      continue;
-    }
-    addToDistSum(sum, mkMult(std::move(monomial)), multiplicity);
+    addToDistSum(sum, base, child);
   }
 
   auto* nm = NodeManager::currentNM();
@@ -999,12 +1073,12 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   for (const auto& child : children)
   {
-    Trace("arith-rewriter") << "Mult child " << child << std::endl;
+    Trace("arith-rewriter-mult") << "Mult child " << child << std::endl;
     if (child.isConst())
     {
       if (child.getConst<Rational>().isZero())
       {
-        Trace("arith-rewriter") << "-> " << child << std::endl;
+        Trace("arith-rewriter-mult") << "-> " << child << std::endl;
         return RewriteResponse(REWRITE_DONE, child);
       }
       rational *= child.getConst<Rational>();
