@@ -796,8 +796,6 @@ enum class InferenceId
   STRINGS_REGISTER_TERM,
   // a split during collect model info
   STRINGS_CMI_SPLIT,
-  // a split on the equality of indices between an nth and an update term
-  STRINGS_INDEX_SPLIT,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory
