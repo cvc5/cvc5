@@ -327,16 +327,6 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-api::Term Smt2::getExpressionForNameAndType(const std::string& name,
-                                            api::Sort t)
-{
-  if (isAbstractValue(name))
-  {
-    return mkAbstractValue(name);
-  }
-  return Parser::getExpressionForNameAndType(name, t);
-}
-
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
   if ((v2_6() || sygus()) && strictModeEnabled())
@@ -828,13 +818,6 @@ bool Smt2::isAbstractValue(const std::string& name)
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-api::Term Smt2::mkAbstractValue(const std::string& name)
-{
-  Assert(isAbstractValue(name));
-  // remove the '@'
-  return d_solver->mkAbstractValue(name.substr(1));
-}
-
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
   Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
@@ -1005,7 +988,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term constVal = args[0];
 
-    if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
+    if (p.d_type.getArrayElementSort() != constVal.getSort())
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl

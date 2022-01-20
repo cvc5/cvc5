@@ -454,24 +454,6 @@ TEST_F(TestApiBlackSolver, mkRoundingMode)
   ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 }
 
-TEST_F(TestApiBlackSolver, mkAbstractValue)
-{
-  ASSERT_NO_THROW(d_solver.mkAbstractValue(std::string("1")));
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("0")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("-1")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("1.2")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue("1/2"), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue("asdf"), CVC5ApiException);
-
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((uint32_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int32_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((uint64_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int64_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int32_t)-1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int64_t)-1));
-  ASSERT_THROW(d_solver.mkAbstractValue(0), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, mkFloatingPoint)
 {
   Term t1 = d_solver.mkBitVector(8);
@@ -2994,6 +2976,19 @@ TEST_F(TestApiBlackSolver, proj_issue383)
 
   d_solver.checkEntailed(t13);
   ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, proj_issue386)
+{
+  Sort s1 = d_solver.getBooleanSort();
+  Sort p1 = d_solver.mkParamSort("_p1");
+  Sort p2 = d_solver.mkParamSort("_p2");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", {p1, p2});
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("_x1");
+  ctordecl.addSelector("_x2", p1);
+  dtdecl.addConstructor(ctordecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
 }
 
 }  // namespace test

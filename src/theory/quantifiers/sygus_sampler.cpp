@@ -39,7 +39,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusSampler::SygusSampler(Env& env)
-    : d_env(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+    : EnvObj(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -186,7 +186,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
                           << vt << std::endl;
   }
   std::map<unsigned, std::map<Node, std::vector<TypeNode> >::iterator> sts;
-  if (options::sygusSampleGrammar())
+  if (options().quantifiers.sygusSampleGrammar)
   {
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
@@ -202,7 +202,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     {
       Node v = d_vars[j];
       Node r;
-      if (options::sygusSampleGrammar())
+      if (options().quantifiers.sygusSampleGrammar)
       {
         // choose a random start sygus type, if possible
         if (sts[j] != d_var_sygus_types.end())
@@ -515,7 +515,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   {
     unsigned e = tn.getFloatingPointExponentSize();
     unsigned s = tn.getFloatingPointSignificandSize();
-    return nm->mkConst(options::sygusSampleFpUniform()
+    return nm->mkConst(options().quantifiers.sygusSampleFpUniform
                            ? Sampler::pickFpUniform(e, s)
                            : Sampler::pickFpBiased(e, s));
   }
@@ -832,7 +832,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     Assert(bve != bvre);
     out << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
-    if (options::sygusRewVerifyAbort())
+    if (options().quantifiers.sygusRewVerifyAbort)
     {
       AlwaysAssert(false)
           << "--sygus-rr-verify detected unsoundness in the rewriter!";

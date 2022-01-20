@@ -392,15 +392,7 @@ void ExtfSolver::checkExtfEval(int effort)
             {
               if (n.getType().isBoolean())
               {
-                if (d_state.areEqual(n, nrc == d_true ? d_false : d_true))
-                {
-                  einfo.d_exp.push_back(nrc == d_true ? n.negate() : n);
-                  conc = d_false;
-                }
-                else
-                {
-                  conc = nrc == d_true ? n : n.negate();
-                }
+                conc = nrc == d_true ? n : n.negate();
               }
               else
               {

@@ -325,11 +325,13 @@ Node LfscNodeConverter::postConvert(Node n)
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
     Node cop = getOperatorOfClosure(n, true);
+    Node pcop = getOperatorOfClosure(n, true, true);
     for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
     {
       size_t ii = (nchild - 1) - i;
       Node v = n[0][ii];
-      Node vop = getOperatorOfBoundVar(cop, v);
+      // use the partial operator for variables beyond the first
+      Node vop = getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
       ret = nm->mkNode(APPLY_UF, vop, ret);
     }
     // notice that intentionally we drop annotations here
@@ -993,10 +995,13 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   return getSymbolInternal(k, ftype, opName.str());
 }
 
-Node LfscNodeConverter::getOperatorOfClosure(Node q, bool macroApply)
+Node LfscNodeConverter::getOperatorOfClosure(Node q,
+                                             bool macroApply,
+                                             bool isPartial)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), q.getType());
+  TypeNode retType = isPartial ? q[1].getType() : q.getType();
+  TypeNode bodyType = nm->mkFunctionType(q[1].getType(), retType);
   // We permit non-flat function types here
   // intType is used here for variable indices
   TypeNode intType = nm->integerType();

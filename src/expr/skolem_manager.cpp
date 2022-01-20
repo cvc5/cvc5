@@ -43,6 +43,11 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+struct AbstractValueId
+{
+};
+using AbstractValueAttribute = expr::Attribute<AbstractValueId, bool>;
+
 const char* toString(SkolemFunId id)
 {
   switch (id)
@@ -290,6 +295,12 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
   return nullptr;
 }
 
+bool SkolemManager::isAbstractValue(TNode n) const
+{
+  AbstractValueAttribute ava;
+  return n.getAttribute(ava);
+}
+
 Node SkolemManager::getWitnessForm(Node k)
 {
   Assert(k.getKind() == SKOLEM);
@@ -424,6 +435,13 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
+
+  if ((flags & SKOLEM_ABSTRACT_VALUE) != 0)
+  {
+    AbstractValueAttribute ava;
+    n.setAttribute(ava, true);
+  }
+
   return n;
 }
 
