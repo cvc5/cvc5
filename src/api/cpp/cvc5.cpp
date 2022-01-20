@@ -5216,6 +5216,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   else if (kind::isAssociative(k))
   {
     // associative case, same as above
+    checkMkTerm(kind, children.size());
     res = d_nodeMgr->mkAssociative(k, echildren);
   }
   else

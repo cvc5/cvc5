@@ -813,6 +813,7 @@ set(regress_0_tests
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
   regress0/parser/issue7860-parse-only-reset.smt2
+  regress0/parser/issue7894-parse-error-assoc.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -893,6 +894,7 @@ set(regress_0_tests
   regress0/proofs/project-issue330-eqproof.smt2
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
   regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
+  regress0/proofs/proj-issue430-coverings-double-negation.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
