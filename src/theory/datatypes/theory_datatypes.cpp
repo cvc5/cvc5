@@ -902,7 +902,7 @@ void TheoryDatatypes::addTester(
     std::vector<Node> conf;
     conf.push_back(j);
     conf.push_back(t);
-    if (jt[0]!=t_arg)
+    if (jt[0] != t_arg)
     {
       conf.push_back(jt[0].eqNode(t_arg));
     }
