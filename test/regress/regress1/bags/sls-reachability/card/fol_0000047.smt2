@@ -1,6 +1,6 @@
 (set-logic ALL)
 
-(set-info :status sat)
+(set-info :status unsat)
 
 ; forall b_x:B. forall a_w:A. C(b_x & a_w & ~f)
 

@@ -1,6 +1,6 @@
 (set-logic ALL)
 
-(set-info :status unsat)
+(set-info :status sat)
 
 ; forall b_ha:B. forall b_gz:B. forall b_gy:B. nonempty(b_ha & b_gz & b_gy)
 
