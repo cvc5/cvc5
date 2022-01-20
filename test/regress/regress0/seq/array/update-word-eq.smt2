@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --strings-exp --seq-array=eager
-; DISABLE-TESTER: proof
 (set-logic QF_SLIA)
 (set-info :status unsat)
 

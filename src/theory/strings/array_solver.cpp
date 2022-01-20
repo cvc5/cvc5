@@ -382,7 +382,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   {
     d_im.addToExplanation(r, t[0], exp);
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-    exp.push_back(t[0].eqNode(nf.d_base));
+    d_im.addToExplanation(t[0], nf.d_base, exp);
   }
   if (d_eqProc.find(eq) == d_eqProc.end())
   {
