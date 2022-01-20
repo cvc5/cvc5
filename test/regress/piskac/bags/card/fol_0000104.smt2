@@ -40,7 +40,7 @@
 
 (assert
   (=
-    (card
+    (bag.card
       (bag.inter_min (bag.inter_min (bag.inter_min (bag.inter_min c_fo b_fn) a_fm) a_fl)
                     (bag.difference_subtract UNIVERALSET f)))
     0))

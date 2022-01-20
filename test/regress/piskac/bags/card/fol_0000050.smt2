@@ -32,7 +32,7 @@
   (not
     (>=
       (* 2
-         (card
+         (bag.card
            (bag.inter_min (bag.inter_min (bag.inter_min b_bf a_be) f) (bag.difference_subtract UNIVERALSET f))))
       (+ (- n t) 1))))
 

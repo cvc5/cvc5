@@ -45,7 +45,7 @@
 
 (assert
   (=
-    (card
+    (bag.card
       (bag.inter_min (bag.inter_min (bag.inter_min (bag.inter_min b_gb b_ga) a_fz) a_fy) a_fx))
     0))
 

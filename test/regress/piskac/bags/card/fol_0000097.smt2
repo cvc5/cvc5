@@ -35,7 +35,7 @@
 
 (assert
   (=
-    (card
+    (bag.card
       (bag.inter_min (bag.inter_min (bag.inter_min b_ek a_ej) a_ei) (bag.difference_subtract UNIVERALSET f)))
     0))
 
