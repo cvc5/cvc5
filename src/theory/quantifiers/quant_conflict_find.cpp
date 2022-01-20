@@ -111,9 +111,8 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
       std::map< TNode, bool > visited;
       getPropagateVars(vars, q[1], false, visited);
     }
-    for (size_t j = 0, nvars = vars.size(); j < nvars; j++)
+    for (const Node& v : vars)
     {
-      Node v = vars[j];
       TNode f = p->getTermDatabase()->getMatchOperator( v );
       if( !f.isNull() ){
         Trace("qcf-opt") << "Record variable argument positions in " << v << ", op=" << f << "..." << std::endl;
@@ -674,10 +673,7 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
           d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
-        for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
-        {
-          Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
-        }
+        Trace("qcf-instance-check") << "  " << terms << std::endl;
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
       // If it is the case that instantiation can be rewritten to a Boolean

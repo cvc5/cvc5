@@ -257,7 +257,7 @@ class QuantConflictFind : public QuantifiersModule
   };
   void setEffort(Effort e) { d_effort = e; }
 
-  inline bool atConflictEffort() const
+  bool atConflictEffort() const
   {
     return d_effort == QuantConflictFind::EFFORT_CONFLICT;
   }
