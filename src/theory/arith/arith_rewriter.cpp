@@ -626,6 +626,22 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 {
   Assert(isAtom(atom));
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (isRelationOperator(atom.getKind()) && atom[0] == atom[1])
+  {
+    switch (atom.getKind())
+    {
+      case Kind::LT: return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+      case Kind::LEQ: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+      case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+      case Kind::GEQ: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+      case Kind::GT: return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+      default:;
+    }
+  }
+  
   if (atom.getKind() == kind::IS_INTEGER)
   {
     return rewriteExtIntegerOp(atom);
@@ -645,7 +661,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
       return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(true));
     }
-    NodeManager* nm = NodeManager::currentNM();
     return RewriteResponse(
         REWRITE_AGAIN,
         nm->mkNode(kind::EQUAL,
@@ -674,8 +689,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     }
     return RewriteResponse(REWRITE_DONE, atom);
   }
-
-  auto* nm = NodeManager::currentNM();
 
   bool negate = false;
 
