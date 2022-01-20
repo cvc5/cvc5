@@ -216,6 +216,58 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
       false));
 }
 
+TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
+{
+  TypeNode intType = d_nodeManager->integerType();
+
+  Node x = d_nodeManager->mkVar("x", intType);
+  Node y = d_nodeManager->mkVar("y", intType);
+  Node z = d_nodeManager->mkVar("z", intType);
+  Node w = d_nodeManager->mkVar("w", intType);
+  Node v = d_nodeManager->mkVar("v", intType);
+
+  Node zero = d_nodeManager->mkConstInt(0);
+  Node one = d_nodeManager->mkConstInt(1);
+
+  Node sx = d_nodeManager->mkNode(SEQ_UNIT, x);
+  Node sy = d_nodeManager->mkNode(SEQ_UNIT, y);
+  Node sz = d_nodeManager->mkNode(SEQ_UNIT, z);
+  Node sw = d_nodeManager->mkNode(SEQ_UNIT, w);
+  Node sv = d_nodeManager->mkNode(SEQ_UNIT, v);
+  Node xyz = d_nodeManager->mkNode(STRING_CONCAT, sx, sy, sz);
+  Node wv = d_nodeManager->mkNode(STRING_CONCAT, sw, sv);
+
+  {
+    // Same normal form for:
+    //
+    // (seq.nth (seq.unit x) 0)
+    //
+    // x
+    Node n = d_nodeManager->mkNode(SEQ_NTH, sx, zero);
+    sameNormalForm(n, x);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.nth (seq.++ (seq.unit x) (seq.unit y) (seq.unit z)) 0)
+    //
+    // x
+    Node n = d_nodeManager->mkNode(SEQ_NTH, xyz, zero);
+    sameNormalForm(n, x);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.nth (seq.++ (seq.unit x) (seq.unit y) (seq.unit z)) 0)
+    //
+    // x
+    Node n = d_nodeManager->mkNode(SEQ_NTH, xyz, one);
+    sameNormalForm(n, y);
+  }
+}
+
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 {
   StringsRewriter sr(d_rewriter, nullptr);
@@ -354,6 +406,111 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
           kind::MULT, negone, d_nodeManager->mkNode(kind::STRING_LENGTH, s)),
       one);
   sameNormalForm(substr, empty);
+}
+
+TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_update)
+{
+  TypeNode intType = d_nodeManager->integerType();
+
+  Node x = d_nodeManager->mkVar("x", intType);
+  Node y = d_nodeManager->mkVar("y", intType);
+  Node z = d_nodeManager->mkVar("z", intType);
+  Node w = d_nodeManager->mkVar("w", intType);
+  Node v = d_nodeManager->mkVar("v", intType);
+
+  Node negOne = d_nodeManager->mkConstInt(-1);
+  Node zero = d_nodeManager->mkConstInt(0);
+  Node one = d_nodeManager->mkConstInt(1);
+  Node three = d_nodeManager->mkConstInt(3);
+
+  Node sx = d_nodeManager->mkNode(SEQ_UNIT, x);
+  Node sy = d_nodeManager->mkNode(SEQ_UNIT, y);
+  Node sz = d_nodeManager->mkNode(SEQ_UNIT, z);
+  Node sw = d_nodeManager->mkNode(SEQ_UNIT, w);
+  Node sv = d_nodeManager->mkNode(SEQ_UNIT, v);
+  Node xyz = d_nodeManager->mkNode(STRING_CONCAT, sx, sy, sz);
+  Node wv = d_nodeManager->mkNode(STRING_CONCAT, sw, sv);
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
+    //   (seq.unit x))
+    //   0
+    //   (seq.unit w))
+    //
+    // (seq.unit w)
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, sx, zero, sw);
+    sameNormalForm(n, sw);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
+    //   (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    //   0
+    //   (seq.unit w))
+    //
+    // (seq.++ (seq.unit w) (seq.unit y) (seq.unit z))
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, xyz, zero, sw);
+    Node wyz = d_nodeManager->mkNode(STRING_CONCAT, sw, sy, sz);
+    sameNormalForm(n, wyz);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
+    //   (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    //   1
+    //   (seq.unit w))
+    //
+    // (seq.++ (seq.unit x) (seq.unit w) (seq.unit z))
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, xyz, one, sw);
+    Node xwz = d_nodeManager->mkNode(STRING_CONCAT, sx, sw, sz);
+    sameNormalForm(n, xwz);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
+    //   (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    //   1
+    //   (seq.++ (seq.unit w) (seq.unit v)))
+    //
+    // (seq.++ (seq.unit x) (seq.unit w) (seq.unit v))
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, xyz, one, wv);
+    Node xwv = d_nodeManager->mkNode(STRING_CONCAT, sx, sw, sv);
+    sameNormalForm(n, xwv);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
+    //   (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    //   -1
+    //   (seq.++ (seq.unit w) (seq.unit v)))
+    //
+    //  (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, xyz, negOne, wv);
+    sameNormalForm(n, xyz);
+  }
+
+  {
+    // Same normal form for:
+    //
+    // (seq.update
+    //   (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    //   3
+    //   w)
+    //
+    //  (seq.++ (seq.unit x) (seq.unit y) (seq.unit z))
+    Node n = d_nodeManager->mkNode(STRING_UPDATE, xyz, three, sw);
+    sameNormalForm(n, xyz);
+  }
 }
 
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
