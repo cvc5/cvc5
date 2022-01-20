@@ -551,7 +551,8 @@ def run_regression(
             if disable_tester not in g_testers:
                 print("Unknown tester: {}".format(disable_tester))
                 return EXIT_FAILURE
-            testers.remove(disable_tester)
+            if disable_tester in testers:
+                testers.remove(disable_tester)
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()

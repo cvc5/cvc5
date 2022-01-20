@@ -94,6 +94,7 @@ enum class Rewrite : uint32_t
   RE_IN_SIGMA_STAR,
   RE_IN_CHAR_MODULUS_STAR,
   RE_LOOP,
+  RE_LOOP_NONE,
   RE_LOOP_STAR,
   RE_OR_ALL,
   RE_SIMPLE_CONSUME,

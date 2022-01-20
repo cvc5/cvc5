@@ -91,6 +91,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_IN_SIGMA_STAR: return "RE_IN_SIGMA_STAR";
     case Rewrite::RE_IN_CHAR_MODULUS_STAR: return "RE_IN_CHAR_MODULUS_STAR";
     case Rewrite::RE_LOOP: return "RE_LOOP";
+    case Rewrite::RE_LOOP_NONE: return "RE_LOOP_NONE";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";
     case Rewrite::RE_OR_ALL: return "RE_OR_ALL";
     case Rewrite::RE_SIMPLE_CONSUME: return "RE_SIMPLE_CONSUME";

@@ -177,11 +177,9 @@ This will print:
 Example
 -------
 
-| The SMT-LIB input for this example can be found at `examples/api/smtlib/quickstart.smt2 <https://github.com/cvc5/cvc5/blob/master/examples/api/smtlib/quickstart.smt2>`_.
-| The source code for this example can be found at `examples/api/cpp/quickstart.cpp <https://github.com/cvc5/cvc5/blob/master/examples/api/cpp/quickstart.cpp>`_.
-
 .. api-examples::
     <examples>/api/cpp/quickstart.cpp
     <examples>/api/java/QuickStart.java
+    <z3pycompat>/test/pgms/example_quickstart.py
     <examples>/api/python/quickstart.py
     <examples>/api/smtlib/quickstart.smt2

@@ -137,7 +137,7 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
     d_eqsubs.postprocessConflict(mis);
     Trace("nl-cad") << "After postprocessing: " << mis << std::endl;
-    Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
+    Node lem = NodeManager::currentNM()->mkAnd(mis).notNode();
     ProofGenerator* proof = d_CAC.closeProof(mis);
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
   }

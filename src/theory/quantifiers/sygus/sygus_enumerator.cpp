@@ -55,10 +55,11 @@ void SygusEnumerator::initialize(Node e)
   Trace("sygus-enum") << "SygusEnumerator::initialize " << e << std::endl;
   d_enum = e;
   // allocate the default callback
-  if (d_sec == nullptr && options().datatypes.sygusSymBreakDynamic)
+  if (d_sec == nullptr
+      && options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
   {
-    d_secd =
-        std::make_unique<SygusEnumeratorCallbackDefault>(d_env, e, d_stats);
+    d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
+        d_env, e, d_tds, d_stats);
     d_sec = d_secd.get();
   }
   d_etype = d_enum.getType();

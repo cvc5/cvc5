@@ -739,7 +739,7 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 Node TermDbSygus::rewriteNode(Node n) const
 {
   Node res;
-  if (options().quantifiers.sygusExtRew)
+  if (options().datatypes.sygusRewriter == options::SygusRewriterMode::EXTENDED)
   {
     res = extendedRewrite(n);
   }
@@ -855,7 +855,8 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
     }
     return true;
   }
-  if (!options().datatypes.sygusSymBreakAgg)
+  if (options().datatypes.sygusSimpleSymBreak
+      != options::SygusSimpleSymBreakMode::AGG)
   {
     return false;
   }
