@@ -476,7 +476,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * sorts contains duplicates, the replacement earliest in the list takes
    * priority.
    *
-   * For example, 
+   * For example,
    * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
    * return (Array (Array C D) B).
    */
