@@ -154,6 +154,7 @@ Node mkSum(T&& summands)
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
 {
+  Assert(isRelationOperator(rel));
   switch (rel)
   {
     case Kind::LT: return l < r;
@@ -166,24 +167,22 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
   }
 }
 
-std::optional<RewriteResponse> tryEvaluateRelation(Kind rel, TNode left, TNode right)
+std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
 {
-  auto* nm = NodeManager::currentNM();
+  Assert(isRelationOperator(rel));
   if (left.isConst())
   {
     const Rational& l = left.getConst<Rational>();
     if (right.isConst())
     {
       const Rational& r = right.getConst<Rational>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+      return evaluateRelation(rel, l, r);
     }
     else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
       const RealAlgebraicNumber& r =
           right.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+      return evaluateRelation(rel, l, r);
     }
   }
   else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
@@ -193,15 +192,31 @@ std::optional<RewriteResponse> tryEvaluateRelation(Kind rel, TNode left, TNode r
     if (right.isConst())
     {
       const Rational& r = right.getConst<Rational>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+      return evaluateRelation(rel, l, r);
     }
     else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
       const RealAlgebraicNumber& r =
           right.getOperator().getConst<RealAlgebraicNumber>();
-      return RewriteResponse(
-          REWRITE_DONE, nm->mkConst(evaluateRelation(rel, l, r)));
+      return evaluateRelation(rel, l, r);
+    }
+  }
+  return {};
+}
+
+std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
+{
+  if (atom.getNumChildren() == 2 && atom[0] == atom[1])
+  {
+    switch (atom.getKind())
+    {
+      case Kind::LT: return false;
+      case Kind::LEQ: return true;
+      case Kind::EQUAL: return true;
+      case Kind::DISTINCT: return false;
+      case Kind::GEQ: return true;
+      case Kind::GT: return false;
+      default: ;
     }
   }
   return {};
@@ -382,7 +397,8 @@ std::vector<Node> distSumToSum(
     const std::optional<RealAlgebraicNumber>& basemultiplicity,
     const std::vector<Node>& base,
     const std::unordered_map<Node, RealAlgebraicNumber>& sum,
-    RealAlgebraicNumber* normalizeConstant = nullptr)
+    RealAlgebraicNumber* normalizeConstant = nullptr,
+    bool* negativeLCoeff = nullptr)
 {
   auto* nm = NodeManager::currentNM();
   // construct the sum as nodes.
@@ -406,7 +422,17 @@ std::vector<Node> distSumToSum(
     // normalize: make the leading coefficient one
     // Attention: we can only use a const reference here, because this coefficient is the last one that we will change in the loop below!
     RealAlgebraicNumber lcoeff = summands.front().second;
-    if (sgn(lcoeff) < 0) lcoeff = -lcoeff;
+    if (sgn(lcoeff) < 0)
+    {
+      if (negativeLCoeff != nullptr)
+      {
+        *negativeLCoeff = true;
+      }
+      else
+      {
+        lcoeff = -lcoeff;
+      }
+    }
     Trace("arith-rewriter") << "Normalizing based on " << lcoeff << std::endl;
     if (!isOne(lcoeff))
     {
@@ -584,17 +610,9 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 
   NodeManager* nm = NodeManager::currentNM();
 
-  if (isRelationOperator(atom.getKind()) && atom[0] == atom[1])
+  if (auto response = tryEvaluateRelationReflexive(atom); response)
   {
-    switch (atom.getKind())
-    {
-      case Kind::LT: return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      case Kind::LEQ: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-      case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-      case Kind::GEQ: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-      case Kind::GT: return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      default:;
-    }
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(*response));
   }
 
   switch (atom.getKind())
@@ -629,17 +647,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   NodeManager* nm = NodeManager::currentNM();
 
-  if (isRelationOperator(atom.getKind()) && atom[0] == atom[1])
+  if (auto response = tryEvaluateRelationReflexive(atom); response)
   {
-    switch (atom.getKind())
-    {
-      case Kind::LT: return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      case Kind::LEQ: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-      case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-      case Kind::GEQ: return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
-      case Kind::GT: return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      default:;
-    }
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(*response));
   }
   
   if (atom.getKind() == kind::IS_INTEGER)
@@ -675,10 +685,11 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   Kind kind = atom.getKind();
   TNode left = atom[0];
   TNode right = atom[1];
+  Assert(isRelationOperator(kind));
 
   if (auto response = tryEvaluateRelation(kind, left, right); response)
   {
-    return *response;
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(*response));
   }
 
   if (kind == Kind::EQUAL)
@@ -701,23 +712,35 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
+  bool isIntAndNeedsNegation = false;
   addToDistSum(sum, base, left, negate);
   addToDistSum(sum, base, right, !negate);
 
-  Node newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base));
+  Node newleft;
+  if (left.getType().isInteger())
+  {
+    newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base, &isIntAndNeedsNegation));
+  }
+  else
+  {
+    newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base));
+  }
+
   Node newright = base.isRational() ? nm->mkConstReal(-base.toRational()) : nm->mkRealAlgebraicNumber(-base);
 
   if (auto response = tryEvaluateRelation(kind, newleft, newright); response)
   {
-    return *response;
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(isIntAndNeedsNegation ? !*response : *response));
   }
 
   if (kind == Kind::DISTINCT)
   {
-    return RewriteResponse(REWRITE_DONE, nm->mkNode(Kind::EQUAL, newleft, newright).notNode());
+    Node res = nm->mkNode(Kind::EQUAL, newleft, newright);
+    return RewriteResponse(REWRITE_DONE, isIntAndNeedsNegation ? res : res.notNode());
   }
 
-  return RewriteResponse(REWRITE_DONE, nm->mkNode(kind, newleft, newright));
+  Node res = nm->mkNode(kind, newleft, newright);
+  return RewriteResponse(REWRITE_DONE, isIntAndNeedsNegation ? res.notNode() : res);
 }
 
 bool ArithRewriter::isAtom(TNode n) {
