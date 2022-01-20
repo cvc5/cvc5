@@ -177,9 +177,9 @@ int VarList::cmp(const VarList& vl) const {
     }
     Unreachable();
   } else if(dif < 0) {
-    return -1;
-  } else {
     return 1;
+  } else {
+    return -1;
   }
 }
 
