@@ -75,8 +75,7 @@ runs:
         if [[ "${{ inputs.with-python-bindings }}" != "true" ]]; then exit 0; fi
         python3 -m pip install pytest scikit-build
         python3 -m pytest --version
-        python3 -m pip install \
-          Cython==0.29.* --install-option="--no-cython-compile"
+        python3 -m pip install Cython==0.29.*
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
         echo "::endgroup::"
     

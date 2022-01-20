@@ -145,7 +145,7 @@ typerule CAST_TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule TO_INTEGER ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
 
-typerule ABS "SimpleTypeRule<RInteger, AInteger>"
+typerule ABS ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"
