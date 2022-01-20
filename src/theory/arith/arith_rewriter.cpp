@@ -110,7 +110,7 @@ struct ProductNodeComparator
 
     size_t aLen = a.getNumChildren();
     size_t bLen = b.getNumChildren();
-    if (aLen != bLen) return aLen < bLen;
+    if (aLen != bLen) return aLen > bLen;
 
     for (size_t i = 0; i < aLen; ++i)
     {
@@ -405,7 +405,7 @@ std::vector<Node> distSumToSum(
   {
     // normalize: make the leading coefficient one
     // Attention: we can only use a const reference here, because this coefficient is the last one that we will change in the loop below!
-    RealAlgebraicNumber lcoeff = summands.back().second;
+    RealAlgebraicNumber lcoeff = summands.front().second;
     if (sgn(lcoeff) < 0) lcoeff = -lcoeff;
     Trace("arith-rewriter") << "Normalizing based on " << lcoeff << std::endl;
     if (!isOne(lcoeff))
