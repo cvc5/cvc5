@@ -997,11 +997,11 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   {
     if (base.isRational())
     {
-      summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
+      summands.emplace_back(nm->mkConstReal(base.toRational()));
     }
     else
     {
-      summands.insert(summands.begin(), nm->mkRealAlgebraicNumber(base));
+      summands.emplace_back(nm->mkRealAlgebraicNumber(base));
     }
   }
   return RewriteResponse(REWRITE_DONE, mkSum(std::move(summands)));
