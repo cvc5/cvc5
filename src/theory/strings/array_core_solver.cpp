@@ -89,7 +89,8 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       Node y = nthTerms[j][0];
       Node n = nthTerms[i][1];
       Node m = nthTerms[j][1];
-      if (d_state.areEqual(n, m))
+      if (d_state.areEqual(n, m) && !d_state.areEqual(x, y)
+          && !d_state.areDisequal(x, y))
       {
         d_im.sendSplit(x, y, InferenceId::STRINGS_ARRAY_EQ_SPLIT);
       }
