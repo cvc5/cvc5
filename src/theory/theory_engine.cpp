@@ -1790,6 +1790,15 @@ bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasFailure = false;
   std::stringstream serror;
+  // If possible, get the list of relevant assertions. Those that are not
+  // relevant will be skipped.
+  std::unordered_set<TNode> relevantAssertions;
+  bool hasRelevantAssertions = false;
+  if (d_relManager != nullptr)
+  {
+    relevantAssertions =
+        d_relManager->getRelevantAssertions(hasRelevantAssertions);
+  }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1798,7 +1807,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
-        if (!isRelevant(assertion))
+        if (hasRelevantAssertions
+            && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
           continue;

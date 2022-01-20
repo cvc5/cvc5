@@ -213,7 +213,10 @@ void InferProofCons::convert(InferenceId infer,
       {
         std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
         Node psrc = ps.d_children[ps.d_children.size() - 1];
-        if (true)  // purifyCoreSubstitution(psrc, exps, psb, true))
+        // purifyCoreSubstitution(psrc, exps, psb, true))
+        // we apply the substitution on the purified form to get the
+        // original conclusion
+        if (psb.applyPredTransform(psrc, conc, exps))
         {
           // we apply the substitution on the purified form to get the
           // original conclusion

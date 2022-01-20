@@ -22,7 +22,6 @@
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 #include "theory/quantifiers/sygus/sygus_random_enumerator.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_registry.h"
@@ -90,25 +89,19 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       // or basic. The auto mode always prefers the optimized enumerator over
       // the basic one.
       Assert(d_tds->isBasicEnumerator(e));
-      if (options().quantifiers.sygusActiveGenMode
-          == options::SygusActiveGenMode::ENUM_BASIC)
-      {
-        d_evg =
-            std::make_unique<EnumValGeneratorBasic>(d_env, d_tds, e.getType());
-      }
-      else if (options().quantifiers.sygusActiveGenMode
-               == options::SygusActiveGenMode::RANDOM)
+      if (options().quantifiers.sygusEnumMode == options::SygusEnumMode::RANDOM)
       {
         d_evg = std::make_unique<SygusRandomEnumerator>(d_env, d_tds);
       }
       else
       {
-        Assert(options().quantifiers.sygusActiveGenMode
-                   == options::SygusActiveGenMode::ENUM
-               || options().quantifiers.sygusActiveGenMode
-                      == options::SygusActiveGenMode::AUTO);
+        Assert(options().quantifiers.sygusEnumMode
+                   == options::SygusEnumMode::FAST
+               || options().quantifiers.sygusEnumMode
+                      == options::SygusEnumMode::AUTO);
         // create the enumerator callback
-        if (options().datatypes.sygusSymBreakDynamic)
+        if (options().datatypes.sygusRewriter
+            != options::SygusRewriterMode::NONE)
         {
           std::ostream* out = nullptr;
           if (options().quantifiers.sygusRewVerify)
@@ -120,7 +113,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             out = options().base.out;
           }
           d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
-              d_env, e, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
+              d_env, e, d_tds, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors

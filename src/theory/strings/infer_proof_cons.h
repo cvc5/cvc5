@@ -208,6 +208,14 @@ class InferProofCons : public ProofGenerator
    * If we are purifying a substitution with equality, the LHS is a relevant
    * position to purify, and the RHS is treated like CORE_EQ.
    *
+   * For example, given substitution (= t ""), an example
+   * inference in the core calculus is:
+   *   (= (str.++ t "A") (str.++ "B" u)) => false
+   * An example of an extended function inference is:
+   *   (= (str.replace (str.substr t 0 2) t "C") (str.++ "C" f[t]))
+   * Note for the latter, we do not apply the substitution to
+   * (str.substr t 0 2).
+   *
    * @param pt Determines the positions that are relevant for purification.
    * @param tgt The term we were originally going to apply the substitution to.
    * @param children The premises corresponding to the substitution.
@@ -236,7 +244,7 @@ class InferProofCons : public ProofGenerator
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
    * If concludeNew is true, then we add a proof of lit' from lit in psb;
-   * otherwise we add a proof of lit from lit'. The position which are purified
+   * otherwise we add a proof of lit from lit'. The positions which are purified
    * are configurable based on the argument pt.
    */
   static Node purifyPredicate(PurifyType pt,
