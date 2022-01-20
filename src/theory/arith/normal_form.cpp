@@ -687,7 +687,7 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
     return SumPair(Polynomial::mkZero(), leadingConstant);
   }else if(p.containsConstant()){
     Assert(!p.singleton());
-    return SumPair(p.getTail(), p.getHead().getConstant());
+    return SumPair(p.getNonConstPart(), p.getConstant());
   }else{
     return SumPair(p, Constant::mkZero());
   }
@@ -725,8 +725,8 @@ SumPair Comparison::toSumPair() const {
       }else if(right.containsConstant()){
         Assert(!right.singleton());
 
-        Polynomial noConstant = right.getTail();
-        return SumPair(left - noConstant, -right.getHead().getConstant());
+        Polynomial noConstant = right.getNonConstPart();
+        return SumPair(left - noConstant, -right.getConstant());
       }else{
         return SumPair(left - right, Constant::mkZero());
       }
