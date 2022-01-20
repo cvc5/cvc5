@@ -646,7 +646,6 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
   if( options::qcfEagerTest() ){
     EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
     //check whether the instantiation evaluates as expected
-    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     std::map<TNode, TNode> subs;
     for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
     {
@@ -660,7 +659,7 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
           << "  " << d_extra_var[i] << " -> " << n << std::endl;
       subs[d_extra_var[i]] = n;
     }
-    if (p->atConflictEffort()) {
+    if (d_parent->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
       if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
