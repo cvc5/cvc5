@@ -599,6 +599,10 @@ class CVC5_EXPORT Sort
    *
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point.
+   * 
+   * For example, 
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 

@@ -2671,6 +2671,10 @@ cdef class Sort:
         only once to the sort. It is not run until fix point. In the case that
         sort_or_list_1 contains duplicates, the replacement earliest in the list
         takes priority.
+
+        For example, 
+        (Array A B) .substitute([A, C], [(Array C D), (Array A B)]) will
+        return (Array (Array C D) B).
         """
 
         # The resulting sort after substitution

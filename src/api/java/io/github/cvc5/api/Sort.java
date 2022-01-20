@@ -487,6 +487,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * only once to the sort. It is not run until fix point. In the case that
    * sorts contains duplicates, the replacement earliest in the list takes
    * priority.
+   *
+   * For example, 
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
