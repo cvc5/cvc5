@@ -787,11 +787,11 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
       if( d_vars[index].getKind()==PLUS || d_vars[index].getKind()==MULT ){
         Kind k = d_vars[index].getKind();
         std::vector< TNode > children;
-        for( unsigned j=0, nchild = d_vars[index].getNumChildren(); j<nchild; j++ ){
-          int vn = getVarNum( d_vars[index][j] );
+        for (const Node& vi : d_vars[index]){
+          int vn = getVarNum( vi );
           if( vn!=-1 ){
-            TNode vv = getCurrentValue( d_vars[index][j] );
-            if( vv==d_vars[index][j] ){
+            TNode vv = getCurrentValue( vi );
+            if( vv==vi ){
               //we will assign this
               if( slv_v==-1 ){
                 Trace("qcf-tconstraint-debug") << "...will solve for var #" << vn << std::endl;
@@ -818,8 +818,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               children.push_back( vv );
             }
           }else{
-            Trace("qcf-tconstraint-debug") << "...sum " << d_vars[index][j] << std::endl;
-            children.push_back( d_vars[index][j] );
+            Trace("qcf-tconstraint-debug") << "...sum " << vi << std::endl;
+            children.push_back( vi );
           }
         }
         if( success ){
