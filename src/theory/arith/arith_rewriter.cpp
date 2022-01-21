@@ -1770,7 +1770,7 @@ RewriteResponse ArithRewriter::rewriteForLinear(TNode node)
   {
     case Kind::EQUAL: {
       auto res = rewriteEqualityForLinear(node);
-      Trace("arith-rewriter-linear") << res.d_status << "-> " << res.d_node << std::endl;
+      Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
       return res;
     }
     case Kind::LT:
@@ -1805,6 +1805,8 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     monomials.emplace_back(s.first);
     Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
   }
+  std::sort(monomials.begin(), monomials.end(), ProductNodeComparator());
+  Trace("arith-rewriter-linear") << "monomials ordered: " << monomials << std::endl;
 
   if (isIntegral(node))
   {
@@ -1832,10 +1834,11 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
       s.second *= mult;
     }
     // find term with minimal absolute constant
-    auto minit = sum.begin();
-    for (auto it = sum.begin(); it != sum.end(); ++it)
+    auto minit = sum.find(monomials.front());
+    for (const auto& m: monomials)
     {
-      if (minit->second.toRational().absCmp(it->second.toRational()) > 0)
+      auto it = sum.find(m);
+      if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
       {
         minit = it;
       }
@@ -1864,8 +1867,6 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     Node left = leftCoeff.isOne() ? leftMon : nm->mkNode(Kind::MULT, nm->mkConstInt(leftCoeff), leftMon);
     return RewriteResponse(REWRITE_DONE, left.eqNode(mkSum(std::move(children))));
   }
-
-  std::sort(monomials.begin(), monomials.end(), ProductNodeComparator());
 
   Node lhs = monomials.front();
   auto it = sum.find(lhs);
