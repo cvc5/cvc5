@@ -24,6 +24,7 @@
 #include <stack>
 #include <vector>
 
+#include "expr/node_algorithm.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -123,6 +124,13 @@ struct ProductNodeComparator
     return false;
   }
 };
+
+bool isIntegral(TNode n)
+{
+  std::unordered_set<TNode> variables;
+  expr::getVariables(n, variables);
+  return std::all_of(variables.begin(), variables.end(), [](TNode v){ return v.getType().isInteger(); });
+}
 
 /** Make a nonlinear multiplication from the given factors */
 template <typename T>
