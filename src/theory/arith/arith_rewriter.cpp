@@ -165,23 +165,6 @@ Node mkMult(T&& factors)
   }
 }
 
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
-{
-  auto* nm = NodeManager::currentNM();
-  if (multiplicity.isRational())
-  {
-    if (isOne(multiplicity))
-    {
-      return monomial;
-    }
-    return nm->mkNode(Kind::MULT, nm->mkConstReal(multiplicity.toRational()), monomial);
-  }
-  std::vector<Node> prod;
-  prod.emplace_back(nm->mkRealAlgebraicNumber(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
-  return mkMult(std::move(prod));
-}
-
 /** Make a sum from the given summands */
 template <typename T>
 Node mkSum(T&& summands)
@@ -432,6 +415,31 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebr
   {
     addToDistSum(sum, mkMult(std::move(monomial)), multiplicity);
   }
+}
+
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
+{
+  auto* nm = NodeManager::currentNM();
+  if (multiplicity.isRational())
+  {
+    if (isOne(multiplicity))
+    {
+      return monomial;
+    }
+    if (monomial.isConst())
+    {
+      return nm->mkConstReal(multiplicity.toRational() * monomial.getConst<Rational>());
+    }
+    return nm->mkNode(Kind::MULT, nm->mkConstReal(multiplicity.toRational()), monomial);
+  }
+  if (monomial.isConst())
+  {
+    return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
+  }
+  std::vector<Node> prod;
+  prod.emplace_back(nm->mkRealAlgebraicNumber(multiplicity));
+  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  return mkMult(std::move(prod));
 }
 
 /**
@@ -1120,7 +1128,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         return child.getKind() == Kind::PLUS;
       }))
   {
-    return RewriteResponse(REWRITE_AGAIN_FULL,
+    return RewriteResponse(REWRITE_DONE,
                            distributeMultiplication(children));
   }
 
