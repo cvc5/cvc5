@@ -110,7 +110,7 @@ struct ProductNodeComparator
 
     size_t aLen = a.getNumChildren();
     size_t bLen = b.getNumChildren();
-    if (aLen != bLen) return aLen > bLen;
+    if (aLen != bLen) return aLen < bLen;
 
     for (size_t i = 0; i < aLen; ++i)
     {
@@ -412,7 +412,7 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebr
  */
 std::vector<Node> distSumToSum(
     const std::optional<RealAlgebraicNumber>& basemultiplicity,
-    const std::vector<Node>& base,
+    const std::vector<Node>& baseproduct,
     const std::unordered_map<Node, RealAlgebraicNumber>& sum,
     RealAlgebraicNumber* normalizeConstant = nullptr,
     bool* negativeLCoeff = nullptr)
@@ -424,7 +424,7 @@ std::vector<Node> distSumToSum(
     if (isZero(summand.second)) continue;
     RealAlgebraicNumber mult = summand.second;
     if (basemultiplicity) mult *= *basemultiplicity;
-    std::vector<Node> product = base;
+    std::vector<Node> product = baseproduct;
     addToDistProduct(product, mult, summand.first);
     std::sort(product.begin(), product.end(), LeafNodeComparator());
     summands.emplace_back(mkMult(std::move(product)), mult);
@@ -988,11 +988,13 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   {
     if (base.isRational())
     {
-      summands.emplace_back(nm->mkConstReal(base.toRational()));
+      //summands.emplace_back(nm->mkConstReal(base.toRational()));
+      summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
     }
     else
     {
-      summands.emplace_back(nm->mkRealAlgebraicNumber(base));
+      //summands.emplace_back(nm->mkRealAlgebraicNumber(base));
+      summands.insert(summands.begin(), nm->mkRealAlgebraicNumber(base));
     }
   }
   return RewriteResponse(REWRITE_DONE, mkSum(std::move(summands)));
