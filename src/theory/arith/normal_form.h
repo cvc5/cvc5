@@ -925,12 +925,7 @@ public:
   }
 
   bool containsConstant() const {
-    if (singleton())
-    {
-      return getHead().isConstant();
-    }
-    const Node& n = getNode();
-    return Monomial::parseMonomial(n[n.getNumChildren() - 1]).isConstant();
+    return getHead().isConstant();
   }
 
   uint32_t size() const{
@@ -944,31 +939,6 @@ public:
 
   Monomial getHead() const {
     return *(begin());
-  }
-
-
-  Polynomial getNonConstPart() const {
-    if (!containsConstant()) return *this;
-    if (singleton())
-    {
-      Assert(isConstant());
-      return mkZero();
-    }
-    std::vector<Monomial> subrange(begin(), end());
-    Assert(subrange.back().isConstant());
-    subrange.pop_back();
-    return mkPolynomial(subrange);
-  }
-
-  Constant getConstant() const {
-    Assert(containsConstant());
-    if (singleton())
-    {
-      Assert(getHead().isConstant());
-      return getHead().getConstant();
-    }
-    const Node& n = getNode();
-    return Monomial::parseMonomial(n[n.getNumChildren() - 1]).getConstant();
   }
 
   Polynomial getTail() const {
@@ -1196,6 +1166,7 @@ private:
   }
 
   static bool isMember(TNode n) {
+    Debug("nf::tmp") << "SumPair::isMember( " << n << " )" << std::endl;
     if(n.getKind() == kind::PLUS && n.getNumChildren() == 2){
       if(Constant::isMember(n[1])){
         if(Polynomial::isMember(n[0])){
@@ -1421,6 +1392,7 @@ private:
 
   bool isNormalEquality() const;
   bool isNormalDistinct() const;
+  bool isNormalEqualityOrDisequality() const;
 
   bool allIntegralVariables() const {
     return getLeft().allIntegralVariables() && getRight().allIntegralVariables();
@@ -1461,7 +1433,6 @@ public:
 
   SumPair toSumPair() const;
 
-  /** Obtain `left - right` without a possible constant part */
   Polynomial normalizedVariablePart() const;
   DeltaRational normalizedDeltaRational() const;
 

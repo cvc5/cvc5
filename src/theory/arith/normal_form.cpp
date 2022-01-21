@@ -177,9 +177,9 @@ int VarList::cmp(const VarList& vl) const {
     }
     Unreachable();
   } else if(dif < 0) {
-    return 1;
-  } else {
     return -1;
+  } else {
+    return 1;
   }
 }
 
@@ -687,7 +687,7 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
     return SumPair(Polynomial::mkZero(), leadingConstant);
   }else if(p.containsConstant()){
     Assert(!p.singleton());
-    return SumPair(p.getNonConstPart(), p.getConstant());
+    return SumPair(p.getTail(), p.getHead().getConstant());
   }else{
     return SumPair(p, Constant::mkZero());
   }
@@ -725,8 +725,8 @@ SumPair Comparison::toSumPair() const {
       }else if(right.containsConstant()){
         Assert(!right.singleton());
 
-        Polynomial noConstant = right.getNonConstPart();
-        return SumPair(left - noConstant, -right.getConstant());
+        Polynomial noConstant = right.getTail();
+        return SumPair(left - noConstant, -right.getHead().getConstant());
       }else{
         return SumPair(left - right, Constant::mkZero());
       }
@@ -755,22 +755,8 @@ Polynomial Comparison::normalizedVariablePart() const {
   case kind::EQUAL:
   case kind::DISTINCT:
     {
-      Polynomial result = getLeft() - getRight();
-      Assert(!result.isConstant());
-      if (result.containsConstant())
-      {
-        result = result.getNonConstPart();
-      }
-      if (!result.leadingCoefficientIsPositive())
-      {
-        result = -result;
-      }
-      return result;
-
-
       Polynomial left = getLeft();
       Polynomial right = getRight();
-
       if(right.isConstant()){
         return left;
       }else{
@@ -809,11 +795,11 @@ DeltaRational Comparison::normalizedDeltaRational() const {
   case kind::EQUAL:
   case kind::DISTINCT:
     {
-      Polynomial result = getLeft() - getRight();
-      if (result.containsConstant())
-      {
-        DeltaRational c = DeltaRational(result.getConstant().getValue(), 0);
-        Polynomial left = result.getNonConstPart();
+      Polynomial right = getRight();
+      Monomial firstRight = right.getHead();
+      if(firstRight.isConstant()){
+        DeltaRational c = DeltaRational(firstRight.getConstant().getValue(), 0);
+        Polynomial left = getLeft();
         if(!left.allIntegralVariables()){
           return c;
           //this is a qpolynomial and the sign of the leading
@@ -821,14 +807,16 @@ DeltaRational Comparison::normalizedDeltaRational() const {
         } else{
           // the polynomial may be a z polynomial in which case
           // taking the diff is the simplest and obviously correct means
-          if(left.leadingCoefficientIsPositive()){
+          Polynomial diff = right.singleton() ? left : left - right.getTail();
+          if(diff.leadingCoefficientIsPositive()){
             return c;
           }else{
             return -c;
           }
         }
+      }else{ // The constant is 0 sign cannot change
+        return DeltaRational(0, 0);
       }
-      return DeltaRational(0, 0);
     }
     default: Unhandled() << cmpKind;
   }
@@ -1070,15 +1058,19 @@ bool Comparison::isNormalGEQ() const {
   Debug("nf::tmp") << "isNormalGEQ " << n << " " << rightIsConstant() << endl;
 
   if(!rightIsConstant()){
+    Debug("nf::tmp") << "Right is not constant: " << getRight().getNode() << endl;
     return false;
   }else{
     Polynomial left = getLeft();
     if(left.containsConstant()){
+      Debug("nf::tmp") << "Left contains a constant: " << getLeft().getNode() << endl;
       return false;
     }else{
       if(left.isIntegral()){
+        Debug("nf::tmp") << "Check int condition for: " << getLeft().getNode() << endl;
         return left.signNormalizedReducedSum();
       }else{
+        Debug("nf::tmp") << "Check real condition for: " << getLeft().getNode() << endl;
         return left.leadingCoefficientIsAbsOne();
       }
     }
@@ -1107,11 +1099,65 @@ bool Comparison::isNormalLT() const {
   }
 }
 
+
+bool Comparison::isNormalEqualityOrDisequality() const {
+  Polynomial pleft = getLeft();
+
+  if(pleft.numMonomials() == 1){
+    Monomial mleft = pleft.getHead();
+    if(mleft.isConstant()){
+      return false;
+    }else{
+      Polynomial pright = getRight();
+      if(allIntegralVariables()){
+        const Rational& lcoeff = mleft.getConstant().getValue();
+        if(pright.isConstant()){
+          return pright.isIntegral() && lcoeff.isOne();
+        }
+        Polynomial varRight = pright.containsConstant() ? pright.getTail() : pright;
+        if(lcoeff.sgn() <= 0){
+          return false;
+        }else{
+          Integer lcm = lcoeff.getDenominator().lcm(varRight.denominatorLCM());
+          Integer g = lcoeff.getNumerator().gcd(varRight.numeratorGCD());
+          Debug("nf::tmp2") << lcm << " " << g << endl;
+          if(!lcm.isOne()){
+            return false;
+          }else if(!g.isOne()){
+            return false;
+          }else{
+            Monomial absMinRight = varRight.selectAbsMinimum();
+            Debug("nf::tmp2") << mleft.getNode() << " " << absMinRight.getNode() << endl;
+            if( mleft.absCmp(absMinRight) < 0){
+              return true;
+            }else{
+              return (!(absMinRight.absCmp(mleft)< 0)) && mleft < absMinRight;
+            }
+          }
+        }
+      }else{
+        if(mleft.coefficientIsOne()){
+          Debug("nf::tmp2")
+            << "dfklj " << mleft.getNode() << endl
+            << pright.getNode() << endl
+            << pright.variableMonomialAreStrictlyGreater(mleft)
+            << endl;
+          return pright.variableMonomialAreStrictlyGreater(mleft);
+        }else{
+          return false;
+        }
+      }
+    }
+  }else{
+    return false;
+  }
+}
+
 /** This must be (= qvarlist qpolynomial) or (= zmonomial zpolynomial)*/
 bool Comparison::isNormalEquality() const {
   Assert(getNode().getKind() == kind::EQUAL);
-  if (Theory::theoryOf(getNode()[0].getType()) != THEORY_ARITH) return false;
-  return Polynomial::isMember(getNode()[0]) && Polynomial::isMember(getNode()[1]);
+  return Theory::theoryOf(getNode()[0].getType()) == THEORY_ARITH &&
+         isNormalEqualityOrDisequality();
 }
 
 /**
@@ -1122,8 +1168,8 @@ bool Comparison::isNormalDistinct() const {
   Assert(getNode().getKind() == kind::NOT);
   Assert(getNode()[0].getKind() == kind::EQUAL);
 
-  if (Theory::theoryOf(getNode()[0][0].getType()) != THEORY_ARITH) return false;
-  return Polynomial::isMember(getNode()[0][0]) && Polynomial::isMember(getNode()[0][1]);
+  return Theory::theoryOf(getNode()[0][0].getType()) == THEORY_ARITH &&
+         isNormalEqualityOrDisequality();
 }
 
 Node Comparison::mkRatEquality(const Polynomial& p){
@@ -1221,6 +1267,7 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
 }
 
 Node Comparison::mkIntEquality(const Polynomial& p){
+  Debug("nf::tmp") << "mkIntEquality( " << p.getNode() << " )" << std::endl;
   Assert(!p.isConstant());
   Assert(p.allIntegralVariables());
 
@@ -1280,6 +1327,7 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
     bool isInteger = diff.allIntegralVariables();
     switch(k){
     case kind::EQUAL:
+      Debug("nf::tmp") << "make comparison from " << diff.getNode() << std::endl;
       result = isInteger ? mkIntEquality(diff) : mkRatEquality(diff);
       break;
     case kind::DISTINCT:
