@@ -701,7 +701,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   if (kind == Kind::EQUAL)
   {
-    if (left > right)
+    if (left < right)
     {
       return RewriteResponse(REWRITE_DONE, right.eqNode(left));
     }
