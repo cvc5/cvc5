@@ -137,6 +137,23 @@ Node mkMult(T&& factors)
   }
 }
 
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
+{
+  auto* nm = NodeManager::currentNM();
+  if (multiplicity.isRational())
+  {
+    if (isOne(multiplicity))
+    {
+      return monomial;
+    }
+    return nm->mkNode(Kind::MULT, nm->mkConstReal(multiplicity.toRational()), monomial);
+  }
+  std::vector<Node> prod;
+  prod.emplace_back(nm->mkRealAlgebraicNumber(multiplicity));
+  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  return mkMult(std::move(prod));
+}
+
 /** Make a sum from the given summands */
 template <typename T>
 Node mkSum(T&& summands)
@@ -433,43 +450,25 @@ std::vector<Node> distSumToSum(
         lcoeff = -lcoeff;
       }
     }
-    Trace("arith-rewriter") << "Normalizing based on " << lcoeff << std::endl;
+    Trace("arith-rewriter-debug") << "Normalizing based on " << lcoeff << std::endl;
     if (!isOne(lcoeff))
     {
-      Trace("arith-rewriter") << "\t" << *normalizeConstant << " / " << lcoeff << std::endl;
+      Trace("arith-rewriter-debug") << "\t" << *normalizeConstant << " / " << lcoeff << std::endl;
       *normalizeConstant = *normalizeConstant / lcoeff;
-      Trace("arith-rewriter") << "\t-> " << *normalizeConstant << std::endl;
+      Trace("arith-rewriter-debug") << "\t-> " << *normalizeConstant << std::endl;
       for (auto& s : summands)
       {
-        Trace("arith-rewriter") << "\t" << s.second << " * " << s.first << " / " << lcoeff << std::endl;
+        Trace("arith-rewriter-debug") << "\t" << s.second << " * " << s.first << " / " << lcoeff << std::endl;
         s.second = s.second / lcoeff;
-        Trace("arith-rewriter") << "\t-> " << s.second << " * " << s.first << std::endl;
+        Trace("arith-rewriter-debug") << "\t-> " << s.second << " * " << s.first << std::endl;
       }
     }
-    Trace("arith-rewriter") << "Done normalizing based on " << lcoeff << std::endl;
+    Trace("arith-rewriter-debug") << "Done normalizing based on " << lcoeff << std::endl;
   }
   std::vector<Node> children;
   for (const auto& s : summands)
   {
-    if (s.second.isRational())
-    {
-      if (isOne(s.second))
-      {
-        children.emplace_back(s.first);
-      }
-      else
-      {
-        children.emplace_back(nm->mkNode(
-            Kind::MULT, nm->mkConstReal(s.second.toRational()), s.first));
-      }
-    }
-    else
-    {
-      std::vector<Node> prod;
-      prod.emplace_back(nm->mkRealAlgebraicNumber(s.second));
-      prod.insert(prod.end(), s.first.begin(), s.first.end());
-      children.emplace_back(mkMult(std::move(prod)));
-    }
+    children.emplace_back(mkMultTerm(s.second, s.first));
   }
   return children;
 }
@@ -594,7 +593,8 @@ RewriteResponse ArithRewriter::postRewrite(TNode t)
   Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
-    auto res = postRewriteAtom(t);
+    auto tmp = postRewriteAtom(t);
+    auto res = rewriteForLinear(tmp.d_node);
     Trace("arith-rewriter")
         << res.d_status << " -> " << res.d_node << std::endl;
     return res;
@@ -712,35 +712,23 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
-  bool isIntAndNeedsNegation = false;
   addToDistSum(sum, base, left, negate);
   addToDistSum(sum, base, right, !negate);
 
-  Node newleft;
-  if (left.getType().isInteger())
-  {
-    newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base, &isIntAndNeedsNegation));
-  }
-  else
-  {
-    newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base));
-  }
-
+  Node newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base));
   Node newright = base.isRational() ? nm->mkConstReal(-base.toRational()) : nm->mkRealAlgebraicNumber(-base);
 
   if (auto response = tryEvaluateRelation(kind, newleft, newright); response)
   {
-    return RewriteResponse(REWRITE_DONE, nm->mkConst(isIntAndNeedsNegation ? !*response : *response));
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(*response));
   }
 
   if (kind == Kind::DISTINCT)
   {
-    Node res = nm->mkNode(Kind::EQUAL, newleft, newright);
-    return RewriteResponse(REWRITE_DONE, isIntAndNeedsNegation ? res : res.notNode());
+    return RewriteResponse(REWRITE_DONE, newleft.eqNode(newright).notNode());
   }
 
-  Node res = nm->mkNode(kind, newleft, newright);
-  return RewriteResponse(REWRITE_DONE, isIntAndNeedsNegation ? res.notNode() : res);
+  return RewriteResponse(REWRITE_DONE, nm->mkNode(kind, newleft, newright));
 }
 
 bool ArithRewriter::isAtom(TNode n) {
@@ -991,7 +979,11 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   std::vector<Node> summands = distSumToSum(std::nullopt, {}, sum);
   if (summands.empty())
   {
-    return RewriteResponse(REWRITE_AGAIN, nm->mkRealAlgebraicNumber(base));
+    if (base.isRational())
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(base.toRational()));
+    }
+    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(base));
   }
   if (!isZero(base))
   {
@@ -1728,9 +1720,125 @@ TrustNode ArithRewriter::expandDefinition(Node node)
 
 RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
 {
-  Trace("arith-rewrite") << "ArithRewriter : " << t << " == " << ret << " by "
+  Trace("arith-rewriter") << "ArithRewriter : " << t << " == " << ret << " by "
                          << r << std::endl;
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+}
+
+RewriteResponse ArithRewriter::rewriteForLinear(TNode node)
+{
+
+  Trace("arith-rewriter-linear") << "rewriteForLinear(" << node << ")" << std::endl;
+  switch (node.getKind())
+  {
+    case Kind::EQUAL: {
+      auto res = rewriteEqualityForLinear(node);
+      Trace("arith-rewriter-linear") << res.d_status << "-> " << res.d_node << std::endl;
+      return res;
+    }
+    case Kind::LT:
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::GT: {
+      auto res = rewriteInequalityForLinear(node);
+      Trace("arith-rewriter-linear") << res.d_status << "-> " << res.d_node << std::endl;
+      return res;
+    }
+    default:
+      auto res = RewriteResponse(REWRITE_DONE, node);
+      Trace("arith-rewriter-linear") << res.d_status << "-> " << res.d_node << std::endl;
+      return res;
+  }
+}
+RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
+{
+  Assert(node.getKind() == Kind::EQUAL);
+
+  RealAlgebraicNumber base;
+  std::unordered_map<Node, RealAlgebraicNumber> sum;
+  // move everything to the right
+  addToDistSum(sum, base, node[0], true);
+  addToDistSum(sum, base, node[1], false);
+  Assert(base.isRational()) << "terms for the linear solver should not have RANs";
+
+  std::vector<Node> monomials;
+  for (const auto& s: sum) monomials.emplace_back(s.first);
+  std::sort(monomials.begin(), monomials.end(), ProductNodeComparator());
+
+  Node lhs = monomials.front();
+  auto it = sum.find(lhs);
+  Assert(it != sum.end());
+  Assert(it->second.isRational()) << "terms for the linear solver should not have RANs";
+  Rational lcoeff = -(it->second.toRational());
+  sum.erase(it);
+
+  base = base / lcoeff;
+  for (auto& s: sum)
+  {
+    s.second = s.second / lcoeff;
+  }
+
+  auto* nm = NodeManager::currentNM();
+  std::vector<Node> summands = distSumToSum({}, {}, sum);
+  if (!isZero(base))
+  {
+    summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
+  }
+
+  return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(std::move(summands))));
+}
+RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
+{
+  Assert(node.getKind() == Kind::GT || node.getKind() == Kind::GEQ);
+  if (!node[0].getType().isInteger())
+  {
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  RealAlgebraicNumber base;
+  std::unordered_map<Node, RealAlgebraicNumber> sum;
+  // move everything to the left
+  addToDistSum(sum, base, node[0], false);
+  addToDistSum(sum, base, node[1], true);
+
+  std::vector<Node> monomials;
+  for (const auto& s: sum) monomials.emplace_back(s.first);
+  std::sort(monomials.begin(), monomials.end(), ProductNodeComparator());
+
+  Node lhs = monomials.front();
+  auto it = sum.find(lhs);
+  Assert(it != sum.end());
+  Assert(it->second.isRational()) << "terms for the linear solver should not have RANs";
+  Rational lcoeff = it->second.toRational();
+
+  Rational rhs = (-base.toRational() / lcoeff);
+  if (lcoeff < 0 && rhs.isIntegral())
+  {
+    rhs += 1;
+  }
+  else {
+  rhs = rhs.ceiling();
+  }
+  
+
+  for (auto& s: sum)
+  {
+    s.second = s.second / lcoeff;
+  }
+
+  auto* nm = NodeManager::currentNM();
+  lhs = mkSum(distSumToSum({}, {}, sum));
+  Node res;
+  if (lcoeff < 0)
+  {
+    res = nm->mkNode(node.getKind(), lhs, nm->mkConstReal(rhs)).notNode();
+  }
+  else
+  {
+    res = nm->mkNode(node.getKind(), lhs, nm->mkConstReal(rhs));
+  }
+  
+  return RewriteResponse(REWRITE_DONE, res);
 }
 
 }  // namespace arith
