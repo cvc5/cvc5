@@ -127,9 +127,15 @@ struct ProductNodeComparator
 
 bool isIntegral(TNode n)
 {
-  std::unordered_set<TNode> variables;
-  expr::getVariables(n, variables);
-  return std::all_of(variables.begin(), variables.end(), [](TNode v){ return v.getType().isInteger(); });
+  if (n.isConst())
+  {
+    return true;
+  }
+  if (isRelationOperator(n.getKind()))
+  {
+    return isIntegral(n[0]) && isIntegral(n[1]);
+  }
+  return n.getType().isInteger();
 }
 
 /** Make a nonlinear multiplication from the given factors */
