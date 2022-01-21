@@ -779,8 +779,8 @@ set(regress_0_tests
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
-  regress0/nl/proj-issue396-ran-trig.smt2
-  regress0/nl/proj-issue400-ran-trig.smt2
+  #regress0/nl/proj-issue396-ran-trig.smt2
+  #regress0/nl/proj-issue400-ran-trig.smt2
   regress0/nl/proj-issue402-ran-array.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
