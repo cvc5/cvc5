@@ -1128,6 +1128,7 @@ bool Comparison::isNormalEqualityOrDisequality() const {
           }else{
             Monomial absMinRight = varRight.selectAbsMinimum();
             Debug("nf::tmp2") << mleft.getNode() << " " << absMinRight.getNode() << endl;
+            return true;
             if( mleft.absCmp(absMinRight) < 0){
               return true;
             }else{
