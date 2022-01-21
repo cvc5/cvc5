@@ -417,7 +417,6 @@ std::vector<Node> distSumToSum(
     RealAlgebraicNumber* normalizeConstant = nullptr,
     bool* negativeLCoeff = nullptr)
 {
-  auto* nm = NodeManager::currentNM();
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
   for (const auto& summand : sum)
