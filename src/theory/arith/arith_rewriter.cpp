@@ -127,6 +127,24 @@ struct ProductNodeComparator
 
 bool isIntegral(TNode n)
 {
+  if (n.isConst()) return true;
+  switch (n.getKind())
+  {
+    case Kind::LT:
+    case Kind::LEQ:
+    case Kind::EQUAL:
+    case Kind::DISTINCT:
+    case Kind::GEQ:
+    case Kind::GT:
+      return isIntegral(n[0]) && isIntegral(n[1]);
+    case Kind::PLUS:
+    case Kind::MULT:
+    case Kind::MINUS:
+    case Kind::UMINUS:
+      return std::all_of(n.begin(), n.end(), [](TNode v){ return isIntegral(v); });
+    default:
+      return n.getType().isInteger();
+  }
   std::unordered_set<TNode> variables;
   expr::getVariables(n, variables);
   return std::all_of(variables.begin(), variables.end(), [](TNode v){ 
