@@ -1778,7 +1778,7 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
   }
 
-  if (node[0].getType().isInteger())
+  if (isIntegral(node))
   {
     // Obtain normalization factor lcm(denominator) / gcd(numerator)
     Integer denLCM(1);
@@ -1861,11 +1861,14 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
 
   return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(std::move(summands))));
 }
+
 RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
 {
+  Trace("arith-rewriter") << "Rewrite inequality for linear: " << node << std::endl;
   Assert(node.getKind() == Kind::GT || node.getKind() == Kind::GEQ);
-  if (!node[0].getType().isInteger())
+  if (!isIntegral(node))
   {
+    Trace("arith-rewriter") << "is not integer" << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 
@@ -1874,10 +1877,64 @@ RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
   // move everything to the left
   addToDistSum(sum, base, node[0], false);
   addToDistSum(sum, base, node[1], true);
+  Assert(base.isRational()) << "terms for the linear solver should not have RANs";
+  Rational baseRat = base.toRational();
 
   std::vector<Node> monomials;
-  for (const auto& s: sum) monomials.emplace_back(s.first);
+  for (const auto& s: sum)
+  {
+    monomials.emplace_back(s.first);
+    Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
+  }
   std::sort(monomials.begin(), monomials.end(), ProductNodeComparator());
+
+  if (isIntegral(node))
+  {
+    Trace("arith-rewriter") << "Rewrite integer inequality" << std::endl;
+    // Obtain normalization factor lcm(denominator) / gcd(numerator)
+    Integer denLCM(1);
+    Integer numGCD;
+    for (const auto& s: sum)
+    {
+      Rational r = s.second.toRational();
+      denLCM = denLCM.lcm(r.getDenominator());
+      if (numGCD.isZero()) numGCD = r.getNumerator().abs();
+      else numGCD = numGCD.gcd(r.getNumerator().abs());
+    }
+    Rational mult(denLCM, numGCD);
+    // figure out the sign of the leadinv coefficient
+    auto lcoeffit = sum.find(monomials.front());
+    Assert(lcoeffit != sum.end());
+    bool negate = lcoeffit->second.toRational() < 0;
+    if (negate) mult = -mult;
+
+    Trace("arith-rewriter") << "Normalize with " << mult << std::endl;
+
+    // normalize constant and non-constant part, move baseRat to the right
+    baseRat *= -mult;
+    for (auto& s: sum)
+    {
+      s.second *= mult;
+    }
+    
+    Kind k = node.getKind();
+    if (negate) {
+      k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
+    }
+
+    if (baseRat.isIntegral() && k == Kind::GT)
+    {
+      baseRat += 1;
+    }
+    else
+    {
+      baseRat = baseRat.ceiling();
+    }
+    auto* nm = NodeManager::currentNM();
+    k = Kind::GEQ;
+    Node res = nm->mkNode(k, mkSum(distSumToSum({}, {}, sum)), nm->mkConstInt(baseRat));
+    return RewriteResponse(REWRITE_DONE, negate ? res.notNode() : res);
+  }
 
   Node lhs = monomials.front();
   auto it = sum.find(lhs);
