@@ -1761,9 +1761,74 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
   addToDistSum(sum, base, node[0], true);
   addToDistSum(sum, base, node[1], false);
   Assert(base.isRational()) << "terms for the linear solver should not have RANs";
+  Rational baseRat = base.toRational();
 
   std::vector<Node> monomials;
-  for (const auto& s: sum) monomials.emplace_back(s.first);
+  for (const auto& s: sum)
+  {
+    monomials.emplace_back(s.first);
+    Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
+  }
+
+  if (node[0].getType().isInteger())
+  {
+    // Obtain normalization factor lcm(denominator) / gcd(numerator)
+    Integer denLCM(1);
+    Integer numGCD;
+    for (const auto& s: sum)
+    {
+      Rational r = s.second.toRational();
+      denLCM = denLCM.lcm(r.getDenominator());
+      if (numGCD.isZero()) numGCD = r.getNumerator().abs();
+      else numGCD = numGCD.gcd(r.getNumerator().abs());
+    }
+    Rational mult(denLCM, numGCD);
+    // normalize constant. Return false if constant is not integral
+    baseRat *= mult;
+    auto* nm = NodeManager::currentNM();
+    if (!baseRat.isIntegral())
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+    }
+    // normalize non-constant part
+    for (auto& s: sum)
+    {
+      s.second *= mult;
+    }
+    // find term with minimal absolute constant
+    auto minit = sum.begin();
+    for (auto it = sum.begin(); it != sum.end(); ++it)
+    {
+      if (minit->second.toRational().absCmp(it->second.toRational()) > 0)
+      {
+        minit = it;
+      }
+    }
+    // remove this term from sum
+    Node leftMon = minit->first;
+    Rational leftCoeff = minit->second.toRational();
+    sum.erase(minit);
+    if (leftCoeff > 0)
+    {
+      // now the baseRat + sum goes to the right
+      baseRat = -baseRat;
+      for (auto& s: sum) s.second = -s.second;
+    }
+    else
+    {
+      // otherwise leftCoeff goes to the left
+      leftCoeff = -leftCoeff;
+    }
+    // Build the sum and return the result
+    std::vector<Node> children = distSumToSum({}, {}, sum);
+    if (!baseRat.isZero())
+    {
+      children.insert(children.begin(), nm->mkConstInt(baseRat));
+    }
+    Node left = leftCoeff.isOne() ? leftMon : nm->mkNode(Kind::MULT, nm->mkConstInt(leftCoeff), leftMon);
+    return RewriteResponse(REWRITE_DONE, left.eqNode(mkSum(std::move(children))));
+  }
+
   std::sort(monomials.begin(), monomials.end(), ProductNodeComparator());
 
   Node lhs = monomials.front();
