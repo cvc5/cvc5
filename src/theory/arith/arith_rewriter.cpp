@@ -699,14 +699,14 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, nm->mkConst(*response));
   }
 
-  if (kind == Kind::EQUAL)
+  /*if (kind == Kind::EQUAL)
   {
     if (left < right)
     {
       return RewriteResponse(REWRITE_DONE, right.eqNode(left));
     }
     return RewriteResponse(REWRITE_DONE, atom);
-  }
+  }*/
 
   bool negate = false;
 
