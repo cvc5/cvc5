@@ -62,6 +62,12 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+  // internal-only options
+  if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY)
+  {
+    throw OptionException(
+        std::string("Unsat core mode pp-only is for internal use only."));
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -346,17 +352,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-
-  // sygus core connective requires unsat cores
-  if (opts.quantifiers.sygusCoreConnective)
-  {
-    opts.smt.unsatCores = true;
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
-    {
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
-    }
-  }
-
   if ((opts.smt.checkModels || opts.smt.checkSynthSol || opts.smt.produceAbducts
        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
        || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
@@ -682,6 +677,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
+      Trace("smt")
+          << "Disabling shared selectors for quantified logic without SyGuS"
+          << std::endl;
       opts.datatypes.dtSharedSelectors = false;
     }
   }
@@ -1260,6 +1258,11 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
+  if (opts.quantifiers.fullSaturateQuant)
+  {
+    Trace("smt") << "enabling enum-inst for full-saturate-quant" << std::endl;
+    opts.quantifiers.enumInst = true;
+  }
   if (opts.arrays.arraysExp)
   {
     // Allows to answer sat more often by default.
@@ -1577,9 +1580,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     opts.quantifiers.sygusRewSynth = true;
     // we should not use the extended rewriter, since we are interested
     // in rewrites that are not in the main rewriter
-    if (!opts.quantifiers.sygusExtRewWasSetByUser)
+    if (!opts.datatypes.sygusRewriterWasSetByUser)
     {
-      opts.quantifiers.sygusExtRew = false;
+      opts.datatypes.sygusRewriter = options::SygusRewriterMode::BASIC;
     }
   }
   // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm

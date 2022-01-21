@@ -76,7 +76,7 @@
 )
 
 (define-fun nilPState () PState
-  (mkPState nilSL ((as const (Array State Real)) 0))
+  (mkPState nilSL ((as const (Array State Real)) 0.0))
 )
 (define-fun-rec appendStateToPState ((s State) (r Real) (p PState)) PState
   (let ((pstates (states p)))

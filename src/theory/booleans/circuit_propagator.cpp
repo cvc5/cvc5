@@ -56,10 +56,14 @@ CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBa
 {
 }
 
-void CircuitPropagator::finish()
+void CircuitPropagator::initialize()
 {
-  Trace("circuit-prop") << "FINISH" << std::endl;
-  d_context.pop();
+  if (d_needsFinish)
+  {
+    d_context.pop();
+  }
+  d_context.push();
+  d_needsFinish = true;
 }
 
 void CircuitPropagator::assertTrue(TNode assertion)

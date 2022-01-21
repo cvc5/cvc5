@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none --sygus-active-gen=enum
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none --sygus-enum=fast
 
 (set-logic ALL)
 

@@ -78,6 +78,14 @@ constant CONST_INTEGER \
     "util/rational.h" \
     "a multiple-precision integer constant; payload is an instance of the cvc5::Rational class"
 
+constant REAL_ALGEBRAIC_NUMBER_OP \
+    class \
+    RealAlgebraicNumber+ \
+    ::cvc5::RealAlgebraicNumberHashFunction \
+    "util/real_algebraic_number.h" \
+    "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
+parameterized REAL_ALGEBRAIC_NUMBER REAL_ALGEBRAIC_NUMBER_OP 0 "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
+
 enumerator REAL_TYPE \
     "::cvc5::theory::arith::RationalEnumerator" \
     "theory/arith/type_enumerator.h"
@@ -121,6 +129,9 @@ typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
 typerule CONST_INTEGER ::cvc5::theory::arith::ArithConstantTypeRule
 
+typerule REAL_ALGEBRAIC_NUMBER_OP ::cvc5::theory::arith::ArithRealAlgebraicNumberOpTypeRule
+typerule REAL_ALGEBRAIC_NUMBER ::cvc5::theory::arith::ArithRealAlgebraicNumberTypeRule
+
 typerule LT ::cvc5::theory::arith::ArithRelationTypeRule
 typerule LEQ ::cvc5::theory::arith::ArithRelationTypeRule
 typerule GT ::cvc5::theory::arith::ArithRelationTypeRule
@@ -134,7 +145,7 @@ typerule CAST_TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule TO_INTEGER ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
 
-typerule ABS "SimpleTypeRule<RInteger, AInteger>"
+typerule ABS ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"

@@ -574,13 +574,6 @@ class CVC5_EXPORT Sort
   bool isSubsortOf(const Sort& s) const;
 
   /**
-   * Is this sort comparable to the given sort (i.e., do they share
-   * a common ancestor in the subsort tree)?
-   * @return true if this sort is comparable to s
-   */
-  bool isComparableTo(const Sort& s) const;
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -1473,12 +1466,12 @@ class CVC5_EXPORT Term
   /**
    * @return true if the term is an abstract value.
    */
-  bool isAbstractValue() const;
+  bool isUninterpretedSortValue() const;
   /**
-   * Asserts isAbstractValue().
-   * @return the representation of an abstract value as a string.
+   * Asserts isUninterpretedSortValue().
+   * @return the representation of an uninterpreted sort value as a string.
    */
-  std::string getAbstractValue() const;
+  std::string getUninterpretedSortValue() const;
 
   /**
    * @return true if the term is a tuple value.
@@ -1529,12 +1522,16 @@ class CVC5_EXPORT Term
    * A term is a set value if it is considered to be a (canonical) constant set
    * value.  A canonical set value is one whose AST is:
    *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
    *     (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * \endverbatim
    *
-   * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
-   * also @ref Term::operator>(const Term&) const).
+   * where @f$c_1 ... c_n@f$ are values ordered by id such that
+   * @f$c_1 > ... > c_n@f$ (see @ref Term::operator>(const Term&) const).
    *
-   * @note A universe set term `(kind SET_UNIVERSE)` is not considered to be
+   * @note A universe set term (kind `SET_UNIVERSE`) is not considered to be
    *       a set value.
    */
   bool isSetValue() const;
@@ -1556,19 +1553,6 @@ class CVC5_EXPORT Term
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
-
-  /**
-   * @return true if the term is a value from an uninterpreted sort.
-   */
-  bool isUninterpretedValue() const;
-  /**
-  bool @return() const;
-   * Asserts isUninterpretedValue().
-   * @return the representation of an uninterpreted value as a pair of its
-  sort and its
-   * index.
-   */
-  std::pair<Sort, int32_t> getUninterpretedValue() const;
 
  protected:
   /**
@@ -2310,17 +2294,6 @@ class CVC5_EXPORT Datatype
    * @return true if this datatype is well-founded
    */
   bool isWellFounded() const;
-
-  /**
-   * Does this datatype have nested recursion? This method returns false if a
-   * value of this datatype includes a subterm of its type that is nested
-   * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with codomain type (Set T)
-   * has nested recursion.
-   *
-   * @return true if this datatype has nested recursion
-   */
-  bool hasNestedRecursion() const;
 
   /**
    * @return true if this Datatype is a null object
@@ -3691,27 +3664,6 @@ class CVC5_EXPORT Solver
    * @param rm the floating point rounding mode this constant represents
    */
   Term mkRoundingMode(RoundingMode rm) const;
-
-  /**
-   * Create uninterpreted constant.
-   * @param sort Sort of the constant
-   * @param index Index of the constant
-   */
-  Term mkUninterpretedConst(const Sort& sort, int32_t index) const;
-
-  /**
-   * Create an abstract value constant.
-   * The given index needs to be a positive integer in base 10.
-   * @param index Index of the abstract value
-   */
-  Term mkAbstractValue(const std::string& index) const;
-
-  /**
-   * Create an abstract value constant.
-   * The given index needs to be positive.
-   * @param index Index of the abstract value
-   */
-  Term mkAbstractValue(uint64_t index) const;
 
   /**
    * Create a floating-point constant.

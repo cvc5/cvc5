@@ -855,18 +855,19 @@ class TermTest
     assertEquals("f", b7.getBitVectorValue(16));
   }
 
-  @Test void getAbstractValue() throws CVC5ApiException
+  @Test void getUninterpretedSortValue() throws CVC5ApiException
   {
-    Term v1 = d_solver.mkAbstractValue(1);
-    Term v2 = d_solver.mkAbstractValue("15");
-    Term v3 = d_solver.mkAbstractValue("18446744073709551617");
-
-    assertTrue(v1.isAbstractValue());
-    assertTrue(v2.isAbstractValue());
-    assertTrue(v3.isAbstractValue());
-    assertEquals("1", v1.getAbstractValue());
-    assertEquals("15", v2.getAbstractValue());
-    assertEquals("18446744073709551617", v3.getAbstractValue());
+    d_solver.setOption("produce-models", "true");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    d_solver.assertFormula(d_solver.mkTerm(EQUAL, x, y));
+    assertTrue(d_solver.checkSat().isSat());
+    Term vx = d_solver.getValue(x);
+    Term vy = d_solver.getValue(y);
+    assertEquals(vx.isUninterpretedSortValue(), vy.isUninterpretedSortValue());
+    assertDoesNotThrow(() -> vx.getUninterpretedSortValue());
+    assertDoesNotThrow(() -> vy.getUninterpretedSortValue());
   }
 
   @Test void getTuple()
@@ -969,19 +970,6 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i1}), Arrays.asList(s3.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i2}), Arrays.asList(s4.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
-  }
-
-  @Test void getUninterpretedConst() throws CVC5ApiException
-  {
-    Sort s = d_solver.mkUninterpretedSort("test");
-    Term t1 = d_solver.mkUninterpretedConst(s, 3);
-    Term t2 = d_solver.mkUninterpretedConst(s, 5);
-
-    assertTrue(t1.isUninterpretedValue());
-    assertTrue(t2.isUninterpretedValue());
-
-    assertEquals(new Pair<Sort, Integer>(s, 3), t1.getUninterpretedValue());
-    assertEquals(new Pair<Sort, Integer>(s, 5), t2.getUninterpretedValue());
   }
 
   @Test void substitute()

@@ -117,7 +117,7 @@ Node SygusQePreproc::preprocess(Node q)
 
   Trace("cegqi-qep") << "Run quantifier elimination on " << conj_se_ngsi_subs
                      << std::endl;
-  Node qeRes = smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true, false);
+  Node qeRes = smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true);
   Trace("cegqi-qep") << "Result : " << qeRes << std::endl;
 
   // create single invocation conjecture, if QE was successful
