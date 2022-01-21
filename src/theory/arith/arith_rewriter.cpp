@@ -417,9 +417,21 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebr
   }
 }
 
+RealAlgebraicNumber rmConstFromDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum)
+{
+  RealAlgebraicNumber res;
+  auto* nm = NodeManager::currentNM();
+  auto it = sum.find(nm->mkConstReal(Rational(1)));
+  if (it == sum.end()) return res;
+  res = it->second;
+  sum.erase(it);
+  return res;
+}
+
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
   auto* nm = NodeManager::currentNM();
+  Assert(!monomial.isConst());
   if (multiplicity.isRational())
   {
     if (isOne(multiplicity))
@@ -601,7 +613,12 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  return mkSum(distSumToSum(basemultiplicity, base, sum));
+  // 
+  RealAlgebraicNumber constant = rmConstFromDistSum(sum);
+  std::vector<Node> children = distSumToSum(basemultiplicity, base, sum);
+  children.insert(children.begin(), constant.isRational() ? nm->mkConstReal(constant.toRational()) : nm->mkRealAlgebraicNumber(constant));
+
+  return mkSum(std::move(children));
 }
 
 }  // namespace
