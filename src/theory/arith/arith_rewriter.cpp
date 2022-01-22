@@ -613,8 +613,11 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  // 
-  RealAlgebraicNumber constant = rmConstFromDistSum(sum);
+  RealAlgebraicNumber constant;
+  if (base.empty())
+  {
+    constant = rmConstFromDistSum(sum) * basemultiplicity;
+  }
   std::vector<Node> children = distSumToSum(basemultiplicity, base, sum);
   if (!isZero(constant))
   {
