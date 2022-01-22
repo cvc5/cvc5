@@ -1057,69 +1057,6 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
     }
   }
   return RewriteResponse(REWRITE_DONE, mkSum(std::move(summands)));
-
-  Rational rational;
-  RealAlgebraicNumber ran;
-  std::vector<Monomial> monomials;
-  std::vector<Polynomial> polynomials;
-
-  for (const auto& child : t)
-  {
-    if (child.isConst())
-    {
-      if (child.getConst<Rational>().isZero())
-      {
-        continue;
-      }
-      rational += child.getConst<Rational>();
-    }
-    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      ran += child.getOperator().getConst<RealAlgebraicNumber>();
-    }
-    else if (Monomial::isMember(child))
-    {
-      monomials.emplace_back(Monomial::parseMonomial(child));
-    }
-    else
-    {
-      polynomials.emplace_back(Polynomial::parsePolynomial(child));
-    }
-  }
-
-  if(!monomials.empty()){
-    Monomial::sort(monomials);
-    Monomial::combineAdjacentMonomials(monomials);
-    polynomials.emplace_back(Polynomial::mkPolynomial(monomials));
-  }
-  if (!rational.isZero())
-  {
-    polynomials.emplace_back(
-        Polynomial::mkPolynomial(Constant::mkConstant(rational)));
-  }
-
-  Polynomial poly = Polynomial::sumPolynomials(polynomials);
-
-  if (isZero(ran))
-  {
-    return RewriteResponse(REWRITE_DONE, poly.getNode());
-  }
-  if (poly.containsConstant())
-  {
-    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    if (!poly.isConstant())
-    {
-      poly = poly.getTail();
-    }
-  }
-
-  if (poly.isConstant())
-  {
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
-  }
-  return RewriteResponse(
-      REWRITE_DONE,
-      nm->mkNode(Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode node)
