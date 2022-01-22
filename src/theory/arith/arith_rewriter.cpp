@@ -616,7 +616,10 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // 
   RealAlgebraicNumber constant = rmConstFromDistSum(sum);
   std::vector<Node> children = distSumToSum(basemultiplicity, base, sum);
-  children.insert(children.begin(), constant.isRational() ? nm->mkConstReal(constant.toRational()) : nm->mkRealAlgebraicNumber(constant));
+  if (!isZero(constant))
+  {
+    children.insert(children.begin(), constant.isRational() ? nm->mkConstReal(constant.toRational()) : nm->mkRealAlgebraicNumber(constant));
+  }
 
   return mkSum(std::move(children));
 }
