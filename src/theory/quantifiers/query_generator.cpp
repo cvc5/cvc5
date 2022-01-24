@@ -121,10 +121,10 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     Node qy = queries[i];
     std::vector<unsigned>& tIndices = queriesPtTrue[i];
     // we have an interesting query
-    out << "(query " << qy << ")  ; " << tIndices.size() << "/" << npts
-        << std::endl;
+    Trace("sygus-qgen-debug")
+        << "; " << tIndices.size() << "/" << npts << std::endl;
     AlwaysAssert(!tIndices.empty());
-    checkQuery(qy, tIndices[0]);
+    checkQuery(qy, tIndices[0], out);
     // add information
     for (unsigned& ti : tIndices)
     {
@@ -141,15 +141,14 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     if (qsi.size() > 1)
     {
       // take two random queries
-      size_t rindex = Random::getRandom().pick(0, qsi.size()-1);
-      size_t rindex2 = Random::getRandom().pick(0, qsi.size()-1);
-      if (rindex==rindex2)
+      size_t rindex = Random::getRandom().pick(0, qsi.size() - 1);
+      size_t rindex2 = Random::getRandom().pick(0, qsi.size() - 1);
+      if (rindex == rindex2)
       {
-        rindex2 = rindex+1==qsi.size() ? 0 : rindex+1;
+        rindex2 = rindex + 1 == qsi.size() ? 0 : rindex + 1;
       }
       Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
-      out << "(query " << qy << ")" << std::endl;
-      checkQuery(qy, i);
+      checkQuery(qy, i, out);
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
@@ -158,11 +157,12 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
-  if (d_allQueries.find(qy)!=d_allQueries.end())
+  if (d_allQueries.find(qy) != d_allQueries.end())
   {
     return;
   }
   d_allQueries.insert(qy);
+  out << "(query " << qy << ")" << std::endl;
   // external query
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::ALL)
