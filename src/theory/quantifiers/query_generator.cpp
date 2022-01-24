@@ -141,8 +141,9 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     if (qsi.size() > 1)
     {
       // take two random queries
-      std::shuffle(qsi.begin(), qsi.end(), Random::getRandom());
-      Node qy = nm->mkNode(AND, qsi[0], qsi[1]);
+      size_t rindex = Random::pick(0, qsi.size());
+      size_t rindex2 = rindex+1==qsi.size() ? 0 : rindex+1;
+      Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
       checkQuery(qy, i);
     }
   }
@@ -152,6 +153,11 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
+  if (d_allQueries.find(qy)!=d_allQueries.end())
+  {
+    return;
+  }
+  d_allQueries.insert(qy);
   // external query
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::ALL)
