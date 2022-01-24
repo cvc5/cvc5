@@ -34,6 +34,7 @@ using Pf = std::shared_ptr<ProofNode>;
 struct ProofNodeHashFunction
 {
   inline size_t operator()(std::shared_ptr<ProofNode> pfn) const;
+  inline size_t operator()(const ProofNode* pfn) const;
 }; /* struct ProofNodeHashFunction */
 
 /** A node in a proof
@@ -131,6 +132,26 @@ inline size_t ProofNodeHashFunction::operator()(
     std::shared_ptr<ProofNode> pfn) const
 {
   return pfn->getResult().getId() + static_cast<unsigned>(pfn->getRule());
+}
+
+inline size_t ProofNodeHashFunction::operator()(const ProofNode* pfn) const
+{
+  uint64_t ret = fnv1a::offsetBasis;
+
+  ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(pfn->getResult()));
+  ret = fnv1a::fnv1a_64(ret, static_cast<size_t>(pfn->getRule()));
+
+  for (const cvc5::Pf& child : pfn->getChildren())
+  {
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(child->getResult()));
+  }
+
+  for (const Node& arg : pfn->getArguments())
+  {
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(arg));
+  }
+
+  return static_cast<size_t>(ret);
 }
 
 /**

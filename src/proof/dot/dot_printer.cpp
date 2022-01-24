@@ -27,7 +27,9 @@ namespace cvc5 {
 namespace proof {
 
 DotPrinter::DotPrinter()
-    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1 : 0)
+    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
+                                          : 0),
+      d_ruleID(0)
 {
 }
 
@@ -141,7 +143,6 @@ void DotPrinter::letifyResults(const ProofNode* pn)
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
-  uint64_t ruleID = 0;
   countSubproofs(pn);
   letifyResults(pn);
 
@@ -178,18 +179,42 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     out << "}}\";\n";
   }
-  DotPrinter::printInternal(out, pn, ruleID, 0, false);
+
+  std::unordered_map<const ProofNode*, uint64_t, ProofNodeHashFunction>
+      proofLet;
+  DotPrinter::printInternal(out, pn, proofLet, 0, false);
   out << "}\n";
 }
 
-void DotPrinter::printInternal(std::ostream& out,
-                               const ProofNode* pn,
-                               uint64_t& ruleID,
-                               uint64_t scopeCounter,
-                               bool inPropositionalView)
+uint64_t DotPrinter::printInternal(
+    std::ostream& out,
+    const ProofNode* pn,
+    std::unordered_map<const ProofNode*, uint64_t, ProofNodeHashFunction>&
+        pfLet,
+    uint64_t scopeCounter,
+    bool inPropositionalView)
 {
-  uint64_t currentRuleID = ruleID;
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  ProofNodeHashFunction hash;
+  auto proofIt = pfLet.end();
+  for (auto it = pfLet.begin(); it != pfLet.end(); ++it)
+  {
+    if (hash(it->first) == hash(pn))
+    {
+      proofIt = it;
+      Assert(DotPrinter::eqProofNode(it->first, pn));
+      break;
+    }
+  }
+
+  // If this node has been already counted
+  if (proofIt != pfLet.end())
+  {
+    return proofIt->second;
+  }
+
+  uint64_t currentRuleID = d_ruleID++;
+  pfLet[pn] = currentRuleID;
+
   std::ostringstream currentArguments, resultStr, classes, colors;
 
   out << "\t" << currentRuleID << " [ label = \"{";
@@ -250,12 +275,69 @@ void DotPrinter::printInternal(std::ostream& out,
   out << ", comment = \"{\\\"subProofQty\\\":" << it->second << "}\"";
   out << " ];\n";
 
+  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   for (const std::shared_ptr<ProofNode>& c : children)
   {
-    ++ruleID;
-    out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
+    uint64_t childId =
+        printInternal(out, c.get(), pfLet, scopeCounter, inPropositionalView);
+    out << "\t" << childId << " -> " << currentRuleID << ";\n";
   }
+
+  return currentRuleID;
+}
+
+bool DotPrinter::eqProofNode(const ProofNode* pn1, const ProofNode* pn2)
+{
+  // Both pointers are equal
+  if (pn1 == pn2)
+  {
+    return true;
+  }
+  // If the conclusions are different
+  if (pn1->getResult() != pn2->getResult())
+  {
+    return false;
+  }
+  // If the rules are different
+  if (pn1->getRule() != pn2->getRule())
+  {
+    return false;
+  }
+  // Compare the children of both nodes
+  const std::vector<cvc5::Pf>& children1 = pn1->getChildren();
+  const std::vector<cvc5::Pf>& children2 = pn2->getChildren();
+  size_t size1 = children1.size();
+  size_t size2 = children2.size();
+  if (size1 != size2)
+  {
+    return false;
+  }
+  for (size_t i = 0; i < size1; i++)
+  {
+    // Compare the children conclusion
+    if (children1[i]->getResult() != children2[i]->getResult())
+    {
+      return false;
+    }
+  }
+  // Compare the args of both nodes
+  const std::vector<cvc5::Node>& args1 = pn1->getArguments();
+  const std::vector<cvc5::Node>& args2 = pn2->getArguments();
+  size1 = args1.size();
+  size2 = args2.size();
+  if (size1 != size2)
+  {
+    return false;
+  }
+  for (size_t i = 0; i < size1; i++)
+  {
+    if (args1[i] != args2[i])
+    {
+      return false;
+    }
+  }
+  // Then the proofs are identical
+  return true;
 }
 
 void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
