@@ -73,6 +73,11 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     while (index < npts && threshCount < 2)
     {
       Node v = d_sampler->evaluate(nn, index);
+      // it may not evaluate, in which case we ignore the point
+      if (!v.isConst())
+      {
+        continue;
+      }
       ev_to_pt[v].push_back(index);
       if (ev_to_pt[v].size() == d_deqThresh + 1)
       {
