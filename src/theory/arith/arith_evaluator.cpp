@@ -9,7 +9,9 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-std::optional<bool> isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model)
+std::optional<bool> isExpressionZero(Env& env,
+                                     Node expr,
+                                     const std::map<Node, Node>& model)
 {
   // Substitute constants and rewrite
   expr = env.getRewriter()->rewrite(expr);
