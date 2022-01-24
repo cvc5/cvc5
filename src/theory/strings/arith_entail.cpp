@@ -861,12 +861,17 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
     return ret;
   }
   NodeManager* nm = NodeManager::currentNM();
+  Kind sk = s.getKind();
   if (s.isConst())
   {
     size_t len = Word::getLength(s);
     ret = nm->mkConstInt(Rational(len));
   }
-  else if (s.getKind() == STRING_CONCAT)
+  else if (sk == SEQ_UNIT)
+  {
+    ret = nm->mkConstInt(1);
+  }
+  else if (sk == STRING_CONCAT)
   {
     Rational sum(0);
     bool success = true;

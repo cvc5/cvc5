@@ -99,7 +99,7 @@ void QuantifiersModules::initialize(Env& env,
     d_alpha_equiv.reset(new AlphaEquivalence(env));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
-  if (options::fullSaturateQuant() || options::fullSaturateInterleave())
+  if (options::enumInst() || options::enumInstInterleave())
   {
     d_rel_dom.reset(new RelevantDomain(env, qs, qr, tr));
     d_fs.reset(new InstStrategyEnum(env, qs, qim, qr, tr, d_rel_dom.get()));

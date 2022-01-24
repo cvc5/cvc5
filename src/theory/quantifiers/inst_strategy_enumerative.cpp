@@ -35,20 +35,20 @@ InstStrategyEnum::InstStrategyEnum(Env& env,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(env, qs, qim, qr, tr), d_rd(rd), d_enumInstLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
 {
-  d_fullSaturateLimit = options().quantifiers.fullSaturateLimit;
+  d_enumInstLimit = options().quantifiers.enumInstLimit;
 }
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
-  if (d_fullSaturateLimit == 0)
+  if (d_enumInstLimit == 0)
   {
     return false;
   }
-  if (options().quantifiers.fullSaturateInterleave)
+  if (options().quantifiers.enumInstInterleave)
   {
     // if interleaved, we run at the same time as E-matching
     if (d_qstate.getInstWhenNeedsCheck(e))
@@ -56,7 +56,7 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
       return true;
     }
   }
-  if (options().quantifiers.fullSaturateQuant)
+  if (options().quantifiers.enumInst)
   {
     if (e >= Theory::EFFORT_LAST_CALL)
     {
@@ -71,14 +71,14 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (d_fullSaturateLimit != 0)
+  if (d_enumInstLimit != 0)
   {
-    if (options().quantifiers.fullSaturateInterleave)
+    if (options().quantifiers.enumInstInterleave)
     {
       // we only add when interleaved with other strategies
       doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
-    if (options().quantifiers.fullSaturateQuant && !doCheck)
+    if (options().quantifiers.enumInst && !doCheck)
     {
       if (!d_qstate.getValuation().needCheck())
       {
@@ -93,13 +93,13 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
   Assert(!d_qstate.isInConflict());
   double clSet = 0;
-  if (Trace.isOn("fs-engine"))
+  if (Trace.isOn("enum-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("fs-engine") << "---Full Saturation Round, effort = " << e << "---"
-                       << std::endl;
+    Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
+                         << std::endl;
   }
-  unsigned rstart = options().quantifiers.fullSaturateQuantRd ? 0 : 1;
+  unsigned rstart = options().quantifiers.enumInstRd ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
   unsigned addedLemmas = 0;
   // First try in relevant domain of all quantified formulas, if no
@@ -138,7 +138,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
           if (process(q, fullEffort, r == 0))
           {
             // don't need to mark this if we are not stratifying
-            if (!options().quantifiers.fullSaturateStratify)
+            if (!options().quantifiers.enumInstStratify)
             {
               alreadyProc[q] = true;
             }
@@ -152,7 +152,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
         }
       }
       if (d_qstate.isInConflict()
-          || (addedLemmas > 0 && options().quantifiers.fullSaturateStratify))
+          || (addedLemmas > 0 && options().quantifiers.enumInstStratify))
       {
         // we break if we are in conflict, or if we added any lemma at this
         // effort level and we stratify effort levels.
@@ -160,16 +160,16 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       }
     }
   }
-  if (Trace.isOn("fs-engine"))
+  if (Trace.isOn("enum-engine"))
   {
-    Trace("fs-engine") << "Added lemmas = " << addedLemmas << std::endl;
+    Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("fs-engine") << "Finished full saturation engine, time = "
-                       << (clSet2 - clSet) << std::endl;
+    Trace("enum-engine") << "Finished full saturation engine, time = "
+                         << (clSet2 - clSet) << std::endl;
   }
-  if (d_fullSaturateLimit > 0)
+  if (d_enumInstLimit > 0)
   {
-    d_fullSaturateLimit--;
+    d_enumInstLimit--;
   }
 }
 
@@ -184,7 +184,7 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = fullEffort;
-  ttec.d_increaseSum = options().quantifiers.fullSaturateSum;
+  ttec.d_increaseSum = options().quantifiers.enumInstSum;
   // make the enumerator, which is either relevant domain or term database
   // based on the flag isRd.
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(

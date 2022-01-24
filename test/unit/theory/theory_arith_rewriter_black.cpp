@@ -79,5 +79,41 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   }
 }
 
+TEST_F(TestTheoryArithRewriterBlack, Abs)
+{
+  {
+    Node a = d_nodeManager->mkConstReal(10);
+    Node b = d_nodeManager->mkConstReal(-10);
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, a);
+    EXPECT_EQ(n, a);
+  }
+  {
+    Node a = d_nodeManager->mkConstReal(Rational(3,2));
+    Node b = d_nodeManager->mkConstReal(Rational(-3,2));
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, a);
+    EXPECT_EQ(n, a);
+  }
+  {
+    RealAlgebraicNumber msqrt2({-2, 0, 1}, -2, -1);
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
+    Node a = d_nodeManager->mkRealAlgebraicNumber(msqrt2);
+    Node b = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, b);
+    EXPECT_EQ(n, b);
+  }
+}
+
 }  // namespace test
 }  // namespace cvc5
