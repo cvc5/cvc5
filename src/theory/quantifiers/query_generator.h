@@ -109,7 +109,7 @@ class QueryGenerator : public ExprMiner
    * using a separate copy of the SMT engine. Throws an exception if qy is
    * reported to be unsatisfiable.
    */
-  void checkQuery(Node qy, unsigned spIndex);
+  void checkQuery(Node qy, unsigned spIndex, std::ostream& out);
   /**
    * Dumps query qy to the a file queryN.smt2 for the current counter N;
    * spIndex specifies the sample point that satisfies it (for debugging).
