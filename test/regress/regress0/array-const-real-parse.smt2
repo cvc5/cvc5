@@ -1,4 +1,3 @@
-; DISABLE-TESTER: dump
 (set-logic QF_AUFLIRA)
 (set-info :status sat)
 (declare-fun a () (Array Int Real))

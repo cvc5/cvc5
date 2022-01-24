@@ -292,7 +292,12 @@ void Smt2Printer::toStream(std::ostream& out,
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
       out << "((as const ";
       toStreamType(out, asa.getType());
-      out << ") " << asa.getValue() << ")";
+      out << ") ";
+      toStreamCastToType(out,
+                         asa.getValue(),
+                         toDepth < 0 ? toDepth : toDepth - 1,
+                         asa.getType().getArrayConstituentType());
+      out << ")";
       break;
     }
 
