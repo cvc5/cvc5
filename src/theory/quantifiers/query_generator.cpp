@@ -69,19 +69,20 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   {
     std::map<Node, std::vector<unsigned>> ev_to_pt;
     unsigned index = 0;
+    // the number of {true,false} for which the #points evaluated to that
+    // constant is greater than the threshold.
     unsigned threshCount = 0;
     while (index < npts && threshCount < 2)
     {
       Node v = d_sampler->evaluate(nn, index);
       // it may not evaluate, in which case we ignore the point
-      if (!v.isConst())
+      if (v.isConst())
       {
-        continue;
-      }
-      ev_to_pt[v].push_back(index);
-      if (ev_to_pt[v].size() == d_deqThresh + 1)
-      {
-        threshCount++;
+        ev_to_pt[v].push_back(index);
+        if (ev_to_pt[v].size() == d_deqThresh + 1)
+        {
+          threshCount++;
+        }
       }
       index++;
     }
