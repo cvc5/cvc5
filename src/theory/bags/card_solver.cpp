@@ -335,8 +335,16 @@ void CardSolver::addChildren(const Node& premise,
                          << std::endl;
       Trace("bags-card") << "CardSolver::mergeChildren set2: " << children
                          << std::endl;
-      Assert(false) << "merge is needed" << std::endl;
-      // mergeChildren(oldChildren, children);
+      // Assert(false) << "merge is needed" << std::endl;
+      // reduce the parent bag
+      Node card = d_nm->mkNode(BAG_CARD, parent);
+      std::vector<Node> asserts;
+      Node reduced = d_bagReduction.reduceCardOperator(card, asserts);
+      asserts.push_back(card.eqNode(reduced));
+      InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
+      inferInfo.d_premises.push_back(premise);
+      inferInfo.d_conclusion = d_nm->mkNode(AND, asserts);
+      d_im.lemmaTheoryInference(&inferInfo);
     }
   }
 }
