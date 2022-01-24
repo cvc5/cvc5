@@ -29,11 +29,12 @@
 
 
 (assert
-  (not
-    (>=
-      (* 2
-         (bag.card
-           (bag.inter_min (bag.inter_min (bag.inter_min b_bf a_be) f) (bag.difference_subtract UNIVERALSET f))))
-      (+ (- n t) 1))))
+ (not
+  (>=
+   (* 2
+      (bag.card
+       (bag.inter_min (bag.inter_min (bag.inter_min b_bf a_be) f)
+                      (bag.difference_subtract UNIVERALSET f))))
+   (+ (- n t) 1))))
 
 (check-sat)

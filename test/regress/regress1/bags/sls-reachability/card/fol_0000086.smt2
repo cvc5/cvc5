@@ -23,6 +23,7 @@
 (assert (>= (bag.card a_do) (- n t)))
 
 
-(assert (= (bag.card (bag.inter_min a_do (bag.difference_subtract UNIVERALSET f))) 0))
+(assert
+ (= (bag.card (bag.inter_min a_do (bag.difference_subtract UNIVERALSET f))) 0))
 
 (check-sat)

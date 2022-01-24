@@ -34,6 +34,9 @@
 
 
 (assert
-  (>= (bag.card (bag.difference_subtract UNIVERALSET (bag.inter_min (bag.inter_min c_dd b_dc) a_db))) 1))
+ (>=
+  (bag.card
+   (bag.difference_subtract UNIVERALSET (bag.inter_min (bag.inter_min c_dd b_dc) a_db)))
+  1))
 
 (check-sat)

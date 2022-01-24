@@ -18,6 +18,7 @@
 (assert (<= (bag.card f) t))
 
 
-(assert (not (>= (* 2 (bag.card (bag.difference_subtract UNIVERALSET f))) (+ (- n t) 1))))
+(assert
+ (not (>= (* 2 (bag.card (bag.difference_subtract UNIVERALSET f))) (+ (- n t) 1))))
 
 (check-sat)

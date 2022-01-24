@@ -23,6 +23,7 @@
 (assert (>= (* 2 (bag.card c_cd)) (+ (- n t) 1)))
 
 
-(assert (= (bag.card (bag.inter_min c_cd (bag.difference_subtract UNIVERALSET f))) 0))
+(assert
+ (= (bag.card (bag.inter_min c_cd (bag.difference_subtract UNIVERALSET f))) 0))
 
 (check-sat)

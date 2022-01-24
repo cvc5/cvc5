@@ -29,9 +29,10 @@
 
 
 (assert
-  (=
-    (bag.card
-      (bag.inter_min (bag.inter_min (bag.inter_min c_cp b_co) f) (bag.difference_subtract UNIVERALSET f)))
-    0))
+ (=
+  (bag.card
+   (bag.inter_min (bag.inter_min (bag.inter_min c_cp b_co) f)
+                  (bag.difference_subtract UNIVERALSET f)))
+  0))
 
 (check-sat)

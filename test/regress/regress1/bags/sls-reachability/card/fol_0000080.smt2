@@ -28,6 +28,7 @@
 (assert (>= (* 2 (bag.card b_de)) (+ (+ n (* 3 t)) 1)))
 
 
-(assert (not (>= (* 2 (bag.card (bag.inter_min b_df b_de))) (+ (+ n (* 3 t)) 1))))
+(assert
+ (not (>= (* 2 (bag.card (bag.inter_min b_df b_de))) (+ (+ n (* 3 t)) 1))))
 
 (check-sat)

@@ -44,11 +44,12 @@
 
 
 (assert
-  (=
-    (bag.card
-      (bag.inter_min
-        (bag.inter_min (bag.inter_min (bag.inter_min (bag.inter_min c_ey b_ex) b_ew) a_ev) a_eu)
-        (bag.difference_subtract UNIVERALSET f)))
-    0))
+ (=
+  (bag.card
+   (bag.inter_min
+    (bag.inter_min
+     (bag.inter_min (bag.inter_min (bag.inter_min c_ey b_ex) b_ew) a_ev) a_eu)
+    (bag.difference_subtract UNIVERALSET f)))
+  0))
 
 (check-sat)

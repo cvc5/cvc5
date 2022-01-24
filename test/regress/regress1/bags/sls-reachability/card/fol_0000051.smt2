@@ -29,7 +29,10 @@
 
 
 (assert
-  (not
-    (>= (bag.card (bag.inter_min (bag.inter_min b_bh a_bg) (bag.difference_subtract UNIVERALSET f))) (- n t))))
+ (not
+  (>=
+   (bag.card
+    (bag.inter_min (bag.inter_min b_bh a_bg) (bag.difference_subtract UNIVERALSET f)))
+   (- n t))))
 
 (check-sat)

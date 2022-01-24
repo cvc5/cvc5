@@ -24,6 +24,8 @@
 
 
 (assert
-  (not (>= (* 2 (bag.card (bag.inter_min a_t (bag.difference_subtract UNIVERALSET f)))) (+ (- n t) 1))))
+ (not
+  (>= (* 2 (bag.card (bag.inter_min a_t (bag.difference_subtract UNIVERALSET f))))
+      (+ (- n t) 1))))
 
 (check-sat)
