@@ -866,7 +866,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 
       // At most one of the flags (NaN, inf, zero) can be set
       Node one = nm->mkConst(BitVector(1U, 1U));
-      size_t numFlags = 0;
+      size_t numFlags CVC5_UNUSED = 0;
       numFlags += ee->getRepresentative(compNaN) == one ? 1 : 0;
       numFlags += ee->getRepresentative(compInf) == one ? 1 : 0;
       numFlags += ee->getRepresentative(compZero) == one ? 1 : 0;
