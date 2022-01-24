@@ -81,7 +81,7 @@ struct LeafNodeComparator
 /**
  * Implements an ordering on arithmetic nonlinear multiplications. As we assume
  * rationals to be handled separately, we only consider Kind::NONLINEAR_MULT as
- * multiplication term. For individual factors of the product, we rely on the
+ * multiplication terms. For individual factors of the product, we rely on the
  * ordering from LeafNodeComparator. Furthermore, we expect products to be
  * sorted according to LeafNodeComparator. The ordering is built as follows:
  * - single factors come first (everything that is not NONLINEAR_MULT)
