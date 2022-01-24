@@ -858,9 +858,9 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
       Assert(ee->hasTerm(compNaN));
       Assert(ee->hasTerm(compInf));
       Assert(ee->hasTerm(compZero));
-      Node rCompNaN = ee->getRepresentative(compNaN);
-      Node rCompInf = ee->getRepresentative(compInf);
-      Node rCompZero = ee->getRepresentative(compZero);
+      TNode rCompNaN = ee->getRepresentative(compNaN);
+      TNode rCompInf = ee->getRepresentative(compInf);
+      TNode rCompZero = ee->getRepresentative(compZero);
       Assert(rCompNaN.isConst());
       Assert(rCompInf.isConst());
       Assert(rCompZero.isConst());
