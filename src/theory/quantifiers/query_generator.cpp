@@ -148,6 +148,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
         rindex2 = rindex+1==qsi.size() ? 0 : rindex+1;
       }
       Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
+      out << "(query " << qy << ")" << std::endl;
       checkQuery(qy, i);
     }
   }
