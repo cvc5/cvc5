@@ -141,7 +141,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     if (qsi.size() > 1)
     {
       // take two random queries
-      size_t rindex = Random::getRandom().pick(0, qsi.size());
+      size_t rindex = Random::getRandom().pick(0, qsi.size()-1);
       size_t rindex2 = rindex+1==qsi.size() ? 0 : rindex+1;
       Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
       checkQuery(qy, i);
