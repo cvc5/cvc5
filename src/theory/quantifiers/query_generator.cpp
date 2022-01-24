@@ -124,7 +124,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     Trace("sygus-qgen-debug")
         << "; " << tIndices.size() << "/" << npts << std::endl;
     AlwaysAssert(!tIndices.empty());
-    checkQuery(qy, tIndices[0]);
+    checkQuery(qy, tIndices[0], out);
     // add information
     for (unsigned& ti : tIndices)
     {
@@ -148,7 +148,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
         rindex2 = rindex + 1 == qsi.size() ? 0 : rindex + 1;
       }
       Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
-      checkQuery(qy, i);
+      checkQuery(qy, i, out);
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
