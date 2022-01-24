@@ -40,6 +40,9 @@ namespace cvc5 {
  * square roots), but no trancendentals (like pi).
  * Note that the interval representation uses dyadic rationals (denominators are
  * only powers of two).
+ *
+ * If libpoly is not available, this class serves as a wrapper around Rational
+ * to allow using RealAlgebraicNumber, even if libpoly is not enabled.
  */
 class RealAlgebraicNumber
 {
@@ -98,6 +101,11 @@ class RealAlgebraicNumber
   const poly::AlgebraicNumber& getValue() const { return d_value; }
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
+#else
+  /** Get the internal value as a const reference. */
+  const Rational& getValue() const { return d_value; }
+  /** Get the internal value as a non-const reference. */
+  Rational& getValue() { return d_value; }
 #endif
 
   /**
@@ -120,6 +128,8 @@ class RealAlgebraicNumber
    */
 #ifdef CVC5_POLY_IMP
   poly::AlgebraicNumber d_value;
+#else
+  Rational d_value;
 #endif
 }; /* class RealAlgebraicNumber */
 
