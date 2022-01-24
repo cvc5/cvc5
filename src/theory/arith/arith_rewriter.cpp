@@ -571,7 +571,8 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   Assert(node.getKind() == kind::MULT
          || node.getKind() == kind::NONLINEAR_MULT);
 
-  if (auto res = getZeroChild(node); res)
+  auto res = getZeroChild(node);
+  if (res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
   }
