@@ -189,34 +189,16 @@ class InferenceGenerator
    */
   InferInfo cardBagMake(const std::pair<Node, Node>& pair, Node n);
   /**
-   * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
-   * @param n is a term of the form (bag.union_disjoint A B)
+   * @param premise a boolean node
+   * @param parent a bag term
+   * @param children (child_1, ... child_n) nonempty set of bag terms
    * @return an inference that represents the following implication
-   * (=> (= C (bag.union_disjoint A B))
-   *     (= (bag.card C) (+ (bag.card A) (bag.card B))))
+   * (=> premise
+   *     (= parent (bag.union_disjoint child_1 ... child_n )))
    */
-  InferInfo cardUnionDisjoint(const std::pair<Node, Node>& pair, Node n);
-  /**
-   * @param cardTerm a term of the form (bag.card C) where bag has type (Bag E)
-   * @param n is a term of the form (bag.union_max A B)
-   * @return an inference that represents the following implication
-   * (=> (= C (bag.union_max A B))
-   *     (= (bag.card C)
-   *        (+ (bag.card (bag.difference_subtract A B))
-   *           (bag.card (bag.inter_min A B))
-   *           (bag.card (bag.difference_subtract B A)))))
-   */
-  InferInfo cardUnionMax(const std::pair<Node, Node>& pair,
-                         Node n,
-                         Node subtractAB,
-                         Node subtractBA,
-                         Node interAB);
-
-  InferInfo cardIntersectionMin(const std::pair<Node, Node>& pair,
-                                Node n,
-                                Node subtractAB,
-                                Node subtractBA,
-                                Node interAB);
+  InferInfo cardUnionDisjoint(Node premise,
+                              Node parent,
+                              const std::set<Node>& children);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type

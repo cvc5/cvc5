@@ -142,8 +142,11 @@ void CardSolver::generateRelatedCardinalityTerms()
       {
         continue;
       }
-      eq::EqClassIterator it =
-          eq::EqClassIterator(bag, d_state.getEqualityEngine());
+
+      Trace("bags-card") << "bag: " << bag << endl;
+
+      eq::EqClassIterator it = eq::EqClassIterator(
+          d_state.getRepresentative(bag), d_state.getEqualityEngine());
       while (!it.isFinished())
       {
         Node n = (*it);
@@ -236,12 +239,10 @@ void CardSolver::checkUnionDisjoint(const std::pair<Node, Node>& pair,
                                     const Node& n)
 {
   Assert(n.getKind() == BAG_UNION_DISJOINT);
-  InferInfo i = d_ig.cardUnionDisjoint(pair, n);
-  d_im.lemmaTheoryInference(&i);
   Node bag = d_state.getRepresentative(pair.first[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
-  addChildren(bag, {A, B});
+  addChildren(bag.eqNode(n), bag, {A, B});
 }
 
 void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
@@ -261,13 +262,49 @@ void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
-  addChildren(bag, {subtractABRep, interABRep, subtractBARep});
-  InferInfo i = d_ig.cardUnionMax(pair, n, subtractAB, subtractBA, interAB);
-  d_im.lemmaTheoryInference(&i);
+  addChildren(bag.eqNode(n), bag, {subtractABRep, interABRep, subtractBARep});
 }
 
-void CardSolver::addChildren(const Node& parent, const set<Node>& children)
+void CardSolver::addChildren(const Node& premise,
+                             const Node& parent,
+                             const set<Node>& children)
 {
+  if (children.count(parent) > 0 && children.size() > 1)
+  {
+    // handle the case when the parent is among the children
+    std::vector<Node> emptyBags;
+    Node empty = d_nm->mkConst(EmptyBag(parent.getType()));
+    for (Node child : children)
+    {
+      Trace("bags-card") << "empty bags: " << child << std::endl;
+      if (child != parent)
+      {
+        // this child should be empty
+        emptyBags.push_back(child.eqNode(empty));
+      }
+    }
+    Trace("bags-card") << "empty bags: " << emptyBags << std::endl;
+    InferInfo i(&d_im, InferenceId::BAGS_CARD);
+    i.d_premises.push_back(premise);
+    if (emptyBags.size() == 1)
+    {
+      i.d_conclusion = *emptyBags.begin();
+    }
+    else
+    {
+      i.d_conclusion = d_nm->mkNode(AND, emptyBags);
+    }
+    Trace("bags-card") << "info: " << i << std::endl;
+    d_im.lemmaTheoryInference(&i);
+
+    Trace("bags-card") << "parent " << parent << " is one of its children "
+                       << std::endl;
+    return;
+  }
+  // add inferences
+  InferInfo i = d_ig.cardUnionDisjoint(premise, parent, children);
+  d_im.lemmaTheoryInference(&i);
+
   // make sure parent is in the graph
   if (d_cardGraph.count(parent) == 0)
   {
@@ -285,7 +322,7 @@ void CardSolver::addChildren(const Node& parent, const set<Node>& children)
 
   if (d_cardGraph[parent].count(children) == 0)
   {
-    if (d_cardGraph[parent].size() == 0)
+    if (d_cardGraph[parent].empty())
     {
       d_cardGraph[parent].insert(children);
     }
@@ -294,7 +331,12 @@ void CardSolver::addChildren(const Node& parent, const set<Node>& children)
       // merge with the first set
       const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
       d_cardGraph[parent].insert(children);
-      mergeChildren(oldChildren, children);
+      Trace("bags-card") << "CardSolver::mergeChildren set1: " << oldChildren
+                         << std::endl;
+      Trace("bags-card") << "CardSolver::mergeChildren set2: " << children
+                         << std::endl;
+      Assert(false) << "merge is needed" << std::endl;
+      // mergeChildren(oldChildren, children);
     }
   }
 }
@@ -317,11 +359,8 @@ void CardSolver::checkIntersectionMin(const std::pair<Node, Node>& pair,
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
-  addChildren(A, {subtractABRep, interABRep});
-  addChildren(B, {interABRep, subtractBARep});
-  InferInfo i =
-      d_ig.cardIntersectionMin(pair, n, subtractAB, subtractBA, interAB);
-  d_im.lemmaTheoryInference(&i);
+  addChildren(bag.eqNode(n), A, {subtractABRep, interABRep});
+  addChildren(bag.eqNode(n), B, {interABRep, subtractBARep});
 }
 
 void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
@@ -336,7 +375,7 @@ void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
                         : d_nm->mkNode(BAG_INTER_MIN, B, A);
   d_state.registerBag(interAB);
   Node interABRep = d_state.getRepresentative(interAB);
-  addChildren(A, {bag, interABRep});
+  addChildren(bag.eqNode(n), A, {bag, interABRep});
 }
 
 void CardSolver::checkDifferenceRemove(const std::pair<Node, Node>& pair,

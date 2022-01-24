@@ -340,76 +340,45 @@ InferInfo InferenceGenerator::cardBagMake(const std::pair<Node, Node>& pair,
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::cardUnionDisjoint(
-    const std::pair<Node, Node>& pair, Node n)
+InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
+                                                Node parent,
+                                                const std::set<Node>& children)
 {
-  Assert(pair.first.getKind() == BAG_CARD);
-  Assert(n.getKind() == BAG_UNION_DISJOINT
-         && n.getType() == pair.first[0].getType());
+  Assert(premise.getType().isBoolean());
+  Assert(!children.empty());
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
-  Node premise = pair.first[0].eqNode(n);
-  Node A = n[0];
-  Node B = n[1];
-  Node cardA = d_nm->mkNode(BAG_CARD, A);
-  Node cardB = d_nm->mkNode(BAG_CARD, B);
-  Node sum = d_nm->mkNode(PLUS, cardA, cardB);
-  Node conclusion = pair.second.eqNode(sum);
-  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
-  return inferInfo;
-}
 
-InferInfo InferenceGenerator::cardUnionMax(const std::pair<Node, Node>& pair,
-                                           Node n,
-                                           Node subtractAB,
-                                           Node subtractBA,
-                                           Node interAB)
-{
-  Assert(pair.first.getKind() == BAG_CARD);
-  Assert(n.getKind() == BAG_UNION_MAX
-         && n.getType() == pair.first[0].getType());
-  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
-  Node bag = pair.first[0];
-  Node premise = bag.eqNode(n);
-  Node A = n[0];
-  Node B = n[1];
-  Node cardSubtractAB = d_nm->mkNode(BAG_CARD, subtractAB);
-  Node cardSubtractBA = d_nm->mkNode(BAG_CARD, subtractBA);
-  Node cardInterAB = d_nm->mkNode(BAG_CARD, interAB);
-  Node sum = d_nm->mkNode(PLUS, cardSubtractAB, cardInterAB, cardSubtractBA);
-  Node cards = pair.second.eqNode(sum);
-  Node bags = bag.eqNode(
-      d_nm->mkNode(BAG_UNION_DISJOINT, subtractAB, interAB, subtractBA));
-  Node conclusion = cards.andNode(bags);
-  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
-  return inferInfo;
-}
+  std::set<Node>::iterator it = children.begin();
+  Node child = *it;
+  d_state->registerBag(child);
+  Node unionDisjoints = child;
+  Node card = d_nm->mkNode(BAG_CARD, child);
+  std::vector<Node> lemmas;
+  lemmas.push_back(d_state->registerCardinalityTerm(card));
+  Node sum = d_state->getCardinalitySkolem(card);
+  ++it;
+  while (it != children.end())
+  {
+    child = *it;
+    d_state->registerBag(child);
+    unionDisjoints =
+        d_nm->mkNode(kind::BAG_UNION_DISJOINT, unionDisjoints, child);
+    card = d_nm->mkNode(BAG_CARD, child);
+    lemmas.push_back(d_state->registerCardinalityTerm(card));
+    d_state->getCardinalitySkolem(card);
+    Node skolem = d_state->getCardinalitySkolem(card);
+    sum = d_nm->mkNode(PLUS, sum, skolem);
+    ++it;
+  }
+  Node parentCard = d_nm->mkNode(BAG_CARD, parent);
+  lemmas.push_back(d_state->registerCardinalityTerm(parentCard));
+  Node parentSkolem = d_state->getCardinalitySkolem(parentCard);
 
-InferInfo InferenceGenerator::cardIntersectionMin(
-    const std::pair<Node, Node>& pair,
-    Node n,
-    Node subtractAB,
-    Node subtractBA,
-    Node interAB)
-{
-  Assert(pair.first.getKind() == BAG_CARD);
-  Assert(n.getKind() == kind::BAG_INTER_MIN
-         && n.getType() == pair.first[0].getType());
-  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
-  Node premise = pair.first[0].eqNode(n);
-  Node A = n[0];
-  Node B = n[1];
-  Node cardA = d_nm->mkNode(BAG_CARD, A);
-  Node cardB = d_nm->mkNode(BAG_CARD, B);
-  Node cardSubtractAB = d_nm->mkNode(BAG_CARD, subtractAB);
-  Node cardSubtractBA = d_nm->mkNode(BAG_CARD, subtractBA);
-  Node cardInterAB = d_nm->mkNode(BAG_CARD, interAB);
-  Node sumA = d_nm->mkNode(PLUS, cardSubtractAB, cardInterAB);
-  Node sumB = d_nm->mkNode(PLUS, cardInterAB, cardSubtractBA);
-  Node cards = cardA.eqNode(sumA).andNode(cardB.eqNode(sumB));
-  Node bags = A.eqNode(d_nm->mkNode(BAG_UNION_DISJOINT, subtractAB, interAB))
-                  .andNode(B.eqNode(
-                      d_nm->mkNode(BAG_UNION_DISJOINT, interAB, subtractBA)));
-  Node conclusion = cards.andNode(bags);
+  Node bags = parent.eqNode(unionDisjoints);
+  lemmas.push_back(bags);
+  Node cards = parentSkolem.eqNode(sum);
+  lemmas.push_back(cards);
+  Node conclusion = d_nm->mkNode(AND, lemmas);
   inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }

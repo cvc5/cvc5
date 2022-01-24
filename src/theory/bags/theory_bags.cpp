@@ -335,7 +335,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
             << "constructed bag cardinality: " << constructedBagCard
             << std::endl;
         Node rCard = nm->mkNode(BAG_CARD, r);
-        Node rCardSkolem = d_state.getCardinalityTerm(rCard);
+        Node rCardSkolem = d_state.getCardinalitySkolem(rCard);
         Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
         if (!rCardSkolem.isNull())
         {

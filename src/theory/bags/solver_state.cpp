@@ -74,7 +74,7 @@ Node SolverState::registerCardinalityTerm(TNode n)
   return cardTerm.eqNode(skolem).andNode(skolem.eqNode(n));
 }
 
-Node SolverState::getCardinalityTerm(TNode n)
+Node SolverState::getCardinalitySkolem(TNode n)
 {
   Assert(n.getKind() == BAG_CARD);
   Node bag = getRepresentative(n[0]);

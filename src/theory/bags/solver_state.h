@@ -55,7 +55,7 @@ class SolverState : public TheoryState
   /**
    * @param n has the form (bag.card A)
    */
-  Node getCardinalityTerm(TNode n);
+  Node getCardinalitySkolem(TNode n);
 
   bool hasCardinalityTerms() const;
 
