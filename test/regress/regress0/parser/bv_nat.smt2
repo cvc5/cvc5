@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXPECT: sat
 ; EXPECT: not declared
