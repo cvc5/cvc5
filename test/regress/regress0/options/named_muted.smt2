@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; COMMAND-LINE: --print-success
 ; EXPECT: success
 ; EXPECT: success
