@@ -40,14 +40,16 @@ RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
 RealAlgebraicNumber::RealAlgebraicNumber(const Integer& i)
 #ifdef CVC5_POLY_IMP
     : d_value(poly::DyadicRational(poly_utils::toInteger(i)))
+#else
+    : d_value(i)
 #endif
 {
-#ifndef CVC5_POLY_IMP
-  RAN_UNREACHABLE;
-#endif
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
+#ifndef CVC5_POLY_IMP
+    : d_value(r)
+#endif
 {
 #ifdef CVC5_POLY_IMP
   poly::Rational pr = poly_utils::toRational(r);
@@ -62,8 +64,6 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
         poly::UPolynomial({numerator(pr), -denominator(pr)}),
         poly::DyadicInterval(floor(pr), ceil(pr)));
   }
-#else
-  RAN_UNREACHABLE;
 #endif
 }
 
@@ -96,6 +96,8 @@ RealAlgebraicNumber::RealAlgebraicNumber(
 #ifdef CVC5_POLY_IMP
   *this = poly_utils::toRanWithRefinement(
       poly::UPolynomial(poly_utils::toInteger(coefficients)), lower, upper);
+#else
+  RAN_UNREACHABLE;
 #endif
 }
 RealAlgebraicNumber::RealAlgebraicNumber(
@@ -127,7 +129,6 @@ bool RealAlgebraicNumber::isRational() const
 #ifdef CVC5_POLY_IMP
   return poly::is_rational(getValue());
 #else
-  RAN_UNREACHABLE;
   return true;
 #endif
 }
@@ -136,155 +137,82 @@ Rational RealAlgebraicNumber::toRational() const
 #ifdef CVC5_POLY_IMP
   return poly_utils::toRational(poly::to_rational_approximation(getValue()));
 #else
-  RAN_UNREACHABLE;
-  return Rational(0);
+  return d_value;
 #endif
 }
 
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
 {
-#ifdef CVC5_POLY_IMP
   return os << ran.getValue();
-#else
-  RAN_UNREACHABLE;
-  return os;
-#endif
 }
 
 bool operator==(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() == rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return true;
-#endif
 }
 bool operator!=(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() != rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return false;
-#endif
 }
 bool operator<(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() < rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return false;
-#endif
 }
 bool operator<=(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() <= rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return true;
-#endif
 }
 bool operator>(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() > rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return false;
-#endif
 }
 bool operator>=(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() >= rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return true;
-#endif
 }
 
 RealAlgebraicNumber operator+(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() + rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return lhs;
-#endif
 }
 RealAlgebraicNumber operator-(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() - rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return lhs;
-#endif
 }
 RealAlgebraicNumber operator-(const RealAlgebraicNumber& ran)
 {
-#ifdef CVC5_POLY_IMP
   return -ran.getValue();
-#else
-  RAN_UNREACHABLE;
-  return ran;
-#endif
 }
 RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   return lhs.getValue() * rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return lhs;
-#endif
 }
 RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   Assert(!isZero(rhs)) << "Can not divide by zero";
   return lhs.getValue() / rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-  return lhs;
-#endif
 }
 
 RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
                                 const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   lhs.getValue() = lhs.getValue() + rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-#endif
   return lhs;
 }
 RealAlgebraicNumber& operator-=(RealAlgebraicNumber& lhs,
                                 const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   lhs.getValue() = lhs.getValue() - rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-#endif
   return lhs;
 }
 RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
                                 const RealAlgebraicNumber& rhs)
 {
-#ifdef CVC5_POLY_IMP
   lhs.getValue() = lhs.getValue() * rhs.getValue();
-#else
-  RAN_UNREACHABLE;
-#endif
   return lhs;
 }
 
@@ -292,33 +220,30 @@ int sgn(const RealAlgebraicNumber& ran) {
 #ifdef CVC5_POLY_IMP
   return sgn(ran.getValue());
 #else
-  RAN_UNREACHABLE;
-  return ran;
+  return ran.getValue().sgn();
 #endif
 }
 bool isZero(const RealAlgebraicNumber& ran) {
 #ifdef CVC5_POLY_IMP
   return is_zero(ran.getValue());
 #else
-  return ran;
+  return ran.getValue().isZero();
 #endif
 }
 bool isOne(const RealAlgebraicNumber& ran) {
 #ifdef CVC5_POLY_IMP
   return is_one(ran.getValue());
 #else
-  RAN_UNREACHABLE;
-  return ran;
+  return ran.getValue().isOne();
 #endif
 }
 RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran)
 {
-#ifdef CVC5_POLY_IMP
   Assert(!isZero(ran)) << "Can not invert zero";
+#ifdef CVC5_POLY_IMP
   return inverse(ran.getValue());
 #else
-  RAN_UNREACHABLE;
-  return ran;
+  return ran.getValue().inverse();
 #endif
 }
 
@@ -331,8 +256,7 @@ size_t hash<cvc5::RealAlgebraicNumber>::operator()(
 #ifdef CVC5_POLY_IMP
   return lp_algebraic_number_hash_approx(ran.getValue().get_internal(), 2);
 #else
-  RAN_UNREACHABLE;
-  return 0;
+  return ran.getValue().hash();
 #endif
 }
 }  // namespace std
