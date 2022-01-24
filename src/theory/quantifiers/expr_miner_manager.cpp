@@ -178,7 +178,8 @@ bool ExpressionMinerManager::addTerm(Node sol,
   Node solb = sol;
   if (d_use_sygus_type)
   {
-    solb = datatypes::utils::sygusToBuiltin(sol, true);//d_tds->sygusToBuiltin(sol);
+    solb = datatypes::utils::sygusToBuiltin(
+        sol, true);  // d_tds->sygusToBuiltin(sol);
   }
 
   // add to the candidate rewrite rule database
