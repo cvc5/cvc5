@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_co:C. forall b_cn:B. c_co + b_cn + |~f| - 2n >= (n + 3t + 1) / 2 or (n + 3t + 1) / 2 <= 0

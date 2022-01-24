@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_bu:C. c_bu + |~f| - n >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0

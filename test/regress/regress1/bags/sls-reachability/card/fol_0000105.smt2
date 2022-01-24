@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall b_fs:B. forall b_fr:B. forall a_fq:A. forall a_fp:A. B(b_fs & b_fr & a_fq & a_fp & ~f)

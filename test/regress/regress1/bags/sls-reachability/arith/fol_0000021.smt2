@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status unsat)
 
 ; forall a_d:A. a_d + |UNIVERALSET| - n >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0

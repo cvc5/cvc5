@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; |~f| - 0 >= n or n <= 0
@@ -18,6 +20,7 @@
 (assert (<= (bag.card f) t))
 
 
-(assert (and (< (- (bag.card (bag.difference_subtract UNIVERALSET f)) 0) n) (> n 0)))
+(assert
+  (and (< (- (bag.card (bag.difference_subtract UNIVERALSET f)) 0) n) (> n 0)))
 
 (check-sat)

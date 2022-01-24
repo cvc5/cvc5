@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status unsat)
 
 ; forall a_gn:A. forall a_gm:A. nonempty(a_gn & a_gm & ~f)

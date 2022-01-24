@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status unsat)
 
 ; forall c_ec:C. nonempty(c_ec & ~f)

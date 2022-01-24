@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; |f| - 0 >= (n + 3t + 1) / 2 or (n + 3t + 1) / 2 <= 0
@@ -19,6 +21,7 @@
 
 
 (assert
-  (and (< (* 2 (- (bag.card f) 0)) (+ (+ n (* 3 t)) 1)) (> (+ (+ n (* 3 t)) 1) (* 2 0))))
+ (and (< (* 2 (- (bag.card f) 0)) (+ (+ n (* 3 t)) 1))
+      (> (+ (+ n (* 3 t)) 1) (* 2 0))))
 
 (check-sat)

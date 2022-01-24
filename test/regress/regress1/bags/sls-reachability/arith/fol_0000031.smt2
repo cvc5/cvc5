@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall nonempty_i:nonempty. nonempty_i + |UNIVERALSET| - n >= n - t or n - t <= 0

@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall nonempty_m:nonempty. nonempty_m + |UNIVERALSET| - n >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0
@@ -25,7 +27,7 @@
 
 
 (assert
-  (and (< (* 2 (- (+ nonempty_m (bag.card UNIVERALSET)) n)) (+ (- n t) 1))
-       (> (+ (- n t) 1) (* 2 0))))
+ (and (< (* 2 (- (+ nonempty_m (bag.card UNIVERALSET)) n)) (+ (- n t) 1))
+      (> (+ (- n t) 1) (* 2 0))))
 
 (check-sat)

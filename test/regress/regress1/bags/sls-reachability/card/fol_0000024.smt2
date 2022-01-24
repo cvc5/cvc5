@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_g:C. c_g + |UNIVERALSET| - n >= (n + 3t + 1) / 2 or (n + 3t + 1) / 2 <= 0
@@ -25,7 +27,7 @@
 
 
 (assert
-  (and (< (* 2 (- (+ c_g (bag.card UNIVERALSET)) n)) (+ (+ n (* 3 t)) 1))
-       (> (+ (+ n (* 3 t)) 1) (* 2 0))))
+ (and (< (* 2 (- (+ c_g (bag.card UNIVERALSET)) n)) (+ (+ n (* 3 t)) 1))
+      (> (+ (+ n (* 3 t)) 1) (* 2 0))))
 
 (check-sat)

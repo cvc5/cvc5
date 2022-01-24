@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; |f| - 0 >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0
@@ -18,6 +20,7 @@
 (assert (<= (bag.card f) t))
 
 
-(assert (and (< (* 2 (- (bag.card f) 0)) (+ (- n t) 1)) (> (+ (- n t) 1) (* 2 0))))
+(assert
+  (and (< (* 2 (- (bag.card f) 0)) (+ (- n t) 1)) (> (+ (- n t) 1) (* 2 0))))
 
 (check-sat)

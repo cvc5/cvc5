@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall b_bt:B. forall a_bs:A. forall a_br:A. top(b_bt & a_bs & a_br)

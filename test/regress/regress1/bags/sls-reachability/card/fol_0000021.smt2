@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status unsat)
 
 ; forall a_d:A. a_d + |UNIVERALSET| - n >= (n - t + 1) / 2 or (n - t + 1) / 2 <= 0
@@ -25,7 +27,7 @@
 
 
 (assert
-  (and (< (* 2 (- (+ a_d (bag.card UNIVERALSET)) n)) (+ (- n t) 1))
-       (> (+ (- n t) 1) (* 2 0))))
+ (and (< (* 2 (- (+ a_d (bag.card UNIVERALSET)) n)) (+ (- n t) 1))
+      (> (+ (- n t) 1) (* 2 0))))
 
 (check-sat)

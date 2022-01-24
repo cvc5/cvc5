@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status unsat)
 
 ; forall b_j:B. b_j + |UNIVERALSET| - n >= 1 or 1 <= 0

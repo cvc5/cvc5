@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; (n + 3t + 1) / 2 >= n or (n + 3t + 1) / 2 <= 0

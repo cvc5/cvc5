@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_cn:C. forall c_cm:C. forall b_cl:B. nonempty(c_cn & c_cm & b_cl & ~f)

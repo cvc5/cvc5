@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_bj:C. forall b_bi:B. C(c_bj & b_bi & ~f)

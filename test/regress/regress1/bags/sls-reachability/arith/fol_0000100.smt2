@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_eb:C. forall b_ea:B. forall a_dz:A. c_eb + 2b_ea + 2a_dz + |~f| - 5n >= 1 or 1 <= 0

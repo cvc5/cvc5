@@ -1,5 +1,7 @@
 (set-logic ALL)
 
+(set-option :fmf-bound true)
+
 (set-info :status sat)
 
 ; forall c_cm:C. 2c_cm + |~f| - 2n >= 1 or 1 <= 0
