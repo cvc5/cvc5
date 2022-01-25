@@ -155,7 +155,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   return true;
 }
 
-void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
+void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
 {
   if (d_allQueries.find(qy) != d_allQueries.end())
   {
