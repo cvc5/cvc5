@@ -48,8 +48,8 @@ class SolverState : public TheoryState
   Node registerCountTerm(TNode n);
 
   /**
-   * This function a skolem variable for the given card term and stores both of
-   * them in a cache.
+   * This function generates a skolem variable for the given card term and
+   * stores both of them in a cache.
    * @param n has the form (bag.card A)
    * @return a lemma that the card term equals the skolem variable
    */
