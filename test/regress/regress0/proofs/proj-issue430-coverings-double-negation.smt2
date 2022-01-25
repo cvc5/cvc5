@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; COMMAND-LINE: --check-proofs
 ; EXPECT: unsat
 ; EXPECT: unsat

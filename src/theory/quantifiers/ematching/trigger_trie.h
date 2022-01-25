@@ -43,17 +43,17 @@ class TriggerTrie
   /**
    * This returns a Trigger t that is indexed by nodes, or nullptr otherwise.
    */
-  Trigger* getTrigger(std::vector<Node>& nodes);
+  Trigger* getTrigger(const std::vector<Node>& nodes);
   /**
    * This adds t to the trie, indexed by nodes. In typical use cases, nodes i
    * t->d_nodes.
    */
-  void addTrigger(std::vector<Node>& nodes, Trigger* t);
+  void addTrigger(const std::vector<Node>& nodes, Trigger* t);
  private:
   /** The trigger at this node in the trie. */
   std::vector<Trigger*> d_tr;
   /** The children of this node in the trie. */
-  std::map<TNode, TriggerTrie> d_children;
+  std::map<Node, TriggerTrie> d_children;
 }; /* class inst::Trigger::TriggerTrie */
 
 }  // namespace inst

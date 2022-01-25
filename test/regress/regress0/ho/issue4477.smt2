@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; SCRUBBER: grep -o "Symbol '->' not declared"
 ; EXPECT: Symbol '->' not declared 
