@@ -352,13 +352,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
           if (constructedRational < rCardRational
               && !d_env.isFiniteType(elementType))
           {
-            TypeEnumerator enumerator(elementType);
-            // look for a new element not encountered before
-            Node newElement = *enumerator;
-            while (elementReps.count(newElement) > 0)
-            {
-              newElement = *(++enumerator);
-            }
+            Node newElement = nm->getSkolemManager()->mkDummySkolem("slack", elementType);
             Trace("bags-model") << "newElement is " << newElement << std::endl;
             Rational difference = rCardRational - constructedRational;
             Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
