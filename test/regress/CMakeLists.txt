@@ -514,7 +514,7 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
-  regress0/datatypes/par-updater-type-rule.smt2
+  regress0/datatypes/par-updater-type-rule.smt2 
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/rec1.cvc.smt2
@@ -1554,7 +1554,7 @@ set(regress_0_tests
   regress0/wiki.19.cvc.smt2
   regress0/wiki.20.cvc.smt2
   regress0/wiki.21.cvc.smt2
-  )
+)
 
 #-----------------------------------------------------------------------------#
 # Regression level 1 tests
@@ -2048,8 +2048,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
-  regress1/quantifiers/issue5373-1-qe-inc.smt2
-  regress1/quantifiers/issue5373-2.smt2
+  regress1/quantifiers/issue5373-1-qe-inc.smt2 
+  regress1/quantifiers/issue5373-2.smt2 
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
@@ -2385,7 +2385,7 @@ set(regress_1_tests
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
-  regress1/strings/issue7677-test-const-rv.smt2
+  regress1/strings/issue7677-test-const-rv.smt2 
   regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
@@ -2519,7 +2519,7 @@ set(regress_1_tests
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/interpol1.smt2
-  regress1/sygus/interpol1-push-pop.smt2
+  regress1/sygus/interpol1-push-pop.smt2 
   regress1/sygus/interpol3.smt2
   regress1/sygus/interpol3-next.smt2
   regress1/sygus/interpol_arr1.smt2
@@ -2653,7 +2653,7 @@ set(regress_1_tests
   regress1/uflia/speed2_e8_449_e8_517.ec.smt2
   regress1/uflia/stalmark_e7_27_e7_31.ec.smt2
   regress1/wrong-qfabvfp-smtcomp2018.smt2
-  )
+)
 
 #-----------------------------------------------------------------------------#
 # Regression level 2 tests
@@ -2784,7 +2784,7 @@ set(regress_2_tests
   regress2/typed_v1l50016-simp.cvc.smt2
   regress2/uflia-error0.smt2
   regress2/xs-09-16-3-4-1-5.smtv1.smt2
-  )
+)
 
 #-----------------------------------------------------------------------------#
 # Regression level 3 tests
@@ -2846,7 +2846,7 @@ set(regress_3_tests
   regress3/strings/replace_re_all.smt2
   regress3/unbdd_inv_gen_ex7.sy
   regress3/vcb.sy
-  )
+)
 
 #-----------------------------------------------------------------------------#
 # Regression level 4 tests
@@ -2869,7 +2869,7 @@ set(regress_4_tests
   regress4/unsat-circ-reduce.smt2
   regress4/xs-11-20-5-2-5-3.smt2
   regress4/xs-11-20-5-2-5-3.smtv1.smt2
-  )
+)
 
 #-----------------------------------------------------------------------------#
 # Disabled tests, will not be run.
@@ -2975,7 +2975,7 @@ set(regression_disabled_tests
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
   regress3/issue4476-ext-rew.smt2
-  )
+)
 
 #-----------------------------------------------------------------------------#
 # Add target 'regress', builds and runs
@@ -2989,7 +2989,7 @@ add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-  ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
 macro(cvc5_add_regression_test level file)
