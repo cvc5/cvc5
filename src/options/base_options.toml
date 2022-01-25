@@ -198,6 +198,11 @@ name   = "Base"
   help = "print top-level substitutions learned during preprocessing"
   description = "With ``-o subs``, cvc5 prints top-level substitutions learned during preprocessing."
   example-file = "regress0/printer/subs-output.smt2"
+[[option.mode.POST_ASSERTS]]
+  name = "post-asserts"
+  help = "print assertions corresponding to the input problem after preprocessing"
+  description = "With ``-o post-asserts``, cvc5 prints assertions corresponding to the input problem after preprocessing."
+  example-file = "regress0/printer/post-asserts-output.smt2"
 
 # Stores then enabled output tags.
 [[option]]
