@@ -15,726 +15,6 @@
 
 # Regression level 0 tests
 set(regress_0_tests
-  regress1/bags/sls-reachability/arith/fol_0000001.smt2
-  regress1/bags/sls-reachability/arith/fol_0000002.smt2
-  regress1/bags/sls-reachability/arith/fol_0000003.smt2
-  regress1/bags/sls-reachability/arith/fol_0000004.smt2
-  regress1/bags/sls-reachability/arith/fol_0000005.smt2
-  regress1/bags/sls-reachability/arith/fol_0000006.smt2
-  regress1/bags/sls-reachability/arith/fol_0000007.smt2
-  regress1/bags/sls-reachability/arith/fol_0000008.smt2
-  regress1/bags/sls-reachability/arith/fol_0000009.smt2
-  regress1/bags/sls-reachability/arith/fol_0000010.smt2
-  regress1/bags/sls-reachability/arith/fol_0000011.smt2
-  regress1/bags/sls-reachability/arith/fol_0000012.smt2
-  regress1/bags/sls-reachability/arith/fol_0000013.smt2
-  regress1/bags/sls-reachability/arith/fol_0000014.smt2
-  regress1/bags/sls-reachability/arith/fol_0000015.smt2
-  regress1/bags/sls-reachability/arith/fol_0000016.smt2
-  regress1/bags/sls-reachability/arith/fol_0000017.smt2
-  regress1/bags/sls-reachability/arith/fol_0000018.smt2
-  regress1/bags/sls-reachability/arith/fol_0000019.smt2
-  regress1/bags/sls-reachability/arith/fol_0000020.smt2
-  regress1/bags/sls-reachability/arith/fol_0000021.smt2
-  regress1/bags/sls-reachability/arith/fol_0000022.smt2
-  regress1/bags/sls-reachability/arith/fol_0000023.smt2
-  regress1/bags/sls-reachability/arith/fol_0000024.smt2
-  regress1/bags/sls-reachability/arith/fol_0000025.smt2
-  regress1/bags/sls-reachability/arith/fol_0000026.smt2
-  regress1/bags/sls-reachability/arith/fol_0000027.smt2
-  regress1/bags/sls-reachability/arith/fol_0000028.smt2
-  regress1/bags/sls-reachability/arith/fol_0000029.smt2
-  regress1/bags/sls-reachability/arith/fol_0000030.smt2
-  regress1/bags/sls-reachability/arith/fol_0000031.smt2
-  regress1/bags/sls-reachability/arith/fol_0000032.smt2
-  regress1/bags/sls-reachability/arith/fol_0000033.smt2
-  regress1/bags/sls-reachability/arith/fol_0000034.smt2
-  regress1/bags/sls-reachability/arith/fol_0000035.smt2
-  regress1/bags/sls-reachability/arith/fol_0000036.smt2
-  regress1/bags/sls-reachability/arith/fol_0000037.smt2
-  regress1/bags/sls-reachability/arith/fol_0000038.smt2
-  regress1/bags/sls-reachability/arith/fol_0000039.smt2
-  regress1/bags/sls-reachability/arith/fol_0000040.smt2
-  regress1/bags/sls-reachability/arith/fol_0000041.smt2
-  regress1/bags/sls-reachability/arith/fol_0000042.smt2
-  regress1/bags/sls-reachability/arith/fol_0000043.smt2
-  regress1/bags/sls-reachability/arith/fol_0000044.smt2
-  regress1/bags/sls-reachability/arith/fol_0000045.smt2
-  regress1/bags/sls-reachability/arith/fol_0000046.smt2
-  regress1/bags/sls-reachability/arith/fol_0000047.smt2
-  regress1/bags/sls-reachability/arith/fol_0000048.smt2
-  regress1/bags/sls-reachability/arith/fol_0000049.smt2
-  regress1/bags/sls-reachability/arith/fol_0000050.smt2
-  regress1/bags/sls-reachability/arith/fol_0000051.smt2
-  regress1/bags/sls-reachability/arith/fol_0000052.smt2
-  regress1/bags/sls-reachability/arith/fol_0000053.smt2
-  regress1/bags/sls-reachability/arith/fol_0000054.smt2
-  regress1/bags/sls-reachability/arith/fol_0000055.smt2
-  regress1/bags/sls-reachability/arith/fol_0000056.smt2
-  regress1/bags/sls-reachability/arith/fol_0000057.smt2
-  regress1/bags/sls-reachability/arith/fol_0000058.smt2
-  regress1/bags/sls-reachability/arith/fol_0000059.smt2
-  regress1/bags/sls-reachability/arith/fol_0000060.smt2
-  regress1/bags/sls-reachability/arith/fol_0000061.smt2
-  regress1/bags/sls-reachability/arith/fol_0000062.smt2
-  regress1/bags/sls-reachability/arith/fol_0000063.smt2
-  regress1/bags/sls-reachability/arith/fol_0000064.smt2
-  regress1/bags/sls-reachability/arith/fol_0000065.smt2
-  regress1/bags/sls-reachability/arith/fol_0000066.smt2
-  regress1/bags/sls-reachability/arith/fol_0000067.smt2
-  regress1/bags/sls-reachability/arith/fol_0000068.smt2
-  regress1/bags/sls-reachability/arith/fol_0000069.smt2
-  regress1/bags/sls-reachability/arith/fol_0000070.smt2
-  regress1/bags/sls-reachability/arith/fol_0000071.smt2
-  regress1/bags/sls-reachability/arith/fol_0000072.smt2
-  regress1/bags/sls-reachability/arith/fol_0000073.smt2
-  regress1/bags/sls-reachability/arith/fol_0000074.smt2
-  regress1/bags/sls-reachability/arith/fol_0000075.smt2
-  regress1/bags/sls-reachability/arith/fol_0000076.smt2
-  regress1/bags/sls-reachability/arith/fol_0000077.smt2
-  regress1/bags/sls-reachability/arith/fol_0000078.smt2
-  regress1/bags/sls-reachability/arith/fol_0000079.smt2
-  regress1/bags/sls-reachability/arith/fol_0000080.smt2
-  regress1/bags/sls-reachability/arith/fol_0000081.smt2
-  regress1/bags/sls-reachability/arith/fol_0000082.smt2
-  regress1/bags/sls-reachability/arith/fol_0000083.smt2
-  regress1/bags/sls-reachability/arith/fol_0000084.smt2
-  regress1/bags/sls-reachability/arith/fol_0000085.smt2
-  regress1/bags/sls-reachability/arith/fol_0000086.smt2
-  regress1/bags/sls-reachability/arith/fol_0000087.smt2
-  regress1/bags/sls-reachability/arith/fol_0000088.smt2
-  regress1/bags/sls-reachability/arith/fol_0000089.smt2
-  regress1/bags/sls-reachability/arith/fol_0000090.smt2
-  regress1/bags/sls-reachability/arith/fol_0000091.smt2
-  regress1/bags/sls-reachability/arith/fol_0000092.smt2
-  regress1/bags/sls-reachability/arith/fol_0000093.smt2
-  regress1/bags/sls-reachability/arith/fol_0000094.smt2
-  regress1/bags/sls-reachability/arith/fol_0000095.smt2
-  regress1/bags/sls-reachability/arith/fol_0000096.smt2
-  regress1/bags/sls-reachability/arith/fol_0000097.smt2
-  regress1/bags/sls-reachability/arith/fol_0000098.smt2
-  regress1/bags/sls-reachability/arith/fol_0000099.smt2
-  regress1/bags/sls-reachability/arith/fol_0000100.smt2
-  regress1/bags/sls-reachability/arith/fol_0000101.smt2
-  regress1/bags/sls-reachability/arith/fol_0000102.smt2
-  regress1/bags/sls-reachability/arith/fol_0000103.smt2
-  regress1/bags/sls-reachability/arith/fol_0000104.smt2
-  regress1/bags/sls-reachability/arith/fol_0000105.smt2
-  regress1/bags/sls-reachability/arith/fol_0000106.smt2
-  regress1/bags/sls-reachability/arith/fol_0000107.smt2
-  regress1/bags/sls-reachability/arith/fol_0000108.smt2
-  regress1/bags/sls-reachability/arith/fol_0000109.smt2
-  regress1/bags/sls-reachability/arith/fol_0000110.smt2
-  regress1/bags/sls-reachability/arith/fol_0000111.smt2
-  regress1/bags/sls-reachability/arith/fol_0000112.smt2
-  regress1/bags/sls-reachability/arith/fol_0000113.smt2
-  regress1/bags/sls-reachability/arith/fol_0000114.smt2
-  regress1/bags/sls-reachability/arith/fol_0000115.smt2
-  regress1/bags/sls-reachability/arith/fol_0000116.smt2
-  regress1/bags/sls-reachability/arith/fol_0000117.smt2
-  regress1/bags/sls-reachability/arith/fol_0000118.smt2
-  regress1/bags/sls-reachability/arith/fol_0000119.smt2
-  regress1/bags/sls-reachability/arith/fol_0000120.smt2
-#  regress1/bags/sls-reachability/card/fol_0000001.smt2
-#  regress1/bags/sls-reachability/card/fol_0000002.smt2
-#  regress1/bags/sls-reachability/card/fol_0000003.smt2
-#  regress1/bags/sls-reachability/card/fol_0000004.smt2
-#  regress1/bags/sls-reachability/card/fol_0000005.smt2
-#  regress1/bags/sls-reachability/card/fol_0000006.smt2
-#  regress1/bags/sls-reachability/card/fol_0000007.smt2
-#  regress1/bags/sls-reachability/card/fol_0000008.smt2
-#  regress1/bags/sls-reachability/card/fol_0000009.smt2
-#  regress1/bags/sls-reachability/card/fol_0000010.smt2
-#  regress1/bags/sls-reachability/card/fol_0000011.smt2
-#  regress1/bags/sls-reachability/card/fol_0000012.smt2
-#  regress1/bags/sls-reachability/card/fol_0000013.smt2
-#  regress1/bags/sls-reachability/card/fol_0000014.smt2
-#  regress1/bags/sls-reachability/card/fol_0000015.smt2
-#  regress1/bags/sls-reachability/card/fol_0000016.smt2
-#  regress1/bags/sls-reachability/card/fol_0000017.smt2
-#  regress1/bags/sls-reachability/card/fol_0000018.smt2
-#  regress1/bags/sls-reachability/card/fol_0000019.smt2
-#  regress1/bags/sls-reachability/card/fol_0000020.smt2
-#  regress1/bags/sls-reachability/card/fol_0000021.smt2
-#  regress1/bags/sls-reachability/card/fol_0000022.smt2
-#  regress1/bags/sls-reachability/card/fol_0000023.smt2
-#  regress1/bags/sls-reachability/card/fol_0000024.smt2
-#  regress1/bags/sls-reachability/card/fol_0000025.smt2
-#  regress1/bags/sls-reachability/card/fol_0000026.smt2
-#  regress1/bags/sls-reachability/card/fol_0000027.smt2
-#  regress1/bags/sls-reachability/card/fol_0000028.smt2
-#  regress1/bags/sls-reachability/card/fol_0000029.smt2
-#  regress1/bags/sls-reachability/card/fol_0000030.smt2
-#  regress1/bags/sls-reachability/card/fol_0000031.smt2
-#  regress1/bags/sls-reachability/card/fol_0000032.smt2
-#  regress1/bags/sls-reachability/card/fol_0000033.smt2
-#  regress1/bags/sls-reachability/card/fol_0000034.smt2
-#  regress1/bags/sls-reachability/card/fol_0000035.smt2
-#  regress1/bags/sls-reachability/card/fol_0000036.smt2
-#  regress1/bags/sls-reachability/card/fol_0000037.smt2
-#  regress1/bags/sls-reachability/card/fol_0000038.smt2
-#  regress1/bags/sls-reachability/card/fol_0000039.smt2
-#  regress1/bags/sls-reachability/card/fol_0000040.smt2
-#  regress1/bags/sls-reachability/card/fol_0000041.smt2
-#  regress1/bags/sls-reachability/card/fol_0000042.smt2
-#  regress1/bags/sls-reachability/card/fol_0000043.smt2
-#  regress1/bags/sls-reachability/card/fol_0000044.smt2
-#  regress1/bags/sls-reachability/card/fol_0000045.smt2
-#  regress1/bags/sls-reachability/card/fol_0000046.smt2
-#  regress1/bags/sls-reachability/card/fol_0000047.smt2
-#  regress1/bags/sls-reachability/card/fol_0000048.smt2
-#  regress1/bags/sls-reachability/card/fol_0000049.smt2
-#  regress1/bags/sls-reachability/card/fol_0000050.smt2
-#  regress1/bags/sls-reachability/card/fol_0000051.smt2
-#  regress1/bags/sls-reachability/card/fol_0000052.smt2
-#  regress1/bags/sls-reachability/card/fol_0000053.smt2
-#  regress1/bags/sls-reachability/card/fol_0000054.smt2
-#  regress1/bags/sls-reachability/card/fol_0000055.smt2
-#  regress1/bags/sls-reachability/card/fol_0000056.smt2
-#  regress1/bags/sls-reachability/card/fol_0000057.smt2
-#  regress1/bags/sls-reachability/card/fol_0000058.smt2
-#  regress1/bags/sls-reachability/card/fol_0000059.smt2
-#  regress1/bags/sls-reachability/card/fol_0000060.smt2
-#  regress1/bags/sls-reachability/card/fol_0000061.smt2
-#  regress1/bags/sls-reachability/card/fol_0000062.smt2
-#  regress1/bags/sls-reachability/card/fol_0000063.smt2
-#  regress1/bags/sls-reachability/card/fol_0000064.smt2
-#  regress1/bags/sls-reachability/card/fol_0000065.smt2
-#  regress1/bags/sls-reachability/card/fol_0000066.smt2
-#  regress1/bags/sls-reachability/card/fol_0000067.smt2
-#  regress1/bags/sls-reachability/card/fol_0000068.smt2
-#  regress1/bags/sls-reachability/card/fol_0000069.smt2
-#  regress1/bags/sls-reachability/card/fol_0000070.smt2
-#  regress1/bags/sls-reachability/card/fol_0000071.smt2
-#  regress1/bags/sls-reachability/card/fol_0000072.smt2
-#  regress1/bags/sls-reachability/card/fol_0000073.smt2
-#  regress1/bags/sls-reachability/card/fol_0000074.smt2
-#  regress1/bags/sls-reachability/card/fol_0000075.smt2
-#  regress1/bags/sls-reachability/card/fol_0000076.smt2
-#  regress1/bags/sls-reachability/card/fol_0000077.smt2
-#  regress1/bags/sls-reachability/card/fol_0000078.smt2
-#  regress1/bags/sls-reachability/card/fol_0000079.smt2
-#  regress1/bags/sls-reachability/card/fol_0000080.smt2
-#  regress1/bags/sls-reachability/card/fol_0000081.smt2
-#  regress1/bags/sls-reachability/card/fol_0000082.smt2
-#  regress1/bags/sls-reachability/card/fol_0000083.smt2
-#  regress1/bags/sls-reachability/card/fol_0000084.smt2
-#  regress1/bags/sls-reachability/card/fol_0000085.smt2
-#  regress1/bags/sls-reachability/card/fol_0000086.smt2
-#  regress1/bags/sls-reachability/card/fol_0000087.smt2
-#  regress1/bags/sls-reachability/card/fol_0000088.smt2
-#  regress1/bags/sls-reachability/card/fol_0000089.smt2
-#  regress1/bags/sls-reachability/card/fol_0000090.smt2
-#  regress1/bags/sls-reachability/card/fol_0000091.smt2
-#  regress1/bags/sls-reachability/card/fol_0000092.smt2
-#  regress1/bags/sls-reachability/card/fol_0000093.smt2
-#  regress1/bags/sls-reachability/card/fol_0000094.smt2
-#  regress1/bags/sls-reachability/card/fol_0000095.smt2
-#  regress1/bags/sls-reachability/card/fol_0000096.smt2
-#  regress1/bags/sls-reachability/card/fol_0000097.smt2
-#  regress1/bags/sls-reachability/card/fol_0000098.smt2
-#  regress1/bags/sls-reachability/card/fol_0000099.smt2
-#  regress1/bags/sls-reachability/card/fol_0000100.smt2
-#  regress1/bags/sls-reachability/card/fol_0000101.smt2
-#  regress1/bags/sls-reachability/card/fol_0000102.smt2
-#  regress1/bags/sls-reachability/card/fol_0000103.smt2
-#  regress1/bags/sls-reachability/card/fol_0000104.smt2
-#  regress1/bags/sls-reachability/card/fol_0000105.smt2
-#  regress1/bags/sls-reachability/card/fol_0000106.smt2
-#  regress1/bags/sls-reachability/card/fol_0000107.smt2
-#  regress1/bags/sls-reachability/card/fol_0000108.smt2
-#  regress1/bags/sls-reachability/card/fol_0000109.smt2
-#  regress1/bags/sls-reachability/card/fol_0000110.smt2
-#  regress1/bags/sls-reachability/card/fol_0000111.smt2
-#  regress1/bags/sls-reachability/card/fol_0000112.smt2
-#  regress1/bags/sls-reachability/card/fol_0000113.smt2
-#  regress1/bags/sls-reachability/card/fol_0000114.smt2
-#  regress1/bags/sls-reachability/card/fol_0000115.smt2
-#  regress1/bags/sls-reachability/card/fol_0000116.smt2
-#  regress1/bags/sls-reachability/card/fol_0000117.smt2
-#  regress1/bags/sls-reachability/card/fol_0000118.smt2
-#  regress1/bags/sls-reachability/card/fol_0000119.smt2
-#  regress1/bags/sls-reachability/card/fol_0000120.smt2
-  piskac/bags_without_duplicates/fol_0000001.smt2
-  piskac/bags_without_duplicates/fol_0000002.smt2
-  piskac/bags_without_duplicates/fol_0000003.smt2
-  piskac/bags_without_duplicates/fol_0000004.smt2
-  piskac/bags_without_duplicates/fol_0000005.smt2
-  piskac/bags_without_duplicates/fol_0000006.smt2
-  piskac/bags_without_duplicates/fol_0000007.smt2
-  piskac/bags_without_duplicates/fol_0000008.smt2
-  piskac/bags_without_duplicates/fol_0000009.smt2
-  piskac/bags_without_duplicates/fol_0000010.smt2
-  piskac/bags_without_duplicates/fol_0000011.smt2
-  piskac/bags_without_duplicates/fol_0000012.smt2
-  piskac/bags_without_duplicates/fol_0000013.smt2
-  piskac/bags_without_duplicates/fol_0000014.smt2
-  piskac/bags_without_duplicates/fol_0000015.smt2
-  piskac/bags_without_duplicates/fol_0000016.smt2
-  piskac/bags_without_duplicates/fol_0000017.smt2
-  piskac/bags_without_duplicates/fol_0000018.smt2
-  piskac/bags_without_duplicates/fol_0000019.smt2
-  piskac/bags_without_duplicates/fol_0000020.smt2
-  piskac/bags_without_duplicates/fol_0000021.smt2
-  piskac/bags_without_duplicates/fol_0000022.smt2
-  piskac/bags_without_duplicates/fol_0000023.smt2
-  piskac/bags_without_duplicates/fol_0000024.smt2
-  piskac/bags_without_duplicates/fol_0000025.smt2
-  piskac/bags_without_duplicates/fol_0000026.smt2
-  piskac/bags_without_duplicates/fol_0000027.smt2
-  piskac/bags_without_duplicates/fol_0000028.smt2
-  piskac/bags_without_duplicates/fol_0000029.smt2
-  piskac/bags_without_duplicates/fol_0000030.smt2
-  piskac/bags_without_duplicates/fol_0000031.smt2
-  piskac/bags_without_duplicates/fol_0000032.smt2
-  piskac/bags_without_duplicates/fol_0000033.smt2
-  piskac/bags_without_duplicates/fol_0000034.smt2
-  piskac/bags_without_duplicates/fol_0000035.smt2
-  piskac/bags_without_duplicates/fol_0000036.smt2
-  piskac/bags_without_duplicates/fol_0000037.smt2
-  piskac/bags_without_duplicates/fol_0000038.smt2
-  piskac/bags_without_duplicates/fol_0000039.smt2
-  piskac/bags_without_duplicates/fol_0000040.smt2
-  piskac/bags_without_duplicates/fol_0000041.smt2
-  piskac/bags_without_duplicates/fol_0000042.smt2
-  piskac/bags_without_duplicates/fol_0000043.smt2
-  piskac/bags_without_duplicates/fol_0000044.smt2
-  piskac/bags_without_duplicates/fol_0000045.smt2
-  piskac/bags_without_duplicates/fol_0000046.smt2
-  piskac/bags_without_duplicates/fol_0000047.smt2
-  piskac/bags_without_duplicates/fol_0000048.smt2
-  piskac/bags_without_duplicates/fol_0000049.smt2
-  piskac/bags_without_duplicates/fol_0000050.smt2
-  piskac/bags_without_duplicates/fol_0000051.smt2
-  piskac/bags_without_duplicates/fol_0000052.smt2
-  piskac/bags_without_duplicates/fol_0000053.smt2
-  piskac/bags_without_duplicates/fol_0000054.smt2
-  piskac/bags_without_duplicates/fol_0000055.smt2
-  piskac/bags_without_duplicates/fol_0000056.smt2
-  piskac/bags_without_duplicates/fol_0000057.smt2
-  piskac/bags_without_duplicates/fol_0000058.smt2
-  piskac/bags_without_duplicates/fol_0000059.smt2
-  piskac/bags_without_duplicates/fol_0000060.smt2
-  piskac/bags_without_duplicates/fol_0000061.smt2
-  piskac/bags_without_duplicates/fol_0000062.smt2
-  piskac/bags_without_duplicates/fol_0000063.smt2
-  piskac/bags_without_duplicates/fol_0000064.smt2
-  piskac/bags_without_duplicates/fol_0000065.smt2
-  piskac/bags_without_duplicates/fol_0000066.smt2
-  piskac/bags_without_duplicates/fol_0000067.smt2
-  piskac/bags_without_duplicates/fol_0000068.smt2
-  piskac/bags_without_duplicates/fol_0000069.smt2
-  piskac/bags_without_duplicates/fol_0000070.smt2
-  piskac/bags_without_duplicates/fol_0000071.smt2
-  piskac/bags_without_duplicates/fol_0000072.smt2
-  piskac/bags_without_duplicates/fol_0000073.smt2
-  piskac/bags_without_duplicates/fol_0000074.smt2
-  piskac/bags_without_duplicates/fol_0000075.smt2
-  piskac/bags_without_duplicates/fol_0000076.smt2
-  piskac/bags_without_duplicates/fol_0000077.smt2
-  piskac/bags_without_duplicates/fol_0000078.smt2
-  piskac/bags_without_duplicates/fol_0000079.smt2
-  piskac/bags_without_duplicates/fol_0000080.smt2
-  piskac/bags_without_duplicates/fol_0000081.smt2
-  piskac/bags_without_duplicates/fol_0000082.smt2
-  piskac/bags_without_duplicates/fol_0000083.smt2
-  piskac/bags_without_duplicates/fol_0000084.smt2
-  piskac/bags_without_duplicates/fol_0000085.smt2
-  piskac/bags_without_duplicates/fol_0000086.smt2
-  piskac/bags_without_duplicates/fol_0000087.smt2
-  piskac/bags_without_duplicates/fol_0000088.smt2
-  piskac/bags_without_duplicates/fol_0000089.smt2
-  piskac/bags_without_duplicates/fol_0000090.smt2
-  piskac/bags_without_duplicates/fol_0000091.smt2
-  piskac/bags_without_duplicates/fol_0000092.smt2
-  piskac/bags_without_duplicates/fol_0000093.smt2
-  piskac/bags_without_duplicates/fol_0000094.smt2
-  piskac/bags_without_duplicates/fol_0000095.smt2
-  piskac/bags_without_duplicates/fol_0000096.smt2
-  piskac/bags_without_duplicates/fol_0000097.smt2
-  piskac/bags_without_duplicates/fol_0000098.smt2
-  piskac/bags_without_duplicates/fol_0000099.smt2
-  piskac/bags_without_duplicates/fol_0000100.smt2
-  piskac/bags_without_duplicates/fol_0000101.smt2
-  piskac/bags_without_duplicates/fol_0000102.smt2
-  piskac/bags_without_duplicates/fol_0000103.smt2
-  piskac/bags_without_duplicates/fol_0000104.smt2
-  piskac/bags_without_duplicates/fol_0000105.smt2
-  piskac/bags_without_duplicates/fol_0000106.smt2
-  piskac/bags_without_duplicates/fol_0000107.smt2
-  piskac/bags_without_duplicates/fol_0000108.smt2
-  piskac/bags_without_duplicates/fol_0000109.smt2
-  piskac/bags_without_duplicates/fol_0000110.smt2
-  piskac/bags_without_duplicates/fol_0000111.smt2
-  piskac/bags_without_duplicates/fol_0000112.smt2
-  piskac/bags_without_duplicates/fol_0000113.smt2
-  piskac/bags_without_duplicates/fol_0000114.smt2
-  piskac/bags_without_duplicates/fol_0000115.smt2
-  piskac/bags_without_duplicates/fol_0000116.smt2
-  piskac/bags_without_duplicates/fol_0000117.smt2
-  piskac/bags_without_duplicates/fol_0000118.smt2
-  piskac/bags_without_duplicates/fol_0000119.smt2
-  piskac/bags_without_duplicates/fol_0000120.smt2
-  piskac/bags_without_card/fol_0000001.smt2
-  piskac/bags_without_card/fol_0000002.smt2
-  piskac/bags_without_card/fol_0000003.smt2
-  piskac/bags_without_card/fol_0000004.smt2
-  piskac/bags_without_card/fol_0000005.smt2
-  piskac/bags_without_card/fol_0000006.smt2
-  piskac/bags_without_card/fol_0000007.smt2
-  piskac/bags_without_card/fol_0000008.smt2
-  piskac/bags_without_card/fol_0000009.smt2
-  piskac/bags_without_card/fol_0000010.smt2
-  piskac/bags_without_card/fol_0000011.smt2
-  piskac/bags_without_card/fol_0000012.smt2
-  piskac/bags_without_card/fol_0000013.smt2
-  piskac/bags_without_card/fol_0000014.smt2
-  piskac/bags_without_card/fol_0000015.smt2
-  piskac/bags_without_card/fol_0000016.smt2
-  piskac/bags_without_card/fol_0000017.smt2
-  piskac/bags_without_card/fol_0000018.smt2
-  piskac/bags_without_card/fol_0000019.smt2
-  piskac/bags_without_card/fol_0000020.smt2
-  piskac/bags_without_card/fol_0000021.smt2
-  piskac/bags_without_card/fol_0000022.smt2
-  piskac/bags_without_card/fol_0000023.smt2
-  piskac/bags_without_card/fol_0000024.smt2
-  piskac/bags_without_card/fol_0000025.smt2
-  piskac/bags_without_card/fol_0000026.smt2
-  piskac/bags_without_card/fol_0000027.smt2
-  piskac/bags_without_card/fol_0000028.smt2
-  piskac/bags_without_card/fol_0000029.smt2
-  piskac/bags_without_card/fol_0000030.smt2
-  piskac/bags_without_card/fol_0000031.smt2
-  piskac/bags_without_card/fol_0000032.smt2
-  piskac/bags_without_card/fol_0000033.smt2
-  piskac/bags_without_card/fol_0000034.smt2
-  piskac/bags_without_card/fol_0000035.smt2
-  piskac/bags_without_card/fol_0000036.smt2
-  piskac/bags_without_card/fol_0000037.smt2
-  piskac/bags_without_card/fol_0000038.smt2
-  piskac/bags_without_card/fol_0000039.smt2
-  piskac/bags_without_card/fol_0000040.smt2
-  piskac/bags_without_card/fol_0000041.smt2
-  piskac/bags_without_card/fol_0000042.smt2
-  piskac/bags_without_card/fol_0000043.smt2
-  piskac/bags_without_card/fol_0000044.smt2
-  piskac/bags_without_card/fol_0000045.smt2
-  piskac/bags_without_card/fol_0000046.smt2
-  piskac/bags_without_card/fol_0000047.smt2
-  piskac/bags_without_card/fol_0000048.smt2
-  piskac/bags_without_card/fol_0000049.smt2
-  piskac/bags_without_card/fol_0000050.smt2
-  piskac/bags_without_card/fol_0000051.smt2
-  piskac/bags_without_card/fol_0000052.smt2
-  piskac/bags_without_card/fol_0000053.smt2
-  piskac/bags_without_card/fol_0000054.smt2
-  piskac/bags_without_card/fol_0000055.smt2
-  piskac/bags_without_card/fol_0000056.smt2
-  piskac/bags_without_card/fol_0000057.smt2
-  piskac/bags_without_card/fol_0000058.smt2
-  piskac/bags_without_card/fol_0000059.smt2
-  piskac/bags_without_card/fol_0000060.smt2
-  piskac/bags_without_card/fol_0000061.smt2
-  piskac/bags_without_card/fol_0000062.smt2
-  piskac/bags_without_card/fol_0000063.smt2
-  piskac/bags_without_card/fol_0000064.smt2
-  piskac/bags_without_card/fol_0000065.smt2
-  piskac/bags_without_card/fol_0000066.smt2
-  piskac/bags_without_card/fol_0000067.smt2
-  piskac/bags_without_card/fol_0000068.smt2
-  piskac/bags_without_card/fol_0000069.smt2
-  piskac/bags_without_card/fol_0000070.smt2
-  piskac/bags_without_card/fol_0000071.smt2
-  piskac/bags_without_card/fol_0000072.smt2
-  piskac/bags_without_card/fol_0000073.smt2
-  piskac/bags_without_card/fol_0000074.smt2
-  piskac/bags_without_card/fol_0000075.smt2
-  piskac/bags_without_card/fol_0000076.smt2
-  piskac/bags_without_card/fol_0000077.smt2
-  piskac/bags_without_card/fol_0000078.smt2
-  piskac/bags_without_card/fol_0000079.smt2
-  piskac/bags_without_card/fol_0000080.smt2
-  piskac/bags_without_card/fol_0000081.smt2
-  piskac/bags_without_card/fol_0000082.smt2
-  piskac/bags_without_card/fol_0000083.smt2
-  piskac/bags_without_card/fol_0000084.smt2
-  piskac/bags_without_card/fol_0000085.smt2
-  piskac/bags_without_card/fol_0000086.smt2
-  piskac/bags_without_card/fol_0000087.smt2
-  piskac/bags_without_card/fol_0000088.smt2
-  piskac/bags_without_card/fol_0000089.smt2
-  piskac/bags_without_card/fol_0000090.smt2
-  piskac/bags_without_card/fol_0000091.smt2
-  piskac/bags_without_card/fol_0000092.smt2
-  piskac/bags_without_card/fol_0000093.smt2
-  piskac/bags_without_card/fol_0000094.smt2
-  piskac/bags_without_card/fol_0000095.smt2
-  piskac/bags_without_card/fol_0000096.smt2
-  piskac/bags_without_card/fol_0000097.smt2
-  piskac/bags_without_card/fol_0000098.smt2
-  piskac/bags_without_card/fol_0000099.smt2
-  piskac/bags_without_card/fol_0000100.smt2
-  piskac/bags_without_card/fol_0000101.smt2
-  piskac/bags_without_card/fol_0000102.smt2
-  piskac/bags_without_card/fol_0000103.smt2
-  piskac/bags_without_card/fol_0000104.smt2
-  piskac/bags_without_card/fol_0000105.smt2
-  piskac/bags_without_card/fol_0000106.smt2
-  piskac/bags_without_card/fol_0000107.smt2
-  piskac/bags_without_card/fol_0000108.smt2
-  piskac/bags_without_card/fol_0000109.smt2
-  piskac/bags_without_card/fol_0000110.smt2
-  piskac/bags_without_card/fol_0000111.smt2
-  piskac/bags_without_card/fol_0000112.smt2
-  piskac/bags_without_card/fol_0000113.smt2
-  piskac/bags_without_card/fol_0000114.smt2
-  piskac/bags_without_card/fol_0000115.smt2
-  piskac/bags_without_card/fol_0000116.smt2
-  piskac/bags_without_card/fol_0000117.smt2
-  piskac/bags_without_card/fol_0000118.smt2
-  piskac/bags_without_card/fol_0000119.smt2
-  piskac/bags_without_card/fol_0000120.smt2
-  regress1/sets/sls-reachability/arith/fol_0000001.smt2
-  regress1/sets/sls-reachability/arith/fol_0000002.smt2
-  regress1/sets/sls-reachability/arith/fol_0000003.smt2
-  regress1/sets/sls-reachability/arith/fol_0000004.smt2
-  regress1/sets/sls-reachability/arith/fol_0000005.smt2
-  regress1/sets/sls-reachability/arith/fol_0000006.smt2
-  regress1/sets/sls-reachability/arith/fol_0000007.smt2
-  regress1/sets/sls-reachability/arith/fol_0000008.smt2
-  regress1/sets/sls-reachability/arith/fol_0000009.smt2
-  regress1/sets/sls-reachability/arith/fol_0000010.smt2
-  regress1/sets/sls-reachability/arith/fol_0000011.smt2
-  regress1/sets/sls-reachability/arith/fol_0000012.smt2
-  regress1/sets/sls-reachability/arith/fol_0000013.smt2
-  regress1/sets/sls-reachability/arith/fol_0000014.smt2
-  regress1/sets/sls-reachability/arith/fol_0000015.smt2
-  regress1/sets/sls-reachability/arith/fol_0000016.smt2
-  regress1/sets/sls-reachability/arith/fol_0000017.smt2
-  regress1/sets/sls-reachability/arith/fol_0000018.smt2
-  regress1/sets/sls-reachability/arith/fol_0000019.smt2
-  regress1/sets/sls-reachability/arith/fol_0000020.smt2
-  regress1/sets/sls-reachability/arith/fol_0000021.smt2
-  regress1/sets/sls-reachability/arith/fol_0000022.smt2
-  regress1/sets/sls-reachability/arith/fol_0000023.smt2
-  regress1/sets/sls-reachability/arith/fol_0000024.smt2
-  regress1/sets/sls-reachability/arith/fol_0000025.smt2
-  regress1/sets/sls-reachability/arith/fol_0000026.smt2
-  regress1/sets/sls-reachability/arith/fol_0000027.smt2
-  regress1/sets/sls-reachability/arith/fol_0000028.smt2
-  regress1/sets/sls-reachability/arith/fol_0000029.smt2
-  regress1/sets/sls-reachability/arith/fol_0000030.smt2
-  regress1/sets/sls-reachability/arith/fol_0000031.smt2
-  regress1/sets/sls-reachability/arith/fol_0000032.smt2
-  regress1/sets/sls-reachability/arith/fol_0000033.smt2
-  regress1/sets/sls-reachability/arith/fol_0000034.smt2
-  regress1/sets/sls-reachability/arith/fol_0000035.smt2
-  regress1/sets/sls-reachability/arith/fol_0000036.smt2
-  regress1/sets/sls-reachability/arith/fol_0000037.smt2
-  regress1/sets/sls-reachability/arith/fol_0000038.smt2
-  regress1/sets/sls-reachability/arith/fol_0000039.smt2
-  regress1/sets/sls-reachability/arith/fol_0000040.smt2
-  regress1/sets/sls-reachability/arith/fol_0000041.smt2
-  regress1/sets/sls-reachability/arith/fol_0000042.smt2
-  regress1/sets/sls-reachability/arith/fol_0000043.smt2
-  regress1/sets/sls-reachability/arith/fol_0000044.smt2
-  regress1/sets/sls-reachability/arith/fol_0000045.smt2
-  regress1/sets/sls-reachability/arith/fol_0000046.smt2
-  regress1/sets/sls-reachability/arith/fol_0000047.smt2
-  regress1/sets/sls-reachability/arith/fol_0000048.smt2
-  regress1/sets/sls-reachability/arith/fol_0000049.smt2
-  regress1/sets/sls-reachability/arith/fol_0000050.smt2
-  regress1/sets/sls-reachability/arith/fol_0000051.smt2
-  regress1/sets/sls-reachability/arith/fol_0000052.smt2
-  regress1/sets/sls-reachability/arith/fol_0000053.smt2
-  regress1/sets/sls-reachability/arith/fol_0000054.smt2
-  regress1/sets/sls-reachability/arith/fol_0000055.smt2
-  regress1/sets/sls-reachability/arith/fol_0000056.smt2
-  regress1/sets/sls-reachability/arith/fol_0000057.smt2
-  regress1/sets/sls-reachability/arith/fol_0000058.smt2
-  regress1/sets/sls-reachability/arith/fol_0000059.smt2
-  regress1/sets/sls-reachability/arith/fol_0000060.smt2
-  regress1/sets/sls-reachability/arith/fol_0000061.smt2
-  regress1/sets/sls-reachability/arith/fol_0000062.smt2
-  regress1/sets/sls-reachability/arith/fol_0000063.smt2
-  regress1/sets/sls-reachability/arith/fol_0000064.smt2
-  regress1/sets/sls-reachability/arith/fol_0000065.smt2
-  regress1/sets/sls-reachability/arith/fol_0000066.smt2
-  regress1/sets/sls-reachability/arith/fol_0000067.smt2
-  regress1/sets/sls-reachability/arith/fol_0000068.smt2
-  regress1/sets/sls-reachability/arith/fol_0000069.smt2
-  regress1/sets/sls-reachability/arith/fol_0000070.smt2
-  regress1/sets/sls-reachability/arith/fol_0000071.smt2
-  regress1/sets/sls-reachability/arith/fol_0000072.smt2
-  regress1/sets/sls-reachability/arith/fol_0000073.smt2
-  regress1/sets/sls-reachability/arith/fol_0000074.smt2
-  regress1/sets/sls-reachability/arith/fol_0000075.smt2
-  regress1/sets/sls-reachability/arith/fol_0000076.smt2
-  regress1/sets/sls-reachability/arith/fol_0000077.smt2
-  regress1/sets/sls-reachability/arith/fol_0000078.smt2
-  regress1/sets/sls-reachability/arith/fol_0000079.smt2
-  regress1/sets/sls-reachability/arith/fol_0000080.smt2
-  regress1/sets/sls-reachability/arith/fol_0000081.smt2
-  regress1/sets/sls-reachability/arith/fol_0000082.smt2
-  regress1/sets/sls-reachability/arith/fol_0000083.smt2
-  regress1/sets/sls-reachability/arith/fol_0000084.smt2
-  regress1/sets/sls-reachability/arith/fol_0000085.smt2
-  regress1/sets/sls-reachability/arith/fol_0000086.smt2
-  regress1/sets/sls-reachability/arith/fol_0000087.smt2
-  regress1/sets/sls-reachability/arith/fol_0000088.smt2
-  regress1/sets/sls-reachability/arith/fol_0000089.smt2
-  regress1/sets/sls-reachability/arith/fol_0000090.smt2
-  regress1/sets/sls-reachability/arith/fol_0000091.smt2
-  regress1/sets/sls-reachability/arith/fol_0000092.smt2
-  regress1/sets/sls-reachability/arith/fol_0000093.smt2
-  regress1/sets/sls-reachability/arith/fol_0000094.smt2
-  regress1/sets/sls-reachability/arith/fol_0000095.smt2
-  regress1/sets/sls-reachability/arith/fol_0000096.smt2
-  regress1/sets/sls-reachability/arith/fol_0000097.smt2
-  regress1/sets/sls-reachability/arith/fol_0000098.smt2
-  regress1/sets/sls-reachability/arith/fol_0000099.smt2
-  regress1/sets/sls-reachability/arith/fol_0000100.smt2
-  regress1/sets/sls-reachability/arith/fol_0000101.smt2
-  regress1/sets/sls-reachability/arith/fol_0000102.smt2
-  regress1/sets/sls-reachability/arith/fol_0000103.smt2
-  regress1/sets/sls-reachability/arith/fol_0000104.smt2
-  regress1/sets/sls-reachability/arith/fol_0000105.smt2
-  regress1/sets/sls-reachability/arith/fol_0000106.smt2
-  regress1/sets/sls-reachability/arith/fol_0000107.smt2
-  regress1/sets/sls-reachability/arith/fol_0000108.smt2
-  regress1/sets/sls-reachability/arith/fol_0000109.smt2
-  regress1/sets/sls-reachability/arith/fol_0000110.smt2
-  regress1/sets/sls-reachability/arith/fol_0000111.smt2
-  regress1/sets/sls-reachability/arith/fol_0000112.smt2
-  regress1/sets/sls-reachability/arith/fol_0000113.smt2
-  regress1/sets/sls-reachability/arith/fol_0000114.smt2
-  regress1/sets/sls-reachability/arith/fol_0000115.smt2
-  regress1/sets/sls-reachability/arith/fol_0000116.smt2
-  regress1/sets/sls-reachability/arith/fol_0000117.smt2
-  regress1/sets/sls-reachability/arith/fol_0000118.smt2
-  regress1/sets/sls-reachability/arith/fol_0000119.smt2
-  regress1/sets/sls-reachability/arith/fol_0000120.smt2
-  regress1/sets/sls-reachability/card/fol_0000001.smt2
-  regress1/sets/sls-reachability/card/fol_0000002.smt2
-  regress1/sets/sls-reachability/card/fol_0000003.smt2
-  regress1/sets/sls-reachability/card/fol_0000004.smt2
-  regress1/sets/sls-reachability/card/fol_0000005.smt2
-  regress1/sets/sls-reachability/card/fol_0000006.smt2
-  regress1/sets/sls-reachability/card/fol_0000007.smt2
-  regress1/sets/sls-reachability/card/fol_0000008.smt2
-  regress1/sets/sls-reachability/card/fol_0000009.smt2
-  regress1/sets/sls-reachability/card/fol_0000010.smt2
-  regress1/sets/sls-reachability/card/fol_0000011.smt2
-  regress1/sets/sls-reachability/card/fol_0000012.smt2
-  regress1/sets/sls-reachability/card/fol_0000013.smt2
-  regress1/sets/sls-reachability/card/fol_0000014.smt2
-  regress1/sets/sls-reachability/card/fol_0000015.smt2
-  regress1/sets/sls-reachability/card/fol_0000016.smt2
-  regress1/sets/sls-reachability/card/fol_0000017.smt2
-  regress1/sets/sls-reachability/card/fol_0000018.smt2
-  regress1/sets/sls-reachability/card/fol_0000019.smt2
-  regress1/sets/sls-reachability/card/fol_0000020.smt2
-  regress1/sets/sls-reachability/card/fol_0000021.smt2
-  regress1/sets/sls-reachability/card/fol_0000022.smt2
-  regress1/sets/sls-reachability/card/fol_0000023.smt2
-  regress1/sets/sls-reachability/card/fol_0000024.smt2
-  regress1/sets/sls-reachability/card/fol_0000025.smt2
-  regress1/sets/sls-reachability/card/fol_0000026.smt2
-  regress1/sets/sls-reachability/card/fol_0000027.smt2
-  regress1/sets/sls-reachability/card/fol_0000028.smt2
-  regress1/sets/sls-reachability/card/fol_0000029.smt2
-  regress1/sets/sls-reachability/card/fol_0000030.smt2
-  regress1/sets/sls-reachability/card/fol_0000031.smt2
-  regress1/sets/sls-reachability/card/fol_0000032.smt2
-  regress1/sets/sls-reachability/card/fol_0000033.smt2
-  regress1/sets/sls-reachability/card/fol_0000034.smt2
-  regress1/sets/sls-reachability/card/fol_0000035.smt2
-  regress1/sets/sls-reachability/card/fol_0000036.smt2
-  regress1/sets/sls-reachability/card/fol_0000037.smt2
-  regress1/sets/sls-reachability/card/fol_0000038.smt2
-  regress1/sets/sls-reachability/card/fol_0000039.smt2
-  regress1/sets/sls-reachability/card/fol_0000040.smt2
-  regress1/sets/sls-reachability/card/fol_0000041.smt2
-  regress1/sets/sls-reachability/card/fol_0000042.smt2
-  regress1/sets/sls-reachability/card/fol_0000043.smt2
-  regress1/sets/sls-reachability/card/fol_0000044.smt2
-  regress1/sets/sls-reachability/card/fol_0000045.smt2
-  regress1/sets/sls-reachability/card/fol_0000046.smt2
-  regress1/sets/sls-reachability/card/fol_0000047.smt2
-  regress1/sets/sls-reachability/card/fol_0000048.smt2
-  regress1/sets/sls-reachability/card/fol_0000049.smt2
-  regress1/sets/sls-reachability/card/fol_0000050.smt2
-  regress1/sets/sls-reachability/card/fol_0000051.smt2
-  regress1/sets/sls-reachability/card/fol_0000052.smt2
-  regress1/sets/sls-reachability/card/fol_0000053.smt2
-  regress1/sets/sls-reachability/card/fol_0000054.smt2
-  regress1/sets/sls-reachability/card/fol_0000055.smt2
-  regress1/sets/sls-reachability/card/fol_0000056.smt2
-  regress1/sets/sls-reachability/card/fol_0000057.smt2
-  regress1/sets/sls-reachability/card/fol_0000058.smt2
-  regress1/sets/sls-reachability/card/fol_0000059.smt2
-  regress1/sets/sls-reachability/card/fol_0000060.smt2
-  regress1/sets/sls-reachability/card/fol_0000061.smt2
-  regress1/sets/sls-reachability/card/fol_0000062.smt2
-  regress1/sets/sls-reachability/card/fol_0000063.smt2
-  regress1/sets/sls-reachability/card/fol_0000064.smt2
-  regress1/sets/sls-reachability/card/fol_0000065.smt2
-  regress1/sets/sls-reachability/card/fol_0000066.smt2
-  regress1/sets/sls-reachability/card/fol_0000067.smt2
-  regress1/sets/sls-reachability/card/fol_0000068.smt2
-  regress1/sets/sls-reachability/card/fol_0000069.smt2
-  regress1/sets/sls-reachability/card/fol_0000070.smt2
-  regress1/sets/sls-reachability/card/fol_0000071.smt2
-  regress1/sets/sls-reachability/card/fol_0000072.smt2
-  regress1/sets/sls-reachability/card/fol_0000073.smt2
-  regress1/sets/sls-reachability/card/fol_0000074.smt2
-  regress1/sets/sls-reachability/card/fol_0000075.smt2
-  regress1/sets/sls-reachability/card/fol_0000076.smt2
-  regress1/sets/sls-reachability/card/fol_0000077.smt2
-  regress1/sets/sls-reachability/card/fol_0000078.smt2
-  regress1/sets/sls-reachability/card/fol_0000079.smt2
-  regress1/sets/sls-reachability/card/fol_0000080.smt2
-  regress1/sets/sls-reachability/card/fol_0000081.smt2
-  regress1/sets/sls-reachability/card/fol_0000082.smt2
-  regress1/sets/sls-reachability/card/fol_0000083.smt2
-  regress1/sets/sls-reachability/card/fol_0000084.smt2
-  regress1/sets/sls-reachability/card/fol_0000085.smt2
-  regress1/sets/sls-reachability/card/fol_0000086.smt2
-  regress1/sets/sls-reachability/card/fol_0000087.smt2
-  regress1/sets/sls-reachability/card/fol_0000088.smt2
-  regress1/sets/sls-reachability/card/fol_0000089.smt2
-  regress1/sets/sls-reachability/card/fol_0000090.smt2
-  regress1/sets/sls-reachability/card/fol_0000091.smt2
-  regress1/sets/sls-reachability/card/fol_0000092.smt2
-  regress1/sets/sls-reachability/card/fol_0000093.smt2
-  regress1/sets/sls-reachability/card/fol_0000094.smt2
-  regress1/sets/sls-reachability/card/fol_0000095.smt2
-  regress1/sets/sls-reachability/card/fol_0000096.smt2
-  regress1/sets/sls-reachability/card/fol_0000097.smt2
-  regress1/sets/sls-reachability/card/fol_0000098.smt2
-  regress1/sets/sls-reachability/card/fol_0000099.smt2
-  regress1/sets/sls-reachability/card/fol_0000100.smt2
-  regress1/sets/sls-reachability/card/fol_0000101.smt2
-  regress1/sets/sls-reachability/card/fol_0000102.smt2
-  regress1/sets/sls-reachability/card/fol_0000103.smt2
-  regress1/sets/sls-reachability/card/fol_0000104.smt2
-  regress1/sets/sls-reachability/card/fol_0000105.smt2
-  regress1/sets/sls-reachability/card/fol_0000106.smt2
-  regress1/sets/sls-reachability/card/fol_0000107.smt2
-  regress1/sets/sls-reachability/card/fol_0000108.smt2
-  regress1/sets/sls-reachability/card/fol_0000109.smt2
-  regress1/sets/sls-reachability/card/fol_0000110.smt2
-  regress1/sets/sls-reachability/card/fol_0000111.smt2
-  regress1/sets/sls-reachability/card/fol_0000112.smt2
-  regress1/sets/sls-reachability/card/fol_0000113.smt2
-  regress1/sets/sls-reachability/card/fol_0000114.smt2
-  regress1/sets/sls-reachability/card/fol_0000115.smt2
-  regress1/sets/sls-reachability/card/fol_0000116.smt2
-  regress1/sets/sls-reachability/card/fol_0000117.smt2
-  regress1/sets/sls-reachability/card/fol_0000118.smt2
-  regress1/sets/sls-reachability/card/fol_0000119.smt2
-  regress1/sets/sls-reachability/card/fol_0000120.smt2
   regress0/arith/ackermann.real.smt2
   regress0/arith/arith-eq.smt2
   regress0/arith/arith-mixed-types-no-tighten.smt2
@@ -1234,7 +514,7 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
-  regress0/datatypes/par-updater-type-rule.smt2 
+  regress0/datatypes/par-updater-type-rule.smt2
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/rec1.cvc.smt2
@@ -2274,7 +1554,7 @@ set(regress_0_tests
   regress0/wiki.19.cvc.smt2
   regress0/wiki.20.cvc.smt2
   regress0/wiki.21.cvc.smt2
-)
+  )
 
 #-----------------------------------------------------------------------------#
 # Regression level 1 tests
@@ -2370,6 +1650,7 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
@@ -2767,8 +2048,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
-  regress1/quantifiers/issue5373-1-qe-inc.smt2 
-  regress1/quantifiers/issue5373-2.smt2 
+  regress1/quantifiers/issue5373-1-qe-inc.smt2
+  regress1/quantifiers/issue5373-2.smt2
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
@@ -3104,7 +2385,7 @@ set(regress_1_tests
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
-  regress1/strings/issue7677-test-const-rv.smt2 
+  regress1/strings/issue7677-test-const-rv.smt2
   regress1/strings/issue7918-learned-rewrite.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
@@ -3238,7 +2519,7 @@ set(regress_1_tests
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/interpol1.smt2
-  regress1/sygus/interpol1-push-pop.smt2 
+  regress1/sygus/interpol1-push-pop.smt2
   regress1/sygus/interpol3.smt2
   regress1/sygus/interpol3-next.smt2
   regress1/sygus/interpol_arr1.smt2
@@ -3372,7 +2653,7 @@ set(regress_1_tests
   regress1/uflia/speed2_e8_449_e8_517.ec.smt2
   regress1/uflia/stalmark_e7_27_e7_31.ec.smt2
   regress1/wrong-qfabvfp-smtcomp2018.smt2
-)
+  )
 
 #-----------------------------------------------------------------------------#
 # Regression level 2 tests
@@ -3503,7 +2784,7 @@ set(regress_2_tests
   regress2/typed_v1l50016-simp.cvc.smt2
   regress2/uflia-error0.smt2
   regress2/xs-09-16-3-4-1-5.smtv1.smt2
-)
+  )
 
 #-----------------------------------------------------------------------------#
 # Regression level 3 tests
@@ -3565,7 +2846,7 @@ set(regress_3_tests
   regress3/strings/replace_re_all.smt2
   regress3/unbdd_inv_gen_ex7.sy
   regress3/vcb.sy
-)
+  )
 
 #-----------------------------------------------------------------------------#
 # Regression level 4 tests
@@ -3588,7 +2869,7 @@ set(regress_4_tests
   regress4/unsat-circ-reduce.smt2
   regress4/xs-11-20-5-2-5-3.smt2
   regress4/xs-11-20-5-2-5-3.smtv1.smt2
-)
+  )
 
 #-----------------------------------------------------------------------------#
 # Disabled tests, will not be run.
@@ -3694,7 +2975,7 @@ set(regression_disabled_tests
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
   regress3/issue4476-ext-rew.smt2
-)
+  )
 
 #-----------------------------------------------------------------------------#
 # Add target 'regress', builds and runs
@@ -3708,7 +2989,7 @@ add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+  ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
 macro(cvc5_add_regression_test level file)
