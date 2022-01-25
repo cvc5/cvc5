@@ -30,7 +30,7 @@ TriggerTrie::~TriggerTrie()
   }
 }
 
-inst::Trigger* TriggerTrie::getTrigger(std::vector<Node>& nodes)
+inst::Trigger* TriggerTrie::getTrigger(const std::vector<Node>& nodes)
 {
   std::vector<Node> temp;
   temp.insert(temp.begin(), nodes.begin(), nodes.end());
@@ -38,7 +38,7 @@ inst::Trigger* TriggerTrie::getTrigger(std::vector<Node>& nodes)
   TriggerTrie* tt = this;
   for (const Node& n : temp)
   {
-    std::map<TNode, TriggerTrie>::iterator itt = tt->d_children.find(n);
+    std::map<Node, TriggerTrie>::iterator itt = tt->d_children.find(n);
     if (itt == tt->d_children.end())
     {
       return nullptr;
@@ -51,14 +51,14 @@ inst::Trigger* TriggerTrie::getTrigger(std::vector<Node>& nodes)
   return tt->d_tr.empty() ? nullptr : tt->d_tr[0];
 }
 
-void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
+void TriggerTrie::addTrigger(const std::vector<Node>& nodes, inst::Trigger* t)
 {
   std::vector<Node> temp(nodes.begin(), nodes.end());
   std::sort(temp.begin(), temp.end());
   TriggerTrie* tt = this;
   for (const Node& n : temp)
   {
-    std::map<TNode, TriggerTrie>::iterator itt = tt->d_children.find(n);
+    std::map<Node, TriggerTrie>::iterator itt = tt->d_children.find(n);
     if (itt == tt->d_children.end())
     {
       TriggerTrie* ttn = &tt->d_children[n];

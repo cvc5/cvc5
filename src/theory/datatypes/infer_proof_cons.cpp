@@ -218,14 +218,17 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT:
     {
-      Assert(expv.size() == 3);
+      Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
       Node tester1c =
           nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
-      cdp->addStep(tester1c,
-                   PfRule::MACRO_SR_PRED_TRANSFORM,
-                   {expv[1], expv[2]},
-                   {tester1c});
+      std::vector<Node> targs{expv[1]};
+      if (expv.size() == 3)
+      {
+        targs.push_back(expv[2]);
+      }
+      cdp->addStep(
+          tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
       Node fn = nm->mkConst(false);
       cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
       success = true;
