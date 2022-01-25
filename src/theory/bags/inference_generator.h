@@ -47,7 +47,7 @@ class InferenceGenerator
    */
   InferInfo nonNegativeCount(Node n, Node e);
   /**
-   * @param n a node of integer type
+   * @param n a node of integer type that equals to a card term
    * @return an inference that represents the following implication
    * (>= n 0)
    */
