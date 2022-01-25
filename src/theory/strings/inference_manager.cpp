@@ -249,6 +249,22 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   return true;
 }
 
+bool InferenceManager::sendSplit(Node a, InferenceId infer, bool preq)
+{
+  a = rewrite(a);
+  if (a.isConst())
+  {
+    return false;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  InferInfo iiSplit(infer);
+  iiSplit.d_sim = this;
+  iiSplit.d_conc = nm->mkNode(OR, a, a.notNode());
+  addPendingPhaseRequirement(a, preq);
+  addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
+  return true;
+}
+
 void InferenceManager::addToExplanation(Node a,
                                         Node b,
                                         std::vector<Node>& exp) const

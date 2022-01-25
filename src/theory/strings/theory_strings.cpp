@@ -763,6 +763,19 @@ void TheoryStrings::preRegisterTerm(TNode n)
   // this term here since preRegisterTerm is already called recursively on all
   // subterms in preregistered literals.
   d_extTheory.registerTerm(n);
+
+  /*
+  if (n.getKind()==kind::SEQ_NTH)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = n[0];
+    Node i = n[1];
+    Node cond = nm->mkNode(AND,
+                           nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), i),
+                           nm->mkNode(LT, i, nm->mkNode(STRING_LENGTH, s)));
+    d_im.sendSplit(cond, InferenceId::UNKNOWN);
+  }
+  */
 }
 
 bool TheoryStrings::preNotifyFact(

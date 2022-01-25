@@ -763,6 +763,7 @@ bool StringsExtfCallback::getCurrentSubstitution(
 
 std::string ExtfSolver::debugPrintModel()
 {
+  std::cout << "MODEL" << std::endl;
   std::stringstream ss;
   std::vector<Node> extf;
   d_extt.getTerms(extf);

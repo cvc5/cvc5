@@ -203,6 +203,8 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool sendSplit(Node a, Node b, InferenceId infer, bool preq = true);
 
+  bool sendSplit(Node a, InferenceId infer, bool preq = true);
+
   //----------------------------constructing antecedants
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
