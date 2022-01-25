@@ -211,12 +211,13 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
 
 void QueryGenerator::dumpQuery(Node qy)
 {
+  Node kqy = convertToSkolem(qy);
   // Print the query to to queryN.smt2
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
   smt::PrintBenchmark pb(&d_env.getPrinter());
-  pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {qy});
+  pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {kqy});
   fs.close();
 }
 
