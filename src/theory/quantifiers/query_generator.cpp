@@ -21,6 +21,7 @@
 
 #include "options/quantifiers_options.h"
 #include "util/random.h"
+#include "smt/print_benchmark.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -217,26 +218,8 @@ void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
-  fs << "(set-logic ALL)" << std::endl;
-  for (unsigned i = 0; i < 2; i++)
-  {
-    for (size_t j = 0; j < nvars; j++)
-    {
-      Node x = d_vars[j];
-      if (i == 0)
-      {
-        fs << "(declare-fun " << x << " () " << x.getType() << ")";
-      }
-      else
-      {
-        fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j]
-           << ")";
-      }
-      fs << std::endl;
-    }
-  }
-  fs << "(assert " << qy << ")" << std::endl;
-  fs << "(check-sat)" << std::endl;
+  PrintBenchmark pb(&d_env.getPrinter());
+  pb.PrintBenchmark(fs, d_env.getLogicInfo(), {}, {qy});
   fs.close();
 }
 
