@@ -20,8 +20,8 @@
 #include <sstream>
 
 #include "options/quantifiers_options.h"
-#include "util/random.h"
 #include "smt/print_benchmark.h"
+#include "util/random.h"
 
 using namespace std;
 using namespace cvc5::kind;
