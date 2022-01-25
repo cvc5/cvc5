@@ -50,27 +50,7 @@ void CardSolver::reset() { d_cardGraph.clear(); }
 bool CardSolver::isLeaf(const Node& bag)
 {
   Node rep = d_state.getRepresentative(bag);
-  Trace("bags-card") << "-----------------------------------------"
-                     << std::endl;
-  Trace("bags-card") << "d_cardGraph :" << std::endl;
-  for (const auto& pair : d_cardGraph)
-  {
-    Trace("bags-card") << pair.first << ": ";
-    for (const auto& s : pair.second)
-    {
-      Trace("bags-card") << s << " ";
-    }
-    Trace("bags-card") << std::endl;
-  }
-  Trace("bags-card") << "-----------------------------------------"
-                     << std::endl;
-  if (d_cardGraph.count(rep) == 0 || d_cardGraph[rep].empty())
-  {
-    Trace("bags-card") << "isLeaf(" << rep << ") = true" << std::endl;
-    return true;
-  }
-  Trace("bags-card") << "isLeaf(" << rep << ") = false" << std::endl;
-  return false;
+  return (d_cardGraph.count(rep) == 0 || d_cardGraph[rep].empty());
 }
 
 std::set<Node> CardSolver::getChildren(Node bag)
