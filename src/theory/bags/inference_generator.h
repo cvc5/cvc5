@@ -194,7 +194,9 @@ class InferenceGenerator
    * @param children (child_1, ... child_n) nonempty set of bag terms
    * @return an inference that represents the following implication
    * (=> premise
-   *     (= parent (bag.union_disjoint child_1 ... child_n )))
+   *     (and
+   *       (= parent (bag.union_disjoint child_1 ... child_n))
+   *       (= (bag.card parent) (+ (bag.card child_1) ... (bag.card child_n)))))
    */
   InferInfo cardUnionDisjoint(Node premise,
                               Node parent,

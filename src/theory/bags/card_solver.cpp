@@ -271,19 +271,25 @@ void CardSolver::addChildren(const Node& premise,
 {
   if (children.count(parent) > 0 && children.size() > 1)
   {
-    // handle the case when the parent is among the children
+    // handle the case when the parent is among the children, which implies
+    // other children are empty.
+    // This case is needed to avoid adding cycles in the cardinality graph
     std::vector<Node> emptyBags;
     Node empty = d_nm->mkConst(EmptyBag(parent.getType()));
+    Trace("bags-card") << "CardSolver::addChildren parent: " << parent
+                       << " is one of its children " << std::endl;
     for (Node child : children)
     {
-      Trace("bags-card") << "empty bags: " << child << std::endl;
+      Trace("bags-card") << "CardSolver::addChildren child: " << child
+                         << std::endl;
       if (child != parent)
       {
         // this child should be empty
         emptyBags.push_back(child.eqNode(empty));
       }
     }
-    Trace("bags-card") << "empty bags: " << emptyBags << std::endl;
+    Trace("bags-card") << "CardSolver::addChildren empty bags: " << emptyBags
+                       << std::endl;
     InferInfo i(&d_im, InferenceId::BAGS_CARD);
     i.d_premises.push_back(premise);
     if (emptyBags.size() == 1)
@@ -294,11 +300,8 @@ void CardSolver::addChildren(const Node& premise,
     {
       i.d_conclusion = d_nm->mkNode(AND, emptyBags);
     }
-    Trace("bags-card") << "info: " << i << std::endl;
+    Trace("bags-card") << "CardSolver::addChildren info: " << i << std::endl;
     d_im.lemmaTheoryInference(&i);
-
-    Trace("bags-card") << "parent " << parent << " is one of its children "
-                       << std::endl;
     return;
   }
   // add inferences
@@ -313,28 +316,36 @@ void CardSolver::addChildren(const Node& premise,
   // make sure children are in the graph
   for (Node child : children)
   {
-    // if not in the graph
     if (d_cardGraph.count(child) == 0)
     {
       d_cardGraph[child] = {};
     }
   }
 
+  // only add children if not in the graph
   if (d_cardGraph[parent].count(children) == 0)
   {
     if (d_cardGraph[parent].empty())
     {
+      // The simple case is when the parent is a leaf in the cardinality graph.
+      // This means we can just add the current set of children without
+      // merging with a different set of children
       d_cardGraph[parent].insert(children);
     }
     else
     {
+      // The hard case is when the parent is an internal node in the
+      // cardinality graph, and has a different set of children.
+      // In this case we reduce the cardinality of the parent bag using
+      // quantifiers. This is faster than reducing the cardinality of each
+      // child.
       const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
       d_cardGraph[parent].insert(children);
-      Trace("bags-card") << "CardSolver::mergeChildren set1: " << oldChildren
+      Trace("bags-card") << "CardSolver::addChildren set1: " << oldChildren
                          << std::endl;
-      Trace("bags-card") << "CardSolver::mergeChildren set2: " << children
+      Trace("bags-card") << "CardSolver::addChildren set2: " << children
                          << std::endl;
-      // reduce the parent bag
+
       Node card = d_nm->mkNode(BAG_CARD, parent);
       std::vector<Node> asserts;
       Node reduced = d_bagReduction.reduceCardOperator(card, asserts);

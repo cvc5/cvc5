@@ -115,11 +115,12 @@ class CardSolver : protected EnvObj
   void checkLeafBag(const std::pair<Node, Node>& pair, const Node& bag);
   /**
    * This function updates cardinality graph by adding parent and its children
-   * to the graph. It also adds necessary lemmas when the premise holds.
+   * to the cardinality graph. It also adds necessary lemmas when the premise
+   * holds.
    * @param premise a node of boolean type
-   * @param parent a bag term
-   * @param children a set of bag nodes whose disjoint union is the parent when
-   * the premise holds
+   * @param parent a representative bag term
+   * @param children a set of bag representatives whose disjoint union equals to
+   * parent when the premise holds
    */
   void addChildren(const Node& premise,
                    const Node& parent,
@@ -137,13 +138,14 @@ class CardSolver : protected EnvObj
   BagReduction d_bagReduction;
 
   /**
-   * A map from bags to sets of bags with the invariant that each key bag is the
-   * disjoint union of each set in the value.
+   * A map from bag representatives to sets of bag representatives with the
+   * invariant that each key is the disjoint union of each set in the value.
    * Example:
    * C -> {{A, B}, {X,Y, Z}}
-   * implies we have the constraints
+   * implies we have the following constraints in the current context.
    * (= C (bag.union_disjoint A B))
    * (= C (bag.union_disjoint X Y Z))
+   * This map needs to cleared before each full effort check.
    */
   std::map<Node, std::set<std::set<Node>>> d_cardGraph;
 
