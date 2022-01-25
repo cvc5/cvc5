@@ -373,16 +373,14 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   std::vector<Node> exp;
   if (checkInv)
   {
-    d_im.addToExplanation(rself, t, exp);
     NormalForm& nfSelf = d_csolver.getNormalForm(rself);
     exp.insert(exp.end(), nfSelf.d_exp.begin(), nfSelf.d_exp.end());
-    exp.push_back(t.eqNode(nfSelf.d_base));
+    d_im.addToExplanation(t, nfSelf.d_base, exp);
   }
   else
   {
-    d_im.addToExplanation(r, t[0], exp);
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-    exp.push_back(t[0].eqNode(nf.d_base));
+    d_im.addToExplanation(t[0], nf.d_base, exp);
   }
   if (d_eqProc.find(eq) == d_eqProc.end())
   {

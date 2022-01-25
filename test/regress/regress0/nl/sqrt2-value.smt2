@@ -1,8 +1,8 @@
-; SCRUBBER: sed -e 's/witness.*/witness/'
+; SCRUBBER: sed -e 's/(_ real_algebraic_number.*/(_ real_algebraic_number/'
 ; COMMAND-LINE: --no-check-models
 ; REQUIRES: poly
 ; EXPECT: sat
-; EXPECT: ((x (witness
+; EXPECT: ((x (_ real_algebraic_number
 (set-option :produce-models true)
 (set-logic QF_NRA)
 (declare-fun x () Real)

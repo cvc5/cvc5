@@ -1533,6 +1533,7 @@ set(regress_0_tests
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
   regress0/parser/issue7860-parse-only-reset.smt2
+  regress0/parser/issue7894-parse-error-assoc.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1613,6 +1614,7 @@ set(regress_0_tests
   regress0/proofs/project-issue330-eqproof.smt2
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
   regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
+  regress0/proofs/proj-issue430-coverings-double-negation.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1819,6 +1821,7 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
+  regress0/seq/err1.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
@@ -1828,6 +1831,8 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
+  regress0/seq/nth-oob.smt2
+  regress0/seq/nth-update.smt2
   regress0/seq/proj-issue340.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/rev.smt2
@@ -1858,6 +1863,7 @@ set(regress_0_tests
   regress0/seq/seq-types.smt2
   regress0/seq/update-concat-non-atomic.smt2
   regress0/seq/update-concat-non-atomic2.smt2
+  regress0/seq/update-eq.smt2
   regress0/seq/update-eq-unsat.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
@@ -2013,6 +2019,7 @@ set(regress_0_tests
   regress0/strings/parser-syms.cvc.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
+  regress0/strings/proj-issue409-re-loop-none.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -2426,6 +2433,7 @@ set(regress_1_tests
   regress1/datatypes/non-simple-rec.smt2
   regress1/datatypes/non-simple-rec-mut-unsat.smt2
   regress1/datatypes/non-simple-rec-param.smt2
+  regress1/datatypes/proj-issue433-tester-merge-pf.smt2
   regress1/datatypes/tuple_projection.smt2
   regress1/decision/bug374a.smtv1.smt2
   regress1/decision/error3.smtv1.smt2
@@ -3440,6 +3448,7 @@ set(regress_2_tests
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
   regress2/quantifiers/syn874-1.smt2
+  regress2/seq/err-model-soundness.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/bidir_star.smt2
   regress2/strings/cmi-split-cm-fail.smt2
