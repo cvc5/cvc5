@@ -1738,12 +1738,12 @@ RewriteResponse ArithRewriter::rewriteForLinear(TNode node)
     case Kind::GEQ:
     case Kind::GT: {
       auto res = rewriteInequalityForLinear(node);
-      Trace("arith-rewriter-linear") << res.d_status << "-> " << res.d_node << std::endl;
+      Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
       return res;
     }
     default:
       auto res = RewriteResponse(REWRITE_DONE, node);
-      Trace("arith-rewriter-linear") << res.d_status << "-> " << res.d_node << std::endl;
+      Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
       return res;
   }
 }
