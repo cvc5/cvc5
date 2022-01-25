@@ -19,6 +19,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include <sstream>
 
 using namespace std;
 using namespace cvc5::kind;
