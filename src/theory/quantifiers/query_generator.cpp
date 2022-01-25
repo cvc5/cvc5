@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "options/quantifiers_options.h"
+#include "smt/env.h"
 #include "smt/print_benchmark.h"
 #include "util/random.h"
 
@@ -168,7 +169,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::ALL)
   {
-    dumpQuery(qy, spIndex);
+    dumpQuery(qy);
   }
 
   if (options().quantifiers.sygusQueryGenCheck)
@@ -200,7 +201,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
     {
       if (r.asSatisfiabilityResult().isSat() != Result::SAT)
       {
-        dumpQuery(qy, spIndex);
+        dumpQuery(qy);
       }
     }
   }
@@ -208,18 +209,14 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
   d_queryCount++;
 }
 
-void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
+void QueryGenerator::dumpQuery(Node qy)
 {
-  // Print the query and the query + its model (commented) to queryN.smt2
-  std::vector<Node> pt;
-  d_sampler->getSamplePoint(spIndex, pt);
-  size_t nvars = d_vars.size();
-  AlwaysAssert(pt.size() == d_vars.size());
+  // Print the query to to queryN.smt2
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
-  PrintBenchmark pb(&d_env.getPrinter());
-  pb.PrintBenchmark(fs, d_env.getLogicInfo(), {}, {qy});
+  smt::PrintBenchmark pb(&d_env.getPrinter());
+  pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {qy});
   fs.close();
 }
 
