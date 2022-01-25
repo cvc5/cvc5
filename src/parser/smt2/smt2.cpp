@@ -504,6 +504,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     Parser::addOperator(api::APPLY_UF);
   }
 
+  if (d_logic.isHigherOrder())
+  {
+    addOperator(api::HO_APPLY, "@");
+  }
+
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);

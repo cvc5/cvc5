@@ -1,5 +1,5 @@
 (set-info :smt-lib-version 2.6)
-(set-logic FP)
+(set-logic FPLRA)
 (set-info :status unsat)
 (declare-fun c_main_~E0~7 () (_ FloatingPoint 11 53))
 (declare-fun c_main_~S~7 () (_ FloatingPoint 11 53))
