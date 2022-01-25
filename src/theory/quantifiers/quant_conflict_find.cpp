@@ -111,7 +111,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
       std::map< TNode, bool > visited;
       getPropagateVars(vars, q[1], false, visited);
     }
-    for (const Node& v : vars)
+    for (TNode v : vars)
     {
       TNode f = p->getTermDatabase()->getMatchOperator( v );
       if( !f.isNull() ){
