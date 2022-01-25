@@ -111,10 +111,9 @@ class QueryGenerator : public ExprMiner
    */
   void checkQuery(Node qy, unsigned spIndex, std::ostream& out);
   /**
-   * Dumps query qy to the a file queryN.smt2 for the current counter N;
-   * spIndex specifies the sample point that satisfies it (for debugging).
+   * Dumps query qy to the a file queryN.smt2 for the current counter N
    */
-  void dumpQuery(Node qy, unsigned spIndex);
+  void dumpQuery(Node qy);
 };
 
 }  // namespace quantifiers
