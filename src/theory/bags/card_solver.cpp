@@ -16,6 +16,7 @@
 #include "theory/bags/card_solver.h"
 
 #include "expr/emptybag.h"
+#include "smt/logic_exception.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/normal_form.h"
@@ -88,11 +89,13 @@ void CardSolver::checkCardinalityGraph()
 
   for (const auto& pair : d_state.getCardinalityTerms())
   {
-    Trace("bags-card") << "cardTerm: " << pair << std::endl;
+    Trace("bags-card") << "CardSolver::checkCardinalityGraph cardTerm: " << pair
+                       << std::endl;
     Assert(pair.first.getKind() == BAG_CARD);
     Assert(d_state.hasTerm(pair.first[0]));
     Node bag = d_state.getRepresentative(pair.first[0]);
-    Trace("bags-card") << "bag rep: " << bag << std::endl;
+    Trace("bags-card") << "CardSolver::checkCardinalityGraph bag rep: " << bag
+                       << std::endl;
     // enumerate all bag terms with bag operators
     eq::EqClassIterator it =
         eq::EqClassIterator(bag, d_state.getEqualityEngine());
@@ -133,8 +136,9 @@ void CardSolver::generateRelatedCardinalityTerms()
   const set<Node>& bags = d_state.getBags();
   for (const auto& pair : d_state.getCardinalityTerms())
   {
+    Assert(pair.first.getKind() == BAG_CARD);
+    // get the representative of the bag in the card term
     Node rep = d_state.getRepresentative(pair.first[0]);
-    Trace("bags-card") << "bag rep: " << rep << endl;
     // enumerate all bag terms that are related to the current bag
     for (const auto& bag : bags)
     {
@@ -142,8 +146,6 @@ void CardSolver::generateRelatedCardinalityTerms()
       {
         continue;
       }
-
-      Trace("bags-card") << "bag: " << bag << endl;
 
       eq::EqClassIterator it = eq::EqClassIterator(
           d_state.getRepresentative(bag), d_state.getEqualityEngine());
@@ -399,6 +401,8 @@ void CardSolver::checkDifferenceRemove(const std::pair<Node, Node>& pair,
                                        const Node& n)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
+  throw LogicException(
+      "Cardinality for BAG_DIFFERENCE_REMOVE is not implemented yet");
 }
 
 void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,

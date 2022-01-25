@@ -46,6 +46,11 @@ class InferenceGenerator
    *   (>= (bag.count e A) 0)
    */
   InferInfo nonNegativeCount(Node n, Node e);
+  /**
+   * @param n a node of integer type
+   * @return an inference that represents the following implication
+   * (>= n 0)
+   */
   InferInfo nonNegativeCardinality(Node n);
 
   /**

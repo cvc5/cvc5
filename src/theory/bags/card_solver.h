@@ -63,12 +63,23 @@ class CardSolver : protected EnvObj
  private:
   /**
    * Generate all cardinality terms needed in the cardinality graph.
-   * Example:
-   * If (bag.card B) is a term, and (bag.union_max A B) is a term, then
-   * the following cardinality terms would be added:
-   *  (bag.card (bag.union_max A B))
-   *  (bag.card A)
-   *  (bag.card (bag.inter_min A B))
+   * suppose (bag.card bag) is a term, and r is the representative of bag.
+   * Suppose A, B are bag terms and r in {A, B}.
+   * - If (bag.union_disjoint A B) is a term, add the following terms:
+   *   (bag.card A)
+   *   (bag.card B)
+   *   (bag.card (bag.union_disjoint A B))
+   * - If (bag.union_max A B) is a term, add the following terms:
+   *   (bag.card A)
+   *   (bag.card B)
+   *   (bag.card (bag.difference_subtract A B))
+   *   (bag.card (bag.inter_min A B))
+   *   (bag.card (bag.difference_subtract B A))
+   * - If (bag.difference_subtract A B) is a term, add the following terms:
+   *   (bag.card A)
+   *   (bag.card B)
+   *   (bag.card (bag.inter_min A B))
+   *   (bag.card (bag.difference_subtract A B))
    */
   void generateRelatedCardinalityTerms();
 
