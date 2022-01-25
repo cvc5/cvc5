@@ -201,8 +201,7 @@ if (WIN32)
 endif ()
 
 #-----------------------------------------------------------------------------#
-# Use mold or ld.gold if available
-
+# Use ld.gold if available
 
 execute_process(COMMAND ${CMAKE_C_COMPILER}
                 -fuse-ld=gold
@@ -212,24 +211,6 @@ if ("${LD_VERSION}" MATCHES "GNU gold")
   string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
   string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
   message(STATUS "Using GNU gold linker.")
-endif ()
-
-execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -B/usr/lib64/mold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "mold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -B/usr/lib64/mold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -B/usr/lib64/mold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -B/usr/lib64/mold")
-endif ()
-
-execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=mold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "mold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=mold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=mold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=mold")
 endif ()
 
 #-----------------------------------------------------------------------------#
