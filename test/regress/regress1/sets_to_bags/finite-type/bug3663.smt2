@@ -1,6 +1,0 @@
-(set-logic ALL)
-(set-option :fmf-bound true)
-(declare-sort a 0)
-(declare-const b (Bag a))
-(assert (= (bag.card b) 0))
-(check-sat)

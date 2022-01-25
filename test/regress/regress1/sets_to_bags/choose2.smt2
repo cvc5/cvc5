@@ -1,6 +1,0 @@
-(set-logic ALL)
-(set-info :status unsat)
-(set-option :produce-models true)
-(declare-fun A () (Bag Int))
-(assert (distinct (bag.choose A) (bag.choose A)))
-(check-sat)

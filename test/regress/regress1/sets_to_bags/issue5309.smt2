@@ -1,7 +1,0 @@
-(set-logic ALL)
-(set-info :status sat)
-(declare-const zero Int)
-(declare-fun A () (Bag Int))
-(assert (exists ((x Int)) (= A (bag x 1))))
-(assert (>= (bag.count (- zero) A) 1))
-(check-sat)

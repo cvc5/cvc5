@@ -1,8 +1,0 @@
-(set-logic ALL)
-(set-option :fmf-bound true)
-(set-info :status unsat)
-(declare-fun st1 () (Bag Int))
-(declare-fun st7 () (Bag Int))
-(assert (> 0 (bag.card (bag.inter_min st1 (bag.union_disjoint st7 st1)))))
-(assert (bag.subbag st1 st7))
-(check-sat)
