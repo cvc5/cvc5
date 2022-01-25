@@ -42,6 +42,7 @@ author = 'The authors of cvc5'
 extensions = [
         'breathe',
         'sphinx.ext.autodoc',
+        'sphinx.ext.mathjax',
         'sphinx.ext.autosectionlabel',
         'sphinxcontrib.bibtex',
         'sphinxcontrib.programoutput',
@@ -141,6 +142,7 @@ ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
 if tags.has('bindings_java'):
         html_extra_path.append('${CMAKE_BINARY_DIR}/docs/api/java/build/')
 
+"mathjax_path = 'http://cdn.mathjax.org/mathjax/latest/MathJax.js'"
 
 # -- SMT-LIB syntax highlighting ---------------------------------------------
 from smtliblexer import SmtLibLexer

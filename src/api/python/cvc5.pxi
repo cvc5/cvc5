@@ -1977,7 +1977,8 @@ cdef class Solver:
         return assertions
 
     def getInfo(self, str flag):
-        """Get info from the solver.
+        """
+        Get info from the solver.
 
         SMT-LIB:
 
@@ -2005,8 +2006,7 @@ cdef class Solver:
         return self.csolver.getOption(option.encode())
 
     def getOptionNames(self):
-       """Get all option names that can be used with `setOption`, `getOption`
-       and `getOptionInfo`.
+       """Get all option names that can be used with `setOption`, `getOption` and `getOptionInfo`.
        :return: all option names
        """
        result = []
@@ -2056,13 +2056,11 @@ cdef class Solver:
         return core
 
     def getDifficulty(self):
-        """Get a difficulty estimate for an asserted formula. 
-            This method is intended to be called immediately after 
+        """
+            Get a difficulty estimate for an asserted formula. This method is intended to be called immediately after 
             any response to a checkSat.
 
-            :return: a map from (a subset of) the input assertions to
-            a real value that is an estimate of how difficult each assertion was to solver.
-            Unmentioned assertions can be assumed to have zero difficulty.
+            :return: a map from (a subset of) the input assertions to a real value that is an estimate of how difficult each assertion was to solver. Unmentioned assertions can be assumed to have zero difficulty.
         """
         diffi = {}
         for p in self.csolver.getDifficulty():
@@ -2161,16 +2159,16 @@ cdef class Solver:
         are LRA and LIA.
         
         :param q: a quantified formula of the form
-                @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
+                :math:`Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)'
                 where
-                @f$Q\bar{x}@f$ is a set of quantified variables of the form
-                @f$Q x_1...x_k@f$ and
-                @f$P( x_1...x_i, y_1...y_j )@f$ is a quantifier-free formula
-        :return: a formula @f$\phi@f$  such that, given the current set of formulas
-               @f$A@f$ asserted to this solver:
-               - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
-               - @f$\phi@f$ is quantifier-free formula containing only free
-                 variables in @f$y_1...y_n@f$.
+                :math:'Q\bar{x}' is a set of quantified variables of the form
+                :math:'Q x_1...x_k' and
+                :math:'P( x_1...x_i, y_1...y_j )' is a quantifier-free formula
+        :return: a formula :math:'\phi'  such that, given the current set of formulas
+               :math:'A asserted to this solver:
+               - :math:'(A \wedge q)' :math:'(A \wedge \phi)' are equivalent
+               - :math:'\phi' is quantifier-free formula containing only free
+                 variables in :math:'y_1...y_n'.
         """
         cdef Term result = Term(self)
         result.cterm = self.csolver.getQuantifierElimination(term.cterm)
