@@ -1,7 +1,0 @@
-(set-logic ALL)
-(set-info :status sat)
-(set-option :fmf-bound true)
-(declare-fun S () (Bag Int))
-(assert (>= (bag.card S) 3))
-(assert (not (>= (bag.count 1 S) 1)))
-(check-sat)

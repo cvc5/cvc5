@@ -1,7 +1,0 @@
-(set-option :produce-models true)
-(set-logic QF_ALL)
-(set-info :status sat)
-(declare-fun X () (Bag Int))
-(assert (= X (bag.union_disjoint (bag 1 1) (bag.union_disjoint (bag 2 1) (bag 3 1)))))
-(check-sat)
-;(get-model)
