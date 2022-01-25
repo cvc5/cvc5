@@ -41,6 +41,7 @@ class CardSolver : protected EnvObj
   CardSolver(Env& env, SolverState& s, InferenceManager& im);
   ~CardSolver();
 
+  /** clear all data structures */
   void reset();
 
   /**
@@ -86,15 +87,44 @@ class CardSolver : protected EnvObj
                                const Node& n);
   /** apply inference rules for difference remove */
   void checkDifferenceRemove(const std::pair<Node, Node>& pair, const Node& n);
-  /** apply inference rules for leaves in the cardinality graph
+  /**
+   * This function propagates minsize constraints for a leaf bag and related
+   * elements.
+   * Example If bag A is a leaf and {e1, ... , en} are elements, then this
+   * function adds the following lemmas:
+   * - (<= (bag.count e1 A) (bag.card A))
+   * - (<= (bag.count e2 A) (bag.card A))
+   *   ...
+   * - (<= (bag.count en A) (bag.card A))
+   *   (=> (distinct e1 e2)
+   *       (<= (+ (bag.count e1 A) (bag.count e2 A))
+   *           (bag.card A)))
    *
+   * - (=> (distinct e1 e2)
+   *       (<= (+ (bag.count e1 A) (bag.count e2 A))
+   *           (bag.card A)))
+   *
+   * - (=> (distinct e1 e2 e3)
+   *      (<= (+ (bag.count e1 A) (bag.count e2 A) (bag.count e3 A))
+   *          (bag.card A)))
+   *
+   * - (=> (distinct e1 ... en)
+   *     (<= (+ (bag.count e1 A) ... (bag.count en A))
+   *         (bag.card A)))
    */
   void checkLeafBag(const std::pair<Node, Node>& pair, const Node& bag);
+  /**
+   * This function updates cardinality graph by adding parent and its children
+   * to the graph. It also adds necessary lemmas when the premise holds.
+   * @param premise a node of boolean type
+   * @param parent a bag term
+   * @param children a set of bag nodes whose disjoint union is the parent when
+   * the premise holds
+   */
   void addChildren(const Node& premise,
                    const Node& parent,
                    const std::set<Node>& children);
-  void mergeChildren(const std::set<Node>& set1, const std::set<Node>& set2);
-  std::set<Node> getLeaves(const std::set<Node>& set);
+
   /** The solver state object */
   SolverState& d_state;
   /** The inference generator object*/

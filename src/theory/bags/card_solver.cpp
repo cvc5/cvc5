@@ -328,14 +328,12 @@ void CardSolver::addChildren(const Node& premise,
     }
     else
     {
-      // merge with the first set
       const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
       d_cardGraph[parent].insert(children);
       Trace("bags-card") << "CardSolver::mergeChildren set1: " << oldChildren
                          << std::endl;
       Trace("bags-card") << "CardSolver::mergeChildren set2: " << children
                          << std::endl;
-      // Assert(false) << "merge is needed" << std::endl;
       // reduce the parent bag
       Node card = d_nm->mkNode(BAG_CARD, parent);
       std::vector<Node> asserts;
@@ -435,42 +433,6 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
       }
     }
   }
-}
-
-void CardSolver::mergeChildren(const set<Node>& set1, const set<Node>& set2)
-{
-  Trace("bags-card") << "CardSolver::mergeChildren set1: " << set1 << std::endl;
-  Trace("bags-card") << "CardSolver::mergeChildren set2: " << set2 << std::endl;
-  std::set<Node> leaves1 = getLeaves(set1);
-  Trace("bags-card") << "leaves1: " << leaves1 << std::endl;
-  std::set<Node> leaves2 = getLeaves(set2);
-  Trace("bags-card") << "leaves2: " << leaves2 << std::endl;
-
-  for (Node n1 : leaves1)
-  {
-    std::set<Node> children;
-    for (Node n2 : leaves2)
-    {
-      Node inter = n1 <= n2 ? d_nm->mkNode(BAG_INTER_MIN, n1, n2)
-                            : d_nm->mkNode(BAG_INTER_MIN, n2, n1);
-      d_state.registerBag(inter);
-      Node rep = d_state.getRepresentative(inter);
-      children.insert(rep);
-    }
-    Trace("bags-card") << "new leaves: " << children << std::endl;
-  }
-}
-std::set<Node> CardSolver::getLeaves(const set<Node>& set)
-{
-  std::set<Node> leaves;
-  for (Node n : set)
-  {
-    if (d_cardGraph[n].empty())
-    {
-      leaves.insert(n);
-    }
-  }
-  return leaves;
 }
 
 }  // namespace bags
