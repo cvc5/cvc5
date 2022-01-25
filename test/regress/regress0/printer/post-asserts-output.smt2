@@ -2,7 +2,6 @@
 ; SCRUBBER: grep -E '\(assert'
 ; EXPECT: (assert true)
 ; EXPECT: (assert true)
-; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () Int)
 (assert (= x x))
