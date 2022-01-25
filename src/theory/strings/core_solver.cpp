@@ -1313,8 +1313,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Trace("strings-solve-debug")
           << "Simple Case 2 : string lengths are equal" << std::endl;
       Node eq = x.eqNode(y);
-      Node leneq = xLenTerm.eqNode(yLenTerm);
-      lenExp.push_back(leneq);
+      d_im.addToExplanation(xLenTerm, yLenTerm, lenExp);
       // set the explanation for length
       Node lant = utils::mkAnd(lenExp);
       ant.push_back(lant);
