@@ -194,7 +194,8 @@ class InferenceGenerator
    */
   InferInfo cardBagMake(const std::pair<Node, Node>& pair, Node n);
   /**
-   * @param premise a boolean node
+   * @param premise a boolean node explains why parent equals the disjoint union
+   * of its children
    * @param parent a bag term
    * @param children (child_1, ... child_n) nonempty set of bag terms
    * @return an inference that represents the following implication

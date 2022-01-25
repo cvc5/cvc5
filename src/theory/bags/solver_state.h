@@ -48,7 +48,10 @@ class SolverState : public TheoryState
   Node registerCountTerm(TNode n);
 
   /**
+   * This function a skolem variable for the given card term and stores both of
+   * them in a cache.
    * @param n has the form (bag.card A)
+   * @return a lemma that the card term equals the skolem variable
    */
   Node registerCardinalityTerm(TNode n);
 
@@ -67,6 +70,7 @@ class SolverState : public TheoryState
 
   /**
    * get all cardinality terms
+   * @return a map from registered card terms to their skolem variables
    */
   const std::map<Node, Node>& getCardinalityTerms();
 

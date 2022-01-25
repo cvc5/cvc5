@@ -111,14 +111,10 @@ class CardSolver : protected EnvObj
    *       (<= (+ (bag.count e1 A) (bag.count e2 A))
    *           (bag.card A)))
    *
-   * - (=> (distinct e1 e2)
-   *       (<= (+ (bag.count e1 A) (bag.count e2 A))
-   *           (bag.card A)))
-   *
    * - (=> (distinct e1 e2 e3)
    *      (<= (+ (bag.count e1 A) (bag.count e2 A) (bag.count e3 A))
    *          (bag.card A)))
-   *
+   *   ...
    * - (=> (distinct e1 ... en)
    *     (<= (+ (bag.count e1 A) ... (bag.count en A))
    *         (bag.card A)))
