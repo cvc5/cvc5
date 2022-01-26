@@ -173,6 +173,35 @@ std::vector<Node> collectSum(
   return children;
 }
 
+std::vector<Node> collectSum(
+    const Sum& sum,
+    const RealAlgebraicNumber& basemultiplicity,
+    const std::vector<Node>& baseproduct
+)
+{
+  if (sum.sum.empty()) return {};
+  // construct the sum as nodes.
+  std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
+  for (const auto& summand : sum.sum)
+  {
+    Assert(!isZero(summand.second));
+    RealAlgebraicNumber mult = summand.second * basemultiplicity;
+    std::vector<Node> product = baseproduct;
+    rewriter::addToProduct(product, mult, summand.first);
+    std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
+    summands.emplace_back(mkMult(std::move(product)), mult);
+  }
+  std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
+    return ProductNodeComparator()(a.first, b.first);
+  });
+  std::vector<Node> children;
+  for (const auto& s : summands)
+  {
+    children.emplace_back(mkMultTerm(s.second, s.first));
+  }
+  return children;
+}
+
 }
 
 #endif
