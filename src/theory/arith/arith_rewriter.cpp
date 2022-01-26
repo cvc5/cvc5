@@ -174,7 +174,7 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebr
   }
 }
 
-RealAlgebraicNumber rmConstFromDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum)
+[[maybe_unused]] RealAlgebraicNumber rmConstFromDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum)
 {
   RealAlgebraicNumber res;
   auto* nm = NodeManager::currentNM();
