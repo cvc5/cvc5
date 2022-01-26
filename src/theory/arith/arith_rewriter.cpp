@@ -23,6 +23,7 @@
 #include <stack>
 #include <vector>
 
+#include "expr/algorithms/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -42,7 +43,6 @@ namespace arith {
 
 namespace {
 
-/** Evaluate the given relation based on values l and r */
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
 {
@@ -56,63 +56,6 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     default: Unreachable(); return false;
   }
 }
-
-/** Flatten the given node (with child nodes of the same kind) into a vector */
-void flatten(TNode t, std::vector<TNode>& children)
-{
-  Kind k = t.getKind();
-  for (const auto& child : t)
-  {
-    if (child.getKind() == k)
-    {
-      flatten(child, children);
-    }
-    else
-    {
-      children.emplace_back(child);
-    }
-  }
-}
-
-/**
- * Flatten the given node (with child nodes of one of the given kinds) into a
- * vector.
- */
-[[maybe_unused]] void flatten(TNode t,
-                              Kind k1,
-                              Kind k2,
-                              std::vector<TNode>& children)
-{
-  Assert(t.getKind() == k1 || t.getKind() == k2);
-  for (const auto& child : t)
-  {
-    if (child.getKind() == k1 || child.getKind() == k2)
-    {
-      flatten(child, k1, k2, children);
-    }
-    else
-    {
-      children.emplace_back(child);
-    }
-  }
-}
-
-/** Flatten the given node (with child nodes of the same kind) */
-Node flatten(TNode t)
-{
-  Kind k = t.getKind();
-  bool canFlatten = std::any_of(
-      t.begin(), t.end(), [k](TNode child) { return child.getKind() == k; });
-  if (!canFlatten)
-  {
-    return t;
-  }
-  std::vector<TNode> children;
-  flatten(t, children);
-  Assert(children.size() >= 2);
-  return NodeManager::currentNM()->mkNode(t.getKind(), std::move(children));
-}
-
 }  // namespace
 
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
@@ -511,7 +454,7 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-  return RewriteResponse(REWRITE_DONE, flatten(t));
+  return RewriteResponse(REWRITE_DONE, expr::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
@@ -519,7 +462,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getNumChildren() > 1);
 
   {
-    Node flat = flatten(t);
+    Node flat = expr::flatten(t);
     if (flat != t)
     {
       return RewriteResponse(REWRITE_AGAIN, flat);
