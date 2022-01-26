@@ -42,7 +42,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     EXPECT_EQ(expr::flatten(n, Kind::PLUS), n);
     EXPECT_EQ(expr::flatten(n, Kind::MULT), n);
     EXPECT_EQ(expr::flatten(n, Kind::PLUS, Kind::MULT), n);
-    
+
     {
       std::vector<TNode> children;
       expr::flatten(n, children);
@@ -73,7 +73,8 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
   }
   {
     Node x = d_nodeManager->mkBoundVar(*d_realTypeNode);
-    Node n = d_nodeManager->mkNode(Kind::PLUS, x, d_nodeManager->mkNode(Kind::PLUS, x, x));
+    Node n = d_nodeManager->mkNode(
+        Kind::PLUS, x, d_nodeManager->mkNode(Kind::PLUS, x, x));
     EXPECT_TRUE(expr::canFlatten(n));
     EXPECT_TRUE(expr::canFlatten(n, Kind::PLUS));
     EXPECT_FALSE(expr::canFlatten(n, Kind::MULT));
@@ -82,7 +83,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     EXPECT_NE(expr::flatten(n, Kind::PLUS), n);
     EXPECT_EQ(expr::flatten(n, Kind::MULT), n);
     EXPECT_NE(expr::flatten(n, Kind::PLUS, Kind::MULT), n);
-    
+
     {
       std::vector<TNode> children;
       expr::flatten(n, children);
@@ -116,7 +117,8 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
   }
   {
     Node x = d_nodeManager->mkBoundVar(*d_realTypeNode);
-    Node n = d_nodeManager->mkNode(Kind::PLUS, x, d_nodeManager->mkNode(Kind::MULT, x, x));
+    Node n = d_nodeManager->mkNode(
+        Kind::PLUS, x, d_nodeManager->mkNode(Kind::MULT, x, x));
     EXPECT_FALSE(expr::canFlatten(n));
     EXPECT_FALSE(expr::canFlatten(n, Kind::PLUS));
     EXPECT_FALSE(expr::canFlatten(n, Kind::MULT));
@@ -125,7 +127,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     EXPECT_EQ(expr::flatten(n, Kind::PLUS), n);
     EXPECT_EQ(expr::flatten(n, Kind::MULT), n);
     EXPECT_NE(expr::flatten(n, Kind::PLUS, Kind::MULT), n);
-    
+
     {
       std::vector<TNode> children;
       expr::flatten(n, children);
