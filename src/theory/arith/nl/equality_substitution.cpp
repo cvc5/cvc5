@@ -68,7 +68,9 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
         if (l.isConst()) continue;
         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
         if (d_substitutions->hasSubstitution(l)) continue;
-        if (expr::hasSubterm(r, l, true)) continue;
+        if (expr::hasSubterm(r, l)) continue;
+        d_substitutions->invalidateCache();
+        if (expr::hasSubterm(d_substitutions->apply(r), l)) continue;
         Trace("nl-eqs") << "Found substitution " << l << " -> " << r
                         << std::endl
                         << " from " << o << " / " << orig << std::endl;
