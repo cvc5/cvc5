@@ -125,21 +125,21 @@ void addToSum(Sum& sum, TNode n, bool negate = false)
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
   auto* nm = NodeManager::currentNM();
+  if (monomial.isConst())
+  {
+      if (multiplicity.isRational())
+      {
+        return nm->mkConstReal(multiplicity.toRational() * monomial.getConst<Rational>());
+      }
+      return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
+  }
   if (multiplicity.isRational())
   {
     if (isOne(multiplicity))
     {
       return monomial;
     }
-    if (monomial.isConst())
-    {
-      return nm->mkConstReal(multiplicity.toRational() * monomial.getConst<Rational>());
-    }
     return nm->mkNode(Kind::MULT, nm->mkConstReal(multiplicity.toRational()), monomial);
-  }
-  if (monomial.isConst())
-  {
-    return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
   }
   std::vector<Node> prod;
   prod.emplace_back(nm->mkRealAlgebraicNumber(multiplicity));
