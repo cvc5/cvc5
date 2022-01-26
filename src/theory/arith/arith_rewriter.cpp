@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
+#include "expr/algorithms/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -36,7 +37,6 @@
 #include "util/iand.h"
 #include "util/real_algebraic_number.h"
 #include "theory/arith/rewriter/addition.h"
-#include "theory/arith/rewriter/flatten.h"
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
@@ -776,7 +776,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
   Assert(t.getKind() == kind::PLUS);
-  return RewriteResponse(REWRITE_DONE, rewriter::flatten(t));
+  return RewriteResponse(REWRITE_DONE, expr::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t)
@@ -785,7 +785,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   Assert(t.getNumChildren() > 1);
 
   std::vector<TNode> children;
-  rewriter::flatten(t, children);
+  expr::flatten(t, children);
 
   rewriter::Sum sum;
   for (const auto& child : children)
@@ -812,7 +812,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getNumChildren() >= 2);
 
   std::vector<TNode> children;
-  rewriter::flattenMultiplication(t, children);
+  expr::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
 
   if (auto res = getZeroChild(children); res)
   {
