@@ -402,11 +402,12 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable)
   Assert(!is_none(v)) << "Can not convert none.";
   Assert(!is_plus_infinity(v)) << "Can not convert plus infinity.";
 
+  auto* nm = NodeManager::currentNM();
   if (is_algebraic_number(v))
   {
-    return ran_to_node(as_algebraic_number(v), ran_variable);
+    auto ran = as_algebraic_number(v);
+    return nm->mkRealAlgebraicNumber(RealAlgebraicNumber(std::move(ran)));
   }
-  auto* nm = NodeManager::currentNM();
   if (is_dyadic_rational(v))
   {
     return nm->mkConst(CONST_RATIONAL,

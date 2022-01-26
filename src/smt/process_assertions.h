@@ -111,6 +111,10 @@ class ProcessAssertions : protected EnvObj
    * assertions:`key` if it is enabled.
    */
   void dumpAssertions(const std::string& key, Assertions& as);
+  /**
+   * Dump assertions to stream os using the print benchmark utility.
+   */
+  void dumpAssertionsToStream(std::ostream& os, Assertions& as);
   /** apply pass */
   preprocessing::PreprocessingPassResult applyPass(const std::string& pass,
                                                    Assertions& as);

@@ -417,6 +417,10 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_NTH_UPDATE";
     case InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE:
       return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
+    case InferenceId::STRINGS_ARRAY_UPDATE_BOUND:
+      return "STRINGS_ARRAY_UPDATE_BOUND";
+    case InferenceId::STRINGS_ARRAY_EQ_SPLIT:
+	  return "STRINGS_ARRAY_EQ_SPLIT";
     case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
       return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
