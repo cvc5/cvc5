@@ -1642,6 +1642,7 @@ set(regress_1_tests
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
+  regress1/bags/card3.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -1651,6 +1652,7 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
