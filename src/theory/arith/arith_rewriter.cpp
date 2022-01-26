@@ -120,45 +120,6 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
 }
 
 /**
- * Adds a factor n to a product, consisting of the numerical multiplicity and
- * the remaining (non-numerical) factors. If n is a product itself, its children
- * are merged into a product. If n is a constant or a real algebraic number, it
- * is multiplied to the multiplicity. Otherwise, n is added to product.
- *
- * Invariant:
- *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
- */
-void addToDistProduct(std::vector<Node>& product,
-                      RealAlgebraicNumber& multiplicity,
-                      TNode n)
-{
-  switch (n.getKind())
-  {
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      for (const auto& child : n)
-      {
-        // make sure constants are properly extracted.
-        // recursion is safe, as mult is already flattened
-        addToDistProduct(product, multiplicity, child);
-      }
-      break;
-    case Kind::REAL_ALGEBRAIC_NUMBER:
-      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
-      break;
-    default:
-      if (n.isConst())
-      {
-        multiplicity *= n.getConst<Rational>();
-      }
-      else
-      {
-        product.emplace_back(n);
-      }
-  }
-}
-
-/**
  * Add a new summand, consisting of the product and the multiplicity, to a sum
  * as used in the distribution of multiplication. Either adds the summand as a
  * new entry to sum, or adds the multiplicity to an already existing summand.
@@ -202,7 +163,7 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebr
   {
     multiplicity = Integer(-1);
   }
-  addToDistProduct(monomial, multiplicity, n);
+  rewriter::addToProduct(monomial, multiplicity, n);
   if (monomial.empty())
   {
     base += multiplicity;
@@ -258,8 +219,7 @@ std::vector<Node> distSumToSum(
     const std::optional<RealAlgebraicNumber>& basemultiplicity,
     const std::vector<Node>& baseproduct,
     const std::unordered_map<Node, RealAlgebraicNumber>& sum,
-    RealAlgebraicNumber* normalizeConstant = nullptr,
-    bool* negativeLCoeff = nullptr)
+    RealAlgebraicNumber* normalizeConstant = nullptr)
 {
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
@@ -269,7 +229,7 @@ std::vector<Node> distSumToSum(
     RealAlgebraicNumber mult = summand.second;
     if (basemultiplicity) mult *= *basemultiplicity;
     std::vector<Node> product = baseproduct;
-    addToDistProduct(product, mult, summand.first);
+    rewriter::addToProduct(product, mult, summand.first);
     std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
     summands.emplace_back(mkMult(std::move(product)), mult);
   }
@@ -284,14 +244,7 @@ std::vector<Node> distSumToSum(
     RealAlgebraicNumber lcoeff = summands.front().second;
     if (sgn(lcoeff) < 0)
     {
-      if (negativeLCoeff != nullptr)
-      {
-        *negativeLCoeff = true;
-      }
-      else
-      {
         lcoeff = -lcoeff;
-      }
     }
     Trace("arith-rewriter-debug") << "Normalizing based on " << lcoeff << std::endl;
     if (!isOne(lcoeff))
@@ -363,7 +316,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
     if (factor.getKind() != Kind::PLUS)
     {
       Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
-      addToDistProduct(base, basemultiplicity, factor);
+      rewriter::addToProduct(base, basemultiplicity, factor);
       continue;
     }
     // temporary to store factor * sum, will be moved to sum at the end
@@ -827,14 +780,15 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   // base factors).
   RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
+  rewriter::Sum rsum;
 
   for (const auto& child : children)
   {
-    addToDistSum(sum, base, child);
+    rewriter::addToSum(rsum, child);
   }
 
   auto* nm = NodeManager::currentNM();
-  std::vector<Node> summands = distSumToSum(std::nullopt, {}, sum);
+  std::vector<Node> summands = rewriter::collectSum(rsum);
   if (summands.empty())
   {
     if (base.isRational())

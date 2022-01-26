@@ -76,6 +76,14 @@ struct ProductNodeComparator
   {
     if (a == b) return false;
 
+    bool aIsConst = a.isConst();
+    bool bIsConst = b.isConst();
+    if (aIsConst != bIsConst) return aIsConst;
+
+    bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    if (aIsRAN != bIsRAN) return aIsRAN;
+
     Assert(a.getKind() != Kind::MULT);
     Assert(b.getKind() != Kind::MULT);
 

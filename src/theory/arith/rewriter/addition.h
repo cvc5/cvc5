@@ -23,6 +23,7 @@
 #include "base/check.h"
 #include "expr/node.h"
 #include "theory/arith/rewriter/node_utils.h"
+#include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
 namespace cvc5::theory::arith::rewriter {
@@ -85,6 +86,7 @@ void addToSum(Sum& sum,
                   TNode product,
                   const RealAlgebraicNumber& multiplicity)
 {
+  if (isZero(multiplicity)) return;
   auto it = sum.sum.find(product);
   if (it == sum.sum.end())
   {
@@ -118,6 +120,57 @@ void addToSum(Sum& sum, TNode n, bool negate = false)
   }
   addToProduct(monomial, multiplicity, n);
   addToSum(sum, mkMult(std::move(monomial)), multiplicity);
+}
+
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
+{
+  auto* nm = NodeManager::currentNM();
+  if (multiplicity.isRational())
+  {
+    if (isOne(multiplicity))
+    {
+      return monomial;
+    }
+    if (monomial.isConst())
+    {
+      return nm->mkConstReal(multiplicity.toRational() * monomial.getConst<Rational>());
+    }
+    return nm->mkNode(Kind::MULT, nm->mkConstReal(multiplicity.toRational()), monomial);
+  }
+  if (monomial.isConst())
+  {
+    return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
+  }
+  std::vector<Node> prod;
+  prod.emplace_back(nm->mkRealAlgebraicNumber(multiplicity));
+  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  return mkMult(std::move(prod));
+}
+
+/**
+ * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
+ * given as list of terms suitable to be passed to mkSum().
+ */
+std::vector<Node> collectSum(
+    const Sum& sum)
+{
+  if (sum.sum.empty()) return {};
+  // construct the sum as nodes.
+  std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
+  for (const auto& summand : sum.sum)
+  {
+    Assert(!isZero(summand.second));
+    summands.emplace_back(summand.first, summand.second);
+  }
+  std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
+    return ProductNodeComparator()(a.first, b.first);
+  });
+  std::vector<Node> children;
+  for (const auto& s : summands)
+  {
+    children.emplace_back(mkMultTerm(s.second, s.first));
+  }
+  return children;
 }
 
 }
