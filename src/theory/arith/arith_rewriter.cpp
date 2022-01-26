@@ -56,6 +56,7 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     default: Unreachable(); return false;
   }
 }
+
 }  // namespace
 
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
