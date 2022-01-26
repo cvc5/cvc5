@@ -196,6 +196,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
           Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
           elseBranch = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
           iid = InferenceId::STRINGS_ARRAY_NTH_UNIT;
+          d_currTerms[k].push_back(t);
         }
         std::vector<Node> exp;
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
