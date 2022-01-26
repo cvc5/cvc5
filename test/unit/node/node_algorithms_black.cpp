@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of expr/algorithms/*.{h,cpp}
+ * Black box testing of expr/algorithms/
  */
 
 #include "base/output.h"
