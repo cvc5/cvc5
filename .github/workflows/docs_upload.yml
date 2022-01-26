@@ -13,21 +13,10 @@ jobs:
     continue-on-error: true
     if: github.repository == 'cvc5/cvc5' && github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Setup Deploy Key
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
-            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
-
-      - name: Clone Documentation Repository
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      - name: Setup git config
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
-          git clone git@github.com:cvc5/docs-ci.git target/
       
       - name: Download artifact
         uses: actions/github-script@v3.1.0
@@ -81,10 +70,12 @@ jobs:
 
       - name: Update docs
         continue-on-error: true
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           if [ -n "$NAME" ]; then
+            eval $(ssh-agent -s)
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
+            git clone git@github.com:cvc5/docs-ci.git target/
             cp -r docs-new target/docs-$NAME-$HASH
             cd target/
 
@@ -110,10 +101,11 @@ jobs:
 
       - name: Update docs for release
         continue-on-error: true
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           if [ "$ISTAG" = true ]; then
+            eval $(ssh-agent -s)
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
+
             git clone git@github.com:cvc5/docs-releases.git target-releases/
             cp -r docs-new target-releases/$NAME
             cd target-releases/
