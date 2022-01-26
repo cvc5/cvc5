@@ -512,13 +512,34 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     default: break;
   }
 
-  RealAlgebraicNumber base;
-  std::unordered_map<Node, RealAlgebraicNumber> sum;
-  addToDistSum(sum, base, left, negate);
-  addToDistSum(sum, base, right, !negate);
+  rewriter::Sum rsum;
+  rewriter::addToSum(rsum, left, negate);
+  rewriter::addToSum(rsum, right, !negate);
+  
+  rewriter::normalize::LCoeffAbsOne normalizer;
+  std::vector<Node> children = rewriter::collectSum(rsum, &normalizer);
 
-  Node newleft = mkSum(distSumToSum(std::nullopt, {}, sum, &base));
-  Node newright = base.isRational() ? nm->mkConstReal(-base.toRational()) : nm->mkRealAlgebraicNumber(-base);
+  Node newleft;
+  Node newright;
+  if (children.empty())
+  {
+    newright = nm->mkConstReal(Rational(0));
+  }
+  else if (children.front().isConst())
+  {
+    newright = nm->mkConstReal(-children.front().getConst<Rational>());
+    children.erase(children.begin());
+  }
+  else if (children.front().getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    newright = nm->mkRealAlgebraicNumber(-children.front().getOperator().getConst<RealAlgebraicNumber>());
+    children.erase(children.begin());
+  }
+  else
+  {
+    newright = nm->mkConstReal(Rational(0));
+  }
+  newleft = mkSum(std::move(children));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, newleft, newright); response)
   {

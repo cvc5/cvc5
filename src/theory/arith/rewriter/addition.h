@@ -147,12 +147,56 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   return mkMult(std::move(prod));
 }
 
+namespace normalize
+{
+
+struct NoNormalize
+{
+    void operator()(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum) {}
+};
+
+struct LCoeffAbsOne
+{
+    void operator()(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
+    {
+        if (sum.empty()) return;
+        if (sum.size() == 1)
+        {
+            // Trivial if there is only one summand
+            sum.front().second = Integer(sgn(sum.front().second) > 0 ? 1 : -1);
+            return;
+        }
+        // LCoeff is first coefficient of non-constant monomial
+        RealAlgebraicNumber lcoeff;
+        if (sum.front().first.isConst())
+        {
+            lcoeff = sum[1].second;
+        }
+        else
+        {
+            lcoeff = sum.front().second;
+        }
+        if (sgn(lcoeff) < 0)
+        {
+            lcoeff = -lcoeff;
+        }
+        if (isOne(lcoeff)) return;
+        for (auto& s: sum)
+        {
+            s.second = s.second / lcoeff;
+        }
+    }
+};
+
+}
 /**
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
+template<typename Normalizer = normalize::NoNormalize>
 std::vector<Node> collectSum(
-    const Sum& sum)
+    const Sum& sum,
+    Normalizer* normalizer = nullptr)
 {
   if (sum.sum.empty()) return {};
   // construct the sum as nodes.
@@ -165,6 +209,10 @@ std::vector<Node> collectSum(
   std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
     return ProductNodeComparator()(a.first, b.first);
   });
+  if (normalizer != nullptr)
+  {
+      (*normalizer)(summands);
+  }
   std::vector<Node> children;
   for (const auto& s : summands)
   {
@@ -201,6 +249,7 @@ std::vector<Node> collectSum(
   }
   return children;
 }
+
 
 }
 
