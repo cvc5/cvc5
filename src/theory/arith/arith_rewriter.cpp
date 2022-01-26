@@ -775,42 +775,12 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   std::vector<TNode> children;
   rewriter::flatten(t, children);
 
-  // maps products to their (possibly real algebraic) multiplicities.
-  // The current (intermediate) value is the sum of these (multiplied by the
-  // base factors).
-  RealAlgebraicNumber base;
-  std::unordered_map<Node, RealAlgebraicNumber> sum;
-  rewriter::Sum rsum;
-
+  rewriter::Sum sum;
   for (const auto& child : children)
   {
-    rewriter::addToSum(rsum, child);
+    rewriter::addToSum(sum, child);
   }
-
-  auto* nm = NodeManager::currentNM();
-  std::vector<Node> summands = rewriter::collectSum(rsum);
-  if (summands.empty())
-  {
-    if (base.isRational())
-    {
-      return RewriteResponse(REWRITE_DONE, nm->mkConstReal(base.toRational()));
-    }
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(base));
-  }
-  if (!isZero(base))
-  {
-    if (base.isRational())
-    {
-      //summands.emplace_back(nm->mkConstReal(base.toRational()));
-      summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
-    }
-    else
-    {
-      //summands.emplace_back(nm->mkRealAlgebraicNumber(base));
-      summands.insert(summands.begin(), nm->mkRealAlgebraicNumber(base));
-    }
-  }
-  return RewriteResponse(REWRITE_DONE, mkSum(std::move(summands)));
+  return RewriteResponse(REWRITE_DONE, mkSum(rewriter::collectSum(sum)));
 }
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode node)
