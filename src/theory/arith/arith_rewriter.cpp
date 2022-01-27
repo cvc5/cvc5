@@ -518,7 +518,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   auto summands = gatherSummands(rsum);
   rewriter::normalize::LCoeffAbsOne(summands);
-  std::vector<Node> children = rewriter::collectSum(rsum);
+  std::vector<Node> children = rewriter::collectSum(summands);
 
   Node newleft;
   Node newright;
