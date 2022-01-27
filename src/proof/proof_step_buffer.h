@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& out, ProofStep step);
 class ProofStepBuffer
 {
  public:
-  ProofStepBuffer(ProofChecker* pc = nullptr);
+  ProofStepBuffer(ProofChecker* pc = nullptr, bool ensureUnique=false);
   ~ProofStepBuffer() {}
   /**
    * Returns the conclusion of the proof step, as determined by the proof
@@ -91,6 +91,10 @@ class ProofStepBuffer
   ProofChecker* d_checker;
   /** the queued proof steps */
   std::vector<std::pair<Node, ProofStep>> d_steps;
+  /** Whether we are ensuring the conclusions in the buffer are unique */
+  bool d_ensureUnique;
+  /** The set of conclusions in steps */
+  std::unordered_set<Node> d_allSteps;
 };
 
 }  // namespace cvc5

@@ -73,7 +73,8 @@ bool InferProofCons::addProofTo(CDProof* pf,
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
   ProofStep ps;
-  TheoryProofStepBuffer psb(pf->getManager()->getChecker());
+  // ensure proof steps are unique
+  TheoryProofStepBuffer psb(pf->getManager()->getChecker(), true);
   // run the conversion
   convert(infer, isRev, conc, exp, ps, psb, useBuffer);
   // make the proof based on the step or the buffer
@@ -146,6 +147,10 @@ void InferProofCons::convert(InferenceId infer,
     // store the index in the flattened vector
     startExpIndex.push_back(ps.d_children.size());
     utils::flattenOp(AND, ec, ps.d_children);
+  }
+  for (const Node& ec : ps.d_children)
+  {
+    psb.addStep(PfRule::ASSUME, {ec}, {}, ec);
   }
   // debug print
   if (Trace.isOn("strings-ipc-debug"))

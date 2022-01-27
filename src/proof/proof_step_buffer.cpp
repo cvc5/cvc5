@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& out, ProofStep step)
   return out;
 }
 
-ProofStepBuffer::ProofStepBuffer(ProofChecker* pc) : d_checker(pc) {}
+ProofStepBuffer::ProofStepBuffer(ProofChecker* pc, bool ensureUnique) : d_checker(pc), d_ensureUnique(ensureUnique) {}
 
 Node ProofStepBuffer::tryStep(PfRule id,
                               const std::vector<Node>& children,
@@ -64,8 +64,7 @@ Node ProofStepBuffer::tryStep(PfRule id,
   if (!res.isNull())
   {
     // add proof step
-    d_steps.push_back(
-        std::pair<Node, ProofStep>(res, ProofStep(id, children, args)));
+    addStep(id, children, args, res);
   }
   return res;
 }
@@ -75,6 +74,14 @@ void ProofStepBuffer::addStep(PfRule id,
                               const std::vector<Node>& args,
                               Node expected)
 {
+  if (d_ensureUnique)
+  {
+    if (d_allSteps.find(expected)!=d_allSteps.end())
+    {
+      return;
+    }
+    d_allSteps.insert(expected);
+  }
   d_steps.push_back(
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
 }
