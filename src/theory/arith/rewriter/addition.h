@@ -291,10 +291,10 @@ std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-std::vector<Node> collectSum(
+Node collectSum(
     const Sum& sum)
 {
-  if (sum.sum.empty()) return {};
+  if (sum.sum.empty()) return NodeManager::currentNM()->mkConstReal(Rational(0));
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands = gatherSummands(sum);
   std::vector<Node> children;
@@ -302,16 +302,16 @@ std::vector<Node> collectSum(
   {
     children.emplace_back(mkMultTerm(s.second, s.first));
   }
-  return children;
+  return mkSum(std::move(children));
 }
 
-std::vector<Node> collectSum(
+Node collectSum(
     const Sum& sum,
     const RealAlgebraicNumber& basemultiplicity,
     const std::vector<Node>& baseproduct
 )
 {
-  if (sum.sum.empty()) return {};
+  if (sum.sum.empty()) return NodeManager::currentNM()->mkConstReal(Rational(0));
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
   for (const auto& summand : sum.sum)
@@ -331,10 +331,10 @@ std::vector<Node> collectSum(
   {
     children.emplace_back(mkMultTerm(s.second, s.first));
   }
-  return children;
+  return mkSum(std::move(children));
 }
 
-std::vector<Node> collectSum(
+Node collectSum(
     const Summands& summands)
 {
   std::vector<Node> children;
@@ -342,7 +342,7 @@ std::vector<Node> collectSum(
   {
     children.emplace_back(mkMultTerm(s.second, s.first));
   }
-  return children;
+  return mkSum(std::move(children));
 }
 
 

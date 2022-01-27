@@ -89,19 +89,6 @@ Node mkMult(T&& factors)
   }
 }
 
-/** Make a sum from the given summands */
-template <typename T>
-Node mkSum(T&& summands)
-{
-  auto* nm = NodeManager::currentNM();
-  switch (summands.size())
-  {
-    case 0: return nm->mkConstInt(Rational(0));
-    case 1: return summands[0];
-    default: return nm->mkNode(Kind::PLUS, std::forward<T>(summands));
-  }
-}
-
 /**
  * Check whether the parent has a child that is a constant zero.
  * If so, return this child. Otherwise, return std::nullopt.
@@ -213,9 +200,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  std::vector<Node> children = rewriter::collectSum(rsum, basemultiplicity, base);
-
-  return mkSum(std::move(children));
+  return rewriter::collectSum(rsum, basemultiplicity, base);
 }
 
 }  // namespace
@@ -365,29 +350,18 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   auto summands = gatherSummands(rsum);
   rewriter::normalize::LCoeffAbsOne(summands);
-  std::vector<Node> children = rewriter::collectSum(summands);
+  RealAlgebraicNumber constant = rewriter::removeConstant(summands);
 
-  Node newleft;
   Node newright;
-  if (children.empty())
+  if (constant.isRational())
   {
-    newright = nm->mkConstReal(Rational(0));
-  }
-  else if (children.front().isConst())
-  {
-    newright = nm->mkConstReal(-children.front().getConst<Rational>());
-    children.erase(children.begin());
-  }
-  else if (children.front().getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-  {
-    newright = nm->mkRealAlgebraicNumber(-children.front().getOperator().getConst<RealAlgebraicNumber>());
-    children.erase(children.begin());
+    newright = nm->mkConstReal(-constant.toRational());
   }
   else
   {
-    newright = nm->mkConstReal(Rational(0));
+    newright = nm->mkRealAlgebraicNumber(-constant);
   }
-  newleft = mkSum(std::move(children));
+  Node newleft = rewriter::collectSum(summands);
 
   if (auto response = rewriter::tryEvaluateRelation(kind, newleft, newright); response)
   {
@@ -640,7 +614,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   {
     rewriter::addToSum(sum, child);
   }
-  return RewriteResponse(REWRITE_DONE, mkSum(rewriter::collectSum(sum)));
+  return RewriteResponse(REWRITE_DONE, rewriter::collectSum(sum));
 }
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode node)
@@ -1377,7 +1351,7 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     }
     Trace("arith-rewriter-linear") << "separated coeff: " << minabscoeff << std::endl;
     // Build the sum and return the result
-    Node right = mkSum(rewriter::collectSum(summands));
+    Node right = rewriter::collectSum(summands);
     Node left = rewriter::mkMultTerm(minabscoeff.second, minabscoeff.first);
     return RewriteResponse(REWRITE_DONE, left.eqNode(right));
   }
@@ -1395,7 +1369,7 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
   }
 
 
-  return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(rewriter::collectSum(summands))));
+  return RewriteResponse(REWRITE_DONE, lhs.eqNode(rewriter::collectSum(summands)));
 }
 
 RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
@@ -1441,7 +1415,7 @@ RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
     }
     auto* nm = NodeManager::currentNM();
     k = Kind::GEQ;
-    Node res = nm->mkNode(k, mkSum(rewriter::collectSum(summands)), nm->mkConstInt(baseRat));
+    Node res = nm->mkNode(k, rewriter::collectSum(summands), nm->mkConstInt(baseRat));
     return RewriteResponse(REWRITE_DONE, negate ? res.notNode() : res);
   }
 
@@ -1466,7 +1440,7 @@ RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
   else {
   rhs = rhs.ceiling();
   }
-  Node lhs = mkSum(rewriter::collectSum(summands));
+  Node lhs = rewriter::collectSum(summands);
   
 
   auto* nm = NodeManager::currentNM();
