@@ -233,13 +233,16 @@ RealAlgebraicNumber removeConstant(std::vector<std::pair<Node, RealAlgebraicNumb
 std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
 {
     auto minit = summands.begin();
+    while (minit != summands.end() && minit->first.isConst()) ++minit;
     for (auto it = std::next(minit); it != summands.end(); ++it)
     {
+      if (it->first.isConst()) continue;
       if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
       {
         minit = it;
       }
     }
+    Assert(minit != summands.end());
     std::pair<Node, RealAlgebraicNumber> res = *minit;
     summands.erase(minit);
     return res;
