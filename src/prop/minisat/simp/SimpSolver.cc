@@ -62,27 +62,18 @@ SimpSolver::SimpSolver(Env& env,
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
       use_rcheck(opt_use_rcheck && !options().smt.unsatCores && !pnm),
-      use_elim(options().prop.minisatUseElim && !enableIncremental),
+      use_elim(options().prop.minisatVarElim && !enableIncremental),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
-      use_simplification(!enableIncremental && !options().smt.unsatCores
-                         && !pnm)  // TODO: turn off simplifications if
-                                   // proofs are on initially
-      ,
+      use_simplification(options().prop.minisatSimp && !enableIncremental
+                         && !options().smt.unsatCores && !pnm),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),
       n_touched(0)
 {
-  if (options().prop.minisatUseElim && options().prop.minisatUseElimWasSetByUser
-      && enableIncremental)
-  {
-    WarningOnce() << "Incremental mode incompatible with --minisat-elim"
-                  << std::endl;
-  }
-
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(0, dummy);

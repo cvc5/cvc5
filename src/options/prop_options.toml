@@ -64,12 +64,20 @@ name   = "SAT Layer"
   help       = "refine theory conflict clauses (default false)"
 
 [[option]]
-  name       = "minisatUseElim"
+  name       = "minisatVarElim"
   category   = "regular"
-  long       = "minisat-elimination"
+  long       = "minisat-var-elimination"
   type       = "bool"
   default    = "true"
-  help       = "use Minisat elimination"
+  help       = "use Minisat variable elimination"
+
+[[option]]
+  name       = "minisatSimp"
+  category   = "regular"
+  long       = "minisat-simplification"
+  type       = "bool"
+  default    = "true"
+  help       = "use Minisat variable and clause elimination, plus other simplifications"
 
 [[option]]
   name       = "minisatDumpDimacs"
