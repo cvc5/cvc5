@@ -182,9 +182,9 @@ void LCoeffAbsOne(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
         }
     }
 
-    void GCDLCM(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
+    bool GCDLCM(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum, bool followLCoeffSign = false)
     {
-        if (sum.empty()) return;
+        if (sum.empty()) return false;
         Integer denLCM(1);
         Integer numGCD;
         auto it = sum.begin();
@@ -206,10 +206,22 @@ void LCoeffAbsOne(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
         }
         Rational mult(denLCM, numGCD);
 
+        bool negate = false;
+        if (followLCoeffSign)
+        {
+          size_t id = sum.front().first.isConst() ? 1 : 0;
+          if (sgn(sum[id].second) < 0)
+          {
+            negate = true;
+            mult = -mult;
+          }
+        }
+
         for (auto& s: sum)
         {
             s.second *= mult;
         }
+        return negate;
     }
 }
 
@@ -241,6 +253,14 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(std::vector<std::pair<Nod
     std::pair<Node, RealAlgebraicNumber> res = *minit;
     summands.erase(minit);
     return res;
+}
+
+std::pair<Node, RealAlgebraicNumber>& getLTerm(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+{
+    auto it = summands.begin();
+    while (it != summands.end() && it->first.isConst()) ++it;
+    Assert(it != summands.end());
+    return *it;
 }
 
 std::pair<Node, RealAlgebraicNumber> removeLTerm(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)

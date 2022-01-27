@@ -215,7 +215,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-std::vector<Node> distSumToSum(
+[[maybe_unused]] std::vector<Node> distSumToSum(
     const std::optional<RealAlgebraicNumber>& basemultiplicity,
     const std::vector<Node>& baseproduct,
     const std::unordered_map<Node, RealAlgebraicNumber>& sum,
@@ -1493,16 +1493,6 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
   rewriter::addToSum(rsum, node[0], true);
   rewriter::addToSum(rsum, node[1], false);
 
-  std::vector<Node> monomials;
-  for (const auto& s: rsum.sum)
-  {
-    if (s.first.isConst()) continue;
-    monomials.emplace_back(s.first);
-    Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
-  }
-  std::sort(monomials.begin(), monomials.end(), rewriter::ProductNodeComparator());
-  Trace("arith-rewriter-linear") << "monomials ordered: " << monomials << std::endl;
-
   if (isIntegral(node))
   {
     auto summands = rewriter::gatherSummands(rsum);
@@ -1566,55 +1556,28 @@ RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  RealAlgebraicNumber base;
-  std::unordered_map<Node, RealAlgebraicNumber> sum;
-  // move everything to the left
-  addToDistSum(sum, base, node[0], false);
-  addToDistSum(sum, base, node[1], true);
-  Assert(base.isRational()) << "terms for the linear solver should not have RANs";
-  Rational baseRat = base.toRational();
-
-  std::vector<Node> monomials;
-  for (const auto& s: sum)
-  {
-    monomials.emplace_back(s.first);
-    Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
-  }
-  std::sort(monomials.begin(), monomials.end(), rewriter::ProductNodeComparator());
+  rewriter::Sum rsum;
+  rewriter::addToSum(rsum, node[0], false);
+  rewriter::addToSum(rsum, node[1], true);
 
   if (isIntegral(node))
   {
     Trace("arith-rewriter") << "Rewrite integer inequality" << std::endl;
-    // Obtain normalization factor lcm(denominator) / gcd(numerator)
-    Integer denLCM(1);
-    Integer numGCD;
-    for (const auto& s: sum)
-    {
-      Rational r = s.second.toRational();
-      denLCM = denLCM.lcm(r.getDenominator());
-      if (numGCD.isZero()) numGCD = r.getNumerator().abs();
-      else numGCD = numGCD.gcd(r.getNumerator().abs());
-    }
-    Rational mult(denLCM, numGCD);
-    // figure out the sign of the leadinv coefficient
-    auto lcoeffit = sum.find(monomials.front());
-    Assert(lcoeffit != sum.end());
-    bool negate = lcoeffit->second.toRational() < 0;
-    if (negate) mult = -mult;
-
-    Trace("arith-rewriter") << "Normalize with " << mult << std::endl;
-
-    // normalize constant and non-constant part, move baseRat to the right
-    baseRat *= -mult;
-    for (auto& s: sum)
-    {
-      s.second *= mult;
-    }
+    auto summands = rewriter::gatherSummands(rsum);
+    Trace("arith-rewriter-linear") << "summands:" << std::endl;
+    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
+    bool negate = rewriter::normalize::GCDLCM(summands, true);
+    Trace("arith-rewriter-linear") << "normalized:" << std::endl;
+    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
     
     Kind k = node.getKind();
     if (negate) {
       k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
     }
+
+    RealAlgebraicNumber constant = rewriter::removeConstant(summands);
+    Assert(constant.isRational());
+    Rational baseRat = -constant.toRational();
 
     if (baseRat.isIntegral() && k == Kind::GT)
     {
@@ -1626,15 +1589,22 @@ RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
     }
     auto* nm = NodeManager::currentNM();
     k = Kind::GEQ;
-    Node res = nm->mkNode(k, mkSum(distSumToSum({}, {}, sum)), nm->mkConstInt(baseRat));
+    Node res = nm->mkNode(k, mkSum(rewriter::collectSum(summands)), nm->mkConstInt(baseRat));
     return RewriteResponse(REWRITE_DONE, negate ? res.notNode() : res);
   }
 
-  Node lhs = monomials.front();
-  auto it = sum.find(lhs);
-  Assert(it != sum.end());
-  Assert(it->second.isRational()) << "terms for the linear solver should not have RANs";
-  Rational lcoeff = it->second.toRational();
+  auto summands = rewriter::gatherSummands(rsum);
+
+  RealAlgebraicNumber base = rewriter::removeConstant(summands);
+  const auto& lterm = rewriter::getLTerm(summands);
+  Assert(lterm.second.isRational()) << "terms for the linear solver should not have RANs";
+
+  Rational lcoeff = lterm.second.toRational();
+
+  for (auto& s: summands)
+  {
+    s.second = s.second / lcoeff;
+  }
 
   Rational rhs = (-base.toRational() / lcoeff);
   if (lcoeff < 0 && rhs.isIntegral())
@@ -1644,15 +1614,10 @@ RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
   else {
   rhs = rhs.ceiling();
   }
+  Node lhs = mkSum(rewriter::collectSum(summands));
   
 
-  for (auto& s: sum)
-  {
-    s.second = s.second / lcoeff;
-  }
-
   auto* nm = NodeManager::currentNM();
-  lhs = mkSum(distSumToSum({}, {}, sum));
   Node res;
   if (lcoeff < 0)
   {
