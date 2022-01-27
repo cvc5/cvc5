@@ -354,7 +354,7 @@ void CardSolver::addChildren(const Node& premise,
       std::vector<Node> asserts;
       Node reduced = d_bagReduction.reduceCardOperator(card, asserts);
       asserts.push_back(card.eqNode(reduced));
-      InferInfo inferInfo(&d_im, InferenceId::BAGS_MAP);
+      InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       inferInfo.d_premises.push_back(premise);
       inferInfo.d_conclusion = d_nm->mkNode(AND, asserts);
       d_im.lemmaTheoryInference(&inferInfo);
