@@ -515,9 +515,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::Sum rsum;
   rewriter::addToSum(rsum, left, negate);
   rewriter::addToSum(rsum, right, !negate);
-  
-  rewriter::normalize::LCoeffAbsOne normalizer;
-  std::vector<Node> children = rewriter::collectSum(rsum, &normalizer);
+
+  auto summands = gatherSummands(rsum);
+  rewriter::normalize::LCoeffAbsOne(summands);
+  std::vector<Node> children = rewriter::collectSum(rsum);
 
   Node newleft;
   Node newright;
@@ -1487,17 +1488,21 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
 {
   Assert(node.getKind() == Kind::EQUAL);
 
+  rewriter::Sum rsum;
   RealAlgebraicNumber base;
   std::unordered_map<Node, RealAlgebraicNumber> sum;
   // move everything to the right
+  rewriter::addToSum(rsum, node[0], true);
+  rewriter::addToSum(rsum, node[1], false);
   addToDistSum(sum, base, node[0], true);
   addToDistSum(sum, base, node[1], false);
   Assert(base.isRational()) << "terms for the linear solver should not have RANs";
   Rational baseRat = base.toRational();
 
   std::vector<Node> monomials;
-  for (const auto& s: sum)
+  for (const auto& s: rsum.sum)
   {
+    if (s.first.isConst()) continue;
     monomials.emplace_back(s.first);
     Assert(s.second.isRational()) << "terms for the linear solver should not have RANs";
   }
@@ -1506,83 +1511,59 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
 
   if (isIntegral(node))
   {
-    // Obtain normalization factor lcm(denominator) / gcd(numerator)
-    Integer denLCM(1);
-    Integer numGCD;
-    for (const auto& s: sum)
+    auto summands = rewriter::gatherSummands(rsum);
+    Trace("arith-rewriter-linear") << "summands:" << std::endl;
+    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
+    rewriter::normalize::GCDLCM(summands);
+    Trace("arith-rewriter-linear") << "normalized:" << std::endl;
+    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
+
+    if (summands.front().first.isConst())
     {
-      Rational r = s.second.toRational();
-      denLCM = denLCM.lcm(r.getDenominator());
-      if (numGCD.isZero()) numGCD = r.getNumerator().abs();
-      else numGCD = numGCD.gcd(r.getNumerator().abs());
-    }
-    Rational mult(denLCM, numGCD);
-    // normalize constant. Return false if constant is not integral
-    baseRat *= mult;
-    auto* nm = NodeManager::currentNM();
-    if (!baseRat.isIntegral())
-    {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-    }
-    // normalize non-constant part
-    for (auto& s: sum)
-    {
-      s.second *= mult;
-    }
-    // find term with minimal absolute constant
-    auto minit = sum.find(monomials.front());
-    for (const auto& m: monomials)
-    {
-      auto it = sum.find(m);
-      if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
+      Assert(summands.front().second.isRational());
+      if (!summands.front().second.toRational().isIntegral())
       {
-        minit = it;
+        auto* nm = NodeManager::currentNM();
+        return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
       }
     }
-    // remove this term from sum
-    Node leftMon = minit->first;
-    Rational leftCoeff = minit->second.toRational();
-    sum.erase(minit);
-    if (leftCoeff > 0)
+
+    auto minabscoeff = rewriter::removeMinAbsCoeff(summands);
+    if (sgn(minabscoeff.second) > 0)
     {
-      // now the baseRat + sum goes to the right
-      baseRat = -baseRat;
-      for (auto& s: sum) s.second = -s.second;
+      // now the sum goes to the right
+      for (auto& s: summands) s.second = -s.second;
     }
     else
     {
-      // otherwise leftCoeff goes to the left
-      leftCoeff = -leftCoeff;
+      // otherwise minabscoeff goes to the right
+      minabscoeff.second = -minabscoeff.second;
     }
     // Build the sum and return the result
-    std::vector<Node> children = distSumToSum({}, {}, sum);
-    if (!baseRat.isZero())
-    {
-      children.insert(children.begin(), nm->mkConstInt(baseRat));
-    }
-    Node left = leftCoeff.isOne() ? leftMon : nm->mkNode(Kind::MULT, nm->mkConstInt(leftCoeff), leftMon);
+    std::vector<Node> children = rewriter::collectSum(summands);
+    Node left = rewriter::mkMultTerm(minabscoeff.second, minabscoeff.first);
     return RewriteResponse(REWRITE_DONE, left.eqNode(mkSum(std::move(children))));
   }
 
   Node lhs = monomials.front();
-  auto it = sum.find(lhs);
-  Assert(it != sum.end());
+  auto it = rsum.sum.find(lhs);
+  Assert(it != rsum.sum.end());
   Assert(it->second.isRational()) << "terms for the linear solver should not have RANs";
   Rational lcoeff = -(it->second.toRational());
-  sum.erase(it);
+  rsum.sum.erase(it);
 
   base = base / lcoeff;
-  for (auto& s: sum)
+  for (auto& s: rsum.sum)
   {
     s.second = s.second / lcoeff;
   }
 
   auto* nm = NodeManager::currentNM();
-  std::vector<Node> summands = distSumToSum({}, {}, sum);
-  if (!isZero(base))
-  {
-    summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
-  }
+  std::vector<Node> summands = rewriter::collectSum(rsum);
+  //if (!isZero(base))
+  //{
+  //  summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
+  //}
 
   return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(std::move(summands))));
 }

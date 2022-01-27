@@ -33,6 +33,8 @@ struct Sum
     std::unordered_map<Node, RealAlgebraicNumber> sum;
 };
 
+using Summands = std::vector<std::pair<Node, RealAlgebraicNumber>>;
+
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
  * the remaining (non-numerical) factors. If n is a product itself, its children
@@ -155,9 +157,7 @@ struct NoNormalize
     void operator()(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum) {}
 };
 
-struct LCoeffAbsOne
-{
-    void operator()(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
+void LCoeffAbsOne(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
     {
         if (sum.empty()) return;
         if (sum.size() == 1)
@@ -186,9 +186,79 @@ struct LCoeffAbsOne
             s.second = s.second / lcoeff;
         }
     }
-};
 
+    void GCDLCM(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
+    {
+        if (sum.empty()) return;
+        Integer denLCM(1);
+        Integer numGCD;
+        auto it = sum.begin();
+        if (!it->first.isConst())
+        {
+            Rational r = it->second.toRational();
+            denLCM = r.getDenominator();
+            numGCD = r.getNumerator().abs();
+        }
+        ++it;
+        for (; it != sum.end(); ++it)
+        {
+            if (it->first.isConst()) continue;
+            Assert(it->second.isRational());
+            Rational r = it->second.toRational();
+            denLCM = denLCM.lcm(r.getDenominator());
+            if (numGCD.isZero()) numGCD = r.getNumerator().abs();
+            else numGCD = numGCD.gcd(r.getNumerator().abs());
+        }
+        Rational mult(denLCM, numGCD);
+
+        for (auto& s: sum)
+        {
+            s.second *= mult;
+        }
+    }
 }
+
+RealAlgebraicNumber removeConstant(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+{
+    RealAlgebraicNumber res;
+    if (!summands.empty() && summands.front().first.isConst())
+    {
+        Assert(summands.front().first.getConst<Rational>().isOne());
+        res = summands.front().second;
+        summands.erase(summands.begin());
+    }
+    return res;
+}
+
+std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+{
+    auto minit = summands.begin();
+    for (auto it = std::next(minit); it != summands.end(); ++it)
+    {
+      if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
+      {
+        minit = it;
+      }
+    }
+    std::pair<Node, RealAlgebraicNumber> res = *minit;
+    summands.erase(minit);
+    return res;
+}
+
+std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
+{
+  std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
+  for (const auto& summand : sum.sum)
+  {
+    Assert(!isZero(summand.second));
+    summands.emplace_back(summand.first, summand.second);
+  }
+  std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
+    return ProductNodeComparator()(a.first, b.first);
+  });
+  return summands;
+}
+
 /**
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
@@ -200,15 +270,7 @@ std::vector<Node> collectSum(
 {
   if (sum.sum.empty()) return {};
   // construct the sum as nodes.
-  std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
-  for (const auto& summand : sum.sum)
-  {
-    Assert(!isZero(summand.second));
-    summands.emplace_back(summand.first, summand.second);
-  }
-  std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
-    return ProductNodeComparator()(a.first, b.first);
-  });
+  std::vector<std::pair<Node, RealAlgebraicNumber>> summands = gatherSummands(sum);
   if (normalizer != nullptr)
   {
       (*normalizer)(summands);
@@ -242,6 +304,17 @@ std::vector<Node> collectSum(
   std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
     return ProductNodeComparator()(a.first, b.first);
   });
+  std::vector<Node> children;
+  for (const auto& s : summands)
+  {
+    children.emplace_back(mkMultTerm(s.second, s.first));
+  }
+  return children;
+}
+
+std::vector<Node> collectSum(
+    const Summands& summands)
+{
   std::vector<Node> children;
   for (const auto& s : summands)
   {
