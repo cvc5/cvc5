@@ -128,7 +128,7 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
  *   add(s.n * s.ran for s in sum')
  *   = add(s.n * s.ran for s in sum) + multiplicity * product
  */
-void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum,
+[[maybe_unused]] void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum,
                   TNode product,
                   const RealAlgebraicNumber& multiplicity)
 {
@@ -147,7 +147,7 @@ void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum,
   }
 }
 
-void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebraicNumber& base, TNode n, bool negate = false)
+[[maybe_unused]] void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum, RealAlgebraicNumber& base, TNode n, bool negate = false)
 {
   if (n.getKind() == Kind::PLUS)
   {
