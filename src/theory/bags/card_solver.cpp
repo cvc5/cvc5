@@ -114,6 +114,7 @@ void CardSolver::checkCardinalityGraph()
 void CardSolver::generateRelatedCardinalityTerms()
 {
   const set<Node>& bags = d_state.getBags();
+  std::vector<Node> skolemLemmas;
   for (const auto& pair : d_state.getCardinalityTerms())
   {
     Assert(pair.first.getKind() == BAG_CARD);
@@ -143,9 +144,12 @@ void CardSolver::generateRelatedCardinalityTerms()
             Node B = d_state.getRepresentative(n[1]);
             if (A == rep || B == rep)
             {
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A)));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B)));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n)));
             }
             break;
           }
@@ -155,9 +159,12 @@ void CardSolver::generateRelatedCardinalityTerms()
             Node B = d_state.getRepresentative(n[1]);
             if (A == rep || B == rep)
             {
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A)));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B)));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n)));
               // break the intersection symmetry using the node id
               Node inter = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
                                   : d_nm->mkNode(BAG_INTER_MIN, B, A);
@@ -168,11 +175,12 @@ void CardSolver::generateRelatedCardinalityTerms()
               d_state.registerBag(inter);
               d_state.registerBag(subtractAB);
               d_state.registerBag(subtractBA);
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
-              d_state.registerCardinalityTerm(
-                  d_nm->mkNode(BAG_CARD, subtractAB));
-              d_state.registerCardinalityTerm(
-                  d_nm->mkNode(BAG_CARD, subtractBA));
+              skolemLemmas.push_back(d_state.registerCardinalityTerm(
+                  d_nm->mkNode(BAG_CARD, inter)));
+              skolemLemmas.push_back(d_state.registerCardinalityTerm(
+                  d_nm->mkNode(BAG_CARD, subtractAB)));
+              skolemLemmas.push_back(d_state.registerCardinalityTerm(
+                  d_nm->mkNode(BAG_CARD, subtractBA)));
             }
             break;
           }
@@ -183,14 +191,18 @@ void CardSolver::generateRelatedCardinalityTerms()
             Node B = d_state.getRepresentative(n[1]);
             if (A == rep || B == rep)
             {
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B));
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, A)));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, B)));
+              skolemLemmas.push_back(
+                  d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, n)));
               // break the intersection symmetry using the node id
               Node inter = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
                                   : d_nm->mkNode(BAG_INTER_MIN, B, A);
               d_state.registerBag(inter);
-              d_state.registerCardinalityTerm(d_nm->mkNode(BAG_CARD, inter));
+              skolemLemmas.push_back(d_state.registerCardinalityTerm(
+                  d_nm->mkNode(BAG_CARD, inter)));
             }
             break;
           }
@@ -200,6 +212,14 @@ void CardSolver::generateRelatedCardinalityTerms()
         it++;
       }
     }
+  }
+
+  // send skolem lemmas
+  for (Node lemma : skolemLemmas)
+  {
+    InferInfo i(&d_im, InferenceId::BAGS_CARD);
+    i.d_conclusion = lemma;
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -323,6 +343,8 @@ void CardSolver::addChildren(const Node& premise,
       // child.
       const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
       d_cardGraph[parent].insert(children);
+      Trace("bags-card") << "CardSolver::addChildren parent: " << parent
+                         << std::endl;
       Trace("bags-card") << "CardSolver::addChildren set1: " << oldChildren
                          << std::endl;
       Trace("bags-card") << "CardSolver::addChildren set2: " << children
@@ -332,7 +354,7 @@ void CardSolver::addChildren(const Node& premise,
       std::vector<Node> asserts;
       Node reduced = d_bagReduction.reduceCardOperator(card, asserts);
       asserts.push_back(card.eqNode(reduced));
-      InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
+      InferInfo inferInfo(&d_im, InferenceId::BAGS_MAP);
       inferInfo.d_premises.push_back(premise);
       inferInfo.d_conclusion = d_nm->mkNode(AND, asserts);
       d_im.lemmaTheoryInference(&inferInfo);

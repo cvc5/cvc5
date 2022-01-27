@@ -184,6 +184,7 @@ enum class InferenceId
   BAGS_MAP,
   BAGS_FOLD,
   BAGS_CARD,
+  BAGS_CARD_EMPTY,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
