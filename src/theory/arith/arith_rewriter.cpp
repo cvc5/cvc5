@@ -1489,15 +1489,9 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
   Assert(node.getKind() == Kind::EQUAL);
 
   rewriter::Sum rsum;
-  RealAlgebraicNumber base;
-  std::unordered_map<Node, RealAlgebraicNumber> sum;
   // move everything to the right
   rewriter::addToSum(rsum, node[0], true);
   rewriter::addToSum(rsum, node[1], false);
-  addToDistSum(sum, base, node[0], true);
-  addToDistSum(sum, base, node[1], false);
-  Assert(base.isRational()) << "terms for the linear solver should not have RANs";
-  Rational baseRat = base.toRational();
 
   std::vector<Node> monomials;
   for (const auto& s: rsum.sum)
@@ -1552,18 +1546,12 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
   Rational lcoeff = -(it->second.toRational());
   rsum.sum.erase(it);
 
-  base = base / lcoeff;
   for (auto& s: rsum.sum)
   {
     s.second = s.second / lcoeff;
   }
 
-  auto* nm = NodeManager::currentNM();
   std::vector<Node> summands = rewriter::collectSum(rsum);
-  //if (!isZero(base))
-  //{
-  //  summands.insert(summands.begin(), nm->mkConstReal(base.toRational()));
-  //}
 
   return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(std::move(summands))));
 }
