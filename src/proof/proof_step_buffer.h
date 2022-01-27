@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& out, ProofStep step);
 class ProofStepBuffer
 {
  public:
-  ProofStepBuffer(ProofChecker* pc = nullptr, bool ensureUnique=false);
+  ProofStepBuffer(ProofChecker* pc = nullptr, bool ensureUnique = false);
   ~ProofStepBuffer() {}
   /**
    * Returns the conclusion of the proof step, as determined by the proof

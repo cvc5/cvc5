@@ -47,7 +47,10 @@ std::ostream& operator<<(std::ostream& out, ProofStep step)
   return out;
 }
 
-ProofStepBuffer::ProofStepBuffer(ProofChecker* pc, bool ensureUnique) : d_checker(pc), d_ensureUnique(ensureUnique) {}
+ProofStepBuffer::ProofStepBuffer(ProofChecker* pc, bool ensureUnique)
+    : d_checker(pc), d_ensureUnique(ensureUnique)
+{
+}
 
 Node ProofStepBuffer::tryStep(PfRule id,
                               const std::vector<Node>& children,
@@ -76,7 +79,7 @@ void ProofStepBuffer::addStep(PfRule id,
 {
   if (d_ensureUnique)
   {
-    if (d_allSteps.find(expected)!=d_allSteps.end())
+    if (d_allSteps.find(expected) != d_allSteps.end())
     {
       return;
     }
