@@ -1525,18 +1525,19 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     auto minabscoeff = rewriter::removeMinAbsCoeff(summands);
     if (sgn(minabscoeff.second) > 0)
     {
-      // now the sum goes to the right
+      // now the sum goes to the left
       for (auto& s: summands) s.second = -s.second;
     }
     else
     {
-      // otherwise minabscoeff goes to the right
+      // otherwise minabscoeff goes to the left
       minabscoeff.second = -minabscoeff.second;
     }
+    Trace("arith-rewriter-linear") << "separated coeff: " << minabscoeff << std::endl;
     // Build the sum and return the result
-    std::vector<Node> children = rewriter::collectSum(summands);
+    Node right = mkSum(rewriter::collectSum(summands));
     Node left = rewriter::mkMultTerm(minabscoeff.second, minabscoeff.first);
-    return RewriteResponse(REWRITE_DONE, left.eqNode(mkSum(std::move(children))));
+    return RewriteResponse(REWRITE_DONE, left.eqNode(right));
   }
 
   Node lhs = monomials.front();
