@@ -41,16 +41,39 @@ class SolverState : public TheoryState
 
   /**
    * @param n has the form (bag.count e A)
-   * @pre bag A needs is already registered using registerBag(A)
+   * @pre bag A is already registered using registerBag(A)
    * @return a lemma (= skolem (bag.count eRep ARep)) where
    * eRep, ARep are representatives of e, A respectively
    */
   Node registerCountTerm(TNode n);
+
+  /**
+   * This function generates a skolem variable for the given card term and
+   * stores both of them in a cache.
+   * @param n has the form (bag.card A)
+   * @return a lemma that the card term equals the skolem variable
+   */
+  Node registerCardinalityTerm(TNode n);
+
+  /**
+   * @param n has the form (bag.card A)
+   */
+  Node getCardinalitySkolem(TNode n);
+
+  bool hasCardinalityTerms() const;
+
   /** get all bag terms that are representatives in the equality engine.
    * This function is valid after the current solver is initialized during
    * postCheck. See SolverState::initialize and BagSolver::postCheck
    */
   const std::set<Node>& getBags();
+
+  /**
+   * get all cardinality terms
+   * @return a map from registered card terms to their skolem variables
+   */
+  const std::map<Node, Node>& getCardinalityTerms();
+
   /**
    * @pre B is a registered bag
    * @return all elements associated with bag B so far
@@ -100,6 +123,8 @@ class SolverState : public TheoryState
   std::map<Node, std::vector<std::pair<Node, Node>>> d_bagElements;
   /** Disequal bag terms */
   std::set<Node> d_deq;
+  /** a map from card terms to their skolem variables */
+  std::map<Node, Node> d_cardTerms;
 }; /* class SolverState */
 
 }  // namespace bags
