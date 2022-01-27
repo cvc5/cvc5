@@ -180,31 +180,20 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
     out << "}}\";\n";
   }
 
-  std::unordered_map<const ProofNode*, uint64_t, ProofNodeHashFunction>
-      proofLet;
+  std::map<size_t, uint64_t> proofLet;
   DotPrinter::printInternal(out, pn, proofLet, 0, false);
   out << "}\n";
 }
 
-uint64_t DotPrinter::printInternal(
-    std::ostream& out,
-    const ProofNode* pn,
-    std::unordered_map<const ProofNode*, uint64_t, ProofNodeHashFunction>&
-        pfLet,
-    uint64_t scopeCounter,
-    bool inPropositionalView)
+uint64_t DotPrinter::printInternal(std::ostream& out,
+                                   const ProofNode* pn,
+                                   std::map<size_t, uint64_t>& pfLet,
+                                   uint64_t scopeCounter,
+                                   bool inPropositionalView)
 {
-  ProofNodeHashFunction hash;
-  auto proofIt = pfLet.end();
-  for (auto it = pfLet.begin(); it != pfLet.end(); ++it)
-  {
-    if (hash(it->first) == hash(pn))
-    {
-      proofIt = it;
-      Assert(DotPrinter::eqProofNode(it->first, pn));
-      break;
-    }
-  }
+  ProofNodeHashFunction hasher;
+  size_t currentHash = hasher(pn);
+  auto proofIt = pfLet.find(currentHash);
 
   // If this node has been already counted
   if (proofIt != pfLet.end())
@@ -213,7 +202,7 @@ uint64_t DotPrinter::printInternal(
   }
 
   uint64_t currentRuleID = d_ruleID++;
-  pfLet[pn] = currentRuleID;
+  pfLet[currentHash] = currentRuleID;
 
   std::ostringstream currentArguments, resultStr, classes, colors;
 
