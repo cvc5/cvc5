@@ -880,6 +880,7 @@ set(regress_0_tests
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/post-asserts-output.smt2
   regress0/printer/print_subs.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
@@ -1112,6 +1113,7 @@ set(regress_0_tests
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/nth-oob.smt2
+  regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
   regress0/seq/proj-issue340.smt2
   regress0/seq/quant_len_trigger.smt2
@@ -1640,6 +1642,7 @@ set(regress_1_tests
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
+  regress1/bags/card3.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -1649,6 +1652,7 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
@@ -2727,6 +2731,7 @@ set(regress_2_tests
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
   regress2/quantifiers/syn874-1.smt2
+  regress2/seq/err-model-soundness.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/bidir_star.smt2
   regress2/strings/cmi-split-cm-fail.smt2
