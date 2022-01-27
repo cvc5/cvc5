@@ -1540,21 +1540,20 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     return RewriteResponse(REWRITE_DONE, left.eqNode(right));
   }
 
-  Node lhs = monomials.front();
-  auto it = rsum.sum.find(lhs);
-  Assert(it != rsum.sum.end());
-  Assert(it->second.isRational()) << "terms for the linear solver should not have RANs";
-  Rational lcoeff = -(it->second.toRational());
-  rsum.sum.erase(it);
+  auto summands = rewriter::gatherSummands(rsum);
+  std::pair<Node, RealAlgebraicNumber> lterm = rewriter::removeLTerm(summands);
 
-  for (auto& s: rsum.sum)
+  Assert(lterm.second.isRational()) << "terms for the linear solver should not have RANs";
+  Node lhs = lterm.first;
+  Rational lcoeff = -(lterm.second.toRational());
+
+  for (auto& s: summands)
   {
     s.second = s.second / lcoeff;
   }
 
-  std::vector<Node> summands = rewriter::collectSum(rsum);
 
-  return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(std::move(summands))));
+  return RewriteResponse(REWRITE_DONE, lhs.eqNode(mkSum(rewriter::collectSum(summands))));
 }
 
 RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
