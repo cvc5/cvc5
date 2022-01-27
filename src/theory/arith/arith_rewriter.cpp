@@ -676,6 +676,11 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
                            distributeMultiplication(children));
   }
 
+  if (auto res = getZeroChild(t); res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
+
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
   std::vector<Node> leafs;

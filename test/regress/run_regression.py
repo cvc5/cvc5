@@ -50,7 +50,7 @@ class Tester:
         if exit_status == STATUS_TIMEOUT:
             exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
             print("Timeout - Flags: {}".format(benchmark_info.command_line_args))
-        elif output != benchmark_info.expected_output:
+        elif benchmark_info.compare_outputs and output != benchmark_info.expected_output:
             exit_code = EXIT_FAILURE
             print("not ok - Flags: {}".format(benchmark_info.command_line_args))
             print()
@@ -66,7 +66,7 @@ class Tester:
                 print_colored(Color.YELLOW, error)
                 print("=" * 80)
                 print()
-        elif error != benchmark_info.expected_error:
+        elif benchmark_info.compare_outputs and error != benchmark_info.expected_error:
             exit_code = EXIT_FAILURE
             print(
                 "not ok - Differences between expected and actual output on stderr - Flags: {}".format(
@@ -245,12 +245,11 @@ class AbductTester(Tester):
 
 class DumpTester(Tester):
     def applies(self, benchmark_info):
-        return benchmark_info.expected_exit_status == EXIT_OK
+        return benchmark_info.benchmark_ext != ".p"
 
     def run(self, benchmark_info):
         ext_to_lang = {
             ".smt2": "smt2",
-            ".p": "tptp",
             ".sy": "sygus",
         }
 
@@ -285,7 +284,8 @@ class DumpTester(Tester):
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
-                expected_output="",
+                expected_exit_status=0,
+                compare_outputs=False,
             )
         )
         os.remove(tmpf.name)
@@ -329,6 +329,7 @@ BenchmarkInfo = collections.namedtuple(
         "expected_error",
         "expected_exit_status",
         "command_line_args",
+        "compare_outputs",
     ],
 )
 
@@ -624,6 +625,7 @@ def run_regression(
             expected_error=expected_error,
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
+            compare_outputs=True,
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):
