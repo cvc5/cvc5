@@ -129,11 +129,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   auto* nm = NodeManager::currentNM();
   if (monomial.isConst())
   {
-      if (multiplicity.isRational())
-      {
-        return nm->mkConstReal(multiplicity.toRational() * monomial.getConst<Rational>());
-      }
-      return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
+    return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
   }
   if (multiplicity.isRational())
   {
