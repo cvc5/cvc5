@@ -243,6 +243,16 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(std::vector<std::pair<Nod
     return res;
 }
 
+std::pair<Node, RealAlgebraicNumber> removeLTerm(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+{
+    auto it = summands.begin();
+    while (it != summands.end() && it->first.isConst()) ++it;
+    Assert(it != summands.end());
+    std::pair<Node, RealAlgebraicNumber> res = *it;
+    summands.erase(it);
+    return res;
+}
+
 std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
 {
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
