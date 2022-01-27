@@ -57,7 +57,7 @@ class ProofStepBuffer
 {
  public:
   /**
-   * @param pc The proof checker we are using 
+   * @param pc The proof checker we are using
    * @param ensureUnique Whether we ensure that the conclusions of steps
    * added to this buffer are unique. Later steps with the same conclusion as
    * a previous one are discarded.
