@@ -23,6 +23,21 @@
 
 namespace cvc5::theory::arith::rewriter {
 
+inline bool isValue(TNode node)
+{
+  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+}
+
+inline RealAlgebraicNumber getValue(TNode node)
+{
+  Assert(isValue(node));
+  if (node.isConst())
+  {
+    return node.getConst<Rational>();
+  }
+  Assert(node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER);
+  return node.getOperator().getConst<RealAlgebraicNumber>();
+}
 
 /** Make a nonlinear multiplication from the given factors */
 template <typename T>

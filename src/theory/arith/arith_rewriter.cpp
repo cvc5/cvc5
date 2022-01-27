@@ -352,15 +352,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::normalize::LCoeffAbsOne(summands);
   RealAlgebraicNumber constant = rewriter::removeConstant(summands);
 
-  Node newright;
-  if (constant.isRational())
-  {
-    newright = nm->mkConstReal(-constant.toRational());
-  }
-  else
-  {
-    newright = nm->mkRealAlgebraicNumber(-constant);
-  }
+  Node newright = nm->mkRealAlgebraicNumber(-constant);
   Node newleft = rewriter::collectSum(summands);
 
   if (auto response = rewriter::tryEvaluateRelation(kind, newleft, newright); response)
@@ -1023,6 +1015,13 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
     }
     Assert(den != Rational(0));
 
+    if (rewriter::isValue(left))
+    {
+      return RewriteResponse(
+          REWRITE_DONE,
+          nm->mkRealAlgebraicNumber(rewriter::getValue(left) / RealAlgebraicNumber(den)));
+    }
+
     if (left.isConst())
     {
       const Rational& num = left.getConst<Rational>();
@@ -1053,19 +1052,11 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
     NodeManager* nm = NodeManager::currentNM();
     const RealAlgebraicNumber& den =
         right.getOperator().getConst<RealAlgebraicNumber>();
-    if (left.isConst())
+    
+    if (rewriter::isValue(left))
     {
-      const Rational& num = left.getConst<Rational>();
-      return RewriteResponse(
-          REWRITE_DONE,
-          nm->mkRealAlgebraicNumber(RealAlgebraicNumber(num) / den));
-    }
-    if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      const RealAlgebraicNumber& num =
-          left.getOperator().getConst<RealAlgebraicNumber>();
       return RewriteResponse(REWRITE_DONE,
-                             nm->mkRealAlgebraicNumber(num / den));
+                             nm->mkRealAlgebraicNumber(rewriter::getValue(left) / den));
     }
 
     Node result = nm->mkRealAlgebraicNumber(inverse(den));
