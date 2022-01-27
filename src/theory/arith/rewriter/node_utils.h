@@ -23,6 +23,28 @@
 
 namespace cvc5::theory::arith::rewriter {
 
+inline Node mkConst(bool value)
+{
+  return NodeManager::currentNM()->mkConst(value);
+}
+inline Node mkConst(const Integer& value)
+{
+  return NodeManager::currentNM()->mkConstInt(value);
+}
+inline Node mkConst(const Rational& value)
+{
+  if (value.isIntegral())
+  {
+    return NodeManager::currentNM()->mkConstInt(value);
+  }
+  return NodeManager::currentNM()->mkConstReal(value);
+}
+inline Node mkConst(const RealAlgebraicNumber& value)
+{
+  return NodeManager::currentNM()->mkRealAlgebraicNumber(value);
+}
+
+
 inline bool isValue(TNode node)
 {
   return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
