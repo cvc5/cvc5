@@ -152,11 +152,6 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 namespace normalize
 {
 
-struct NoNormalize
-{
-    void operator()(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum) {}
-};
-
 void LCoeffAbsOne(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
     {
         if (sum.empty()) return;
@@ -266,18 +261,12 @@ std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-template<typename Normalizer = normalize::NoNormalize>
 std::vector<Node> collectSum(
-    const Sum& sum,
-    Normalizer* normalizer = nullptr)
+    const Sum& sum)
 {
   if (sum.sum.empty()) return {};
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands = gatherSummands(sum);
-  if (normalizer != nullptr)
-  {
-      (*normalizer)(summands);
-  }
   std::vector<Node> children;
   for (const auto& s : summands)
   {
