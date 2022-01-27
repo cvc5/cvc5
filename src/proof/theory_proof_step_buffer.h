@@ -33,7 +33,7 @@ namespace cvc5 {
 class TheoryProofStepBuffer : public ProofStepBuffer
 {
  public:
-  TheoryProofStepBuffer(ProofChecker* pc = nullptr);
+  TheoryProofStepBuffer(ProofChecker* pc = nullptr, bool ensureUnique = false);
   ~TheoryProofStepBuffer() {}
   //---------------------------- utilities builtin proof rules
   /**

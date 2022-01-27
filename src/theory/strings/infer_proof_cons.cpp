@@ -148,9 +148,12 @@ void InferProofCons::convert(InferenceId infer,
     startExpIndex.push_back(ps.d_children.size());
     utils::flattenOp(AND, ec, ps.d_children);
   }
+  // explicitly add ASSUME steps to the proof step buffer for premises of the
+  // inference, so that they will not be overwritten in the reconstruction
+  // below
   for (const Node& ec : ps.d_children)
   {
-    psb.addStep(PfRule::ASSUME, {ec}, {}, ec);
+    psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
   }
   // debug print
   if (Trace.isOn("strings-ipc-debug"))
