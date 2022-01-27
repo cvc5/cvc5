@@ -53,6 +53,14 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::nonNegativeCardinality(Node n)
+{
+  InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
+  Node gte = d_nm->mkNode(GEQ, n, d_zero);
+  inferInfo.d_conclusion = gte;
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::bagMake(Node n)
 {
   Assert(n.getKind() == BAG_MAKE);
@@ -300,6 +308,78 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   Node ite = d_nm->mkNode(ITE, gte, d_one, d_zero);
   Node equal = count.eqNode(ite);
   inferInfo.d_conclusion = equal;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardEmpty(const std::pair<Node, Node>& pair,
+                                        Node n)
+{
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_EMPTY && n.getType() == pair.first[0].getType());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node premise = pair.first[0].eqNode(n);
+  Node conclusion = pair.second.eqNode(d_zero);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardBagMake(const std::pair<Node, Node>& pair,
+                                          Node n)
+{
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_MAKE && n.getType() == pair.first[0].getType());
+  //(=>
+  //  (and (= A (bag x c)) (>= 0 c))
+  //  (= (bag.card A) c))
+  Node c = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node nonNegative = d_nm->mkNode(GEQ, c, d_zero);
+  Node premise = pair.first[0].eqNode(n).andNode(nonNegative);
+  Node conclusion = pair.second.eqNode(c);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
+                                                Node parent,
+                                                const std::set<Node>& children)
+{
+  Assert(premise.getType().isBoolean());
+  Assert(!children.empty());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+
+  std::set<Node>::iterator it = children.begin();
+  Node child = *it;
+  d_state->registerBag(child);
+  Node unionDisjoints = child;
+  Node card = d_nm->mkNode(BAG_CARD, child);
+  std::vector<Node> lemmas;
+  lemmas.push_back(d_state->registerCardinalityTerm(card));
+  Node sum = d_state->getCardinalitySkolem(card);
+  ++it;
+  while (it != children.end())
+  {
+    child = *it;
+    d_state->registerBag(child);
+    unionDisjoints =
+        d_nm->mkNode(kind::BAG_UNION_DISJOINT, unionDisjoints, child);
+    card = d_nm->mkNode(BAG_CARD, child);
+    lemmas.push_back(d_state->registerCardinalityTerm(card));
+    d_state->getCardinalitySkolem(card);
+    Node skolem = d_state->getCardinalitySkolem(card);
+    sum = d_nm->mkNode(PLUS, sum, skolem);
+    ++it;
+  }
+  Node parentCard = d_nm->mkNode(BAG_CARD, parent);
+  lemmas.push_back(d_state->registerCardinalityTerm(parentCard));
+  Node parentSkolem = d_state->getCardinalitySkolem(parentCard);
+
+  Node bags = parent.eqNode(unionDisjoints);
+  lemmas.push_back(bags);
+  Node cards = parentSkolem.eqNode(sum);
+  lemmas.push_back(cards);
+  Node conclusion = d_nm->mkNode(AND, lemmas);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }
 
