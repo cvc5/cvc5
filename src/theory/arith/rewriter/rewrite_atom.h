@@ -148,6 +148,37 @@ Node buildRealEquality(Summands& summands)
   return lterm.first.eqNode(rewriter::collectSum(summands));
 }
 
+Node buildIntegerInequality(Summands& summands, Kind k)
+{
+  //Trace("arith-rewriter") << "****************************** INTEGER EQUALITY" << std::endl;
+  //for (const auto& s: summands)
+  //  Trace("arith-rewriter") << "\t" << s.second << " * " << s.first << std::endl;
+  //Trace("arith-rewriter") << "\t" << k << " 0" << std::endl;
+
+  bool negate = normalize::GCDLCM(summands, true);
+
+  if (negate) {
+    k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
+  }
+
+  RealAlgebraicNumber constant = removeConstant(summands);
+  Assert(constant.isRational());
+  Rational rhs = -constant.toRational();
+
+  if (rhs.isIntegral() && k == Kind::GT)
+  {
+    rhs += 1;
+  }
+  else
+  {
+    rhs = rhs.ceiling();
+  }
+  auto* nm = NodeManager::currentNM();
+  Node res = nm->mkNode(Kind::GEQ, rewriter::collectSum(summands), nm->mkConstInt(rhs));
+  //Trace("arith-rewriter") << "-> " << (negate ? res.notNode() : res) << std::endl;
+  return negate ? res.notNode() : res;
+}
+
 }
 
 #endif

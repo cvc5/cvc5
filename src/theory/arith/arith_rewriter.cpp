@@ -356,6 +356,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     {
       return RewriteResponse(REWRITE_DONE, rewriter::buildIntegerEquality(summands));
     }
+    return RewriteResponse(REWRITE_DONE, rewriter::buildIntegerInequality(summands, kind));
   }
   else
   {
