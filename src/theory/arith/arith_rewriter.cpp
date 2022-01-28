@@ -310,7 +310,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
                    nm->mkNode(kind::INTS_MODULUS_TOTAL,
                               atom[0],
                               rewriter::mkConst(atom.getOperator().getConst<Divisible>().k)),
-                   nm->mkConst(Integer(0))));
+                   rewriter::mkConst(Integer(0))));
   }
 
   // left |><| right
