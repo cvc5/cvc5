@@ -247,6 +247,7 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
 
+  auto* nm = NodeManager::currentNM();
   switch (atom.getKind())
   {
     case Kind::GT:
@@ -308,7 +309,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
         nm->mkNode(kind::EQUAL,
                    nm->mkNode(kind::INTS_MODULUS_TOTAL,
                               atom[0],
-                              rewriter::mkConstInt(atom.getOperator().getConst<Divisible>().k)),
+                              rewriter::mkConst(atom.getOperator().getConst<Divisible>().k)),
                    nm->mkConst(Integer(0))));
   }
 
@@ -409,6 +410,7 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t)
     return RewriteResponse(REWRITE_DONE,
                            rewriter::mkConst(Integer(0)));
   }
+  auto* nm = NodeManager::currentNM();
   return RewriteResponse(
       REWRITE_AGAIN_FULL,
       nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
@@ -1302,15 +1304,12 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
   // move everything to the right
   rewriter::addToSum(rsum, node[0], true);
   rewriter::addToSum(rsum, node[1], false);
+  
+  auto summands = rewriter::gatherSummands(rsum);
 
   if (isIntegral(node))
   {
-    auto summands = rewriter::gatherSummands(rsum);
-    Trace("arith-rewriter-linear") << "summands:" << std::endl;
-    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
     rewriter::normalize::GCDLCM(summands);
-    Trace("arith-rewriter-linear") << "normalized:" << std::endl;
-    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
 
     if (summands.front().first.isConst())
     {
@@ -1340,20 +1339,16 @@ RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
     return RewriteResponse(REWRITE_DONE, left.eqNode(right));
   }
 
-  auto summands = rewriter::gatherSummands(rsum);
   std::pair<Node, RealAlgebraicNumber> lterm = rewriter::removeLTerm(summands);
 
-  Assert(lterm.second.isRational()) << "terms for the linear solver should not have RANs";
-  Node lhs = lterm.first;
   Rational lcoeff = -(lterm.second.toRational());
-
   for (auto& s: summands)
   {
     s.second = s.second / lcoeff;
   }
 
 
-  return RewriteResponse(REWRITE_DONE, lhs.eqNode(rewriter::collectSum(summands)));
+  return RewriteResponse(REWRITE_DONE, lterm.first.eqNode(rewriter::collectSum(summands)));
 }
 
 RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
