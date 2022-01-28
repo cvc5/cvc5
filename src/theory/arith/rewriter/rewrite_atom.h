@@ -108,9 +108,14 @@ std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
   return {};
 }
 
+/**
+ * Build a node `(kind left right)`. If negate is true, it returns the negation
+ * of this as `(not (kind left right))`. Before doing so, try to evaluate it to
+ * true or false using the tryEvaluateRelation method.
+ */
 Node buildRelation(Kind kind, Node left, Node right, bool negate = false)
 {
-  if (auto response = rewriter::tryEvaluateRelation(kind, left, right); response)
+  if (auto response = tryEvaluateRelation(kind, left, right); response)
   {
     return mkConst(*response != negate);
   }
@@ -121,6 +126,14 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate = false)
   return NodeManager::currentNM()->mkNode(kind, left, right);
 }
 
+/**
+ * Build an integer equality from the given summands. The result is equivalent
+ * to the sum of the summands equal to zero.
+ * We first normalize the non-constant coefficients to integers (using GCD and
+ * LCM). If the coefficient is non-integral after that, the result is false.
+ * We then put the term with minimal absolute coefficient to the left side of
+ * the equality and make its coefficient positive.
+ */
 Node buildIntegerEquality(Summands& summands)
 {
   normalize::GCDLCM(summands);
@@ -150,6 +163,12 @@ Node buildIntegerEquality(Summands& summands)
   return buildRelation(Kind::EQUAL, left, collectSum(summands));
 }
 
+/**
+ * Build a real equality from the given summands. The result is equivalent to
+ * the sum of the summands equal to zero. We first extract the leading term and
+ * normalize its coefficient to be plus or minus one. The result is the
+ * (normalized) leading term being equal to the rest of the sum.
+ */
 Node buildRealEquality(Summands& summands)
 {
   auto lterm = removeLTerm(summands);
@@ -167,11 +186,6 @@ Node buildRealEquality(Summands& summands)
 
 Node buildIntegerInequality(Summands& summands, Kind k)
 {
-  //Trace("arith-rewriter") << "****************************** INTEGER EQUALITY" << std::endl;
-  //for (const auto& s: summands)
-  //  Trace("arith-rewriter") << "\t" << s.second << " * " << s.first << std::endl;
-  //Trace("arith-rewriter") << "\t" << k << " 0" << std::endl;
-
   bool negate = normalize::GCDLCM(summands, true);
 
   if (negate) {
