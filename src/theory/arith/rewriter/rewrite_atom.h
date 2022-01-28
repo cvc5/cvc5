@@ -145,10 +145,9 @@ Node buildIntegerEquality(Summands& summands)
     // move the sum to the right
     for (auto& s: summands) s.second = -s.second;
   }
-  Node right = collectSum(summands);
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
 
-  return buildRelation(Kind::EQUAL, left, right);
+  return buildRelation(Kind::EQUAL, left, collectSum(summands));
 }
 
 Node buildRealEquality(Summands& summands)
@@ -193,6 +192,13 @@ Node buildIntegerInequality(Summands& summands, Kind k)
   }
   auto* nm = NodeManager::currentNM();
   return buildRelation(Kind::GEQ, collectSum(summands), nm->mkConstInt(rhs), negate);
+}
+
+Node buildRealInequality(Summands& summands, Kind k)
+{
+  normalize::LCoeffAbsOne(summands);
+  Node rhs = mkConst(-removeConstant(summands));
+  return buildRelation(k, collectSum(summands), rhs);
 }
 
 }
