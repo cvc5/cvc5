@@ -227,8 +227,7 @@ RewriteResponse ArithRewriter::postRewrite(TNode t)
   Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
   if (isAtom(t))
   {
-    auto tmp = postRewriteAtom(t);
-    auto res = rewriteForLinear(tmp.d_node);
+    auto res = postRewriteAtom(t);
     Trace("arith-rewriter")
         << res.d_status << " -> " << res.d_node << std::endl;
     return res;
@@ -366,26 +365,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     }
     return RewriteResponse(REWRITE_DONE, rewriter::buildRealInequality(summands, kind));
   }
-
-
-
-  rewriter::normalize::LCoeffAbsOne(summands);
-  RealAlgebraicNumber constant = rewriter::removeConstant(summands);
-
-  Node newright = nm->mkRealAlgebraicNumber(-constant);
-  Node newleft = rewriter::collectSum(summands);
-
-  if (auto response = rewriter::tryEvaluateRelation(kind, newleft, newright); response)
-  {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
-  }
-
-  if (kind == Kind::DISTINCT)
-  {
-    return RewriteResponse(REWRITE_DONE, newleft.eqNode(newright).notNode());
-  }
-
-  return RewriteResponse(REWRITE_DONE, nm->mkNode(kind, newleft, newright));
 }
 
 bool ArithRewriter::isAtom(TNode n) {
