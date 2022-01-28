@@ -200,6 +200,7 @@ void LCoeffAbsOne(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
             if (numGCD.isZero()) numGCD = r.getNumerator().abs();
             else numGCD = numGCD.gcd(r.getNumerator().abs());
         }
+        if (numGCD.isZero()) return false;
         Rational mult(denLCM, numGCD);
 
         bool negate = false;
