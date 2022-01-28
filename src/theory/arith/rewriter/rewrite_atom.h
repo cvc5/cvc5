@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "expr/node.h"
+#include "theory/arith/rewriter/addition.h"
 
 namespace cvc5::theory::arith::rewriter {
 
@@ -105,6 +106,35 @@ std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
     }
   }
   return {};
+}
+
+Node buildIntegerEquality(Summands& summands)
+{
+  normalize::GCDLCM(summands);
+
+  if (summands.front().first.isConst())
+  {
+    Assert(summands.front().second.isRational());
+    if (!summands.front().second.toRational().isIntegral())
+    {
+      return mkConst(false);
+    }
+  }
+
+  auto minabscoeff = removeMinAbsCoeff(summands);
+  if (sgn(minabscoeff.second) > 0)
+  {
+    // otherwise minabscoeff goes to the right
+    minabscoeff.second = -minabscoeff.second;
+  }
+  else
+  {
+    // now the sum goes to the right
+    for (auto& s: summands) s.second = -s.second;
+  }
+  Node right = collectSum(summands);
+  Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
+  return left.eqNode(right);
 }
 
 }

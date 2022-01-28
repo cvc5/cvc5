@@ -346,7 +346,20 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::addToSum(rsum, left, negate);
   rewriter::addToSum(rsum, right, !negate);
 
+  // Now we have (rsum <kind> 0)
+
   auto summands = gatherSummands(rsum);
+
+  if (isIntegral(atom))
+  {
+    if (kind == Kind::EQUAL)
+    {
+      return RewriteResponse(REWRITE_DONE, rewriter::buildIntegerEquality(summands));
+    }
+  }
+
+
+
   rewriter::normalize::LCoeffAbsOne(summands);
   RealAlgebraicNumber constant = rewriter::removeConstant(summands);
 
