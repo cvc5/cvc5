@@ -122,7 +122,8 @@ jobs:
             cp -r docs-new target-releases/$NAME
             cd target-releases/
 
-            git add $NAME
+            python3 genversions.py
+            git add .
 
             git commit -m "Update docs for $NAME"
             git push
