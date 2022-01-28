@@ -117,7 +117,8 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
     Node prev = ctn;
     ctn = rewriteContains(ctn);
     Assert(!ctn.isNull());
-    if (ctn != prev && ctn.getKind() == STRING_CONTAINS) {
+    if (ctn != prev && ctn.getKind() == STRING_CONTAINS)
+    {
       prev = ctn;
       ctn = rewriteContains(ctn);
       Assert(!ctn.isNull());
