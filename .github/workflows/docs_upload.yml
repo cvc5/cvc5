@@ -48,6 +48,17 @@ jobs:
           python3 -m pip install linkchecker
           linkchecker --check-extern docs-new/index.html
 
+# This workflow is run for commits in PRs (from branches in forks), commits
+# (from branches in main repo, usually master) and tags. Unfortunately, there
+# are only two properties in the github context that can be used here:
+# - workflow_run.event is "pull_request" for PRs and "push" otherwise
+# - workflow_run.head_branch contains the branch or tag name
+# We can not reliably identify a tag from that, so we simply match the
+# head_branch against the naming pattern of our tags ("cvc5-*"). To prevent PRs
+# with a match branch name to be recognized as tags, we proceed as follows:
+# - handle PRs (event == "pull_request")
+# - handle tags (head_branch == "cvc5-*")
+# - rest are regular commits
       - name: Setup Context
         run: |
           HASH=${{ github.event.workflow_run.head_commit.id }}
