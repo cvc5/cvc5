@@ -51,18 +51,19 @@ jobs:
       - name: Setup Context
         run: |
           HASH=${{ github.event.workflow_run.head_commit.id }}
-          ISTAG=${{ github.ref_name != github.event.workflow_run.head_branch }}
-          if [ "$ISTAG" = true ] ; then
+          ISTAG=false
+          if [ "${{ github.event.workflow_run.event }}" == "pull_request" ] ; then
+            NAME=$(cat docs-new/prnum)
+            rm docs-new/prnum
+            echo "Identified PR #$NAME (from $HASH)"
+            NAME="pr$NAME"
+          elif [ "${{ startsWith(github.event.workflow_run.head_branch, 'cvc5-') }}" = "true" ] ; then
+            ISTAG=true
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified tag $NAME"
           elif [ "${{ github.event.workflow_run.event }}" == "push" ] ; then
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified branch $NAME"
-          elif [ "${{ github.event.workflow_run.event }}" == "pull_request" ] ; then
-            NAME=$(cat docs-new/prnum)
-            rm docs-new/prnum
-            echo "Identified PR #$NAME (from $HASH)"
-            NAME="pr$NAME"
           fi
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "HASH=$HASH" >> $GITHUB_ENV
