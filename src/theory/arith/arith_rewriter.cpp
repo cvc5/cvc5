@@ -357,6 +357,13 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
       return RewriteResponse(REWRITE_DONE, rewriter::buildIntegerEquality(summands));
     }
   }
+  else
+  {
+    if (kind == Kind::EQUAL)
+    {
+      return RewriteResponse(REWRITE_DONE, rewriter::buildRealEquality(summands));
+    }
+  }
 
 
 
@@ -1290,11 +1297,6 @@ RewriteResponse ArithRewriter::rewriteForLinear(TNode node)
   Trace("arith-rewriter-linear") << "rewriteForLinear(" << node << ")" << std::endl;
   switch (node.getKind())
   {
-    case Kind::EQUAL: {
-      auto res = rewriteEqualityForLinear(node);
-      Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
-      return res;
-    }
     case Kind::LT:
     case Kind::LEQ:
     case Kind::GEQ:
@@ -1308,60 +1310,6 @@ RewriteResponse ArithRewriter::rewriteForLinear(TNode node)
       Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
       return res;
   }
-}
-RewriteResponse ArithRewriter::rewriteEqualityForLinear(TNode node)
-{
-  Assert(node.getKind() == Kind::EQUAL);
-
-  rewriter::Sum rsum;
-  // move everything to the right
-  rewriter::addToSum(rsum, node[0], true);
-  rewriter::addToSum(rsum, node[1], false);
-  
-  auto summands = rewriter::gatherSummands(rsum);
-
-  if (isIntegral(node))
-  {
-    rewriter::normalize::GCDLCM(summands);
-
-    if (summands.front().first.isConst())
-    {
-      Assert(summands.front().second.isRational());
-      if (!summands.front().second.toRational().isIntegral())
-      {
-        auto* nm = NodeManager::currentNM();
-        return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      }
-    }
-
-    auto minabscoeff = rewriter::removeMinAbsCoeff(summands);
-    if (sgn(minabscoeff.second) > 0)
-    {
-      // now the sum goes to the left
-      for (auto& s: summands) s.second = -s.second;
-    }
-    else
-    {
-      // otherwise minabscoeff goes to the left
-      minabscoeff.second = -minabscoeff.second;
-    }
-    Trace("arith-rewriter-linear") << "separated coeff: " << minabscoeff << std::endl;
-    // Build the sum and return the result
-    Node right = rewriter::collectSum(summands);
-    Node left = rewriter::mkMultTerm(minabscoeff.second, minabscoeff.first);
-    return RewriteResponse(REWRITE_DONE, left.eqNode(right));
-  }
-
-  std::pair<Node, RealAlgebraicNumber> lterm = rewriter::removeLTerm(summands);
-
-  Rational lcoeff = -(lterm.second.toRational());
-  for (auto& s: summands)
-  {
-    s.second = s.second / lcoeff;
-  }
-
-
-  return RewriteResponse(REWRITE_DONE, lterm.first.eqNode(rewriter::collectSum(summands)));
 }
 
 RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)

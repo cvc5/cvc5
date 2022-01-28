@@ -122,19 +122,30 @@ Node buildIntegerEquality(Summands& summands)
   }
 
   auto minabscoeff = removeMinAbsCoeff(summands);
-  if (sgn(minabscoeff.second) > 0)
+  if (sgn(minabscoeff.second) < 0)
   {
-    // otherwise minabscoeff goes to the right
+    // move minabscoeff goes to the right and switch lhs and rhs
     minabscoeff.second = -minabscoeff.second;
   }
   else
   {
-    // now the sum goes to the right
+    // move the sum to the right
     for (auto& s: summands) s.second = -s.second;
   }
   Node right = collectSum(summands);
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
   return left.eqNode(right);
+}
+
+Node buildRealEquality(Summands& summands)
+{
+  auto lterm = removeLTerm(summands);
+  RealAlgebraicNumber lcoeff = -lterm.second;
+  for (auto& s: summands)
+  {
+    s.second = s.second / lcoeff;
+  }
+  return lterm.first.eqNode(rewriter::collectSum(summands));
 }
 
 }
