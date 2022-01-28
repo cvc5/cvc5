@@ -129,7 +129,6 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
       Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
     }
   }
-  auto* nm = NodeManager::currentNM();
   // factors that are not sums, separated into numerical and non-numerical
   RealAlgebraicNumber basemultiplicity(Integer(1));
   std::vector<Node> base;
@@ -138,8 +137,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // base factors).
   rewriter::Sum rsum;
   // Add a base summand
-  //sum.emplace(nm->mkConstReal(Rational(1)), RealAlgebraicNumber(Integer(1)));
-  rsum.sum.emplace(nm->mkConstReal(Rational(1)), RealAlgebraicNumber(Integer(1)));
+  rsum.sum.emplace(rewriter::mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
 
   // multiply factors one by one to basmultiplicity * base * sum
   for (const auto& factor : factors)
@@ -1270,112 +1268,6 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   Trace("arith-rewriter") << "ArithRewriter : " << t << " == " << ret << " by "
                          << r << std::endl;
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
-}
-
-RewriteResponse ArithRewriter::rewriteForLinear(TNode node)
-{
-
-  Trace("arith-rewriter-linear") << "rewriteForLinear(" << node << ")" << std::endl;
-  switch (node.getKind())
-  {
-    case Kind::LT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::GT: {
-      auto res = rewriteInequalityForLinear(node);
-      Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
-      return res;
-    }
-    default:
-      auto res = RewriteResponse(REWRITE_DONE, node);
-      Trace("arith-rewriter-linear") << res.d_status << " -> " << res.d_node << std::endl;
-      return res;
-  }
-}
-
-RewriteResponse ArithRewriter::rewriteInequalityForLinear(TNode node)
-{
-  Trace("arith-rewriter") << "Rewrite inequality for linear: " << node << std::endl;
-  Assert(node.getKind() == Kind::GT || node.getKind() == Kind::GEQ);
-  if (!isIntegral(node))
-  {
-    Trace("arith-rewriter") << "is not integer" << std::endl;
-    return RewriteResponse(REWRITE_DONE, node);
-  }
-
-  rewriter::Sum rsum;
-  rewriter::addToSum(rsum, node[0], false);
-  rewriter::addToSum(rsum, node[1], true);
-
-  if (isIntegral(node))
-  {
-    Trace("arith-rewriter") << "Rewrite integer inequality" << std::endl;
-    auto summands = rewriter::gatherSummands(rsum);
-    Trace("arith-rewriter-linear") << "summands:" << std::endl;
-    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
-    bool negate = rewriter::normalize::GCDLCM(summands, true);
-    Trace("arith-rewriter-linear") << "normalized:" << std::endl;
-    for (const auto& s: summands) Trace("arith-rewriter-linear") << "\t" << s << std::endl;
-    
-    Kind k = node.getKind();
-    if (negate) {
-      k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
-    }
-
-    RealAlgebraicNumber constant = rewriter::removeConstant(summands);
-    Assert(constant.isRational());
-    Rational baseRat = -constant.toRational();
-
-    if (baseRat.isIntegral() && k == Kind::GT)
-    {
-      baseRat += 1;
-    }
-    else
-    {
-      baseRat = baseRat.ceiling();
-    }
-    auto* nm = NodeManager::currentNM();
-    k = Kind::GEQ;
-    Node res = nm->mkNode(k, rewriter::collectSum(summands), nm->mkConstInt(baseRat));
-    return RewriteResponse(REWRITE_DONE, negate ? res.notNode() : res);
-  }
-
-  auto summands = rewriter::gatherSummands(rsum);
-
-  RealAlgebraicNumber base = rewriter::removeConstant(summands);
-  const auto& lterm = rewriter::getLTerm(summands);
-  Assert(lterm.second.isRational()) << "terms for the linear solver should not have RANs";
-
-  Rational lcoeff = lterm.second.toRational();
-
-  for (auto& s: summands)
-  {
-    s.second = s.second / lcoeff;
-  }
-
-  Rational rhs = (-base.toRational() / lcoeff);
-  if (lcoeff < 0 && rhs.isIntegral())
-  {
-    rhs += 1;
-  }
-  else {
-  rhs = rhs.ceiling();
-  }
-  Node lhs = rewriter::collectSum(summands);
-  
-
-  auto* nm = NodeManager::currentNM();
-  Node res;
-  if (lcoeff < 0)
-  {
-    res = nm->mkNode(node.getKind(), lhs, nm->mkConstReal(rhs)).notNode();
-  }
-  else
-  {
-    res = nm->mkNode(node.getKind(), lhs, nm->mkConstReal(rhs));
-  }
-  
-  return RewriteResponse(REWRITE_DONE, res);
 }
 
 }  // namespace arith

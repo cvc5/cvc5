@@ -42,8 +42,6 @@ class ArithRewriter : public TheoryRewriter
    */
   TrustNode expandDefinition(Node node) override;
 
-  RewriteResponse rewriteForLinear(TNode node);
-
  private:
   static RewriteResponse preRewriteAtom(TNode t);
   static RewriteResponse postRewriteAtom(TNode t);
