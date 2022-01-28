@@ -68,7 +68,7 @@ jobs:
             rm docs-new/prnum
             echo "Identified PR #$NAME (from $HASH)"
             NAME="pr$NAME"
-          elif [ "${{ startsWith(github.event.workflow_run.head_branch, 'cvc5-') }}" = "true" ] ; then
+          elif [ "${{ startsWith(github.event.workflow_run.head_branch, 'cvc5-') }}" == "true" ] ; then
             ISRELEASE=true
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified tag $NAME"
