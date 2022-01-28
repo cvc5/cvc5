@@ -81,7 +81,8 @@ void ProofStepBuffer::addStep(PfRule id,
   {
     if (d_allSteps.find(expected) != d_allSteps.end())
     {
-      Trace("psb-debug") << "Discard " << expected << " from " << id << std::endl;
+      Trace("psb-debug") << "Discard " << expected << " from " << id
+                         << std::endl;
       return;
     }
     d_allSteps.insert(expected);
@@ -123,7 +124,9 @@ const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const
   return d_steps;
 }
 
-void ProofStepBuffer::clear() { d_steps.clear(); 
+void ProofStepBuffer::clear()
+{
+  d_steps.clear();
   d_allSteps.clear();
 }
 
