@@ -23,6 +23,16 @@
 
 namespace cvc5::theory::arith::rewriter {
 
+inline bool isRAN(TNode n)
+{
+  return n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+}
+inline const RealAlgebraicNumber& getRAN(TNode n)
+{
+  Assert(isRAN(n));
+  return n.getOperator().getConst<RealAlgebraicNumber>();
+}
+
 inline Node mkConst(bool value)
 {
   return NodeManager::currentNM()->mkConst(value);
@@ -42,23 +52,6 @@ inline Node mkConst(const Rational& value)
 inline Node mkConst(const RealAlgebraicNumber& value)
 {
   return NodeManager::currentNM()->mkRealAlgebraicNumber(value);
-}
-
-
-inline bool isValue(TNode node)
-{
-  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
-}
-
-inline RealAlgebraicNumber getValue(TNode node)
-{
-  Assert(isValue(node));
-  if (node.isConst())
-  {
-    return node.getConst<Rational>();
-  }
-  Assert(node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER);
-  return node.getOperator().getConst<RealAlgebraicNumber>();
 }
 
 /** Make a nonlinear multiplication from the given factors */

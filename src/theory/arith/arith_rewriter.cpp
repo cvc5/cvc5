@@ -145,7 +145,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
     Assert(factor.getKind() != Kind::MINUS);
     Assert(factor.getKind() != Kind::UMINUS
            || (factor[0].isConst()
-               || factor[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER));
+               || rewriter::isRAN(factor[0])));
     if (factor.getKind() != Kind::PLUS)
     {
       Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
@@ -167,9 +167,9 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
           rewriter::addToSum(newrsum, summand.first, multiplicity);
           continue;
         }
-        if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+        if (rewriter::isRAN(child))
         {
-          multiplicity *= child.getOperator().getConst<RealAlgebraicNumber>();
+          multiplicity *= rewriter::getRAN(child);
           rewriter::addToSum(newrsum, summand.first, multiplicity);
           continue;
         }
@@ -379,16 +379,13 @@ RewriteResponse ArithRewriter::rewriteConstant(TNode t){
 
 RewriteResponse ArithRewriter::rewriteRAN(TNode t)
 {
-  Assert(t.getKind() == REAL_ALGEBRAIC_NUMBER);
-
-  const RealAlgebraicNumber& r =
-      t.getOperator().getConst<RealAlgebraicNumber>();
+  Assert(rewriter::isRAN(t));
+  const RealAlgebraicNumber& r = rewriter::getRAN(t);
   if (r.isRational())
   {
     return RewriteResponse(
-        REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
+        REWRITE_DONE, rewriter::mkConst(r.toRational()));
   }
-
   return RewriteResponse(REWRITE_DONE, t);
 }
 
@@ -411,7 +408,7 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t)
   auto* nm = NodeManager::currentNM();
   return RewriteResponse(
       REWRITE_AGAIN_FULL,
-      nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
+      nm->mkNode(Kind::PLUS, t[0], nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[1])));
 }
 
 RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
@@ -423,14 +420,13 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
     return RewriteResponse(REWRITE_DONE,
                            rewriter::mkConst(neg));
   }
-  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  if (rewriter::isRAN(t[0]))
   {
-    const RealAlgebraicNumber& r =
-        t[0].getOperator().getConst<RealAlgebraicNumber>();
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(-r));
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(-rewriter::getRAN(t[0])));
   }
 
-  Node noUminus = makeUnaryMinusNode(t[0]);
+  auto* nm = NodeManager::currentNM();
+  Node noUminus = nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[0]);
   if(pre)
     return RewriteResponse(REWRITE_DONE, noUminus);
   else
@@ -656,9 +652,9 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       }
       rational *= child.getConst<Rational>();
     }
-    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    else if (rewriter::isRAN(child))
     {
-      ran *= child.getOperator().getConst<RealAlgebraicNumber>();
+      ran *= rewriter::getRAN(child);
     }
     else
     {
@@ -981,12 +977,6 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-Node ArithRewriter::makeUnaryMinusNode(TNode n){
-  NodeManager* nm = NodeManager::currentNM();
-  Rational qNegOne(-1);
-  return nm->mkNode(kind::MULT, nm->mkConstRealOrInt(n.getType(), qNegOne), n);
-}
-
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
   Assert(t.getKind() == kind::DIVISION_TOTAL || t.getKind() == kind::DIVISION);
   Assert(t.getNumChildren() == 2);
@@ -1008,25 +998,16 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
     }
     Assert(den != Rational(0));
 
-    if (rewriter::isValue(left))
-    {
-      return RewriteResponse(
-          REWRITE_DONE,
-          nm->mkRealAlgebraicNumber(rewriter::getValue(left) / RealAlgebraicNumber(den)));
-    }
-
     if (left.isConst())
     {
       const Rational& num = left.getConst<Rational>();
       return RewriteResponse(REWRITE_DONE, nm->mkConstReal(num / den));
     }
-    if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    if (rewriter::isRAN(left))
     {
-      const RealAlgebraicNumber& num =
-          left.getOperator().getConst<RealAlgebraicNumber>();
       return RewriteResponse(
           REWRITE_DONE,
-          nm->mkRealAlgebraicNumber(num / RealAlgebraicNumber(den)));
+          nm->mkRealAlgebraicNumber(rewriter::getRAN(left) / den));
     }
 
     Node result = nm->mkConstReal(den.inverse());
@@ -1040,19 +1021,22 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
       return RewriteResponse(REWRITE_AGAIN, mult);
     }
   }
-  if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  if (rewriter::isRAN(right))
   {
-    NodeManager* nm = NodeManager::currentNM();
-    const RealAlgebraicNumber& den =
-        right.getOperator().getConst<RealAlgebraicNumber>();
+    const RealAlgebraicNumber& den = rewriter::getRAN(right);
     
-    if (rewriter::isValue(left))
+    if (left.isConst())
     {
       return RewriteResponse(REWRITE_DONE,
-                             nm->mkRealAlgebraicNumber(rewriter::getValue(left) / den));
+                             rewriter::mkConst(left.getConst<Rational>() / den));
+    }
+    if (rewriter::isRAN(left))
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             rewriter::mkConst(rewriter::getRAN(left) / den));
     }
 
-    Node result = nm->mkRealAlgebraicNumber(inverse(den));
+    Node result = rewriter::mkConst(inverse(den));
     Node mult = NodeManager::currentNM()->mkNode(kind::MULT,left,result);
     if(pre){
       return RewriteResponse(REWRITE_DONE, mult);
@@ -1079,10 +1063,9 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
         REWRITE_DONE,
         NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
   }
-  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  if (rewriter::isRAN(t[0]))
   {
-    const RealAlgebraicNumber& ran =
-        t[0].getOperator().getConst<RealAlgebraicNumber>();
+    const RealAlgebraicNumber& ran = rewriter::getRAN(t[0]);
     if (ran >= RealAlgebraicNumber())
     {
       return RewriteResponse(REWRITE_DONE, t[0]);

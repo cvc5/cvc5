@@ -46,9 +46,6 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteAtom(TNode t);
   static RewriteResponse postRewriteAtom(TNode t);
 
-  static Node makeSubtractionNode(TNode l, TNode r);
-  static Node makeUnaryMinusNode(TNode n);
-
   static RewriteResponse preRewriteTerm(TNode t);
   static RewriteResponse postRewriteTerm(TNode t);
 
@@ -76,9 +73,6 @@ class ArithRewriter : public TheoryRewriter
 
   static RewriteResponse preRewriteTranscendental(TNode t);
   static RewriteResponse postRewriteTranscendental(TNode t);
-
-  static RewriteResponse rewriteInequalityForLinear(TNode node);
-  static RewriteResponse rewriteEqualityForLinear(TNode node);
 
   static bool isAtom(TNode n);
 
