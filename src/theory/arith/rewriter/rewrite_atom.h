@@ -108,6 +108,19 @@ std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
   return {};
 }
 
+Node buildRelation(Kind kind, Node left, Node right, bool negate = false)
+{
+  if (auto response = rewriter::tryEvaluateRelation(kind, left, right); response)
+  {
+    return mkConst(*response != negate);
+  }
+  if (negate)
+  {
+    return NodeManager::currentNM()->mkNode(kind, left, right).notNode();
+  }
+  return NodeManager::currentNM()->mkNode(kind, left, right);
+}
+
 Node buildIntegerEquality(Summands& summands)
 {
   normalize::GCDLCM(summands);
@@ -134,7 +147,8 @@ Node buildIntegerEquality(Summands& summands)
   }
   Node right = collectSum(summands);
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
-  return left.eqNode(right);
+
+  return buildRelation(Kind::EQUAL, left, right);
 }
 
 Node buildRealEquality(Summands& summands)
@@ -145,7 +159,7 @@ Node buildRealEquality(Summands& summands)
   {
     s.second = s.second / lcoeff;
   }
-  return lterm.first.eqNode(rewriter::collectSum(summands));
+  return buildRelation(Kind::EQUAL, lterm.first, collectSum(summands));
 }
 
 Node buildIntegerInequality(Summands& summands, Kind k)
@@ -174,9 +188,7 @@ Node buildIntegerInequality(Summands& summands, Kind k)
     rhs = rhs.ceiling();
   }
   auto* nm = NodeManager::currentNM();
-  Node res = nm->mkNode(Kind::GEQ, rewriter::collectSum(summands), nm->mkConstInt(rhs));
-  //Trace("arith-rewriter") << "-> " << (negate ? res.notNode() : res) << std::endl;
-  return negate ? res.notNode() : res;
+  return buildRelation(Kind::GEQ, collectSum(summands), nm->mkConstInt(rhs), negate);
 }
 
 }

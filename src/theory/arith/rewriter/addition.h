@@ -238,13 +238,17 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(std::vector<std::pair<Nod
 {
     auto minit = summands.begin();
     while (minit != summands.end() && minit->first.isConst()) ++minit;
-    for (auto it = std::next(minit); it != summands.end(); ++it)
+    for (auto it = minit; it != summands.end(); ++it)
     {
       if (it->first.isConst()) continue;
       if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
       {
         minit = it;
       }
+    }
+    if (minit == summands.end())
+    {
+      return std::make_pair(mkConst(Integer(1)), Integer(0));
     }
     Assert(minit != summands.end());
     std::pair<Node, RealAlgebraicNumber> res = *minit;
