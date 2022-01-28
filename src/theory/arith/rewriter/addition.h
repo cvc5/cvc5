@@ -299,7 +299,7 @@ std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
 Node collectSum(
     const Sum& sum)
 {
-  if (sum.sum.empty()) return NodeManager::currentNM()->mkConstReal(Rational(0));
+  if (sum.sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands = gatherSummands(sum);
   std::vector<Node> children;
@@ -316,7 +316,7 @@ Node collectSum(
     const std::vector<Node>& baseproduct
 )
 {
-  if (sum.sum.empty()) return NodeManager::currentNM()->mkConstReal(Rational(0));
+  if (sum.sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
   std::vector<std::pair<Node, RealAlgebraicNumber>> summands;
   for (const auto& summand : sum.sum)
