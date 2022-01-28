@@ -114,8 +114,15 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   {
     // must call rewrite contains directly to avoid infinite loop
     Node ctn = nm->mkNode(STRING_CONTAINS, node[r], node[1 - r]);
+    Node prev = ctn;
     ctn = rewriteContains(ctn);
     Assert(!ctn.isNull());
+    if (ctn != prev && ctn.getKind() == STRING_CONTAINS)
+    {
+      prev = ctn;
+      ctn = rewriteContains(ctn);
+      Assert(!ctn.isNull());
+    }
     if (ctn.isConst())
     {
       if (!ctn.getConst<bool>())
