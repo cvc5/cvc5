@@ -55,7 +55,7 @@ jobs:
 # - workflow_run.head_branch contains the branch or tag name
 # We can not reliably identify a tag from that, so we simply match the
 # head_branch against the naming pattern of our tags ("cvc5-*"). To prevent PRs
-# with a match branch name to be recognized as tags, we proceed as follows:
+# with a matching branch name to be recognized as tags, we proceed as follows:
 # - handle PRs (event == "pull_request")
 # - handle tags (head_branch == "cvc5-*")
 # - rest are regular commits
