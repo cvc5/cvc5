@@ -268,6 +268,10 @@ std::pair<Node, RealAlgebraicNumber> removeLTerm(std::vector<std::pair<Node, Rea
 {
     auto it = summands.begin();
     while (it != summands.end() && it->first.isConst()) ++it;
+    if (it == summands.end())
+    {
+      return std::make_pair(mkConst(Integer(1)), Integer(0));
+    }
     Assert(it != summands.end());
     std::pair<Node, RealAlgebraicNumber> res = *it;
     summands.erase(it);

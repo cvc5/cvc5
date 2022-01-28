@@ -154,6 +154,10 @@ Node buildIntegerEquality(Summands& summands)
 Node buildRealEquality(Summands& summands)
 {
   auto lterm = removeLTerm(summands);
+  if (isZero(lterm.second))
+  {
+    return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(summands));
+  }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s: summands)
   {
