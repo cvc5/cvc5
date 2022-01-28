@@ -81,9 +81,11 @@ void ProofStepBuffer::addStep(PfRule id,
   {
     if (d_allSteps.find(expected) != d_allSteps.end())
     {
+      Trace("psb-debug") << "Discard " << expected << " from " << id << std::endl;
       return;
     }
     d_allSteps.insert(expected);
+    Trace("psb-debug") << "Add " << expected << " from " << id << std::endl;
   }
   d_steps.push_back(
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
@@ -106,6 +108,10 @@ void ProofStepBuffer::popStep()
   Assert(!d_steps.empty());
   if (!d_steps.empty())
   {
+    if (d_ensureUnique)
+    {
+      d_allSteps.erase(d_steps.back().first);
+    }
     d_steps.pop_back();
   }
 }
@@ -117,6 +123,8 @@ const std::vector<std::pair<Node, ProofStep>>& ProofStepBuffer::getSteps() const
   return d_steps;
 }
 
-void ProofStepBuffer::clear() { d_steps.clear(); }
+void ProofStepBuffer::clear() { d_steps.clear(); 
+  d_allSteps.clear();
+}
 
 }  // namespace cvc5

@@ -153,6 +153,7 @@ void InferProofCons::convert(InferenceId infer,
   // below
   for (const Node& ec : ps.d_children)
   {
+    Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
     psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
   }
   // debug print
