@@ -501,8 +501,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
-  auto* nm = NodeManager::currentNM();
-
   Assert(!isZero(rational));
   if (ran.isRational())
   {
@@ -513,34 +511,17 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   {
     ran *= rational;
     rational = 1;
-    leafs.insert(leafs.begin(), nm->mkRealAlgebraicNumber(ran));
+    leafs.insert(leafs.begin(), rewriter::mkConst(ran));
+  }
+
+  if (leafs.empty())
+  {
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(rational));
   }
 
   std::sort(leafs.begin(), leafs.end(), rewriter::LeafNodeComparator());
 
-  switch (leafs.size())
-  {
-    case 0: return RewriteResponse(REWRITE_DONE, rewriter::mkConst(rational));
-    case 1:
-      if (rational.isOne())
-      {
-        return RewriteResponse(REWRITE_DONE, leafs[0]);
-      }
-      return RewriteResponse(
-          REWRITE_DONE,
-          nm->mkNode(Kind::MULT, rewriter::mkConst(rational), leafs[0]));
-    default:
-      if (rational.isOne())
-      {
-        return RewriteResponse(
-            REWRITE_DONE, nm->mkNode(Kind::NONLINEAR_MULT, std::move(leafs)));
-      }
-      return RewriteResponse(
-          REWRITE_DONE,
-          nm->mkNode(Kind::MULT,
-                     rewriter::mkConst(rational),
-                     nm->mkNode(Kind::NONLINEAR_MULT, std::move(leafs))));
-  }
+  return RewriteResponse(REWRITE_DONE, rewriter::mkMultTerm(rational, rewriter::mkMult(std::move(leafs))));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)

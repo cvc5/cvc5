@@ -129,7 +129,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   auto* nm = NodeManager::currentNM();
   if (monomial.isConst())
   {
-    return nm->mkRealAlgebraicNumber(multiplicity * monomial.getConst<Rational>());
+    return mkConst(multiplicity * monomial.getConst<Rational>());
   }
   if (multiplicity.isRational())
   {
@@ -137,13 +137,28 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
     {
       return monomial;
     }
-    return nm->mkNode(Kind::MULT, nm->mkConstReal(multiplicity.toRational()), monomial);
+    return nm->mkNode(Kind::MULT, mkConst(multiplicity.toRational()), monomial);
   }
   std::vector<Node> prod;
-  prod.emplace_back(nm->mkRealAlgebraicNumber(multiplicity));
+  prod.emplace_back(mkConst(multiplicity));
   prod.insert(prod.end(), monomial.begin(), monomial.end());
   return mkMult(std::move(prod));
 }
+
+Node mkMultTerm(const Rational& multiplicity, TNode monomial)
+{
+  auto* nm = NodeManager::currentNM();
+  if (monomial.isConst())
+  {
+    return mkConst(multiplicity * monomial.getConst<Rational>());
+  }
+  if (isOne(multiplicity))
+  {
+    return monomial;
+  }
+  return nm->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
+}
+
 
 namespace normalize
 {
