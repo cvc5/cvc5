@@ -66,6 +66,23 @@ inline bool isIntegral(TNode n)
   return true;
 }
 
+/**
+ * Check whether the parent has a child that is a constant zero.
+ * If so, return this child. Otherwise, return std::nullopt.
+ */
+template <typename Iterable>
+std::optional<TNode> getZeroChild(const Iterable& parent)
+{
+  for (const auto& node : parent)
+  {
+    if (node.isConst() && node.template getConst<Rational>().isZero())
+    {
+      return node;
+    }
+  }
+  return {};
+}
+
 inline Node mkConst(bool value)
 {
   return NodeManager::currentNM()->mkConst(value);

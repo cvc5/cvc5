@@ -46,122 +46,6 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-namespace {
-
-/**
- * Check whether the parent has a child that is a constant zero.
- * If so, return this child. Otherwise, return std::nullopt.
- */
-template <typename Iterable>
-std::optional<TNode> getZeroChild(const Iterable& parent)
-{
-  for (const auto& node : parent)
-  {
-    if (node.isConst() && node.template getConst<Rational>().isZero())
-    {
-      return node;
-    }
-  }
-  return {};
-}
-
-/**
- * Distribute a multiplication over one or more additions. The multiplication
- * is given as the list of its factors. Though this method also works if none
- * of these factors is an addition, there is no point of calling this method
- * in this case. The result is the resulting sum after expanding the product
- * and pushing the multiplication inside the addition.
- *
- * The method maintains a `sum` as a mapping from Node to RealAlgebraicNumber.
- * The nodes can be understood as monomials, or generally non-value parts of
- * the product, while the real algebraic numbers are the multiplicities of these
- * monomials or products. This allows to combine summands with identical
- * monomials immediately and avoid a potential blow-up.
- */
-Node distributeMultiplication(const std::vector<TNode>& factors)
-{
-  if (Trace.isOn("arith-rewriter-distribute"))
-  {
-    Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
-    for (const auto& f : factors)
-    {
-      Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
-    }
-  }
-  // factors that are not sums, separated into numerical and non-numerical
-  RealAlgebraicNumber basemultiplicity(Integer(1));
-  std::vector<Node> base;
-  // maps products to their (possibly real algebraic) multiplicities.
-  // The current (intermediate) value is the sum of these (multiplied by the
-  // base factors).
-  rewriter::Sum rsum;
-  // Add a base summand
-  rsum.sum.emplace(rewriter::mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
-
-  // multiply factors one by one to basmultiplicity * base * sum
-  for (const auto& factor : factors)
-  {
-    // Subtractions are rewritten already, we only need to care about additions
-    Assert(factor.getKind() != Kind::MINUS);
-    Assert(factor.getKind() != Kind::UMINUS
-           || (factor[0].isConst()
-               || rewriter::isRAN(factor[0])));
-    if (factor.getKind() != Kind::PLUS)
-    {
-      Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
-      rewriter::addToProduct(base, basemultiplicity, factor);
-      continue;
-    }
-    // temporary to store factor * sum, will be moved to sum at the end
-    rewriter::Sum newrsum;
-
-    for (const auto& summand : rsum.sum)
-    {
-      for (const auto& child : factor)
-      {
-        // add summand * child to newsum
-        RealAlgebraicNumber multiplicity = summand.second;
-        if (child.isConst())
-        {
-          multiplicity *= child.getConst<Rational>();
-          rewriter::addToSum(newrsum, summand.first, multiplicity);
-          continue;
-        }
-        if (rewriter::isRAN(child))
-        {
-          multiplicity *= rewriter::getRAN(child);
-          rewriter::addToSum(newrsum, summand.first, multiplicity);
-          continue;
-        }
-
-        // construct the new product
-        std::vector<Node> newProduct;
-        rewriter::addToProduct(newProduct, multiplicity, summand.first);
-        rewriter::addToProduct(newProduct, multiplicity, child);
-        std::sort(newProduct.begin(), newProduct.end(), rewriter::LeafNodeComparator());
-        rewriter::addToSum(newrsum, rewriter::mkMult(std::move(newProduct)), multiplicity);
-      }
-    }
-    Trace("arith-rewriter-distribute")
-        << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter-distribute")
-        << "base: " << basemultiplicity << " * " << base << std::endl;
-    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
-    for (const auto& summand : newrsum.sum)
-    {
-      Trace("arith-rewriter-distribute")
-          << "\t" << summand.second << " * " << summand.first << std::endl;
-    }
-
-    rsum = std::move(newrsum);
-  }
-  // now mult(factors) == base * add(sum)
-
-  return rewriter::collectSum(rsum, basemultiplicity, base);
-}
-
-}  // namespace
-
 ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
@@ -563,7 +447,7 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   Assert(node.getKind() == kind::MULT
          || node.getKind() == kind::NONLINEAR_MULT);
 
-  if (auto res = getZeroChild(node); res)
+  if (auto res = rewriter::getZeroChild(node); res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
   }
@@ -577,7 +461,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   std::vector<TNode> children;
   expr::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
 
-  if (auto res = getZeroChild(children); res)
+  if (auto res = rewriter::getZeroChild(children); res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
   }
@@ -588,10 +472,10 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       }))
   {
     return RewriteResponse(REWRITE_DONE,
-                           distributeMultiplication(children));
+                           rewriter::distributeMultiplication(children));
   }
 
-  if (auto res = getZeroChild(t); res)
+  if (auto res = rewriter::getZeroChild(t); res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
   }
