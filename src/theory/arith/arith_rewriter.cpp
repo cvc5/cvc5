@@ -51,7 +51,7 @@ ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
 RewriteResponse ArithRewriter::preRewrite(TNode t)
 {
   Trace("arith-rewriter") << "preRewrite(" << t << ")" << std::endl;
-  if (isAtom(t))
+  if (rewriter::isAtom(t))
   {
     auto res = preRewriteAtom(t);
     Trace("arith-rewriter")
@@ -66,7 +66,7 @@ RewriteResponse ArithRewriter::preRewrite(TNode t)
 RewriteResponse ArithRewriter::postRewrite(TNode t)
 {
   Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
-  if (isAtom(t))
+  if (rewriter::isAtom(t))
   {
     auto res = postRewriteAtom(t);
     Trace("arith-rewriter")
@@ -80,7 +80,7 @@ RewriteResponse ArithRewriter::postRewrite(TNode t)
 
 RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 {
-  Assert(isAtom(atom));
+  Assert(rewriter::isAtom(atom));
 
   if (auto response = rewriter::tryEvaluateRelationReflexive(atom); response)
   {
@@ -116,7 +116,7 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 {
-  Assert(isAtom(atom));
+  Assert(rewriter::isAtom(atom));
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -196,7 +196,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   // Now we have (rsum <kind> 0)
 
-  auto summands = gatherSummands(rsum);
+  auto summands = rewriter::gatherSummands(rsum);
 
   if (rewriter::isIntegral(atom))
   {
@@ -218,12 +218,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE,
                            rewriter::buildRealInequality(summands, kind));
   }
-}
-
-bool ArithRewriter::isAtom(TNode n) {
-  Kind k = n.getKind();
-  return arith::isRelationOperator(k) || k == kind::IS_INTEGER
-      || k == kind::DIVISIBLE;
 }
 
 RewriteResponse ArithRewriter::rewriteConstant(TNode t){

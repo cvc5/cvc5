@@ -23,15 +23,21 @@
 
 namespace cvc5::theory::arith::rewriter {
 
-inline bool isRAN(TNode n)
+inline bool isAtom(TNode n)
 {
-  return n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+  switch (n.getKind())
+  {
+    case Kind::LT:
+    case Kind::LEQ:
+    case Kind::EQUAL:
+    case Kind::GEQ:
+    case Kind::GT:
+    case Kind::IS_INTEGER:
+    case Kind::DIVISIBLE: return true;
+    default: return false;
+  }
 }
-inline const RealAlgebraicNumber& getRAN(TNode n)
-{
-  Assert(isRAN(n));
-  return n.getOperator().getConst<RealAlgebraicNumber>();
-}
+inline bool isTerm(TNode n) { return !isAtom(n); }
 
 inline bool isIntegral(TNode n)
 {
@@ -64,6 +70,16 @@ inline bool isIntegral(TNode n)
     }
   }
   return true;
+}
+
+inline bool isRAN(TNode n)
+{
+  return n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+}
+inline const RealAlgebraicNumber& getRAN(TNode n)
+{
+  Assert(isRAN(n));
+  return n.getOperator().getConst<RealAlgebraicNumber>();
 }
 
 /**

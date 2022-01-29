@@ -74,11 +74,6 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteTranscendental(TNode t);
   static RewriteResponse postRewriteTranscendental(TNode t);
 
-  static bool isAtom(TNode n);
-
-  static inline bool isTerm(TNode n) {
-    return !isAtom(n);
-  }
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
   /** The operator elimination utility */
