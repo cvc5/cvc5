@@ -48,46 +48,6 @@ namespace arith {
 
 namespace {
 
-bool isIntegral(TNode n)
-{
-  if (n.isConst()) return true;
-  switch (n.getKind())
-  {
-    case Kind::LT:
-    case Kind::LEQ:
-    case Kind::EQUAL:
-    case Kind::DISTINCT:
-    case Kind::GEQ:
-    case Kind::GT:
-      return isIntegral(n[0]) && isIntegral(n[1]);
-    case Kind::PLUS:
-    case Kind::MULT:
-    case Kind::MINUS:
-    case Kind::UMINUS:
-      return std::all_of(n.begin(), n.end(), [](TNode v){ return isIntegral(v); });
-    default:
-      return n.getType().isInteger();
-  }
-  std::unordered_set<TNode> variables;
-  expr::getVariables(n, variables);
-  return std::all_of(variables.begin(), variables.end(), [](TNode v){ 
-    return !v.getType().isRealOrInt() || v.getType().isInteger();
-  });
-}
-
-/** Make a nonlinear multiplication from the given factors */
-template <typename T>
-Node mkMult(T&& factors)
-{
-  auto* nm = NodeManager::currentNM();
-  switch (factors.size())
-  {
-    case 0: return nm->mkConstInt(Rational(1));
-    case 1: return factors[0];
-    default: return nm->mkNode(Kind::NONLINEAR_MULT, std::forward<T>(factors));
-  }
-}
-
 /**
  * Check whether the parent has a child that is a constant zero.
  * If so, return this child. Otherwise, return std::nullopt.
@@ -102,7 +62,7 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
       return node;
     }
   }
-  return std::nullopt;
+  return {};
 }
 
 /**
@@ -179,7 +139,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         rewriter::addToProduct(newProduct, multiplicity, summand.first);
         rewriter::addToProduct(newProduct, multiplicity, child);
         std::sort(newProduct.begin(), newProduct.end(), rewriter::LeafNodeComparator());
-        rewriter::addToSum(newrsum, mkMult(std::move(newProduct)), multiplicity);
+        rewriter::addToSum(newrsum, rewriter::mkMult(std::move(newProduct)), multiplicity);
       }
     }
     Trace("arith-rewriter-distribute")
@@ -346,7 +306,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   auto summands = gatherSummands(rsum);
 
-  if (isIntegral(atom))
+  if (rewriter::isIntegral(atom))
   {
     if (kind == Kind::EQUAL)
     {

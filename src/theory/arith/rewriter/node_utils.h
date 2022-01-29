@@ -33,6 +33,39 @@ inline const RealAlgebraicNumber& getRAN(TNode n)
   return n.getOperator().getConst<RealAlgebraicNumber>();
 }
 
+inline bool isIntegral(TNode n)
+{
+  std::vector<TNode> queue = {n};
+  while (!queue.empty())
+  {
+    TNode cur = queue.back();
+    queue.pop_back();
+
+    if (cur.isConst()) continue;
+    switch (cur.getKind())
+    {
+      case Kind::LT:
+      case Kind::LEQ:
+      case Kind::EQUAL:
+      case Kind::DISTINCT:
+      case Kind::GEQ:
+      case Kind::GT:
+        queue.emplace_back(n[0]);
+        queue.emplace_back(n[1]);
+        break;
+      case Kind::PLUS:
+      case Kind::MULT:
+      case Kind::MINUS:
+      case Kind::UMINUS:
+        queue.insert(queue.end(), cur.begin(), cur.end());
+        break;
+      default:
+        if (!cur.getType().isInteger()) return false;
+    }
+  }
+  return true;
+}
+
 inline Node mkConst(bool value)
 {
   return NodeManager::currentNM()->mkConst(value);
