@@ -102,7 +102,7 @@ std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
       case Kind::DISTINCT: return false;
       case Kind::GEQ: return true;
       case Kind::GT: return false;
-      default: ;
+      default:;
     }
   }
   return {};
@@ -156,7 +156,7 @@ Node buildIntegerEquality(Summands& summands)
   else
   {
     // move the sum to the right
-    for (auto& s: summands) s.second = -s.second;
+    for (auto& s : summands) s.second = -s.second;
   }
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
 
@@ -174,10 +174,11 @@ Node buildRealEquality(Summands& summands)
   auto lterm = removeLTerm(summands);
   if (isZero(lterm.second))
   {
-    return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(summands));
+    return buildRelation(
+        Kind::EQUAL, mkConst(Integer(0)), collectSum(summands));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
-  for (auto& s: summands)
+  for (auto& s : summands)
   {
     s.second = s.second / lcoeff;
   }
@@ -188,7 +189,8 @@ Node buildIntegerInequality(Summands& summands, Kind k)
 {
   bool negate = normalize::GCDLCM(summands, true);
 
-  if (negate) {
+  if (negate)
+  {
     k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
   }
 
@@ -205,7 +207,8 @@ Node buildIntegerInequality(Summands& summands, Kind k)
     rhs = rhs.ceiling();
   }
   auto* nm = NodeManager::currentNM();
-  return buildRelation(Kind::GEQ, collectSum(summands), nm->mkConstInt(rhs), negate);
+  return buildRelation(
+      Kind::GEQ, collectSum(summands), nm->mkConstInt(rhs), negate);
 }
 
 Node buildRealInequality(Summands& summands, Kind k)
@@ -215,6 +218,6 @@ Node buildRealInequality(Summands& summands, Kind k)
   return buildRelation(k, collectSum(summands), rhs);
 }
 
-}
+}  // namespace cvc5::theory::arith::rewriter
 
 #endif

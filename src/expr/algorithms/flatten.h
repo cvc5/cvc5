@@ -86,7 +86,7 @@ bool canFlatten(TNode t, Kinds... kinds)
   {
     if (!((t.getKind() == kinds) || ...))
     {
-        return false;
+      return false;
     }
     return std::any_of(t.begin(), t.end(), [=](TNode child) {
       return ((child.getKind() == kinds) || ...);

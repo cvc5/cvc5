@@ -24,21 +24,21 @@
 #include <stack>
 #include <vector>
 
-#include "expr/node_algorithm.h"
 #include "expr/algorithms/flatten.h"
+#include "expr/node_algorithm.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/operator_elim.h"
+#include "theory/arith/rewriter/addition.h"
+#include "theory/arith/rewriter/node_utils.h"
+#include "theory/arith/rewriter/ordering.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/theory.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
 #include "util/real_algebraic_number.h"
-#include "theory/arith/rewriter/addition.h"
-#include "theory/arith/rewriter/node_utils.h"
-#include "theory/arith/rewriter/ordering.h"
-#include "theory/arith/rewriter/rewrite_atom.h"
 
 using namespace cvc5::kind;
 
@@ -124,7 +124,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   {
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
-  
+
   if (atom.getKind() == kind::IS_INTEGER)
   {
     return rewriteExtIntegerOp(atom);
@@ -149,7 +149,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
         nm->mkNode(kind::EQUAL,
                    nm->mkNode(kind::INTS_MODULUS_TOTAL,
                               atom[0],
-                              rewriter::mkConst(atom.getOperator().getConst<Divisible>().k)),
+                              rewriter::mkConst(
+                                  atom.getOperator().getConst<Divisible>().k)),
                    rewriter::mkConst(Integer(0))));
   }
 
@@ -159,7 +160,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   TNode right = atom[1];
   Assert(isRelationOperator(kind));
 
-  if (auto response = rewriter::tryEvaluateRelation(kind, left, right); response)
+  if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
+      response)
   {
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
@@ -177,8 +179,14 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
   switch (atom.getKind())
   {
-    case Kind::LEQ: kind = Kind::GEQ; negate = true; break;
-    case Kind::LT: kind = Kind::GT; negate = true; break;
+    case Kind::LEQ:
+      kind = Kind::GEQ;
+      negate = true;
+      break;
+    case Kind::LT:
+      kind = Kind::GT;
+      negate = true;
+      break;
     default: break;
   }
 
@@ -194,17 +202,21 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   {
     if (kind == Kind::EQUAL)
     {
-      return RewriteResponse(REWRITE_DONE, rewriter::buildIntegerEquality(summands));
+      return RewriteResponse(REWRITE_DONE,
+                             rewriter::buildIntegerEquality(summands));
     }
-    return RewriteResponse(REWRITE_DONE, rewriter::buildIntegerInequality(summands, kind));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::buildIntegerInequality(summands, kind));
   }
   else
   {
     if (kind == Kind::EQUAL)
     {
-      return RewriteResponse(REWRITE_DONE, rewriter::buildRealEquality(summands));
+      return RewriteResponse(REWRITE_DONE,
+                             rewriter::buildRealEquality(summands));
     }
-    return RewriteResponse(REWRITE_DONE, rewriter::buildRealInequality(summands, kind));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::buildRealInequality(summands, kind));
   }
 }
 
@@ -227,8 +239,7 @@ RewriteResponse ArithRewriter::rewriteRAN(TNode t)
   const RealAlgebraicNumber& r = rewriter::getRAN(t);
   if (r.isRational())
   {
-    return RewriteResponse(
-        REWRITE_DONE, rewriter::mkConst(r.toRational()));
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(r.toRational()));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
@@ -246,13 +257,14 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t)
 
   if (t[0] == t[1])
   {
-    return RewriteResponse(REWRITE_DONE,
-                           rewriter::mkConst(Integer(0)));
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(0)));
   }
   auto* nm = NodeManager::currentNM();
   return RewriteResponse(
       REWRITE_AGAIN_FULL,
-      nm->mkNode(Kind::PLUS, t[0], nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[1])));
+      nm->mkNode(Kind::PLUS,
+                 t[0],
+                 nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[1])));
 }
 
 RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
@@ -261,12 +273,12 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
   if (t[0].isConst())
   {
     Rational neg = -(t[0].getConst<Rational>());
-    return RewriteResponse(REWRITE_DONE,
-                           rewriter::mkConst(neg));
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(neg));
   }
   if (rewriter::isRAN(t[0]))
   {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(-rewriter::getRAN(t[0])));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::mkConst(-rewriter::getRAN(t[0])));
   }
 
   auto* nm = NodeManager::currentNM();
@@ -521,7 +533,9 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   std::sort(leafs.begin(), leafs.end(), rewriter::LeafNodeComparator());
 
-  return RewriteResponse(REWRITE_DONE, rewriter::mkMultTerm(rational, rewriter::mkMult(std::move(leafs))));
+  return RewriteResponse(
+      REWRITE_DONE,
+      rewriter::mkMultTerm(rational, rewriter::mkMult(std::move(leafs))));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
@@ -844,11 +858,11 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
   if (rewriter::isRAN(right))
   {
     const RealAlgebraicNumber& den = rewriter::getRAN(right);
-    
+
     if (left.isConst())
     {
-      return RewriteResponse(REWRITE_DONE,
-                             rewriter::mkConst(left.getConst<Rational>() / den));
+      return RewriteResponse(
+          REWRITE_DONE, rewriter::mkConst(left.getConst<Rational>() / den));
     }
     if (rewriter::isRAN(left))
     {
@@ -1068,7 +1082,7 @@ TrustNode ArithRewriter::expandDefinition(Node node)
 RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
 {
   Trace("arith-rewriter") << "ArithRewriter : " << t << " == " << ret << " by "
-                         << r << std::endl;
+                          << r << std::endl;
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 

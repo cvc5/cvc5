@@ -30,7 +30,7 @@ namespace cvc5::theory::arith::rewriter {
 
 struct Sum
 {
-    std::unordered_map<Node, RealAlgebraicNumber> sum;
+  std::unordered_map<Node, RealAlgebraicNumber> sum;
 };
 
 using Summands = std::vector<std::pair<Node, RealAlgebraicNumber>>;
@@ -45,8 +45,8 @@ using Summands = std::vector<std::pair<Node, RealAlgebraicNumber>>;
  *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
  */
 void addToProduct(std::vector<Node>& product,
-                      RealAlgebraicNumber& multiplicity,
-                      TNode n)
+                  RealAlgebraicNumber& multiplicity,
+                  TNode n)
 {
   switch (n.getKind())
   {
@@ -74,7 +74,6 @@ void addToProduct(std::vector<Node>& product,
   }
 }
 
-
 /**
  * Add a new summand, consisting of the product and the multiplicity, to a sum
  * as used in the distribution of multiplication. Either adds the summand as a
@@ -84,9 +83,7 @@ void addToProduct(std::vector<Node>& product,
  *   add(s.n * s.ran for s in sum')
  *   = add(s.n * s.ran for s in sum) + multiplicity * product
  */
-void addToSum(Sum& sum,
-                  TNode product,
-                  const RealAlgebraicNumber& multiplicity)
+void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 {
   if (isZero(multiplicity)) return;
   auto it = sum.sum.find(product);
@@ -108,7 +105,7 @@ void addToSum(Sum& sum, TNode n, bool negate = false)
 {
   if (n.getKind() == Kind::PLUS)
   {
-    for (const auto& child: n)
+    for (const auto& child : n)
     {
       addToSum(sum, child, negate);
     }
@@ -159,138 +156,143 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   return nm->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
-
-namespace normalize
-{
+namespace normalize {
 
 void LCoeffAbsOne(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum)
-    {
-        if (sum.empty()) return;
-        if (sum.size() == 1)
-        {
-            // Trivial if there is only one summand
-            sum.front().second = Integer(sgn(sum.front().second) > 0 ? 1 : -1);
-            return;
-        }
-        // LCoeff is first coefficient of non-constant monomial
-        RealAlgebraicNumber lcoeff;
-        if (sum.front().first.isConst())
-        {
-            lcoeff = sum[1].second;
-        }
-        else
-        {
-            lcoeff = sum.front().second;
-        }
-        if (sgn(lcoeff) < 0)
-        {
-            lcoeff = -lcoeff;
-        }
-        if (isOne(lcoeff)) return;
-        for (auto& s: sum)
-        {
-            s.second = s.second / lcoeff;
-        }
-    }
-
-    bool GCDLCM(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum, bool followLCoeffSign = false)
-    {
-        if (sum.empty()) return false;
-        Integer denLCM(1);
-        Integer numGCD;
-        auto it = sum.begin();
-        if (!it->first.isConst())
-        {
-            Rational r = it->second.toRational();
-            denLCM = r.getDenominator();
-            numGCD = r.getNumerator().abs();
-        }
-        ++it;
-        for (; it != sum.end(); ++it)
-        {
-            if (it->first.isConst()) continue;
-            Assert(it->second.isRational());
-            Rational r = it->second.toRational();
-            denLCM = denLCM.lcm(r.getDenominator());
-            if (numGCD.isZero()) numGCD = r.getNumerator().abs();
-            else numGCD = numGCD.gcd(r.getNumerator().abs());
-        }
-        if (numGCD.isZero()) return false;
-        Rational mult(denLCM, numGCD);
-
-        bool negate = false;
-        if (followLCoeffSign)
-        {
-          size_t id = sum.front().first.isConst() ? 1 : 0;
-          if (sgn(sum[id].second) < 0)
-          {
-            negate = true;
-            mult = -mult;
-          }
-        }
-
-        for (auto& s: sum)
-        {
-            s.second *= mult;
-        }
-        return negate;
-    }
+{
+  if (sum.empty()) return;
+  if (sum.size() == 1)
+  {
+    // Trivial if there is only one summand
+    sum.front().second = Integer(sgn(sum.front().second) > 0 ? 1 : -1);
+    return;
+  }
+  // LCoeff is first coefficient of non-constant monomial
+  RealAlgebraicNumber lcoeff;
+  if (sum.front().first.isConst())
+  {
+    lcoeff = sum[1].second;
+  }
+  else
+  {
+    lcoeff = sum.front().second;
+  }
+  if (sgn(lcoeff) < 0)
+  {
+    lcoeff = -lcoeff;
+  }
+  if (isOne(lcoeff)) return;
+  for (auto& s : sum)
+  {
+    s.second = s.second / lcoeff;
+  }
 }
 
-RealAlgebraicNumber removeConstant(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+bool GCDLCM(std::vector<std::pair<Node, RealAlgebraicNumber>>& sum,
+            bool followLCoeffSign = false)
 {
-    RealAlgebraicNumber res;
-    if (!summands.empty() && summands.front().first.isConst())
+  if (sum.empty()) return false;
+  Integer denLCM(1);
+  Integer numGCD;
+  auto it = sum.begin();
+  if (!it->first.isConst())
+  {
+    Rational r = it->second.toRational();
+    denLCM = r.getDenominator();
+    numGCD = r.getNumerator().abs();
+  }
+  ++it;
+  for (; it != sum.end(); ++it)
+  {
+    if (it->first.isConst()) continue;
+    Assert(it->second.isRational());
+    Rational r = it->second.toRational();
+    denLCM = denLCM.lcm(r.getDenominator());
+    if (numGCD.isZero())
+      numGCD = r.getNumerator().abs();
+    else
+      numGCD = numGCD.gcd(r.getNumerator().abs());
+  }
+  if (numGCD.isZero()) return false;
+  Rational mult(denLCM, numGCD);
+
+  bool negate = false;
+  if (followLCoeffSign)
+  {
+    size_t id = sum.front().first.isConst() ? 1 : 0;
+    if (sgn(sum[id].second) < 0)
     {
-        Assert(summands.front().first.getConst<Rational>().isOne());
-        res = summands.front().second;
-        summands.erase(summands.begin());
+      negate = true;
+      mult = -mult;
     }
-    return res;
+  }
+
+  for (auto& s : sum)
+  {
+    s.second *= mult;
+  }
+  return negate;
+}
+}  // namespace normalize
+
+RealAlgebraicNumber removeConstant(
+    std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+{
+  RealAlgebraicNumber res;
+  if (!summands.empty() && summands.front().first.isConst())
+  {
+    Assert(summands.front().first.getConst<Rational>().isOne());
+    res = summands.front().second;
+    summands.erase(summands.begin());
+  }
+  return res;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(
+    std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
 {
-    auto minit = summands.begin();
-    while (minit != summands.end() && minit->first.isConst()) ++minit;
-    for (auto it = minit; it != summands.end(); ++it)
+  auto minit = summands.begin();
+  while (minit != summands.end() && minit->first.isConst()) ++minit;
+  for (auto it = minit; it != summands.end(); ++it)
+  {
+    if (it->first.isConst()) continue;
+    if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
     {
-      if (it->first.isConst()) continue;
-      if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
-      {
-        minit = it;
-      }
+      minit = it;
     }
-    if (minit == summands.end())
-    {
-      return std::make_pair(mkConst(Integer(1)), Integer(0));
-    }
-    Assert(minit != summands.end());
-    std::pair<Node, RealAlgebraicNumber> res = *minit;
-    summands.erase(minit);
-    return res;
+  }
+  if (minit == summands.end())
+  {
+    return std::make_pair(mkConst(Integer(1)), Integer(0));
+  }
+  Assert(minit != summands.end());
+  std::pair<Node, RealAlgebraicNumber> res = *minit;
+  summands.erase(minit);
+  return res;
 }
 
-std::pair<Node, RealAlgebraicNumber>& getLTerm(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+std::pair<Node, RealAlgebraicNumber>& getLTerm(
+    std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
 {
-    auto it = summands.begin();
-    while (it != summands.end() && it->first.isConst()) ++it;
-    Assert(it != summands.end());
-    return *it;
+  auto it = summands.begin();
+  while (it != summands.end() && it->first.isConst()) ++it;
+  Assert(it != summands.end());
+  return *it;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeLTerm(std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
+std::pair<Node, RealAlgebraicNumber> removeLTerm(
+    std::vector<std::pair<Node, RealAlgebraicNumber>>& summands)
 {
-    auto it = summands.begin();
-    while (it != summands.end() && it->first.isConst()) ++it;
-    if (it == summands.end())
-    {
-      return std::make_pair(mkConst(Integer(1)), Integer(0));
-    }
-    Assert(it != summands.end());
-    std::pair<Node, RealAlgebraicNumber> res = *it;
-    summands.erase(it);
-    return res;
+  auto it = summands.begin();
+  while (it != summands.end() && it->first.isConst()) ++it;
+  if (it == summands.end())
+  {
+    return std::make_pair(mkConst(Integer(1)), Integer(0));
+  }
+  Assert(it != summands.end());
+  std::pair<Node, RealAlgebraicNumber> res = *it;
+  summands.erase(it);
+  return res;
 }
 
 std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
@@ -311,12 +313,12 @@ std::vector<std::pair<Node, RealAlgebraicNumber>> gatherSummands(const Sum& sum)
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-Node collectSum(
-    const Sum& sum)
+Node collectSum(const Sum& sum)
 {
   if (sum.sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  std::vector<std::pair<Node, RealAlgebraicNumber>> summands = gatherSummands(sum);
+  std::vector<std::pair<Node, RealAlgebraicNumber>> summands =
+      gatherSummands(sum);
   std::vector<Node> children;
   for (const auto& s : summands)
   {
@@ -325,11 +327,9 @@ Node collectSum(
   return mkSum(std::move(children));
 }
 
-Node collectSum(
-    const Sum& sum,
-    const RealAlgebraicNumber& basemultiplicity,
-    const std::vector<Node>& baseproduct
-)
+Node collectSum(const Sum& sum,
+                const RealAlgebraicNumber& basemultiplicity,
+                const std::vector<Node>& baseproduct)
 {
   if (sum.sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
@@ -354,8 +354,7 @@ Node collectSum(
   return mkSum(std::move(children));
 }
 
-Node collectSum(
-    const Summands& summands)
+Node collectSum(const Summands& summands)
 {
   std::vector<Node> children;
   for (const auto& s : summands)
@@ -404,8 +403,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
     // Subtractions are rewritten already, we only need to care about additions
     Assert(factor.getKind() != Kind::MINUS);
     Assert(factor.getKind() != Kind::UMINUS
-           || (factor[0].isConst()
-               || isRAN(factor[0])));
+           || (factor[0].isConst() || isRAN(factor[0])));
     if (factor.getKind() != Kind::PLUS)
     {
       Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
@@ -460,7 +458,6 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   return collectSum(rsum, basemultiplicity, base);
 }
 
-
-}
+}  // namespace cvc5::theory::arith::rewriter
 
 #endif

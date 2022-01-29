@@ -130,6 +130,6 @@ Node mkSum(T&& summands)
   }
 }
 
-}
+}  // namespace cvc5::theory::arith::rewriter
 
 #endif

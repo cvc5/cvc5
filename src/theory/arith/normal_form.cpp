@@ -1058,19 +1058,23 @@ bool Comparison::isNormalGEQ() const {
   Debug("nf::tmp") << "isNormalGEQ " << n << " " << rightIsConstant() << endl;
 
   if(!rightIsConstant()){
-    Debug("nf::tmp") << "Right is not constant: " << getRight().getNode() << endl;
+    Debug("nf::tmp") << "Right is not constant: " << getRight().getNode()
+                     << endl;
     return false;
   }else{
     Polynomial left = getLeft();
     if(left.containsConstant()){
-      Debug("nf::tmp") << "Left contains a constant: " << getLeft().getNode() << endl;
+      Debug("nf::tmp") << "Left contains a constant: " << getLeft().getNode()
+                       << endl;
       return false;
     }else{
       if(left.isIntegral()){
-        Debug("nf::tmp") << "Check int condition for: " << getLeft().getNode() << endl;
+        Debug("nf::tmp") << "Check int condition for: " << getLeft().getNode()
+                         << endl;
         return left.signNormalizedReducedSum();
       }else{
-        Debug("nf::tmp") << "Check real condition for: " << getLeft().getNode() << endl;
+        Debug("nf::tmp") << "Check real condition for: " << getLeft().getNode()
+                         << endl;
         return left.leadingCoefficientIsAbsOne();
       }
     }
@@ -1127,7 +1131,8 @@ bool Comparison::isNormalEqualityOrDisequality() const {
             return false;
           }else{
             Monomial absMinRight = varRight.selectAbsMinimum();
-            Debug("nf::tmp2") << mleft.getNode() << " " << absMinRight.getNode() << endl;
+            Debug("nf::tmp2")
+                << mleft.getNode() << " " << absMinRight.getNode() << endl;
             return true;
             if( mleft.absCmp(absMinRight) < 0){
               return true;
@@ -1139,10 +1144,9 @@ bool Comparison::isNormalEqualityOrDisequality() const {
       }else{
         if(mleft.coefficientIsOne()){
           Debug("nf::tmp2")
-            << "dfklj " << mleft.getNode() << endl
-            << pright.getNode() << endl
-            << pright.variableMonomialAreStrictlyGreater(mleft)
-            << endl;
+              << "dfklj " << mleft.getNode() << endl
+              << pright.getNode() << endl
+              << pright.variableMonomialAreStrictlyGreater(mleft) << endl;
           return pright.variableMonomialAreStrictlyGreater(mleft);
         }else{
           return false;
@@ -1328,7 +1332,8 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
     bool isInteger = diff.allIntegralVariables();
     switch(k){
     case kind::EQUAL:
-      Debug("nf::tmp") << "make comparison from " << diff.getNode() << std::endl;
+      Debug("nf::tmp") << "make comparison from " << diff.getNode()
+                       << std::endl;
       result = isInteger ? mkIntEquality(diff) : mkRatEquality(diff);
       break;
     case kind::DISTINCT:
