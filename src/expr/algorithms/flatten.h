@@ -113,7 +113,7 @@ Node flatten(TNode t, Kinds... kinds)
   }
   std::vector<TNode> children;
   flatten(t, children, kinds...);
-  return NodeManager::currentNM()->mkNode(t.getKind(), std::move(children));
+  return NodeManager::currentNM()->mkNode(t.getKind(), children);
 }
 
 }  // namespace cvc5::expr
