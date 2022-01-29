@@ -31,7 +31,6 @@ class TestTheoryArithRewriterBlack : public TestSmt
 
 TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 {
-  Trace.on("arith-rewriter");
   {
     RealAlgebraicNumber two({-8, 0, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(two);
@@ -81,7 +80,11 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     Node b = d_nodeManager->mkNode(Kind::MULT, x, s);
     Node n = d_nodeManager->mkNode(Kind::MULT, a, b, a);
     n = d_slvEngine->getRewriter()->rewrite(n);
-    std::cout << n << std::endl;
+    EXPECT_EQ(n.getNumChildren(), 4);
+    EXPECT_EQ(n[0], d_nodeManager->mkRealAlgebraicNumber(Integer(4)*sqrt2));
+    EXPECT_EQ(n[1], x);
+    EXPECT_EQ(n[2], x);
+    EXPECT_EQ(n[3], x);
   }
   {
     RealAlgebraicNumber twosqrt2({-8, 0, 1}, 2, 3);
@@ -239,6 +242,43 @@ TEST_F(TestTheoryArithRewriterBlack, distribute)
     }
     Node ref = d_nodeManager->mkNode(Kind::PLUS, std::move(reference));
     EXPECT_EQ(ref, prod);
+  }
+}
+
+TEST_F(TestTheoryArithRewriterBlack, equal)
+{
+  {
+    Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
+    Node b = d_nodeManager->mkBoundVar("b", d_nodeManager->realType());
+    Node eq1 = a.eqNode(b);
+    Node eq2 = d_nodeManager->mkNode(Kind::MINUS, a, b).eqNode(d_nodeManager->mkConstReal(Rational(0)));
+    eq1 = d_slvEngine->getRewriter()->rewrite(eq1);
+    eq2 = d_slvEngine->getRewriter()->rewrite(eq2);
+    EXPECT_EQ(eq1, eq2);
+  }
+}
+
+TEST_F(TestTheoryArithRewriterBlack, leq)
+{
+  {
+    Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
+    Node left = d_nodeManager->mkNode(Kind::PLUS, {
+      d_nodeManager->mkNode(Kind::MULT, {d_nodeManager->mkConstReal(Rational(1)), a}),
+      d_nodeManager->mkNode(Kind::MULT, {d_nodeManager->mkConstReal(Rational(2)), a, a}),
+      d_nodeManager->mkNode(Kind::MULT, {d_nodeManager->mkConstReal(Rational(3)), a, a, a}),
+    });
+    Node right = d_nodeManager->mkConstReal(Rational(1));
+    Node geq = d_nodeManager->mkNode(Kind::GEQ, left, right);
+    geq = d_slvEngine->getRewriter()->rewrite(geq);
+  }
+  {
+    Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
+
+    Node left = d_nodeManager->mkNode(Kind::MULT, d_nodeManager->mkConstReal(Rational(5)), a);
+    Node right = d_nodeManager->mkNode(Kind::PLUS, d_nodeManager->mkConstReal(Rational(1)), d_nodeManager->mkNode(Kind::MULT, d_nodeManager->mkConstReal(Rational(3)), a));
+    Node leq = d_nodeManager->mkNode(Kind::LEQ, left, right);
+
+    leq = d_slvEngine->getRewriter()->rewrite(leq);
   }
 }
 
