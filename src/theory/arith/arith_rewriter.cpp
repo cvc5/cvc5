@@ -24,7 +24,7 @@
 #include <stack>
 #include <vector>
 
-#include "expr/algorithms/flatten.h"
+#include "expr/algorithm/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -459,7 +459,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-  return RewriteResponse(REWRITE_DONE, expr::flatten(t));
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
@@ -467,7 +467,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getNumChildren() > 1);
 
   {
-    Node flat = expr::flatten(t);
+    Node flat = expr::algorithm::flatten(t);
     if (flat != t)
     {
       return RewriteResponse(REWRITE_AGAIN, flat);

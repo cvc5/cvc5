@@ -14,7 +14,7 @@
 ##
 
 libcvc5_add_sources(
-  algorithms/flatten.h
+  algorithm/flatten.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
