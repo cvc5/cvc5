@@ -24,7 +24,7 @@
 #include <stack>
 #include <vector>
 
-#include "expr/algorithms/flatten.h"
+#include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
@@ -429,7 +429,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
   Assert(t.getKind() == kind::PLUS);
-  return RewriteResponse(REWRITE_DONE, expr::flatten(t));
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t)
@@ -438,7 +438,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   Assert(t.getNumChildren() > 1);
 
   std::vector<TNode> children;
-  expr::flatten(t, children);
+  expr::algorithm::flatten(t, children);
 
   rewriter::Sum sum;
   for (const auto& child : children)
@@ -465,7 +465,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getNumChildren() >= 2);
 
   std::vector<TNode> children;
-  expr::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
+  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
 
   if (auto res = rewriter::getZeroChild(children); res)
   {

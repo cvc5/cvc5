@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5::expr {
+namespace cvc5::expr::algorithm {
 
 /**
  * Flatten a node into a vector of its (direct or indirect) children.
