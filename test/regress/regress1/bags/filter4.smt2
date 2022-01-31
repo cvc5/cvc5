@@ -1,5 +1,5 @@
 (set-logic HO_ALL)
-;(set-info :status unsat)
+(set-info :status unsat)
 (declare-fun A () (Bag Int))
 (declare-fun B () (Bag Int))
 (declare-fun element () Int)
