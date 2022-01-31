@@ -24,13 +24,13 @@
 namespace cvc5::theory::arith::rewriter {
 
 /**
- * Implements an ordering on arithmetic leaf nodes, excluding rationals. As this
- * comparator is meant to be used on children of Kind::NONLINEAR_MULT, we expect
- * rationals to be handled separately. Furthermore, we expect there to be only a
- * single real algebraic number.
- * It broadly categorizes leaf nodes into real algebraic numbers, integers,
- * variables, and the rest. The ordering is built as follows:
- * - real algebraic numbers come first
+ * Implements an ordering on arithmetic leaf nodes. We expect that values have
+ * already been combined, i.e., there shall only be a single rational and a
+ * single real algebraic number. It broadly categorizes leaf nodes into
+ * rationals, real algebraic numbers, integers, variables, and the rest.
+ * The ordering is built as follows:
+ * - rationals come first
+ * - real algebraic numbers come second
  * - real terms come before integer terms
  * - variables come before non-variable terms
  * - finally, fall back to node ordering
@@ -41,6 +41,10 @@ struct LeafNodeComparator
   bool operator()(TNode a, TNode b)
   {
     if (a == b) return false;
+
+    bool aIsConst = a.isConst();
+    bool bIsConst = b.isConst();
+    if (aIsConst != bIsConst) return aIsConst;
 
     bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
     bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
@@ -60,35 +64,25 @@ struct LeafNodeComparator
 };
 
 /**
- * Implements an ordering on arithmetic nonlinear multiplications. As we assume
- * rationals to be handled separately, we only consider Kind::NONLINEAR_MULT as
- * multiplication term. For individual factors of the product, we rely on the
- * ordering from LeafNodeComparator. Furthermore, we expect products to be
- * sorted according to LeafNodeComparator. The ordering is built as follows:
- * - single factors come first (everything that is not NONLINEAR_MULT)
+ * Implements an ordering on arithmetic terms or summands. We expect these terms
+ * to be products (MULT or NONLINEAR_MULT), whough products of zero or one node
+ * are not actually represented as such. For individual factors of the product,
+ * we rely on the ordering from LeafNodeComparator. Furthermore, we expect the
+ * individual factors to be sorted according to LeafNodeComparator. The ordering
+ * is built as follows:
+ * - single factors come first (everything that is MULT or NONLINEAR_MULT)
  * - multiplications with less factors come first
  * - multiplications are compared lexicographically
  */
-struct ProductNodeComparator
+struct TermComparator
 {
   /** Implements operator<(a, b) as described above */
   bool operator()(TNode a, TNode b)
   {
     if (a == b) return false;
 
-    bool aIsConst = a.isConst();
-    bool bIsConst = b.isConst();
-    if (aIsConst != bIsConst) return aIsConst;
-
-    bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
-    bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
-    if (aIsRAN != bIsRAN) return aIsRAN;
-
-    Assert(a.getKind() != Kind::MULT);
-    Assert(b.getKind() != Kind::MULT);
-
-    bool aIsMult = a.getKind() == Kind::NONLINEAR_MULT;
-    bool bIsMult = b.getKind() == Kind::NONLINEAR_MULT;
+    bool aIsMult = a.getKind() == Kind::MULT || a.getKind() == Kind::NONLINEAR_MULT;
+    bool bIsMult = b.getKind() == Kind::MULT || b.getKind() == Kind::NONLINEAR_MULT;
     if (aIsMult != bIsMult) return !aIsMult;
 
     if (!aIsMult)

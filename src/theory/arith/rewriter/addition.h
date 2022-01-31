@@ -295,7 +295,7 @@ Summands gatherSummands(const Sum& sum)
     summands.emplace_back(summand.first, summand.second);
   }
   std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
-    return ProductNodeComparator()(a.first, b.first);
+    return TermComparator()(a.first, b.first);
   });
   return summands;
 }
@@ -335,7 +335,7 @@ Node collectSum(const Sum& sum,
     summands.emplace_back(mkMult(std::move(product)), mult);
   }
   std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
-    return ProductNodeComparator()(a.first, b.first);
+    return TermComparator()(a.first, b.first);
   });
   std::vector<Node> children;
   for (const auto& s : summands)
