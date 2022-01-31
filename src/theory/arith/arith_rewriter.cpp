@@ -130,27 +130,23 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
   else if (atom.getKind() == kind::DIVISIBLE)
   {
+    const Integer& k = atom.getOperator().getConst<Divisible>().k;
     if (atom[0].isConst())
     {
+      const Rational& num = atom[0].getConst<Rational>();
       return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(bool(
-                                 (atom[0].getConst<Rational>()
-                                  / atom.getOperator().getConst<Divisible>().k)
-                                     .isIntegral())));
+                             rewriter::mkConst((num / k).isIntegral()));
     }
-    if (atom.getOperator().getConst<Divisible>().k.isOne())
+    if (k.isOne())
     {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, rewriter::mkConst(true));
     }
     return RewriteResponse(
         REWRITE_AGAIN,
-        nm->mkNode(kind::EQUAL,
-                   nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                              atom[0],
-                              rewriter::mkConst(
-                                  atom.getOperator().getConst<Divisible>().k)),
-                   rewriter::mkConst(Integer(0))));
+        nm->mkNode(
+            kind::EQUAL,
+            nm->mkNode(kind::INTS_MODULUS_TOTAL, atom[0], rewriter::mkConst(k)),
+            rewriter::mkConst(Integer(0))));
   }
 
   // left |><| right
