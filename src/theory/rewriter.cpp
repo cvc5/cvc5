@@ -220,6 +220,17 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           if (newTheory == rewriteStackTop.getTheoryId()
               && response.d_status == REWRITE_DONE)
           {
+            if (Configuration::isAssertionBuild())
+            {
+              // REWRITE_DONE should imply that no other pre-rewriting can be
+              // done
+              Node rewritten = rewriteStackTop.d_node;
+              Node rewrittenAgain =
+                  preRewrite(newTheory, rewritten, nullptr).d_node;
+              Assert(rewritten == rewrittenAgain)
+                  << "Rewriter returned REWRITE_DONE for " << rewritten
+                  << " but it can be rewritten to " << rewrittenAgain;
+            }
             break;
           }
           rewriteStackTop.d_theoryId = newTheory;
