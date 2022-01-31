@@ -30,6 +30,7 @@ namespace cvc5::theory::arith::rewriter {
 
 using Sum = std::unordered_map<Node, RealAlgebraicNumber>;
 using Summands = std::vector<std::pair<Node, RealAlgebraicNumber>>;
+using NewSum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
@@ -79,7 +80,8 @@ void addToProduct(std::vector<Node>& product,
  *   add(s.n * s.ran for s in sum')
  *   = add(s.n * s.ran for s in sum) + multiplicity * product
  */
-void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
+template<typename S>
+void addToSum(S& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 {
   if (isZero(multiplicity)) return;
   auto it = sum.find(product);
@@ -97,7 +99,8 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
   }
 }
 
-void addToSum(Sum& sum, TNode n, bool negate = false)
+template<typename S>
+void addToSum(S& sum, TNode n, bool negate = false)
 {
   if (n.getKind() == Kind::PLUS)
   {
@@ -152,7 +155,55 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   return nm->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
+auto getLTermIt(NewSum& sum)
+{
+  auto ltermit = sum.begin();
+  if (ltermit->first.isConst())
+  {
+    ++ltermit;
+  }
+  return ltermit;
+}
+
+std::pair<Node, RealAlgebraicNumber>& getLTerm(Summands& summands)
+{
+  auto it = summands.begin();
+  while (it != summands.end() && it->first.isConst()) ++it;
+  Assert(it != summands.end());
+  return *it;
+}
+
+auto& getLTerm(NewSum& sum)
+{
+  auto it = getLTermIt(sum);
+  Assert(it != sum.end());
+  return *it;
+}
+
 namespace normalize {
+
+void LCoeffAbsOne(NewSum& sum)
+{
+  if (sum.empty()) return;
+  if (sum.size() == 1)
+  {
+    auto& front = *sum.begin();
+    // Trivial if there is only one summand
+    front.second = Integer(sgn(front.second) > 0 ? 1 : -1);
+    return;
+  }
+  // LCoeff is first coefficient of non-constant monomial
+  RealAlgebraicNumber lcoeff = getLTerm(sum).second;;
+  if (sgn(lcoeff) < 0)
+  {
+    lcoeff = -lcoeff;
+  }
+  if (isOne(lcoeff)) return;
+  for (auto& s : sum)
+  {
+    s.second = s.second / lcoeff;
+  }
+}
 
 void LCoeffAbsOne(Summands& sum)
 {
@@ -228,6 +279,51 @@ bool GCDLCM(Summands& sum, bool followLCoeffSign = false)
   }
   return negate;
 }
+
+bool GCDLCM(NewSum& sum, bool followLCoeffSign = false)
+{
+  if (sum.empty()) return false;
+  Integer denLCM(1);
+  Integer numGCD;
+  auto it = sum.begin();
+  if (!it->first.isConst())
+  {
+    Rational r = it->second.toRational();
+    denLCM = r.getDenominator();
+    numGCD = r.getNumerator().abs();
+  }
+  ++it;
+  for (; it != sum.end(); ++it)
+  {
+    if (it->first.isConst()) continue;
+    Assert(it->second.isRational());
+    Rational r = it->second.toRational();
+    denLCM = denLCM.lcm(r.getDenominator());
+    if (numGCD.isZero())
+      numGCD = r.getNumerator().abs();
+    else
+      numGCD = numGCD.gcd(r.getNumerator().abs());
+  }
+  if (numGCD.isZero()) return false;
+  Rational mult(denLCM, numGCD);
+
+  bool negate = false;
+  if (followLCoeffSign)
+  {
+    if (sgn(getLTerm(sum).second) < 0)
+    {
+      negate = true;
+      mult = -mult;
+    }
+  }
+
+  for (auto& s : sum)
+  {
+    s.second *= mult;
+  }
+  return negate;
+}
+
 }  // namespace normalize
 
 RealAlgebraicNumber removeConstant(Summands& summands)
@@ -238,6 +334,20 @@ RealAlgebraicNumber removeConstant(Summands& summands)
     Assert(summands.front().first.getConst<Rational>().isOne());
     res = summands.front().second;
     summands.erase(summands.begin());
+  }
+  return res;
+}
+
+RealAlgebraicNumber removeConstant(NewSum& sum)
+{
+  RealAlgebraicNumber res;
+  if (sum.empty()) return res;
+  auto ltermit = getLTermIt(sum);
+  if (ltermit != sum.end())
+  {
+    Assert(ltermit->first.getConst<Rational>().isOne());
+    res = ltermit->second;
+    sum.erase(ltermit);
   }
   return res;
 }
@@ -264,12 +374,25 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Summands& summands)
   return res;
 }
 
-std::pair<Node, RealAlgebraicNumber>& getLTerm(Summands& summands)
+std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(NewSum& sum)
 {
-  auto it = summands.begin();
-  while (it != summands.end() && it->first.isConst()) ++it;
-  Assert(it != summands.end());
-  return *it;
+  auto minit = getLTermIt(sum);
+  for (auto it = minit; it != sum.end(); ++it)
+  {
+    if (it->first.isConst()) continue;
+    if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
+    {
+      minit = it;
+    }
+  }
+  if (minit == sum.end())
+  {
+    return std::make_pair(mkConst(Integer(1)), Integer(0));
+  }
+  Assert(minit != sum.end());
+  auto res = *minit;
+  sum.erase(minit);
+  return res;
 }
 
 std::pair<Node, RealAlgebraicNumber> removeLTerm(Summands& summands)
@@ -286,6 +409,19 @@ std::pair<Node, RealAlgebraicNumber> removeLTerm(Summands& summands)
   return res;
 }
 
+std::pair<Node, RealAlgebraicNumber> removeLTerm(NewSum& sum)
+{
+  auto it = getLTermIt(sum);
+  if (it == sum.end())
+  {
+    return std::make_pair(mkConst(Integer(1)), Integer(0));
+  }
+  Assert(it != sum.end());
+  auto res = *it;
+  sum.erase(it);
+  return res;
+}
+
 Summands gatherSummands(const Sum& sum)
 {
   Summands summands;
@@ -297,6 +433,20 @@ Summands gatherSummands(const Sum& sum)
   std::sort(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
     return TermComparator()(a.first, b.first);
   });
+  return summands;
+}
+
+Summands gatherSummands(const NewSum& sum)
+{
+  Summands summands;
+  for (const auto& summand : sum)
+  {
+    Assert(!isZero(summand.second));
+    summands.emplace_back(summand.first, summand.second);
+  }
+  Assert(std::is_sorted(summands.begin(), summands.end(), [](const auto& a, const auto& b) {
+    return TermComparator()(a.first, b.first);
+  }));
   return summands;
 }
 
@@ -316,6 +466,21 @@ Node collectSum(const Sum& sum)
     children.emplace_back(mkMultTerm(s.second, s.first));
   }
   return mkSum(std::move(children));
+}
+Node collectSum(const NewSum& sum)
+{
+  if (sum.empty()) return mkConst(Rational(0));
+  // construct the sum as nodes.
+  NodeBuilder nb(Kind::PLUS);
+  for (const auto& s : sum)
+  {
+    nb << mkMultTerm(s.second, s.first);
+  }
+  if (nb.getNumChildren() == 1)
+  {
+    return nb[0];
+  }
+  return nb.constructNode();
 }
 
 Node collectSum(const Sum& sum,
@@ -343,6 +508,29 @@ Node collectSum(const Sum& sum,
     children.emplace_back(mkMultTerm(s.second, s.first));
   }
   return mkSum(std::move(children));
+}
+
+Node collectSum(const NewSum& sum,
+                const RealAlgebraicNumber& basemultiplicity,
+                const std::vector<Node>& baseproduct)
+{
+  if (sum.empty()) return mkConst(Rational(0));
+  // construct the sum as nodes.
+  NodeBuilder nb(Kind::PLUS);
+  for (const auto& summand : sum)
+  {
+    Assert(!isZero(summand.second));
+    RealAlgebraicNumber mult = summand.second * basemultiplicity;
+    std::vector<Node> product = baseproduct;
+    rewriter::addToProduct(product, mult, summand.first);
+    std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
+    nb << mkMultTerm(mult, mkMult(product));
+  }
+  if (nb.getNumChildren() == 1)
+  {
+    return nb[0];
+  }
+  return nb.constructNode();
 }
 
 Node collectSum(const Summands& summands)
@@ -447,6 +635,87 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // now mult(factors) == base * add(sum)
 
   return collectSum(rsum, basemultiplicity, base);
+}
+
+Node distributeMultiplicationNew(const std::vector<TNode>& factors)
+{
+  if (Trace.isOn("arith-rewriter-distribute"))
+  {
+    Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
+    for (const auto& f : factors)
+    {
+      Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
+    }
+  }
+  // factors that are not sums, separated into numerical and non-numerical
+  RealAlgebraicNumber basemultiplicity(Integer(1));
+  std::vector<Node> base;
+  // maps products to their (possibly real algebraic) multiplicities.
+  // The current (intermediate) value is the sum of these (multiplied by the
+  // base factors).
+  NewSum sum;
+  // Add a base summand
+  sum.emplace(mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
+
+  // multiply factors one by one to basmultiplicity * base * sum
+  for (const auto& factor : factors)
+  {
+    // Subtractions are rewritten already, we only need to care about additions
+    Assert(factor.getKind() != Kind::MINUS);
+    Assert(factor.getKind() != Kind::UMINUS
+           || (factor[0].isConst() || isRAN(factor[0])));
+    if (factor.getKind() != Kind::PLUS)
+    {
+      Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
+      addToProduct(base, basemultiplicity, factor);
+      continue;
+    }
+    // temporary to store factor * sum, will be moved to sum at the end
+    NewSum newsum;
+
+    for (const auto& summand : sum)
+    {
+      for (const auto& child : factor)
+      {
+        // add summand * child to newsum
+        RealAlgebraicNumber multiplicity = summand.second;
+        if (child.isConst())
+        {
+          multiplicity *= child.getConst<Rational>();
+          addToSum(newsum, summand.first, multiplicity);
+          continue;
+        }
+        if (isRAN(child))
+        {
+          multiplicity *= getRAN(child);
+          addToSum(newsum, summand.first, multiplicity);
+          continue;
+        }
+
+        // construct the new product
+        std::vector<Node> newProduct;
+        addToProduct(newProduct, multiplicity, summand.first);
+        addToProduct(newProduct, multiplicity, child);
+        std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
+        addToSum(newsum, mkMult(std::move(newProduct)), multiplicity);
+      }
+    }
+    Trace("arith-rewriter-distribute")
+        << "multiplied with " << factor << std::endl;
+    Trace("arith-rewriter-distribute")
+        << "base: " << basemultiplicity << " * " << base << std::endl;
+    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
+    for (const auto& summand : newsum)
+    {
+      Trace("arith-rewriter-distribute")
+          << "\t" << summand.second << " * " << summand.first << std::endl;
+    }
+
+    sum = std::move(newsum);
+  }
+  // now mult(factors) == base * add(sum)
+
+  return collectSum(sum, basemultiplicity, base);
 }
 
 }  // namespace cvc5::theory::arith::rewriter
