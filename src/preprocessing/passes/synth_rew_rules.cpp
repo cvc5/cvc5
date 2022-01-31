@@ -311,28 +311,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argList.push_back(cterm_to_utype[ctc]);
       }
       // check if we should chain
-      bool do_chain = false;
-      if (argList.size() > 2)
-      {
-        Kind k = NodeManager::operatorToKind(op);
-        do_chain = theory::quantifiers::TermUtil::isAssoc(k)
-                   && theory::quantifiers::TermUtil::isComm(k);
-        // eliminate duplicate child types
-        std::vector<TypeNode> argListTmp = argList;
-        argList.clear();
-        std::map<TypeNode, bool> hasArgType;
-        for (unsigned j = 0, size = argListTmp.size(); j < size; j++)
-        {
-          TypeNode tn = argListTmp[j];
-          if (hasArgType.find(tn) == hasArgType.end())
-          {
-            hasArgType[tn] = true;
-            argList.push_back(tn);
-          }
-        }
-      }
+      Kind k = NodeManager::operatorToKind(op);
+      bool do_chain = argList.size() > 2
+                      && theory::quantifiers::TermUtil::isAssoc(k)
+                      && theory::quantifiers::TermUtil::isComm(k);
       if (do_chain)
       {
+        // eliminate duplicate child types
+        std::set<TypeNode> argSet(argList.begin(), argList.end());
+
         // we make one type per child
         // the operator of each constructor is a no-op
         Node tbv = nm->mkBoundVar(ctt);
@@ -347,10 +334,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         // Notice this construction allows to abstract subsets of the factors
         // of t1+t2+t3. This is particularly helpful for terms t1+...+tn for
         // large n, where we would like to consider binary applications of +.
-        for (unsigned j = 0, size = argList.size(); j < size; j++)
+        size_t j = 0;
+        for (const TypeNode& arg : argSet)
         {
           argListc.clear();
-          argListc.push_back(argList[j]);
+          argListc.push_back(arg);
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
           // ID function is not printed and does not count towards weight
@@ -358,6 +346,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                                  sscs.str(),
                                  argListc,
                                  0);
+          j++;
         }
         // recursive apply
         TypeNode recType = cterm_to_utype[ct];
