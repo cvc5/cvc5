@@ -162,6 +162,35 @@ Node buildIntegerEquality(Summands& summands)
 
   return buildRelation(Kind::EQUAL, left, collectSum(summands));
 }
+Node buildIntegerEquality(NewSum& sum)
+{
+  normalize::GCDLCM(sum);
+
+  const auto& constant = *sum.begin();
+  if (constant.first.isConst())
+  {
+    Assert(constant.second.isRational());
+    if (!constant.second.toRational().isIntegral())
+    {
+      return mkConst(false);
+    }
+  }
+
+  auto minabscoeff = removeMinAbsCoeff(sum);
+  if (sgn(minabscoeff.second) < 0)
+  {
+    // move minabscoeff goes to the right and switch lhs and rhs
+    minabscoeff.second = -minabscoeff.second;
+  }
+  else
+  {
+    // move the sum to the right
+    for (auto& s : sum) s.second = -s.second;
+  }
+  Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
+
+  return buildRelation(Kind::EQUAL, left, collectSum(sum));
+}
 
 /**
  * Build a real equality from the given summands. The result is equivalent to

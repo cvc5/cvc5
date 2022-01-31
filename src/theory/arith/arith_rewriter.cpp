@@ -203,7 +203,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildIntegerEquality(summands));
+                             rewriter::buildIntegerEquality(rsum));
     }
     return RewriteResponse(REWRITE_DONE,
                            rewriter::buildIntegerInequality(summands, kind));
