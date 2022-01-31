@@ -69,7 +69,7 @@ name   = "SAT Layer"
   long       = "minisat-var-elimination"
   type       = "bool"
   default    = "true"
-  help       = "use Minisat variable elimination"
+  help       = "use Minisat variable elimination if Minisat is performing simplifications."
 
 [[option]]
   name       = "minisatSimp"
@@ -77,7 +77,7 @@ name   = "SAT Layer"
   long       = "minisat-simplification"
   type       = "bool"
   default    = "true"
-  help       = "use Minisat variable and clause elimination, plus other simplifications"
+  help       = "use Minisat clause elimination, plus other simplifications. If minisat-var-elimination is on, also performs variable elimination."
 
 [[option]]
   name       = "minisatDumpDimacs"
