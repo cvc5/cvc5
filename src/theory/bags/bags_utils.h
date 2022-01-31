@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Normal form for bag constants.
+ * Utility functions for bags.
  */
 
 #include <expr/node.h>
@@ -24,9 +24,16 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-class NormalForm
+class BagsUtils
 {
  public:
+  /**
+   * @param bagType type of bags
+   * @param bags a vector of bag nodes
+   * @return disjoint union of these bags
+   */
+  static Node computeDisjointUnion(TypeNode bagType,
+                                   const std::vector<Node>& bags);
   /**
    * Returns true if n is considered a to be a (canonical) constant bag value.
    * A canonical bag value is one whose AST is:
@@ -80,6 +87,12 @@ class NormalForm
    * @return a single value which is the result of the fold
    */
   static Node evaluateBagFold(TNode n);
+
+  /**
+   * @param n has the form (bag.filter p A) where A is a constant bag
+   * @return A filtered with predicate p
+   */
+  static Node evaluateBagFilter(TNode n);
 
  private:
   /**
