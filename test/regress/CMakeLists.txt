@@ -1699,6 +1699,7 @@ set(regress_1_tests
   regress1/bv/issue3776.smt2
   regress1/bv/issue3958.smt2
   regress1/bv/min-pp-rewrite-error.smt2
+  regress1/bv/proj-issue438-prerewrite-fixed-point-original.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
   regress1/cee-bug0909-dd-scope.smt2
