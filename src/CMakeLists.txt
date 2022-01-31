@@ -499,6 +499,8 @@ libcvc5_add_sources(
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/rewriter/ordering.h
+  theory/arith/rewriter/rewrite_atom.cpp
+  theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp

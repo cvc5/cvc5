@@ -185,9 +185,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     default: break;
   }
 
-  rewriter::Sum rsum;
-  rewriter::addToSum(rsum, left, negate);
-  rewriter::addToSum(rsum, right, !negate);
+  rewriter::Sum sum;
+  rewriter::addToSum(sum, left, negate);
+  rewriter::addToSum(sum, right, !negate);
 
   // Now we have (rsum <kind> 0)
   if (rewriter::isIntegral(atom))
@@ -195,20 +195,20 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildIntegerEquality(rsum));
+                             rewriter::buildIntegerEquality(std::move(sum)));
     }
     return RewriteResponse(REWRITE_DONE,
-                           rewriter::buildIntegerInequality(rsum, kind));
+                           rewriter::buildIntegerInequality(std::move(sum), kind));
   }
   else
   {
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildRealEquality(rsum));
+                             rewriter::buildRealEquality(std::move(sum)));
     }
     return RewriteResponse(REWRITE_DONE,
-                           rewriter::buildRealInequality(rsum, kind));
+                           rewriter::buildRealInequality(std::move(sum), kind));
   }
 }
 

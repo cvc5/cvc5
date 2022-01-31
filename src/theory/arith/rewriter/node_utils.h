@@ -20,6 +20,8 @@
 
 #include "base/check.h"
 #include "expr/node.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 namespace cvc5::theory::arith::rewriter {
 

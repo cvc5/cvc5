@@ -55,7 +55,7 @@ inline std::ostream& operator<<(std::ostream& os, const Sum& sum)
  * Invariant:
  *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
  */
-void addToProduct(std::vector<Node>& product,
+inline void addToProduct(std::vector<Node>& product,
                   RealAlgebraicNumber& multiplicity,
                   TNode n)
 {
@@ -94,7 +94,7 @@ void addToProduct(std::vector<Node>& product,
  *   add(s.n * s.ran for s in sum')
  *   = add(s.n * s.ran for s in sum) + multiplicity * product
  */
-void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
+inline void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 {
   if (isZero(multiplicity)) return;
   auto it = sum.find(product);
@@ -112,7 +112,7 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
   }
 }
 
-void addToSum(Sum& sum, TNode n, bool negate = false)
+inline void addToSum(Sum& sum, TNode n, bool negate = false)
 {
   if (n.getKind() == Kind::PLUS)
   {
@@ -132,7 +132,7 @@ void addToSum(Sum& sum, TNode n, bool negate = false)
   addToSum(sum, mkMult(std::move(monomial)), multiplicity);
 }
 
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
+inline Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
   auto* nm = NodeManager::currentNM();
   if (monomial.isConst())
@@ -153,7 +153,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   return mkMult(std::move(prod));
 }
 
-Node mkMultTerm(const Rational& multiplicity, TNode monomial)
+inline Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 {
   auto* nm = NodeManager::currentNM();
   if (monomial.isConst())
@@ -167,7 +167,7 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   return nm->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
-auto getLTermIt(Sum& sum)
+inline auto getLTermIt(Sum& sum)
 {
   auto ltermit = sum.begin();
   if (ltermit->first.isConst())
@@ -177,85 +177,14 @@ auto getLTermIt(Sum& sum)
   return ltermit;
 }
 
-auto& getLTerm(Sum& sum)
+inline auto& getLTerm(Sum& sum)
 {
   auto it = getLTermIt(sum);
   Assert(it != sum.end());
   return *it;
 }
 
-namespace normalize {
-
-void LCoeffAbsOne(Sum& sum)
-{
-  if (sum.empty()) return;
-  if (sum.size() == 1)
-  {
-    auto& front = *sum.begin();
-    // Trivial if there is only one summand
-    front.second = Integer(sgn(front.second) > 0 ? 1 : -1);
-    return;
-  }
-  // LCoeff is first coefficient of non-constant monomial
-  RealAlgebraicNumber lcoeff = getLTerm(sum).second;;
-  if (sgn(lcoeff) < 0)
-  {
-    lcoeff = -lcoeff;
-  }
-  if (isOne(lcoeff)) return;
-  for (auto& s : sum)
-  {
-    s.second = s.second / lcoeff;
-  }
-}
-
-bool GCDLCM(Sum& sum, bool followLCoeffSign = false)
-{
-  if (sum.empty()) return false;
-  Integer denLCM(1);
-  Integer numGCD;
-  auto it = sum.begin();
-  if (!it->first.isConst())
-  {
-    Rational r = it->second.toRational();
-    denLCM = r.getDenominator();
-    numGCD = r.getNumerator().abs();
-  }
-  ++it;
-  for (; it != sum.end(); ++it)
-  {
-    if (it->first.isConst()) continue;
-    Assert(it->second.isRational());
-    Rational r = it->second.toRational();
-    denLCM = denLCM.lcm(r.getDenominator());
-    if (numGCD.isZero())
-      numGCD = r.getNumerator().abs();
-    else
-      numGCD = numGCD.gcd(r.getNumerator().abs());
-  }
-  if (numGCD.isZero()) return false;
-  Rational mult(denLCM, numGCD);
-
-  bool negate = false;
-  if (followLCoeffSign)
-  {
-    if (sgn(getLTerm(sum).second) < 0)
-    {
-      negate = true;
-      mult = -mult;
-    }
-  }
-
-  for (auto& s : sum)
-  {
-    s.second *= mult;
-  }
-  return negate;
-}
-
-}  // namespace normalize
-
-RealAlgebraicNumber removeConstant(Sum& sum)
+inline RealAlgebraicNumber removeConstant(Sum& sum)
 {
   RealAlgebraicNumber res;
   if (!sum.empty())
@@ -271,7 +200,7 @@ RealAlgebraicNumber removeConstant(Sum& sum)
   return res;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
+inline std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
 {
   auto minit = getLTermIt(sum);
   for (auto it = minit; it != sum.end(); ++it)
@@ -292,7 +221,7 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
   return res;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
+inline std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
 {
   auto it = getLTermIt(sum);
   if (it == sum.end())
@@ -309,7 +238,7 @@ std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-Node collectSum(const Sum& sum)
+inline Node collectSum(const Sum& sum)
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
@@ -325,7 +254,7 @@ Node collectSum(const Sum& sum)
   return nb.constructNode();
 }
 
-Node collectSum(const Sum& sum,
+inline Node collectSum(const Sum& sum,
                 const RealAlgebraicNumber& basemultiplicity,
                 const std::vector<Node>& baseproduct)
 {
@@ -361,7 +290,7 @@ Node collectSum(const Sum& sum,
  * monomials or products. This allows to combine summands with identical
  * monomials immediately and avoid a potential blow-up.
  */
-Node distributeMultiplication(const std::vector<TNode>& factors)
+inline Node distributeMultiplication(const std::vector<TNode>& factors)
 {
   if (Trace.isOn("arith-rewriter-distribute"))
   {
