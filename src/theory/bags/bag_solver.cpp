@@ -284,14 +284,19 @@ void BagSolver::checkMap(Node n)
 void BagSolver::checkFilter(Node n)
 {
   Assert(n.getKind() == BAG_FILTER);
+
+  set<Node> elements;
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[0]);
-  for (const Node& e : downwards)
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
   {
     InferInfo i = d_ig.filterDownwards(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
-  for (const Node& e : upwards)
+  for (const Node& e : elements)
   {
     InferInfo i = d_ig.filterUpwards(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
