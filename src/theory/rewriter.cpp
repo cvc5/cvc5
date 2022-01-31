@@ -324,7 +324,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           break;
         }
         else if (response.d_status == REWRITE_DONE
-                 && originalKind == rewriteStackTop.d_node.getKind())
+                 && originalKind == response.d_node.getKind())
         {
 #ifdef CVC5_ASSERTIONS
           RewriteResponse r2 =
