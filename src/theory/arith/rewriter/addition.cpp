@@ -110,6 +110,32 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
   }
 }
 
+/**
+ * Evaluates `basemultiplicity * baseproduct * sum` into a single node (of kind
+ * `PLUS`, unless the sum has less than two summands).
+ */
+Node collectSumWithBase(const Sum& sum,
+                        const RealAlgebraicNumber& basemultiplicity,
+                        const std::vector<Node>& baseproduct)
+{
+  if (sum.empty()) return mkConst(Rational(0));
+  // construct the sum as nodes.
+  NodeBuilder nb(Kind::PLUS);
+  for (const auto& summand : sum)
+  {
+    Assert(!isZero(summand.second));
+    RealAlgebraicNumber mult = summand.second * basemultiplicity;
+    std::vector<Node> product = baseproduct;
+    rewriter::addToProduct(product, mult, summand.first);
+    std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
+    nb << mkMultTerm(mult, mkNonlinearMult(product));
+  }
+  if (nb.getNumChildren() == 1)
+  {
+    return nb[0];
+  }
+  return nb.constructNode();
+}
 }
 
 void addToSum(Sum& sum, TNode n, bool negate)
@@ -140,29 +166,6 @@ Node collectSum(const Sum& sum)
   for (const auto& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);
-  }
-  if (nb.getNumChildren() == 1)
-  {
-    return nb[0];
-  }
-  return nb.constructNode();
-}
-
-Node collectSum(const Sum& sum,
-                const RealAlgebraicNumber& basemultiplicity,
-                const std::vector<Node>& baseproduct)
-{
-  if (sum.empty()) return mkConst(Rational(0));
-  // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
-  for (const auto& summand : sum)
-  {
-    Assert(!isZero(summand.second));
-    RealAlgebraicNumber mult = summand.second * basemultiplicity;
-    std::vector<Node> product = baseproduct;
-    rewriter::addToProduct(product, mult, summand.first);
-    std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
-    nb << mkMultTerm(mult, mkNonlinearMult(product));
   }
   if (nb.getNumChildren() == 1)
   {
@@ -249,7 +252,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   }
   // now mult(factors) == base * add(sum)
 
-  return collectSum(sum, basemultiplicity, base);
+  return collectSumWithBase(sum, basemultiplicity, base);
 }
 
 }  // namespace cvc5::theory::arith::rewriter

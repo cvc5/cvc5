@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "util/real_algebraic_number.h"
 
 namespace cvc5::theory::arith::rewriter {
 
@@ -108,6 +109,36 @@ inline Node mkNonlinearMult(const std::vector<Node>& factors)
     case 1: return factors[0];
     default: return nm->mkNode(Kind::NONLINEAR_MULT, factors);
   }
+}
+
+inline Node mkMultTerm(const Rational& multiplicity, TNode monomial)
+{
+  if (monomial.isConst())
+  {
+    return mkConst(multiplicity * monomial.getConst<Rational>());
+  }
+  if (isOne(multiplicity))
+  {
+    return monomial;
+  }
+  return NodeManager::currentNM()->mkNode(
+      Kind::MULT, mkConst(multiplicity), monomial);
+}
+
+inline Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
+{
+  if (multiplicity.isRational())
+  {
+    return mkMultTerm(multiplicity.toRational(), monomial);
+  }
+  if (monomial.isConst())
+  {
+    return mkConst(multiplicity * monomial.getConst<Rational>());
+  }
+  std::vector<Node> prod;
+  prod.emplace_back(mkConst(multiplicity));
+  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  return mkNonlinearMult(prod);
 }
 
 }  // namespace cvc5::theory::arith::rewriter

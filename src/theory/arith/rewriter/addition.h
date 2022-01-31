@@ -33,47 +33,20 @@ using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
 std::ostream& operator<<(std::ostream& os, const Sum& sum);
 
-
+/**
+ * Add the arithmetic term `n` to the given sum. If negate is true, actually add
+ * `-n`. If `n` is itself a sum, it automatically flattens it into `sum` (though
+ * it should not be a deeply nested sum, as it simply recurses). Otherwise, `n`
+ * is treated as a single summand, that is a (possibly unary) product.
+ * It does not consider sums within the product.
+ */
 void addToSum(Sum& sum, TNode n, bool negate = false);
 
-inline Node mkMultTerm(const Rational& multiplicity, TNode monomial)
-{
-  if (monomial.isConst())
-  {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
-  }
-  if (isOne(multiplicity))
-  {
-    return monomial;
-  }
-  return NodeManager::currentNM()->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
-}
-
-inline Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
-{
-  if (multiplicity.isRational())
-  {
-    return mkMultTerm(multiplicity.toRational(), monomial);
-  }
-  if (monomial.isConst())
-  {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
-  }
-  std::vector<Node> prod;
-  prod.emplace_back(mkConst(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
-  return mkNonlinearMult(prod);
-}
-
 /**
- * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
- * given as list of terms suitable to be passed to mkSum().
+ * Evaluates the sum object (mapping monomials to their multiplicities) into a
+ * single node (of kind `PLUS`, unless the sum has less than two summands).
  */
 Node collectSum(const Sum& sum);
-
-Node collectSum(const Sum& sum,
-                const RealAlgebraicNumber& basemultiplicity,
-                const std::vector<Node>& baseproduct);
 
 /**
  * Distribute a multiplication over one or more additions. The multiplication
