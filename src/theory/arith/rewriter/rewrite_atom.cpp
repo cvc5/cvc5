@@ -16,6 +16,7 @@
 #include "theory/arith/rewriter/rewrite_atom.h"
 
 #include "base/check.h"
+#include "theory/arith/rewriter/node_utils.h"
 
 namespace cvc5::theory::arith::rewriter {
 
@@ -53,9 +54,8 @@ auto getLTermIt(Sum& sum)
 
 auto& getLTerm(Sum& sum)
 {
-  auto it = getLTermIt(sum);
-  Assert(it != sum.end());
-  return *it;
+  Assert(getLTermIt(sum) != sum.end());
+  return *getLTermIt(sum);
 }
 
 /**

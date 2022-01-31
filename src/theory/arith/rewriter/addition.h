@@ -21,16 +21,30 @@
 #include <map>
 #include <iosfwd>
 
-#include "base/check.h"
 #include "expr/node.h"
-#include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
 namespace cvc5::theory::arith::rewriter {
 
+/**
+ * Intermediate representation for a sum of terms, mapping monomials to their
+ * multiplicities. A sum implicitly represents the expression
+ *   SUM(s.second * s.first for s in sum)
+ * Using a map allows to easily check whether a monomial is already present and
+ * then merge two terms (i.e. add their multiplicities). We use a std::map with
+ * a proper comparator (instead of std::unordered_map) to allow easy
+ * identification of the leading term. As we need to sort the terms anyway when
+ * constructing a node, a std::unordered_map may only be faster if we experience
+ * a lot of nullification. Usually, though, this saves us additional memory
+ * allocations for sorting the terms.
+ */
 using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
+/**
+ * Print a sum. Does not use a particularly useful syntax and is thus only meant
+ * for debugging.
+ */
 std::ostream& operator<<(std::ostream& os, const Sum& sum);
 
 /**
