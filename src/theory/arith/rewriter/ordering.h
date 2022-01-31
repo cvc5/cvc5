@@ -45,6 +45,7 @@ struct LeafNodeComparator
     bool aIsConst = a.isConst();
     bool bIsConst = b.isConst();
     if (aIsConst != bIsConst) return aIsConst;
+    Assert(!aIsConst && !bIsConst) << "Rationals should be combined";
 
     bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
     bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
@@ -65,7 +66,7 @@ struct LeafNodeComparator
 
 /**
  * Implements an ordering on arithmetic terms or summands. We expect these terms
- * to be products (MULT or NONLINEAR_MULT), whough products of zero or one node
+ * to be products (MULT or NONLINEAR_MULT), though products of zero or one node
  * are not actually represented as such. For individual factors of the product,
  * we rely on the ordering from LeafNodeComparator. Furthermore, we expect the
  * individual factors to be sorted according to LeafNodeComparator. The ordering
