@@ -210,20 +210,24 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // Rewrite until fix-point is reached
         for(;;) {
           // Perform the pre-rewrite
+          Kind originalKind = rewriteStackTop.d_node.getKind();
           RewriteResponse response = preRewrite(
               rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
 
           // Put the rewritten node to the top of the stack
           rewriteStackTop.d_node = response.d_node;
           TheoryId newTheory = theoryOf(rewriteStackTop.d_node);
-          // In the pre-rewrite, if changing theories, we just call the other theories pre-rewrite
+          // In the pre-rewrite, if changing theories, we just call the other
+          // theories pre-rewrite. If the kind of the node was changed, then we
+          // pre-rewrite again.
           if (newTheory == rewriteStackTop.getTheoryId()
+              && originalKind == rewriteStackTop.d_node.getKind()
               && response.d_status == REWRITE_DONE)
           {
             if (Configuration::isAssertionBuild())
             {
               // REWRITE_DONE should imply that no other pre-rewriting can be
-              // done
+              // done.
               Node rewritten = rewriteStackTop.d_node;
               Node rewrittenAgain =
                   preRewrite(newTheory, rewritten, nullptr).d_node;
@@ -295,6 +299,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       // Done with all pre-rewriting, so let's do the post rewrite
       for(;;) {
         // Do the post-rewrite
+        Kind originalKind = rewriteStackTop.d_node.getKind();
         RewriteResponse response = postRewrite(
             rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
 
@@ -318,7 +323,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 #endif
           break;
         }
-        else if (response.d_status == REWRITE_DONE)
+        else if (response.d_status == REWRITE_DONE
+                 && originalKind == rewriteStackTop.d_node.getKind())
         {
 #ifdef CVC5_ASSERTIONS
           RewriteResponse r2 =

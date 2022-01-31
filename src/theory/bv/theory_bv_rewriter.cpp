@@ -307,9 +307,7 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
     }
   }
 
-  return RewriteResponse(
-      resultNode.getKind() != node.getKind() ? REWRITE_AGAIN : REWRITE_DONE,
-      resultNode);
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
@@ -331,9 +329,7 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
     }
   }
 
-  return RewriteResponse(
-      resultNode.getKind() != node.getKind() ? REWRITE_AGAIN : REWRITE_DONE,
-      resultNode);
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
@@ -359,9 +355,7 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
     }
   }
 
-  return RewriteResponse(
-      resultNode.getKind() != node.getKind() ? REWRITE_AGAIN : REWRITE_DONE,
-      resultNode);
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteXnor(TNode node, bool prerewrite) {
