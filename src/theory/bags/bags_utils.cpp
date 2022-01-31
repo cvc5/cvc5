@@ -716,8 +716,8 @@ Node BagsUtils::evaluateBagFilter(TNode n)
 {
   Assert(n.getKind() == BAG_FILTER);
 
-  // (bag.filter p (as bag.empty (Bag T)) = (as bag.empty (Bag T))
-  // (bag.filter p (bag "a" 3) ((bag "b" 2))) =
+  // - (bag.filter p (as bag.empty (Bag T)) = (as bag.empty (Bag T))
+  // - (bag.filter p (bag.union_disjoint (bag "a" 3) (bag "b" 2))) =
   //   (bag.union_disjoint
   //     (ite (p "a") (bag "a" 3) (as bag.empty (Bag T)))
   //     (ite (p "b") (bag "b" 2) (as bag.empty (Bag T)))
