@@ -87,15 +87,14 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
 
-  auto* nm = NodeManager::currentNM();
   switch (atom.getKind())
   {
     case Kind::GT:
       return RewriteResponse(REWRITE_DONE,
-                             nm->mkNode(kind::LEQ, atom[0], atom[1]).notNode());
+                             rewriter::buildRelation(kind::LEQ, atom[0], atom[1], true));
     case Kind::LT:
       return RewriteResponse(REWRITE_DONE,
-                             nm->mkNode(kind::GEQ, atom[0], atom[1]).notNode());
+                             rewriter::buildRelation(kind::GEQ, atom[0], atom[1], true));
     case Kind::IS_INTEGER:
       if (atom[0].getType().isInteger())
       {

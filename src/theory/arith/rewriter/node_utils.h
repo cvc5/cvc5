@@ -37,7 +37,6 @@ inline bool isAtom(TNode n)
     default: return false;
   }
 }
-inline bool isTerm(TNode n) { return !isAtom(n); }
 
 inline bool isIntegral(TNode n)
 {
