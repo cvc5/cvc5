@@ -28,8 +28,6 @@
 
 namespace cvc5::theory::arith::rewriter {
 
-using Sum = std::unordered_map<Node, RealAlgebraicNumber>;
-using Summands = std::vector<std::pair<Node, RealAlgebraicNumber>>;
 using NewSum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
 /**
