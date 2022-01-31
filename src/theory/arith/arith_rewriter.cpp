@@ -475,7 +475,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       }))
   {
     return RewriteResponse(REWRITE_DONE,
-                           rewriter::distributeMultiplicationNew(children));
+                           rewriter::distributeMultiplication(children));
   }
 
   Rational rational = Rational(1);

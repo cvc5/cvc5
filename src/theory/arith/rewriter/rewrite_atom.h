@@ -134,34 +134,6 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate = false)
  * We then put the term with minimal absolute coefficient to the left side of
  * the equality and make its coefficient positive.
  */
-Node buildIntegerEquality(Summands& summands)
-{
-  normalize::GCDLCM(summands);
-
-  if (summands.front().first.isConst())
-  {
-    Assert(summands.front().second.isRational());
-    if (!summands.front().second.toRational().isIntegral())
-    {
-      return mkConst(false);
-    }
-  }
-
-  auto minabscoeff = removeMinAbsCoeff(summands);
-  if (sgn(minabscoeff.second) < 0)
-  {
-    // move minabscoeff goes to the right and switch lhs and rhs
-    minabscoeff.second = -minabscoeff.second;
-  }
-  else
-  {
-    // move the sum to the right
-    for (auto& s : summands) s.second = -s.second;
-  }
-  Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
-
-  return buildRelation(Kind::EQUAL, left, collectSum(summands));
-}
 Node buildIntegerEquality(NewSum& sum)
 {
   normalize::GCDLCM(sum);
@@ -198,21 +170,6 @@ Node buildIntegerEquality(NewSum& sum)
  * normalize its coefficient to be plus or minus one. The result is the
  * (normalized) leading term being equal to the rest of the sum.
  */
-Node buildRealEquality(Summands& summands)
-{
-  auto lterm = removeLTerm(summands);
-  if (isZero(lterm.second))
-  {
-    return buildRelation(
-        Kind::EQUAL, mkConst(Integer(0)), collectSum(summands));
-  }
-  RealAlgebraicNumber lcoeff = -lterm.second;
-  for (auto& s : summands)
-  {
-    s.second = s.second / lcoeff;
-  }
-  return buildRelation(Kind::EQUAL, lterm.first, collectSum(summands));
-}
 Node buildRealEquality(NewSum& sum)
 {
   auto lterm = removeLTerm(sum);
@@ -229,31 +186,6 @@ Node buildRealEquality(NewSum& sum)
   return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
 }
 
-Node buildIntegerInequality(Summands& summands, Kind k)
-{
-  bool negate = normalize::GCDLCM(summands, true);
-
-  if (negate)
-  {
-    k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
-  }
-
-  RealAlgebraicNumber constant = removeConstant(summands);
-  Assert(constant.isRational());
-  Rational rhs = -constant.toRational();
-
-  if (rhs.isIntegral() && k == Kind::GT)
-  {
-    rhs += 1;
-  }
-  else
-  {
-    rhs = rhs.ceiling();
-  }
-  auto* nm = NodeManager::currentNM();
-  return buildRelation(
-      Kind::GEQ, collectSum(summands), nm->mkConstInt(rhs), negate);
-}
 Node buildIntegerInequality(NewSum& sum, Kind k)
 {
   bool negate = normalize::GCDLCM(sum, true);
@@ -280,12 +212,6 @@ Node buildIntegerInequality(NewSum& sum, Kind k)
       Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
 }
 
-Node buildRealInequality(Summands& summands, Kind k)
-{
-  normalize::LCoeffAbsOne(summands);
-  Node rhs = mkConst(-removeConstant(summands));
-  return buildRelation(k, collectSum(summands), rhs);
-}
 Node buildRealInequality(NewSum& sum, Kind k)
 {
   normalize::LCoeffAbsOne(sum);
