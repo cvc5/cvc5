@@ -38,7 +38,7 @@ namespace cvc5::theory::arith::rewriter {
 struct LeafNodeComparator
 {
   /** Implements operator<(a, b) as described above */
-  bool operator()(TNode a, TNode b)
+  bool operator()(TNode a, TNode b) const
   {
     if (a == b) return false;
 
@@ -77,7 +77,7 @@ struct LeafNodeComparator
 struct TermComparator
 {
   /** Implements operator<(a, b) as described above */
-  bool operator()(TNode a, TNode b)
+  bool operator()(TNode a, TNode b) const
   {
     if (a == b) return false;
 
