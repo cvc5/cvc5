@@ -190,7 +190,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     default: break;
   }
 
-  rewriter::Sum rsum;
+  rewriter::NewSum rsum;
   rewriter::addToSum(rsum, left, negate);
   rewriter::addToSum(rsum, right, !negate);
 
@@ -440,7 +440,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   std::vector<TNode> children;
   expr::algorithm::flatten(t, children);
 
-  rewriter::Sum sum;
+  rewriter::NewSum sum;
   for (const auto& child : children)
   {
     rewriter::addToSum(sum, child);
@@ -478,7 +478,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       }))
   {
     return RewriteResponse(REWRITE_DONE,
-                           rewriter::distributeMultiplication(children));
+                           rewriter::distributeMultiplicationNew(children));
   }
 
   Rational rational = Rational(1);
