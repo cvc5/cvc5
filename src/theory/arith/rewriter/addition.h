@@ -341,13 +341,15 @@ RealAlgebraicNumber removeConstant(Summands& summands)
 RealAlgebraicNumber removeConstant(NewSum& sum)
 {
   RealAlgebraicNumber res;
-  if (sum.empty()) return res;
-  auto ltermit = getLTermIt(sum);
-  if (ltermit != sum.end())
+  if (!sum.empty())
   {
-    Assert(ltermit->first.getConst<Rational>().isOne());
-    res = ltermit->second;
-    sum.erase(ltermit);
+    auto constantit = sum.begin();
+    if (constantit->first.isConst())
+    {
+      Assert(constantit->first.getConst<Rational>().isOne());
+      res = constantit->second;
+      sum.erase(constantit);
+    }
   }
   return res;
 }

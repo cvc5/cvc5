@@ -213,6 +213,21 @@ Node buildRealEquality(Summands& summands)
   }
   return buildRelation(Kind::EQUAL, lterm.first, collectSum(summands));
 }
+Node buildRealEquality(NewSum& sum)
+{
+  auto lterm = removeLTerm(sum);
+  if (isZero(lterm.second))
+  {
+    return buildRelation(
+        Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
+  }
+  RealAlgebraicNumber lcoeff = -lterm.second;
+  for (auto& s : sum)
+  {
+    s.second = s.second / lcoeff;
+  }
+  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
+}
 
 Node buildIntegerInequality(Summands& summands, Kind k)
 {
@@ -239,12 +254,43 @@ Node buildIntegerInequality(Summands& summands, Kind k)
   return buildRelation(
       Kind::GEQ, collectSum(summands), nm->mkConstInt(rhs), negate);
 }
+Node buildIntegerInequality(NewSum& sum, Kind k)
+{
+  bool negate = normalize::GCDLCM(sum, true);
+
+  if (negate)
+  {
+    k = (k == Kind::GEQ) ? Kind::GT : Kind::GEQ;
+  }
+
+  RealAlgebraicNumber constant = removeConstant(sum);
+  Assert(constant.isRational());
+  Rational rhs = -constant.toRational();
+
+  if (rhs.isIntegral() && k == Kind::GT)
+  {
+    rhs += 1;
+  }
+  else
+  {
+    rhs = rhs.ceiling();
+  }
+  auto* nm = NodeManager::currentNM();
+  return buildRelation(
+      Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
+}
 
 Node buildRealInequality(Summands& summands, Kind k)
 {
   normalize::LCoeffAbsOne(summands);
   Node rhs = mkConst(-removeConstant(summands));
   return buildRelation(k, collectSum(summands), rhs);
+}
+Node buildRealInequality(NewSum& sum, Kind k)
+{
+  normalize::LCoeffAbsOne(sum);
+  Node rhs = mkConst(-removeConstant(sum));
+  return buildRelation(k, collectSum(sum), rhs);
 }
 
 }  // namespace cvc5::theory::arith::rewriter

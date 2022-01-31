@@ -206,17 +206,17 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
                              rewriter::buildIntegerEquality(rsum));
     }
     return RewriteResponse(REWRITE_DONE,
-                           rewriter::buildIntegerInequality(summands, kind));
+                           rewriter::buildIntegerInequality(rsum, kind));
   }
   else
   {
     if (kind == Kind::EQUAL)
     {
       return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildRealEquality(summands));
+                             rewriter::buildRealEquality(rsum));
     }
     return RewriteResponse(REWRITE_DONE,
-                           rewriter::buildRealInequality(summands, kind));
+                           rewriter::buildRealInequality(rsum, kind));
   }
 }
 
