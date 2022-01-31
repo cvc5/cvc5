@@ -18,7 +18,8 @@
 #ifndef CVC5__THEORY__ARITH__REWRITER__ADDITION_H
 #define CVC5__THEORY__ARITH__REWRITER__ADDITION_H
 
-#include <unordered_map>
+#include <map>
+#include <iosfwd>
 
 #include "base/check.h"
 #include "expr/node.h"
@@ -30,132 +31,13 @@ namespace cvc5::theory::arith::rewriter {
 
 using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
-inline std::ostream& operator<<(std::ostream& os, const Sum& sum)
-{
-  for (auto it = sum.begin(); it != sum.end(); ++it)
-  {
-    if (it != sum.begin()) os << " + ";
-    if (it->first.isConst())
-    {
-      Assert(it->first.getConst<Rational>().isOne());
-      os << it->second;
-      continue;
-    }
-    os << it->second << "*" << it->first;
-  }
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const Sum& sum);
 
-/**
- * Adds a factor n to a product, consisting of the numerical multiplicity and
- * the remaining (non-numerical) factors. If n is a product itself, its children
- * are merged into a product. If n is a constant or a real algebraic number, it
- * is multiplied to the multiplicity. Otherwise, n is added to product.
- *
- * Invariant:
- *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
- */
-inline void addToProduct(std::vector<Node>& product,
-                  RealAlgebraicNumber& multiplicity,
-                  TNode n)
-{
-  switch (n.getKind())
-  {
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      for (const auto& child : n)
-      {
-        // make sure constants are properly extracted.
-        // recursion is safe, as mult is already flattened
-        addToProduct(product, multiplicity, child);
-      }
-      break;
-    case Kind::REAL_ALGEBRAIC_NUMBER:
-      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
-      break;
-    default:
-      if (n.isConst())
-      {
-        multiplicity *= n.getConst<Rational>();
-      }
-      else
-      {
-        product.emplace_back(n);
-      }
-  }
-}
 
-/**
- * Add a new summand, consisting of the product and the multiplicity, to a sum
- * as used in the distribution of multiplication. Either adds the summand as a
- * new entry to sum, or adds the multiplicity to an already existing summand.
- *
- * Invariant:
- *   add(s.n * s.ran for s in sum')
- *   = add(s.n * s.ran for s in sum) + multiplicity * product
- */
-inline void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
-{
-  if (isZero(multiplicity)) return;
-  auto it = sum.find(product);
-  if (it == sum.end())
-  {
-    sum.emplace(product, multiplicity);
-  }
-  else
-  {
-    it->second += multiplicity;
-    if (isZero(it->second))
-    {
-      sum.erase(it);
-    }
-  }
-}
-
-inline void addToSum(Sum& sum, TNode n, bool negate = false)
-{
-  if (n.getKind() == Kind::PLUS)
-  {
-    for (const auto& child : n)
-    {
-      addToSum(sum, child, negate);
-    }
-    return;
-  }
-  std::vector<Node> monomial;
-  RealAlgebraicNumber multiplicity(Integer(1));
-  if (negate)
-  {
-    multiplicity = Integer(-1);
-  }
-  addToProduct(monomial, multiplicity, n);
-  addToSum(sum, mkMult(std::move(monomial)), multiplicity);
-}
-
-inline Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
-{
-  auto* nm = NodeManager::currentNM();
-  if (monomial.isConst())
-  {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
-  }
-  if (multiplicity.isRational())
-  {
-    if (isOne(multiplicity))
-    {
-      return monomial;
-    }
-    return nm->mkNode(Kind::MULT, mkConst(multiplicity.toRational()), monomial);
-  }
-  std::vector<Node> prod;
-  prod.emplace_back(mkConst(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
-  return mkMult(std::move(prod));
-}
+void addToSum(Sum& sum, TNode n, bool negate = false);
 
 inline Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 {
-  auto* nm = NodeManager::currentNM();
   if (monomial.isConst())
   {
     return mkConst(multiplicity * monomial.getConst<Rational>());
@@ -164,118 +46,34 @@ inline Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   {
     return monomial;
   }
-  return nm->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
+  return NodeManager::currentNM()->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
-inline auto getLTermIt(Sum& sum)
+inline Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
-  auto ltermit = sum.begin();
-  if (ltermit->first.isConst())
+  if (multiplicity.isRational())
   {
-    ++ltermit;
+    return mkMultTerm(multiplicity.toRational(), monomial);
   }
-  return ltermit;
-}
-
-inline auto& getLTerm(Sum& sum)
-{
-  auto it = getLTermIt(sum);
-  Assert(it != sum.end());
-  return *it;
-}
-
-inline RealAlgebraicNumber removeConstant(Sum& sum)
-{
-  RealAlgebraicNumber res;
-  if (!sum.empty())
+  if (monomial.isConst())
   {
-    auto constantit = sum.begin();
-    if (constantit->first.isConst())
-    {
-      Assert(constantit->first.getConst<Rational>().isOne());
-      res = constantit->second;
-      sum.erase(constantit);
-    }
+    return mkConst(multiplicity * monomial.getConst<Rational>());
   }
-  return res;
-}
-
-inline std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
-{
-  auto minit = getLTermIt(sum);
-  for (auto it = minit; it != sum.end(); ++it)
-  {
-    if (it->first.isConst()) continue;
-    if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
-    {
-      minit = it;
-    }
-  }
-  if (minit == sum.end())
-  {
-    return std::make_pair(mkConst(Integer(1)), Integer(0));
-  }
-  Assert(minit != sum.end());
-  auto res = *minit;
-  sum.erase(minit);
-  return res;
-}
-
-inline std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
-{
-  auto it = getLTermIt(sum);
-  if (it == sum.end())
-  {
-    return std::make_pair(mkConst(Integer(1)), Integer(0));
-  }
-  Assert(it != sum.end());
-  auto res = *it;
-  sum.erase(it);
-  return res;
+  std::vector<Node> prod;
+  prod.emplace_back(mkConst(multiplicity));
+  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  return mkNonlinearMult(prod);
 }
 
 /**
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-inline Node collectSum(const Sum& sum)
-{
-  if (sum.empty()) return mkConst(Rational(0));
-  // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
-  for (const auto& s : sum)
-  {
-    nb << mkMultTerm(s.second, s.first);
-  }
-  if (nb.getNumChildren() == 1)
-  {
-    return nb[0];
-  }
-  return nb.constructNode();
-}
+Node collectSum(const Sum& sum);
 
-inline Node collectSum(const Sum& sum,
+Node collectSum(const Sum& sum,
                 const RealAlgebraicNumber& basemultiplicity,
-                const std::vector<Node>& baseproduct)
-{
-  if (sum.empty()) return mkConst(Rational(0));
-  // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
-  for (const auto& summand : sum)
-  {
-    Assert(!isZero(summand.second));
-    RealAlgebraicNumber mult = summand.second * basemultiplicity;
-    std::vector<Node> product = baseproduct;
-    rewriter::addToProduct(product, mult, summand.first);
-    std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
-    nb << mkMultTerm(mult, mkMult(product));
-  }
-  if (nb.getNumChildren() == 1)
-  {
-    return nb[0];
-  }
-  return nb.constructNode();
-}
+                const std::vector<Node>& baseproduct);
 
 /**
  * Distribute a multiplication over one or more additions. The multiplication
@@ -290,86 +88,7 @@ inline Node collectSum(const Sum& sum,
  * monomials or products. This allows to combine summands with identical
  * monomials immediately and avoid a potential blow-up.
  */
-inline Node distributeMultiplication(const std::vector<TNode>& factors)
-{
-  if (Trace.isOn("arith-rewriter-distribute"))
-  {
-    Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
-    for (const auto& f : factors)
-    {
-      Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
-    }
-  }
-  // factors that are not sums, separated into numerical and non-numerical
-  RealAlgebraicNumber basemultiplicity(Integer(1));
-  std::vector<Node> base;
-  // maps products to their (possibly real algebraic) multiplicities.
-  // The current (intermediate) value is the sum of these (multiplied by the
-  // base factors).
-  Sum sum;
-  // Add a base summand
-  sum.emplace(mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
-
-  // multiply factors one by one to basmultiplicity * base * sum
-  for (const auto& factor : factors)
-  {
-    // Subtractions are rewritten already, we only need to care about additions
-    Assert(factor.getKind() != Kind::MINUS);
-    Assert(factor.getKind() != Kind::UMINUS
-           || (factor[0].isConst() || isRAN(factor[0])));
-    if (factor.getKind() != Kind::PLUS)
-    {
-      Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
-      addToProduct(base, basemultiplicity, factor);
-      continue;
-    }
-    // temporary to store factor * sum, will be moved to sum at the end
-    Sum newsum;
-
-    for (const auto& summand : sum)
-    {
-      for (const auto& child : factor)
-      {
-        // add summand * child to newsum
-        RealAlgebraicNumber multiplicity = summand.second;
-        if (child.isConst())
-        {
-          multiplicity *= child.getConst<Rational>();
-          addToSum(newsum, summand.first, multiplicity);
-          continue;
-        }
-        if (isRAN(child))
-        {
-          multiplicity *= getRAN(child);
-          addToSum(newsum, summand.first, multiplicity);
-          continue;
-        }
-
-        // construct the new product
-        std::vector<Node> newProduct;
-        addToProduct(newProduct, multiplicity, summand.first);
-        addToProduct(newProduct, multiplicity, child);
-        std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
-        addToSum(newsum, mkMult(std::move(newProduct)), multiplicity);
-      }
-    }
-    Trace("arith-rewriter-distribute")
-        << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter-distribute")
-        << "base: " << basemultiplicity << " * " << base << std::endl;
-    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
-    for (const auto& summand : newsum)
-    {
-      Trace("arith-rewriter-distribute")
-          << "\t" << summand.second << " * " << summand.first << std::endl;
-    }
-
-    sum = std::move(newsum);
-  }
-  // now mult(factors) == base * add(sum)
-
-  return collectSum(sum, basemultiplicity, base);
-}
+Node distributeMultiplication(const std::vector<TNode>& factors);
 
 }  // namespace cvc5::theory::arith::rewriter
 

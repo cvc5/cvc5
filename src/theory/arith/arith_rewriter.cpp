@@ -473,7 +473,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
                            rewriter::distributeMultiplication(children));
   }
 
-  Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
   std::vector<Node> leafs;
 
@@ -487,7 +486,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         Trace("arith-rewriter-mult") << "-> " << child << std::endl;
         return RewriteResponse(REWRITE_DONE, child);
       }
-      rational *= child.getConst<Rational>();
+      ran *= child.getConst<Rational>();
     }
     else if (rewriter::isRAN(child))
     {
@@ -499,29 +498,22 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
-  Assert(!isZero(rational));
-  if (ran.isRational())
-  {
-    rational *= ran.toRational();
-    ran = RealAlgebraicNumber(Integer(1));
-  }
-  if (!isOne(ran))
-  {
-    ran *= rational;
-    rational = 1;
-    leafs.insert(leafs.begin(), rewriter::mkConst(ran));
-  }
-
   if (leafs.empty())
   {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(rational));
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(ran));
   }
-
+  if (ran.isRational())
+  {
+    std::sort(leafs.begin(), leafs.end(), rewriter::LeafNodeComparator());
+    return RewriteResponse(
+        REWRITE_DONE,
+        rewriter::mkMultTerm(ran.toRational(), rewriter::mkNonlinearMult(leafs)));
+  }
+  leafs.emplace_back(rewriter::mkConst(ran));
   std::sort(leafs.begin(), leafs.end(), rewriter::LeafNodeComparator());
-
   return RewriteResponse(
       REWRITE_DONE,
-      rewriter::mkMultTerm(rational, rewriter::mkMult(std::move(leafs))));
+      rewriter::mkNonlinearMult(leafs));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)

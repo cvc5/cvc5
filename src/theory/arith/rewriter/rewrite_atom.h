@@ -20,7 +20,6 @@
 
 #include <optional>
 
-#include "base/check.h"
 #include "expr/node.h"
 #include "theory/arith/rewriter/addition.h"
 

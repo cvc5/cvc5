@@ -15,6 +15,8 @@
 
 #include "theory/arith/rewriter/rewrite_atom.h"
 
+#include "base/check.h"
+
 namespace cvc5::theory::arith::rewriter {
 
 namespace
@@ -37,6 +39,23 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     case Kind::GT: return l > r;
     default: Unreachable(); return false;
   }
+}
+
+auto getLTermIt(Sum& sum)
+{
+  auto ltermit = sum.begin();
+  if (ltermit->first.isConst())
+  {
+    ++ltermit;
+  }
+  return ltermit;
+}
+
+auto& getLTerm(Sum& sum)
+{
+  auto it = getLTermIt(sum);
+  Assert(it != sum.end());
+  return *it;
 }
 
 /**
@@ -114,6 +133,56 @@ bool normalizeGCDLCM(Sum& sum, bool followLCoeffSign = false)
     s.second *= mult;
   }
   return negate;
+}
+
+std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
+{
+  auto minit = getLTermIt(sum);
+  for (auto it = minit; it != sum.end(); ++it)
+  {
+    if (it->first.isConst()) continue;
+    if (it->second.toRational().absCmp(minit->second.toRational()) < 0)
+    {
+      minit = it;
+    }
+  }
+  if (minit == sum.end())
+  {
+    return std::make_pair(mkConst(Integer(1)), Integer(0));
+  }
+  Assert(minit != sum.end());
+  auto res = *minit;
+  sum.erase(minit);
+  return res;
+}
+
+RealAlgebraicNumber removeConstant(Sum& sum)
+{
+  RealAlgebraicNumber res;
+  if (!sum.empty())
+  {
+    auto constantit = sum.begin();
+    if (constantit->first.isConst())
+    {
+      Assert(constantit->first.getConst<Rational>().isOne());
+      res = constantit->second;
+      sum.erase(constantit);
+    }
+  }
+  return res;
+}
+
+std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
+{
+  auto it = getLTermIt(sum);
+  if (it == sum.end())
+  {
+    return std::make_pair(mkConst(Integer(1)), Integer(0));
+  }
+  Assert(it != sum.end());
+  auto res = *it;
+  sum.erase(it);
+  return res;
 }
 
 }

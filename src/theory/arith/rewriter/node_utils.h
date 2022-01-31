@@ -40,38 +40,14 @@ inline bool isAtom(TNode n)
   }
 }
 
-inline bool isIntegral(TNode n)
-{
-  std::vector<TNode> queue = {n};
-  while (!queue.empty())
-  {
-    TNode cur = queue.back();
-    queue.pop_back();
-
-    if (cur.isConst()) continue;
-    switch (cur.getKind())
-    {
-      case Kind::LT:
-      case Kind::LEQ:
-      case Kind::EQUAL:
-      case Kind::DISTINCT:
-      case Kind::GEQ:
-      case Kind::GT:
-        queue.emplace_back(n[0]);
-        queue.emplace_back(n[1]);
-        break;
-      case Kind::PLUS:
-      case Kind::MULT:
-      case Kind::MINUS:
-      case Kind::UMINUS:
-        queue.insert(queue.end(), cur.begin(), cur.end());
-        break;
-      default:
-        if (!cur.getType().isInteger()) return false;
-    }
-  }
-  return true;
-}
+/**
+ * Check whether the given node can be rewritten to an integer node. This
+ * differs from checking the node type in two major ways: we consider relational
+ * operators integral if both children are integral in this sense; rational
+ * constants are always integral, as they are rewritten to integers by simple
+ * multiplication with their denominator.
+ */
+bool isIntegral(TNode n);
 
 inline bool isRAN(TNode n)
 {
@@ -84,8 +60,9 @@ inline const RealAlgebraicNumber& getRAN(TNode n)
 }
 
 /**
- * Check whether the parent has a child that is a constant zero.
- * If so, return this child. Otherwise, return std::nullopt.
+ * Check whether the parent has a child that is a constant zero. If so, return
+ * this child. Otherwise, return std::nullopt. Works on any kind of iterable,
+ * i.e. both a node or a vector of nodes.
  */
 template <typename Iterable>
 std::optional<TNode> getZeroChild(const Iterable& parent)
@@ -122,28 +99,14 @@ inline Node mkConst(const RealAlgebraicNumber& value)
 }
 
 /** Make a nonlinear multiplication from the given factors */
-template <typename T>
-Node mkMult(T&& factors)
+inline Node mkNonlinearMult(const std::vector<Node>& factors)
 {
   auto* nm = NodeManager::currentNM();
   switch (factors.size())
   {
     case 0: return nm->mkConstInt(Rational(1));
     case 1: return factors[0];
-    default: return nm->mkNode(Kind::NONLINEAR_MULT, std::forward<T>(factors));
-  }
-}
-
-/** Make a sum from the given summands */
-template <typename T>
-Node mkSum(T&& summands)
-{
-  auto* nm = NodeManager::currentNM();
-  switch (summands.size())
-  {
-    case 0: return nm->mkConstInt(Rational(0));
-    case 1: return summands[0];
-    default: return nm->mkNode(Kind::PLUS, std::forward<T>(summands));
+    default: return nm->mkNode(Kind::NONLINEAR_MULT, factors);
   }
 }
 
