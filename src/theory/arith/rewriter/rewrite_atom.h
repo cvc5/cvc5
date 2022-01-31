@@ -134,7 +134,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate = false)
  * We then put the term with minimal absolute coefficient to the left side of
  * the equality and make its coefficient positive.
  */
-Node buildIntegerEquality(NewSum& sum)
+Node buildIntegerEquality(Sum& sum)
 {
   normalize::GCDLCM(sum);
 
@@ -170,7 +170,7 @@ Node buildIntegerEquality(NewSum& sum)
  * normalize its coefficient to be plus or minus one. The result is the
  * (normalized) leading term being equal to the rest of the sum.
  */
-Node buildRealEquality(NewSum& sum)
+Node buildRealEquality(Sum& sum)
 {
   auto lterm = removeLTerm(sum);
   if (isZero(lterm.second))
@@ -186,7 +186,7 @@ Node buildRealEquality(NewSum& sum)
   return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
 }
 
-Node buildIntegerInequality(NewSum& sum, Kind k)
+Node buildIntegerInequality(Sum& sum, Kind k)
 {
   bool negate = normalize::GCDLCM(sum, true);
 
@@ -212,7 +212,7 @@ Node buildIntegerInequality(NewSum& sum, Kind k)
       Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
 }
 
-Node buildRealInequality(NewSum& sum, Kind k)
+Node buildRealInequality(Sum& sum, Kind k)
 {
   normalize::LCoeffAbsOne(sum);
   Node rhs = mkConst(-removeConstant(sum));

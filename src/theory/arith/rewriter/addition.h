@@ -28,7 +28,23 @@
 
 namespace cvc5::theory::arith::rewriter {
 
-using NewSum = std::map<Node, RealAlgebraicNumber, TermComparator>;
+using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
+
+inline std::ostream& operator<<(std::ostream& os, const Sum& sum)
+{
+  for (auto it = sum.begin(); it != sum.end(); ++it)
+  {
+    if (it != sum.begin()) os << " + ";
+    if (it->first.isConst())
+    {
+      Assert(it->first.getConst<Rational>().isOne());
+      os << it->second;
+      continue;
+    }
+    os << it->second << "*" << it->first;
+  }
+  return os;
+}
 
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
@@ -78,7 +94,7 @@ void addToProduct(std::vector<Node>& product,
  *   add(s.n * s.ran for s in sum')
  *   = add(s.n * s.ran for s in sum) + multiplicity * product
  */
-void addToSum(NewSum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
+void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 {
   if (isZero(multiplicity)) return;
   auto it = sum.find(product);
@@ -96,7 +112,7 @@ void addToSum(NewSum& sum, TNode product, const RealAlgebraicNumber& multiplicit
   }
 }
 
-void addToSum(NewSum& sum, TNode n, bool negate = false)
+void addToSum(Sum& sum, TNode n, bool negate = false)
 {
   if (n.getKind() == Kind::PLUS)
   {
@@ -151,7 +167,7 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   return nm->mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
-auto getLTermIt(NewSum& sum)
+auto getLTermIt(Sum& sum)
 {
   auto ltermit = sum.begin();
   if (ltermit->first.isConst())
@@ -161,7 +177,7 @@ auto getLTermIt(NewSum& sum)
   return ltermit;
 }
 
-auto& getLTerm(NewSum& sum)
+auto& getLTerm(Sum& sum)
 {
   auto it = getLTermIt(sum);
   Assert(it != sum.end());
@@ -170,7 +186,7 @@ auto& getLTerm(NewSum& sum)
 
 namespace normalize {
 
-void LCoeffAbsOne(NewSum& sum)
+void LCoeffAbsOne(Sum& sum)
 {
   if (sum.empty()) return;
   if (sum.size() == 1)
@@ -193,7 +209,7 @@ void LCoeffAbsOne(NewSum& sum)
   }
 }
 
-bool GCDLCM(NewSum& sum, bool followLCoeffSign = false)
+bool GCDLCM(Sum& sum, bool followLCoeffSign = false)
 {
   if (sum.empty()) return false;
   Integer denLCM(1);
@@ -239,7 +255,7 @@ bool GCDLCM(NewSum& sum, bool followLCoeffSign = false)
 
 }  // namespace normalize
 
-RealAlgebraicNumber removeConstant(NewSum& sum)
+RealAlgebraicNumber removeConstant(Sum& sum)
 {
   RealAlgebraicNumber res;
   if (!sum.empty())
@@ -255,7 +271,7 @@ RealAlgebraicNumber removeConstant(NewSum& sum)
   return res;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(NewSum& sum)
+std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
 {
   auto minit = getLTermIt(sum);
   for (auto it = minit; it != sum.end(); ++it)
@@ -276,7 +292,7 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(NewSum& sum)
   return res;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeLTerm(NewSum& sum)
+std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
 {
   auto it = getLTermIt(sum);
   if (it == sum.end())
@@ -293,7 +309,7 @@ std::pair<Node, RealAlgebraicNumber> removeLTerm(NewSum& sum)
  * Turn a distributed sum (mapping of monomials to multiplicities) into a sum,
  * given as list of terms suitable to be passed to mkSum().
  */
-Node collectSum(const NewSum& sum)
+Node collectSum(const Sum& sum)
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
@@ -309,7 +325,7 @@ Node collectSum(const NewSum& sum)
   return nb.constructNode();
 }
 
-Node collectSum(const NewSum& sum,
+Node collectSum(const Sum& sum,
                 const RealAlgebraicNumber& basemultiplicity,
                 const std::vector<Node>& baseproduct)
 {
@@ -361,7 +377,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   // maps products to their (possibly real algebraic) multiplicities.
   // The current (intermediate) value is the sum of these (multiplied by the
   // base factors).
-  NewSum sum;
+  Sum sum;
   // Add a base summand
   sum.emplace(mkConst(Rational(1)), RealAlgebraicNumber(Integer(1)));
 
@@ -379,7 +395,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
       continue;
     }
     // temporary to store factor * sum, will be moved to sum at the end
-    NewSum newsum;
+    Sum newsum;
 
     for (const auto& summand : sum)
     {

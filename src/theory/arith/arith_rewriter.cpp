@@ -185,7 +185,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     default: break;
   }
 
-  rewriter::NewSum rsum;
+  rewriter::Sum rsum;
   rewriter::addToSum(rsum, left, negate);
   rewriter::addToSum(rsum, right, !negate);
 
@@ -432,7 +432,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   std::vector<TNode> children;
   expr::algorithm::flatten(t, children);
 
-  rewriter::NewSum sum;
+  rewriter::Sum sum;
   for (const auto& child : children)
   {
     rewriter::addToSum(sum, child);
