@@ -983,6 +983,7 @@ set(regress_0_tests
   regress0/quantifiers/issue6996-trivial-elim.smt2
   regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/issue7353-var-elim-par-dt.smt2
+  regress0/quantifiers/issue8001-mem-leak.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
