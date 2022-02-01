@@ -279,13 +279,14 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
 RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<
-      RewriteRule<ConcatFlatten>,
       // Flatten the top level concatenations
-      RewriteRule<ConcatExtractMerge>,
+      RewriteRule<ConcatFlatten>,
       // Merge the adjacent extracts on non-constants
-      RewriteRule<ConcatConstantMerge>,
+      RewriteRule<ConcatExtractMerge>,
+      // Remove extracts that have no effect
+      ApplyRuleToChildren<kind::BITVECTOR_CONCAT, ExtractWhole>,
       // Merge the adjacent extracts on constants
-      ApplyRuleToChildren<kind::BITVECTOR_CONCAT, ExtractWhole>>::apply(node);
+      RewriteRule<ConcatConstantMerge>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
