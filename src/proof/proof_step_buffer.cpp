@@ -16,6 +16,7 @@
 #include "proof/proof_step_buffer.h"
 
 #include "proof/proof_checker.h"
+#include "proof/proof.h"
 
 using namespace cvc5::kind;
 
@@ -47,8 +48,8 @@ std::ostream& operator<<(std::ostream& out, ProofStep step)
   return out;
 }
 
-ProofStepBuffer::ProofStepBuffer(ProofChecker* pc, bool ensureUnique)
-    : d_checker(pc), d_ensureUnique(ensureUnique)
+ProofStepBuffer::ProofStepBuffer(ProofChecker* pc, bool ensureUnique, bool autoSym)
+    : d_autoSym(autoSym), d_checker(pc), d_ensureUnique(ensureUnique)
 {
 }
 
@@ -57,8 +58,19 @@ Node ProofStepBuffer::tryStep(PfRule id,
                               const std::vector<Node>& args,
                               Node expected)
 {
+  bool added;
+  return tryStep(added, id, children, args, expected);
+}
+
+Node ProofStepBuffer::tryStep(bool& added,
+                              PfRule id,
+                              const std::vector<Node>& children,
+                              const std::vector<Node>& args,
+                              Node expected)
+{
   if (d_checker == nullptr)
   {
+    added = false;
     Assert(false) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
     return Node::null();
   }
@@ -67,12 +79,16 @@ Node ProofStepBuffer::tryStep(PfRule id,
   if (!res.isNull())
   {
     // add proof step
-    addStep(id, children, args, res);
+    added = addStep(id, children, args, res);
+  }
+  else
+  {
+    added = false;
   }
   return res;
 }
 
-void ProofStepBuffer::addStep(PfRule id,
+bool ProofStepBuffer::addStep(PfRule id,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args,
                               Node expected)
@@ -83,13 +99,21 @@ void ProofStepBuffer::addStep(PfRule id,
     {
       Trace("psb-debug") << "Discard " << expected << " from " << id
                          << std::endl;
-      return;
+      return false;
     }
     d_allSteps.insert(expected);
+    // if we are automatically considering symmetry, we also add the symmetric
+    // fact here
+    if (d_autoSym)
+    {
+      Node sexpected = CDProof::getSymmFact(expected);
+      d_allSteps.insert(sexpected);
+    }
     Trace("psb-debug") << "Add " << expected << " from " << id << std::endl;
   }
   d_steps.push_back(
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
+  return true;
 }
 
 void ProofStepBuffer::addSteps(ProofStepBuffer& psb)
