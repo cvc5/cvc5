@@ -213,7 +213,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   if(t.isConst()){
-    return rewriteConstant(t);
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
@@ -260,7 +260,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
 
 RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   if(t.isConst()){
-    return rewriteConstant(t);
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.isVar()){
     return rewriteVariable(t);
   }
@@ -354,14 +354,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-
-RewriteResponse ArithRewriter::rewriteConstant(TNode t){
-  Assert(t.isConst());
-  Assert(t.getKind() == CONST_RATIONAL || t.getKind() == CONST_INTEGER);
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
 RewriteResponse ArithRewriter::rewriteRAN(TNode t)
 {
   Assert(rewriter::isRAN(t));
@@ -377,23 +369,6 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t){
   Assert(t.isVar());
 
   return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::rewriteMinus(TNode t)
-{
-  Assert(t.getKind() == kind::MINUS);
-  Assert(t.getNumChildren() == 2);
-
-  if (t[0] == t[1])
-  {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(0)));
-  }
-  auto* nm = NodeManager::currentNM();
-  return RewriteResponse(
-      REWRITE_AGAIN_FULL,
-      nm->mkNode(Kind::PLUS,
-                 t[0],
-                 nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[1])));
 }
 
 RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
@@ -416,6 +391,23 @@ RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
     return RewriteResponse(REWRITE_DONE, noUminus);
   else
     return RewriteResponse(REWRITE_AGAIN, noUminus);
+}
+
+RewriteResponse ArithRewriter::rewriteMinus(TNode t)
+{
+  Assert(t.getKind() == kind::MINUS);
+  Assert(t.getNumChildren() == 2);
+
+  if (t[0] == t[1])
+  {
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(0)));
+  }
+  auto* nm = NodeManager::currentNM();
+  return RewriteResponse(
+      REWRITE_AGAIN_FULL,
+      nm->mkNode(Kind::PLUS,
+                 t[0],
+                 nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[1])));
 }
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
