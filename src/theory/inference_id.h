@@ -182,6 +182,8 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
+  BAGS_FILTER_DOWN,
+  BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
   // ---------------------------------- end bags theory
