@@ -16,6 +16,7 @@
 #include "theory/arith/rewriter/node_utils.h"
 
 #include "base/check.h"
+#include "theory/arith/rewriter/ordering.h"
 
 namespace cvc5::theory::arith::rewriter {
 

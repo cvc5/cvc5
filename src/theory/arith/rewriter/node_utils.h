@@ -23,7 +23,6 @@
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
-#include "theory/arith/rewriter/ordering.h"
 
 namespace cvc5::theory::arith::rewriter {
 
