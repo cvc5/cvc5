@@ -51,11 +51,14 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   }
 }
 
-void DifficultyManager::notifyLemma(Node n)
+void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
-  if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
+  if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL_ALL)
   {
-    return;
+    if (inFullEffortCheck || options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
+    {
+      return;
+    }
   }
   Trace("diff-man") << "notifyLemma: " << n << std::endl;
   Kind nk = n.getKind();
