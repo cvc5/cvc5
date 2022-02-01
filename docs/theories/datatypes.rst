@@ -195,7 +195,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term t = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Selector     | ``((_ tuple_select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
+| Tuple Selector     | ``((_ tuple_select i) t)``             | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
