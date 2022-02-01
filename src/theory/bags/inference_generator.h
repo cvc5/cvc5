@@ -271,7 +271,7 @@ class InferenceGenerator
    *   (bag.member e skolem)
    *   (and
    *     (p e)
-   *     (= (bag.count e skolem) (bag.count A)))
+   *     (= (bag.count e skolem) (bag.count e A)))
    * where skolem is a variable equals (bag.filter p A)
    */
   InferInfo filterDownwards(Node n, Node e);
