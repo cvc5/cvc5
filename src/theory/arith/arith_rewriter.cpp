@@ -473,12 +473,10 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   for (const auto& child : children)
   {
-    Trace("arith-rewriter-mult") << "Mult child " << child << std::endl;
     if (child.isConst())
     {
       if (child.getConst<Rational>().isZero())
       {
-        Trace("arith-rewriter-mult") << "-> " << child << std::endl;
         return RewriteResponse(REWRITE_DONE, child);
       }
       ran *= child.getConst<Rational>();
