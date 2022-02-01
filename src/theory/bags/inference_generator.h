@@ -291,10 +291,9 @@ class InferenceGenerator
   InferInfo filterUpwards(Node n, Node e);
 
   /**
-   * @param n is a (table.product A B) where A, B of types (Bag T1), (Bag T2)
-   * respectively
-   * @param e1 an element of type T1 of the form (tuple a1 ... am)
-   * @param e2 an element of type T2 of the form (tuple b1 ... bn)
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
    * (=
    *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
@@ -303,6 +302,15 @@ class InferenceGenerator
    */
   InferInfo productUp(Node n, Node e1, Node e2);
 
+  /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
   InferInfo productDown(Node n, Node e);
 
   /**

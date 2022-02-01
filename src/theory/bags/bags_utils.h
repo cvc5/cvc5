@@ -95,14 +95,26 @@ class BagsUtils
   static Node evaluateBagFilter(TNode n);
 
   /**
-   * @param n has the form (bag.filter p A) where A is a constant bag
-   * @return A filtered with predicate p
+   * @param n of the form (table.product A B) where A , B of types (Bag T1),
+   * (Bag T2) respectively.
+   * @param e1 a tuple of type T1 of the form (tuple a1 ... an)
+   * @param e2 a tuple of type T2 of the form (tuple b1 ... bn)
+   * @return  (tuple a1 ... an b1 ... bn)
    */
-  static Node evaluateProductTuple(TNode n, TNode e1, TNode e2);
+  static Node constructTableTuple(TNode n, std::vector<TNode> elements);
 
   /**
-   * @param n has the form (bag.filter p A) where A is a constant bag
-   * @return A filtered with predicate p
+   * @param n of the form (table.product A B) where A , B of types (Bag T1),
+   * (Bag T2) respectively.
+   * @param e1 a tuple of type T1 of the form (tuple a1 ... an)
+   * @param e2 a tuple of type T2 of the form (tuple b1 ... bn)
+   * @return  (tuple a1 ... an b1 ... bn)
+   */
+  static Node constructProductTuple(TNode n, TNode e1, TNode e2);
+
+  /**
+   * @param n of the form (table.product A B) where A, B are constants
+   * @return the evaluation of the cross product of A B
    */
   static Node evaluateProduct(TNode n);
 

@@ -783,7 +783,7 @@ Node BagsUtils::evaluateBagFold(TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateProductTuple(TNode n, TNode e1, TNode e2)
+Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
 {
   Assert(n.getKind() == TABLE_PRODUCT);
   Node A = n[0];
@@ -831,7 +831,7 @@ Node BagsUtils::evaluateProduct(TNode n)
   {
     for (const auto& [b, countB] : elementsB)
     {
-      Node element = evaluateProductTuple(n, a, b);
+      Node element = constructProductTuple(n, a, b);
       elements[element] = countA * countB;
     }
   }

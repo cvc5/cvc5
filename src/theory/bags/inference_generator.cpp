@@ -572,7 +572,7 @@ InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
   Assert(n.getKind() == TABLE_PRODUCT);
   Node A = n[0];
   Node B = n[1];
-  Node tuple = BagsUtils::evaluateProductTuple(n, e1, e2);
+  Node tuple = BagsUtils::constructProductTuple(n, e1, e2);
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_UP);
 
@@ -591,13 +591,52 @@ InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
 InferInfo InferenceGenerator::productDown(Node n, Node e)
 {
   Assert(n.getKind() == TABLE_PRODUCT);
-  Node A = n[0];
-  Node B = n[0];
-  TypeNode typeA = A.getType();
-  TypeNode typeB = B.getType();
   Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode tupleAType = A.getType().getBagElementType();
+  TypeNode tupleBType = B.getType().getBagElementType();
+
+  Node constructorA = tupleAType.getDType()[0].getConstructor();
+  Node constructorB = tupleBType.getDType()[0].getConstructor();
+
+  size_t tupleALength = tupleAType.getTupleLength();
+  size_t tupleBLength = tupleBType.getTupleLength();
+
+  std::vector<Node> elements = DatatypesUtils::getTupleElements(e);
+
+  std::vector<Node> elementsA;
+  elementsA.push_back(constructorA);
+  int index = 0;
+  for (; index < tupleALength; index++)
+  {
+    elementsA.push_back(elements[index]);
+  }
+
+  std::vector<Node> elementsB;
+  elementsB.push_back(constructorB);
+  size_t length = tupleALength + tupleBLength;
+  for (; index < length; index++)
+  {
+    elementsB.push_back(elements[index]);
+  }
+
+  Node a = d_nm->mkNode(APPLY_CONSTRUCTOR, elementsA);
+  std::cout << "elementsB: " << elementsB << std::endl;
+  Node b = d_nm->mkNode(APPLY_CONSTRUCTOR, elementsB);
+
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);
-  inferInfo.d_conclusion = d_true;
+
+  Node countA = getMultiplicityTerm(a, A);
+  Node countB = getMultiplicityTerm(b, B);
+
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node multiply = d_nm->mkNode(MULT, countA, countB);
+  inferInfo.d_conclusion = count.eqNode(multiply);
+
   return inferInfo;
 }
 
