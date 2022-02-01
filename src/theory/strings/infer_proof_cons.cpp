@@ -151,7 +151,7 @@ void InferProofCons::convert(InferenceId infer,
   // explicitly add ASSUME steps to the proof step buffer for premises of the
   // inference, so that they will not be overwritten in the reconstruction
   // below
-  for (const Node& ec : ps.d_children)
+  for (const Node& ec : exp)
   {
     Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
     psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
