@@ -36,6 +36,18 @@ Node DatatypesUtils::nthElementOfTuple(Node tuple, int n_th)
       APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
 }
 
+std::vector<Node> DatatypesUtils::getTupleElements(Node tuple)
+{
+  Assert(tuple.getType().isTuple());
+  size_t tupleLength = tuple.getType().getTupleLength();
+  std::vector<Node> elements;
+  for (size_t i = 0; i < tupleLength; i++)
+  {
+    elements.push_back(DatatypesUtils::nthElementOfTuple(tuple, i));
+  }
+  return elements;
+}
+
 Node DatatypesUtils::reverseTuple(Node tuple)
 {
   Assert(tuple.getType().isTuple());
