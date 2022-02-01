@@ -159,6 +159,15 @@ struct BagFoldTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagFoldTypeRule */
 
+/**
+ * Type rule for (table.product A B) to make sure A,B are bags of tuples,
+ * and get the type of the cross product
+ */
+struct TableProductTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type);

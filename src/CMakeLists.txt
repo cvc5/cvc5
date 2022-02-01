@@ -636,6 +636,8 @@ libcvc5_add_sources(
   theory/combination_engine.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/datatypes_utils.cpp
+  theory/datatypes/datatypes_utils.h
   theory/datatypes/inference.cpp
   theory/datatypes/inference.h
   theory/datatypes/inference_manager.cpp

@@ -289,6 +289,20 @@ class InferenceGenerator
    * where skolem is a variable equals (bag.filter p A)
    */
   InferInfo filterUpwards(Node n, Node e);
+  /**
+   * @param n is a (table.product A B) where A, B of types (Bag T1), (Bag T2)
+   * respectively
+   * @param e1 an element of type T1
+   * @param e2 an element of type T2
+   * @return  an inference that represents the following
+   * (=
+   *   (bag.count <e1;e2> skolem)
+   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productUp(Node n, Node e1, Node e2);
+
+  InferInfo productDown(Node n, Node e);
 
   /**
    * @param element of type T

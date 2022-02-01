@@ -563,6 +563,36 @@ InferInfo InferenceGenerator::filterUpwards(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  Node A = n[0];
+  Node B = n[0];
+  TypeNode typeA = A.getType();
+  TypeNode typeB = B.getType();
+  Assert(e1.getType().isSubtypeOf(typeA));
+  Assert(e2.getType().isSubtypeOf(typeB));
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_UP);
+  std::vector<Node> tupleElements;
+
+  Node tuple = d_nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::productDown(Node n, Node e)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  Node A = n[0];
+  Node B = n[0];
+  TypeNode typeA = A.getType();
+  TypeNode typeB = B.getType();
+  Assert(e.getType().isSubtypeOf(n.getType()));
+  InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);
+
+  return inferInfo;
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5
