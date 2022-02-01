@@ -795,8 +795,8 @@ Node BagsUtils::evaluateProductTuple(TNode n, TNode e1, TNode e2)
   std::vector<Node> tupleElements;
 
   // add the constructor for the product before elements
-  TypeNode productType = n.getType();
-  Node constructor = productType.getDType()[0].getConstructor();
+  TypeNode productTupleType = n.getType().getBagElementType();
+  Node constructor = productTupleType.getDType()[0].getConstructor();
   tupleElements.push_back(constructor);
 
   // add the flattened concatenation of the two tuples e1, e2
@@ -835,9 +835,8 @@ Node BagsUtils::evaluateProduct(TNode n)
       elements[element] = countA * countB;
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
-  TypeNode t = nm->mkBagType(n.getType());
-  Node ret = BagsUtils::constructConstantBagFromElements(t, elements);
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
   return ret;
 }
 

@@ -20,6 +20,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 #include "theory/datatypes/datatypes_utils.h"
@@ -570,23 +571,10 @@ InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
 {
   Assert(n.getKind() == TABLE_PRODUCT);
   Node A = n[0];
-  Node B = n[0];
-  TypeNode typeA = A.getType();
-  TypeNode typeB = B.getType();
-  Assert(e1.getType().isSubtypeOf(typeA));
-  Assert(e2.getType().isSubtypeOf(typeB));
+  Node B = n[1];
+  Node tuple = BagsUtils::evaluateProductTuple(n, e1, e2);
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_UP);
-  std::vector<Node> tupleElements;
-
-  // add the constructor for the product before elements
-  TypeNode productType = n.getType();
-  Node constructor = productType.getDType()[0].getConstructor();
-  tupleElements.push_back(constructor);
-  std::vector<Node> elements = DatatypesUtils::getTupleElements(e1, e2);
-  tupleElements.insert(tupleElements.end(), elements.begin(), elements.end());
-  // construct the product tuple
-  Node tuple = d_nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
 
   Node countA = getMultiplicityTerm(e1, A);
   Node countB = getMultiplicityTerm(e2, B);
@@ -607,9 +595,9 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
   Node B = n[0];
   TypeNode typeA = A.getType();
   TypeNode typeB = B.getType();
-  Assert(e.getType().isSubtypeOf(n.getType()));
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);
-
+  inferInfo.d_conclusion = d_true;
   return inferInfo;
 }
 
