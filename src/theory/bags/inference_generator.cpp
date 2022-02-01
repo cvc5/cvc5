@@ -623,7 +623,6 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
   }
 
   Node a = d_nm->mkNode(APPLY_CONSTRUCTOR, elementsA);
-  std::cout << "elementsB: " << elementsB << std::endl;
   Node b = d_nm->mkNode(APPLY_CONSTRUCTOR, elementsB);
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);
