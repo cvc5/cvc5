@@ -2979,7 +2979,7 @@ enum Kind : int32_t
    */
   REGEXP_DIFF,
   /**
-   * Regexp *.
+   * Regexp \*.
    *
    * Parameters:
    *   - 1: Term of sort Regexp
