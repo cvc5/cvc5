@@ -500,6 +500,7 @@ libcvc5_add_sources(
   theory/arith/proof_checker.h
   theory/arith/rewriter/node_utils.cpp
   theory/arith/rewriter/node_utils.h
+  theory/arith/rewriter/ordering.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp
