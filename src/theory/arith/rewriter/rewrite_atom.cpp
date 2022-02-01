@@ -20,8 +20,7 @@
 
 namespace cvc5::theory::arith::rewriter {
 
-namespace
-{
+namespace {
 
 /**
  * Evaluate the given relation based on values l and r. Expects that the
@@ -72,7 +71,8 @@ void normalizeLCoeffAbsOne(Sum& sum)
     return;
   }
   // LCoeff is first coefficient of non-constant monomial
-  RealAlgebraicNumber lcoeff = getLTerm(sum).second;;
+  RealAlgebraicNumber lcoeff = getLTerm(sum).second;
+  ;
   if (sgn(lcoeff) < 0)
   {
     lcoeff = -lcoeff;
@@ -185,7 +185,7 @@ std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
   return res;
 }
 
-}
+}  // namespace
 
 std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
 {
@@ -289,8 +289,7 @@ Node buildRealEquality(Sum&& sum)
   auto lterm = removeLTerm(sum);
   if (isZero(lterm.second))
   {
-    return buildRelation(
-        Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
+    return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
@@ -322,8 +321,7 @@ Node buildIntegerInequality(Sum&& sum, Kind k)
     rhs = rhs.ceiling();
   }
   auto* nm = NodeManager::currentNM();
-  return buildRelation(
-      Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
+  return buildRelation(Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
 }
 
 Node buildRealInequality(Sum&& sum, Kind k)
@@ -333,4 +331,4 @@ Node buildRealInequality(Sum&& sum, Kind k)
   return buildRelation(k, collectSum(sum), rhs);
 }
 
-}
+}  // namespace cvc5::theory::arith::rewriter
