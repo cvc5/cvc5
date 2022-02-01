@@ -23,7 +23,7 @@
 #include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
-#include "theory/datatypes/datatypes_utils.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/uf/equality_engine.h"
 #include "util/rational.h"
@@ -601,10 +601,10 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
   size_t tupleALength = tupleAType.getTupleLength();
   size_t productTupleLength = n.getType().getBagElementType().getTupleLength();
 
-  std::vector<Node> elements = DatatypesUtils::getTupleElements(e);
-  Node a = DatatypesUtils::constructTupleFromElements(
+  std::vector<Node> elements = TupleUtils::getTupleElements(e);
+  Node a = TupleUtils::constructTupleFromElements(
       tupleAType, elements, 0, tupleALength - 1);
-  Node b = DatatypesUtils::constructTupleFromElements(
+  Node b = TupleUtils::constructTupleFromElements(
       tupleBType, elements, tupleALength, productTupleLength - 1);
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);

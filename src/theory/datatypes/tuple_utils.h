@@ -13,8 +13,8 @@
  * Utility functions for data types.
  */
 
-#ifndef CVC5__THEORY__DATATYPES__UTILS_H
-#define CVC5__THEORY__DATATYPES__UTILS_H
+#ifndef CVC5__THEORY__TUPLE__UTILS_H
+#define CVC5__THEORY__TUPLE__UTILS_H
 
 #include "expr/node.h"
 
@@ -22,7 +22,7 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-class DatatypesUtils
+class TupleUtils
 {
  public:
   /**
@@ -80,4 +80,4 @@ class DatatypesUtils
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__DATATYPES__UTILS_H */
+#endif /* CVC5__THEORY__TUPLE__UTILS_H */

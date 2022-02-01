@@ -13,7 +13,7 @@
  * Utility functions for data types.
  */
 
-#include "datatypes_utils.h"
+#include "tuple_utils.h"
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -24,7 +24,7 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-Node DatatypesUtils::nthElementOfTuple(Node tuple, int n_th)
+Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
 {
   if (tuple.getKind() == APPLY_CONSTRUCTOR)
   {
@@ -36,41 +36,40 @@ Node DatatypesUtils::nthElementOfTuple(Node tuple, int n_th)
       APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
 }
 
-std::vector<Node> DatatypesUtils::getTupleElements(Node tuple)
+std::vector<Node> TupleUtils::getTupleElements(Node tuple)
 {
   Assert(tuple.getType().isTuple());
   size_t tupleLength = tuple.getType().getTupleLength();
   std::vector<Node> elements;
   for (size_t i = 0; i < tupleLength; i++)
   {
-    elements.push_back(DatatypesUtils::nthElementOfTuple(tuple, i));
+    elements.push_back(TupleUtils::nthElementOfTuple(tuple, i));
   }
   return elements;
 }
 
-std::vector<Node> DatatypesUtils::getTupleElements(Node tuple1, Node tuple2)
+std::vector<Node> TupleUtils::getTupleElements(Node tuple1, Node tuple2)
 {
   std::vector<Node> elements;
   std::vector<Node> elementsA = getTupleElements(tuple1);
   size_t tuple1Length = tuple1.getType().getTupleLength();
   for (size_t i = 0; i < tuple1Length; i++)
   {
-    elements.push_back(DatatypesUtils::nthElementOfTuple(tuple1, i));
+    elements.push_back(TupleUtils::nthElementOfTuple(tuple1, i));
   }
 
   size_t tuple2Length = tuple2.getType().getTupleLength();
   for (size_t i = 0; i < tuple2Length; i++)
   {
-    elements.push_back(DatatypesUtils::nthElementOfTuple(tuple2, i));
+    elements.push_back(TupleUtils::nthElementOfTuple(tuple2, i));
   }
   return elements;
 }
 
-Node DatatypesUtils::constructTupleFromElements(
-    TypeNode tupleType,
-    const std::vector<Node>& elements,
-    size_t start,
-    size_t end)
+Node TupleUtils::constructTupleFromElements(TypeNode tupleType,
+                                            const std::vector<Node>& elements,
+                                            size_t start,
+                                            size_t end)
 {
   std::vector<Node> tupleElements;
   // add the constructor first
@@ -86,7 +85,7 @@ Node DatatypesUtils::constructTupleFromElements(
   return tuple;
 }
 
-Node DatatypesUtils::concatTuples(TypeNode tupleType, Node tuple1, Node tuple2)
+Node TupleUtils::concatTuples(TypeNode tupleType, Node tuple1, Node tuple2)
 {
   std::vector<Node> tupleElements;
   // add the constructor first
@@ -103,7 +102,7 @@ Node DatatypesUtils::concatTuples(TypeNode tupleType, Node tuple1, Node tuple2)
   return tuple;
 }
 
-Node DatatypesUtils::reverseTuple(Node tuple)
+Node TupleUtils::reverseTuple(Node tuple)
 {
   Assert(tuple.getType().isTuple());
   std::vector<Node> elements;

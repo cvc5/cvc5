@@ -18,7 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
-#include "theory/datatypes/datatypes_utils.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
@@ -794,7 +794,7 @@ Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
   Assert(e2.getType().isSubtypeOf(typeB));
 
   TypeNode productTupleType = n.getType().getBagElementType();
-  Node tuple = DatatypesUtils::concatTuples(productTupleType, e1, e2);
+  Node tuple = TupleUtils::concatTuples(productTupleType, e1, e2);
   return tuple;
 }
 

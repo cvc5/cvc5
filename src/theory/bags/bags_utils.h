@@ -17,8 +17,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BAGS__NORMAL_FORM_H
-#define CVC5__THEORY__BAGS__NORMAL_FORM_H
+#ifndef CVC5__THEORY__BAGS__UTILS_H
+#define CVC5__THEORY__BAGS__UTILS_H
 
 namespace cvc5 {
 namespace theory {
@@ -244,4 +244,4 @@ class BagsUtils
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__BAGS__NORMAL_FORM_H */
+#endif /* CVC5__THEORY__BAGS__UTILS_H */

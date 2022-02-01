@@ -17,7 +17,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "theory/datatypes/datatypes_utils.h"
+#include "theory/datatypes/tuple_utils.h"
 
 using namespace cvc5::theory::datatypes;
 
