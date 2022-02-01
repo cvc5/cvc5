@@ -127,8 +127,7 @@ Node collectSumWithBase(const Sum& sum,
     RealAlgebraicNumber mult = summand.second * basemultiplicity;
     std::vector<Node> product = baseproduct;
     rewriter::addToProduct(product, mult, summand.first);
-    std::sort(product.begin(), product.end(), rewriter::LeafNodeComparator());
-    nb << mkMultTerm(mult, mkNonlinearMult(product));
+    nb << mkMultTerm(mult, std::move(product));
   }
   if (nb.getNumChildren() == 1)
   {

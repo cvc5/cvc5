@@ -52,4 +52,52 @@ bool isIntegral(TNode n)
   return true;
 }
 
+Node mkMultTerm(const Rational& multiplicity, TNode monomial)
+{
+  if (monomial.isConst())
+  {
+    return mkConst(multiplicity * monomial.getConst<Rational>());
+  }
+  if (isOne(multiplicity))
+  {
+    return monomial;
+  }
+  return NodeManager::currentNM()->mkNode(
+      Kind::MULT, mkConst(multiplicity), monomial);
+}
+
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
+{
+  if (multiplicity.isRational())
+  {
+    return mkMultTerm(multiplicity.toRational(), monomial);
+  }
+  if (monomial.isConst())
+  {
+    return mkConst(multiplicity * monomial.getConst<Rational>());
+  }
+  std::vector<Node> prod;
+  prod.emplace_back(mkConst(multiplicity));
+  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  Assert(prod.size() >= 2);
+  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
+}
+
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, std::vector<Node>&& monomial)
+{
+  if (monomial.empty())
+  {
+    return mkConst(multiplicity);
+  }
+  if (multiplicity.isRational())
+  {
+    std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
+    return mkMultTerm(multiplicity.toRational(), mkNonlinearMult(monomial));
+  }
+  monomial.emplace_back(mkConst(multiplicity));
+  std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
+  Assert(monomial.size() >= 2);
+  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
+}
+
 }

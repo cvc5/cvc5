@@ -23,9 +23,15 @@
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
+#include "theory/arith/rewriter/ordering.h"
 
 namespace cvc5::theory::arith::rewriter {
 
+/**
+ * Check whether the node is an arithmetic atom, that is one of LT, LEQ, EQUAL,
+ * GEQ, GT, IS_INTEGER, DIVISIBLE.
+ * Note that DISTINCT somehow belongs to this list, but should already be eliminated at this point.
+ */
 inline bool isAtom(TNode n)
 {
   switch (n.getKind())
@@ -37,6 +43,7 @@ inline bool isAtom(TNode n)
     case Kind::GT:
     case Kind::IS_INTEGER:
     case Kind::DIVISIBLE: return true;
+    case Kind::DISTINCT: Unreachable(); return false;
     default: return false;
   }
 }
@@ -50,10 +57,12 @@ inline bool isAtom(TNode n)
  */
 bool isIntegral(TNode n);
 
+/** Check whether the node wraps a real algebraic number. */
 inline bool isRAN(TNode n)
 {
   return n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
 }
+/** Retrieve the wrapped a real algebraic number. Asserts isRAN(n) */
 inline const RealAlgebraicNumber& getRAN(TNode n)
 {
   Assert(isRAN(n));
@@ -78,14 +87,17 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
   return {};
 }
 
+/** Create a Boolean constant node */
 inline Node mkConst(bool value)
 {
   return NodeManager::currentNM()->mkConst(value);
 }
+/** Create an integer constant node */
 inline Node mkConst(const Integer& value)
 {
   return NodeManager::currentNM()->mkConstInt(value);
 }
+/** Create an integer or rational constant node */
 inline Node mkConst(const Rational& value)
 {
   if (value.isIntegral())
@@ -94,6 +106,7 @@ inline Node mkConst(const Rational& value)
   }
   return NodeManager::currentNM()->mkConstReal(value);
 }
+/** Create a real algebraic number node */
 inline Node mkConst(const RealAlgebraicNumber& value)
 {
   return NodeManager::currentNM()->mkRealAlgebraicNumber(value);
@@ -111,35 +124,35 @@ inline Node mkNonlinearMult(const std::vector<Node>& factors)
   }
 }
 
-inline Node mkMultTerm(const Rational& multiplicity, TNode monomial)
-{
-  if (monomial.isConst())
-  {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
-  }
-  if (isOne(multiplicity))
-  {
-    return monomial;
-  }
-  return NodeManager::currentNM()->mkNode(
-      Kind::MULT, mkConst(multiplicity), monomial);
-}
+/**
+ * Create the product of `multiplicity * monomial`. Assumes that the monomial is
+ * either a product of non-values (neither rational nor real algebraic numbers)
+ * or a rational constant.
+ * If the monomial is a constant, return the product of the two numbers. If the
+ * multiplicity is one, return the monomial. Otherwise return `(MULT multiplicity monomial)`.
+ */
+Node mkMultTerm(const Rational& multiplicity, TNode monomial);
 
-inline Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
-{
-  if (multiplicity.isRational())
-  {
-    return mkMultTerm(multiplicity.toRational(), monomial);
-  }
-  if (monomial.isConst())
-  {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
-  }
-  std::vector<Node> prod;
-  prod.emplace_back(mkConst(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
-  return mkNonlinearMult(prod);
-}
+/**
+ * Create the product of `multiplicity * monomial`. Assumes that the monomial is
+ * either a product of non-values (neither rational nor real algebraic numbers)
+ * or a rational constant.
+ * If multiplicity is rational, defer to the appropriate overload. If the
+ * monomial is one, return the product of the two numbers. Otherwise return the
+ * nonlinear product of the two, i.e. `(NONLINEAR_MULT multiplicity *monomial)`.
+ */
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
+
+/**
+ * Create the product of `multiplicity * monomial`, where the monomial is given as the (implicitly multiplied, possibly unsorted) list of children.
+ * Assumes that monomial is either empty (implicitly one) or  a list of non-values (neither rational nor real algebraic numbers).
+ * If multiplicity is rational, sort the monomial, create a nonlinear mult term and defer to the appropriate overload.
+ * Otherwise return the
+ * nonlinear product of the two, i.e. `(NONLINEAR_MULT multiplicity *monomial)`.
+ * The monomial is taken as rvalue as it may be modified in the process.
+ * 
+ */
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity, std::vector<Node>&& monomial);
 
 }  // namespace cvc5::theory::arith::rewriter
 

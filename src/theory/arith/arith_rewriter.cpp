@@ -498,22 +498,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
     }
   }
 
-  if (leafs.empty())
-  {
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(ran));
-  }
-  if (ran.isRational())
-  {
-    std::sort(leafs.begin(), leafs.end(), rewriter::LeafNodeComparator());
-    return RewriteResponse(
-        REWRITE_DONE,
-        rewriter::mkMultTerm(ran.toRational(), rewriter::mkNonlinearMult(leafs)));
-  }
-  leafs.emplace_back(rewriter::mkConst(ran));
-  std::sort(leafs.begin(), leafs.end(), rewriter::LeafNodeComparator());
-  return RewriteResponse(
-      REWRITE_DONE,
-      rewriter::mkNonlinearMult(leafs));
+  return RewriteResponse(REWRITE_DONE, rewriter::mkMultTerm(ran, std::move(leafs)));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
