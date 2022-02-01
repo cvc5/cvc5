@@ -29,7 +29,8 @@ namespace cvc5::theory::arith::rewriter {
 /**
  * Check whether the node is an arithmetic atom, that is one of LT, LEQ, EQUAL,
  * GEQ, GT, IS_INTEGER, DIVISIBLE.
- * Note that DISTINCT somehow belongs to this list, but should already be eliminated at this point.
+ * Note that DISTINCT somehow belongs to this list, but should already be
+ * eliminated at this point.
  */
 inline bool isAtom(TNode n)
 {
@@ -128,7 +129,8 @@ inline Node mkNonlinearMult(const std::vector<Node>& factors)
  * either a product of non-values (neither rational nor real algebraic numbers)
  * or a rational constant.
  * If the monomial is a constant, return the product of the two numbers. If the
- * multiplicity is one, return the monomial. Otherwise return `(MULT multiplicity monomial)`.
+ * multiplicity is one, return the monomial. Otherwise return `(MULT
+ * multiplicity monomial)`.
  */
 Node mkMultTerm(const Rational& multiplicity, TNode monomial);
 
@@ -143,15 +145,18 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial);
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
 
 /**
- * Create the product of `multiplicity * monomial`, where the monomial is given as the (implicitly multiplied, possibly unsorted) list of children.
- * Assumes that monomial is either empty (implicitly one) or  a list of non-values (neither rational nor real algebraic numbers).
- * If multiplicity is rational, sort the monomial, create a nonlinear mult term and defer to the appropriate overload.
- * Otherwise return the
- * nonlinear product of the two, i.e. `(NONLINEAR_MULT multiplicity *monomial)`.
- * The monomial is taken as rvalue as it may be modified in the process.
- * 
+ * Create the product of `multiplicity * monomial`, where the monomial is given
+ * as the (implicitly multiplied, possibly unsorted) list of children. Assumes
+ * that monomial is either empty (implicitly one) or  a list of non-values
+ * (neither rational nor real algebraic numbers). If multiplicity is rational,
+ * sort the monomial, create a nonlinear mult term and defer to the appropriate
+ * overload. Otherwise return the nonlinear product of the two, i.e.
+ * `(NONLINEAR_MULT multiplicity *monomial)`. The monomial is taken as rvalue as
+ * it may be modified in the process.
+ *
  */
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity, std::vector<Node>&& monomial);
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
+                std::vector<Node>&& monomial);
 
 }  // namespace cvc5::theory::arith::rewriter
 

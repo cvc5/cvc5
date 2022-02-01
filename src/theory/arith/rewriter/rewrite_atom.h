@@ -25,7 +25,6 @@
 
 namespace cvc5::theory::arith::rewriter {
 
-
 /**
  * Tries to evaluate the given relation. Returns std::nullopt if either left
  * or right is not a value (constant or a real algebraic number).

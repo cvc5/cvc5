@@ -84,7 +84,8 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
 }
 
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity, std::vector<Node>&& monomial)
+Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
+                std::vector<Node>&& monomial)
 {
   if (monomial.empty())
   {
@@ -101,4 +102,4 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, std::vector<Node>&& mon
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
-}
+}  // namespace cvc5::theory::arith::rewriter

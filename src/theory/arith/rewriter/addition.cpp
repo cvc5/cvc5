@@ -41,8 +41,7 @@ std::ostream& operator<<(std::ostream& os, const Sum& sum)
   return os;
 }
 
-namespace
-{
+namespace {
 
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
@@ -135,7 +134,7 @@ Node collectSumWithBase(const Sum& sum,
   }
   return nb.constructNode();
 }
-}
+}  // namespace
 
 void addToSum(Sum& sum, TNode n, bool negate)
 {
