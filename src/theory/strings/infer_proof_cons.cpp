@@ -148,14 +148,6 @@ void InferProofCons::convert(InferenceId infer,
     startExpIndex.push_back(ps.d_children.size());
     utils::flattenOp(AND, ec, ps.d_children);
   }
-  // explicitly add ASSUME steps to the proof step buffer for premises of the
-  // inference, so that they will not be overwritten in the reconstruction
-  // below
-  for (const Node& ec : exp)
-  {
-    Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
-    psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
-  }
   // debug print
   if (Trace.isOn("strings-ipc-debug"))
   {
@@ -168,6 +160,14 @@ void InferProofCons::convert(InferenceId infer,
   }
   // try to find a set of proof steps to incorporate into the buffer
   psb.clear();
+  // explicitly add ASSUME steps to the proof step buffer for premises of the
+  // inference, so that they will not be overwritten in the reconstruction
+  // below
+  for (const Node& ec : exp)
+  {
+    Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
+    psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node nodeIsRev = nm->mkConst(isRev);
   switch (infer)
