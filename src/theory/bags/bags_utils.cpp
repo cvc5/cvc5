@@ -792,20 +792,9 @@ Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
   TypeNode typeB = B.getType().getBagElementType();
   Assert(e1.getType().isSubtypeOf(typeA));
   Assert(e2.getType().isSubtypeOf(typeB));
-  std::vector<Node> tupleElements;
 
-  // add the constructor for the product before elements
   TypeNode productTupleType = n.getType().getBagElementType();
-  Node constructor = productTupleType.getDType()[0].getConstructor();
-  tupleElements.push_back(constructor);
-
-  // add the flattened concatenation of the two tuples e1, e2
-  std::vector<Node> elements = DatatypesUtils::getTupleElements(e1, e2);
-  tupleElements.insert(tupleElements.end(), elements.begin(), elements.end());
-
-  // construct the product tuple
-  NodeManager* nm = NodeManager::currentNM();
-  Node tuple = nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
+  Node tuple = DatatypesUtils::concatTuples(productTupleType, e1, e2);
   return tuple;
 }
 

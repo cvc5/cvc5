@@ -66,10 +66,11 @@ std::vector<Node> DatatypesUtils::getTupleElements(Node tuple1, Node tuple2)
   return elements;
 }
 
-Node DatatypesUtils::constructTupleFromElements(TypeNode tupleType,
-                                                std::vector<Node> elements,
-                                                size_t start,
-                                                size_t end)
+Node DatatypesUtils::constructTupleFromElements(
+    TypeNode tupleType,
+    const std::vector<Node>& elements,
+    size_t start,
+    size_t end)
 {
   std::vector<Node> tupleElements;
   // add the constructor first
@@ -80,6 +81,23 @@ Node DatatypesUtils::constructTupleFromElements(TypeNode tupleType,
   {
     tupleElements.push_back(elements[i]);
   }
+  NodeManager* nm = NodeManager::currentNM();
+  Node tuple = nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
+  return tuple;
+}
+
+Node DatatypesUtils::concatTuples(TypeNode tupleType, Node tuple1, Node tuple2)
+{
+  std::vector<Node> tupleElements;
+  // add the constructor first
+  Node constructor = tupleType.getDType()[0].getConstructor();
+  tupleElements.push_back(constructor);
+
+  // add the flattened concatenation of the two tuples e1, e2
+  std::vector<Node> elements = getTupleElements(tuple1, tuple2);
+  tupleElements.insert(tupleElements.end(), elements.begin(), elements.end());
+
+  // construct the returned tuple
   NodeManager* nm = NodeManager::currentNM();
   Node tuple = nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
   return tuple;

@@ -56,9 +56,19 @@ class DatatypesUtils
    * @return a tuple of constructed from elements from start to end
    */
   static Node constructTupleFromElements(TypeNode tupleType,
-                                         std::vector<Node> elements,
+                                         const std::vector<Node>& elements,
                                          size_t start,
                                          size_t end);
+
+  /**
+   * construct a flattened tuple from two tuples
+   * @param tupleType the type of the returned tuple
+   * @param tuple1 a tuple node of the form (tuple a_1 ... a_n)
+   * @param tuple2 a tuple node of the form (tuple b_1 ... b_n)
+   * @pre the elements of tuple1, tuple2 should match the tuple type
+   * @return  (tuple a1 ... an b1 ... bn)
+   */
+  static Node concatTuples(TypeNode tupleType, Node tuple1, Node tuple2);
 
   /**
    * @param tuple a tuple node of the form (tuple e_1 ... e_n)
