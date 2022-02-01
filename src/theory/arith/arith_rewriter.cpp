@@ -24,6 +24,7 @@
 #include <stack>
 #include <vector>
 
+#include "expr/algorithm/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -42,6 +43,88 @@ namespace theory {
 namespace arith {
 
 namespace {
+
+/**
+ * Implements an ordering on arithmetic leaf nodes, excluding rationals. As this
+ * comparator is meant to be used on children of Kind::NONLINEAR_MULT, we expect
+ * rationals to be handled separately. Furthermore, we expect there to be only a
+ * single real algebraic number.
+ * It broadly categorizes leaf nodes into real algebraic numbers, integers,
+ * variables, and the rest. The ordering is built as follows:
+ * - real algebraic numbers come first
+ * - real terms come before integer terms
+ * - variables come before non-variable terms
+ * - finally, fall back to node ordering
+ */
+struct LeafNodeComparator
+{
+  /** Implements operator<(a, b) as described above */
+  bool operator()(TNode a, TNode b)
+  {
+    if (a == b) return false;
+
+    bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    if (aIsRAN != bIsRAN) return aIsRAN;
+    Assert(!aIsRAN && !bIsRAN) << "real algebraic numbers should be combined";
+
+    bool aIsInt = a.getType().isInteger();
+    bool bIsInt = b.getType().isInteger();
+    if (aIsInt != bIsInt) return !aIsInt;
+
+    bool aIsVar = a.isVar();
+    bool bIsVar = b.isVar();
+    if (aIsVar != bIsVar) return aIsVar;
+
+    return a < b;
+  }
+};
+
+/**
+ * Implements an ordering on arithmetic nonlinear multiplications. As we assume
+ * rationals to be handled separately, we only consider Kind::NONLINEAR_MULT as
+ * multiplication terms. For individual factors of the product, we rely on the
+ * ordering from LeafNodeComparator. Furthermore, we expect products to be
+ * sorted according to LeafNodeComparator. The ordering is built as follows:
+ * - single factors come first (everything that is not NONLINEAR_MULT)
+ * - multiplications with less factors come first
+ * - multiplications are compared lexicographically
+ */
+struct ProductNodeComparator
+{
+  /** Implements operator<(a, b) as described above */
+  bool operator()(TNode a, TNode b)
+  {
+    if (a == b) return false;
+
+    Assert(a.getKind() != Kind::MULT);
+    Assert(b.getKind() != Kind::MULT);
+
+    bool aIsMult = a.getKind() == Kind::NONLINEAR_MULT;
+    bool bIsMult = b.getKind() == Kind::NONLINEAR_MULT;
+    if (aIsMult != bIsMult) return !aIsMult;
+
+    if (!aIsMult)
+    {
+      return LeafNodeComparator()(a, b);
+    }
+
+    size_t aLen = a.getNumChildren();
+    size_t bLen = b.getNumChildren();
+    if (aLen != bLen) return aLen < bLen;
+
+    for (size_t i = 0; i < aLen; ++i)
+    {
+      if (a[i] != b[i])
+      {
+        return LeafNodeComparator()(a[i], b[i]);
+      }
+    }
+    Unreachable() << "Nodes are different, but have the same content";
+    return false;
+  }
+};
+
 
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
@@ -455,51 +538,23 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-static bool canFlatten(Kind k, TNode t){
-  for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-    TNode child = *i;
-    if(child.getKind() == k){
-      return true;
-    }
-  }
-  return false;
-}
-
-static void flatten(std::vector<TNode>& pb, Kind k, TNode t){
-  if(t.getKind() == k){
-    for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-      TNode child = *i;
-      if(child.getKind() == k){
-        flatten(pb, k, child);
-      }else{
-        pb.push_back(child);
-      }
-    }
-  }else{
-    pb.push_back(t);
-  }
-}
-
-static Node flatten(Kind k, TNode t){
-  std::vector<TNode> pb;
-  flatten(pb, k, t);
-  Assert(pb.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k, pb);
-}
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
-  if(canFlatten(kind::PLUS, t)){
-    return RewriteResponse(REWRITE_DONE, flatten(kind::PLUS, t));
-  }else{
-    return RewriteResponse(REWRITE_DONE, t);
-  }
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
   Assert(t.getNumChildren() > 1);
+
+  {
+    Node flat = expr::algorithm::flatten(t);
+    if (flat != t)
+    {
+      return RewriteResponse(REWRITE_AGAIN, flat);
+    }
+  }
 
   Rational rational;
   RealAlgebraicNumber ran;
