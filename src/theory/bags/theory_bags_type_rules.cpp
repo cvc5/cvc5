@@ -463,7 +463,7 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
   {
     std::stringstream ss;
     ss << "Operator " << n.getKind() << " expects two bags. "
-       << ". Found two terms of types '" << typeA << "' and '" << typeB
+       << "Found two terms of types '" << typeA << "' and '" << typeB
        << "' respectively.";
     throw TypeCheckingExceptionPrivate(n, ss.str());
   }
@@ -475,7 +475,7 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
   {
     std::stringstream ss;
     ss << "Operator " << n.getKind() << " expects two tables (bags of tuples). "
-       << ". Found two terms of types '" << typeA << "' and '" << typeB
+       << "Found two terms of types '" << typeA << "' and '" << typeB
        << "' respectively.";
     throw TypeCheckingExceptionPrivate(n, ss.str());
   }

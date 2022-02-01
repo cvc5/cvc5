@@ -48,6 +48,24 @@ std::vector<Node> DatatypesUtils::getTupleElements(Node tuple)
   return elements;
 }
 
+std::vector<Node> DatatypesUtils::getTupleElements(Node tuple1, Node tuple2)
+{
+  std::vector<Node> elements;
+  std::vector<Node> elementsA = getTupleElements(tuple1);
+  size_t tuple1Length = tuple1.getType().getTupleLength();
+  for (size_t i = 0; i < tuple1Length; i++)
+  {
+    elements.push_back(DatatypesUtils::nthElementOfTuple(tuple1, i));
+  }
+
+  size_t tuple2Length = tuple2.getType().getTupleLength();
+  for (size_t i = 0; i < tuple2Length; i++)
+  {
+    elements.push_back(DatatypesUtils::nthElementOfTuple(tuple2, i));
+  }
+  return elements;
+}
+
 Node DatatypesUtils::reverseTuple(Node tuple)
 {
   Assert(tuple.getType().isTuple());

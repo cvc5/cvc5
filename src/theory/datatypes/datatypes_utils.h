@@ -34,10 +34,17 @@ class DatatypesUtils
   static Node nthElementOfTuple(Node tuple, int n_th);
 
   /**
-   * @param tuple a tuple node of the form (tuple e_1 ... e_n)
-   * @return the vector [e_1, ... e_n]
+   * @param tuple a tuple node of the form (tuple a_1 ... a_n)
+   * @return the vector [a_1, ... a_n]
    */
   static std::vector<Node> getTupleElements(Node tuple);
+
+  /**
+   * @param tuple1 a tuple node of the form (tuple a_1 ... a_n)
+   * @param tuple2 a tuple node of the form (tuple b_1 ... b_n)
+   * @return the vector [a_1, ... a_n, b_1, ... b_n]
+   */
+  static std::vector<Node> getTupleElements(Node tuple1, Node tuple2);
 
   /**
    * @param tuple a tuple node of the form (tuple e_1 ... e_n)

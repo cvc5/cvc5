@@ -94,6 +94,18 @@ class BagsUtils
    */
   static Node evaluateBagFilter(TNode n);
 
+  /**
+   * @param n has the form (bag.filter p A) where A is a constant bag
+   * @return A filtered with predicate p
+   */
+  static Node evaluateProductTuple(TNode n, TNode e1, TNode e2);
+
+  /**
+   * @param n has the form (bag.filter p A) where A is a constant bag
+   * @return A filtered with predicate p
+   */
+  static Node evaluateProduct(TNode n);
+
  private:
   /**
    * a high order helper function that return a constant bag that is the result

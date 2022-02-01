@@ -293,11 +293,11 @@ class InferenceGenerator
   /**
    * @param n is a (table.product A B) where A, B of types (Bag T1), (Bag T2)
    * respectively
-   * @param e1 an element of type T1
-   * @param e2 an element of type T2
+   * @param e1 an element of type T1 of the form (tuple a1 ... am)
+   * @param e2 an element of type T2 of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
    * (=
-   *   (bag.count <e1;e2> skolem)
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
    *   (* (bag.count e1 A) (bag.count e2 B)))
    * where skolem is a variable equals (bag.product A B)
    */
@@ -311,8 +311,6 @@ class InferenceGenerator
    * @return  a count term (bag.count element bag)
    */
   Node getMultiplicityTerm(Node element, Node bag);
-
-
 
  private:
   /** generate skolem variable for node n and add it to inferInfo */
