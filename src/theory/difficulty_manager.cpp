@@ -53,13 +53,19 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
 
 void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
-  if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL_ALL)
+  // compute if we should consider the lemma
+  bool considerLemma = false;
+  if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL_ALL)
   {
-    if (!inFullEffortCheck
-        || options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
-    {
-      return;
-    }
+    considerLemma = true;
+  }
+  else if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL)
+  {
+    considerLemma = inFullEffortCheck;
+  }
+  if (!considerLemma)
+  {
+    return;
   }
   Trace("diff-man") << "notifyLemma: " << n << std::endl;
   Kind nk = n.getKind();
