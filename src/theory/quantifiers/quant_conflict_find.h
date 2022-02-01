@@ -124,7 +124,7 @@ class MatchGen {
 class QuantInfo : protected EnvObj
 {
  public:
-  typedef std::map<size_t, MatchGen*> VarMgMap;
+  using VarMgMap = std::map<size_t, std::unique_ptr<MatchGen>>;
   QuantInfo(Env& env, QuantConflictFind* p, Node q);
   ~QuantInfo();
   /** get quantified formula */

@@ -563,6 +563,7 @@ InferInfo InferenceGenerator::filterUpwards(Node n, Node e)
   return inferInfo;
 }
 
+
 InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
 {
   Assert(n.getKind() == TABLE_PRODUCT);

@@ -289,6 +289,7 @@ class InferenceGenerator
    * where skolem is a variable equals (bag.filter p A)
    */
   InferInfo filterUpwards(Node n, Node e);
+
   /**
    * @param n is a (table.product A B) where A, B of types (Bag T1), (Bag T2)
    * respectively
@@ -310,6 +311,8 @@ class InferenceGenerator
    * @return  a count term (bag.count element bag)
    */
   Node getMultiplicityTerm(Node element, Node bag);
+
+
 
  private:
   /** generate skolem variable for node n and add it to inferInfo */
