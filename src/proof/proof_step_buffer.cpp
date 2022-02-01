@@ -109,7 +109,10 @@ bool ProofStepBuffer::addStep(PfRule id,
     if (d_autoSym)
     {
       Node sexpected = CDProof::getSymmFact(expected);
-      d_allSteps.insert(sexpected);
+      if (!sexpected.isNull())
+      {
+        d_allSteps.insert(sexpected);
+      }
     }
     Trace("psb-debug") << "Add " << expected << " from " << id << std::endl;
   }
