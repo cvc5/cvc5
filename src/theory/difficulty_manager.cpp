@@ -55,7 +55,8 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
   if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL_ALL)
   {
-    if (inFullEffortCheck || options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
+    if (inFullEffortCheck
+        || options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
     {
       return;
     }
