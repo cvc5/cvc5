@@ -17,9 +17,9 @@
 
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/normal_form.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
 #include "theory/uf/equality_engine_iterator.h"
