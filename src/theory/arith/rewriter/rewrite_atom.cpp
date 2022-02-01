@@ -187,6 +187,24 @@ std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
 
 }
 
+std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
+{
+  if (atom.getNumChildren() == 2 && atom[0] == atom[1])
+  {
+    switch (atom.getKind())
+    {
+      case Kind::LT: return false;
+      case Kind::LEQ: return true;
+      case Kind::EQUAL: return true;
+      case Kind::DISTINCT: return false;
+      case Kind::GEQ: return true;
+      case Kind::GT: return false;
+      default:;
+    }
+  }
+  return {};
+}
+
 std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
 {
   if (left.isConst())
@@ -218,24 +236,6 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
       const RealAlgebraicNumber& r =
           right.getOperator().getConst<RealAlgebraicNumber>();
       return evaluateRelation(rel, l, r);
-    }
-  }
-  return {};
-}
-
-std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
-{
-  if (atom.getNumChildren() == 2 && atom[0] == atom[1])
-  {
-    switch (atom.getKind())
-    {
-      case Kind::LT: return false;
-      case Kind::LEQ: return true;
-      case Kind::EQUAL: return true;
-      case Kind::DISTINCT: return false;
-      case Kind::GEQ: return true;
-      case Kind::GT: return false;
-      default:;
     }
   }
   return {};
