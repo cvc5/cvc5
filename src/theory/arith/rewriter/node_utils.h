@@ -24,7 +24,10 @@
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 /**
  * Check whether the node is an arithmetic atom, that is one of LT, LEQ, EQUAL,
@@ -158,6 +161,9 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial);
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif
