@@ -363,7 +363,8 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
-      Trace("strings-ipc-core") << "Main equality after purify " << pmainEq << std::endl; 
+      Trace("strings-ipc-core")
+          << "Main equality after purify " << pmainEq << std::endl;
       std::vector<Node> childrenSRew;
       childrenSRew.push_back(pmainEq);
       childrenSRew.insert(childrenSRew.end(), pcsr.begin(), pcsr.end());

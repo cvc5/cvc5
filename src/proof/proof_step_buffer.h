@@ -66,7 +66,9 @@ class ProofStepBuffer
    * are being added to a CDProof with automatic symmetry. This impacts
    * uniqueness of conclusions and whether certain steps are necessary.
    */
-  ProofStepBuffer(ProofChecker* pc = nullptr, bool ensureUnique = false, bool autoSym = true);
+  ProofStepBuffer(ProofChecker* pc = nullptr,
+                  bool ensureUnique = false,
+                  bool autoSym = true);
   ~ProofStepBuffer() {}
   /**
    * Returns the conclusion of the proof step, as determined by the proof
@@ -82,11 +84,11 @@ class ProofStepBuffer
                Node expected = Node::null());
   /** Same as try step, but tracks whether a step was added */
   Node tryStep(bool& added,
-                       PfRule id,
+               PfRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected = Node::null());
-  /** 
+  /**
    * Same as above, without checking
    * @return true if a step was added. This may return false if e.g. expected
    * was a duplicate conclusion.
@@ -105,13 +107,15 @@ class ProofStepBuffer
   const std::vector<std::pair<Node, ProofStep>>& getSteps() const;
   /** Clear */
   void clear();
-protected:
-  /** 
+
+ protected:
+  /**
    * Whether this proof step buffer is being added to a CDProof with automatic
    * symmetry. This impacts uniqueness of conclusions and whether certain
    * steps are necessary.
    */
   bool d_autoSym;
+
  private:
   /** The proof checker*/
   ProofChecker* d_checker;

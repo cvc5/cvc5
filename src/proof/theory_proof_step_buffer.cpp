@@ -22,7 +22,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 
 TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc,
-                                             bool ensureUnique, bool autoSym)
+                                             bool ensureUnique,
+                                             bool autoSym)
     : ProofStepBuffer(pc, ensureUnique, autoSym)
 {
 }

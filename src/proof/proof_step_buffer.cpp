@@ -15,8 +15,8 @@
 
 #include "proof/proof_step_buffer.h"
 
-#include "proof/proof_checker.h"
 #include "proof/proof.h"
+#include "proof/proof_checker.h"
 
 using namespace cvc5::kind;
 
@@ -48,7 +48,9 @@ std::ostream& operator<<(std::ostream& out, ProofStep step)
   return out;
 }
 
-ProofStepBuffer::ProofStepBuffer(ProofChecker* pc, bool ensureUnique, bool autoSym)
+ProofStepBuffer::ProofStepBuffer(ProofChecker* pc,
+                                 bool ensureUnique,
+                                 bool autoSym)
     : d_autoSym(autoSym), d_checker(pc), d_ensureUnique(ensureUnique)
 {
 }
