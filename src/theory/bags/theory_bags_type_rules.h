@@ -142,6 +142,15 @@ struct BagMapTypeRule
 }; /* struct BagMapTypeRule */
 
 /**
+ * Type rule for (bag.filter p B) to make sure p is a unary predicate of type
+ * (-> T Bool) where B is a bag of type (Bag T)
+ */
+struct BagFilterTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFilterTypeRule */
+
+/**
  * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
  * (-> T1 T2 T2), t of type T2, and B is a bag of type (Bag T1)
  */

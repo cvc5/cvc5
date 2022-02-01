@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "expr/algorithm/flatten.h"
-#include "expr/node_algorithm.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
