@@ -70,14 +70,14 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
          j++)
     {
       if( d_vars[j].getKind()!=BOUND_VARIABLE ){
-        d_var_mg[j] = NULL;
+        d_var_mg[j] = nullptr;
         bool is_tsym = false;
         if( !MatchGen::isHandledUfTerm( d_vars[j] ) && d_vars[j].getKind()!=ITE ){
           is_tsym = true;
           d_tsym_vars.push_back( j );
         }
         if( !is_tsym || options::qcfTConstraint() ){
-          d_var_mg[j] = new MatchGen(p, this, d_vars[j], true);
+          d_var_mg[j] = std::make_unique<MatchGen>(p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
           Trace("qcf-invalid") << "QCF invalid : cannot match for " << d_vars[j] << std::endl;
@@ -280,7 +280,7 @@ bool QuantInfo::reset_round()
   d_tconstraints.clear();
 
   d_mg->reset_round();
-  for (const std::pair<const size_t, MatchGen*>& vg : d_var_mg)
+  for (const std::pair<const size_t, std::unique_ptr<MatchGen>>& vg : d_var_mg)
   {
     if (!vg.second->reset_round())
     {
