@@ -47,6 +47,20 @@ class DatatypesUtils
   static std::vector<Node> getTupleElements(Node tuple1, Node tuple2);
 
   /**
+   * construct a tuple from a list of elements
+   * @param tupleType the type of the returned tuple
+   * @param elements the list of nodes
+   * @param start the index of the first element
+   * @param end the index of the last element
+   * @pre the elements from start to end should match the tuple type
+   * @return a tuple of constructed from elements from start to end
+   */
+  static Node constructTupleFromElements(TypeNode tupleType,
+                                         std::vector<Node> elements,
+                                         size_t start,
+                                         size_t end);
+
+  /**
    * @param tuple a tuple node of the form (tuple e_1 ... e_n)
    * @return the reverse of the argument, i.e., (tuple e_n ... e_1)
    */

@@ -66,6 +66,25 @@ std::vector<Node> DatatypesUtils::getTupleElements(Node tuple1, Node tuple2)
   return elements;
 }
 
+Node DatatypesUtils::constructTupleFromElements(TypeNode tupleType,
+                                                std::vector<Node> elements,
+                                                size_t start,
+                                                size_t end)
+{
+  std::vector<Node> tupleElements;
+  // add the constructor first
+  Node constructor = tupleType.getDType()[0].getConstructor();
+  tupleElements.push_back(constructor);
+  // add the elements of the tuple
+  for (size_t i = start; i <= end; i++)
+  {
+    tupleElements.push_back(elements[i]);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node tuple = nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
+  return tuple;
+}
+
 Node DatatypesUtils::reverseTuple(Node tuple)
 {
   Assert(tuple.getType().isTuple());

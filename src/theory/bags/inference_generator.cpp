@@ -595,35 +595,17 @@ InferInfo InferenceGenerator::productDown(Node n, Node e)
 
   Node A = n[0];
   Node B = n[1];
-  TypeNode tupleAType = A.getType().getBagElementType();
+
   TypeNode tupleBType = B.getType().getBagElementType();
-
-  Node constructorA = tupleAType.getDType()[0].getConstructor();
-  Node constructorB = tupleBType.getDType()[0].getConstructor();
-
+  TypeNode tupleAType = A.getType().getBagElementType();
   size_t tupleALength = tupleAType.getTupleLength();
-  size_t tupleBLength = tupleBType.getTupleLength();
+  size_t productTupleLength = n.getType().getBagElementType().getTupleLength();
 
   std::vector<Node> elements = DatatypesUtils::getTupleElements(e);
-
-  std::vector<Node> elementsA;
-  elementsA.push_back(constructorA);
-  int index = 0;
-  for (; index < tupleALength; index++)
-  {
-    elementsA.push_back(elements[index]);
-  }
-
-  std::vector<Node> elementsB;
-  elementsB.push_back(constructorB);
-  size_t length = tupleALength + tupleBLength;
-  for (; index < length; index++)
-  {
-    elementsB.push_back(elements[index]);
-  }
-
-  Node a = d_nm->mkNode(APPLY_CONSTRUCTOR, elementsA);
-  Node b = d_nm->mkNode(APPLY_CONSTRUCTOR, elementsB);
+  Node a = DatatypesUtils::constructTupleFromElements(
+      tupleAType, elements, 0, tupleALength - 1);
+  Node b = DatatypesUtils::constructTupleFromElements(
+      tupleBType, elements, tupleALength, productTupleLength - 1);
 
   InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);
 
