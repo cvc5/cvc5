@@ -248,12 +248,17 @@ Node RewriteRule<ExtractExtract>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ExtractExtract>(" << node << ")" << std::endl;
 
   // x[i:j][k:l] ~>  x[k+j:l+j]
+  uint32_t j = 0;
   Node child = node[0];
-  unsigned k = utils::getExtractHigh(node);
-  unsigned l = utils::getExtractLow(node);
-  unsigned j = utils::getExtractLow(child);
+  do
+  {
+    j += utils::getExtractLow(child);
+    child = child[0];
+  } while (child.getKind() == kind::BITVECTOR_EXTRACT);
 
-  Node result = utils::mkExtract(child[0], k + j, l + j);
+  uint32_t k = utils::getExtractHigh(node);
+  uint32_t l = utils::getExtractLow(node);
+  Node result = utils::mkExtract(child, k + j, l + j);
   return result;
 }
 
