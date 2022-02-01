@@ -155,8 +155,7 @@ cdef class Datatype:
 
     def getParameters(self):
         """
-            :return: the parameters of this datatype, if it is parametric. An
-            exception is thrown if this datatype is not parametric.
+            :return: the parameters of this datatype, if it is parametric. An exception is thrown if this datatype is not parametric.
         """
         param_sorts = []
         for s in self.cd.getParameters():
