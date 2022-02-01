@@ -18,11 +18,13 @@
 
 #include "theory/arith/arith_rewriter.h"
 
+#include <optional>
 #include <set>
 #include <sstream>
 #include <stack>
 #include <vector>
 
+#include "expr/algorithm/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -136,6 +138,23 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     case Kind::GT: return l > r;
     default: Unreachable(); return false;
   }
+}
+
+/**
+ * Check whether the parent has a child that is a constant zero.
+ * If so, return this child. Otherwise, return std::nullopt.
+ */
+template <typename Iterable>
+std::optional<TNode> getZeroChild(const Iterable& parent)
+{
+  for (const auto& node : parent)
+  {
+    if (node.isConst() && node.template getConst<Rational>().isZero())
+    {
+      return node;
+    }
+  }
+  return std::nullopt;
 }
 
 }  // namespace
@@ -413,22 +432,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
-      case kind::ABS:
-        if (t[0].isConst())
-        {
-          const Rational& rat = t[0].getConst<Rational>();
-          if (rat >= 0)
-          {
-            return RewriteResponse(REWRITE_DONE, t[0]);
-          }
-          else
-          {
-            return RewriteResponse(REWRITE_DONE,
-                                   NodeManager::currentNM()->mkConstRealOrInt(
-                                       t[0].getType(), -rat));
-          }
-        }
-        return RewriteResponse(REWRITE_DONE, t);
+      case kind::ABS: return rewriteAbs(t);
       case kind::IS_INTEGER:
       case kind::TO_INTEGER: return RewriteResponse(REWRITE_DONE, t);
       case kind::TO_REAL:
@@ -476,22 +480,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::INTS_MODULUS: return rewriteIntsDivMod(t, false);
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
-      case kind::ABS:
-        if (t[0].isConst())
-        {
-          const Rational& rat = t[0].getConst<Rational>();
-          if (rat >= 0)
-          {
-            return RewriteResponse(REWRITE_DONE, t[0]);
-          }
-          else
-          {
-            return RewriteResponse(REWRITE_DONE,
-                                   NodeManager::currentNM()->mkConstRealOrInt(
-                                       t[0].getType(), -rat));
-          }
-        }
-        return RewriteResponse(REWRITE_DONE, t);
+      case kind::ABS: return rewriteAbs(t);
       case kind::TO_REAL:
       case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
       case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
@@ -549,66 +538,23 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-RewriteResponse ArithRewriter::preRewriteMult(TNode node)
-{
-  Assert(node.getKind() == kind::MULT
-         || node.getKind() == kind::NONLINEAR_MULT);
-
-  for (const auto& child : node)
-  {
-    if (child.isConst() && child.getConst<Rational>().isZero())
-    {
-      return RewriteResponse(REWRITE_DONE, child);
-    }
-  }
-  return RewriteResponse(REWRITE_DONE, node);
-}
-
-static bool canFlatten(Kind k, TNode t){
-  for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-    TNode child = *i;
-    if(child.getKind() == k){
-      return true;
-    }
-  }
-  return false;
-}
-
-static void flatten(std::vector<TNode>& pb, Kind k, TNode t){
-  if(t.getKind() == k){
-    for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-      TNode child = *i;
-      if(child.getKind() == k){
-        flatten(pb, k, child);
-      }else{
-        pb.push_back(child);
-      }
-    }
-  }else{
-    pb.push_back(t);
-  }
-}
-
-static Node flatten(Kind k, TNode t){
-  std::vector<TNode> pb;
-  flatten(pb, k, t);
-  Assert(pb.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k, pb);
-}
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
-
-  if(canFlatten(kind::PLUS, t)){
-    return RewriteResponse(REWRITE_DONE, flatten(kind::PLUS, t));
-  }else{
-    return RewriteResponse(REWRITE_DONE, t);
-  }
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   Assert(t.getKind() == kind::PLUS);
   Assert(t.getNumChildren() > 1);
+
+  {
+    Node flat = expr::algorithm::flatten(t);
+    if (flat != t)
+    {
+      return RewriteResponse(REWRITE_AGAIN, flat);
+    }
+  }
 
   Rational rational;
   RealAlgebraicNumber ran;
@@ -675,9 +621,27 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
       nm->mkNode(Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
+RewriteResponse ArithRewriter::preRewriteMult(TNode node)
+{
+  Assert(node.getKind() == kind::MULT
+         || node.getKind() == kind::NONLINEAR_MULT);
+
+  auto res = getZeroChild(node);
+  if (res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
+
+  if (auto res = getZeroChild(t); res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
 
   Rational rational = Rational(1);
   RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
@@ -1075,6 +1039,36 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
     }else{
       return RewriteResponse(REWRITE_AGAIN, mult);
     }
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteAbs(TNode t)
+{
+  Assert(t.getKind() == Kind::ABS);
+  Assert(t.getNumChildren() == 1);
+
+  if (t[0].isConst())
+  {
+    const Rational& rat = t[0].getConst<Rational>();
+    if (rat >= 0)
+    {
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    return RewriteResponse(
+        REWRITE_DONE,
+        NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+  }
+  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    const RealAlgebraicNumber& ran =
+        t[0].getOperator().getConst<RealAlgebraicNumber>();
+    if (ran >= RealAlgebraicNumber())
+    {
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    return RewriteResponse(
+        REWRITE_DONE, NodeManager::currentNM()->mkRealAlgebraicNumber(-ran));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

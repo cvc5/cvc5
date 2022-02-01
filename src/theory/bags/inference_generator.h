@@ -46,6 +46,12 @@ class InferenceGenerator
    *   (>= (bag.count e A) 0)
    */
   InferInfo nonNegativeCount(Node n, Node e);
+  /**
+   * @param n a node of integer type that equals to a card term
+   * @return an inference that represents the following implication
+   * (>= n 0)
+   */
+  InferInfo nonNegativeCardinality(Node n);
 
   /**
    * @param n is (bag x c) of type (Bag E)
@@ -170,6 +176,38 @@ class InferenceGenerator
    * where skolem is a fresh variable equals (bag.duplicate_removal A)
    */
   InferInfo duplicateRemoval(Node n, Node e);
+  /**
+   * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
+   * @param n is (as bag.empty (Bag E))
+   * @return an inference that represents the following implication
+   * (=> (= A (as bag.empty (Bag E)))
+   *     (= (bag.card A) 0))
+   */
+  InferInfo cardEmpty(const std::pair<Node, Node>& pair, Node n);
+  /**
+   * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
+   * @param n is a node of the form (bag x c) of type (Bag E)
+   * @return an inference that represents the following implication
+   * (=>
+   *     (and (= A (bag x c)) (>= 0 c))
+   *     (= (bag.card A) c))
+   */
+  InferInfo cardBagMake(const std::pair<Node, Node>& pair, Node n);
+  /**
+   * @param premise a boolean node explains why parent equals the disjoint union
+   * of its children
+   * @param parent a bag term
+   * @param children (child_1, ... child_n) nonempty set of bag terms
+   * @return an inference that represents the following implication
+   * (=> premise
+   *     (and
+   *       (= parent (bag.union_disjoint child_1 ... child_n))
+   *       (= (bag.card parent) (+ (bag.card child_1) ... (bag.card child_n)))))
+   */
+  InferInfo cardUnionDisjoint(Node premise,
+                              Node parent,
+                              const std::set<Node>& children);
+
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)

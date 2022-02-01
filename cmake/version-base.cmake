@@ -1,5 +1,5 @@
 # These are updated when making a release
-set(CVC5_LAST_RELEASE "0.0.5")
+set(CVC5_LAST_RELEASE "0.0.7")
 set(CVC5_IS_RELEASE "false")
 
 # These are used in other places in cmake
