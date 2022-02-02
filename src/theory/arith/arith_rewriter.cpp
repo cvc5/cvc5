@@ -848,12 +848,10 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           Rational ra_div_two = (r_abs + rone) / rtwo;
           Node new_pi_factor;
           if( r.sgn()==1 ){
-            new_pi_factor =
-                nm->mkConstReal( r -rtwo * ra_div_two.floor());
+            new_pi_factor = nm->mkConstReal(r - rtwo * ra_div_two.floor());
           }else{
             Assert(r.sgn() == -1);
-            new_pi_factor =
-                nm->mkConstReal(r + rtwo*ra_div_two.floor());
+            new_pi_factor = nm->mkConstReal(r + rtwo * ra_div_two.floor());
           }
           Node new_arg = nm->mkNode(kind::MULT, new_pi_factor, pi);
           if (!rem.isNull())
