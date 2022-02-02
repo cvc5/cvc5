@@ -684,7 +684,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 
-  if (!opts.prop.minisatVarElimWasSetByUser)
+  if (!opts.prop.minisatSimpModeWasSetByUser
+      && opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
     // cannot use minisat variable elimination for logics where a theory solver
     // introduces new literals into the search. This includes quantifiers
@@ -695,7 +696,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || opts.smt.produceAssignments || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      opts.prop.minisatVarElim = false;
+      opts.prop.minisatSimpMode = options::MinisatSimpMode::NO_VAR_ELIM;
     }
   }
 
@@ -919,9 +920,9 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
     reason << "sort-inference";
     return true;
   }
-  else if (opts.prop.minisatVarElim)
+  else if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
-    reason << "minisat-var-elimination";
+    reason << "minisat-simplification";
     return true;
   }
   else if (opts.quantifiers.globalNegate)
