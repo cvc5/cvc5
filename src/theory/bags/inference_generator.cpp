@@ -517,6 +517,52 @@ InferInfo InferenceGenerator::mapUpwards(
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::filterDownwards(Node n, Node e)
+{
+  Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
+  Assert(e.getType().isSubtypeOf(n[1].getType().getBagElementType()));
+
+  Node P = n[0];
+  Node A = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_FILTER_DOWN);
+
+  Node countA = getMultiplicityTerm(e, A);
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node member = d_nm->mkNode(GEQ, count, d_one);
+  Node pOfe = d_nm->mkNode(APPLY_UF, P, e);
+  Node equal = count.eqNode(countA);
+
+  inferInfo.d_conclusion = pOfe.andNode(equal);
+  inferInfo.d_premises.push_back(member);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::filterUpwards(Node n, Node e)
+{
+  Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
+  Assert(e.getType().isSubtypeOf(n[1].getType().getBagElementType()));
+
+  Node P = n[0];
+  Node A = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_FILTER_UP);
+
+  Node countA = getMultiplicityTerm(e, A);
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node member = d_nm->mkNode(GEQ, countA, d_one);
+  Node pOfe = d_nm->mkNode(APPLY_UF, P, e);
+  Node equal = count.eqNode(countA);
+  Node included = pOfe.andNode(equal);
+  Node equalZero = count.eqNode(d_zero);
+  Node excluded = pOfe.notNode().andNode(equalZero);
+  inferInfo.d_conclusion = included.orNode(excluded);
+  inferInfo.d_premises.push_back(member);
+  return inferInfo;
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5

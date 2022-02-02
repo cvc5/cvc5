@@ -132,6 +132,14 @@ Node getNullTerminator(Kind k, TypeNode tn)
       // the language containing only the empty string
       nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
       break;
+    case REGEXP_UNION:
+      // empty language
+      nullTerm = nm->mkNode(REGEXP_NONE);
+      break;
+    case REGEXP_INTER:
+      // universal language
+      nullTerm = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+      break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
       break;

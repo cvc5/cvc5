@@ -47,7 +47,7 @@ class SmtLibLexer(RegexLexer):
         '=>', '=', 'true', 'false', 'not', 'and', 'or', 'xor', 'distinct',
         'ite',
         # datatypes
-        'mkTuple', 'tupSel',
+        'tuple', 'tuple_select',
         # fp
         'RNE', 'RNA', 'RTP', 'RTN', 'RTZ', 'fp', 'NaN', 'fp\.abs', 'fp\.neg',
         'fp\.add', 'fp\.sub', 'fp\.mul', 'fp\.div', 'fp\.fma', 'fp\.sqrt',

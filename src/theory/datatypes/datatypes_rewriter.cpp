@@ -244,7 +244,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   else if (kind == TUPLE_PROJECT)
   {
     // returns a tuple that represents
-    // (mkTuple ((_ tupSel i_1) t) ... ((_ tupSel i_n) t))
+    // (tuple ((_ tuple_select i_1) t) ... ((_ tuple_select i_n) t))
     // where each i_j is less than the length of t
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
