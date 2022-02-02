@@ -76,7 +76,7 @@ int main()
   Op op = solver.mkOp(FLOATINGPOINT_TO_SBV, 16);  // (_ fp.to_sbv 16)
   lhs = solver.mkTerm(op, rtp, d);
   rhs = solver.mkTerm(op, rtn, d);
-  solver.assertFormula(solver.mkTerm(FLOATINGPOINT_ISN, d));
+  solver.assertFormula(solver.mkTerm(FLOATINGPOINT_IS_NORMAL, d));
   solver.assertFormula(solver.mkTerm(NOT, solver.mkTerm(EQUAL, lhs, rhs)));
 
   r = solver.checkSat();  // result is sat

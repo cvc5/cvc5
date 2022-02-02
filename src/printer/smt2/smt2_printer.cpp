@@ -1149,13 +1149,13 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_GEQ: return "fp.geq";
   case kind::FLOATINGPOINT_GT: return "fp.gt";
 
-  case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
-  case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";
-  case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
-  case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
-  case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
-  case kind::FLOATINGPOINT_ISPOS: return "fp.isPositive";
+  case kind::FLOATINGPOINT_IS_NORMAL: return "fp.isNormal";
+  case kind::FLOATINGPOINT_IS_SUBNORMAL: return "fp.isSubnormal";
+  case kind::FLOATINGPOINT_IS_ZERO: return "fp.isZero";
+  case kind::FLOATINGPOINT_IS_INF: return "fp.isInfinite";
+  case kind::FLOATINGPOINT_IS_NAN: return "fp.isNaN";
+  case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
+  case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
 
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
