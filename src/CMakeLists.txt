@@ -997,6 +997,7 @@ libcvc5_add_sources(
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
   theory/sets/singleton_op.cpp
   theory/sets/singleton_op.h
