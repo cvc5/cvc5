@@ -1939,11 +1939,15 @@ enum Kind : int32_t
   /**
    * Match expressions.
    * For example, the smt2 syntax match term
-   * `(match l (((cons h t) h) (nil 0)))`
+   * \rst
+   * .. code:: smtlib
+   *
+   *      (match l (((cons h t) h) (nil 0)))
+   * \endrst
    * is represented by the AST
    *
    * \rst
-   * .. code:: smtlib
+   * .. code:: lisp
    * 
    *     (MATCH l
    *         (MATCH_BIND_CASE (VARIABLE_LIST h t) (cons h t) h)
