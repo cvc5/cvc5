@@ -747,11 +747,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
       // ((_ iand k) 0 y) ---> 0
       return RewriteResponse(REWRITE_DONE, t[i]);
     }
-    if (t[i].getConst<Rational>().getNumerator() == Integer(2).pow(bsize) - 1)
-    {
-      // ((_ iand k) 111...1 y) ---> y
-      return RewriteResponse(REWRITE_DONE, t[i == 0 ? 1 : 0]);
-    }
+    // Note that ((_ iand k) 111...1 y) ---> y is not a valid rewrite since it assumes that y is in the bounds [0, 2^k-1]
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
