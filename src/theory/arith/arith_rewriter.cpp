@@ -844,22 +844,17 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         Rational r = pi_factor.getConst<Rational>();
         Rational r_abs = r.abs();
         Rational rone = Rational(1);
-        Node ntwo = nm->mkConstInt(Rational(2));
+        Rational rtwo = Rational(2);
         if (r_abs > rone)
         {
           //add/substract 2*pi beyond scope
-          Node ra_div_two = nm->mkNode(
-              kind::INTS_DIVISION, mkRationalNode(r_abs + rone), ntwo);
+          Rational ra_div_two = (r_abs + rone) / rtwo;
           Node new_pi_factor;
           if( r.sgn()==1 ){
-            new_pi_factor = nm->mkNode(
-                kind::SUB, pi_factor, nm->mkNode(kind::MULT, ntwo, ra_div_two));
+            new_pi_factor = nm->mkConstReal(r - rtwo * ra_div_two.floor());
           }else{
             Assert(r.sgn() == -1);
-            new_pi_factor =
-                nm->mkNode(kind::PLUS,
-                           pi_factor,
-                           nm->mkNode(kind::MULT, ntwo, ra_div_two));
+            new_pi_factor = nm->mkConstReal(r + rtwo * ra_div_two.floor());
           }
           Node new_arg = nm->mkNode(kind::MULT, new_pi_factor, pi);
           if (!rem.isNull())
