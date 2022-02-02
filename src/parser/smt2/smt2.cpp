@@ -913,7 +913,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   api::Op op;
   if (p.d_kind != api::NULL_EXPR)
   {
-    // It is a special case, e.g. tupSel or array constant specification.
+    // It is a special case, e.g. tuple_select or array constant specification.
     // We have to wait until the arguments are parsed to resolve it.
   }
   else if (!p.d_expr.isNull())
