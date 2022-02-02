@@ -20,7 +20,7 @@
 #include "base/check.h"
 #include "expr/emptybag.h"
 #include "theory/bags/bag_make_op.h"
-#include "theory/bags/normal_form.h"
+#include "theory/bags/bags_utils.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
 
@@ -63,7 +63,7 @@ bool BinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   // only UNION_DISJOINT has a const rule in kinds.
   // Other binary operators do not have const rules in kinds
   Assert(n.getKind() == kind::BAG_UNION_DISJOINT);
-  return NormalForm::isConstant(n);
+  return BagsUtils::isConstant(n);
 }
 
 TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
@@ -354,6 +354,48 @@ TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
   TypeNode rangeType = n[0].getType().getRangeType();
   TypeNode retType = nodeManager->mkBagType(rangeType);
   return retType;
+}
+
+TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
+                                        TNode n,
+                                        bool check)
+{
+  Assert(n.getKind() == kind::BAG_FILTER);
+  TypeNode functionType = n[0].getType(check);
+  TypeNode bagType = n[1].getType(check);
+  if (check)
+  {
+    if (!bagType.isBag())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "bag.filter operator expects a bag in the second argument, "
+          "a non-bag is found");
+    }
+
+    TypeNode elementType = bagType.getBagElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " Bool) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    NodeManager* nm = NodeManager::currentNM();
+    if (!(argTypes.size() == 1 && argTypes[0] == elementType
+          && functionType.getRangeType() == nm->booleanType()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " Bool). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return bagType;
 }
 
 TypeNode BagFoldTypeRule::computeType(NodeManager* nodeManager,
