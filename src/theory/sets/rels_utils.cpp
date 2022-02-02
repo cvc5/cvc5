@@ -33,8 +33,8 @@ std::set<Node> RelsUtils::computeTC(std::set<Node> rel_mem, Node rel)
 
   while (mem_it != rel_mem.end())
   {
-    Node fst = DatatypesUtils::nthElementOfTuple(*mem_it, 0);
-    Node snd = DatatypesUtils::nthElementOfTuple(*mem_it, 1);
+    Node fst = TupleUtils::nthElementOfTuple(*mem_it, 0);
+    Node snd = TupleUtils::nthElementOfTuple(*mem_it, 1);
     std::set<Node> traversed;
     traversed.insert(fst);
     computeTC(rel, rel_mem, fst, snd, traversed, tc_rel_mem);
@@ -43,12 +43,12 @@ std::set<Node> RelsUtils::computeTC(std::set<Node> rel_mem, Node rel)
   return tc_rel_mem;
 }
 
-static void RelsUtils::computeTC(Node rel,
-                                 std::set<Node>& rel_mem,
-                                 Node fst,
-                                 Node snd,
-                                 std::set<Node>& traversed,
-                                 std::set<Node>& tc_rel_mem)
+void RelsUtils::computeTC(Node rel,
+                          std::set<Node>& rel_mem,
+                          Node fst,
+                          Node snd,
+                          std::set<Node>& traversed,
+                          std::set<Node>& tc_rel_mem)
 {
   tc_rel_mem.insert(constructPair(rel, fst, snd));
   if (traversed.find(snd) == traversed.end())
@@ -63,8 +63,8 @@ static void RelsUtils::computeTC(Node rel,
   std::set<Node>::iterator mem_it = rel_mem.begin();
   while (mem_it != rel_mem.end())
   {
-    Node new_fst = DatatypesUtils::nthElementOfTuple(*mem_it, 0);
-    Node new_snd = DatatypesUtils::nthElementOfTuple(*mem_it, 1);
+    Node new_fst = TupleUtils::nthElementOfTuple(*mem_it, 0);
+    Node new_snd = TupleUtils::nthElementOfTuple(*mem_it, 1);
     if (snd == new_fst)
     {
       computeTC(rel, rel_mem, fst, new_snd, traversed, tc_rel_mem);
@@ -73,7 +73,7 @@ static void RelsUtils::computeTC(Node rel,
   }
 }
 
-static Node RelsUtils::constructPair(Node rel, Node a, Node b)
+Node RelsUtils::constructPair(Node rel, Node a, Node b)
 {
   const DType& dt = rel.getType().getSetElementType().getDType();
   return NodeManager::currentNM()->mkNode(
