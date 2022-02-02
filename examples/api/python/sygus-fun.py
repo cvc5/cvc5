@@ -46,7 +46,7 @@ if __name__ == "__main__":
   one = slv.mkInteger(1)
 
   plus = slv.mkTerm(Kind.Plus, start, start)
-  minus = slv.mkTerm(Kind.Minus, start, start)
+  minus = slv.mkTerm(Kind.Sub, start, start)
   ite = slv.mkTerm(Kind.Ite, start_bool, start, start)
 
   And = slv.mkTerm(Kind.And, start_bool, start_bool)

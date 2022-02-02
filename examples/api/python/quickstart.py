@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
   # It is also possible to get values for compound terms,
   # even if those did not appear in the original formula.
-  xMinusY = solver.mkTerm(Kind.Minus, x, y);
+  xMinusY = solver.mkTerm(Kind.Sub, x, y);
   xMinusYVal = solver.getValue(xMinusY);
   
   # We can now obtain the values as python values
