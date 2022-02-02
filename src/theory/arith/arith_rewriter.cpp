@@ -752,7 +752,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
       // ((_ iand k) 111...1 y) ---> (mod y 2^k)
       Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
       Node ret = nm->mkNode(kind::INTS_MODULUS, t[1-i],  twok);
-      return RewriteResponse(REWRITE_DONE, ret);
+      return RewriteResponse(REWRITE_AGAIN, ret);
     }
   }
   return RewriteResponse(REWRITE_DONE, t);
