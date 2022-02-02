@@ -1873,6 +1873,7 @@ set(regress_1_tests
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/issue7924-sqrt-partial.smt2
+  regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2329,6 +2330,8 @@ set(regress_1_tests
   regress1/strings/idof-neg-index.smt2
   regress1/strings/idof-triv.smt2
   regress1/strings/ilc-l-nt.smt2
+  regress1/strings/instance1079-re-loop-cong.smt2
+  regress1/strings/instance2984-null-term.smt2
   regress1/strings/instance3303-delta.smt2
   regress1/strings/instance7075-delta.smt2
   regress1/strings/issue1105.smt2
@@ -2439,6 +2442,7 @@ set(regress_1_tests
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
   regress1/strings/regexp003.smt2
+  regress1/strings/regexp-050-multiply-graft-fuzz-dd.smt2
   regress1/strings/regexp-strat-fix.smt2
   regress1/strings/reloop.smt2
   regress1/strings/repl-empty-sem.smt2
