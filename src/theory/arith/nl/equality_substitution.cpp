@@ -53,10 +53,13 @@ void EqualitySubstitution::reset()
 std::vector<Node> EqualitySubstitution::eliminateEqualities(
     const std::vector<Node>& assertions)
 {
-  Trace("nl-eqs") << "Input:" << std::endl;
-  for (const auto& a : assertions)
+  if (Trace.isOn("nl-eqs"))
   {
-    Trace("nl-eqs") << "\t" << a << std::endl;
+    Trace("nl-eqs") << "Input:" << std::endl;
+    for (const auto& a : assertions)
+    {
+      Trace("nl-eqs") << "\t" << a << std::endl;
+    }
   }
   std::set<TNode> tracker;
   std::vector<Node> asserts = assertions;
@@ -143,15 +146,19 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     asserts = std::move(next);
   }
   d_conflict.clear();
-  Trace("nl-eqs") << "Output:" << std::endl;
-  for (const auto& a : asserts)
+  if (Trace.isOn("nl-eqs"))
   {
-    Trace("nl-eqs") << "\t" << a << std::endl;
-  }
-  Trace("nl-eqs") << "Substitutions:" << std::endl;
-  for (const auto& subs : d_substitutions->getSubstitutions())
-  {
-    Trace("nl-eqs") << "\t" << subs.first << " -> " << subs.second << std::endl;
+    Trace("nl-eqs") << "Output:" << std::endl;
+    for (const auto& a : asserts)
+    {
+      Trace("nl-eqs") << "\t" << a << std::endl;
+    }
+    Trace("nl-eqs") << "Substitutions:" << std::endl;
+    for (const auto& subs : d_substitutions->getSubstitutions())
+    {
+      Trace("nl-eqs") << "\t" << subs.first << " -> " << subs.second
+                      << std::endl;
+    }
   }
   return asserts;
 }
@@ -202,7 +209,6 @@ void EqualitySubstitution::addToConflictMap(const Node& n,
     Assert(tit != d_trackOrigin.end());
     insertOrigins(origins, tit->second);
   }
-  Trace("nl-eqs") << "ConflictMap: " << n << " -> " << origins << std::endl;
   d_conflictMap.emplace(n, std::vector<Node>(origins.begin(), origins.end()));
 }
 
