@@ -826,7 +826,6 @@ set(regress_0_tests
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
-  regress0/parser/tuple_project.smt2
   regress0/precedence/and-not.cvc.smt2
   regress0/precedence/and-xor.cvc.smt2
   regress0/precedence/bool-cmp.cvc.smt2
