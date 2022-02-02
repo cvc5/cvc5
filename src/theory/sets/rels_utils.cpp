@@ -25,49 +25,45 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-std::set<Node> RelsUtils::computeTC(std::set<Node> rel_mem, Node rel)
+std::set<Node> RelsUtils::computeTC(std::set<Node> members, Node rel)
 {
-  std::set<Node>::iterator mem_it = rel_mem.begin();
+  std::set<Node>::iterator mem_it = members.begin();
   std::map<Node, int> ele_num_map;
   std::set<Node> tc_rel_mem;
 
-  while (mem_it != rel_mem.end())
+  while (mem_it != members.end())
   {
     Node fst = TupleUtils::nthElementOfTuple(*mem_it, 0);
     Node snd = TupleUtils::nthElementOfTuple(*mem_it, 1);
     std::set<Node> traversed;
     traversed.insert(fst);
-    computeTC(rel, rel_mem, fst, snd, traversed, tc_rel_mem);
+    computeTC(rel, members, fst, snd, traversed, tc_rel_mem);
     mem_it++;
   }
   return tc_rel_mem;
 }
 
 void RelsUtils::computeTC(Node rel,
-                          std::set<Node>& rel_mem,
-                          Node fst,
-                          Node snd,
+                          std::set<Node>& members,
+                          Node a,
+                          Node b,
                           std::set<Node>& traversed,
-                          std::set<Node>& tc_rel_mem)
+                          std::set<Node>& transitiveClosureMembers)
 {
-  tc_rel_mem.insert(constructPair(rel, fst, snd));
-  if (traversed.find(snd) == traversed.end())
-  {
-    traversed.insert(snd);
-  }
-  else
+  transitiveClosureMembers.insert(constructPair(rel, a, b));
+  if (traversed.find(b) != traversed.end())
   {
     return;
   }
-
-  std::set<Node>::iterator mem_it = rel_mem.begin();
-  while (mem_it != rel_mem.end())
+  traversed.insert(b);
+  std::set<Node>::iterator mem_it = members.begin();
+  while (mem_it != members.end())
   {
     Node new_fst = TupleUtils::nthElementOfTuple(*mem_it, 0);
     Node new_snd = TupleUtils::nthElementOfTuple(*mem_it, 1);
-    if (snd == new_fst)
+    if (b == new_fst)
     {
-      computeTC(rel, rel_mem, fst, new_snd, traversed, tc_rel_mem);
+      computeTC(rel, members, a, new_snd, traversed, transitiveClosureMembers);
     }
     mem_it++;
   }
