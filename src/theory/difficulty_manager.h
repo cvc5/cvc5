@@ -57,9 +57,11 @@ class DifficultyManager
    *
    * @param rse Mapping from literals to the preprocessed assertion that was
    * the reason why that literal was relevant in the current context
+   * @param inFullEffortCheck Whether we are in a full effort check when the
+   * lemma was sent.
    * @param lem The lemma
    */
-  void notifyLemma(Node lem);
+  void notifyLemma(Node lem, bool inFullEffortCheck);
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
