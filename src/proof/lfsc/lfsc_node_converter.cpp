@@ -292,14 +292,14 @@ Node LfscNodeConverter::postConvert(Node n)
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     return nm->mkNode(APPLY_UF, f, convert(storeAll.getValue()));
   }
-  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
+  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == SUB
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
-           || k == INTS_MODULUS_TOTAL || k == UMINUS || k == POW
+           || k == INTS_MODULUS_TOTAL || k == NEG || k == POW
            || isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
-    // note that MINUS is not n-ary
+    // note that SUB is not n-ary
     // get the macro-apply version of the operator
     Node opc = getOperatorOfTerm(n, true);
     std::vector<Node> children;
@@ -983,15 +983,14 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
   if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
-      || k == LEQ || k == LT || k == MINUS || k == DIVISION
-      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS
-      || k == POW)
+      || k == LEQ || k == LT || k == SUB || k == DIVISION || k == DIVISION_TOTAL
+      || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
+      || k == INTS_MODULUS_TOTAL || k == NEG || k == POW)
   {
     // currently allow subtyping
     opName << "a.";
   }
-  if (k == UMINUS)
+  if (k == NEG)
   {
     opName << "u";
   }

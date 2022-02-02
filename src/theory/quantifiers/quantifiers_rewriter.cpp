@@ -932,7 +932,7 @@ Node QuantifiersRewriter::getVarElimEqString(Node lit,
               STRING_SUBSTR,
               slv,
               tpreL,
-              nm->mkNode(MINUS, slvL, nm->mkNode(PLUS, tpreL, tpostL)));
+              nm->mkNode(SUB, slvL, nm->mkNode(PLUS, tpreL, tpostL)));
           // forall x. r ++ x ++ t = s => P( x )
           //   is equivalent to
           // r ++ s' ++ t = s => P( s' ) where

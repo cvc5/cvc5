@@ -1009,8 +1009,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::ARCCOTANGENT: return "arccot";
   case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
-  case kind::MINUS: return "-";
-  case kind::UMINUS: return "-";
+  case kind::SUB: return "-";
+  case kind::NEG: return "-";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";

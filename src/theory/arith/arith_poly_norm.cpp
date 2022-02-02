@@ -201,7 +201,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           visited[cur].addMonomial(null, r);
         }
       }
-      else if (k == PLUS || k == MINUS || k == UMINUS || k == MULT
+      else if (k == PLUS || k == SUB || k == NEG || k == MULT
                || k == NONLINEAR_MULT)
       {
         visited[cur] = PolyNorm();
@@ -225,15 +225,15 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       switch (k)
       {
         case PLUS:
-        case MINUS:
-        case UMINUS:
+        case SUB:
+        case NEG:
         case MULT:
         case NONLINEAR_MULT:
           for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             it = visited.find(cur[i]);
             Assert(it != visited.end());
-            if ((k == MINUS && i == 1) || k == UMINUS)
+            if ((k == SUB && i == 1) || k == NEG)
             {
               ret.subtract(it->second);
             }

@@ -834,7 +834,7 @@ Node CoreSolver::getDecomposeConclusion(Node x,
 {
   Assert(l.getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
-  Node n = isRev ? nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), l) : l;
+  Node n = isRev ? nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, x), l) : l;
   Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
   newSkolems.push_back(sk1);
   Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");

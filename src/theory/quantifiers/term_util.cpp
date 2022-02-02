@@ -263,7 +263,7 @@ Node TermUtil::mkNegate(Kind notk, Node n)
 
 bool TermUtil::isNegate(Kind k)
 {
-  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
+  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == NEG;
 }
 
 bool TermUtil::isAssoc(Kind k, bool reqNAry)
@@ -437,7 +437,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
     {
       return true;
     }
-    else if (ik == MINUS || ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR
+    else if (ik == SUB || ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR
              || ik == BITVECTOR_ASHR || ik == BITVECTOR_SUB
              || ik == BITVECTOR_UREM)
     {
