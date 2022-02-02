@@ -173,9 +173,6 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     {
       Trace("builtin-rewrite-debug2")
           << "  process base : " << curr << std::endl;
-      // curr = Rewriter::rewrite(curr);
-      // Trace("builtin-rewrite-debug2")
-      //     << "  rewriten base : " << curr << std::endl;
       // Complex Boolean return cases, in which
       //  (1) lambda x. (= x v1) v ... becomes
       //      lambda x. (ite (= x v1) true [...])

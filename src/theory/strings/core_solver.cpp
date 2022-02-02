@@ -1554,7 +1554,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         size_t cIndex = index;
         Node stra = nfc.collectConstantStringAt(cIndex);
         Assert(!stra.isNull());
-        Node strb = nextConstStr;
+        stra = rewrite(stra);
+        Assert(stra.isConst());
+        Node strb = rewrite(nextConstStr);
+        Assert(strb.isConst());
 
         // Since `nc` is non-empty, we use the non-empty overlap
         size_t p = getSufficientNonEmptyOverlap(stra, strb, isRev);

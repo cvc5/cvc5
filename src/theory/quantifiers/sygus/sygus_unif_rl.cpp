@@ -1176,8 +1176,9 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   {
     return it->second;
   }
+  TermDbSygus* tds = d_dt->d_unif->d_tds;
   TypeNode tn = cond.getType();
-  Node builtin_cond = d_dt->d_unif->d_tds->sygusToBuiltin(cond, tn);
+  Node builtin_cond = tds->sygusToBuiltin(cond, tn);
   // Retrieve evaluation point
   Assert(d_dt->d_unif->d_hd_to_pt.find(hd) != d_dt->d_unif->d_hd_to_pt.end());
   std::vector<Node> pt = d_dt->d_unif->d_hd_to_pt[hd];
@@ -1192,7 +1193,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
     }
     Trace("sygus-unif-rl-sep") << ")\n";
   }
-  Node res = d_dt->d_unif->d_tds->evaluateBuiltin(tn, builtin_cond, pt);
+  Node res = tds->evaluateBuiltin(tn, builtin_cond, pt);
   Trace("sygus-unif-rl-sep") << "...got res = " << res << "\n";
   // If condition is templated, recompute result accordingly
   Node templ = d_dt->d_template.first;
@@ -1200,7 +1201,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   if (!templ.isNull())
   {
     res = templ.substitute(templ_var, res);
-    res = Rewriter::rewrite(res);
+    res = tds->rewriteNode(res);
     Trace("sygus-unif-rl-sep")
         << "...after template res = " << res << std::endl;
   }
