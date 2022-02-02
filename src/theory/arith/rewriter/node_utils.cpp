@@ -18,7 +18,10 @@
 #include "base/check.h"
 #include "theory/arith/rewriter/ordering.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 bool isIntegral(TNode n)
 {
@@ -102,4 +105,8 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
-}  // namespace cvc5::theory::arith::rewriter
+
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
