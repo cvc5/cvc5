@@ -947,11 +947,11 @@ TEST_F(TestApiBlackTerm, getFloatingPoint)
   ASSERT_FALSE(fp.isFloatingPointNaN());
   ASSERT_EQ(std::make_tuple(5u, 11u, bvval), fp.getFloatingPointValue());
 
-  ASSERT_TRUE(d_solver.mkPosZero(5, 11).isFloatingPointPosZero());
-  ASSERT_TRUE(d_solver.mkNegZero(5, 11).isFloatingPointNegZero());
-  ASSERT_TRUE(d_solver.mkPosInf(5, 11).isFloatingPointPosInf());
-  ASSERT_TRUE(d_solver.mkNegInf(5, 11).isFloatingPointNegInf());
-  ASSERT_TRUE(d_solver.mkNaN(5, 11).isFloatingPointNaN());
+  ASSERT_TRUE(d_solver.mkFloatingPointPosZero(5, 11).isFloatingPointPosZero());
+  ASSERT_TRUE(d_solver.mkFloatingPointNegZero(5, 11).isFloatingPointNegZero());
+  ASSERT_TRUE(d_solver.mkFloatingPointPosInf(5, 11).isFloatingPointPosInf());
+  ASSERT_TRUE(d_solver.mkFloatingPointNegInf(5, 11).isFloatingPointNegInf());
+  ASSERT_TRUE(d_solver.mkFloatingPointNaN(5, 11).isFloatingPointNaN());
 }
 
 TEST_F(TestApiBlackTerm, getSet)
