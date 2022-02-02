@@ -16,6 +16,7 @@
 #include "theory/arith/nl/equality_substitution.h"
 
 #include "smt/env.h"
+#include "theory/arith/arith_utilities.h"
 
 namespace cvc5 {
 namespace theory {
@@ -31,8 +32,11 @@ struct ShouldTraverse : public SubstitutionMap::ShouldTraverseCallback
     {
       case TheoryId::THEORY_BOOL:
       case TheoryId::THEORY_BUILTIN:
-      case TheoryId::THEORY_ARITH: return true;
-      default: return false;
+        return true;
+      case TheoryId::THEORY_ARITH:
+        return !isTranscendentalKind(n.getKind());
+      default:
+        return false;
     }
   }
 };
