@@ -1989,8 +1989,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
         else
         {
           // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
-          curr =
-              d_arithEntail.rewrite(nm->mkNode(kind::MINUS, tot_len, end_pt));
+          curr = d_arithEntail.rewrite(nm->mkNode(kind::SUB, tot_len, end_pt));
         }
       }
     }
@@ -2031,8 +2030,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
 
       // the length of a string from the inner substr subtracts the start point
       // of the outer substr
-      Node len_from_inner = d_arithEntail.rewrite(
-          nm->mkNode(kind::MINUS, node[0][2], start_outer));
+      Node len_from_inner =
+          d_arithEntail.rewrite(nm->mkNode(kind::SUB, node[0][2], start_outer));
       Node len_from_outer = node[2];
       Node new_len;
       // take quantity that is for sure smaller than the other
@@ -2136,7 +2135,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
   {
     // str.update(str.rev(s), n, t) --->
     //   str.rev(str.update(s, len(s) - (n + 1), t))
-    Node idx = nm->mkNode(MINUS,
+    Node idx = nm->mkNode(SUB,
                           nm->mkNode(STRING_LENGTH, s),
                           nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
     Node ret = nm->mkNode(STRING_REV, nm->mkNode(STRING_UPDATE, s[0], idx, x));
@@ -2579,7 +2578,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
 
   Node len0 = nm->mkNode(STRING_LENGTH, node[0]);
   Node len1 = nm->mkNode(STRING_LENGTH, node[1]);
-  Node len0m2 = nm->mkNode(MINUS, len0, node[2]);
+  Node len0m2 = nm->mkNode(SUB, len0, node[2]);
 
   if (node[1].isConst())
   {
@@ -2669,7 +2668,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           Node nn = utils::mkConcat(children0, stype);
           Node ret =
               nm->mkNode(PLUS,
-                         nm->mkNode(MINUS, node[2], new_len),
+                         nm->mkNode(SUB, node[2], new_len),
                          nm->mkNode(STRING_INDEXOF, nn, node[1], new_len));
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
         }
@@ -3035,8 +3034,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
           kind::STRING_SUBSTR,
           lastChild1[0],
           lastChild1[1],
-          nm->mkNode(
-              kind::PLUS, len0, one, nm->mkNode(kind::UMINUS, partLen1))));
+          nm->mkNode(kind::PLUS, len0, one, nm->mkNode(kind::NEG, partLen1))));
       Node res = nm->mkNode(kind::STRING_REPLACE,
                             node[0],
                             utils::mkConcat(children1, stype),
@@ -3551,7 +3549,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   }
   else
   {
-    val = NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens);
+    val = NodeManager::currentNM()->mkNode(kind::SUB, lent, lens);
   }
 
   // Check if we can turn the prefix/suffix into equalities by showing that the

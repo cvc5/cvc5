@@ -355,9 +355,9 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t){
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteMinus(TNode t)
+RewriteResponse ArithRewriter::rewriteSub(TNode t)
 {
-  Assert(t.getKind() == kind::MINUS);
+  Assert(t.getKind() == kind::SUB);
   Assert(t.getNumChildren() == 2);
 
   auto* nm = NodeManager::currentNM();
@@ -372,8 +372,9 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t)
       nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
 }
 
-RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
-  Assert(t.getKind() == kind::UMINUS);
+RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
+{
+  Assert(t.getKind() == kind::NEG);
 
   if (t[0].isConst())
   {
@@ -405,8 +406,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   }else{
     switch(Kind k = t.getKind()){
       case kind::REAL_ALGEBRAIC_NUMBER: return rewriteRAN(t);
-      case kind::MINUS: return rewriteMinus(t);
-      case kind::UMINUS: return rewriteUMinus(t, true);
+      case kind::SUB: return rewriteSub(t);
+      case kind::NEG: return rewriteNeg(t, true);
       case kind::DIVISION:
       case kind::DIVISION_TOTAL: return rewriteDiv(t, true);
       case kind::PLUS: return preRewritePlus(t);
@@ -453,8 +454,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     Trace("arith-rewriter") << "postRewriteTerm: " << t << std::endl;
     switch(t.getKind()){
       case kind::REAL_ALGEBRAIC_NUMBER: return rewriteRAN(t);
-      case kind::MINUS: return rewriteMinus(t);
-      case kind::UMINUS: return rewriteUMinus(t, false);
+      case kind::SUB: return rewriteSub(t);
+      case kind::NEG: return rewriteNeg(t, false);
       case kind::DIVISION:
       case kind::DIVISION_TOTAL: return rewriteDiv(t, false);
       case kind::PLUS: return postRewritePlus(t);
@@ -801,7 +802,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
       }
       else if (rat.sgn() == -1)
       {
-        Node ret = nm->mkNode(kind::UMINUS,
+        Node ret = nm->mkNode(kind::NEG,
                               nm->mkNode(kind::SINE, nm->mkConstReal(-rat)));
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
@@ -875,7 +876,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           {
             return RewriteResponse(
                 REWRITE_AGAIN_FULL,
-                nm->mkNode(kind::UMINUS, nm->mkNode(kind::SINE, rem)));
+                nm->mkNode(kind::NEG, nm->mkNode(kind::SINE, rem)));
           }
         }
         else if (rem.isNull())
@@ -910,7 +911,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         REWRITE_AGAIN_FULL,
         nm->mkNode(
             kind::SINE,
-            nm->mkNode(kind::MINUS,
+            nm->mkNode(kind::SUB,
                        nm->mkNode(kind::MULT,
                                   nm->mkConstReal(Rational(1) / Rational(2)),
                                   mkPi()),
@@ -1157,7 +1158,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     // (mod x (- c)) ---> (mod x c)
     Node nn = nm->mkNode(k, t[0], nm->mkConstInt(-t[1].getConst<Rational>()));
     Node ret = (k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL)
-                   ? nm->mkNode(kind::UMINUS, nn)
+                   ? nm->mkNode(kind::NEG, nn)
                    : nn;
     return returnRewrite(t, ret, Rewrite::DIV_MOD_PULL_NEG_DEN);
   }

@@ -51,9 +51,9 @@ Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
                     evall,
                     nm->mkNode(Kind::MULT,
                                nm->mkNode(Kind::DIVISION,
-                                          nm->mkNode(Kind::MINUS, evall, evalu),
-                                          nm->mkNode(Kind::MINUS, l, u)),
-                               nm->mkNode(Kind::MINUS, t, l)));
+                                          nm->mkNode(Kind::SUB, evall, evalu),
+                                          nm->mkNode(Kind::SUB, l, u)),
+                               nm->mkNode(Kind::SUB, t, l)));
 }
 
 }  // namespace
@@ -271,10 +271,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
         AND,
         nm->mkNode(IMPLIES,
                    nm->mkNode(GT, args[0], mpi),
-                   nm->mkNode(GT, s, nm->mkNode(MINUS, mpi, args[0]))),
+                   nm->mkNode(GT, s, nm->mkNode(SUB, mpi, args[0]))),
         nm->mkNode(IMPLIES,
                    nm->mkNode(LT, args[0], pi),
-                   nm->mkNode(LT, s, nm->mkNode(MINUS, pi, args[0]))));
+                   nm->mkNode(LT, s, nm->mkNode(SUB, pi, args[0]))));
   }
   else if (id == PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG)
   {

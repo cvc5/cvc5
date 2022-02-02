@@ -836,7 +836,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               {
                 Kind kn = k;
                 if( d_vars[index].getKind()==PLUS ){
-                  kn = MINUS;
+                  kn = SUB;
                 }
                 if( kn!=k ){
                   sum = NodeManager::currentNM()->mkNode( kn, v, lhs );
