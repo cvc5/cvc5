@@ -3647,7 +3647,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative infinity floating-point constant.
@@ -3655,7 +3655,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a not-a-number (NaN) floating-point constant.
@@ -3663,7 +3663,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNaN(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
@@ -3671,7 +3671,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
@@ -3679,7 +3679,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a roundingmode constant.

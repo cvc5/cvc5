@@ -121,7 +121,7 @@ void TaylorGenerator::getPolynomialApproximationBounds(
     else
     {
       Assert(k == Kind::SINE);
-      Node l = nm->mkNode(Kind::MINUS, taylor_sum, ru);
+      Node l = nm->mkNode(Kind::SUB, taylor_sum, ru);
       Node u = nm->mkNode(Kind::PLUS, taylor_sum, ru);
       pbounds.d_lower = l;
       pbounds.d_upperNeg = u;

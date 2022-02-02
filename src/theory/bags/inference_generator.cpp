@@ -262,7 +262,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
   Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
-  Node subtract = d_nm->mkNode(MINUS, countA, countB);
+  Node subtract = d_nm->mkNode(SUB, countA, countB);
   Node gte = d_nm->mkNode(GEQ, countA, countB);
   Node difference = d_nm->mkNode(ITE, gte, subtract, d_zero);
   Node equal = count.eqNode(difference);
@@ -447,7 +447,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   Node iList = d_nm->mkNode(BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(BOUND_VAR_LIST, j);
   Node iPlusOne = d_nm->mkNode(PLUS, i, d_one);
-  Node iMinusOne = d_nm->mkNode(MINUS, i, d_one);
+  Node iMinusOne = d_nm->mkNode(SUB, i, d_one);
   Node uf_i = d_nm->mkNode(APPLY_UF, uf, i);
   Node uf_j = d_nm->mkNode(APPLY_UF, uf, j);
   Node f_uf_i = d_nm->mkNode(APPLY_UF, f, uf_i);

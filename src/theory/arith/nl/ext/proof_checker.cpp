@@ -136,7 +136,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
     Node b = args[4];
     int sgn = args[5].getConst<Rational>().getNumerator().sgn();
     Assert(sgn == -1 || sgn == 1);
-    Node tplane = nm->mkNode(Kind::MINUS,
+    Node tplane = nm->mkNode(Kind::SUB,
                              nm->mkNode(Kind::PLUS,
                                         nm->mkNode(Kind::MULT, b, x),
                                         nm->mkNode(Kind::MULT, a, y)),
