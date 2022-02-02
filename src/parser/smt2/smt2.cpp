@@ -504,6 +504,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     Parser::addOperator(api::APPLY_UF);
   }
 
+  if (d_logic.isHigherOrder())
+  {
+    addOperator(api::HO_APPLY, "@");
+  }
+
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);
@@ -620,6 +625,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_FROM_SET, "bag.from_set");
     addOperator(api::BAG_TO_SET, "bag.to_set");
     addOperator(api::BAG_MAP, "bag.map");
+    addOperator(api::BAG_FILTER, "bag.filter");
     addOperator(api::BAG_FOLD, "bag.fold");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
@@ -1045,7 +1051,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (p.d_kind == api::TUPLE_PROJECT)
   {
-    api::Term ret = d_solver->mkTerm(p.d_op, args[0]);
+    api::Term ret = d_solver->mkTerm(p.d_op, args);
     Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }

@@ -38,6 +38,10 @@ void SolverState::registerBag(TNode n)
 {
   Assert(n.getType().isBag());
   d_bags.insert(n);
+  if (!d_ee->hasTerm(n))
+  {
+    d_ee->addTerm(n);
+  }
 }
 
 Node SolverState::registerCountTerm(TNode n)
@@ -47,11 +51,45 @@ Node SolverState::registerCountTerm(TNode n)
   Node bag = getRepresentative(n[1]);
   Node count = d_nm->mkNode(BAG_COUNT, element, bag);
   Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(count, "bag.count");
-  d_bagElements[bag].push_back(std::make_pair(element, skolem));
+  std::pair<Node, Node> pair = std::make_pair(element, skolem);
+  if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
+      == d_bagElements[bag].end())
+  {
+    d_bagElements[bag].push_back(pair);
+  }
   return count.eqNode(skolem);
 }
 
+Node SolverState::registerCardinalityTerm(TNode n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  if (!d_ee->hasTerm(n))
+  {
+    d_ee->addTerm(n);
+  }
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(cardTerm, "bag.card");
+  d_cardTerms[cardTerm] = skolem;
+  return cardTerm.eqNode(skolem).andNode(skolem.eqNode(n));
+}
+
+Node SolverState::getCardinalitySkolem(TNode n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  return d_cardTerms[cardTerm];
+}
+
+bool SolverState::hasCardinalityTerms() const { return !d_cardTerms.empty(); }
+
 const std::set<Node>& SolverState::getBags() { return d_bags; }
+
+const std::map<Node, Node>& SolverState::getCardinalityTerms()
+{
+  return d_cardTerms;
+}
 
 std::set<Node> SolverState::getElements(Node B)
 {
@@ -79,6 +117,7 @@ void SolverState::reset()
   d_bagElements.clear();
   d_bags.clear();
   d_deq.clear();
+  d_cardTerms.clear();
 }
 
 std::vector<Node> SolverState::initialize()
@@ -126,6 +165,11 @@ std::vector<Node> SolverState::collectBagsAndCountTerms()
         lemmas.push_back(lemma);
         Trace("SolverState::collectBagsAndCountTerms")
             << "registered " << n << endl;
+      }
+      if (k == BAG_CARD)
+      {
+        Node lemma = registerCardinalityTerm(n);
+        lemmas.push_back(lemma);
       }
       ++it;
     }

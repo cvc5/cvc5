@@ -2631,6 +2631,15 @@ cdef class Sort:
 
 	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
             :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+
+        Note that this replacement is applied during a pre-order traversal and
+        only once to the sort. It is not run until fix point. In the case that
+        sort_or_list_1 contains duplicates, the replacement earliest in the list
+        takes priority.
+
+        For example,
+        (Array A B) .substitute([A, C], [(Array C D), (Array A B)]) will
+        return (Array (Array C D) B).
         """
 
         # The resulting sort after substitution
@@ -2953,6 +2962,13 @@ cdef class Term:
     def substitute(self, term_or_list_1, term_or_list_2):
         """
 	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
+	   
+      Note that this replacement is applied during a pre-order traversal and
+      only once to the term. It is not run until fix point. In the case that
+      terms contains duplicates, the replacement earliest in the list takes
+      priority. For example, calling substitute on f(x,y) with
+        term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
+      results in the term f(g(z),y).
 	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)

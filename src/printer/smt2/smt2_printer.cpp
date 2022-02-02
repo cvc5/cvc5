@@ -52,6 +52,7 @@
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
+#include "util/real_algebraic_number.h"
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
@@ -291,7 +292,12 @@ void Smt2Printer::toStream(std::ostream& out,
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
       out << "((as const ";
       toStreamType(out, asa.getType());
-      out << ") " << asa.getValue() << ")";
+      out << ") ";
+      toStreamCastToType(out,
+                         asa.getValue(),
+                         toDepth < 0 ? toDepth : toDepth - 1,
+                         asa.getType().getArrayConstituentType());
+      out << ")";
       break;
     }
 
@@ -591,6 +597,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::HO_APPLY:
       if (!options::flattenHOChains())
       {
+        out << smtKindString(k, d_variant) << ' ';
         break;
       }
       // collapse "@" chains, i.e.
@@ -651,6 +658,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
       stillNeedToPrintParams = false;
       break;
+    case kind::REAL_ALGEBRAIC_NUMBER:
+    {
+      const RealAlgebraicNumber& ran = n.getOperator().getConst<RealAlgebraicNumber>();
+      out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
+      break;
+    }
     case kind::INDEXED_ROOT_PREDICATE_OP:
     {
       const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
@@ -751,7 +765,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (op.getIndices().empty())
     {
       // e.g. (tuple_project tuple)
-      out << "project " << n[0] << ")";
+      out << "tuple_project " << n[0] << ")";
     }
     else
     {
@@ -855,7 +869,7 @@ void Smt2Printer::toStream(std::ostream& out,
         {
           out << "(! ";
           annot << ":no-pattern ";
-          toStream(annot, nc, toDepth, nullptr);
+          toStream(annot, nc[0], toDepth, nullptr);
           annot << ") ";
         }
       }
@@ -1109,6 +1123,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
 
     // fp theory
@@ -1217,6 +1232,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // quantifiers
   case kind::FORALL: return "forall";
   case kind::EXISTS: return "exists";
+
+  // HO
+  case kind::HO_APPLY: return "@";
 
   default:
     ; /* fall through */
@@ -1473,7 +1491,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  out << "(define-fun " << id << " (";
+  out << "(define-fun " << cvc5::quoteSymbol(id) << " (";
   if (!formals.empty())
   {
     vector<Node>::const_iterator i = formals.cbegin();

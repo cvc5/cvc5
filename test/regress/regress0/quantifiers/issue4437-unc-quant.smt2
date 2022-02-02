@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXPECT: Quantifier used in non-quantified logic
 ; SCRUBBER: grep -o "Quantifier used in non-quantified logic"
