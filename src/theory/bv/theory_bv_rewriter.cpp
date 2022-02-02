@@ -263,17 +263,21 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
     }
   }
 
-  
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<ExtractConstant>, 
+  resultNode = LinearRewriteStrategy<
+      // We could have an extract over extract
       RewriteRule<ExtractExtract>,
-      // We could get another extract over extract
+      // The extract may cover the whole bit-vector
       RewriteRule<ExtractWhole>,
-      // At this point only Extract-Whole could apply
-      RewriteRule<ExtractMultLeadingBit>
-      >::apply(node);
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+      // Rewrite extracts over wide multiplications
+      RewriteRule<ExtractMultLeadingBit>,
+      // Perform constant folding last to maximize chances that it applies
+      RewriteRule<ExtractConstant>>::apply(node);
+
+  // There are terms that can be rewritten by repeatedly alternating between
+  // ExtractExtract and ExtractConcat, so we have to be conservative here and
+  // return REWRITE_AGAIN if the node changed.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
