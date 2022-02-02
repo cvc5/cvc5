@@ -22,6 +22,25 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+namespace
+{
+  struct ShouldTraverse : public SubstitutionMap::ShouldTraverseCallback
+  {
+    bool operator()(TNode n) const override
+    {
+      switch (theory::kindToTheoryId(n.getKind()))
+      {
+        case TheoryId::THEORY_BOOL:
+        case TheoryId::THEORY_BUILTIN:
+        case TheoryId::THEORY_ARITH:
+          return true;
+        default:
+          return false;
+      }
+    }
+  };
+}
+
 EqualitySubstitution::EqualitySubstitution(Env& env)
     : EnvObj(env), d_substitutions(std::make_unique<SubstitutionMap>())
 {
@@ -45,6 +64,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
   std::set<TNode> tracker;
   std::vector<Node> asserts = assertions;
   std::vector<Node> next;
+  const ShouldTraverse stc;
 
   size_t last_size = 0;
   while (asserts.size() != last_size)
@@ -56,9 +76,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       if (orig.getKind() != Kind::EQUAL) continue;
       tracker.clear();
       d_substitutions->invalidateCache();
-      Node o = d_substitutions->apply(orig, d_env.getRewriter(), &tracker);
-      Trace("nl-eqs") << "Simplified for subst " << orig << " -> " << o
-                      << std::endl;
+      Node o = d_substitutions->apply(orig, d_env.getRewriter(), &tracker, &stc);
       if (o.getKind() != Kind::EQUAL) continue;
       Assert(o.getNumChildren() == 2);
       for (size_t i = 0; i < 2; ++i)
@@ -90,7 +108,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     {
       tracker.clear();
       d_substitutions->invalidateCache();
-      Node simp = d_substitutions->apply(a, d_env.getRewriter(), &tracker);
+      Node simp = d_substitutions->apply(a, d_env.getRewriter(), &tracker, &stc);
       if (simp.isConst())
       {
         if (simp.getConst<bool>())
@@ -126,6 +144,16 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     asserts = std::move(next);
   }
   d_conflict.clear();
+  Trace("nl-eqs") << "Output:" << std::endl;
+  for (const auto& a : asserts)
+  {
+    Trace("nl-eqs") << "\t" << a << std::endl;
+  }
+  Trace("nl-eqs") << "Substitutions:" << std::endl;
+  for (const auto& subs: d_substitutions->getSubstitutions())
+  {
+    Trace("nl-eqs") << "\t" << subs.first << " -> " << subs.second << std::endl;
+  }
   return asserts;
 }
 void EqualitySubstitution::postprocessConflict(
