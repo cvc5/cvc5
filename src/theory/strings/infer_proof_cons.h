@@ -137,7 +137,7 @@ class InferProofCons : public ProofGenerator
    * true. In this case, the argument psb is updated to contain (possibly
    * multiple) proof steps for how to construct a proof for the given inference.
    * In particular, psb will contain a set of steps that form a proof
-   * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
+   * whose conclusion is conc and whose free assumptions are exp.
    */
   static void convert(InferenceId infer,
                       bool isRev,
