@@ -174,10 +174,21 @@ SatValue CryptoMinisatSolver::solve(){
 }
 
 SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
-  // CMSat::SalverConf conf = d_solver->getConf();
-  Unreachable() << "Not sure how to set different limits for calls to solve in "
-                   "Cryptominisat";
-  return solve();
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  Trace("limit") << "CryptoMinisatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
+  ++d_statistics.d_statCallsToSolve;
+  if(resource == 0) {
+    d_solver->set_max_confl(std::numeric_limits<int64_t>::max());
+  } else {
+    d_solver->set_max_confl(resource);
+  }
+  //  BVMinisat::vec<BVMinisat::Lit> empty;
+  unsigned long conflictsBefore = d_solver->get_sum_conflicts();
+  SatValue result = toSatLiteralValue(d_solver->solve());
+  resource = d_solver->get_sum_conflicts() - conflictsBefore;
+  Trace("limit") << "<CryptoMinisatSolver::solve(): it took " << resource << " conflicts" << std::endl;
+
+  return result;
 }
 
 SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
