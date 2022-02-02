@@ -39,8 +39,8 @@ class RelsUtils
    * add all pairs (a, c) to the transitive closures where c is reachable from b
    * in the transitive relation in a depth first search manner.
    * @param rel a binary relation of type (Set (Tuple E E))
-   * @param members constant nodes of type (Tuple E E) that are known to in the
-   * relation rel
+   * @param members constant nodes of type (Tuple E E) that are known to be in
+   * the relation rel
    * @param a a node of type E where (a,b) is an element in the transitive
    * closure
    * @param b a node of type E where (a,b) is an element in the transitive
