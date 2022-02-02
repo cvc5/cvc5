@@ -610,7 +610,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       if (Random::getRandom().pickWithProb(0.5))
       {
         // negative
-        ret = nm->mkNode(kind::UMINUS, ret);
+        ret = nm->mkNode(kind::NEG, ret);
       }
       ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());

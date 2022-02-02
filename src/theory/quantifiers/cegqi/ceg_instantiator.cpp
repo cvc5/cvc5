@@ -1272,7 +1272,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
+        atom_lhs = nm->mkNode(SUB, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
         atom_rhs = nm->mkConstRealOrInt(atom_lhs.getType(), Rational(0));
       }
