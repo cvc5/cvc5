@@ -19,7 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
-#include "theory/bags/normal_form.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -321,7 +321,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       Node value = m->getRepresentative(countSkolem);
       elementReps[key] = value;
     }
-    Node constructedBag = NormalForm::constructBagFromElements(tn, elementReps);
+    Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
     constructedBag = rewrite(constructedBag);
     Trace("bags-model") << "constructed bag for " << n
                         << " is: " << constructedBag << std::endl;
@@ -352,7 +352,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
           if (constructedRational < rCardRational
               && !d_env.isFiniteType(elementType))
           {
-            Node newElement = nm->getSkolemManager()->mkDummySkolem("slack", elementType);
+            Node newElement =
+                nm->getSkolemManager()->mkDummySkolem("slack", elementType);
             Trace("bags-model") << "newElement is " << newElement << std::endl;
             Rational difference = rCardRational - constructedRational;
             Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
