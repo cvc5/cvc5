@@ -841,12 +841,10 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         Rational r = pi_factor.getConst<Rational>();
         Rational r_abs = r.abs();
         Rational rone = Rational(1);
-        Node ntwo = nm->mkConstInt(Rational(2));
         if (r_abs > rone)
         {
           //add/substract 2*pi beyond scope
-          Node ra_div_two = nm->mkNode(
-              kind::INTS_DIVISION, mkRationalNode(r_abs + rone), ntwo);
+          Node ra_div_two = nm->mkConstReal((r_abs + rone) / Rational(2));
           Node new_pi_factor;
           if( r.sgn()==1 ){
             new_pi_factor =
