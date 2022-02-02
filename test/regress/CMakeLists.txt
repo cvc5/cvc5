@@ -1653,6 +1653,11 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/filter1.smt2
+  regress1/bags/filter2.smt2
+  regress1/bags/filter3.smt2
+  regress1/bags/filter4.smt2
+  regress1/bags/filter5.smt2
   regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
@@ -2750,6 +2755,7 @@ set(regress_2_tests
   regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
+  regress2/strings/proj-439-cyclic-str-ipc.smt2
   regress2/strings/proof-fail-083021-delta.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2
