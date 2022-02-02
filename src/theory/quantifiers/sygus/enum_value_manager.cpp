@@ -100,7 +100,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
                || options().quantifiers.sygusEnumMode
                       == options::SygusEnumMode::AUTO);
         // create the enumerator callback
-        if (options().datatypes.sygusSymBreakDynamic)
+        if (options().datatypes.sygusRewriter
+            != options::SygusRewriterMode::NONE)
         {
           std::ostream* out = nullptr;
           if (options().quantifiers.sygusRewVerify)
@@ -112,7 +113,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             out = options().base.out;
           }
           d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
-              d_env, e, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
+              d_env, e, d_tds, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors

@@ -162,9 +162,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        cmd.reset(new SetOptionCommand("incremental", "true"));
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
+        solver->setOption("incremental", "true");
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager(),
@@ -202,9 +200,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        cmd.reset(new SetOptionCommand("incremental", "false"));
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
+        solver->setOption("incremental", "false");
       }
 
       ParserBuilder parserBuilder(

@@ -120,6 +120,8 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP: return "BAGS_MAP";
+    case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
+    case InferenceId::BAGS_FILTER_UP: return "BAGS_FILTER_UP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
     case InferenceId::BAGS_CARD: return "BAGS_CARD";
 
@@ -417,6 +419,10 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_NTH_UPDATE";
     case InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE:
       return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
+    case InferenceId::STRINGS_ARRAY_UPDATE_BOUND:
+      return "STRINGS_ARRAY_UPDATE_BOUND";
+    case InferenceId::STRINGS_ARRAY_EQ_SPLIT:
+	  return "STRINGS_ARRAY_EQ_SPLIT";
     case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
       return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";

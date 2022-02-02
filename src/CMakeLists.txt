@@ -498,6 +498,7 @@ libcvc5_add_sources(
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
+  theory/arith/rewriter/ordering.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp
@@ -549,14 +550,16 @@ libcvc5_add_sources(
   theory/bags/bag_reduction.h
   theory/bags/bags_statistics.cpp
   theory/bags/bags_statistics.h
+  theory/bags/bags_utils.cpp
+  theory/bags/bags_utils.h
+  theory/bags/card_solver.cpp
+  theory/bags/card_solver.h
   theory/bags/infer_info.cpp
   theory/bags/infer_info.h
   theory/bags/inference_generator.cpp
   theory/bags/inference_generator.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
-  theory/bags/normal_form.cpp
-  theory/bags/normal_form.h
   theory/bags/rewrites.cpp
   theory/bags/rewrites.h
   theory/bags/solver_state.cpp

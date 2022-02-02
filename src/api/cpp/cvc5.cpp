@@ -312,6 +312,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET},
     {BAG_TO_SET, cvc5::Kind::BAG_TO_SET},
     {BAG_MAP, cvc5::Kind::BAG_MAP},
+    {BAG_FILTER, cvc5::Kind::BAG_FILTER},
     {BAG_FOLD, cvc5::Kind::BAG_FOLD},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
@@ -624,6 +625,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
         {cvc5::Kind::BAG_MAP, BAG_MAP},
+        {cvc5::Kind::BAG_FILTER, BAG_FILTER},
         {cvc5::Kind::BAG_FOLD, BAG_FOLD},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
@@ -5216,6 +5218,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   else if (kind::isAssociative(k))
   {
     // associative case, same as above
+    checkMkTerm(kind, children.size());
     res = d_nodeMgr->mkAssociative(k, echildren);
   }
   else
