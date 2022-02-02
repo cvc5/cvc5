@@ -105,7 +105,6 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
-
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
