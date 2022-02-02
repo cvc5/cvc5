@@ -1058,11 +1058,11 @@ def test_get_floating_point(solver):
     assert not fp.isFloatingPointNaN()
     assert (5, 11, bvval) == fp.getFloatingPointValue()
 
-    assert solver.mkPosZero(5, 11).isFloatingPointPosZero()
-    assert solver.mkNegZero(5, 11).isFloatingPointNegZero()
-    assert solver.mkPosInf(5, 11).isFloatingPointPosInf()
-    assert solver.mkNegInf(5, 11).isFloatingPointNegInf()
-    assert solver.mkNaN(5, 11).isFloatingPointNaN()
+    assert solver.mkFloatingPointPosZero(5, 11).isFloatingPointPosZero()
+    assert solver.mkFloatingPointNegZero(5, 11).isFloatingPointNegZero()
+    assert solver.mkFloatingPointPosInf(5, 11).isFloatingPointPosInf()
+    assert solver.mkFloatingPointNegInf(5, 11).isFloatingPointNegInf()
+    assert solver.mkFloatingPointNaN(5, 11).isFloatingPointNaN()
 
 
 def test_is_integer(solver):

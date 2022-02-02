@@ -54,7 +54,7 @@ bool ArithEntail::check(Node a, Node b, bool strict)
   {
     return !strict;
   }
-  Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+  Node diff = NodeManager::currentNM()->mkNode(kind::SUB, a, b);
   return check(diff, strict);
 }
 
@@ -76,10 +76,9 @@ bool ArithEntail::check(Node a, bool strict)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
 
-  Node ar =
-      strict ? NodeManager::currentNM()->mkNode(
-          kind::MINUS, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
-             : a;
+  Node ar = strict ? NodeManager::currentNM()->mkNode(
+                kind::SUB, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
+                   : a;
   ar = d_rr->rewrite(ar);
 
   if (ar.getAttribute(StrCheckEntailArithComputedAttr()))
@@ -417,7 +416,7 @@ void ArithEntail::getArithApproximations(Node a,
         {
           // n <= len( x ) implies
           //   len( x ) - n >= len( substr( x, n, m ) )
-          approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
+          approx.push_back(nm->mkNode(SUB, lenx, a[0][1]));
         }
         else
         {
@@ -438,7 +437,7 @@ void ArithEntail::getArithApproximations(Node a,
         //   len(x)-n <= len( substr( x, n, m ) )
         if (check(a[0][1]) && check(npm, lenx))
         {
-          approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
+          approx.push_back(nm->mkNode(SUB, lenx, a[0][1]));
         }
       }
     }
@@ -474,7 +473,7 @@ void ArithEntail::getArithApproximations(Node a,
         else
         {
           // len( x ) - len( y ) <= len( replace( x, y, z ) )
-          approx.push_back(nm->mkNode(MINUS, lenx, leny));
+          approx.push_back(nm->mkNode(SUB, lenx, leny));
         }
       }
     }
@@ -524,7 +523,7 @@ void ArithEntail::getArithApproximations(Node a,
       {
         // len( x ) >= len( y ) implies
         //   len( x ) - len( y ) >= indexof( x, y, n )
-        approx.push_back(nm->mkNode(MINUS, lenx, leny));
+        approx.push_back(nm->mkNode(SUB, lenx, leny));
       }
       else
       {
@@ -577,7 +576,7 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
     toVisit.pop_back();
 
     if (curr.getKind() == kind::PLUS || curr.getKind() == kind::MULT
-        || curr.getKind() == kind::MINUS || curr.getKind() == kind::EQUAL)
+        || curr.getKind() == kind::SUB || curr.getKind() == kind::EQUAL)
     {
       for (const auto& currChild : curr)
       {
@@ -660,8 +659,7 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       // (not (>= s t)) --> (>= (t - 1) s)
       Assert(assumption.getKind() == kind::NOT
              && assumption[0].getKind() == kind::GEQ);
-      x = nm->mkNode(
-          kind::MINUS, assumption[0][1], nm->mkConstInt(Rational(1)));
+      x = nm->mkNode(kind::SUB, assumption[0][1], nm->mkConstInt(Rational(1)));
       y = assumption[0][0];
     }
 
@@ -671,7 +669,7 @@ bool ArithEntail::checkWithAssumption(Node assumption,
         nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
   }
 
-  Node diff = nm->mkNode(kind::MINUS, a, b);
+  Node diff = nm->mkNode(kind::SUB, a, b);
   bool res = false;
   if (assumption.isConst())
   {

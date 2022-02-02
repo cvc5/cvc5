@@ -160,7 +160,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node ppSum = childLengthsPostPivot.size() == 1
                          ? childLengthsPostPivot[0]
                          : nm->mkNode(PLUS, childLengthsPostPivot);
-        currEnd = nm->mkNode(MINUS, lenx, ppSum);
+        currEnd = nm->mkNode(SUB, lenx, ppSum);
       }
       else
       {
@@ -312,7 +312,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         //        ... ^ "B" = substr( x, len( x ) - 3, 1 )  ^ ...
         Node sc = sep_children.back();
         Node lenSc = nm->mkNode(STRING_LENGTH, sc);
-        Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
+        Node loc = nm->mkNode(SUB, lenx, nm->mkNode(PLUS, lenSc, cEnd));
         Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
         // We also must ensure that we fit. This constraint is necessary in
         // addition to the constraint above. Take this example:
@@ -415,7 +415,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       Assert(children[index + (r == 0 ? 1 : -1)].getKind() != STRING_TO_REGEXP);
       Node s = c[0];
       Node lens = nm->mkNode(STRING_LENGTH, s);
-      Node sss = r == 0 ? zero : nm->mkNode(MINUS, lenx, lens);
+      Node sss = r == 0 ? zero : nm->mkNode(SUB, lenx, lens);
       Node ss = nm->mkNode(STRING_SUBSTR, x, sss, lens);
       sConstraints.push_back(ss.eqNode(s));
       if (r == 0)
@@ -428,7 +428,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node bound = nm->mkNode(GEQ, sss, sStartIndex);
         sConstraints.push_back(bound);
       }
-      sLength = nm->mkNode(MINUS, sLength, lens);
+      sLength = nm->mkNode(SUB, sLength, lens);
     }
     if (r == 1 && !sConstraints.empty())
     {
@@ -470,7 +470,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       }
       else if (i + 1 == nchildren)
       {
-        k = nm->mkNode(MINUS, lenx, lens);
+        k = nm->mkNode(SUB, lenx, lens);
       }
       else
       {
@@ -481,7 +481,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node bound =
             nm->mkNode(AND,
                        nm->mkNode(LEQ, zero, k),
-                       nm->mkNode(LEQ, k, nm->mkNode(MINUS, lenx, lens)));
+                       nm->mkNode(LEQ, k, nm->mkNode(SUB, lenx, lens)));
         echildren.push_back(bound);
       }
       Node substrEq = nm->mkNode(STRING_SUBSTR, x, k, lens).eqNode(s);
@@ -503,7 +503,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node ks = nm->mkNode(PLUS, k, lens);
         Node substrSuffix = nm->mkNode(
             STRING_IN_REGEXP,
-            nm->mkNode(STRING_SUBSTR, x, ks, nm->mkNode(MINUS, lenx, ks)),
+            nm->mkNode(STRING_SUBSTR, x, ks, nm->mkNode(SUB, lenx, ks)),
             rps);
         echildren.push_back(substrSuffix);
       }
