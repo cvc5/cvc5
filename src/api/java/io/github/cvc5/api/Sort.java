@@ -454,6 +454,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Substitution of Sorts.
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point.
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
@@ -467,6 +470,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Simultaneous substitution of Sorts.
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point. In the case that
+   * sorts contains duplicates, the replacement earliest in the list takes
+   * priority.
+   *
+   * For example,
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {

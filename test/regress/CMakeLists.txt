@@ -982,6 +982,7 @@ set(regress_0_tests
   regress0/quantifiers/issue6996-trivial-elim.smt2
   regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/issue7353-var-elim-par-dt.smt2
+  regress0/quantifiers/issue8001-mem-leak.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1642,6 +1643,7 @@ set(regress_1_tests
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
+  regress1/bags/card3.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -1651,6 +1653,12 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/filter1.smt2
+  regress1/bags/filter2.smt2
+  regress1/bags/filter3.smt2
+  regress1/bags/filter4.smt2
+  regress1/bags/filter5.smt2
+  regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
@@ -2747,6 +2755,7 @@ set(regress_2_tests
   regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
+  regress2/strings/proj-439-cyclic-str-ipc.smt2
   regress2/strings/proof-fail-083021-delta.smt2
   regress2/strings/pfnew-slow-2020-04-17.smt2
   regress2/strings/pfnew-policy_variable.smt2

@@ -215,6 +215,9 @@ name   = "SMT Layer"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
   name = "lemma-literal"
+  help = "Difficulty of an assertion is how many lemmas (at full effort) use a literal that the assertion depends on to be satisfied."
+[[option.mode.LEMMA_LITERAL_ALL]]
+  name = "lemma-literal-all"
   help = "Difficulty of an assertion is how many lemmas use a literal that the assertion depends on to be satisfied."
 [[option.mode.MODEL_CHECK]]
   name = "model-check"
