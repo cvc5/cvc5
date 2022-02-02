@@ -16,15 +16,15 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Kind
-from pycvc5 import Sort
-from pycvc5 import Op
+import cvc5
+from cvc5 import Kind
+from cvc5 import Sort
+from cvc5 import Op
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_get_kind(solver):
