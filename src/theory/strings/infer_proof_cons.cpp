@@ -73,7 +73,8 @@ bool InferProofCons::addProofTo(CDProof* pf,
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
   ProofStep ps;
-  TheoryProofStepBuffer psb(pf->getManager()->getChecker());
+  // ensure proof steps are unique
+  TheoryProofStepBuffer psb(pf->getManager()->getChecker(), true);
   // run the conversion
   convert(infer, isRev, conc, exp, ps, psb, useBuffer);
   // make the proof based on the step or the buffer
@@ -159,6 +160,14 @@ void InferProofCons::convert(InferenceId infer,
   }
   // try to find a set of proof steps to incorporate into the buffer
   psb.clear();
+  // explicitly add ASSUME steps to the proof step buffer for premises of the
+  // inference, so that they will not be overwritten in the reconstruction
+  // below
+  for (const Node& ec : ps.d_children)
+  {
+    Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
+    psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node nodeIsRev = nm->mkConst(isRev);
   switch (infer)
@@ -354,19 +363,15 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
+      Trace("strings-ipc-core")
+          << "Main equality after purify " << pmainEq << std::endl;
       std::vector<Node> childrenSRew;
       childrenSRew.push_back(pmainEq);
       childrenSRew.insert(childrenSRew.end(), pcsr.begin(), pcsr.end());
       // now, conclude the proper equality
       Node mainEqSRew =
           psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, {});
-      if (CDProof::isSame(mainEqSRew, pmainEq))
-      {
-        Trace("strings-ipc-core") << "...undo step" << std::endl;
-        // the rule added above was not necessary
-        psb.popStep();
-      }
-      else if (mainEqSRew == conc)
+      if (mainEqSRew == conc)
       {
         Trace("strings-ipc-core") << "...success after rewrite!" << std::endl;
         useBuffer = true;
@@ -386,12 +391,6 @@ void InferProofCons::convert(InferenceId infer,
       {
         // fail
         break;
-      }
-      else if (mainEqCeq == mainEqSRew)
-      {
-        Trace("strings-ipc-core") << "...undo step" << std::endl;
-        // not necessary, probably first component of equality
-        psb.popStep();
       }
       // Now, mainEqCeq is an equality t ++ ... == s ++ ... where the
       // inference involved t and s.
@@ -583,12 +582,6 @@ void InferProofCons::convert(InferenceId infer,
           Node mainEqMain = psb.tryStep(rule, childrenMain, argsMain);
           Trace("strings-ipc-core") << "Main equality after " << rule << " "
                                     << mainEqMain << std::endl;
-          if (mainEqMain == mainEqCeq)
-          {
-            Trace("strings-ipc-core") << "...undo step" << std::endl;
-            // not necessary, probably first component of equality
-            psb.popStep();
-          }
           // either equal or rewrites to it
           std::vector<Node> cexp;
           if (psb.applyPredTransform(mainEqMain, conc, cexp))

@@ -450,6 +450,8 @@ Node LfscNodeConverter::postConvert(Node n)
         ret = nm->mkNode(ck, children[i], ret);
       }
     }
+    Trace("lfsc-term-process-debug")
+        << "...return n-ary conv " << ret << std::endl;
     return ret;
   }
   return n;
@@ -730,7 +732,7 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
 
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
-  return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
+  return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
          || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER
@@ -743,6 +745,13 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
   std::vector<Node> indices;
   switch (k)
   {
+    case REGEXP_LOOP:
+    {
+      RegExpLoop op = n.getConst<RegExpLoop>();
+      indices.push_back(nm->mkConstInt(Rational(op.d_loopMinOcc)));
+      indices.push_back(nm->mkConstInt(Rational(op.d_loopMaxOcc)));
+      break;
+    }
     case BITVECTOR_EXTRACT:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
