@@ -348,7 +348,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  PLUS,
+  ADD,
   /**
    * Arithmetic multiplication.
    *

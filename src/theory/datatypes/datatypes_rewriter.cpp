@@ -81,7 +81,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       unsigned weight = c.getWeight();
       children.push_back(nm->mkConstInt(Rational(weight)));
       Node res =
-          children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
+          children.size() == 1 ? children[0] : nm->mkNode(kind::ADD, children);
       Trace("datatypes-rewrite")
           << "DatatypesRewriter::postRewrite: rewrite size " << in << " to "
           << res << std::endl;

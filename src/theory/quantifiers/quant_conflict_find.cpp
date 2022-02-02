@@ -780,7 +780,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
         slv_v = index;
       }
       Trace("qcf-tconstraint-debug") << "Solve " << d_vars[index] << " = " << v << " " << d_vars[index].getKind() << std::endl;
-      if( d_vars[index].getKind()==PLUS || d_vars[index].getKind()==MULT ){
+      if (d_vars[index].getKind() == ADD || d_vars[index].getKind() == MULT)
+      {
         Kind k = d_vars[index].getKind();
         std::vector< TNode > children;
         for (const Node& vi : d_vars[index]){
@@ -835,7 +836,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               if (d_parent->atConflictEffort())
               {
                 Kind kn = k;
-                if( d_vars[index].getKind()==PLUS ){
+                if (d_vars[index].getKind() == ADD)
+                {
                   kn = SUB;
                 }
                 if( kn!=k ){
@@ -2546,7 +2548,8 @@ TNode QuantConflictFind::getZero(TypeNode tn, Kind k)
   if (it == d_zero.end())
   {
     Node nn;
-    if( k==PLUS ){
+    if (k == ADD)
+    {
       nn = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
     }
     d_zero[key] = nn;

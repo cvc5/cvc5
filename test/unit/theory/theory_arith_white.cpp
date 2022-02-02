@@ -118,7 +118,7 @@ TEST_F(TestTheoryWhiteArith, int_normal_form)
 
   // (exp (+ 2 + x)) --> (* (exp x) (exp 1) (exp 1))
   Node t =
-      d_nodeManager->mkNode(EXPONENTIAL, d_nodeManager->mkNode(PLUS, c2, xr))
+      d_nodeManager->mkNode(EXPONENTIAL, d_nodeManager->mkNode(ADD, c2, xr))
           .eqNode(c0);
   ASSERT_EQ(Rewriter::rewrite(Rewriter::rewrite(t)), Rewriter::rewrite(t));
 }

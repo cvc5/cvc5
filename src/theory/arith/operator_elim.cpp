@@ -170,10 +170,9 @@ Node OperatorElim::eliminateOperators(Node node,
               nm->mkNode(
                   LT,
                   num,
-                  nm->mkNode(
-                      MULT,
-                      den,
-                      nm->mkNode(PLUS, v, nm->mkConstInt(Rational(1))))));
+                  nm->mkNode(MULT,
+                             den,
+                             nm->mkNode(ADD, v, nm->mkConstInt(Rational(1))))));
         }
         else
         {
@@ -186,7 +185,7 @@ Node OperatorElim::eliminateOperators(Node node,
                   nm->mkNode(
                       MULT,
                       den,
-                      nm->mkNode(PLUS, v, nm->mkConstInt(Rational(-1))))));
+                      nm->mkNode(ADD, v, nm->mkConstInt(Rational(-1))))));
         }
       }
       else
@@ -206,8 +205,7 @@ Node OperatorElim::eliminateOperators(Node node,
                         nm->mkNode(
                             MULT,
                             den,
-                            nm->mkNode(
-                                PLUS, v, nm->mkConstInt(Rational(1))))))),
+                            nm->mkNode(ADD, v, nm->mkConstInt(Rational(1))))))),
             nm->mkNode(
                 IMPLIES,
                 nm->mkNode(LT, den, nm->mkConstInt(Rational(0))),
@@ -221,7 +219,7 @@ Node OperatorElim::eliminateOperators(Node node,
                             MULT,
                             den,
                             nm->mkNode(
-                                PLUS, v, nm->mkConstInt(Rational(-1))))))));
+                                ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
       Node intVar = mkWitnessTerm(
           v, lem, "linearIntDiv", "the result of an intdiv-by-k term", lems);

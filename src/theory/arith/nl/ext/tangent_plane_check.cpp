@@ -120,7 +120,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
 
             // tangent plane
             Node tplane = nm->mkNode(Kind::SUB,
-                                     nm->mkNode(Kind::PLUS,
+                                     nm->mkNode(Kind::ADD,
                                                 nm->mkNode(Kind::MULT, b_v, a),
                                                 nm->mkNode(Kind::MULT, a_v, b)),
                                      nm->mkNode(Kind::MULT, a_v, b_v));

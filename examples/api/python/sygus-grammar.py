@@ -43,7 +43,7 @@ if __name__ == "__main__":
   # define the rules
   zero = slv.mkInteger(0)
   neg_x = slv.mkTerm(Kind.Uminus, x)
-  plus = slv.mkTerm(Kind.Plus, x, start)
+  plus = slv.mkTerm(Kind.Add, x, start)
 
   # create the grammar object
   g1 = slv.mkSygusGrammar({x}, {start})

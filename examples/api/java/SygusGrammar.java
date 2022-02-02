@@ -74,7 +74,7 @@ public class SygusGrammar
       // define the rules
       Term zero = slv.mkInteger(0);
       Term neg_x = slv.mkTerm(UMINUS, x);
-      Term plus = slv.mkTerm(PLUS, x, start);
+      Term plus = slv.mkTerm(ADD, x, start);
 
       // create the grammar object
       Grammar g1 = slv.mkSygusGrammar(new Term[] {x}, new Term[] {start});

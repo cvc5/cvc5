@@ -130,7 +130,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
     {HO_APPLY, cvc5::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
-    {PLUS, cvc5::Kind::PLUS},
+    {ADD, cvc5::Kind::ADD},
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
     {POW2, cvc5::Kind::POW2},
@@ -412,7 +412,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
         {cvc5::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
-        {cvc5::Kind::PLUS, PLUS},
+        {cvc5::Kind::ADD, ADD},
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
         {cvc5::Kind::POW2, POW2},
