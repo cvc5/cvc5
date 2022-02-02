@@ -481,24 +481,24 @@ def test_mk_false(solver):
     solver.mkFalse()
 
 
-def test_mk_nan(solver):
-    solver.mkNaN(3, 5)
+def test_mk_floating_point_nan(solver):
+    solver.mkFloatingPointNaN(3, 5)
 
 
-def test_mk_neg_zero(solver):
-    solver.mkNegZero(3, 5)
+def test_mk_floating_point_neg_zero(solver):
+    solver.mkFloatingPointNegZero(3, 5)
 
 
-def test_mk_neg_inf(solver):
-    solver.mkNegInf(3, 5)
+def test_mk_floating_point_neg_inf(solver):
+    solver.mkFloatingPointNegInf(3, 5)
 
 
-def test_mk_pos_inf(solver):
-    solver.mkPosInf(3, 5)
+def test_mk_floating_point_pos_inf(solver):
+    solver.mkFloatingPointPosInf(3, 5)
 
 
-def test_mk_pos_zero(solver):
-    solver.mkPosZero(3, 5)
+def test_mk_floating_point_pos_zero(solver):
+    solver.mkFloatingPointPosZero(3, 5)
 
 
 def test_mk_op(solver):
