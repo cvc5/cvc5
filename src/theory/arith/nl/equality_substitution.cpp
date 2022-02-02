@@ -22,24 +22,21 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-namespace
+namespace {
+struct ShouldTraverse : public SubstitutionMap::ShouldTraverseCallback
 {
-  struct ShouldTraverse : public SubstitutionMap::ShouldTraverseCallback
+  bool operator()(TNode n) const override
   {
-    bool operator()(TNode n) const override
+    switch (theory::kindToTheoryId(n.getKind()))
     {
-      switch (theory::kindToTheoryId(n.getKind()))
-      {
-        case TheoryId::THEORY_BOOL:
-        case TheoryId::THEORY_BUILTIN:
-        case TheoryId::THEORY_ARITH:
-          return true;
-        default:
-          return false;
-      }
+      case TheoryId::THEORY_BOOL:
+      case TheoryId::THEORY_BUILTIN:
+      case TheoryId::THEORY_ARITH: return true;
+      default: return false;
     }
-  };
-}
+  }
+};
+}  // namespace
 
 EqualitySubstitution::EqualitySubstitution(Env& env)
     : EnvObj(env), d_substitutions(std::make_unique<SubstitutionMap>())
@@ -76,7 +73,8 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       if (orig.getKind() != Kind::EQUAL) continue;
       tracker.clear();
       d_substitutions->invalidateCache();
-      Node o = d_substitutions->apply(orig, d_env.getRewriter(), &tracker, &stc);
+      Node o =
+          d_substitutions->apply(orig, d_env.getRewriter(), &tracker, &stc);
       if (o.getKind() != Kind::EQUAL) continue;
       Assert(o.getNumChildren() == 2);
       for (size_t i = 0; i < 2; ++i)
@@ -108,7 +106,8 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     {
       tracker.clear();
       d_substitutions->invalidateCache();
-      Node simp = d_substitutions->apply(a, d_env.getRewriter(), &tracker, &stc);
+      Node simp =
+          d_substitutions->apply(a, d_env.getRewriter(), &tracker, &stc);
       if (simp.isConst())
       {
         if (simp.getConst<bool>())
@@ -150,7 +149,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     Trace("nl-eqs") << "\t" << a << std::endl;
   }
   Trace("nl-eqs") << "Substitutions:" << std::endl;
-  for (const auto& subs: d_substitutions->getSubstitutions())
+  for (const auto& subs : d_substitutions->getSubstitutions())
   {
     Trace("nl-eqs") << "\t" << subs.first << " -> " << subs.second << std::endl;
   }
