@@ -52,8 +52,7 @@ void NormalForm::reverse()
 
 void NormalForm::splitConstant(unsigned index, Node c1, Node c2)
 {
-  Assert(Word::mkWordFlatten(
-             {d_isRev ? c2 : c1, d_isRev ? c1 : c2})
+  Assert(Word::mkWordFlatten({d_isRev ? c2 : c1, d_isRev ? c1 : c2})
          == d_nf[index]);
   d_nf.insert(d_nf.begin() + index + 1, c2);
   d_nf[index] = c1;

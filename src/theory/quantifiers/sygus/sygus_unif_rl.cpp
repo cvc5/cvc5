@@ -1176,7 +1176,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   {
     return it->second;
   }
-  TermDbSygus * tds = d_dt->d_unif->d_tds;
+  TermDbSygus* tds = d_dt->d_unif->d_tds;
   TypeNode tn = cond.getType();
   Node builtin_cond = tds->sygusToBuiltin(cond, tn);
   // Retrieve evaluation point
