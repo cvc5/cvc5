@@ -25,7 +25,7 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-std::set<Node> RelsUtils::computeTC(std::set<Node> members, Node rel)
+std::set<Node> RelsUtils::computeTC(const std::set<Node>& members, Node rel)
 {
   std::set<Node>::iterator mem_it = members.begin();
   std::map<Node, int> ele_num_map;
@@ -44,7 +44,7 @@ std::set<Node> RelsUtils::computeTC(std::set<Node> members, Node rel)
 }
 
 void RelsUtils::computeTC(Node rel,
-                          std::set<Node>& members,
+                          const std::set<Node>& members,
                           Node a,
                           Node b,
                           std::set<Node>& traversed,

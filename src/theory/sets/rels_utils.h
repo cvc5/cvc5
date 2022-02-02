@@ -33,7 +33,7 @@ class RelsUtils
    * @pre all members need to be constants
    * @return the transitive closure of the relation
    */
-  static std::set<Node> computeTC(std::set<Node> members, Node rel);
+  static std::set<Node> computeTC(const std::set<Node>& members, Node rel);
 
   /**
    * add all pairs (a, c) to the transitive closures where c is reachable from b
@@ -50,7 +50,7 @@ class RelsUtils
    * so far
    */
   static void computeTC(Node rel,
-                        std::set<Node>& members,
+                        const std::set<Node>& members,
                         Node a,
                         Node b,
                         std::set<Node>& traversed,

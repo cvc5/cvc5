@@ -101,15 +101,6 @@ class BagsUtils
    * @param e2 a tuple of type T2 of the form (tuple b1 ... bn)
    * @return  (tuple a1 ... an b1 ... bn)
    */
-  static Node constructTableTuple(TNode n, std::vector<TNode> elements);
-
-  /**
-   * @param n of the form (table.product A B) where A , B of types (Bag T1),
-   * (Bag T2) respectively.
-   * @param e1 a tuple of type T1 of the form (tuple a1 ... an)
-   * @param e2 a tuple of type T2 of the form (tuple b1 ... bn)
-   * @return  (tuple a1 ... an b1 ... bn)
-   */
   static Node constructProductTuple(TNode n, TNode e1, TNode e2);
 
   /**
