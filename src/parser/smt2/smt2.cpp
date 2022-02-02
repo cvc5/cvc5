@@ -348,23 +348,23 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
   {
     if (name == "+oo")
     {
-      return d_solver->mkPosInf(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointPosInf(numerals[0], numerals[1]);
     }
     else if (name == "-oo")
     {
-      return d_solver->mkNegInf(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointNegInf(numerals[0], numerals[1]);
     }
     else if (name == "NaN")
     {
-      return d_solver->mkNaN(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointNaN(numerals[0], numerals[1]);
     }
     else if (name == "+zero")
     {
-      return d_solver->mkPosZero(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointPosZero(numerals[0], numerals[1]);
     }
     else if (name == "-zero")
     {
-      return d_solver->mkNegZero(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointNegZero(numerals[0], numerals[1]);
     }
   }
 

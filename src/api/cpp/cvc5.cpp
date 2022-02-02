@@ -6031,7 +6031,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6041,7 +6041,7 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6051,7 +6051,7 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6061,7 +6061,7 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6071,7 +6071,7 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
