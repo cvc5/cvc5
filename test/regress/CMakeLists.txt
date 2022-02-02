@@ -779,6 +779,7 @@ set(regress_0_tests
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
+  regress0/nl/proj-issue-444-memout-eqelim.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -2755,6 +2756,7 @@ set(regress_2_tests
   regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
+  regress2/strings/proj-439-cyclic-str-ipc.smt2
   regress2/strings/proof-fail-083021-delta.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2
