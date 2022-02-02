@@ -31,12 +31,9 @@ struct ShouldTraverse : public SubstitutionMap::ShouldTraverseCallback
     switch (theory::kindToTheoryId(n.getKind()))
     {
       case TheoryId::THEORY_BOOL:
-      case TheoryId::THEORY_BUILTIN:
-        return true;
-      case TheoryId::THEORY_ARITH:
-        return !isTranscendentalKind(n.getKind());
-      default:
-        return false;
+      case TheoryId::THEORY_BUILTIN: return true;
+      case TheoryId::THEORY_ARITH: return !isTranscendentalKind(n.getKind());
+      default: return false;
     }
   }
 };
