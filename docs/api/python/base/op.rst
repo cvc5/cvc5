@@ -1,6 +1,6 @@
 Op
 ================
 
-.. autoclass:: pycvc5.Op
+.. autoclass:: cvc5.Op
     :members:
     :undoc-members:

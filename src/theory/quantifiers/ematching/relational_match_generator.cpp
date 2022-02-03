@@ -95,7 +95,7 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     if (!checkPol)
     {
       s = nm->mkNode(
-          PLUS,
+          ADD,
           s,
           nm->mkConstRealOrInt(s.getType(), Rational(d_rel == GEQ ? -1 : 1)));
     }

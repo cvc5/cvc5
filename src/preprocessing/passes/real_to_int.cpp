@@ -134,7 +134,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             Node sumt =
                 sum.empty()
                     ? nm->mkConstInt(Rational(0))
-                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::PLUS, sum));
+                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::ADD, sum));
             ret = nm->mkNode(
                 ret_lit.getKind(), sumt, nm->mkConstInt(Rational(0)));
             if (!ret_pol)

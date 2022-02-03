@@ -220,7 +220,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(MINUS, d_iandUtils.twoToKMinusOne(k), x);
+  Node ret = nm->mkNode(SUB, d_iandUtils.twoToKMinusOne(k), x);
   ret = rewrite(ret);
   return ret;
 }

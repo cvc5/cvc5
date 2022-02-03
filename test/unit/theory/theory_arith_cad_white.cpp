@@ -85,7 +85,7 @@ Node operator>=(const Node& a, const Node& b)
 }
 Node operator+(const Node& a, const Node& b)
 {
-  return nodeManager->mkNode(Kind::PLUS, a, b);
+  return nodeManager->mkNode(Kind::ADD, a, b);
 }
 Node operator*(const Node& a, const Node& b)
 {
@@ -191,7 +191,7 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
       d_nodeManager->mkNode(
           Kind::EQUAL,
           d_nodeManager->mkNode(
-              Kind::PLUS,
+              Kind::ADD,
               d_nodeManager->mkNode(Kind::NONLINEAR_MULT, a, c),
               d_nodeManager->mkConst(CONST_RATIONAL, d_one)),
           d_nodeManager->mkConst(CONST_RATIONAL, d_zero))});
