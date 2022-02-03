@@ -150,7 +150,7 @@ class InstMatchGenerator : public IMGenerator {
   //-------------------------------construction of inst match generators
   /** mkInstMatchGenerator for single triggers, calls the method below */
   static InstMatchGenerator* mkInstMatchGenerator(Env& env,
-  Trigger* tparent,
+                                                  Trigger* tparent,
                                                   Node q,
                                                   Node pat);
   /** mkInstMatchGenerator for the multi trigger case
@@ -161,7 +161,7 @@ class InstMatchGenerator : public IMGenerator {
   * free variables.
   */
   static InstMatchGenerator* mkInstMatchGeneratorMulti(Env& env,
-  Trigger* tparent,
+                                                       Trigger* tparent,
                                                        Node q,
                                                        std::vector<Node>& pats);
   /** mkInstMatchGenerator
@@ -322,7 +322,8 @@ class InstMatchGenerator : public IMGenerator {
    * appropriate matching algorithm for n within q
    * within a linked list of InstMatchGenerators.
    */
-  static InstMatchGenerator* getInstMatchGenerator(Env& env,Trigger* tparent,
+  static InstMatchGenerator* getInstMatchGenerator(Env& env,
+                                                   Trigger* tparent,
                                                    Node q,
                                                    Node n);
 };/* class InstMatchGenerator */

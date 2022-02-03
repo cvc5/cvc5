@@ -19,8 +19,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "smt/env.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
 namespace theory {

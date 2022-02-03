@@ -25,7 +25,10 @@ namespace quantifiers {
 namespace inst {
 
 IMGenerator::IMGenerator(Env& env, Trigger* tparent)
-    : EnvObj(env), d_tparent(tparent), d_qstate(tparent->d_qstate), d_treg(tparent->d_treg)
+    : EnvObj(env),
+      d_tparent(tparent),
+      d_qstate(tparent->d_qstate),
+      d_treg(tparent->d_treg)
 {
 }
 

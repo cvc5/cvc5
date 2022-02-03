@@ -30,8 +30,8 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "util/rational.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -185,7 +185,8 @@ void InstMatchGenerator::initialize(Node q,
         }
         else
         {
-          InstMatchGenerator* cimg = getInstMatchGenerator(d_env, d_tparent, q, pat);
+          InstMatchGenerator* cimg =
+              getInstMatchGenerator(d_env, d_tparent, q, pat);
           if (cimg)
           {
             d_children.push_back(cimg);
@@ -577,7 +578,8 @@ uint64_t InstMatchGenerator::addInstantiations(Node f)
   return addedLemmas;
 }
 
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(Env& env, Trigger* tparent,
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(Env& env,
+                                                             Trigger* tparent,
                                                              Node q,
                                                              Node pat)
 {
@@ -609,7 +611,7 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti(
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
-  Env& env,
+    Env& env,
     Trigger* tparent,
     Node q,
     std::vector<Node>& pats,
@@ -648,7 +650,7 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
 }
 
 InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Env& env,
-Trigger* tparent,
+                                                              Trigger* tparent,
                                                               Node q,
                                                               Node n)
 {

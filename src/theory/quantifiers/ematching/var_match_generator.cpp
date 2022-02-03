@@ -24,7 +24,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Env& env,Trigger* tparent,
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Env& env,
+                                                     Trigger* tparent,
                                                      Node var,
                                                      Node subs)
     : InstMatchGenerator(env, tparent, Node::null()),

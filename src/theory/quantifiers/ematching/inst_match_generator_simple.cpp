@@ -29,7 +29,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,Trigger* tparent,
+InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
+                                                   Trigger* tparent,
                                                    Node q,
                                                    Node pat)
     : IMGenerator(env, tparent), d_quant(q), d_match_pattern(pat)

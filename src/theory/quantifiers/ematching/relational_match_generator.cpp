@@ -25,10 +25,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-RelationalMatchGenerator::RelationalMatchGenerator(Env& env,Trigger* tparent,
-                                                   Node rtrigger,
-                                                   bool hasPol,
-                                                   bool pol)
+RelationalMatchGenerator::RelationalMatchGenerator(
+    Env& env, Trigger* tparent, Node rtrigger, bool hasPol, bool pol)
     : InstMatchGenerator(env, tparent, Node::null()),
       d_vindex(-1),
       d_hasPol(hasPol),

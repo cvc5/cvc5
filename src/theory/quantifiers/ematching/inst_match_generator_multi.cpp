@@ -26,7 +26,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-InstMatchGeneratorMulti::InstMatchGeneratorMulti(Env& env,Trigger* tparent,
+InstMatchGeneratorMulti::InstMatchGeneratorMulti(Env& env,
+                                                 Trigger* tparent,
                                                  Node q,
                                                  std::vector<Node>& pats)
     : IMGenerator(env, tparent), d_quant(q)

@@ -101,7 +101,8 @@ Trigger::Trigger(Env& env,
     }
     else
     {
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(env, this, q, d_nodes);
+      d_mg =
+          InstMatchGenerator::mkInstMatchGeneratorMulti(env, this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))
     {
