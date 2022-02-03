@@ -37,7 +37,10 @@ std::optional<bool> isExpressionZero(Env& env,
   {
     return expr.getConst<Rational>().isZero();
   }
-  Assert(expr.getKind() != Kind::REAL_ALGEBRAIC_NUMBER);
+  if (expr.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    return isZero(expr.getOperator().getConst<RealAlgebraicNumber>());
+  }
   return std::nullopt;
 }
 
