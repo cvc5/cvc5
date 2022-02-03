@@ -1967,15 +1967,6 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
 void CoreSolver::processDeq(Node ni, Node nj)
 {
-  // If using the sequence update solver, we always apply extensionality.
-  // This is required for model soundness currently, although we could
-  // investigate determining cases where the disequality is already
-  // satisfied (for optimization).
-  if (options().strings.seqArray != options::SeqArrayMode::NONE)
-  {
-    processDeqExtensionality(ni, nj);
-    return;
-  }
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -2571,55 +2562,43 @@ void CoreSolver::checkNormalFormsDeq()
     // added splitting lemma above
     return;
   }
-  // otherwise, look at pairs of equivalence classes with equal lengths
-  std::map<TypeNode, std::vector<std::vector<Node> > > colsT;
-  std::map<TypeNode, std::vector<Node> > ltsT;
-  d_state.separateByLength(d_strings_eqc, colsT, ltsT);
-  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& ct : colsT)
+  std::unordered_set<Node> deqProcessed;
+  for (const Node& eq : deqs)
   {
-    std::vector<std::vector<Node> >& cols = ct.second;
-    for( unsigned i=0; i<cols.size(); i++ ){
-      if (cols[i].size() > 1 && !d_im.hasPendingLemma())
-      {
-        if (Trace.isOn("strings-solve"))
-        {
-          Trace("strings-solve") << "- Verify disequalities are processed for "
-                                 << cols[i][0] << ", normal form : ";
-          utils::printConcatTrace(getNormalForm(cols[i][0]).d_nf, "strings-solve");
-          Trace("strings-solve")
-              << "... #eql = " << cols[i].size() << std::endl;
-        }
-        //must ensure that normal forms are disequal
-        for( unsigned j=0; j<cols[i].size(); j++ ){
-          for( unsigned k=(j+1); k<cols[i].size(); k++ ){
-            //for strings that are disequal, but have the same length
-            if (cols[i][j].isConst() && cols[i][k].isConst())
-            {
-              // if both are constants, they should be distinct, and its trivial
-              Assert(cols[i][j] != cols[i][k]);
-            }
-            else if (d_state.areDisequal(cols[i][j], cols[i][k]))
-            {
-              Assert(!d_state.isInConflict());
-              if (Trace.isOn("strings-solve"))
-              {
-                Trace("strings-solve") << "- Compare " << cols[i][j] << ", nf ";
-                utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf,
-                                        "strings-solve");
-                Trace("strings-solve") << " against " << cols[i][k] << ", nf ";
-                utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf,
-                                        "strings-solve");
-                Trace("strings-solve") << "..." << std::endl;
-              }
-              processDeq(cols[i][j], cols[i][k]);
-              if (d_im.hasProcessed())
-              {
-                return;
-              }
-            }
-          }
-        }
-      }
+    Assert(!d_state.isInConflict());
+    if (Trace.isOn("strings-solve"))
+    {
+      Trace("strings-solve") << "- Compare " << eq[0] << ", nf ";
+      utils::printConcatTrace(getNormalForm(eq[0]).d_nf,
+                              "strings-solve");
+      Trace("strings-solve") << " against " << eq[1] << ", nf ";
+      utils::printConcatTrace(getNormalForm(eq[1]).d_nf,
+                              "strings-solve");
+      Trace("strings-solve") << "..." << std::endl;
+    }
+    // If using the sequence update solver, we always apply extensionality.
+    // This is required for model soundness currently, although we could
+    // investigate determining cases where the disequality is already
+    // satisfied (for optimization).
+    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    {
+      processDeqExtensionality(eq[0], eq[1]);
+      return;
+    }
+    Node n[2];
+    for( unsigned i=0; i<2; i++ ){
+      n[i] = ee->getRepresentative( eq[i] );
+    }
+    Node deq = n[0].eqNode(n[1]);
+    if (deqProcessed.find(deq)!=deqProcessed.end())
+    {
+      continue;
+    }
+    deqProcessed.insert(deq);
+    processDeq(n[0], n[1]);
+    if (d_im.hasProcessed())
+    {
+      return;
     }
   }
 }
