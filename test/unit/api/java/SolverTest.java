@@ -2035,7 +2035,7 @@ class SolverTest
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.blockModel());
+    assertThrows(CVC5ApiException.class, () -> d_solver.blockModel());
   }
 
   @Test void blockModel3() throws CVC5ApiException
@@ -2079,7 +2079,7 @@ class SolverTest
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.blockModelValues(new Term[] {x}));
+    assertDoesNotThrow(() -> d_solver.blockModelValues(new Term[] {x}));
   }
 
   @Test void blockModelValues3() throws CVC5ApiException
