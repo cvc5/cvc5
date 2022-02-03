@@ -364,8 +364,8 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     {
       if (pat.getKind() == GT)
       {
-        t_match = nm->mkNode(
-            MINUS, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
+        t_match =
+            nm->mkNode(SUB, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }else{
         t_match = t;
       }

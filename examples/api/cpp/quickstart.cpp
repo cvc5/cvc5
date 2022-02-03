@@ -102,7 +102,7 @@ int main()
 
   // It is also possible to get values for compound terms,
   // even if those did not appear in the original formula.
-  Term xMinusY = solver.mkTerm(MINUS, x, y);
+  Term xMinusY = solver.mkTerm(SUB, x, y);
   Term xMinusYVal = solver.getValue(xMinusY);
 
   // We can now obtain the string representations of the values.

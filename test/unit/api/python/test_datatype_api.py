@@ -12,18 +12,18 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Sort, Term 
-from pycvc5 import DatatypeDecl
-from pycvc5 import Datatype
-from pycvc5 import DatatypeConstructorDecl
-from pycvc5 import DatatypeConstructor
-from pycvc5 import DatatypeSelector
+import cvc5
+from cvc5 import Sort, Term 
+from cvc5 import DatatypeDecl
+from cvc5 import Datatype
+from cvc5 import DatatypeConstructorDecl
+from cvc5 import DatatypeConstructor
+from cvc5 import DatatypeSelector
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_mk_datatype_sort(solver):

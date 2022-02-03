@@ -899,11 +899,11 @@ class TermTest
     assertFalse(fp.isFloatingPointNaN());
     assertEquals(new Triplet<Long, Long, Term>(5L, 11L, bvval), fp.getFloatingPointValue());
 
-    assertTrue(d_solver.mkPosZero(5, 11).isFloatingPointPosZero());
-    assertTrue(d_solver.mkNegZero(5, 11).isFloatingPointNegZero());
-    assertTrue(d_solver.mkPosInf(5, 11).isFloatingPointPosInf());
-    assertTrue(d_solver.mkNegInf(5, 11).isFloatingPointNegInf());
-    assertTrue(d_solver.mkNaN(5, 11).isFloatingPointNaN());
+    assertTrue(d_solver.mkFloatingPointPosZero(5, 11).isFloatingPointPosZero());
+    assertTrue(d_solver.mkFloatingPointNegZero(5, 11).isFloatingPointNegZero());
+    assertTrue(d_solver.mkFloatingPointPosInf(5, 11).isFloatingPointPosInf());
+    assertTrue(d_solver.mkFloatingPointNegInf(5, 11).isFloatingPointNegInf());
+    assertTrue(d_solver.mkFloatingPointNaN(5, 11).isFloatingPointNaN());
   }
 
   @Test void getSet()

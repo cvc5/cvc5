@@ -14,12 +14,12 @@
 # A simple demonstration of the api capabilities of cvc5, adapted from quickstart.cpp
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
   # Create a solver
-  solver = pycvc5.Solver()
+  solver = cvc5.Solver()
 
   # We will ask the solver to produce models and unsat cores,
   # hence these options should be turned on.
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
   # It is also possible to get values for compound terms,
   # even if those did not appear in the original formula.
-  xMinusY = solver.mkTerm(Kind.Minus, x, y);
+  xMinusY = solver.mkTerm(Kind.Sub, x, y);
   xMinusYVal = solver.getValue(xMinusY);
   
   # We can now obtain the values as python values

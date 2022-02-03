@@ -267,7 +267,7 @@ Node IAndUtils::twoToKMinusOne(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::MINUS, twoToK(k), d_one);
+  return nm->mkNode(kind::SUB, twoToK(k), d_one);
 }
 
 }  // namespace nl

@@ -518,26 +518,29 @@ TEST_F(TestApiBlackSolver, mkFalse)
   ASSERT_NO_THROW(d_solver.mkFalse());
 }
 
-TEST_F(TestApiBlackSolver, mkNaN) { ASSERT_NO_THROW(d_solver.mkNaN(3, 5)); }
-
-TEST_F(TestApiBlackSolver, mkNegZero)
+TEST_F(TestApiBlackSolver, mkFloatingPointNaN)
 {
-  ASSERT_NO_THROW(d_solver.mkNegZero(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointNaN(3, 5));
 }
 
-TEST_F(TestApiBlackSolver, mkNegInf)
+TEST_F(TestApiBlackSolver, mkFloatingPointNegZero)
 {
-  ASSERT_NO_THROW(d_solver.mkNegInf(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointNegZero(3, 5));
 }
 
-TEST_F(TestApiBlackSolver, mkPosInf)
+TEST_F(TestApiBlackSolver, mkFloatingPointNegInf)
 {
-  ASSERT_NO_THROW(d_solver.mkPosInf(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointNegInf(3, 5));
 }
 
-TEST_F(TestApiBlackSolver, mkPosZero)
+TEST_F(TestApiBlackSolver, mkFloatingPointPosInf)
 {
-  ASSERT_NO_THROW(d_solver.mkPosZero(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointPosInf(3, 5));
+}
+
+TEST_F(TestApiBlackSolver, mkFloatingPointPosZero)
+{
+  ASSERT_NO_THROW(d_solver.mkFloatingPointPosZero(3, 5));
 }
 
 TEST_F(TestApiBlackSolver, mkOp)
@@ -787,8 +790,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(
       d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(MINUS, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(MINUS), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(SUB, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SUB), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
@@ -2989,6 +2992,17 @@ TEST_F(TestApiBlackSolver, proj_issue386)
   dtdecl.addConstructor(ctordecl);
   Sort s2 = d_solver.mkDatatypeSort(dtdecl);
   ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, proj_issue414)
+{
+  Solver slv;
+  Sort s2 = slv.getRealSort();
+  Term t1 = slv.mkConst(s2, "_x0");
+  Term t16 = slv.mkTerm(Kind::PI);
+  Term t53 = slv.mkTerm(Kind::SUB, {t1, t16});
+  Term t54 = slv.mkTerm(Kind::SECANT, {t53});
+  ASSERT_NO_THROW(slv.simplify(t54));
 }
 
 }  // namespace test

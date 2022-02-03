@@ -73,7 +73,7 @@ public class SygusGrammar
 
       // define the rules
       Term zero = slv.mkInteger(0);
-      Term neg_x = slv.mkTerm(UMINUS, x);
+      Term neg_x = slv.mkTerm(NEG, x);
       Term plus = slv.mkTerm(PLUS, x, start);
 
       // create the grammar object
