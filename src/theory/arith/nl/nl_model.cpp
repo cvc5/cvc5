@@ -676,7 +676,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
         Node apex = nm->mkNode(
-            DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
+            DIVISION, nm->mkNode(NEG, b), nm->mkNode(MULT, d_two, a));
         apex = rewrite(apex);
         Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex

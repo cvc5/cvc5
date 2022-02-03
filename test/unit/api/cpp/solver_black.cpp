@@ -2994,5 +2994,16 @@ TEST_F(TestApiBlackSolver, proj_issue386)
   ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue414)
+{
+  Solver slv;
+  Sort s2 = slv.getRealSort();
+  Term t1 = slv.mkConst(s2, "_x0");
+  Term t16 = slv.mkTerm(Kind::PI);
+  Term t53 = slv.mkTerm(Kind::MINUS, {t1, t16});
+  Term t54 = slv.mkTerm(Kind::SECANT, {t53});
+  ASSERT_NO_THROW(slv.simplify(t54));
+}
+
 }  // namespace test
 }  // namespace cvc5

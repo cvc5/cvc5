@@ -773,8 +773,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (types[i].isRealOrInt())
     {
-      // Add PLUS, MINUS
-      Kind kinds[2] = {PLUS, MINUS};
+      // Add PLUS, SUB
+      Kind kinds[2] = {PLUS, SUB};
       for (const Kind kind : kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;

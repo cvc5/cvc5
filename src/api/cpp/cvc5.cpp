@@ -134,8 +134,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
     {POW2, cvc5::Kind::POW2},
-    {SUB, cvc5::Kind::MINUS},
-    {NEG, cvc5::Kind::UMINUS},
+    {SUB, cvc5::Kind::SUB},
+    {NEG, cvc5::Kind::NEG},
     {DIVISION, cvc5::Kind::DIVISION},
     {INTS_DIVISION, cvc5::Kind::INTS_DIVISION},
     {INTS_MODULUS, cvc5::Kind::INTS_MODULUS},
@@ -416,8 +416,8 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
         {cvc5::Kind::POW2, POW2},
-        {cvc5::Kind::MINUS, SUB},
-        {cvc5::Kind::UMINUS, NEG},
+        {cvc5::Kind::SUB, SUB},
+        {cvc5::Kind::NEG, NEG},
         {cvc5::Kind::DIVISION, DIVISION},
         {cvc5::Kind::DIVISION_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::INTS_DIVISION, INTS_DIVISION},
@@ -7637,6 +7637,9 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAssertions)
+      << "Cannot block model value unless produce-assertions is enabled "
+         "(try --produce-assertions)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)

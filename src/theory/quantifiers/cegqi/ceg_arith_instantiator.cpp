@@ -291,8 +291,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       else
       {
         Node delta = d_vtc->getVtsDelta();
-        uval = nm->mkNode(
-            uires == CEG_TT_UPPER_STRICT ? PLUS : MINUS, uval, delta);
+        uval =
+            nm->mkNode(uires == CEG_TT_UPPER_STRICT ? PLUS : SUB, uval, delta);
         uval = rewrite(uval);
       }
     }
@@ -363,7 +363,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         // could get rho value for infinity here
         if (rr == 0)
         {
-          val = nm->mkNode(UMINUS, val);
+          val = nm->mkNode(NEG, val);
           val = rewrite(val);
         }
         TermProperties pv_prop_no_bound;
@@ -623,7 +623,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       }
       else if (!vals[1].isNull())
       {
-        val = nm->mkNode(MINUS, vals[1], d_one);
+        val = nm->mkNode(SUB, vals[1], d_one);
         val = rewrite(val);
       }
     }
@@ -933,8 +933,8 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
           (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
                                                                           : -1;
       val = rewrite(
-          nm->mkNode(ires_use == -1 ? PLUS : MINUS,
-                     nm->mkNode(ires_use == -1 ? MINUS : PLUS, val, realPart),
+          nm->mkNode(ires_use == -1 ? PLUS : SUB,
+                     nm->mkNode(ires_use == -1 ? SUB : PLUS, val, realPart),
                      nm->mkNode(TO_INTEGER, realPart)));
       // could round up for upper bounds here
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
@@ -1001,11 +1001,11 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     Node rho;
     if (isLower)
     {
-      rho = nm->mkNode(MINUS, ceValue, mt);
+      rho = nm->mkNode(SUB, ceValue, mt);
     }
     else
     {
-      rho = nm->mkNode(MINUS, mt, ceValue);
+      rho = nm->mkNode(SUB, mt, ceValue);
     }
     rho = rewrite(rho);
     Trace("cegqi-arith-bound2")
@@ -1015,7 +1015,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     rho = nm->mkNode(INTS_MODULUS_TOTAL, rho, new_theta);
     rho = rewrite(rho);
     Trace("cegqi-arith-bound2") << rho << std::endl;
-    Kind rk = isLower ? PLUS : MINUS;
+    Kind rk = isLower ? PLUS : SUB;
     val = nm->mkNode(rk, val, rho);
     val = rewrite(val);
     Trace("cegqi-arith-bound2") << "(after rho) : " << val << std::endl;

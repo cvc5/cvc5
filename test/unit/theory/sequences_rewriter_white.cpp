@@ -196,7 +196,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   // x + 5 < 6 |= 0 > x --> false
   ASSERT_TRUE(!ae.checkWithAssumption(x_plus_five_lt_six, zero, x, true));
 
-  Node neg_x = d_nodeManager->mkNode(kind::UMINUS, x);
+  Node neg_x = d_nodeManager->mkNode(kind::NEG, x);
   Node x_plus_five_lt_five =
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, five));
 

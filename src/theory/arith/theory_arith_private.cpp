@@ -3782,10 +3782,12 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
       }
       return value;
     }
-    case kind::MINUS: {  // 2 args
+    case kind::SUB:
+    {  // 2 args
       return getDeltaValue(term[0]) - getDeltaValue(term[1]);
     }
-    case kind::UMINUS: {  // 1 arg
+    case kind::NEG:
+    {  // 1 arg
       return (-getDeltaValue(term[0]));
     }
 
@@ -4878,8 +4880,7 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   success = decomposeTerm(rewrite(right), rm, rp, rc);
   if(!success){ return false; }
 
-  Node diff =
-      rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
+  Node diff = rewrite(NodeManager::currentNM()->mkNode(kind::SUB, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
   Assert(success);

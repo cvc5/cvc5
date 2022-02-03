@@ -14,12 +14,12 @@
 # A simple demonstration of the api capabilities of cvc5, adapted from quickstart.cpp
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
   # Create a solver
-  solver = pycvc5.Solver()
+  solver = cvc5.Solver()
 
   # We will ask the solver to produce models and unsat cores,
   # hence these options should be turned on.

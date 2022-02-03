@@ -18,10 +18,10 @@
 # which the datastructure needs to handle properly problematic.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
-slv = pycvc5.Solver()
+slv = cvc5.Solver()
 slv.setOption("incremental", "true")
 
 real = slv.getRealSort()
