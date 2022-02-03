@@ -2574,11 +2574,9 @@ void CoreSolver::checkNormalFormsDeq()
     if (Trace.isOn("strings-solve"))
     {
       Trace("strings-solve") << "- Compare " << eq[0] << ", nf ";
-      utils::printConcatTrace(getNormalForm(eq[0]).d_nf,
-                              "strings-solve");
+      utils::printConcatTrace(getNormalForm(eq[0]).d_nf, "strings-solve");
       Trace("strings-solve") << " against " << eq[1] << ", nf ";
-      utils::printConcatTrace(getNormalForm(eq[1]).d_nf,
-                              "strings-solve");
+      utils::printConcatTrace(getNormalForm(eq[1]).d_nf, "strings-solve");
       Trace("strings-solve") << "..." << std::endl;
     }
     // If using the sequence update solver, we always apply extensionality.
@@ -2592,8 +2590,9 @@ void CoreSolver::checkNormalFormsDeq()
     }
     Node n[2];
     Node l[2];
-    for( size_t i=0; i<2; i++ ){
-      n[i] = ee->getRepresentative( eq[i] );
+    for (size_t i = 0; i < 2; i++)
+    {
+      n[i] = ee->getRepresentative(eq[i]);
     }
     Node deq = n[0].eqNode(n[1]);
     processDeq(n[0], n[1]);
