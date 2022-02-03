@@ -2477,7 +2477,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
   d_im.sendInference(
-      {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
+      {deq}, {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
