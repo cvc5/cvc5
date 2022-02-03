@@ -128,7 +128,7 @@ int InstMatchGeneratorMultiLinear::resetChildren()
 bool InstMatchGeneratorMultiLinear::reset(Node eqc)
 {
   Assert(eqc.isNull());
-  if (options::multiTriggerLinear())
+  if (options().quantifiers.multiTriggerLinear)
   {
     return true;
   }
@@ -139,7 +139,7 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
 {
   Trace("multi-trigger-linear-debug")
       << "InstMatchGeneratorMultiLinear::getNextMatch : reset " << std::endl;
-  if (options::multiTriggerLinear())
+  if (options().quantifiers.multiTriggerLinear)
   {
     // reset everyone
     int rc_ret = resetChildren();
@@ -158,7 +158,7 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
   {
     Trace("multi-trigger-linear")
         << "Successful multi-trigger instantiation." << std::endl;
-    if (options::multiTriggerLinear())
+    if (options().quantifiers.multiTriggerLinear)
     {
       // now, restrict everyone
       for (size_t i = 0, csize = d_children.size(); i < csize; i++)
