@@ -37,13 +37,13 @@ namespace smt {
 Assertions::Assertions(Env& env, AbstractValues& absv)
     : EnvObj(env),
       d_absValues(absv),
-      d_produceAssertions(false),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
       d_assertions(env)
 {
+    d_globalDefineFunLemmas.reset(new std::vector<Node>());
 }
 
 Assertions::~Assertions()
@@ -63,21 +63,6 @@ void Assertions::refresh()
       addFormula((*d_globalDefineFunLemmas)[i], false, true, false);
     }
     d_globalDefineFunLemmasIndex = numGlobalDefs;
-  }
-}
-
-void Assertions::finishInit()
-{
-  // [MGD 10/20/2011] keep around in incremental mode, due to a
-  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
-  // first, some user-context-dependent TNodes might still exist
-  // with rc == 0.
-  if (options().smt.produceAssertions || options().base.incrementalSolving)
-  {
-    // In the case of incremental solving, we appear to need these to
-    // ensure the relevant Nodes remain live.
-    d_produceAssertions = true;
-    d_globalDefineFunLemmas.reset(new std::vector<Node>());
   }
 }
 
@@ -157,14 +142,11 @@ void Assertions::addFormula(TNode n,
                             bool isFunDef,
                             bool maybeHasFv)
 {
-  // add to assertion list if it exists
-  if (d_produceAssertions)
+  // add to assertion list
+  d_assertionList.push_back(n);
+  if (isFunDef)
   {
-    d_assertionList.push_back(n);
-    if (isFunDef)
-    {
-      d_assertionListDefs.push_back(n);
-    }
+    d_assertionListDefs.push_back(n);
   }
   if (n.isConst() && n.getConst<bool>())
   {

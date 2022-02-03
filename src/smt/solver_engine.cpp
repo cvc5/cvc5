@@ -1433,10 +1433,7 @@ void SolverEngine::checkUnsatCore()
 void SolverEngine::checkModel(bool hardFailure)
 {
   const context::CDList<Node>& al = d_asserts->getAssertionList();
-  // --check-model implies --produce-assertions, which enables the
-  // assertion list, so we should be ok.
-  Assert(d_env->getOptions().smt.produceAssertions)
-      << "don't have an assertion list to check in SolverEngine::checkModel()";
+  // we always enable the assertion list
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
@@ -1714,13 +1711,7 @@ std::vector<Node> SolverEngine::getAssertions()
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT getAssertions()" << endl;
-  if (!d_env->getOptions().smt.produceAssertions)
-  {
-    const char* msg =
-        "Cannot query the current assertion list when not in "
-        "produce-assertions mode.";
-    throw ModalException(msg);
-  }
+  // note we always enable producing assertions
   return getAssertionsInternal();
 }
 

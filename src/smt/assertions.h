@@ -47,11 +47,6 @@ class Assertions : protected EnvObj
   Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
   /**
-   * Finish initialization, called once after options are finalized. Sets up
-   * the required bookkeeping based on the options.
-   */
-  void finishInit();
-  /**
    * Clears out the non-context-dependent data in this class.  Necessary to
    * clear out our assertion vectors in case someone does a push-assert-pop
    * without a check-sat.
@@ -167,8 +162,6 @@ class Assertions : protected EnvObj
                   bool maybeHasFv);
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
-  /** Whether we are producing assertions */
-  bool d_produceAssertions;
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */
