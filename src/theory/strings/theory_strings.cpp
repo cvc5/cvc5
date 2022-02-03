@@ -768,9 +768,9 @@ void TheoryStrings::preRegisterTerm(TNode n)
 bool TheoryStrings::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  // this is only required for internal facts, others are already registered
   if (atom.getKind() == EQUAL)
   {
+    // this is only required for internal facts, others are already registered
     if (isInternal)
     {
       // We must ensure these terms are registered. We register eagerly here for
@@ -781,10 +781,9 @@ bool TheoryStrings::preNotifyFact(
         d_termReg.registerTerm(t, 0);
       }
     }
+    // store disequalities between strings that occur as literals
     if (!pol && atom[0].getType().isStringLike())
     {
-      // store disequalities between strings, may need to check if their lengths
-      // are equal/disequal
       d_state.addDisequality(atom[0], atom[1]);
     }
   }
