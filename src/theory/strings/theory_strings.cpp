@@ -769,14 +769,23 @@ bool TheoryStrings::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   // this is only required for internal facts, others are already registered
-  if (isInternal && atom.getKind() == EQUAL)
+  if (atom.getKind() == EQUAL)
   {
-    // We must ensure these terms are registered. We register eagerly here for
-    // performance reasons. Alternatively, terms could be registered at full
-    // effort in e.g. BaseSolver::init.
-    for (const Node& t : atom)
+    if (isInternal)
     {
-      d_termReg.registerTerm(t, 0);
+      // We must ensure these terms are registered. We register eagerly here for
+      // performance reasons. Alternatively, terms could be registered at full
+      // effort in e.g. BaseSolver::init.
+      for (const Node& t : atom)
+      {
+        d_termReg.registerTerm(t, 0);
+      }
+    }
+    if (!pol && atom[0].getType().isStringLike())
+    {
+      // store disequalities between strings, may need to check if their lengths
+      // are equal/disequal
+      d_state.addDisequality(atom[0], atom[1]);
     }
   }
   return false;
@@ -950,12 +959,6 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
 
 void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 {
-  if (t1.getType().isStringLike())
-  {
-    // store disequalities between strings, may need to check if their lengths
-    // are equal/disequal
-    d_state.addDisequality(t1, t2);
-  }
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
