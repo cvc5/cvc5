@@ -69,7 +69,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       result = current;
     }
     else if (current.getNumChildren() > 2
-             && (current.getKind() == kind::PLUS
+             && (current.getKind() == kind::ADD
                  || current.getKind() == kind::MULT
                  || current.getKind() == kind::NONLINEAR_MULT))
     {
@@ -149,7 +149,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         switch (newKind)
         {
-          case kind::PLUS:
+          case kind::ADD:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_ADD;
             max = max + 1;

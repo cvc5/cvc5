@@ -16,7 +16,7 @@
 # extract-new.cpp.
 ##
 
-from pycvc5 import Solver, Kind
+from cvc5 import Solver, Kind
 
 if __name__ == "__main__":
     slv = Solver()

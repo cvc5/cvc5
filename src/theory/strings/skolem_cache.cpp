@@ -198,7 +198,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_SUFFIX_REM;
     Node pre = mkSkolemCached(a, b, SK_FIRST_CTN_PRE, "pre");
     b = nm->mkNode(
-        PLUS, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b));
+        ADD, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b));
   }
   else if (id == SK_ID_V_SPT || id == SK_ID_C_SPT)
   {

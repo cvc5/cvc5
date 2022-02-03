@@ -115,7 +115,7 @@ void translate_to_qepcad_term(const std::map<Expr, unsigned>& variables,
   } else {
 
     switch (term.getKind()) {
-      case kind::PLUS:
+      case kind::ADD:
         cout << "(";
         first = true;
         for (unsigned i = 0; i < n; ++ i) {

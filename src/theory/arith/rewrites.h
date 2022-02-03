@@ -50,7 +50,7 @@ enum class Rewrite : uint32_t
   // (mod (mod x c) c) --> (mod x c)
   MOD_OVER_MOD,
   // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
-  // op is one of { NONLINEAR_MULT, MULT, PLUS }.
+  // op is one of { NONLINEAR_MULT, MULT, ADD }.
   MOD_CHILD_MOD,
   // (div (mod x c) c) --> 0
   DIV_OVER_MOD,

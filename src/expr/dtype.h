@@ -177,7 +177,7 @@ class DType
    * @param cargs the arguments of the constructor.
    * It should be the case that cargs are sygus datatypes that
    * encode the arguments of op. For example, a sygus constructor
-   * with op = PLUS should be such that cargs.size()>=2 and
+   * with op = ADD should be such that cargs.size()>=2 and
    * the sygus type of cargs[i] is Real/Int for each i.
    * @param weight denotes the value added by the constructor when computing the
    * size of datatype terms. Passing a value < 0 denotes the default weight for

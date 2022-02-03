@@ -68,7 +68,7 @@ public class Combination
       // Terms
       Term f_x = slv.mkTerm(Kind.APPLY_UF, f, x);
       Term f_y = slv.mkTerm(Kind.APPLY_UF, f, y);
-      Term sum = slv.mkTerm(Kind.PLUS, f_x, f_y);
+      Term sum = slv.mkTerm(Kind.ADD, f_x, f_y);
       Term p_0 = slv.mkTerm(Kind.APPLY_UF, p, zero);
       Term p_f_y = slv.mkTerm(Kind.APPLY_UF, p, f_y);
 

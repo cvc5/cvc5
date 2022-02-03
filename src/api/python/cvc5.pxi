@@ -2950,11 +2950,11 @@ cdef class Term:
         return self.cterm.getId()
 
     def getKind(self):
-        """:return: the :py:class:`pycvc5.Kind` of this term."""
+        """:return: the :py:class:`cvc5.Kind` of this term."""
         return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
-        """:return: the :py:class:`pycvc5.Sort` of this term."""
+        """:return: the :py:class:`cvc5.Sort` of this term."""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
         return sort
@@ -3007,7 +3007,7 @@ cdef class Term:
         """
         .. note:: This is safe to call when :py:meth:`hasOp()` returns True.
 
-        :return: the :py:class:`pycvc5.Op` used to create this Term.
+        :return: the :py:class:`cvc5.Op` used to create this Term.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()

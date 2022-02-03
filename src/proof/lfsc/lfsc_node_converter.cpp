@@ -428,7 +428,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
     Node opc;
-    if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
+    if (k == ADD || k == MULT || k == NONLINEAR_MULT)
     {
       std::stringstream opName;
       // currently allow subtyping
@@ -982,7 +982,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
+  if (k == ADD || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
       || k == LEQ || k == LT || k == SUB || k == DIVISION || k == DIVISION_TOTAL
       || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
       || k == INTS_MODULUS_TOTAL || k == NEG || k == POW)

@@ -12,7 +12,7 @@ properties check propagate ppStaticLearn presolve notifyRestart
 
 rewriter ::cvc5::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 
-operator PLUS 2: "arithmetic addition (N-ary)"
+operator ADD 2: "arithmetic addition (N-ary)"
 operator MULT 2: "arithmetic multiplication (N-ary)"
 operator NONLINEAR_MULT 2: "synonym for MULT"
 operator SUB 2 "arithmetic binary subtraction operator"
@@ -118,7 +118,7 @@ operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this
 # This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
 operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
 
-typerule PLUS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule ADD ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule MULT ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule NONLINEAR_MULT ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule SUB ::cvc5::theory::arith::ArithOperatorTypeRule

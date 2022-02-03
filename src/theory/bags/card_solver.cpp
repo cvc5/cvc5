@@ -411,7 +411,7 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
           counts.push_back(pairs[k].second);
         }
         counts.push_back(pairs[j].second);
-        Node sum = d_nm->mkNode(PLUS, counts);
+        Node sum = d_nm->mkNode(ADD, counts);
         Node premise;
         if (distinct.size() == 1)
         {

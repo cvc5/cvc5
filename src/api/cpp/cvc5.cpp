@@ -130,12 +130,12 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
     {HO_APPLY, cvc5::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
-    {PLUS, cvc5::Kind::PLUS},
+    {ADD, cvc5::Kind::ADD},
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
     {POW2, cvc5::Kind::POW2},
-    {MINUS, cvc5::Kind::SUB},
-    {UMINUS, cvc5::Kind::NEG},
+    {SUB, cvc5::Kind::SUB},
+    {NEG, cvc5::Kind::NEG},
     {DIVISION, cvc5::Kind::DIVISION},
     {INTS_DIVISION, cvc5::Kind::INTS_DIVISION},
     {INTS_MODULUS, cvc5::Kind::INTS_MODULUS},
@@ -314,6 +314,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_MAP, cvc5::Kind::BAG_MAP},
     {BAG_FILTER, cvc5::Kind::BAG_FILTER},
     {BAG_FOLD, cvc5::Kind::BAG_FOLD},
+    {TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
@@ -412,12 +413,12 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
         {cvc5::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
-        {cvc5::Kind::PLUS, PLUS},
+        {cvc5::Kind::ADD, ADD},
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
         {cvc5::Kind::POW2, POW2},
-        {cvc5::Kind::SUB, MINUS},
-        {cvc5::Kind::NEG, UMINUS},
+        {cvc5::Kind::SUB, SUB},
+        {cvc5::Kind::NEG, NEG},
         {cvc5::Kind::DIVISION, DIVISION},
         {cvc5::Kind::DIVISION_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::INTS_DIVISION, INTS_DIVISION},
@@ -627,6 +628,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_MAP, BAG_MAP},
         {cvc5::Kind::BAG_FILTER, BAG_FILTER},
         {cvc5::Kind::BAG_FOLD, BAG_FOLD},
+        {cvc5::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -5185,8 +5187,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   Node res;
   if (echildren.size() > 2)
   {
-    if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
-        || kind == DIVISION || kind == HO_APPLY || kind == REGEXP_DIFF)
+    if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
+        || kind == HO_APPLY || kind == REGEXP_DIFF)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);
@@ -7637,6 +7639,9 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAssertions)
+      << "Cannot block model value unless produce-assertions is enabled "
+         "(try --produce-assertions)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)

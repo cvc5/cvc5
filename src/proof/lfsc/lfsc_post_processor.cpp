@@ -334,7 +334,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::ARITH_SUM_UB:
     {
       // proof of null terminator base 0 = 0
-      Node zero = d_tproc.getNullTerminator(PLUS);
+      Node zero = d_tproc.getNullTerminator(ADD);
       Node cur = zero.eqNode(zero);
       cdp->addStep(cur, PfRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)

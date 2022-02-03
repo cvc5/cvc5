@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of relations.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
 
     # Set the logic
     solver.setLogic("ALL")

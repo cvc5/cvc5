@@ -1,6 +1,6 @@
 Solver
 ========
 
-.. autoclass:: pycvc5.Solver
+.. autoclass:: cvc5.Solver
     :members:
     :undoc-members:

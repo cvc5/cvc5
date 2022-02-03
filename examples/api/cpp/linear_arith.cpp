@@ -44,7 +44,7 @@ int main()
 
   // Terms
   Term three_y = slv.mkTerm(MULT, three, y);
-  Term diff = slv.mkTerm(MINUS, y, x);
+  Term diff = slv.mkTerm(SUB, y, x);
 
   // Formulas
   Term x_geq_3y = slv.mkTerm(GEQ, x, three_y);
