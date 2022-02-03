@@ -790,8 +790,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(
       d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(MINUS, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(MINUS), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(SUB, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SUB), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
@@ -2998,7 +2998,7 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   Sort s2 = slv.getRealSort();
   Term t1 = slv.mkConst(s2, "_x0");
   Term t16 = slv.mkTerm(Kind::PI);
-  Term t53 = slv.mkTerm(Kind::MINUS, {t1, t16});
+  Term t53 = slv.mkTerm(Kind::SUB, {t1, t16});
   Term t54 = slv.mkTerm(Kind::SECANT, {t53});
   ASSERT_NO_THROW(slv.simplify(t54));
 }

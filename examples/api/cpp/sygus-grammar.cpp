@@ -75,7 +75,7 @@ int main()
 
   // define the rules
   Term zero = slv.mkInteger(0);
-  Term neg_x = slv.mkTerm(UMINUS, x);
+  Term neg_x = slv.mkTerm(NEG, x);
   Term plus = slv.mkTerm(ADD, x, start);
 
   // create the grammar object
