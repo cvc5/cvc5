@@ -246,7 +246,7 @@ name   = "SMT Layer"
   type       = "bool"
   alias      = ["interactive-mode"]
   default    = "true"
-  help       = "keep an assertions list (enables get-assertions command)"
+  help       = "keep an assertions list. Note this option is always enabled."
 
 [[option]]
   name       = "doITESimp"

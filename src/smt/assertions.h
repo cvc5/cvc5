@@ -172,7 +172,7 @@ class Assertions : protected EnvObj
    * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.
    */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunLemmas;
+  std::vector<Node> d_globalDefineFunLemmas;
   /** The index of the above list that we have processed */
   context::CDO<size_t> d_globalDefineFunLemmasIndex;
   /**

@@ -43,7 +43,6 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_globalNegation(false),
       d_assertions(env)
 {
-    d_globalDefineFunLemmas.reset(new std::vector<Node>());
 }
 
 Assertions::~Assertions()
@@ -52,18 +51,15 @@ Assertions::~Assertions()
 
 void Assertions::refresh()
 {
-  if (d_globalDefineFunLemmas != nullptr)
+  // Global definitions are asserted now to ensure they always exist. This is
+  // done at the beginning of preprocessing, to ensure that definitions take
+  // priority over, e.g. solving during preprocessing. See issue #7479.
+  size_t numGlobalDefs = d_globalDefineFunLemmas.size();
+  for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
   {
-    // Global definitions are asserted now to ensure they always exist. This is
-    // done at the beginning of preprocessing, to ensure that definitions take
-    // priority over, e.g. solving during preprocessing. See issue #7479.
-    size_t numGlobalDefs = d_globalDefineFunLemmas->size();
-    for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
-    {
-      addFormula((*d_globalDefineFunLemmas)[i], false, true, false);
-    }
-    d_globalDefineFunLemmasIndex = numGlobalDefs;
+    addFormula(d_globalDefineFunLemmas[i], false, true, false);
   }
+  d_globalDefineFunLemmasIndex = numGlobalDefs;
 }
 
 void Assertions::clearCurrent()
@@ -203,12 +199,12 @@ void Assertions::addFormula(TNode n,
 void Assertions::addDefineFunDefinition(Node n, bool global)
 {
   n = d_absValues.substituteAbstractValues(n);
-  if (global && d_globalDefineFunLemmas != nullptr)
+  if (global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
     Assert(!language::isLangSygus(options().base.inputLanguage));
-    d_globalDefineFunLemmas->emplace_back(n);
+    d_globalDefineFunLemmas.emplace_back(n);
   }
   else
   {
