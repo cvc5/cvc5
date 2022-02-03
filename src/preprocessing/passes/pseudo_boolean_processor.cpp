@@ -72,7 +72,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     return false;
   }
   // don't bother matching on anything other than + on the left hand side
-  if (l.getKind() != kind::PLUS)
+  if (l.getKind() != kind::ADD)
   {
     Debug("pbs::rewrites") << "not plus" << assertion << std::endl;
     return false;

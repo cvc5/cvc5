@@ -33,15 +33,15 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
 {
   {
     Node x = d_nodeManager->mkBoundVar(*d_realTypeNode);
-    Node n = d_nodeManager->mkNode(Kind::PLUS, x, x);
+    Node n = d_nodeManager->mkNode(Kind::ADD, x, x);
     EXPECT_FALSE(expr::algorithm::canFlatten(n));
-    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::PLUS));
+    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::MULT));
-    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::PLUS, Kind::MULT));
+    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
     EXPECT_EQ(expr::algorithm::flatten(n), n);
-    EXPECT_EQ(expr::algorithm::flatten(n, Kind::PLUS), n);
+    EXPECT_EQ(expr::algorithm::flatten(n, Kind::ADD), n);
     EXPECT_EQ(expr::algorithm::flatten(n, Kind::MULT), n);
-    EXPECT_EQ(expr::algorithm::flatten(n, Kind::PLUS, Kind::MULT), n);
+    EXPECT_EQ(expr::algorithm::flatten(n, Kind::ADD, Kind::MULT), n);
 
     {
       std::vector<TNode> children;
@@ -52,7 +52,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS);
+      expr::algorithm::flatten(n, children, Kind::ADD);
       EXPECT_EQ(children.size(), 2);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], x);
@@ -65,7 +65,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS, Kind::MULT);
+      expr::algorithm::flatten(n, children, Kind::ADD, Kind::MULT);
       EXPECT_EQ(children.size(), 2);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], x);
@@ -74,15 +74,15 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
   {
     Node x = d_nodeManager->mkBoundVar(*d_realTypeNode);
     Node n = d_nodeManager->mkNode(
-        Kind::PLUS, x, d_nodeManager->mkNode(Kind::PLUS, x, x));
+        Kind::ADD, x, d_nodeManager->mkNode(Kind::ADD, x, x));
     EXPECT_TRUE(expr::algorithm::canFlatten(n));
-    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::PLUS));
+    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::MULT));
-    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::PLUS, Kind::MULT));
+    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
     EXPECT_NE(expr::algorithm::flatten(n), n);
-    EXPECT_NE(expr::algorithm::flatten(n, Kind::PLUS), n);
+    EXPECT_NE(expr::algorithm::flatten(n, Kind::ADD), n);
     EXPECT_EQ(expr::algorithm::flatten(n, Kind::MULT), n);
-    EXPECT_NE(expr::algorithm::flatten(n, Kind::PLUS, Kind::MULT), n);
+    EXPECT_NE(expr::algorithm::flatten(n, Kind::ADD, Kind::MULT), n);
 
     {
       std::vector<TNode> children;
@@ -94,7 +94,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS);
+      expr::algorithm::flatten(n, children, Kind::ADD);
       EXPECT_EQ(children.size(), 3);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], x);
@@ -108,7 +108,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS, Kind::MULT);
+      expr::algorithm::flatten(n, children, Kind::ADD, Kind::MULT);
       EXPECT_EQ(children.size(), 3);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], x);
@@ -120,13 +120,13 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     Node n = d_nodeManager->mkNode(
         Kind::MULT, x, d_nodeManager->mkNode(Kind::MULT, x, x));
     EXPECT_TRUE(expr::algorithm::canFlatten(n));
-    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::PLUS));
+    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::MULT));
-    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::PLUS, Kind::MULT));
+    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
     EXPECT_NE(expr::algorithm::flatten(n), n);
-    EXPECT_EQ(expr::algorithm::flatten(n, Kind::PLUS), n);
+    EXPECT_EQ(expr::algorithm::flatten(n, Kind::ADD), n);
     EXPECT_NE(expr::algorithm::flatten(n, Kind::MULT), n);
-    EXPECT_NE(expr::algorithm::flatten(n, Kind::PLUS, Kind::MULT), n);
+    EXPECT_NE(expr::algorithm::flatten(n, Kind::ADD, Kind::MULT), n);
 
     {
       std::vector<TNode> children;
@@ -138,7 +138,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS);
+      expr::algorithm::flatten(n, children, Kind::ADD);
       EXPECT_EQ(children.size(), 1);
       EXPECT_EQ(children[0], n);
     }
@@ -152,7 +152,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS, Kind::MULT);
+      expr::algorithm::flatten(n, children, Kind::ADD, Kind::MULT);
       EXPECT_EQ(children.size(), 3);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], x);
@@ -162,15 +162,15 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
   {
     Node x = d_nodeManager->mkBoundVar(*d_realTypeNode);
     Node n = d_nodeManager->mkNode(
-        Kind::PLUS, x, d_nodeManager->mkNode(Kind::MULT, x, x));
+        Kind::ADD, x, d_nodeManager->mkNode(Kind::MULT, x, x));
     EXPECT_FALSE(expr::algorithm::canFlatten(n));
-    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::PLUS));
+    EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::MULT));
-    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::PLUS, Kind::MULT));
+    EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
     EXPECT_EQ(expr::algorithm::flatten(n), n);
-    EXPECT_EQ(expr::algorithm::flatten(n, Kind::PLUS), n);
+    EXPECT_EQ(expr::algorithm::flatten(n, Kind::ADD), n);
     EXPECT_EQ(expr::algorithm::flatten(n, Kind::MULT), n);
-    EXPECT_NE(expr::algorithm::flatten(n, Kind::PLUS, Kind::MULT), n);
+    EXPECT_NE(expr::algorithm::flatten(n, Kind::ADD, Kind::MULT), n);
 
     {
       std::vector<TNode> children;
@@ -181,7 +181,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS);
+      expr::algorithm::flatten(n, children, Kind::ADD);
       EXPECT_EQ(children.size(), 2);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], n[1]);
@@ -194,7 +194,7 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     }
     {
       std::vector<TNode> children;
-      expr::algorithm::flatten(n, children, Kind::PLUS, Kind::MULT);
+      expr::algorithm::flatten(n, children, Kind::ADD, Kind::MULT);
       EXPECT_EQ(children.size(), 3);
       EXPECT_EQ(children[0], x);
       EXPECT_EQ(children[1], x);

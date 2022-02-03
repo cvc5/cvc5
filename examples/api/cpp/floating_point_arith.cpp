@@ -56,8 +56,8 @@ int main()
   cout << "c = " << solver.getValue(c) << endl;
 
   // Now, let's restrict `a` to be either NaN or positive infinity
-  Term nan = solver.mkNaN(8, 24);
-  Term inf = solver.mkPosInf(8, 24);
+  Term nan = solver.mkFloatingPointNaN(8, 24);
+  Term inf = solver.mkFloatingPointPosInf(8, 24);
   solver.assertFormula(solver.mkTerm(
       OR, solver.mkTerm(EQUAL, a, inf), solver.mkTerm(EQUAL, a, nan)));
 
@@ -91,7 +91,7 @@ int main()
 
   // For our final trick, let's try to find a floating-point number between
   // positive zero and the smallest positive floating-point number
-  Term zero = solver.mkPosZero(8, 24);
+  Term zero = solver.mkFloatingPointPosZero(8, 24);
   Term smallest = solver.mkFloatingPoint(8, 24, solver.mkBitVector(32, 0b001));
   solver.assertFormula(
       solver.mkTerm(AND,

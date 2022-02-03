@@ -717,7 +717,7 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
     {
       return a_eq_b;
     }
-    Node negate_b = NodeManager::currentNM()->mkNode(Kind::UMINUS, b);
+    Node negate_b = NodeManager::currentNM()->mkNode(Kind::NEG, b);
     return a_eq_b.orNode(a.eqNode(negate_b));
   }
   else if (status < 0)
@@ -734,8 +734,8 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
   // return nm->mkNode( greater_op, mkAbs( a ), mkAbs( b ) );
   Node a_is_nonnegative = nm->mkNode(Kind::GEQ, a, d_data->d_zero);
   Node b_is_nonnegative = nm->mkNode(Kind::GEQ, b, d_data->d_zero);
-  Node negate_a = nm->mkNode(Kind::UMINUS, a);
-  Node negate_b = nm->mkNode(Kind::UMINUS, b);
+  Node negate_a = nm->mkNode(Kind::NEG, a);
+  Node negate_b = nm->mkNode(Kind::NEG, b);
   return a_is_nonnegative.iteNode(
       b_is_nonnegative.iteNode(nm->mkNode(greater_op, a, b),
                                nm->mkNode(greater_op, a, negate_b)),

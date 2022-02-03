@@ -13,10 +13,10 @@
 # Test for issue #4889
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
-slv = pycvc5.Solver()
+slv = cvc5.Solver()
 sort_int = slv.getIntegerSort()
 sort_array = slv.mkArraySort(sort_int, sort_int)
 sort_fp128 = slv.mkFloatingPointSort(15, 113)

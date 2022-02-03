@@ -59,9 +59,9 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse rewriteVariable(TNode t);
 
   /** rewrite unary minus */
-  static RewriteResponse rewriteUMinus(TNode t, bool pre);
+  static RewriteResponse rewriteNeg(TNode t, bool pre);
   /** rewrite binary minus */
-  static RewriteResponse rewriteMinus(TNode t);
+  static RewriteResponse rewriteSub(TNode t);
   /** preRewrite addition */
   static RewriteResponse preRewritePlus(TNode t);
   /** postRewrite addition */

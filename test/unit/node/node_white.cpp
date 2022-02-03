@@ -48,11 +48,11 @@ TEST_F(TestNodeWhiteNode, iterators)
 {
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
-  Node x_plus_y = d_nodeManager->mkNode(PLUS, x, y);
+  Node x_plus_y = d_nodeManager->mkNode(ADD, x, y);
   Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
   Node x_times_2 = d_nodeManager->mkNode(MULT, x, two);
 
-  Node n = d_nodeManager->mkNode(PLUS, x_times_2, x_plus_y, y);
+  Node n = d_nodeManager->mkNode(ADD, x_times_2, x_plus_y, y);
 
   Node::iterator i;
 

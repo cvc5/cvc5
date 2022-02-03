@@ -21,8 +21,10 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc)
-    : ProofStepBuffer(pc)
+TheoryProofStepBuffer::TheoryProofStepBuffer(ProofChecker* pc,
+                                             bool ensureUnique,
+                                             bool autoSym)
+    : ProofStepBuffer(pc, ensureUnique, autoSym)
 {
 }
 
@@ -36,7 +38,8 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
   std::vector<Node> args;
   args.push_back(src);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(PfRule::MACRO_SR_EQ_INTRO, exp, args);
+  bool added;
+  Node res = tryStep(added, PfRule::MACRO_SR_EQ_INTRO, exp, args);
   if (res.isNull())
   {
     // failed to apply
@@ -47,7 +50,10 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
   if (res != expected)
   {
     // did not provide the correct target
-    popStep();
+    if (added)
+    {
+      popStep();
+    }
     return false;
   }
   // successfully proved src == tgt.
@@ -62,7 +68,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
                                                MethodId idr)
 {
   // symmetric equalities
-  if (CDProof::isSame(src, tgt))
+  if (d_autoSym && CDProof::isSame(src, tgt))
   {
     return true;
   }
@@ -113,8 +119,9 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
   addMethodIds(args, ids, ida, idr);
-  Node srcRew = tryStep(PfRule::MACRO_SR_PRED_ELIM, children, args);
-  if (CDProof::isSame(src, srcRew))
+  bool added;
+  Node srcRew = tryStep(added, PfRule::MACRO_SR_PRED_ELIM, children, args);
+  if (d_autoSym && added && CDProof::isSame(src, srcRew))
   {
     popStep();
   }

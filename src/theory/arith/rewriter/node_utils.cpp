@@ -18,7 +18,10 @@
 #include "base/check.h"
 #include "theory/arith/rewriter/ordering.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 bool isIntegral(TNode n)
 {
@@ -40,10 +43,10 @@ bool isIntegral(TNode n)
         queue.emplace_back(n[0]);
         queue.emplace_back(n[1]);
         break;
-      case Kind::PLUS:
+      case Kind::ADD:
+      case Kind::NEG:
+      case Kind::SUB:
       case Kind::MULT:
-      case Kind::MINUS:
-      case Kind::UMINUS:
         queue.insert(queue.end(), cur.begin(), cur.end());
         break;
       default:
@@ -102,4 +105,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

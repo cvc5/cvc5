@@ -123,7 +123,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           {
             continue;
           }
-          Node sum = nm->mkNode(Kind::PLUS, itf->second);
+          Node sum = nm->mkNode(Kind::ADD, itf->second);
           sum = rewrite(sum);
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
@@ -150,8 +150,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
                   itm->second, itm->first.isNull() ? d_one : itm->first));
             }
           }
-          Node polyn =
-              poly.size() == 1 ? poly[0] : nm->mkNode(Kind::PLUS, poly);
+          Node polyn = poly.size() == 1 ? poly[0] : nm->mkNode(Kind::ADD, poly);
           Trace("nl-ext-factor")
               << "...factored polynomial : " << polyn << std::endl;
           Node zero = nm->mkConstRealOrInt(polyn.getType(), Rational(0));
