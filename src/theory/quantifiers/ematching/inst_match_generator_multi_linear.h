@@ -78,7 +78,7 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
   /** reset the children of this generator */
   int resetChildren();
   /** constructor */
-  InstMatchGeneratorMultiLinear(Trigger* tparent,
+  InstMatchGeneratorMultiLinear(Env& env, Trigger* tparent,
                                 Node q,
                                 std::vector<Node>& pats);
 };

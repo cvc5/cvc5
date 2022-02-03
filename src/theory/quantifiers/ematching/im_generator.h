@@ -20,6 +20,7 @@
 
 #include <map>
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
@@ -51,9 +52,9 @@ class Trigger;
  * point in which instantiate lemmas are enqueued to be sent on the output
  * channel.
  */
-class IMGenerator {
+class IMGenerator : protected EnvObj {
 public:
- IMGenerator(Trigger* tparent);
+ IMGenerator(Env& env, Trigger* tparent);
  virtual ~IMGenerator() {}
  /** Reset instantiation round.
   *
