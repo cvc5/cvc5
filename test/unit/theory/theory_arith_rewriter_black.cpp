@@ -121,8 +121,8 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     Node m = d_nodeManager->mkNode(
-        Kind::PLUS, n, d_nodeManager->mkConstReal(Rational(1)));
-    n = d_nodeManager->mkNode(Kind::MINUS, m, n);
+        Kind::ADD, n, d_nodeManager->mkConstReal(Rational(1)));
+    n = d_nodeManager->mkNode(Kind::SUB, m, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
     EXPECT_EQ(n.getConst<Rational>(), Rational(1));
@@ -136,7 +136,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     Node n10 = d_nodeManager->mkRealAlgebraicNumber(sqrt10);
     {
       Node n = d_nodeManager->mkNode(
-          Kind::LT, d_nodeManager->mkNode(Kind::PLUS, n2, n3), n10);
+          Kind::LT, d_nodeManager->mkNode(Kind::ADD, n2, n3), n10);
       n = d_slvEngine->getRewriter()->rewrite(n);
       EXPECT_EQ(n.getKind(), Kind::CONST_BOOLEAN);
       EXPECT_TRUE(n.getConst<bool>());
@@ -144,9 +144,9 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     {
       Node n = d_nodeManager->mkNode(
           Kind::LT,
-          d_nodeManager->mkNode(Kind::PLUS, n2, n3),
+          d_nodeManager->mkNode(Kind::ADD, n2, n3),
           d_nodeManager->mkNode(
-              Kind::MINUS, n10, d_nodeManager->mkConstReal(Rational(1))));
+              Kind::SUB, n10, d_nodeManager->mkConstReal(Rational(1))));
       n = d_slvEngine->getRewriter()->rewrite(n);
       EXPECT_EQ(n.getKind(), Kind::CONST_BOOLEAN);
       EXPECT_FALSE(n.getConst<bool>());
@@ -221,7 +221,7 @@ TEST_F(TestTheoryArithRewriterBlack, distribute)
     constexpr size_t n = 10;
     Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
     Node b = d_nodeManager->mkBoundVar("b", d_nodeManager->realType());
-    Node sum = d_nodeManager->mkNode(Kind::PLUS, a, b);
+    Node sum = d_nodeManager->mkNode(Kind::ADD, a, b);
     Node prod = d_nodeManager->mkNode(Kind::MULT, std::vector<Node>(n, sum));
     prod = d_slvEngine->getRewriter()->rewrite(prod);
 
@@ -240,7 +240,7 @@ TEST_F(TestTheoryArithRewriterBlack, distribute)
       }
       reference.emplace_back(mon);
     }
-    Node ref = d_nodeManager->mkNode(Kind::PLUS, std::move(reference));
+    Node ref = d_nodeManager->mkNode(Kind::ADD, std::move(reference));
     EXPECT_EQ(ref, prod);
   }
 }
@@ -251,7 +251,7 @@ TEST_F(TestTheoryArithRewriterBlack, equal)
     Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
     Node b = d_nodeManager->mkBoundVar("b", d_nodeManager->realType());
     Node eq1 = a.eqNode(b);
-    Node eq2 = d_nodeManager->mkNode(Kind::MINUS, a, b)
+    Node eq2 = d_nodeManager->mkNode(Kind::SUB, a, b)
                    .eqNode(d_nodeManager->mkConstReal(Rational(0)));
     eq1 = d_slvEngine->getRewriter()->rewrite(eq1);
     eq2 = d_slvEngine->getRewriter()->rewrite(eq2);
@@ -264,7 +264,7 @@ TEST_F(TestTheoryArithRewriterBlack, leq)
   {
     Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
     Node left = d_nodeManager->mkNode(
-        Kind::PLUS,
+        Kind::ADD,
         {
             d_nodeManager->mkNode(Kind::MULT,
                                   {d_nodeManager->mkConstReal(Rational(1)), a}),
@@ -283,7 +283,7 @@ TEST_F(TestTheoryArithRewriterBlack, leq)
     Node left = d_nodeManager->mkNode(
         Kind::MULT, d_nodeManager->mkConstReal(Rational(5)), a);
     Node right = d_nodeManager->mkNode(
-        Kind::PLUS,
+        Kind::ADD,
         d_nodeManager->mkConstReal(Rational(1)),
         d_nodeManager->mkNode(
             Kind::MULT, d_nodeManager->mkConstReal(Rational(3)), a));
