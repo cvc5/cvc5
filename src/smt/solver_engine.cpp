@@ -1708,7 +1708,7 @@ std::vector<Node> SolverEngine::getAssertions()
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT getAssertions()" << endl;
-  // note we always enable producing assertions
+  // note we always enable assertions, so it is available here
   return getAssertionsInternal();
 }
 
