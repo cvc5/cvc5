@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --strings-exp --seq-array=lazy
-; EXPECT: unsato
-
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort E 0)
