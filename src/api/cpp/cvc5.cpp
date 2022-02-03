@@ -134,8 +134,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
     {POW2, cvc5::Kind::POW2},
-    {MINUS, cvc5::Kind::SUB},
-    {UMINUS, cvc5::Kind::NEG},
+    {SUB, cvc5::Kind::SUB},
+    {NEG, cvc5::Kind::NEG},
     {DIVISION, cvc5::Kind::DIVISION},
     {INTS_DIVISION, cvc5::Kind::INTS_DIVISION},
     {INTS_MODULUS, cvc5::Kind::INTS_MODULUS},
@@ -416,8 +416,8 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
         {cvc5::Kind::POW2, POW2},
-        {cvc5::Kind::SUB, MINUS},
-        {cvc5::Kind::NEG, UMINUS},
+        {cvc5::Kind::SUB, SUB},
+        {cvc5::Kind::NEG, NEG},
         {cvc5::Kind::DIVISION, DIVISION},
         {cvc5::Kind::DIVISION_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::INTS_DIVISION, INTS_DIVISION},
@@ -5185,8 +5185,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   Node res;
   if (echildren.size() > 2)
   {
-    if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
-        || kind == DIVISION || kind == HO_APPLY || kind == REGEXP_DIFF)
+    if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
+        || kind == HO_APPLY || kind == REGEXP_DIFF)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);

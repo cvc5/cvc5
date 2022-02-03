@@ -41,7 +41,7 @@ public class LinearArith
 
       // Terms
       Term three_y = slv.mkTerm(Kind.MULT, three, y);
-      Term diff = slv.mkTerm(Kind.MINUS, y, x);
+      Term diff = slv.mkTerm(Kind.SUB, y, x);
 
       // Formulas
       Term x_geq_3y = slv.mkTerm(Kind.GEQ, x, three_y);
