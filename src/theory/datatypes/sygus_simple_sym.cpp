@@ -200,7 +200,7 @@ bool SygusSimpleSymBreak::considerArgKind(
   Assert(rt.empty());
 
   // construct rt by cases
-  if (pk == NOT || pk == BITVECTOR_NOT || pk == UMINUS || pk == BITVECTOR_NEG)
+  if (pk == NOT || pk == BITVECTOR_NOT || pk == NEG || pk == BITVECTOR_NEG)
   {
     // negation normal form
     if (pk == k)
@@ -280,12 +280,12 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_req_kind = BITVECTOR_XNOR;
         }
       }
-      else if (pk == UMINUS)
+      else if (pk == NEG)
       {
         if (k == PLUS)
         {
           rt.d_req_kind = PLUS;
-          reqk = UMINUS;
+          reqk = NEG;
         }
       }
       else if (pk == BITVECTOR_NEG)
@@ -327,17 +327,17 @@ bool SygusSimpleSymBreak::considerArgKind(
       }
     }
   }
-  else if (k == MINUS || k == BITVECTOR_SUB)
+  else if (k == SUB || k == BITVECTOR_SUB)
   {
-    if (pk == EQUAL || pk == MINUS || pk == BITVECTOR_SUB || pk == LEQ
-        || pk == LT || pk == GEQ || pk == GT)
+    if (pk == EQUAL || pk == SUB || pk == BITVECTOR_SUB || pk == LEQ || pk == LT
+        || pk == GEQ || pk == GT)
     {
       int oarg = arg == 0 ? 1 : 0;
       //  (~ x (- y z))  ---->  (~ (+ x z) y)
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
-      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_ADD;
+      rt.d_children[oarg].d_req_kind = k == SUB ? PLUS : BITVECTOR_ADD;
       rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
       rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
@@ -345,7 +345,7 @@ bool SygusSimpleSymBreak::considerArgKind(
     {
       //  (+ x (- y z))  -----> (- (+ x y) z)
       //  (+ (- y z) x)  -----> (- (+ x y) z)
-      rt.d_req_kind = pk == PLUS ? MINUS : BITVECTOR_SUB;
+      rt.d_req_kind = pk == PLUS ? SUB : BITVECTOR_SUB;
       int oarg = arg == 0 ? 1 : 0;
       rt.d_children[0].d_req_kind = pk;
       rt.d_children[0].d_children[0].d_req_type = pdt[pc].getArgType(oarg);

@@ -671,7 +671,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
       {
         if (nk == PLUS)
         {
-          x = nm->mkNode(MINUS, x, nc);
+          x = nm->mkNode(SUB, x, nc);
         }
         else if (nk == MULT)
         {
@@ -685,7 +685,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
             }
             if (nc.getConst<Rational>().sgn() < 0)
             {
-              x = nm->mkNode(UMINUS, x);
+              x = nm->mkNode(NEG, x);
             }
           }
           else

@@ -503,29 +503,29 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkFalse());
   }
 
-  @Test void mkNaN() throws CVC5ApiException
+  @Test void mkFloatingPointNaN() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkNaN(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointNaN(3, 5));
   }
 
-  @Test void mkNegZero() throws CVC5ApiException
+  @Test void mkFloatingPointNegZero() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkNegZero(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointNegZero(3, 5));
   }
 
-  @Test void mkNegInf()
+  @Test void mkFloatingPointNegInf()
   {
-    assertDoesNotThrow(() -> d_solver.mkNegInf(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointNegInf(3, 5));
   }
 
-  @Test void mkPosInf()
+  @Test void mkFloatingPointPosInf()
   {
-    assertDoesNotThrow(() -> d_solver.mkPosInf(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointPosInf(3, 5));
   }
 
-  @Test void mkPosZero()
+  @Test void mkFloatingPointPosZero()
   {
-    assertDoesNotThrow(() -> d_solver.mkPosZero(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointPosZero(3, 5));
   }
 
   @Test void mkOp()

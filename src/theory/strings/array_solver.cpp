@@ -267,7 +267,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     if (!lacc.empty())
     {
       currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
-      currIndex = nm->mkNode(MINUS, currIndex, currSum);
+      currIndex = nm->mkNode(SUB, currIndex, currSum);
     }
     Node cc;
     if (k == STRING_UPDATE && checkInv)

@@ -189,13 +189,12 @@ void SineSolver::checkInitialRefine()
                   nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
                   nm->mkNode(Kind::GT,
                              t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0]))),
+                             nm->mkNode(Kind::SUB, d_data->d_pi_neg, t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
                   nm->mkNode(Kind::LT, t[0], d_data->d_pi),
-                  nm->mkNode(Kind::LT,
-                             t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))));
+                  nm->mkNode(
+                      Kind::LT, t, nm->mkNode(Kind::SUB, d_data->d_pi, t[0]))));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {

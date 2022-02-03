@@ -16,14 +16,14 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Result
-from pycvc5 import UnknownExplanation
+import cvc5
+from cvc5 import Result
+from cvc5 import UnknownExplanation
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_is_null(solver):
@@ -109,6 +109,6 @@ def test_is_entailment_unknown(solver):
     res = solver.checkEntailed(x.eqTerm(x))
     assert not res.isEntailed()
     assert res.isEntailmentUnknown()
-    print(type(pycvc5.RoundTowardZero))
-    print(type(pycvc5.UnknownReason))
-    assert res.getUnknownExplanation() == pycvc5.UnknownReason
+    print(type(cvc5.RoundTowardZero))
+    print(type(cvc5.UnknownReason))
+    assert res.getUnknownExplanation() == cvc5.UnknownReason

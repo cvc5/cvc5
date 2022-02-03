@@ -401,8 +401,8 @@ TEST_F(TestNodeBlackNode, getKind)
   n = d_nodeManager->mkNode(PLUS, x, y);
   ASSERT_EQ(PLUS, n.getKind());
 
-  n = d_nodeManager->mkNode(UMINUS, x);
-  ASSERT_EQ(UMINUS, n.getKind());
+  n = d_nodeManager->mkNode(NEG, x);
+  ASSERT_EQ(NEG, n.getKind());
 }
 
 TEST_F(TestNodeBlackNode, getOperator)
@@ -513,7 +513,7 @@ TEST_F(TestNodeBlackNode, kinded_iterator)
   Node y = d_skolemManager->mkDummySkolem("y", integerType);
   Node z = d_skolemManager->mkDummySkolem("z", integerType);
   Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
-  Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
+  Node x_minus_y = d_nodeManager->mkNode(kind::SUB, x, y);
 
   {  // iterator
     Node::kinded_iterator i = plus_x_y_z.begin(PLUS);

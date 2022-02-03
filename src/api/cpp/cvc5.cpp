@@ -134,8 +134,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
     {POW2, cvc5::Kind::POW2},
-    {MINUS, cvc5::Kind::MINUS},
-    {UMINUS, cvc5::Kind::UMINUS},
+    {MINUS, cvc5::Kind::SUB},
+    {UMINUS, cvc5::Kind::NEG},
     {DIVISION, cvc5::Kind::DIVISION},
     {INTS_DIVISION, cvc5::Kind::INTS_DIVISION},
     {INTS_MODULUS, cvc5::Kind::INTS_MODULUS},
@@ -416,8 +416,8 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
         {cvc5::Kind::POW2, POW2},
-        {cvc5::Kind::MINUS, MINUS},
-        {cvc5::Kind::UMINUS, UMINUS},
+        {cvc5::Kind::SUB, MINUS},
+        {cvc5::Kind::NEG, UMINUS},
         {cvc5::Kind::DIVISION, DIVISION},
         {cvc5::Kind::DIVISION_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::INTS_DIVISION, INTS_DIVISION},
@@ -6031,7 +6031,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6041,7 +6041,7 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6051,7 +6051,7 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6061,7 +6061,7 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6071,7 +6071,7 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -7637,6 +7637,9 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAssertions)
+      << "Cannot block model value unless produce-assertions is enabled "
+         "(try --produce-assertions)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
