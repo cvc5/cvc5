@@ -1133,7 +1133,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
             << "n: " << n << endl
             << "getValue(n): " << tm->getValue(n) << std::endl
             << "rep: " << rep << std::endl;
-        if (false && val.isConst() && rep.isConst())
+        if (val.isConst() && rep.isConst())
         {
           AlwaysAssert(val == rep) << err.str();
         }
