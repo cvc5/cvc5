@@ -44,9 +44,9 @@ bool isIntegral(TNode n)
         queue.emplace_back(n[1]);
         break;
       case Kind::PLUS:
+      case Kind::NEG:
+      case Kind::SUB:
       case Kind::MULT:
-      case Kind::MINUS:
-      case Kind::UMINUS:
         queue.insert(queue.end(), cur.begin(), cur.end());
         break;
       default:
