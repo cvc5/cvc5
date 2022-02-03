@@ -957,10 +957,6 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-}
-
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
                                  TNodeTrie* t2,
                                  unsigned arity,
