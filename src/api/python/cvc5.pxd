@@ -241,7 +241,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
         Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
         Term mkRoundingMode(RoundingMode rm) except +
-        Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
