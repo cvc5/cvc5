@@ -120,7 +120,7 @@ Node collectSumWithBase(const Sum& sum,
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
+  NodeBuilder nb(Kind::ADD);
   for (const auto& summand : sum)
   {
     Assert(!isZero(summand.second));
@@ -139,7 +139,7 @@ Node collectSumWithBase(const Sum& sum,
 
 void addToSum(Sum& sum, TNode n, bool negate)
 {
-  if (n.getKind() == Kind::PLUS)
+  if (n.getKind() == Kind::ADD)
   {
     for (const auto& child : n)
     {
@@ -161,7 +161,7 @@ Node collectSum(const Sum& sum)
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
+  NodeBuilder nb(Kind::ADD);
   for (const auto& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);
@@ -197,10 +197,10 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   for (const auto& factor : factors)
   {
     // Subtractions are rewritten already, we only need to care about additions
-    Assert(factor.getKind() != Kind::MINUS);
-    Assert(factor.getKind() != Kind::UMINUS
+    Assert(factor.getKind() != Kind::SUB);
+    Assert(factor.getKind() != Kind::NEG
            || (factor[0].isConst() || isRAN(factor[0])));
-    if (factor.getKind() != Kind::PLUS)
+    if (factor.getKind() != Kind::ADD)
     {
       Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
       addToProduct(base, basemultiplicity, factor);
