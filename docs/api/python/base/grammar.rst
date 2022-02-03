@@ -1,6 +1,6 @@
 Grammar
 ================
 
-.. autoclass:: pycvc5.Grammar
+.. autoclass:: cvc5.Grammar
     :members:
     :undoc-members:

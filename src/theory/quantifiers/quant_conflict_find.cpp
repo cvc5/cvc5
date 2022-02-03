@@ -70,14 +70,15 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
          j++)
     {
       if( d_vars[j].getKind()!=BOUND_VARIABLE ){
-        d_var_mg[j] = NULL;
+        d_var_mg[j] = nullptr;
         bool is_tsym = false;
         if( !MatchGen::isHandledUfTerm( d_vars[j] ) && d_vars[j].getKind()!=ITE ){
           is_tsym = true;
           d_tsym_vars.push_back( j );
         }
-        if( !is_tsym || options::qcfTConstraint() ){
-          d_var_mg[j] = new MatchGen(p, this, d_vars[j], true);
+        if (!is_tsym || options().quantifiers.qcfTConstraint)
+        {
+          d_var_mg[j] = std::make_unique<MatchGen>(p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
           Trace("qcf-invalid") << "QCF invalid : cannot match for " << d_vars[j] << std::endl;
@@ -97,16 +98,20 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
     Trace("qcf-invalid") << "QCF invalid : body of formula cannot be processed." << std::endl;
   }
   Trace("qcf-qregister-summary") << "QCF register : " << ( d_mg->isValid() ? "VALID " : "INVALID" ) << " : " << q << std::endl;
-  
-  if( d_mg->isValid() && options::qcfEagerCheckRd() ){
+
+  if (d_mg->isValid() && options().quantifiers.qcfEagerCheckRd)
+  {
     //optimization : record variable argument positions for terms that must be matched
     std::vector< TNode > vars;
     //TODO: revisit this, makes QCF faster, but misses conflicts due to caring about paths that may not be relevant (starExec jobs 14136/14137)
-    if( options::qcfSkipRd() ){
+    if (options().quantifiers.qcfSkipRd)
+    {
       for( unsigned j=q[0].getNumChildren(); j<d_vars.size(); j++ ){
         vars.push_back( d_vars[j] );
       }
-    }else{
+    }
+    else
+    {
       //get all variables that are always relevant
       std::map< TNode, bool > visited;
       getPropagateVars(vars, q[1], false, visited);
@@ -211,7 +216,7 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
           }
           registerNode(n[0], false, pol, beneathQuant);
         }
-        else if (options::qcfTConstraint())
+        else if (options().quantifiers.qcfTConstraint)
         {
           // a theory-specific predicate
           for (unsigned i = 0; i < n.getNumChildren(); i++)
@@ -280,7 +285,7 @@ bool QuantInfo::reset_round()
   d_tconstraints.clear();
 
   d_mg->reset_round();
-  for (const std::pair<const size_t, MatchGen*>& vg : d_var_mg)
+  for (const std::pair<const size_t, std::unique_ptr<MatchGen>>& vg : d_var_mg)
   {
     if (!vg.second->reset_round())
     {
@@ -642,7 +647,8 @@ bool QuantInfo::isMatchSpurious()
 
 bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
 {
-  if( options::qcfEagerTest() ){
+  if (options().quantifiers.qcfEagerTest)
+  {
     EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
     //check whether the instantiation evaluates as expected
     std::map<TNode, TNode> subs;
@@ -670,7 +676,7 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
       // combination of known terms under the current substitution. We use
       // the helper method evaluateTerm from the entailment check utility.
       Node inst_eval = echeck->evaluateTerm(
-          d_q[1], subs, false, options::qcfTConstraint(), true);
+          d_q[1], subs, false, options().quantifiers.qcfTConstraint, true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         Trace("qcf-instance-check") << "  " << terms << std::endl;
@@ -767,7 +773,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
     doFail = true;
     success = false;
   }else{
-    if( isBaseMatchComplete() && options::qcfEagerTest() ){
+    if (isBaseMatchComplete() && options().quantifiers.qcfEagerTest)
+    {
       return true;
     }
     //solve for interpreted symbol matches
@@ -780,7 +787,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
         slv_v = index;
       }
       Trace("qcf-tconstraint-debug") << "Solve " << d_vars[index] << " = " << v << " " << d_vars[index].getKind() << std::endl;
-      if( d_vars[index].getKind()==PLUS || d_vars[index].getKind()==MULT ){
+      if (d_vars[index].getKind() == ADD || d_vars[index].getKind() == MULT)
+      {
         Kind k = d_vars[index].getKind();
         std::vector< TNode > children;
         for (const Node& vi : d_vars[index]){
@@ -835,8 +843,9 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               if (d_parent->atConflictEffort())
               {
                 Kind kn = k;
-                if( d_vars[index].getKind()==PLUS ){
-                  kn = MINUS;
+                if (d_vars[index].getKind() == ADD)
+                {
+                  kn = SUB;
                 }
                 if( kn!=k ){
                   sum = NodeManager::currentNM()->mkNode( kn, v, lhs );
@@ -2434,7 +2443,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
         d_treg.getModel()->markRelevant(q);
-        if (options::qcfAllConflict())
+        if (options().quantifiers.qcfAllConflict)
         {
           isConflict = true;
         }
@@ -2546,7 +2555,8 @@ TNode QuantConflictFind::getZero(TypeNode tn, Kind k)
   if (it == d_zero.end())
   {
     Node nn;
-    if( k==PLUS ){
+    if (k == ADD)
+    {
       nn = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
     }
     d_zero[key] = nn;

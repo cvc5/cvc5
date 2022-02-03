@@ -39,8 +39,8 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.check-python-bindings }}" != "true" ]]; then exit 0; fi
-        export PYTHONPATH="$PYTHONPATH:$(dirname $(find ${{ inputs.build-dir }}/install/ -name "pycvc5" -type d))"
-        python3 -c "import pycvc5"
+        export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install -name 'cvc5_python_base*')))"
+        python3 -c "import cvc5"
 
     - name: Check Examples
       shell: bash

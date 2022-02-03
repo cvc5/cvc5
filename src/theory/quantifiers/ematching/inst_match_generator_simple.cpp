@@ -29,10 +29,11 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
+InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
+                                                   Trigger* tparent,
                                                    Node q,
                                                    Node pat)
-    : IMGenerator(tparent), d_quant(q), d_match_pattern(pat)
+    : IMGenerator(env, tparent), d_quant(q), d_match_pattern(pat)
 {
   if (d_match_pattern.getKind() == NOT)
   {
@@ -54,7 +55,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
   {
     if (d_match_pattern[i].getKind() == INST_CONSTANT)
     {
-      if (!options::cegqi()
+      if (!options().quantifiers.cegqi
           || TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
       {
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());

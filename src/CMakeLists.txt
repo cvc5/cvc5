@@ -498,6 +498,9 @@ libcvc5_add_sources(
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
+  theory/arith/rewriter/node_utils.cpp
+  theory/arith/rewriter/node_utils.h
+  theory/arith/rewriter/ordering.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp
@@ -549,6 +552,8 @@ libcvc5_add_sources(
   theory/bags/bag_reduction.h
   theory/bags/bags_statistics.cpp
   theory/bags/bags_statistics.h
+  theory/bags/bags_utils.cpp
+  theory/bags/bags_utils.h
   theory/bags/card_solver.cpp
   theory/bags/card_solver.h
   theory/bags/infer_info.cpp
@@ -557,8 +562,6 @@ libcvc5_add_sources(
   theory/bags/inference_generator.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
-  theory/bags/normal_form.cpp
-  theory/bags/normal_form.h
   theory/bags/rewrites.cpp
   theory/bags/rewrites.h
   theory/bags/solver_state.cpp
@@ -658,6 +661,8 @@ libcvc5_add_sources(
   theory/datatypes/theory_datatypes_utils.h
   theory/datatypes/tuple_project_op.cpp
   theory/datatypes/tuple_project_op.h
+  theory/datatypes/tuple_utils.cpp
+  theory/datatypes/tuple_utils.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp
@@ -994,6 +999,7 @@ libcvc5_add_sources(
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
   theory/sets/singleton_op.cpp
   theory/sets/singleton_op.h

@@ -533,7 +533,7 @@ void RelevanceManager::notifyLemma(TNode n)
   {
     // notice that we don't compute relevance here, instead it is computed
     // on demand based on the literals in n.
-    d_dman->notifyLemma(n);
+    d_dman->notifyLemma(n, d_inFullEffortCheck);
   }
 }
 

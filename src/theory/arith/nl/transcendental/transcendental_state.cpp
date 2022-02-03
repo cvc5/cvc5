@@ -268,18 +268,18 @@ Node TranscendentalState::mkSecantPlane(
 {
   NodeManager* nm = NodeManager::currentNM();
   // Figure 3: S_l( x ), S_u( x ) for s = 0,1
-  Node rcoeff_n = rewrite(nm->mkNode(Kind::MINUS, lower, upper));
+  Node rcoeff_n = rewrite(nm->mkNode(Kind::SUB, lower, upper));
   Assert(rcoeff_n.isConst());
   Rational rcoeff = rcoeff_n.getConst<Rational>();
   Assert(rcoeff.sgn() != 0);
   Node res =
-      nm->mkNode(Kind::PLUS,
+      nm->mkNode(Kind::ADD,
                  lval,
                  nm->mkNode(Kind::MULT,
                             nm->mkNode(Kind::DIVISION,
-                                       nm->mkNode(Kind::MINUS, lval, uval),
-                                       nm->mkNode(Kind::MINUS, lower, upper)),
-                            nm->mkNode(Kind::MINUS, arg, lower)));
+                                       nm->mkNode(Kind::SUB, lval, uval),
+                                       nm->mkNode(Kind::SUB, lower, upper)),
+                            nm->mkNode(Kind::SUB, arg, lower)));
   Trace("nl-trans") << "Creating secant plane for transcendental function of "
                     << arg << std::endl;
   Trace("nl-trans") << "\tfrom ( " << lower << " ; " << lval << " ) to ( "
