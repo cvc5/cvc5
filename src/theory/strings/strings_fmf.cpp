@@ -73,7 +73,7 @@ void StringsFmf::StringSumLengthDecisionStrategy::initialize(
     {
       sum.push_back(nm->mkNode(STRING_LENGTH, v));
     }
-    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
+    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(ADD, sum);
     d_inputVarLsum.set(sumn);
   }
 }

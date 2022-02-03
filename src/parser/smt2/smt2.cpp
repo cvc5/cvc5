@@ -24,6 +24,8 @@
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
+// ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
+#undef ADD
 
 namespace cvc5 {
 namespace parser {
@@ -41,10 +43,10 @@ Smt2::Smt2(api::Solver* solver,
 Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
-  addOperator(api::PLUS, "+");
-  addOperator(api::MINUS, "-");
-  // api::MINUS is converted to api::UMINUS if there is only a single operand
-  Parser::addOperator(api::UMINUS);
+  addOperator(api::ADD, "+");
+  addOperator(api::SUB, "-");
+  // api::SUB is converted to api::NEG if there is only a single operand
+  Parser::addOperator(api::NEG);
   addOperator(api::MULT, "*");
   addOperator(api::LT, "<");
   addOperator(api::LEQ, "<=");
@@ -1091,7 +1093,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "applyParseOp: return unary " << args[0] << std::endl;
       return args[0];
     }
-    else if (kind == api::MINUS && args.size() == 1)
+    else if (kind == api::SUB && args.size() == 1)
     {
       if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
       {
@@ -1103,7 +1105,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                         << std::endl;
         return ret;
       }
-      api::Term ret = d_solver->mkTerm(api::UMINUS, args[0]);
+      api::Term ret = d_solver->mkTerm(api::NEG, args[0]);
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }

@@ -201,7 +201,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
   Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
-  Node sum = d_nm->mkNode(PLUS, countA, countB);
+  Node sum = d_nm->mkNode(ADD, countA, countB);
   Node equal = count.eqNode(sum);
 
   inferInfo.d_conclusion = equal;
@@ -266,7 +266,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
   Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
-  Node subtract = d_nm->mkNode(MINUS, countA, countB);
+  Node subtract = d_nm->mkNode(SUB, countA, countB);
   Node gte = d_nm->mkNode(GEQ, countA, countB);
   Node difference = d_nm->mkNode(ITE, gte, subtract, d_zero);
   Node equal = count.eqNode(difference);
@@ -371,7 +371,7 @@ InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
     lemmas.push_back(d_state->registerCardinalityTerm(card));
     d_state->getCardinalitySkolem(card);
     Node skolem = d_state->getCardinalitySkolem(card);
-    sum = d_nm->mkNode(PLUS, sum, skolem);
+    sum = d_nm->mkNode(ADD, sum, skolem);
     ++it;
   }
   Node parentCard = d_nm->mkNode(BAG_CARD, parent);
@@ -450,8 +450,8 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
       bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(BOUND_VAR_LIST, j);
-  Node iPlusOne = d_nm->mkNode(PLUS, i, d_one);
-  Node iMinusOne = d_nm->mkNode(MINUS, i, d_one);
+  Node iPlusOne = d_nm->mkNode(ADD, i, d_one);
+  Node iMinusOne = d_nm->mkNode(SUB, i, d_one);
   Node uf_i = d_nm->mkNode(APPLY_UF, uf, i);
   Node uf_j = d_nm->mkNode(APPLY_UF, uf, j);
   Node f_uf_i = d_nm->mkNode(APPLY_UF, f, uf_i);
@@ -465,7 +465,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   Node count_iMinusOne = d_nm->mkNode(BAG_COUNT, uf_iMinusOne, A);
   Node count_uf_i = d_nm->mkNode(BAG_COUNT, uf_i, A);
   Node inductiveCase =
-      d_nm->mkNode(EQUAL, sum_i, d_nm->mkNode(PLUS, sum_iMinusOne, count_uf_i));
+      d_nm->mkNode(EQUAL, sum_i, d_nm->mkNode(ADD, sum_iMinusOne, count_uf_i));
   Node f_iEqualE = d_nm->mkNode(EQUAL, f_uf_i, e);
   Node geqOne = d_nm->mkNode(GEQ, count_uf_i, d_one);
 

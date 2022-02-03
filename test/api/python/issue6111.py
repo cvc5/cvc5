@@ -13,10 +13,10 @@
 # Test for issue #6111
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
-solver = pycvc5.Solver()
+solver = cvc5.Solver()
 solver.setLogic("QF_BV")
 bvsort12979 = solver.mkBitVectorSort(12979)
 input2_1 = solver.mkConst(bvsort12979, "intpu2_1")

@@ -237,7 +237,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
       Node i = n[1];
       Node sLen = nm->mkNode(STRING_LENGTH, s);
       Node iRev = nm->mkNode(
-          MINUS, sLen, nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
+          SUB, sLen, nm->mkNode(ADD, i, nm->mkConstInt(Rational(1))));
 
       std::vector<Node> nexp;
       nexp.push_back(nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), i));

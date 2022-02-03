@@ -790,8 +790,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(
       d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(MINUS, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(MINUS), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(SUB, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SUB), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
@@ -1417,13 +1417,12 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term z = d_solver.mkConst(intSort, "z");
 
   // Assumptions for interpolation: x + y > 0 /\ x < 0
-  d_solver.assertFormula(
-      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(ADD, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
   // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj =
       d_solver.mkTerm(OR,
-                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
   Term output;
   // Call the interpolation api, while the resulting interpolant is the output
@@ -1445,13 +1444,12 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
   Term y = d_solver.mkConst(intSort, "y");
   Term z = d_solver.mkConst(intSort, "z");
   // Assumptions for interpolation: x + y > 0 /\ x < 0
-  d_solver.assertFormula(
-      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(ADD, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
   // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj =
       d_solver.mkTerm(OR,
-                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
   Term output;
   d_solver.getInterpolant(conj, output);
@@ -1647,7 +1645,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   Term one = d_solver.mkInteger(1);
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   d_solver.assertFormula(d_solver.mkTerm(GT, zero, f_x));
@@ -1744,7 +1742,7 @@ TEST_F(TestApiBlackSolver, getValue3)
   Term one = d_solver.mkInteger(1);
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
 
@@ -2201,7 +2199,7 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(d_solver.simplify(i2));
   ASSERT_NE(i1, i2);
   ASSERT_NE(i1, d_solver.simplify(i2));
-  Term i3 = d_solver.mkTerm(PLUS, i1, d_solver.mkInteger(0));
+  Term i3 = d_solver.mkTerm(ADD, i1, d_solver.mkInteger(0));
   ASSERT_NO_THROW(d_solver.simplify(i3));
   ASSERT_NE(i1, i3);
   ASSERT_EQ(i1, d_solver.simplify(i3));
@@ -2291,7 +2289,7 @@ TEST_F(TestApiBlackSolver, checkEntailed2)
   // Terms
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   // Assertions
@@ -2371,7 +2369,7 @@ TEST_F(TestApiBlackSolver, checkSatAssuming2)
   // Terms
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   // Assertions
@@ -2992,6 +2990,17 @@ TEST_F(TestApiBlackSolver, proj_issue386)
   dtdecl.addConstructor(ctordecl);
   Sort s2 = d_solver.mkDatatypeSort(dtdecl);
   ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, proj_issue414)
+{
+  Solver slv;
+  Sort s2 = slv.getRealSort();
+  Term t1 = slv.mkConst(s2, "_x0");
+  Term t16 = slv.mkTerm(Kind::PI);
+  Term t53 = slv.mkTerm(Kind::SUB, {t1, t16});
+  Term t54 = slv.mkTerm(Kind::SECANT, {t53});
+  ASSERT_NO_THROW(slv.simplify(t54));
 }
 
 }  // namespace test
