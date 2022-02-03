@@ -2533,6 +2533,7 @@ void CoreSolver::checkNormalFormsDeq()
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> relevantDeqs;
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
   for (const Node& eq : deqs)
   {
@@ -2550,7 +2551,12 @@ void CoreSolver::checkNormalFormsDeq()
           lt[i] = nm->mkNode(STRING_LENGTH, eq[i]);
         }
       }
-      if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
+      if (d_state.areEqual(lt[0], lt[1]))
+      {
+        // if they have equal lengths, we must process this below
+        relevantDeqs.push_back(eq);
+      }
+      else if (!d_state.areDisequal(lt[0], lt[1]))
       {
         d_im.sendSplit(lt[0], lt[1], InferenceId::STRINGS_DEQ_LENGTH_SP);
       }
@@ -2562,8 +2568,7 @@ void CoreSolver::checkNormalFormsDeq()
     // added splitting lemma above
     return;
   }
-  std::unordered_set<Node> deqProcessed;
-  for (const Node& eq : deqs)
+  for (const Node& eq : relevantDeqs)
   {
     Assert(!d_state.isInConflict());
     if (Trace.isOn("strings-solve"))
@@ -2586,15 +2591,11 @@ void CoreSolver::checkNormalFormsDeq()
       return;
     }
     Node n[2];
-    for( unsigned i=0; i<2; i++ ){
+    Node l[2];
+    for( size_t i=0; i<2; i++ ){
       n[i] = ee->getRepresentative( eq[i] );
     }
     Node deq = n[0].eqNode(n[1]);
-    if (deqProcessed.find(deq)!=deqProcessed.end())
-    {
-      continue;
-    }
-    deqProcessed.insert(deq);
     processDeq(n[0], n[1]);
     if (d_im.hasProcessed())
     {
