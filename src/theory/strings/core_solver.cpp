@@ -2572,14 +2572,6 @@ void CoreSolver::checkNormalFormsDeq()
   for (const Node& eq : relevantDeqs)
   {
     Assert(!d_state.isInConflict());
-    if (Trace.isOn("strings-solve"))
-    {
-      Trace("strings-solve") << "- Compare " << eq[0] << ", nf ";
-      utils::printConcatTrace(getNormalForm(eq[0]).d_nf, "strings-solve");
-      Trace("strings-solve") << " against " << eq[1] << ", nf ";
-      utils::printConcatTrace(getNormalForm(eq[1]).d_nf, "strings-solve");
-      Trace("strings-solve") << "..." << std::endl;
-    }
     // If using the sequence update solver, we always apply extensionality.
     // This is required for model soundness currently, although we could
     // investigate determining cases where the disequality is already
@@ -2589,11 +2581,19 @@ void CoreSolver::checkNormalFormsDeq()
       processDeqExtensionality(eq[0], eq[1]);
       return;
     }
+    // the method below requires representatives
     Node n[2];
-    Node l[2];
     for (size_t i = 0; i < 2; i++)
     {
       n[i] = ee->getRepresentative(eq[i]);
+    }
+    if (Trace.isOn("strings-solve"))
+    {
+      Trace("strings-solve") << "- Compare " << n[0] << ", nf ";
+      utils::printConcatTrace(getNormalForm(n[0]).d_nf, "strings-solve");
+      Trace("strings-solve") << " against " << n[1] << ", nf ";
+      utils::printConcatTrace(getNormalForm(n[1]).d_nf, "strings-solve");
+      Trace("strings-solve") << "..." << std::endl;
     }
     processDeq(n[0], n[1]);
     if (d_im.hasProcessed())
