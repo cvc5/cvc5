@@ -2528,10 +2528,12 @@ void CoreSolver::checkNormalFormsDeq()
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();
+  Trace("str-deq") << "Process disequalites..." << std::endl;
   std::vector<Node> relevantDeqs;
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
   for (const Node& eq : deqs)
   {
+    Trace("str-deq") << "- disequality " << eq << std::endl;
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = ee->getRepresentative( eq[i] );
@@ -2550,11 +2552,21 @@ void CoreSolver::checkNormalFormsDeq()
       {
         // if they have equal lengths, we must process the disequality below
         relevantDeqs.push_back(eq);
+        Trace("str-deq") << "...relevant" << std::endl;
       }
       else if (!d_state.areDisequal(lt[0], lt[1]))
       {
         d_im.sendSplit(lt[0], lt[1], InferenceId::STRINGS_DEQ_LENGTH_SP);
+        Trace("str-deq") << "...split" << std::endl;
       }
+      else
+      {
+        Trace("str-deq") << "...disequal length" << std::endl;
+      }
+    }
+    else
+    {
+      Trace("str-deq") << "...congruent" << std::endl;
     }
   }
 
@@ -2574,7 +2586,7 @@ void CoreSolver::checkNormalFormsDeq()
         || options().strings.seqArray != options::SeqArrayMode::NONE)
     {
       processDeqExtensionality(eq[0], eq[1]);
-      return;
+      continue;
     }
     // the method below requires representatives
     Node n[2];
