@@ -220,8 +220,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           // In the pre-rewrite, if changing theories, we just call the other
           // theories pre-rewrite. If the kind of the node was changed, then we
           // pre-rewrite again.
-          if (newTheory == rewriteStackTop.getTheoryId()
-              && originalKind == rewriteStackTop.d_node.getKind()
+          if (originalKind == rewriteStackTop.d_node.getKind()
               && response.d_status == REWRITE_DONE)
           {
             if (Configuration::isAssertionBuild())
