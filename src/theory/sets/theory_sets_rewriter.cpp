@@ -284,7 +284,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Node ret = NodeManager::currentNM()->mkNode(
           kind::SUB,
           NodeManager::currentNM()->mkNode(
-              kind::PLUS,
+              kind::ADD,
               NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][0]),
               NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][1])),
           NodeManager::currentNM()->mkNode(

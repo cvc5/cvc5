@@ -416,7 +416,7 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(av);
           break;
         }
-        case kind::PLUS:
+        case kind::ADD:
         {
           Rational res = results[currNode[0]].d_rat;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)

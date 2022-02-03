@@ -80,7 +80,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         return rite;
       }else{
         Node constantite = rc.iteNode(d_constants[t], d_constants[e]);
-        Node sum = nm->mkNode(kind::PLUS, vpite, constantite);
+        Node sum = nm->mkNode(kind::ADD, vpite, constantite);
         d_reduceVar[n] = sum;
         d_constants[n] = constantite;
         d_varParts[n] = vpite;

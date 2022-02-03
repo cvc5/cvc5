@@ -45,8 +45,8 @@ if __name__ == "__main__":
   zero = slv.mkInteger(0)
   one = slv.mkInteger(1)
 
-  plus = slv.mkTerm(Kind.Plus, start, start)
-  minus = slv.mkTerm(Kind.Minus, start, start)
+  plus = slv.mkTerm(Kind.Add, start, start)
+  minus = slv.mkTerm(Kind.Sub, start, start)
   ite = slv.mkTerm(Kind.Ite, start_bool, start, start)
 
   And = slv.mkTerm(Kind.And, start_bool, start_bool)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
   # (constraint (= (+ (max x y) (min x y))
   #                (+ x y)))
   slv.addSygusConstraint(slv.mkTerm(
-      Kind.Equal, slv.mkTerm(Kind.Plus, max_x_y, min_x_y), slv.mkTerm(Kind.Plus, varX, varY)))
+      Kind.Equal, slv.mkTerm(Kind.Add, max_x_y, min_x_y), slv.mkTerm(Kind.Add, varX, varY)))
 
   # print solutions if available
   if (slv.checkSynth().isUnsat()):

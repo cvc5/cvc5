@@ -64,7 +64,7 @@ if __name__ == "__main__":
   one = solver.mkReal(1);
 
   # Next, we construct the term x + y
-  xPlusY = solver.mkTerm(Kind.Plus, x, y);
+  xPlusY = solver.mkTerm(Kind.Add, x, y);
 
   # Now we can define the constraints.
   # They use the operators +, <=, and <.
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
   # It is also possible to get values for compound terms,
   # even if those did not appear in the original formula.
-  xMinusY = solver.mkTerm(Kind.Minus, x, y);
+  xMinusY = solver.mkTerm(Kind.Sub, x, y);
   xMinusYVal = solver.getValue(xMinusY);
   
   # We can now obtain the values as python values
@@ -135,7 +135,7 @@ if __name__ == "__main__":
   solver.assertFormula(solver.mkTerm(Kind.Lt, solver.mkInteger(0), a));
   solver.assertFormula(solver.mkTerm(Kind.Lt, solver.mkInteger(0), b));
   solver.assertFormula(
-      solver.mkTerm(Kind.Lt, solver.mkTerm(Kind.Plus, a, b), solver.mkInteger(1)));
+      solver.mkTerm(Kind.Lt, solver.mkTerm(Kind.Add, a, b), solver.mkInteger(1)));
   solver.assertFormula(solver.mkTerm(Kind.Leq, a, b));
 
   # We check whether the revised assertion is satisfiable.

@@ -208,7 +208,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
         if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
-          if (k != MULT && k != PLUS && k != NONLINEAR_MULT
+          if (k != MULT && k != ADD && k != NONLINEAR_MULT
               && !isTranscendentalKind(k))
           {
             // if we have not set an approximate bound for it
@@ -644,7 +644,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   Node invalid_vsum = vs_invalid.empty() ? d_zero
                                          : (vs_invalid.size() == 1
                                                 ? vs_invalid[0]
-                                                : nm->mkNode(PLUS, vs_invalid));
+                                                : nm->mkNode(ADD, vs_invalid));
   // substitution to try
   Subs qsub;
   for (const Node& v : vs)
@@ -667,7 +667,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         if (it != v_b.end())
         {
           b = it->second;
-          t = nm->mkNode(PLUS, t, nm->mkNode(MULT, b, v));
+          t = nm->mkNode(ADD, t, nm->mkNode(MULT, b, v));
         }
         t = rewrite(t);
         Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
@@ -986,7 +986,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   Node bound;
   if (sum_bound.size() > 1)
   {
-    bound = nm->mkNode(kind::PLUS, sum_bound);
+    bound = nm->mkNode(kind::ADD, sum_bound);
   }
   else if (sum_bound.size() == 1)
   {
@@ -1072,7 +1072,7 @@ void NlModel::getModelValueRepair(
         // witness is the midpoint
         witness = nm->mkNode(MULT,
                              nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
-                             nm->mkNode(PLUS, l, u));
+                             nm->mkNode(ADD, l, u));
         witness = rewrite(witness);
         Trace("nl-model") << v << " witness is " << witness << std::endl;
       }

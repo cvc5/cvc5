@@ -448,7 +448,7 @@ Node IntBlaster::translateWithChildren(
       Node a =
           d_nm->mkNode(kind::MULT, translated_children[0], pow2BvSizeRight);
       Node b = translated_children[1];
-      returnNode = d_nm->mkNode(kind::PLUS, a, b);
+      returnNode = d_nm->mkNode(kind::ADD, a, b);
       break;
     }
     case kind::BITVECTOR_EXTRACT:
@@ -644,7 +644,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
       Node thenResult = x;
       Node left = maxInt(amount);
       Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-      Node sum = d_nm->mkNode(kind::PLUS, mul, x);
+      Node sum = d_nm->mkNode(kind::ADD, mul, x);
       Node elseResult = sum;
       Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
       returnNode = ite;
@@ -1071,7 +1071,7 @@ Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
 {
-  Node plus = d_nm->mkNode(kind::PLUS, x, y);
+  Node plus = d_nm->mkNode(kind::ADD, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
 }

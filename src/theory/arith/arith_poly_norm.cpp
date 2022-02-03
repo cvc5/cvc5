@@ -201,7 +201,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           visited[cur].addMonomial(null, r);
         }
       }
-      else if (k == PLUS || k == SUB || k == NEG || k == MULT
+      else if (k == ADD || k == SUB || k == NEG || k == MULT
                || k == NONLINEAR_MULT)
       {
         visited[cur] = PolyNorm();
@@ -224,7 +224,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       PolyNorm& ret = visited[cur];
       switch (k)
       {
-        case PLUS:
+        case ADD:
         case SUB:
         case NEG:
         case MULT:

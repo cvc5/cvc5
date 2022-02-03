@@ -777,8 +777,8 @@ def test_mk_term(solver):
     solver.mkTerm(solver.mkOp(Kind.Division), [t_int, t_int, t_int])
     solver.mkTerm(Kind.IntsDivision, [t_int, t_int, t_int])
     solver.mkTerm(solver.mkOp(Kind.IntsDivision), [t_int, t_int, t_int])
-    solver.mkTerm(Kind.Minus, [t_int, t_int, t_int])
-    solver.mkTerm(solver.mkOp(Kind.Minus), [t_int, t_int, t_int])
+    solver.mkTerm(Kind.Sub, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(Kind.Sub), [t_int, t_int, t_int])
     solver.mkTerm(Kind.Equal, [t_int, t_int, t_int])
     solver.mkTerm(solver.mkOp(Kind.Equal), [t_int, t_int, t_int])
     solver.mkTerm(Kind.Lt, [t_int, t_int, t_int])
@@ -1241,7 +1241,7 @@ def test_get_unsat_core3(solver):
     one = solver.mkInteger(1)
     f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     f_y = solver.mkTerm(Kind.ApplyUf, f, y)
-    summ = solver.mkTerm(Kind.Plus, f_x, f_y)
+    summ = solver.mkTerm(Kind.Add, f_x, f_y)
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_f_y = solver.mkTerm(Kind.ApplyUf, p, f_y)
     solver.assertFormula(solver.mkTerm(Kind.Gt, zero, f_x))
@@ -1295,7 +1295,7 @@ def test_get_value3(solver):
     one = solver.mkInteger(1)
     f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     f_y = solver.mkTerm(Kind.ApplyUf, f, y)
-    summ = solver.mkTerm(Kind.Plus, f_x, f_y)
+    summ = solver.mkTerm(Kind.Add, f_x, f_y)
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_f_y = solver.mkTerm(Kind.ApplyUf, p, f_y)
 
@@ -1545,7 +1545,7 @@ def test_simplify(solver):
     solver.simplify(i2)
     assert i1 != i2
     assert i1 != solver.simplify(i2)
-    i3 = solver.mkTerm(Kind.Plus, i1, solver.mkInteger(0))
+    i3 = solver.mkTerm(Kind.Add, i1, solver.mkInteger(0))
     solver.simplify(i3)
     assert i1 != i3
     assert i1 == solver.simplify(i3)
@@ -1637,7 +1637,7 @@ def test_check_entailed2(solver):
     # Terms
     f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     f_y = solver.mkTerm(Kind.ApplyUf, f, y)
-    summ = solver.mkTerm(Kind.Plus, f_x, f_y)
+    summ = solver.mkTerm(Kind.Add, f_x, f_y)
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_f_y = solver.mkTerm(Kind.ApplyUf, p, f_y)
     # Assertions
@@ -1719,7 +1719,7 @@ def test_check_sat_assuming2(solver):
     # Terms
     f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     f_y = solver.mkTerm(Kind.ApplyUf, f, y)
-    summ = solver.mkTerm(Kind.Plus, f_x, f_y)
+    summ = solver.mkTerm(Kind.Add, f_x, f_y)
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_f_y = solver.mkTerm(Kind.ApplyUf, p, f_y)
     # Assertions
@@ -2037,9 +2037,13 @@ def test_get_interpolant(solver):
     y = solver.mkConst(intSort, "y")
     z = solver.mkConst(intSort, "z")
 
-    solver.assertFormula(solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, x, y), zero))
+    solver.assertFormula(solver.mkTerm(
+        Kind.Gt, solver.mkTerm(Kind.Add, x, y), zero))
     solver.assertFormula(solver.mkTerm(Kind.Lt, x, zero))
-    conj = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, y, z), zero), solver.mkTerm(Kind.Lt, z, zero))
+    conj = solver.mkTerm(
+            Kind.Or,
+            solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Add, y, z), zero),
+            solver.mkTerm(Kind.Lt, z, zero))
     output = cvc5.Term(solver)
     solver.getInterpolant(conj, output)
     assert output.getSort().isBoolean()
@@ -2055,9 +2059,13 @@ def test_get_interpolant_next(solver):
     y = solver.mkConst(intSort, "y")
     z = solver.mkConst(intSort, "z")
 
-    solver.assertFormula(solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, x, y), zero))
+    solver.assertFormula(solver.mkTerm(
+        Kind.Gt, solver.mkTerm(Kind.Add, x, y), zero))
     solver.assertFormula(solver.mkTerm(Kind.Lt, x, zero))
-    conj = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Plus, y, z), zero), solver.mkTerm(Kind.Lt, z, zero))
+    conj = solver.mkTerm(
+            Kind.Or,
+            solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Add, y, z), zero),
+            solver.mkTerm(Kind.Lt, z, zero))
     output = cvc5.Term(solver)
     solver.getInterpolant(conj, output)
     output2 = cvc5.Term(solver)

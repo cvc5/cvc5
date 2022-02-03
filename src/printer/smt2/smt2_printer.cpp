@@ -989,7 +989,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::WITNESS: return "witness";
 
   // arith theory
-  case kind::PLUS: return "+";
+  case kind::ADD: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";

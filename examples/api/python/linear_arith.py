@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Terms
     three_y = slv.mkTerm(Kind.Mult, three, y)
-    diff = slv.mkTerm(Kind.Minus, y, x)
+    diff = slv.mkTerm(Kind.Sub, y, x)
 
     # Formulas
     x_geq_3y = slv.mkTerm(Kind.Geq, x, three_y)

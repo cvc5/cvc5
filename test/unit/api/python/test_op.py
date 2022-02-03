@@ -40,13 +40,13 @@ def test_is_null(solver):
 
 
 def test_op_from_kind(solver):
-    solver.mkOp(Kind.Plus)
+    solver.mkOp(Kind.Add)
     with pytest.raises(RuntimeError):
         solver.mkOp(Kind.BVExtract)
 
 
 def test_get_num_indices(solver):
-    plus = solver.mkOp(Kind.Plus)
+    plus = solver.mkOp(Kind.Add)
     divisible = solver.mkOp(Kind.Divisible, 4)
     bitvector_repeat = solver.mkOp(Kind.BVRepeat, 5)
     bitvector_zero_extend = solver.mkOp(Kind.BVZeroExtend, 6)

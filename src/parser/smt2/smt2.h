@@ -384,8 +384,8 @@ class Smt2 : public Parser
    * selector expression based on the type of args[0].
    * - If the overall kind of the expression is chainable, we may convert it
    * to a left- or right-associative chain.
-   * - If the overall kind is MINUS and args has size 1, then we return an
-   * application of UMINUS.
+   * - If the overall kind is SUB and args has size 1, then we return an
+   * application of NEG.
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */
