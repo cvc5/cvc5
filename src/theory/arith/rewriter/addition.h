@@ -58,7 +58,7 @@ void addToSum(Sum& sum, TNode n, bool negate = false);
 
 /**
  * Evaluates the sum object (mapping monomials to their multiplicities) into a
- * single node (of kind `PLUS`, unless the sum has less than two summands).
+ * single node (of kind `ADD`, unless the sum has less than two summands).
  */
 Node collectSum(const Sum& sum);
 
