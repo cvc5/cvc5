@@ -214,9 +214,6 @@ void SolverEngine::finishInit()
   // of context-dependent data structures
   d_state->setup();
 
-  Trace("smt-debug") << "Set up assertions..." << std::endl;
-  d_asserts->finishInit();
-
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
@@ -1433,7 +1430,7 @@ void SolverEngine::checkUnsatCore()
 void SolverEngine::checkModel(bool hardFailure)
 {
   const context::CDList<Node>& al = d_asserts->getAssertionList();
-  // we always enable the assertion list
+  // we always enable the assertion list, so it is able to be checked
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
