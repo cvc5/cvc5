@@ -74,7 +74,7 @@ TEST_F(TestUtilWhiteArrayStoreAll, const_error)
   ASSERT_THROW(
       ArrayStoreAll(d_nodeManager->integerType(),
                     d_nodeManager->mkNode(
-                        kind::PLUS,
+                        kind::ADD,
                         d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
                         d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)))),
       IllegalArgumentException);

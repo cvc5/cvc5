@@ -70,14 +70,14 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
          j++)
     {
       if( d_vars[j].getKind()!=BOUND_VARIABLE ){
-        d_var_mg[j] = NULL;
+        d_var_mg[j] = nullptr;
         bool is_tsym = false;
         if( !MatchGen::isHandledUfTerm( d_vars[j] ) && d_vars[j].getKind()!=ITE ){
           is_tsym = true;
           d_tsym_vars.push_back( j );
         }
         if( !is_tsym || options::qcfTConstraint() ){
-          d_var_mg[j] = new MatchGen(p, this, d_vars[j], true);
+          d_var_mg[j] = std::make_unique<MatchGen>(p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
           Trace("qcf-invalid") << "QCF invalid : cannot match for " << d_vars[j] << std::endl;
@@ -280,7 +280,7 @@ bool QuantInfo::reset_round()
   d_tconstraints.clear();
 
   d_mg->reset_round();
-  for (const std::pair<const size_t, MatchGen*>& vg : d_var_mg)
+  for (const std::pair<const size_t, std::unique_ptr<MatchGen>>& vg : d_var_mg)
   {
     if (!vg.second->reset_round())
     {
@@ -780,7 +780,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
         slv_v = index;
       }
       Trace("qcf-tconstraint-debug") << "Solve " << d_vars[index] << " = " << v << " " << d_vars[index].getKind() << std::endl;
-      if( d_vars[index].getKind()==PLUS || d_vars[index].getKind()==MULT ){
+      if (d_vars[index].getKind() == ADD || d_vars[index].getKind() == MULT)
+      {
         Kind k = d_vars[index].getKind();
         std::vector< TNode > children;
         for (const Node& vi : d_vars[index]){
@@ -835,8 +836,9 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               if (d_parent->atConflictEffort())
               {
                 Kind kn = k;
-                if( d_vars[index].getKind()==PLUS ){
-                  kn = MINUS;
+                if (d_vars[index].getKind() == ADD)
+                {
+                  kn = SUB;
                 }
                 if( kn!=k ){
                   sum = NodeManager::currentNM()->mkNode( kn, v, lhs );
@@ -2546,7 +2548,8 @@ TNode QuantConflictFind::getZero(TypeNode tn, Kind k)
   if (it == d_zero.end())
   {
     Node nn;
-    if( k==PLUS ){
+    if (k == ADD)
+    {
       nn = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
     }
     d_zero[key] = nn;

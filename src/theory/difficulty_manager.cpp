@@ -51,9 +51,19 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   }
 }
 
-void DifficultyManager::notifyLemma(Node n)
+void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
-  if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
+  // compute if we should consider the lemma
+  bool considerLemma = false;
+  if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL_ALL)
+  {
+    considerLemma = true;
+  }
+  else if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL)
+  {
+    considerLemma = inFullEffortCheck;
+  }
+  if (!considerLemma)
   {
     return;
   }

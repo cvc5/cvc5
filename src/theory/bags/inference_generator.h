@@ -263,6 +263,57 @@ class InferenceGenerator
   InferInfo mapUpwards(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
+   * @param n is (bag.filter p A) where p is a function (-> E Bool),
+   * A a bag of type (Bag E)
+   * @param e is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (bag.member e skolem)
+   *   (and
+   *     (p e)
+   *     (= (bag.count e skolem) (bag.count e A)))
+   * where skolem is a variable equals (bag.filter p A)
+   */
+  InferInfo filterDownwards(Node n, Node e);
+
+  /**
+   * @param n is (bag.filter p A) where p is a function (-> E Bool),
+   * A a bag of type (Bag E)
+   * @param e is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (bag.member e A)
+   *   (or
+   *     (and (p e) (= (bag.count e skolem) (bag.count A)))
+   *     (and (not (p e)) (= (bag.count e skolem) 0)))
+   * where skolem is a variable equals (bag.filter p A)
+   */
+  InferInfo filterUpwards(Node n, Node e);
+
+  /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
+   * @return  an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productUp(Node n, Node e1, Node e2);
+
+  /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productDown(Node n, Node e);
+
+  /**
    * @param element of type T
    * @param bag of type (bag T)
    * @return  a count term (bag.count element bag)

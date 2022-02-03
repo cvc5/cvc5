@@ -150,7 +150,7 @@ Node mkSuffix(Node t, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(
-      STRING_SUBSTR, t, n, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t), n));
+      STRING_SUBSTR, t, n, nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, t), n));
 }
 
 Node getConstantComponent(Node t)
