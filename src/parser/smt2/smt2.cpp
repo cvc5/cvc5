@@ -629,6 +629,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_MAP, "bag.map");
     addOperator(api::BAG_FILTER, "bag.filter");
     addOperator(api::BAG_FOLD, "bag.fold");
+    addOperator(api::TABLE_PRODUCT, "table.product");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort(), true, true);

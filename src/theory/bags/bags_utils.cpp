@@ -14,13 +14,17 @@
  */
 #include "bags_utils.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::datatypes;
 
 namespace cvc5 {
 namespace theory {
@@ -136,6 +140,7 @@ Node BagsUtils::evaluate(TNode n)
     case BAG_MAP: return evaluateBagMap(n);
     case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
+    case TABLE_PRODUCT: return evaluateProduct(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -775,6 +780,52 @@ Node BagsUtils::evaluateBagFold(TNode n)
     }
     ++it;
   }
+  return ret;
+}
+
+Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode typeA = A.getType().getBagElementType();
+  TypeNode typeB = B.getType().getBagElementType();
+  Assert(e1.getType().isSubtypeOf(typeA));
+  Assert(e2.getType().isSubtypeOf(typeB));
+
+  TypeNode productTupleType = n.getType().getBagElementType();
+  Node tuple = TupleUtils::concatTuples(productTupleType, e1, e2);
+  return tuple;
+}
+
+Node BagsUtils::evaluateProduct(TNode n)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+
+  // Examples
+  // --------
+  //
+  // - (table.product (bag (tuple "a") 4) (bag (tuple true) 5)) =
+  //     (bag (tuple "a" true) 20
+
+  Node A = n[0];
+  Node B = n[1];
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
+
+  std::map<Node, Rational> elements;
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    for (const auto& [b, countB] : elementsB)
+    {
+      Node element = constructProductTuple(n, a, b);
+      elements[element] = countA * countB;
+    }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
   return ret;
 }
 

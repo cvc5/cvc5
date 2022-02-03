@@ -314,6 +314,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_MAP, cvc5::Kind::BAG_MAP},
     {BAG_FILTER, cvc5::Kind::BAG_FILTER},
     {BAG_FOLD, cvc5::Kind::BAG_FOLD},
+    {TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
@@ -627,6 +628,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_MAP, BAG_MAP},
         {cvc5::Kind::BAG_FILTER, BAG_FILTER},
         {cvc5::Kind::BAG_FOLD, BAG_FOLD},
+        {cvc5::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
