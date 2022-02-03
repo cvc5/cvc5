@@ -266,7 +266,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     Node currSum = d_zero;
     if (!lacc.empty())
     {
-      currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+      currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(ADD, lacc);
       currIndex = nm->mkNode(SUB, currIndex, currSum);
     }
     Node cc;
@@ -316,7 +316,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     lacc.push_back(clen);
     if (k == SEQ_NTH)
     {
-      Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+      Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(ADD, lacc);
       Node cf = nm->mkNode(LT, t[1], currSumPost);
       Trace("seq-array-debug") << "......condition " << cf << std::endl;
       cond.push_back(cf);

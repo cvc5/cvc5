@@ -144,7 +144,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     }
   }
   Node lenSum = childLengths.size() > 1
-                    ? nm->mkNode(PLUS, childLengths)
+                    ? nm->mkNode(ADD, childLengths)
                     : (childLengths.empty() ? zero : childLengths[0]);
   // if we have a fixed length
   if (hasFixedLength)
@@ -159,7 +159,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       {
         Node ppSum = childLengthsPostPivot.size() == 1
                          ? childLengthsPostPivot[0]
-                         : nm->mkNode(PLUS, childLengthsPostPivot);
+                         : nm->mkNode(ADD, childLengthsPostPivot);
         currEnd = nm->mkNode(SUB, lenx, ppSum);
       }
       else
@@ -173,7 +173,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
           conc.push_back(currMem);
         }
-        currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
+        currEnd = nm->mkNode(ADD, currEnd, childLengths[i]);
       }
     }
     Node res = nm->mkNode(AND, conc);
@@ -252,8 +252,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       if (gap_minsize[i] > 0)
       {
         // the gap to this child is at least gap_minsize[i]
-        prev_end = nm->mkNode(
-            PLUS, prev_end, nm->mkConstInt(Rational(gap_minsize[i])));
+        prev_end =
+            nm->mkNode(ADD, prev_end, nm->mkConstInt(Rational(gap_minsize[i])));
       }
       prev_ends.push_back(prev_end);
       Node sc = sep_children[i];
@@ -264,7 +264,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node curr = prev_end;
         Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
         conj.push_back(ss.eqNode(sc));
-        prev_end = nm->mkNode(PLUS, curr, lensc);
+        prev_end = nm->mkNode(ADD, curr, lensc);
       }
       else
       {
@@ -284,12 +284,12 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           Node k =
               bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
           non_greedy_find_vars.push_back(k);
-          prev_end = nm->mkNode(PLUS, prev_end, k);
+          prev_end = nm->mkNode(ADD, prev_end, k);
         }
         Node curr = nm->mkNode(STRING_INDEXOF, x, sc, prev_end);
         Node idofFind = curr.eqNode(nm->mkConstInt(Rational(-1))).negate();
         conj.push_back(idofFind);
-        prev_end = nm->mkNode(PLUS, curr, lensc);
+        prev_end = nm->mkNode(ADD, curr, lensc);
       }
     }
 
@@ -312,7 +312,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         //        ... ^ "B" = substr( x, len( x ) - 3, 1 )  ^ ...
         Node sc = sep_children.back();
         Node lenSc = nm->mkNode(STRING_LENGTH, sc);
-        Node loc = nm->mkNode(SUB, lenx, nm->mkNode(PLUS, lenSc, cEnd));
+        Node loc = nm->mkNode(SUB, lenx, nm->mkNode(ADD, lenSc, cEnd));
         Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
         // We also must ensure that we fit. This constraint is necessary in
         // addition to the constraint above. Take this example:
@@ -352,7 +352,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _ (re.* _)) --->
         //        ... ^ indexof( x, "B", 1 ) + 2 <= len( x )
-        Node fit = nm->mkNode(LEQ, nm->mkNode(PLUS, prev_end, cEnd), lenx);
+        Node fit = nm->mkNode(LEQ, nm->mkNode(ADD, prev_end, cEnd), lenx);
         conj.push_back(fit);
       }
       Node res = nm->mkAnd(conj);
@@ -500,7 +500,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         std::vector<Node> rsuffix;
         rsuffix.insert(rsuffix.end(), children.begin() + i + 1, children.end());
         Node rps = utils::mkConcat(rsuffix, nm->regExpType());
-        Node ks = nm->mkNode(PLUS, k, lens);
+        Node ks = nm->mkNode(ADD, k, lens);
         Node substrSuffix = nm->mkNode(
             STRING_IN_REGEXP,
             nm->mkNode(STRING_SUBSTR, x, ks, nm->mkNode(SUB, lenx, ks)),

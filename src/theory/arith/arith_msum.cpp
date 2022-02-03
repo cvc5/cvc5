@@ -65,7 +65,7 @@ bool ArithMSum::getMonomial(Node n, std::map<Node, Node>& msum)
 
 bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 {
-  if (n.getKind() == PLUS)
+  if (n.getKind() == ADD)
   {
     for (Node nc : n)
     {
@@ -149,7 +149,7 @@ Node ArithMSum::mkNode(TypeNode tn, const std::map<Node, Node>& msum)
     children.push_back(m);
   }
   return children.size() > 1
-             ? nm->mkNode(PLUS, children)
+             ? nm->mkNode(ADD, children)
              : (children.size() == 1 ? children[0]
                                      : nm->mkConstRealOrInt(tn, Rational(0)));
 }
@@ -188,7 +188,7 @@ int ArithMSum::isolate(
       }
       val =
           children.size() > 1
-              ? nm->mkNode(PLUS, children)
+              ? nm->mkNode(ADD, children)
               : (children.size() == 1 ? children[0]
                                       : nm->mkConstRealOrInt(vtn, Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())

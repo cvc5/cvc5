@@ -172,7 +172,7 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   Node cardinality_0_equal = cardinality_0.eqNode(zero);
   Node uf_i_multiplicity = nm->mkNode(BAG_COUNT, uf_i, A);
   Node cardinality_i_equal = cardinality_i.eqNode(
-      nm->mkNode(PLUS, uf_i_multiplicity, cardinality_iMinusOne));
+      nm->mkNode(ADD, uf_i_multiplicity, cardinality_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
   Node bag = nm->mkBag(elementType, uf_i, uf_i_multiplicity);

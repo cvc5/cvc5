@@ -571,7 +571,7 @@ definedFun[cvc5::ParseOp& p]
     }
   | '$sum'
     {
-      p.d_kind = api::PLUS;
+      p.d_kind = api::ADD;
     }
   | '$difference'
     {
@@ -688,12 +688,12 @@ definedFun[cvc5::ParseOp& p]
                   MK_TERM(api::GT, decPart, SOLVER->mkReal(1, 2)),
                   // if decPart > 0.5, round up
                   MK_TERM(api::TO_INTEGER,
-                          MK_TERM(api::PLUS, n, SOLVER->mkReal(1))),
+                          MK_TERM(api::ADD, n, SOLVER->mkReal(1))),
                   // if decPart == 0.5, round to nearest even integer:
                   // result is: to_int(n/2 + .5) * 2
                   MK_TERM(api::MULT,
                           MK_TERM(api::TO_INTEGER,
-                                  MK_TERM(api::PLUS,
+                                  MK_TERM(api::ADD,
                                           MK_TERM(api::DIVISION,
                                                   n,
                                                   SOLVER->mkReal(2)),

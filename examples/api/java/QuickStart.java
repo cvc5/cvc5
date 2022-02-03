@@ -70,11 +70,11 @@ public class QuickStart
       Term one = solver.mkReal(1);
 
       // Next, we construct the term x + y
-      Term xPlusY = solver.mkTerm(Kind.PLUS, x, y);
+      Term xPlusY = solver.mkTerm(Kind.ADD, x, y);
 
       // Now we can define the constraints.
       // They use the operators +, <=, and <.
-      // In the API, these are denoted by PLUS, LEQ, and LT.
+      // In the API, these are denoted by ADD, LEQ, and LT.
       // A list of available operators is available in:
       // src/api/cpp/cvc5_kind.h
       Term constraint1 = solver.mkTerm(Kind.LT, zero, x);
@@ -145,7 +145,7 @@ public class QuickStart
       solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), a));
       solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), b));
       solver.assertFormula(
-          solver.mkTerm(Kind.LT, solver.mkTerm(Kind.PLUS, a, b), solver.mkInteger(1)));
+          solver.mkTerm(Kind.LT, solver.mkTerm(Kind.ADD, a, b), solver.mkInteger(1)));
       solver.assertFormula(solver.mkTerm(Kind.LEQ, a, b));
 
       // We check whether the revised assertion is satisfiable.

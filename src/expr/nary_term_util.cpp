@@ -119,7 +119,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND:
     case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConstRealOrInt(tn, Rational(0)); break;
+    case ADD: nullTerm = nm->mkConstRealOrInt(tn, Rational(0)); break;
     case MULT:
     case NONLINEAR_MULT:
       nullTerm = nm->mkConstRealOrInt(tn, Rational(1));

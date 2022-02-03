@@ -64,7 +64,7 @@ if __name__ == "__main__":
   one = solver.mkReal(1);
 
   # Next, we construct the term x + y
-  xPlusY = solver.mkTerm(Kind.Plus, x, y);
+  xPlusY = solver.mkTerm(Kind.Add, x, y);
 
   # Now we can define the constraints.
   # They use the operators +, <=, and <.
@@ -135,7 +135,7 @@ if __name__ == "__main__":
   solver.assertFormula(solver.mkTerm(Kind.Lt, solver.mkInteger(0), a));
   solver.assertFormula(solver.mkTerm(Kind.Lt, solver.mkInteger(0), b));
   solver.assertFormula(
-      solver.mkTerm(Kind.Lt, solver.mkTerm(Kind.Plus, a, b), solver.mkInteger(1)));
+      solver.mkTerm(Kind.Lt, solver.mkTerm(Kind.Add, a, b), solver.mkInteger(1)));
   solver.assertFormula(solver.mkTerm(Kind.Leq, a, b));
 
   # We check whether the revised assertion is satisfiable.

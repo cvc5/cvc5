@@ -690,10 +690,10 @@ public:
    * Returns the iterator pointing to the first child, if the node's
    * kind is the same as the parameter, otherwise returns the iterator
    * pointing to the node itself.  This is useful if you want to
-   * pretend to iterate over a "unary" PLUS, for instance, since unary
-   * PLUSes don't exist---begin(PLUS) will give an iterator over the
-   * children if the node's a PLUS node, otherwise give an iterator
-   * over the node itself, as if it were a unary PLUS.
+   * pretend to iterate over a "unary" ADD, for instance, since unary
+   * PLUSes don't exist---begin(ADD) will give an iterator over the
+   * children if the node's an ADD node, otherwise give an iterator
+   * over the node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
@@ -708,10 +708,10 @@ public:
    * beyond the last one), if the node's kind is the same as the
    * parameter, otherwise returns the iterator pointing to the
    * one-of-the-node-itself.  This is useful if you want to pretend to
-   * iterate over a "unary" PLUS, for instance, since unary PLUSes
-   * don't exist---begin(PLUS) will give an iterator over the children
-   * if the node's a PLUS node, otherwise give an iterator over the
-   * node itself, as if it were a unary PLUS.
+   * iterate over a "unary" ADD, for instance, since unary PLUSes
+   * don't exist---begin(ADD) will give an iterator over the children
+   * if the node's an ADD node, otherwise give an iterator over the
+   * node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
@@ -766,10 +766,10 @@ public:
    * Returns the iterator pointing to the first child, if the node's
    * kind is the same as the parameter, otherwise returns the iterator
    * pointing to the node itself.  This is useful if you want to
-   * pretend to iterate over a "unary" PLUS, for instance, since unary
-   * PLUSes don't exist---begin(PLUS) will give an iterator over the
-   * children if the node's a PLUS node, otherwise give an iterator
-   * over the node itself, as if it were a unary PLUS.
+   * pretend to iterate over a "unary" ADD, for instance, since unary
+   * PLUSes don't exist---begin(ADD) will give an iterator over the
+   * children if the node's an ADD node, otherwise give an iterator
+   * over the node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
@@ -784,10 +784,10 @@ public:
    * beyond the last one), if the node's kind is the same as the
    * parameter, otherwise returns the iterator pointing to the
    * one-of-the-node-itself.  This is useful if you want to pretend to
-   * iterate over a "unary" PLUS, for instance, since unary PLUSes
-   * don't exist---begin(PLUS) will give an iterator over the children
-   * if the node's a PLUS node, otherwise give an iterator over the
-   * node itself, as if it were a unary PLUS.
+   * iterate over a "unary" ADD, for instance, since unary PLUSes
+   * don't exist---begin(ADD) will give an iterator over the children
+   * if the node's an ADD node, otherwise give an iterator over the
+   * node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children

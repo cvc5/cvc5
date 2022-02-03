@@ -63,7 +63,7 @@ Node StringsPreprocess::reduce(Node t,
     Node n = t[1];
     Node m = t[2];
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
-    Node t12 = nm->mkNode(PLUS, n, m);
+    Node t12 = nm->mkNode(ADD, n, m);
     Node lt0 = nm->mkNode(STRING_LENGTH, s);
     //start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
@@ -85,7 +85,7 @@ Node StringsPreprocess::reduce(Node t,
     // len(s) - n -m
     Node b13 = nm->mkNode(
         OR,
-        nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, nm->mkNode(PLUS, n, m))),
+        nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, nm->mkNode(ADD, n, m))),
         nm->mkNode(EQUAL, lsk2, zero));
     // Length of the result is at most m
     Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
@@ -142,7 +142,7 @@ Node StringsPreprocess::reduce(Node t,
       rs = nm->mkNode(STRING_SUBSTR, r, zero, nm->mkNode(SUB, lens, n));
     }
     Node rslen = nm->mkNode(STRING_LENGTH, rs);
-    Node nsuf = nm->mkNode(PLUS, n, rslen);
+    Node nsuf = nm->mkNode(ADD, n, rslen);
     // substr(s, n, len(substr(r,0,|s|-n))), which is used for formalizing the
     // purification variable sk3 below.
     Node ssubstr = nm->mkNode(STRING_SUBSTR, s, n, rslen);
@@ -226,7 +226,7 @@ Node StringsPreprocess::reduce(Node t,
                    y)
             .negate();
     // skk = n + len( io2 )
-    Node c33 = skk.eqNode(nm->mkNode(PLUS, n, nm->mkNode(STRING_LENGTH, io2)));
+    Node c33 = skk.eqNode(nm->mkNode(ADD, n, nm->mkNode(STRING_LENGTH, io2)));
     Node cc3 = nm->mkNode(AND, c31, c32, c33);
 
     // assert:
@@ -351,7 +351,7 @@ Node StringsPreprocess::reduce(Node t,
     conc.push_back(lem);
 
     Node x = SkolemCache::mkIndexVar(t);
-    Node xPlusOne = nm->mkNode(PLUS, x, one);
+    Node xPlusOne = nm->mkNode(ADD, x, one);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, leni));
     Node sx = nm->mkNode(STRING_SUBSTR, itost, x, one);
@@ -361,7 +361,7 @@ Node StringsPreprocess::reduce(Node t,
     Node c = nm->mkNode(SUB, nm->mkNode(STRING_TO_CODE, sx), c0);
 
     Node ten = nm->mkConstInt(Rational(10));
-    Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
+    Node eq = ux1.eqNode(nm->mkNode(ADD, c, nm->mkNode(MULT, ten, ux)));
     Node leadingZeroPos =
         nm->mkNode(AND, x.eqNode(zero), nm->mkNode(GT, leni, one));
     Node cb = nm->mkNode(
@@ -453,10 +453,10 @@ Node StringsPreprocess::reduce(Node t,
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, lens));
     Node sx = nm->mkNode(STRING_SUBSTR, s, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
-    Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, one));
+    Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(ADD, x, one));
     Node c = nm->mkNode(SUB, nm->mkNode(STRING_TO_CODE, sx), c0);
 
-    Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
+    Node eq = ux1.eqNode(nm->mkNode(ADD, c, nm->mkNode(MULT, ten, ux)));
     Node cb = nm->mkNode(AND, nm->mkNode(GEQ, c, zero), nm->mkNode(LT, c, ten));
 
     Node ux1lem = nm->mkNode(GEQ, stoit, ux1);
@@ -497,7 +497,7 @@ Node StringsPreprocess::reduce(Node t,
     Node s = t[0];
     Node n = t[1];
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
-    Node t12 = nm->mkNode(PLUS, n, one);
+    Node t12 = nm->mkNode(ADD, n, one);
     Node lt0 = nm->mkNode(STRING_LENGTH, s);
     // start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
@@ -628,19 +628,19 @@ Node StringsPreprocess::reduce(Node t,
     Node bound =
         nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
     Node ufi = nm->mkNode(APPLY_UF, uf, i);
-    Node ufip1 = nm->mkNode(APPLY_UF, uf, nm->mkNode(PLUS, i, one));
+    Node ufip1 = nm->mkNode(APPLY_UF, uf, nm->mkNode(ADD, i, one));
     Node ii = nm->mkNode(STRING_INDEXOF, x, y, ufi);
     Node cc =
         nm->mkNode(STRING_CONCAT,
                    nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(SUB, ii, ufi)),
                    z,
-                   nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS, i, one)));
+                   nm->mkNode(APPLY_UF, us, nm->mkNode(ADD, i, one)));
 
     std::vector<Node> flem;
     flem.push_back(ii.eqNode(negOne).negate());
     flem.push_back(nm->mkNode(APPLY_UF, us, i).eqNode(cc));
     flem.push_back(
-        ufip1.eqNode(nm->mkNode(PLUS, ii, nm->mkNode(STRING_LENGTH, y))));
+        ufip1.eqNode(nm->mkNode(ADD, ii, nm->mkNode(STRING_LENGTH, y))));
 
     Node body = nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem));
     Node q = utils::mkForallInternal(bvli, body);
@@ -773,7 +773,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bvli = nm->mkNode(BOUND_VAR_LIST, i);
     Node bound =
         nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
-    Node ip1 = nm->mkNode(PLUS, i, one);
+    Node ip1 = nm->mkNode(ADD, i, one);
     Node ufi = nm->mkNode(APPLY_UF, uf, i);
     Node ufip1 = nm->mkNode(APPLY_UF, uf, ip1);
     Node ulip1 = nm->mkNode(APPLY_UF, ul, ip1);
@@ -785,7 +785,7 @@ Node StringsPreprocess::reduce(Node t,
     flem.push_back(nm->mkNode(GT, ulip1, zero));
     // Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1)
     flem.push_back(ufip1.eqNode(
-        nm->mkNode(PLUS, nm->mkNode(STRING_INDEXOF_RE, x, yp, ufi), ulip1)));
+        nm->mkNode(ADD, nm->mkNode(STRING_INDEXOF_RE, x, yp, ufi), ulip1)));
     // in_re(substr(x, ii, Ul(i + 1)), y')
     flem.push_back(nm->mkNode(
         STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, ii, ulip1), yp));
@@ -869,7 +869,7 @@ Node StringsPreprocess::reduce(Node t,
     Node res = nm->mkNode(
         ITE,
         nm->mkNode(AND, nm->mkNode(LEQ, lb, ci), nm->mkNode(LEQ, ci, ub)),
-        nm->mkNode(PLUS, ci, offset),
+        nm->mkNode(ADD, ci, offset),
         ci);
 
     Node bound =
@@ -903,7 +903,7 @@ Node StringsPreprocess::reduce(Node t,
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
     Node revi =
-        nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, x), nm->mkNode(PLUS, i, one));
+        nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, x), nm->mkNode(ADD, i, one));
     Node ssr = nm->mkNode(STRING_SUBSTR, r, i, one);
     Node ssx = nm->mkNode(STRING_SUBSTR, x, revi, one);
 
