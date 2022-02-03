@@ -773,8 +773,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (types[i].isRealOrInt())
     {
-      // Add PLUS, SUB
-      Kind kinds[2] = {PLUS, SUB};
+      // Add ADD, SUB
+      Kind kinds[2] = {ADD, SUB};
       for (const Kind kind : kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
@@ -802,9 +802,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<TypeNode> cargsEmpty;
         sdts.back().addConstructor(
             nm->mkConstInt(Rational(1)), "1", cargsEmpty);
-        /* Add operator PLUS */
-        Kind kind = PLUS;
-        Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
+        /* Add operator ADD */
+        Kind kind = ADD;
+        Trace("sygus-grammar-def") << "\t...add for ADD to Pos_Int\n";
         std::vector<TypeNode> cargsPlus;
         cargsPlus.push_back(unresPosInt);
         cargsPlus.push_back(unresPosInt);
@@ -1267,7 +1267,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
       Assert(sumChildren.size() > 1);
-      Node ops = nm->mkNode(PLUS, sumChildren);
+      Node ops = nm->mkNode(ADD, sumChildren);
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
@@ -1288,7 +1288,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsPlus;
       cargsPlus.push_back(unres_types[iat]);
       cargsPlus.push_back(unres_types[iat]);
-      sdts[iat].d_sdt.addConstructor(PLUS, cargsPlus);
+      sdts[iat].d_sdt.addConstructor(ADD, cargsPlus);
     }
     // add the ITE, regardless of sum-of-monomials vs polynomial
     std::vector<TypeNode> cargsIte;

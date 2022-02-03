@@ -616,7 +616,7 @@ Node SequencesRewriter::rewriteLength(Node node)
               kind::STRING_LENGTH, tmpNode[i]));
         }
       }
-      Node retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
+      Node retNode = NodeManager::currentNM()->mkNode(kind::ADD, node_vec);
       return returnRewrite(node, retNode, Rewrite::LEN_CONCAT);
     }
   }
@@ -1977,7 +1977,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       Node tot_len =
           d_arithEntail.rewrite(nm->mkNode(kind::STRING_LENGTH, node[0]));
       Node end_pt =
-          d_arithEntail.rewrite(nm->mkNode(kind::PLUS, node[1], node[2]));
+          d_arithEntail.rewrite(nm->mkNode(kind::ADD, node[1], node[2]));
       if (node[2] != tot_len)
       {
         if (d_arithEntail.check(node[2], tot_len))
@@ -2049,7 +2049,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
       if (!new_len.isNull())
       {
-        Node new_start = nm->mkNode(kind::PLUS, start_inner, start_outer);
+        Node new_start = nm->mkNode(kind::ADD, start_inner, start_outer);
         Node ret =
             nm->mkNode(kind::STRING_SUBSTR, node[0][0], new_start, new_len);
         return returnRewrite(node, ret, Rewrite::SS_COMBINE);
@@ -2137,7 +2137,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     //   str.rev(str.update(s, len(s) - (n + 1), t))
     Node idx = nm->mkNode(SUB,
                           nm->mkNode(STRING_LENGTH, s),
-                          nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
+                          nm->mkNode(ADD, i, nm->mkConstInt(Rational(1))));
     Node ret = nm->mkNode(STRING_REV, nm->mkNode(STRING_UPDATE, s[0], idx, x));
     return returnRewrite(node, ret, Rewrite::UPD_REV);
   }
@@ -2639,7 +2639,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
           // 2 + str.indexof(str.++(x, "C"), "C", 0)
           Node ret = nm->mkNode(
-              kind::PLUS,
+              kind::ADD,
               nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
               nm->mkNode(kind::STRING_INDEXOF,
                          utils::mkConcat(children0, stype),
@@ -2667,7 +2667,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
           Node nn = utils::mkConcat(children0, stype);
           Node ret =
-              nm->mkNode(PLUS,
+              nm->mkNode(ADD,
                          nm->mkNode(SUB, node[2], new_len),
                          nm->mkNode(STRING_INDEXOF, nn, node[1], new_len));
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
@@ -3021,12 +3021,12 @@ Node SequencesRewriter::rewriteReplace(Node node)
     // Length of the non-substr components in the second argument
     Node partLen1 =
         nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(children1, stype));
-    Node maxLen1 = nm->mkNode(kind::PLUS, partLen1, lastChild1[2]);
+    Node maxLen1 = nm->mkNode(kind::ADD, partLen1, lastChild1[2]);
 
     Node zero = nm->mkConstInt(Rational(0));
     Node one = nm->mkConstInt(Rational(1));
     Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
-    Node len0_1 = nm->mkNode(kind::PLUS, len0, one);
+    Node len0_1 = nm->mkNode(kind::ADD, len0, one);
     // Check len(t) + j > len(x) + 1
     if (d_arithEntail.check(maxLen1, len0_1, true))
     {
@@ -3034,7 +3034,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
           kind::STRING_SUBSTR,
           lastChild1[0],
           lastChild1[1],
-          nm->mkNode(kind::PLUS, len0, one, nm->mkNode(kind::NEG, partLen1))));
+          nm->mkNode(kind::ADD, len0, one, nm->mkNode(kind::NEG, partLen1))));
       Node res = nm->mkNode(kind::STRING_REPLACE,
                             node[0],
                             utils::mkConcat(children1, stype),
@@ -3595,7 +3595,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     // sorts do not permit values that the solver can handle (e.g. uninterpreted
     // sorts and arrays).
   }
-  else if (len.getKind() == PLUS)
+  else if (len.getKind() == ADD)
   {
     // x + y -> norm(x) + norm(y)
     NodeBuilder concatBuilder(STRING_CONCAT);

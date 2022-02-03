@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # Terms
     f_x = slv.mkTerm(Kind.ApplyUf, f, x)
     f_y = slv.mkTerm(Kind.ApplyUf, f, y)
-    sum_ = slv.mkTerm(Kind.Plus, f_x, f_y)
+    sum_ = slv.mkTerm(Kind.Add, f_x, f_y)
     p_0 = slv.mkTerm(Kind.ApplyUf, p, zero)
     p_f_y = slv.mkTerm(Kind.ApplyUf, p, f_y)
 

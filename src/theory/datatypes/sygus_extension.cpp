@@ -1380,7 +1380,7 @@ void SygusExtension::registerSizeTerm(Node e)
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue();
       Node newMt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(nm->mkNode(PLUS, newMt, ds));
+      slem = mt.eqNode(nm->mkNode(ADD, newMt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);

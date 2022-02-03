@@ -1037,10 +1037,10 @@ class NodeManager
   /**
    * A set of operator singletons (w.r.t.  to this NodeManager
    * instance) for operators.  Conceptually, Nodes with kind, say,
-   * PLUS, are APPLYs of a PLUS operator to arguments.  This array
-   * holds the set of operators for these things.  A PLUS operator is
+   * ADD, are APPLYs of a ADD operator to arguments.  This array
+   * holds the set of operators for these things.  A ADD operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<cvc5::Kind>(), you get kind::PLUS back.
+   * plusOperator->getConst<cvc5::Kind>(), you get kind::ADD back.
    */
   Node d_operators[kind::LAST_KIND];
 

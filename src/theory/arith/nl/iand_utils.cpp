@@ -152,7 +152,7 @@ Node IAndUtils::createSumNode(Node x,
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
     sumNode =
-        nm->mkNode(kind::PLUS,
+        nm->mkNode(kind::ADD,
                    sumNode,
                    nm->mkNode(kind::MULT, pow2(i * granularity), sumPart));
   }

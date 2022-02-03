@@ -24,6 +24,8 @@
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
+// ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
+#undef ADD
 
 namespace cvc5 {
 namespace parser {
@@ -41,7 +43,7 @@ Smt2::Smt2(api::Solver* solver,
 Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
-  addOperator(api::PLUS, "+");
+  addOperator(api::ADD, "+");
   addOperator(api::SUB, "-");
   // api::SUB is converted to api::NEG if there is only a single operand
   Parser::addOperator(api::NEG);

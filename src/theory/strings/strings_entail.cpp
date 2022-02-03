@@ -429,7 +429,7 @@ bool StringsEntail::componentContainsBase(
         {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos = nm->mkNode(PLUS, n2[1], n2[2]);
+          Node end_pos = nm->mkNode(ADD, n2[1], n2[2]);
           Node len_n2s = nm->mkNode(STRING_LENGTH, n2[0]);
           if (dir == 1)
           {

@@ -447,7 +447,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // N-ary operators returning same type requiring at least one child to
         // be unconstrained
-        case kind::PLUS:
+        case kind::ADD:
         case kind::SUB:
           if (current.getType().isInteger() && !parent.getType().isInteger())
           {
