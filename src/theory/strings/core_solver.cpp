@@ -2476,6 +2476,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   Node conc = nm->mkNode(OR, lenDeq, nm->mkAnd(concs));
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
+  // Note that we take A != B verbatim, and do not explain it.
   d_im.sendInference(
       {deq}, {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
 }
@@ -2553,7 +2554,7 @@ void CoreSolver::checkNormalFormsDeq()
       }
       if (d_state.areEqual(lt[0], lt[1]))
       {
-        // if they have equal lengths, we must process this below
+        // if they have equal lengths, we must process the disequality below
         relevantDeqs.push_back(eq);
       }
       else if (!d_state.areDisequal(lt[0], lt[1]))
@@ -2594,7 +2595,6 @@ void CoreSolver::checkNormalFormsDeq()
     {
       n[i] = ee->getRepresentative(eq[i]);
     }
-    Node deq = n[0].eqNode(n[1]);
     processDeq(n[0], n[1]);
     if (d_im.hasProcessed())
     {
