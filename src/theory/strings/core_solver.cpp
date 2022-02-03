@@ -2064,12 +2064,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
     return;
   }
 
-  if (options().strings.stringsDeqExt)
-  {
-    processDeqExtensionality(ni, nj);
-    return;
-  }
-
   nfi = nfni.d_nf;
   nfj = nfnj.d_nf;
 
@@ -2576,7 +2570,7 @@ void CoreSolver::checkNormalFormsDeq()
     // This is required for model soundness currently, although we could
     // investigate determining cases where the disequality is already
     // satisfied (for optimization).
-    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    if (options().strings.stringsDeqExt || options().strings.seqArray != options::SeqArrayMode::NONE)
     {
       processDeqExtensionality(eq[0], eq[1]);
       return;
