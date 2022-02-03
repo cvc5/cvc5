@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --incremental
+; EXPECT-ERROR: Strings Incomplete (due to Negative Membership) by default, try --strings-exp option.
 ; EXPECT: unknown
 ; EXPECT: (:reason-unknown incomplete)
 (set-logic ALL)
