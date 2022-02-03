@@ -40,7 +40,6 @@ const char* toString(IncompleteId i)
     case IncompleteId::SEP: return "SEP";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";
     case IncompleteId::STRINGS_LOOP_SKIP: return "STRINGS_LOOP_SKIP";
-    case IncompleteId::STRINGS_EXP_DISABLED: return "STRINGS_EXP_DISABLED";
     case IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY:
       return "STRINGS_REGEXP_NO_SIMPLIFY";
     case IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY:

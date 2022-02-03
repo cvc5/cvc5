@@ -53,8 +53,6 @@ enum class IncompleteId
   SETS_RELS_CARD,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
-  // experimental string features disabled
-  STRINGS_EXP_DISABLED,
   // we could not simplify a regular expression membership
   STRINGS_REGEXP_NO_SIMPLIFY,
   // incomplete due to sequence of a dynamic finite type (e.g. a type that
