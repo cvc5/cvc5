@@ -14,8 +14,8 @@
 # Utility Methods, translated from examples/api/utils.h
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 # Get the string version of define-fun command.
 # @param f the function to print

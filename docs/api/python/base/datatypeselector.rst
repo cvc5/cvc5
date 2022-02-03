@@ -1,6 +1,6 @@
 DatatypeSelector
 ================
 
-.. autoclass:: pycvc5.DatatypeSelector
+.. autoclass:: cvc5.DatatypeSelector
     :members:
     :undoc-members:

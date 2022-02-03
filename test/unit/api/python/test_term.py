@@ -12,15 +12,15 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Kind
-from pycvc5 import Sort, Term
+import cvc5
+from cvc5 import Kind
+from cvc5 import Sort, Term
 from fractions import Fraction
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_eq(solver):
@@ -1273,5 +1273,5 @@ def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
     assert str(x) == "x"
-    solver2 = pycvc5.Solver()
+    solver2 = cvc5.Solver()
     assert str(x) == "x"
