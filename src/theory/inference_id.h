@@ -182,9 +182,13 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
+  BAGS_FILTER_DOWN,
+  BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
   BAGS_CARD_EMPTY,
+  TABLES_PRODUCT_UP,
+  TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory

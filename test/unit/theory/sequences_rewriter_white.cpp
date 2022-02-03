@@ -157,7 +157,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   Node a = d_nodeManager->mkConst(::cvc5::String("A"));
 
   Node slen_y = d_nodeManager->mkNode(kind::STRING_LENGTH, y);
-  Node x_plus_slen_y = d_nodeManager->mkNode(kind::PLUS, x, slen_y);
+  Node x_plus_slen_y = d_nodeManager->mkNode(kind::ADD, x, slen_y);
   Node x_plus_slen_y_eq_zero = d_rewriter->rewrite(
       d_nodeManager->mkNode(kind::EQUAL, x_plus_slen_y, zero));
 
@@ -168,7 +168,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   ASSERT_FALSE(ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, true));
 
   Node x_plus_slen_y_plus_z_eq_zero = d_rewriter->rewrite(d_nodeManager->mkNode(
-      kind::EQUAL, d_nodeManager->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
+      kind::EQUAL, d_nodeManager->mkNode(kind::ADD, x_plus_slen_y, z), zero));
 
   // x + (str.len y) + z = 0 |= 0 > x --> false
   ASSERT_FALSE(
@@ -177,7 +177,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   Node x_plus_slen_y_plus_slen_y_eq_zero =
       d_rewriter->rewrite(d_nodeManager->mkNode(
           kind::EQUAL,
-          d_nodeManager->mkNode(kind::PLUS, x_plus_slen_y, slen_y),
+          d_nodeManager->mkNode(kind::ADD, x_plus_slen_y, slen_y),
           zero));
 
   // x + (str.len y) + (str.len y) = 0 |= 0 >= x --> true
@@ -186,7 +186,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
   Node five = d_nodeManager->mkConst(CONST_RATIONAL, Rational(5));
   Node six = d_nodeManager->mkConst(CONST_RATIONAL, Rational(6));
-  Node x_plus_five = d_nodeManager->mkNode(kind::PLUS, x, five);
+  Node x_plus_five = d_nodeManager->mkNode(kind::ADD, x, five);
   Node x_plus_five_lt_six =
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, six));
 
@@ -196,7 +196,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
   // x + 5 < 6 |= 0 > x --> false
   ASSERT_TRUE(!ae.checkWithAssumption(x_plus_five_lt_six, zero, x, true));
 
-  Node neg_x = d_nodeManager->mkNode(kind::UMINUS, x);
+  Node neg_x = d_nodeManager->mkNode(kind::NEG, x);
   Node x_plus_five_lt_five =
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, five));
 
@@ -299,7 +299,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       kind::STRING_SUBSTR,
       a,
       d_nodeManager->mkNode(
-          kind::PLUS, x, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1))),
+          kind::ADD, x, d_nodeManager->mkConst(CONST_RATIONAL, Rational(1))),
       x);
   sameNormalForm(n, empty);
 
@@ -308,7 +308,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       kind::STRING_SUBSTR,
       a,
       d_nodeManager->mkNode(
-          kind::PLUS, x, d_nodeManager->mkNode(kind::STRING_LENGTH, s)),
+          kind::ADD, x, d_nodeManager->mkNode(kind::STRING_LENGTH, s)),
       x);
   sameNormalForm(n, empty);
 
@@ -318,15 +318,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
   ASSERT_EQ(res, n);
 
   // (str.substr "ABCD" (+ x 3) x) -> ""
-  n = d_nodeManager->mkNode(kind::STRING_SUBSTR,
-                            abcd,
-                            d_nodeManager->mkNode(kind::PLUS, x, three),
-                            x);
+  n = d_nodeManager->mkNode(
+      kind::STRING_SUBSTR, abcd, d_nodeManager->mkNode(kind::ADD, x, three), x);
   sameNormalForm(n, empty);
 
   // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
   n = d_nodeManager->mkNode(
-      kind::STRING_SUBSTR, abcd, d_nodeManager->mkNode(kind::PLUS, x, two), x);
+      kind::STRING_SUBSTR, abcd, d_nodeManager->mkNode(kind::ADD, x, two), x);
   res = sr.rewriteSubstr(n);
   sameNormalForm(res, n);
 
@@ -683,7 +681,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_indexOf)
         a,
         zero);
     Node rhs = d_nodeManager->mkNode(
-        kind::PLUS,
+        kind::ADD,
         two,
         d_nodeManager->mkNode(
             kind::STRING_INDEXOF,

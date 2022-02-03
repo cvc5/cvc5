@@ -82,8 +82,8 @@ int main()
   Term zero = slv.mkInteger(0);
   Term one = slv.mkInteger(1);
 
-  Term plus = slv.mkTerm(PLUS, start, start);
-  Term minus = slv.mkTerm(MINUS, start, start);
+  Term plus = slv.mkTerm(ADD, start, start);
+  Term minus = slv.mkTerm(SUB, start, start);
   Term ite = slv.mkTerm(ITE, start_bool, start, start);
 
   Term And = slv.mkTerm(AND, start_bool, start_bool);
@@ -124,7 +124,7 @@ int main()
   // (constraint (= (+ (max x y) (min x y))
   //                (+ x y)))
   slv.addSygusConstraint(slv.mkTerm(
-      EQUAL, slv.mkTerm(PLUS, max_x_y, min_x_y), slv.mkTerm(PLUS, varX, varY)));
+      EQUAL, slv.mkTerm(ADD, max_x_y, min_x_y), slv.mkTerm(ADD, varX, varY)));
 
   // print solutions if available
   if (slv.checkSynth().isUnsat())

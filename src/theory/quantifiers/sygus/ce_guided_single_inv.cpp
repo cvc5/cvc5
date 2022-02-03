@@ -431,7 +431,12 @@ void CegSingleInv::setSolution()
   if (!d_solvedf.empty())
   {
     // replace the final solution into the solved functions
-    finalSol.applyToRange(d_solvedf, true);
+    finalSol.applyToRange(d_solvedf);
+    // rewrite the solution
+    for (Node& n : d_solvedf.d_subs)
+    {
+      n = rewrite(n);
+    }
   }
 }
 

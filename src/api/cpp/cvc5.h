@@ -589,6 +589,13 @@ class CVC5_EXPORT Sort
    * Substitution of Sorts.
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point.
+   *
+   * For example,
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
@@ -596,6 +603,11 @@ class CVC5_EXPORT Sort
    * Simultaneous substitution of Sorts.
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point. In the case that
+   * sorts contains duplicates, the replacement earliest in the vector takes
+   * priority.
    */
   Sort substitute(const std::vector<Sort>& sorts,
                   const std::vector<Sort>& replacements) const;
@@ -1130,13 +1142,23 @@ class CVC5_EXPORT Term
   Sort getSort() const;
 
   /**
-   * @return the result of replacing 'term' by 'replacement' in this term
+   * @return the result of replacing 'term' by 'replacement' in this term.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point.
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point. In the case that
+   * terms contains duplicates, the replacement earliest in the vector takes
+   * priority. For example, calling substitute on f(x,y) with
+   *   terms = { x, z }, replacements = { g(z), w }
+   * results in the term f(g(z),y).
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
@@ -3625,7 +3647,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative infinity floating-point constant.
@@ -3633,7 +3655,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a not-a-number (NaN) floating-point constant.
@@ -3641,7 +3663,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNaN(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
@@ -3649,7 +3671,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
@@ -3657,7 +3679,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a roundingmode constant.

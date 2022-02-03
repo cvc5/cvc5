@@ -16,9 +16,9 @@
 #include "theory/bags/bag_solver.h"
 
 #include "expr/emptybag.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/normal_form.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
 #include "theory/uf/equality_engine_iterator.h"
@@ -76,7 +76,9 @@ void BagSolver::checkBasicOperations()
         case kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case kind::BAG_FILTER: checkFilter(n); break;
         case kind::BAG_MAP: checkMap(n); break;
+        case kind::TABLE_PRODUCT: checkProduct(n); break;
         default: break;
       }
       it++;
@@ -277,6 +279,51 @@ void BagSolver::checkMap(Node n)
       d_mapCache.insert(n, set);
     }
     d_mapCache[n].get()->insert(y);
+  }
+}
+
+void BagSolver::checkFilter(Node n)
+{
+  Assert(n.getKind() == BAG_FILTER);
+
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[0]);
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.filterDownwards(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.filterUpwards(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+}
+
+void BagSolver::checkProduct(Node n)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  const set<Node>& elementsA = d_state.getElements(n[0]);
+  const set<Node>& elementsB = d_state.getElements(n[1]);
+  for (const Node& e1 : elementsA)
+  {
+    for (const Node& e2 : elementsB)
+    {
+      InferInfo i = d_ig.productUp(
+          n, d_state.getRepresentative(e1), d_state.getRepresentative(e2));
+      d_im.lemmaTheoryInference(&i);
+    }
+  }
+
+  std::set<Node> elements = d_state.getElements(n);
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.productDown(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
   }
 }
 

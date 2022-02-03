@@ -10,23 +10,30 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Normal form for bag constants.
+ * Utility functions for bags.
  */
 
 #include <expr/node.h>
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BAGS__NORMAL_FORM_H
-#define CVC5__THEORY__BAGS__NORMAL_FORM_H
+#ifndef CVC5__THEORY__BAGS__UTILS_H
+#define CVC5__THEORY__BAGS__UTILS_H
 
 namespace cvc5 {
 namespace theory {
 namespace bags {
 
-class NormalForm
+class BagsUtils
 {
  public:
+  /**
+   * @param bagType type of bags
+   * @param bags a vector of bag nodes
+   * @return disjoint union of these bags
+   */
+  static Node computeDisjointUnion(TypeNode bagType,
+                                   const std::vector<Node>& bags);
   /**
    * Returns true if n is considered a to be a (canonical) constant bag value.
    * A canonical bag value is one whose AST is:
@@ -80,6 +87,27 @@ class NormalForm
    * @return a single value which is the result of the fold
    */
   static Node evaluateBagFold(TNode n);
+
+  /**
+   * @param n has the form (bag.filter p A) where A is a constant bag
+   * @return A filtered with predicate p
+   */
+  static Node evaluateBagFilter(TNode n);
+
+  /**
+   * @param n of the form (table.product A B) where A , B of types (Bag T1),
+   * (Bag T2) respectively.
+   * @param e1 a tuple of type T1 of the form (tuple a1 ... an)
+   * @param e2 a tuple of type T2 of the form (tuple b1 ... bn)
+   * @return  (tuple a1 ... an b1 ... bn)
+   */
+  static Node constructProductTuple(TNode n, TNode e1, TNode e2);
+
+  /**
+   * @param n of the form (table.product A B) where A, B are constants
+   * @return the evaluation of the cross product of A B
+   */
+  static Node evaluateProduct(TNode n);
 
  private:
   /**
@@ -207,4 +235,4 @@ class NormalForm
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__BAGS__NORMAL_FORM_H */
+#endif /* CVC5__THEORY__BAGS__UTILS_H */

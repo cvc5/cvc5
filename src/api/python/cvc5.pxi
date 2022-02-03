@@ -1325,7 +1325,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkConstArray(sort.csort, val.cterm)
         return term
 
-    def mkPosInf(self, int exp, int sig):
+    def mkFloatingPointPosInf(self, int exp, int sig):
         """Create a positive infinity floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1333,10 +1333,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkPosInf(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointPosInf(exp, sig)
         return term
 
-    def mkNegInf(self, int exp, int sig):
+    def mkFloatingPointNegInf(self, int exp, int sig):
         """Create a negative infinity floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1344,10 +1344,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkNegInf(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointNegInf(exp, sig)
         return term
 
-    def mkNaN(self, int exp, int sig):
+    def mkFloatingPointNaN(self, int exp, int sig):
         """Create a not-a-number (NaN) floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1355,10 +1355,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkNaN(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointNaN(exp, sig)
         return term
 
-    def mkPosZero(self, int exp, int sig):
+    def mkFloatingPointPosZero(self, int exp, int sig):
         """Create a positive zero (+0.0) floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1366,10 +1366,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkPosZero(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointPosZero(exp, sig)
         return term
 
-    def mkNegZero(self, int exp, int sig):
+    def mkFloatingPointNegZero(self, int exp, int sig):
         """Create a negative zero (+0.0) floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1377,7 +1377,7 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkNegZero(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointNegZero(exp, sig)
         return term
 
     def mkRoundingMode(self, RoundingMode rm):
@@ -2631,6 +2631,15 @@ cdef class Sort:
 
 	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
             :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+
+        Note that this replacement is applied during a pre-order traversal and
+        only once to the sort. It is not run until fix point. In the case that
+        sort_or_list_1 contains duplicates, the replacement earliest in the list
+        takes priority.
+
+        For example,
+        (Array A B) .substitute([A, C], [(Array C D), (Array A B)]) will
+        return (Array (Array C D) B).
         """
 
         # The resulting sort after substitution
@@ -2941,11 +2950,11 @@ cdef class Term:
         return self.cterm.getId()
 
     def getKind(self):
-        """:return: the :py:class:`pycvc5.Kind` of this term."""
+        """:return: the :py:class:`cvc5.Kind` of this term."""
         return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
-        """:return: the :py:class:`pycvc5.Sort` of this term."""
+        """:return: the :py:class:`cvc5.Sort` of this term."""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
         return sort
@@ -2953,6 +2962,13 @@ cdef class Term:
     def substitute(self, term_or_list_1, term_or_list_2):
         """
 	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
+	   
+      Note that this replacement is applied during a pre-order traversal and
+      only once to the term. It is not run until fix point. In the case that
+      terms contains duplicates, the replacement earliest in the list takes
+      priority. For example, calling substitute on f(x,y) with
+        term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
+      results in the term f(g(z),y).
 	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
@@ -2991,7 +3007,7 @@ cdef class Term:
         """
         .. note:: This is safe to call when :py:meth:`hasOp()` returns True.
 
-        :return: the :py:class:`pycvc5.Op` used to create this Term.
+        :return: the :py:class:`cvc5.Op` used to create this Term.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()

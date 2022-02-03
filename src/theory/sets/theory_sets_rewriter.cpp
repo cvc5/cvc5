@@ -16,13 +16,16 @@
 #include "theory/sets/theory_sets_rewriter.h"
 
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "options/sets_options.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
 #include "util/rational.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::datatypes;
 
 namespace cvc5 {
 namespace theory {
@@ -282,9 +285,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     else if (node[0].getKind() == kind::SET_UNION)
     {
       Node ret = NodeManager::currentNM()->mkNode(
-          kind::MINUS,
+          kind::SUB,
           NodeManager::currentNM()->mkNode(
-              kind::PLUS,
+              kind::ADD,
               NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][0]),
               NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][1])),
           NodeManager::currentNM()->mkNode(
@@ -296,7 +299,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     else if (node[0].getKind() == kind::SET_MINUS)
     {
       Node ret = NodeManager::currentNM()->mkNode(
-          kind::MINUS,
+          kind::SUB,
           NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][0]),
           NodeManager::currentNM()->mkNode(
               kind::SET_CARD,
@@ -350,7 +353,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set<Node>::iterator tuple_it = tuple_set.begin();
 
       while(tuple_it != tuple_set.end()) {
-        new_tuple_set.insert(RelsUtils::reverseTuple(*tuple_it));
+        new_tuple_set.insert(TupleUtils::reverseTuple(*tuple_it));
         ++tuple_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
@@ -389,7 +392,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         std::vector<Node> left_tuple;
         left_tuple.push_back(tn.getDType()[0].getConstructor());
         for(int i = 0; i < left_len; i++) {
-          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
+          left_tuple.push_back(TupleUtils::nthElementOfTuple(*left_it,i));
         }
         std::set<Node>::iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
@@ -397,7 +400,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           Trace("rels-debug") << "Sets::postRewrite processing right_it = " <<  *right_it << std::endl;
           std::vector<Node> right_tuple;
           for(int j = 0; j < right_len; j++) {
-            right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
+            right_tuple.push_back(TupleUtils::nthElementOfTuple(*right_it,j));
           }
           std::vector<Node> new_tuple;
           new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
@@ -437,15 +440,16 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         std::vector<Node> left_tuple;
         left_tuple.push_back(tn.getDType()[0].getConstructor());
         for(int i = 0; i < left_len - 1; i++) {
-          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
+          left_tuple.push_back(TupleUtils::nthElementOfTuple(*left_it,i));
         }
         std::set<Node>::iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
         while(right_it != right.end()) {
-          if(RelsUtils::nthElementOfTuple(*left_it,left_len-1) == RelsUtils::nthElementOfTuple(*right_it,0)) {
+          if(TupleUtils::nthElementOfTuple(*left_it,left_len-1) == TupleUtils::nthElementOfTuple(*right_it,0)) {
             std::vector<Node> right_tuple;
             for(int j = 1; j < right_len; j++) {
-              right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
+              right_tuple.push_back(
+                  TupleUtils::nthElementOfTuple(*right_it,j));
             }
             std::vector<Node> new_tuple;
             new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
@@ -508,7 +512,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set<Node>::iterator rel_mems_it = rel_mems.begin();
 
       while( rel_mems_it != rel_mems.end() ) {
-        Node fst_mem = RelsUtils::nthElementOfTuple( *rel_mems_it, 0);
+        Node fst_mem = TupleUtils::nthElementOfTuple( *rel_mems_it, 0);
         iden_rel_mems.insert(RelsUtils::constructPair(node, fst_mem, fst_mem));
         ++rel_mems_it;
       }
@@ -548,7 +552,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set<Node>::iterator rel_mems_it = rel_mems.begin();
 
       while( rel_mems_it != rel_mems.end() ) {
-        Node fst_mem = RelsUtils::nthElementOfTuple( *rel_mems_it, 0);
+        Node fst_mem = TupleUtils::nthElementOfTuple( *rel_mems_it, 0);
         if( has_checked.find( fst_mem ) != has_checked.end() ) {
           ++rel_mems_it;
           continue;
@@ -557,9 +561,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         std::set<Node> existing_mems;
         std::set<Node>::iterator rel_mems_it_snd = rel_mems.begin();
         while( rel_mems_it_snd != rel_mems.end() ) {
-          Node fst_mem_snd = RelsUtils::nthElementOfTuple( *rel_mems_it_snd, 0);
+          Node fst_mem_snd = TupleUtils::nthElementOfTuple( *rel_mems_it_snd, 0);
           if( fst_mem == fst_mem_snd ) {
-            existing_mems.insert( RelsUtils::nthElementOfTuple( *rel_mems_it_snd, 1) );
+            existing_mems.insert(
+                TupleUtils::nthElementOfTuple( *rel_mems_it_snd, 1) );
           }
           ++rel_mems_it_snd;
         }

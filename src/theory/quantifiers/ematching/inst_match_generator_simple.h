@@ -47,7 +47,7 @@ class InstMatchGeneratorSimple : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorSimple(Trigger* tparent, Node q, Node pat);
+  InstMatchGeneratorSimple(Env& env, Trigger* tparent, Node q, Node pat);
 
   /** Reset instantiation round. */
   void resetInstantiationRound() override;

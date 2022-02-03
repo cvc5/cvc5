@@ -482,7 +482,7 @@ Node eliminateBv2Nat(TNode node)
         nm->mkNode(kind::ITE, cond, nm->mkConstInt(Rational(i)), z));
   }
   // avoid plus with one child
-  return children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
+  return children.size() == 1 ? children[0] : nm->mkNode(kind::ADD, children);
 }
 
 Node eliminateInt2Bv(TNode node)
