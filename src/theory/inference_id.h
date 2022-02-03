@@ -186,6 +186,8 @@ enum class InferenceId
   BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
+  TABLES_PRODUCT_UP,
+  TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
