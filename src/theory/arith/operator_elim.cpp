@@ -124,7 +124,7 @@ Node OperatorElim::eliminateOperators(Node node,
           bvm->mkBoundVar<ToIntWitnessVarAttribute>(node[0], nm->integerType());
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
-      Node diff = nm->mkNode(MINUS, node[0], v);
+      Node diff = nm->mkNode(SUB, node[0], v);
       Node lem = mkInRange(diff, zero, one);
       Node toIntSkolem =
           mkWitnessTerm(v,
@@ -227,7 +227,7 @@ Node OperatorElim::eliminateOperators(Node node,
           v, lem, "linearIntDiv", "the result of an intdiv-by-k term", lems);
       if (k == INTS_MODULUS_TOTAL)
       {
-        Node nn = nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
+        Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, intVar));
         return nn;
       }
       else
@@ -320,7 +320,7 @@ Node OperatorElim::eliminateOperators(Node node,
           nm->mkNode(LT,
                      node[0],
                      nm->mkConstRealOrInt(node[0].getType(), Rational(0))),
-          nm->mkNode(UMINUS, node[0]),
+          nm->mkNode(NEG, node[0]),
           node[0]);
       break;
     }

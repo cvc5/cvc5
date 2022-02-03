@@ -16,11 +16,11 @@
 # bitvectors-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setLogic("QF_BV") # Set the logic
     # The following example has been adapted from the book A Hacker's Delight by
     # Henry S. Warren.

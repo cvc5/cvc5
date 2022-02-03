@@ -16,8 +16,8 @@
 # datatypes-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 def test(slv, consListSort):
     # Now our old "consListSpec" is useless--the relevant information
@@ -105,7 +105,7 @@ def test(slv, consListSort):
 
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # This example builds a simple "cons list" of integers, with
     # two constructors, "cons" and "nil."

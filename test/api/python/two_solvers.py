@@ -13,10 +13,10 @@
 # A simple test of multiple SmtEngines.
 ##
 
-import pycvc5
+import cvc5
 
-s1 = pycvc5.Solver()
-s2 = pycvc5.Solver()
+s1 = cvc5.Solver()
+s2 = cvc5.Solver()
 r1 = s1.checkEntailed(s1.mkBoolean(True))
 r2 = s2.checkEntailed(s2.mkBoolean(True))
 assert r1.isEntailed() and r2.isEntailed()

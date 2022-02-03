@@ -16,8 +16,8 @@
 # combination-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 def prefixPrintGetValue(slv, t, level=0):
     print("slv.getValue({}): {}".format(t, slv.getValue(t)))
@@ -25,7 +25,7 @@ def prefixPrintGetValue(slv, t, level=0):
         prefixPrintGetValue(slv, c, level + 1)
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
     slv.setOption("dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language

@@ -16,7 +16,7 @@
 #include "theory/bags/theory_bags_type_enumerator.h"
 
 #include "expr/emptybag.h"
-#include "theory/bags/normal_form.h"
+#include "theory/bags/bags_utils.h"
 #include "theory_bags_type_enumerator.h"
 #include "util/rational.h"
 
@@ -67,11 +67,10 @@ BagEnumerator& BagEnumerator::operator++()
   else
   {
     // increase the multiplicity of one of the elements in the current bag
-    std::map<Node, Rational> elements =
-        NormalForm::getBagElements(d_currentBag);
+    std::map<Node, Rational> elements = BagsUtils::getBagElements(d_currentBag);
     Node element = elements.begin()->first;
     elements[element] = elements[element] + Rational(1);
-    d_currentBag = NormalForm::constructConstantBagFromElements(
+    d_currentBag = BagsUtils::constructConstantBagFromElements(
         d_currentBag.getType(), elements);
   }
 

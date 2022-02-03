@@ -433,7 +433,7 @@ bool TheoryStrings::collectModelInfoType(
           argVal = nfe.d_nf[0][0];
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        assignedValue = rewrite(nm->mkNode(SEQ_UNIT, argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }

@@ -42,7 +42,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_assertionListDefs(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
-      d_assertions()
+      d_assertions(env)
 {
 }
 

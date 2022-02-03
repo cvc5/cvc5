@@ -779,6 +779,7 @@ set(regress_0_tests
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
+  regress0/nl/proj-issue-444-memout-eqelim.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -982,6 +983,7 @@ set(regress_0_tests
   regress0/quantifiers/issue6996-trivial-elim.smt2
   regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/issue7353-var-elim-par-dt.smt2
+  regress0/quantifiers/issue8001-mem-leak.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1642,6 +1644,7 @@ set(regress_1_tests
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
   regress1/bags/card2.smt2
+  regress1/bags/card3.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -1651,6 +1654,12 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/filter1.smt2
+  regress1/bags/filter2.smt2
+  regress1/bags/filter3.smt2
+  regress1/bags/filter4.smt2
+  regress1/bags/filter5.smt2
+  regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
@@ -1861,6 +1870,7 @@ set(regress_1_tests
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/issue7924-sqrt-partial.smt2
+  regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2317,6 +2327,8 @@ set(regress_1_tests
   regress1/strings/idof-neg-index.smt2
   regress1/strings/idof-triv.smt2
   regress1/strings/ilc-l-nt.smt2
+  regress1/strings/instance1079-re-loop-cong.smt2
+  regress1/strings/instance2984-null-term.smt2
   regress1/strings/instance3303-delta.smt2
   regress1/strings/instance7075-delta.smt2
   regress1/strings/issue1105.smt2
@@ -2427,6 +2439,7 @@ set(regress_1_tests
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
   regress1/strings/regexp003.smt2
+  regress1/strings/regexp-050-multiply-graft-fuzz-dd.smt2
   regress1/strings/regexp-strat-fix.smt2
   regress1/strings/reloop.smt2
   regress1/strings/repl-empty-sem.smt2
@@ -2747,6 +2760,7 @@ set(regress_2_tests
   regress2/strings/issue6639-replace-re-all.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
+  regress2/strings/proj-439-cyclic-str-ipc.smt2
   regress2/strings/proof-fail-083021-delta.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2

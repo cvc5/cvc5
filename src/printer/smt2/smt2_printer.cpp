@@ -1009,8 +1009,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::ARCCOTANGENT: return "arccot";
   case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
-  case kind::MINUS: return "-";
-  case kind::UMINUS: return "-";
+  case kind::SUB: return "-";
+  case kind::NEG: return "-";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";
@@ -1123,6 +1123,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
 
     // fp theory
