@@ -273,7 +273,7 @@ Node TranscendentalState::mkSecantPlane(
   Rational rcoeff = rcoeff_n.getConst<Rational>();
   Assert(rcoeff.sgn() != 0);
   Node res =
-      nm->mkNode(Kind::PLUS,
+      nm->mkNode(Kind::ADD,
                  lval,
                  nm->mkNode(Kind::MULT,
                             nm->mkNode(Kind::DIVISION,

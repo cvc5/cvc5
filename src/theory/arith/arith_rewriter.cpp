@@ -367,9 +367,8 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
     return RewriteResponse(REWRITE_DONE,
                            nm->mkConstRealOrInt(t.getType(), Rational(0)));
   }
-  return RewriteResponse(
-      REWRITE_AGAIN_FULL,
-      nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
+  return RewriteResponse(REWRITE_AGAIN_FULL,
+                         nm->mkNode(Kind::ADD, t[0], makeUnaryMinusNode(t[1])));
 }
 
 RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
@@ -410,7 +409,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::NEG: return rewriteNeg(t, true);
       case kind::DIVISION:
       case kind::DIVISION_TOTAL: return rewriteDiv(t, true);
-      case kind::PLUS: return preRewritePlus(t);
+      case kind::ADD: return preRewritePlus(t);
       case kind::MULT:
       case kind::NONLINEAR_MULT: return preRewriteMult(t);
       case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
@@ -458,7 +457,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::NEG: return rewriteNeg(t, false);
       case kind::DIVISION:
       case kind::DIVISION_TOTAL: return rewriteDiv(t, false);
-      case kind::PLUS: return postRewritePlus(t);
+      case kind::ADD: return postRewritePlus(t);
       case kind::MULT:
       case kind::NONLINEAR_MULT: return postRewriteMult(t);
       case kind::IAND: return postRewriteIAnd(t);
@@ -541,12 +540,12 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
-  Assert(t.getKind() == kind::PLUS);
+  Assert(t.getKind() == kind::ADD);
   return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
-  Assert(t.getKind() == kind::PLUS);
+  Assert(t.getKind() == kind::ADD);
   Assert(t.getNumChildren() > 1);
 
   {
@@ -619,7 +618,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   }
   return RewriteResponse(
       REWRITE_DONE,
-      nm->mkNode(Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+      nm->mkNode(Kind::ADD, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
 }
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode node)
@@ -779,7 +778,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         return RewriteResponse(REWRITE_DONE, t);
       }
     }
-    else if (t[0].getKind() == kind::PLUS)
+    else if (t[0].getKind() == kind::ADD)
     {
       std::vector<Node> product;
       for (const Node tc : t[0])
@@ -850,16 +849,19 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           //add/substract 2*pi beyond scope
           Rational ra_div_two = (r_abs + rone) / rtwo;
           Node new_pi_factor;
-          if( r.sgn()==1 ){
+          if (r.sgn() == 1)
+          {
             new_pi_factor = nm->mkConstReal(r - rtwo * ra_div_two.floor());
-          }else{
+          }
+          else
+          {
             Assert(r.sgn() == -1);
             new_pi_factor = nm->mkConstReal(r + rtwo * ra_div_two.floor());
           }
           Node new_arg = nm->mkNode(kind::MULT, new_pi_factor, pi);
           if (!rem.isNull())
           {
-            new_arg = nm->mkNode(kind::PLUS, new_arg, rem);
+            new_arg = nm->mkNode(kind::ADD, new_arg, rem);
           }
           // sin( 2*n*PI + x ) = sin( x )
           return RewriteResponse(REWRITE_AGAIN_FULL,
@@ -1189,7 +1191,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       // (mod (mod x c) c) --> (mod x c)
       return returnRewrite(t, t[0], Rewrite::MOD_OVER_MOD);
     }
-    else if (k0 == kind::NONLINEAR_MULT || k0 == kind::MULT || k0 == kind::PLUS)
+    else if (k0 == kind::NONLINEAR_MULT || k0 == kind::MULT || k0 == kind::ADD)
     {
       // can drop all
       std::vector<Node> newChildren;
@@ -1207,7 +1209,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       if (childChanged)
       {
         // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
-        // op is one of { NONLINEAR_MULT, MULT, PLUS }.
+        // op is one of { NONLINEAR_MULT, MULT, ADD }.
         Node ret = nm->mkNode(k0, newChildren);
         ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, ret, t[1]);
         return returnRewrite(t, ret, Rewrite::MOD_CHILD_MOD);
