@@ -14,11 +14,11 @@
 # A simple demonstration of the transcendental extension.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setLogic("QF_NRAT")
 
     real = slv.getRealSort()

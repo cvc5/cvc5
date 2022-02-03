@@ -252,7 +252,7 @@ bool CegInstantiator::isEligible( Node n ) {
 
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
-  if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
+  if (quantifiers::TermUtil::isBoolConnective(k) || k == ADD || k == GEQ
       || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
       || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
@@ -1225,7 +1225,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             children.push_back( c );
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
+          Node nretc = children.size() == 1
+                           ? children[0]
+                           : NodeManager::currentNM()->mkNode(ADD, children);
           nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
@@ -1272,7 +1274,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
+        atom_lhs = nm->mkNode(SUB, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
         atom_rhs = nm->mkConstRealOrInt(atom_lhs.getType(), Rational(0));
       }

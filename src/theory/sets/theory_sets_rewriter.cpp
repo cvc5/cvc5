@@ -282,9 +282,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     else if (node[0].getKind() == kind::SET_UNION)
     {
       Node ret = NodeManager::currentNM()->mkNode(
-          kind::MINUS,
+          kind::SUB,
           NodeManager::currentNM()->mkNode(
-              kind::PLUS,
+              kind::ADD,
               NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][0]),
               NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][1])),
           NodeManager::currentNM()->mkNode(
@@ -296,7 +296,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     else if (node[0].getKind() == kind::SET_MINUS)
     {
       Node ret = NodeManager::currentNM()->mkNode(
-          kind::MINUS,
+          kind::SUB,
           NodeManager::currentNM()->mkNode(kind::SET_CARD, node[0][0]),
           NodeManager::currentNM()->mkNode(
               kind::SET_CARD,

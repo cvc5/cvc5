@@ -94,7 +94,7 @@
 #     upper bound, leave the colon after LB, but omit UB.  For example,
 #     an N-ary operator might be defined as:
 #
-#         operator PLUS 2: "addition on two or more arguments"
+#         operator ADD 2: "addition on two or more arguments"
 #
 #   parameterized K1 K2 #children ["comment"]
 #

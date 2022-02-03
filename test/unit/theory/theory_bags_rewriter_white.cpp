@@ -683,7 +683,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_card)
   Node n3 = d_nodeManager->mkNode(BAG_CARD, unionDisjointAB);
   Node cardA = d_nodeManager->mkNode(BAG_CARD, A);
   Node cardB = d_nodeManager->mkNode(BAG_CARD, B);
-  Node plus = d_nodeManager->mkNode(PLUS, cardA, cardB);
+  Node plus = d_nodeManager->mkNode(ADD, cardA, cardB);
   RewriteResponse response3 = d_rewriter->postRewrite(n3);
   ASSERT_TRUE(response3.d_node == plus
               && response3.d_status == REWRITE_AGAIN_FULL);
@@ -812,7 +812,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, fold)
   Node x = d_nodeManager->mkBoundVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkBoundVar("y", d_nodeManager->integerType());
   Node xy = d_nodeManager->mkNode(BOUND_VAR_LIST, x, y);
-  Node sum = d_nodeManager->mkNode(PLUS, x, y);
+  Node sum = d_nodeManager->mkNode(ADD, x, y);
 
   // f(x,y) = 0 for all x, y
   Node f = d_nodeManager->mkNode(LAMBDA, xy, zero);

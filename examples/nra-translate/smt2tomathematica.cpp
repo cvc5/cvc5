@@ -111,7 +111,7 @@ void translate_to_mathematica_term(const map<Expr, unsigned>& variables, const E
   } else {
         
     switch (term.getKind()) {
-      case kind::PLUS:
+      case kind::ADD:
         cout << "(";
         first = true;
         for (unsigned i = 0; i < n; ++ i) {
