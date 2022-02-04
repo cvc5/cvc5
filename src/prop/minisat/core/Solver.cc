@@ -2190,7 +2190,6 @@ bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
 bool Solver::needProof() const
 {
   return isProofEnabled()
-         && options().smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
          && options().smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
