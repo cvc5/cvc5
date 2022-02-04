@@ -298,11 +298,13 @@ Node StringsPreprocess::reduce(Node t,
         validLen,
         nm->mkNode(STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, s, skk, l), r));
     // skk != -1 =>
-    //   exists l. (0 <= l < len(s) - skk) ^ in_re(substr(s, skk, l), r))
+    //   skk >= n ^ exists l. (0 <= l < len(s) - skk) ^ in_re(substr(s, skk, l), r))
     Node match =
         nm->mkNode(OR,
                    retNegOne,
-                   utils::mkForallInternal(bvll, matchBody.negate()).negate());
+                   nm->mkNode(AND,
+                    nm->mkNode(GEQ, skk, n),
+                    utils::mkForallInternal(bvll, matchBody.negate()).negate()));
 
     // assert:
     // IF:   n > len(s) OR 0 > n
@@ -313,7 +315,7 @@ Node StringsPreprocess::reduce(Node t,
     //         n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //           ~in_re(substr(s, i, l), r)) ^
     //       (skk != -1 =>
-    //          exists l. 0 <= l <= len(s) - skk ^ in_re(substr(s, skk, l), r))
+    //          skk >= n ^ exists l. 0 <= l <= len(s) - skk ^ in_re(substr(s, skk, l), r))
     //
     // Note that this reduction relies on eager reduction lemmas being sent to
     // properly limit the range of skk.
