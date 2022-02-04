@@ -275,22 +275,22 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           nonClosedEnum[tn].push_back(n);
         }
       }
-    }
-    for (const std::pair< const TypeNode, std::vector<Node> >& es : nonClosedEnum)
-    {
-      size_t nenum = es.second.size();
-      for (size_t i=0; i<nenum; i++)
+      for (const std::pair< const TypeNode, std::vector<Node> >& es : nonClosedEnum)
       {
-        Node vi = nonClosedValue[es.second[i]];
-        for (size_t j=(i+1); j<nenum; j++)
+        size_t nenum = es.second.size();
+        for (size_t i=0; i<nenum; i++)
         {
-          Node vj = nonClosedValue[es.second[j]];
-          Node eq = es.second[i].eqNode(es.second[j]);
-          if (vi==vj)
+          Node vi = nonClosedValue[es.second[i]];
+          for (size_t j=(i+1); j<nenum; j++)
           {
-            eq = eq.negate();
+            Node vj = nonClosedValue[es.second[j]];
+            Node eq = es.second[i].eqNode(es.second[j]);
+            if (vi==vj)
+            {
+              eq = eq.negate();
+            }
+            blockers.push_back(eq);
           }
-          blockers.push_back(eq);
         }
       }
     }
