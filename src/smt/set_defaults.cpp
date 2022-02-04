@@ -116,7 +116,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
       {
         notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
       }
-      // enable unsat cores, because they are available as a consequence of proofs
+      // enable unsat cores, because they are available as a consequence of
+      // proofs
       opts.smt.unsatCores = true;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
     }
