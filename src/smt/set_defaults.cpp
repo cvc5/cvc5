@@ -88,9 +88,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.produceDifficulty)
   {
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
+    if (opts.smt.proofMode == options::ProofMode::OFF)
     {
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
+      opts.smt.proofMode = options::ProofMode::PP_ONLY;
     }
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
@@ -125,6 +125,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // enable unsat cores, because they are available as a consequence of proofs
     opts.smt.unsatCores = true;
     opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
+    opts.smt.proofMode = options::ProofMode::FULL;
   }
 
   // set proofs on if not yet set
