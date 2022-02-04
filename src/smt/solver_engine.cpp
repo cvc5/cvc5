@@ -1025,7 +1025,7 @@ Node SolverEngine::getValue(const Node& ex) const
   if (!TheoryModel::isValue(resultNode))
   {
     d_env->warning() << "Could not evaluate " << resultNode
-                     << " in getValue." std::endl;
+                     << " in getValue." << std::endl;
   }
 
   if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
