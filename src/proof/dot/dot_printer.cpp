@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "options/expr_options.h"
+#include "options/proof_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
@@ -191,18 +192,24 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
                                    uint64_t scopeCounter,
                                    bool inPropositionalView)
 {
-  ProofNodeHashFunction hasher;
-  size_t currentHash = hasher(pn);
-  auto proofIt = pfLet.find(currentHash);
+  uint64_t currentRuleID = d_ruleID;
 
-  // If this node has been already counted
-  if (proofIt != pfLet.end())
+  // Print DAG option enabled
+  if (options::proofDotDAG())
   {
-    return proofIt->second;
-  }
+    ProofNodeHashFunction hasher;
+    size_t currentHash = hasher(pn);
+    auto proofIt = pfLet.find(currentHash);
 
-  uint64_t currentRuleID = d_ruleID++;
-  pfLet[currentHash] = currentRuleID;
+    // If this node has been already counted
+    if (proofIt != pfLet.end())
+    {
+      return proofIt->second;
+    }
+
+    pfLet[currentHash] = currentRuleID;
+  }
+  d_ruleID++;
 
   std::ostringstream currentArguments, resultStr, classes, colors;
 
