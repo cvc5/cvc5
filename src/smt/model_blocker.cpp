@@ -255,12 +255,43 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     // otherwise, block all terms that were specified in get-value
     else
     {
+      std::map<TypeNode, std::vector<Node> > nonClosedEnum;
+      std::map<Node, Node> nonClosedValue;
       std::unordered_set<Node> terms;
-      for (Node n : nodesToBlock)
+      for (const Node& n : nodesToBlock)
       {
+        TypeNode tn = n.getType();
         Node v = m->getValue(n);
-        Node a = nm->mkNode(DISTINCT, n, v);
-        blockers.push_back(a);
+        if (tn.isClosedEnumerable())
+        {
+          // if its type is closed enumerable, then we can block its value
+          Node a = nm->mkNode(DISTINCT, n, v);
+          blockers.push_back(a);
+        }
+        else
+        {
+          nonClosedValue[n] = v;
+          // otherwise we will block (dis)equality with other variables of its type below
+          nonClosedEnum[tn].push_back(n);
+        }
+      }
+    }
+    for (const std::pair< const TypeNode, std::vector<Node> >& es : nonClosedEnum)
+    {
+      size_t nenum = es.second.size();
+      for (size_t i=0; i<nenum; i++)
+      {
+        Node vi = nonClosedValue[es.second[i]];
+        for (size_t j=(i+1); j<nenum; j++)
+        {
+          Node vj = nonClosedValue[es.second[j]];
+          Node eq = es.second[i].eqNode(es.second[j]);
+          if (vi==vj)
+          {
+            eq = eq.negate();
+          }
+          blockers.push_back(eq);
+        }
       }
     }
     if (blockers.size() == 0)
