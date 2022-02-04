@@ -3007,7 +3007,6 @@ TEST_F(TestApiBlackSolver, proj_issue436)
 {
   Solver slv;
   slv.setOption("produce-abducts", "true");
-  slv.setOption("solve-bv-as-int", "sum");
   Sort s8 = slv.mkBitVectorSort(68);
   Term t17 = slv.mkConst(s8, "_x6");
   Term t23;
