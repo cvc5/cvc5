@@ -104,8 +104,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
     {
-      verbose(1)
-          << "Overriding OFF unsat-core mode since cores were requested.\n";
+      notifyModifyOption("unsatCoresMode", "assumptions", "enabling unsat cores");
     }
     opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
@@ -120,8 +119,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
     {
-      verbose(1) << "Forcing full-proof mode for unsat cores mode since proofs "
-                    "were requested.\n";
+      notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
     }
     // enable unsat cores, because they are available as a consequence of proofs
     opts.smt.unsatCores = true;
@@ -133,8 +131,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.produceProofsWasSetByUser)
     {
-      verbose(1)
-          << "Forcing proof production since new unsat cores were requested.\n";
+      notifyModifyOption("produceProofs", "true", "enabling unsat cores");
     }
     opts.smt.produceProofs = true;
   }
@@ -151,8 +148,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       opts.smt.unsatCores = false;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      verbose(1) << "SolverEngine: turning off produce-proofs due to "
-                 << reasonNoProofs.str() << "." << std::endl;
+      notifyModifyOption("produceProofs and unsatCores", "false", reasonNoProofs.str());
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
     }
@@ -200,9 +196,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
             "for the combination of bit-vectors with arrays or uinterpreted "
             "functions. Try --bitblast=lazy"));
       }
-      verbose(1)
-          << "SolverEngine: setting bit-blast mode to lazy to support model"
-          << "generation" << std::endl;
+      notifyModifyOption("bitblastMode", "lazy", "model generation");
       opts.bv.bitblastMode = options::BitblastMode::LAZY;
     }
     else if (!opts.base.incrementalSolving)
@@ -259,8 +253,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(std::string(
           "Ackermannization currently does not support model generation."));
     }
-    verbose(1) << "SolverEngine: turn off ackermannization to support model"
-               << "generation" << std::endl;
+    notifyModifyOption("ackermann", "false", "model generation");
     opts.smt.ackermann = false;
   }
 
@@ -1500,7 +1493,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
 {
   if (!opts.quantifiers.sygus)
   {
-    notifyModifyOption("sygus", "true", "")
+    notifyModifyOption("sygus", "true", "");
     opts.quantifiers.sygus = true;
   }
   // must use Ferrante/Rackoff for real arithmetic
@@ -1712,7 +1705,7 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                << std::endl;
 }
 
-void SetDefaults::notifyModifyOption(const std::string& x, const std::string& val, const std::string& reason)
+void SetDefaults::notifyModifyOption(const std::string& x, const std::string& val, const std::string& reason) const
 {
   verbose(1) << "SetDefaults: setting " << x << " to " << val;
   if (!reason.empty())
