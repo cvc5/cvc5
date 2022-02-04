@@ -3016,7 +3016,7 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   Term t57 = slv.mkVar(s7, "_x38");
   Term t103 = slv.mkTerm(Kind::SELECT, {t57, t3});
   slv.checkSat();
-  ASSERT_THROW(slv.blockModelValues({t103}));
+  ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
 
 }  // namespace test
