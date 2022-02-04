@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --nl-ext-tplanes
-; EXPECT: sat
+; EXPECT: unsat
 (set-logic ALL)
 (declare-fun x () Int)
 (declare-fun y () Int)
