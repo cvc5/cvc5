@@ -437,6 +437,7 @@ set(regress_0_tests
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
+  regress0/bv/proj-issue438-prerewrite-fixed-point.smt2
   regress0/bv/reset-assertions-assert-input.smt2
   regress0/bv/sizecheck.cvc.smt2
   regress0/bv/smtcompbug.smtv1.smt2
@@ -1712,6 +1713,7 @@ set(regress_1_tests
   regress1/bv/issue3776.smt2
   regress1/bv/issue3958.smt2
   regress1/bv/min-pp-rewrite-error.smt2
+  regress1/bv/proj-issue438-prerewrite-fixed-point-original.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
   regress1/cee-bug0909-dd-scope.smt2
