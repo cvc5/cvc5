@@ -119,7 +119,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       // enable unsat cores, because they are available as a consequence of
       // proofs
       opts.smt.unsatCores = true;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::PROOF;
     }
     // if the user requested proofs, proof mode is full
     opts.smt.proofMode = options::ProofMode::FULL;
@@ -142,6 +142,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
       notifyModifyOption("produceProofs", "true", "enabling unsat cores");
     }
     opts.smt.produceProofs = true;
+    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PROOF)
+    {
+      // if based on proofs, we produce (preprocessing +) SAT proofs
+      opts.smt.proofMode = options::ProofMode::SAT;
+    }
+    else
+    {
+      // otherwise, we always produce preprocessing proofs
+      opts.smt.proofMode = options::ProofMode::PP_ONLY;
+    }
   }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF
