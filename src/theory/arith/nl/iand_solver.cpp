@@ -95,8 +95,8 @@ void IAndSolver::checkInitialRefine()
       Node op = i.getOperator();
       size_t bsize = op.getConst<IntAnd>().d_size;
       Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
-      Node arg0Mod = nm->mkNode(kind::INTS_MODULUS, i[0],  twok);
-      Node arg1Mod = nm->mkNode(kind::INTS_MODULUS, i[1],  twok);
+      Node arg0Mod = nm->mkNode(kind::INTS_MODULUS, i[0], twok);
+      Node arg1Mod = nm->mkNode(kind::INTS_MODULUS, i[1], twok);
       // initial refinement lemmas
       std::vector<Node> conj;
       // iand(x,y)=iand(y,x) is guaranteed by rewriting

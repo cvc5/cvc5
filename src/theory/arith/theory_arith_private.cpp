@@ -1256,7 +1256,8 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
   Kind xk = x.getKind();
   Assert(isLeaf(x) || VarList::isMember(x) || xk == ADD || internal);
-  if (logicInfo().isLinear() && (Variable::isDivMember(x) || xk==IAND || isTranscendentalKind(xk)))
+  if (logicInfo().isLinear()
+      && (Variable::isDivMember(x) || xk == IAND || isTranscendentalKind(xk)))
   {
     stringstream ss;
     ss << "A non-linear fact was asserted to "
