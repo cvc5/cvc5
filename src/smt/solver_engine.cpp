@@ -1024,7 +1024,8 @@ Node SolverEngine::getValue(const Node& ex) const
   // holds for models that do not have approximate values.
   if (!TheoryModel::isValue(resultNode))
   {
-    d_env->warning() << "Could not evaluate " << resultNode << " in getValue." std::endl;
+    d_env->warning() << "Could not evaluate " << resultNode
+                     << " in getValue." std::endl;
   }
 
   if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
