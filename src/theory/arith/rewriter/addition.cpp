@@ -236,16 +236,17 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
       }
     }
     if (Trace.isOn("arith-rewriter-distribute"))
-      Trace("arith-rewriter-distribute")
-          << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter-distribute")
-        << "base: " << basemultiplicity << " * " << base << std::endl;
-    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
-    for (const auto& summand : newsum)
     {
       Trace("arith-rewriter-distribute")
-          << "\t" << summand.second << " * " << summand.first << std::endl;
-    }
+          << "multiplied with " << factor << std::endl;
+      Trace("arith-rewriter-distribute")
+          << "base: " << basemultiplicity << " * " << base << std::endl;
+      Trace("arith-rewriter-distribute") << "sum:" << std::endl;
+      for (const auto& summand : newsum)
+      {
+        Trace("arith-rewriter-distribute")
+            << "\t" << summand.second << " * " << summand.first << std::endl;
+      }
     }
 
     sum = std::move(newsum);
