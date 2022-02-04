@@ -265,7 +265,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         if (tn.isClosedEnumerable())
         {
           // if its type is closed enumerable, then we can block its value
-          Node a = nm->mkNode(DISTINCT, n, v);
+          Node a = n.eqNode(v).notNode();
           blockers.push_back(a);
         }
         else
@@ -287,7 +287,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
             Node eq = es.second[i].eqNode(es.second[j]);
             if (vi==vj)
             {
-              eq = eq.negate();
+              eq = eq.notNode();
             }
             blockers.push_back(eq);
           }
