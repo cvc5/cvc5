@@ -216,8 +216,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
           // Put the rewritten node to the top of the stack
           TNode newNode = response.d_node;
-          rewriteStackTop.d_node = newNode;
           TheoryId newTheory = theoryOf(newNode);
+          rewriteStackTop.d_node = newNode;
+          rewriteStackTop.d_theoryId = newTheory;
           // In the pre-rewrite, if changing theories, we just call the other
           // theories pre-rewrite. If the kind of the node was changed, then we
           // pre-rewrite again.
@@ -237,7 +238,6 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             }
             break;
           }
-          rewriteStackTop.d_theoryId = newTheory;
         }
 
         // Cache the rewrite
