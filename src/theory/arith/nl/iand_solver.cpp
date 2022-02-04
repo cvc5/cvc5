@@ -93,6 +93,10 @@ void IAndSolver::checkInitialRefine()
       }
       d_initRefine.insert(i);
       Node op = i.getOperator();
+      size_t bsize = op.getConst<IntAnd>().d_size;
+      Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+      Node arg0Mod = nm->mkNode(kind::INTS_MODULUS, i[0],  twok);
+      Node arg1Mod = nm->mkNode(kind::INTS_MODULUS, i[1],  twok);
       // initial refinement lemmas
       std::vector<Node> conj;
       // iand(x,y)=iand(y,x) is guaranteed by rewriting
@@ -101,15 +105,12 @@ void IAndSolver::checkInitialRefine()
       // 0 <= iand(x,y) < 2^k
       conj.push_back(nm->mkNode(LEQ, d_zero, i));
       conj.push_back(nm->mkNode(LT, i, rewrite(d_iandUtils.twoToK(k))));
-      // iand(x,y)<=x
-      conj.push_back(nm->mkNode(LEQ, i, i[0]));
-      // iand(x,y)<=y
-      conj.push_back(nm->mkNode(LEQ, i, i[1]));
+      // iand(x,y)<=mod(x, 2^k)
+      conj.push_back(nm->mkNode(LEQ, i, arg0Mod));
+      // iand(x,y)<=mod(y, 2^k)
+      conj.push_back(nm->mkNode(LEQ, i, arg1Mod));
       // x=y => iand(x,y)=mod(x, 2^k)
-      size_t bsize = op.getConst<IntAnd>().d_size;
-      Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
-      Node argMod = nm->mkNode(kind::INTS_MODULUS, i[0],  twok);
-      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(argMod)));
+      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(arg0Mod)));
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
