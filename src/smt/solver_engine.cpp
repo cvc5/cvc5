@@ -874,6 +874,7 @@ Result SolverEngine::assertFormula(const Node& formula)
   finishInit();
   d_state->doPendingPops();
 
+  // as an optimization we do not check whether formula is well-formed here, and defer this check for certain cases within the assertions module.
   Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
 
   // Substitute out any abstract values in ex
