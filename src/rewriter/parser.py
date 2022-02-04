@@ -48,8 +48,8 @@ symbol_to_op = {
     'or': Op.OR,
     '=>': Op.IMPLIES,
     'xor': Op.XOR,
-    '+': Op.PLUS,
-    '-': Op.MINUS,
+    '+': Op.ADD,
+    '-': Op.SUB,
     '*': Op.MULT,
     'div': Op.INT_DIV,
     '/': Op.DIV,
@@ -156,8 +156,8 @@ class Parser:
 
     def app_action(self, s, l, t):
         op = symbol_to_op[t[0]]
-        if op == Op.MINUS and len(t) == 2:
-            op = Op.UMINUS
+        if op == Op.SUB and len(t) == 2:
+            op = Op.NEG
         return App(op, t[1:])
 
     def expr(self, allow_comprehension=True):
