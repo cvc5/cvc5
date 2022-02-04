@@ -225,13 +225,13 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_LT, "fp.lt");
   addOperator(api::FLOATINGPOINT_GEQ, "fp.geq");
   addOperator(api::FLOATINGPOINT_GT, "fp.gt");
-  addOperator(api::FLOATINGPOINT_ISN, "fp.isNormal");
-  addOperator(api::FLOATINGPOINT_ISSN, "fp.isSubnormal");
-  addOperator(api::FLOATINGPOINT_ISZ, "fp.isZero");
-  addOperator(api::FLOATINGPOINT_ISINF, "fp.isInfinite");
-  addOperator(api::FLOATINGPOINT_ISNAN, "fp.isNaN");
-  addOperator(api::FLOATINGPOINT_ISNEG, "fp.isNegative");
-  addOperator(api::FLOATINGPOINT_ISPOS, "fp.isPositive");
+  addOperator(api::FLOATINGPOINT_IS_NORMAL, "fp.isNormal");
+  addOperator(api::FLOATINGPOINT_IS_SUBNORMAL, "fp.isSubnormal");
+  addOperator(api::FLOATINGPOINT_IS_ZERO, "fp.isZero");
+  addOperator(api::FLOATINGPOINT_IS_INF, "fp.isInfinite");
+  addOperator(api::FLOATINGPOINT_IS_NAN, "fp.isNaN");
+  addOperator(api::FLOATINGPOINT_IS_NEG, "fp.isNegative");
+  addOperator(api::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
   addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,

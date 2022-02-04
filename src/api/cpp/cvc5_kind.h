@@ -1569,7 +1569,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISN,
+  FLOATINGPOINT_IS_NORMAL,
   /**
    * Floating-point is sub-normal.
    *
@@ -1579,7 +1579,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISSN,
+  FLOATINGPOINT_IS_SUBNORMAL,
   /**
    * Floating-point is zero.
    *
@@ -1589,7 +1589,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISZ,
+  FLOATINGPOINT_IS_ZERO,
   /**
    * Floating-point is infinite.
    *
@@ -1599,7 +1599,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISINF,
+  FLOATINGPOINT_IS_INF,
   /**
    * Floating-point is NaN.
    *
@@ -1609,7 +1609,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNAN,
+  FLOATINGPOINT_IS_NAN,
   /**
    * Floating-point is negative.
    *
@@ -1619,7 +1619,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNEG,
+  FLOATINGPOINT_IS_NEG,
   /**
    * Floating-point is positive.
    *
@@ -1629,7 +1629,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISPOS,
+  FLOATINGPOINT_IS_POS,
   /**
    * Operator for to_fp from bit vector.
    *
