@@ -63,10 +63,10 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 void SetDefaults::setDefaultsPre(Options& opts)
 {
   // internal-only options
-  if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY)
+  if (opts.smt.proofMode == options::ProofMode::PP_ONLY)
   {
     throw OptionException(
-        std::string("Unsat core mode pp-only is for internal use only."));
+        std::string("Proof mode pp-only is for internal use only."));
   }
   // implied options
   if (opts.smt.debugCheckModels)
