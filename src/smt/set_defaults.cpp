@@ -86,13 +86,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     opts.smt.produceDifficulty = true;
   }
-  if (opts.smt.produceDifficulty)
-  {
-    if (opts.smt.proofMode == options::ProofMode::OFF)
-    {
-      opts.smt.proofMode = options::ProofMode::PP_ONLY;
-    }
-  }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
@@ -115,17 +108,29 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.smt.produceProofs = true;
   }
 
-  if (opts.smt.produceProofs
-      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
+  if (opts.smt.produceProofs)
   {
-    if (opts.smt.unsatCoresModeWasSetByUser)
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
     {
-      notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
+      if (opts.smt.unsatCoresModeWasSetByUser)
+      {
+        notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
+      }
+      // enable unsat cores, because they are available as a consequence of proofs
+      opts.smt.unsatCores = true;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
     }
-    // enable unsat cores, because they are available as a consequence of proofs
-    opts.smt.unsatCores = true;
-    opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
+    // if the user requested proofs, proof mode is full
     opts.smt.proofMode = options::ProofMode::FULL;
+  }
+  if (opts.smt.produceDifficulty)
+  {
+    // ensure at least preprocessing proofs are enabled
+    if (opts.smt.proofMode == options::ProofMode::OFF)
+    {
+      opts.smt.proofMode = options::ProofMode::PP_ONLY;
+    }
+    opts.smt.produceProofs = true;
   }
 
   // set proofs on if not yet set
