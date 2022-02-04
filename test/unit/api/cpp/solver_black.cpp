@@ -3003,5 +3003,18 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   ASSERT_NO_THROW(slv.simplify(t54));
 }
 
+TEST_F(TestApiBlackSolver, proj_issue440)
+{
+  Solver slv;
+  slv.setLogic("QF_ALL");
+  slv.setOption("global-negate", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s1 = slv.getBooleanSort();
+  Term t9 = slv.mkBoolean(true);
+  Term t109 = slv.mkTerm(Kind::NOT, {t9});
+  // should throw an option exception
+  ASSERT_THROW(slv.checkSatAssuming({t109}), CVC5ApiException);
+}
+
 }  // namespace test
 }  // namespace cvc5
