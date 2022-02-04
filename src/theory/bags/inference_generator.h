@@ -37,6 +37,10 @@ class InferenceGenerator
  public:
   InferenceGenerator(SolverState* state, InferenceManager* im);
 
+  Node registerCountTerm(Node n);
+
+  void registerCardinalityTerm(Node n);
+
   /**
    * @param A is a bag of type (Bag E)
    * @param e is a node of type E
@@ -73,15 +77,16 @@ class InferenceGenerator
    */
   InferInfo bagMake(Node n, Node e);
   /**
-   * @param n is (= A B) where A, B are bags of type (Bag E), and
+   * @param equality is (= A B) where A, B are bags of type (Bag E), and
    * (not (= A B)) is an assertion in the equality engine
+   * @param witness a skolem node that witness the disequality
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
-   *   (not (= (bag.count e A) (bag.count e B))))
-   *   where e is a fresh skolem of type E.
+   *   (not (= (bag.count witness A) (bag.count witness B))))
+   *   where witness is a skolem of type E.
    */
-  InferInfo bagDisequality(Node n);
+  InferInfo bagDisequality(Node equality, Node witness);
   /**
    * @param n is (as bag.empty (Bag E))
    * @param e is a node of Type E
@@ -322,7 +327,7 @@ class InferenceGenerator
 
  private:
   /** generate skolem variable for node n and add it to inferInfo */
-  Node getSkolem(Node& n, InferInfo& inferInfo);
+  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;
