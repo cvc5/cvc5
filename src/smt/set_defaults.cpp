@@ -870,7 +870,8 @@ bool SetDefaults::usesSygus(const Options& opts) const
   return false;
 }
 
-bool SetDefaults::usesInputConversion(const Options& opts, std::ostream& reason) const
+bool SetDefaults::usesInputConversion(const Options& opts,
+                                      std::ostream& reason) const
 {
   if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
@@ -1173,10 +1174,12 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
-bool SetDefaults::incompatibleWithSygus(Options& opts, std::ostream& reason) const
+bool SetDefaults::incompatibleWithSygus(Options& opts,
+                                        std::ostream& reason) const
 {
-  // sygus should not be combined with preprocessing passes that convert the input
-  if (usesInputConversion(opts,reason))
+  // sygus should not be combined with preprocessing passes that convert the
+  // input
+  if (usesInputConversion(opts, reason))
   {
     return true;
   }

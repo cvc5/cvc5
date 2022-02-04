@@ -58,7 +58,8 @@ class SetDefaults : protected EnvObj
   bool usesSygus(const Options& opts) const;
   /**
    * Does options enable an input conversion, e.g. solve-bv-as-int?
-   * If this method returns true, then reason is updated with the name of the option.
+   * If this method returns true, then reason is updated with the name of the
+   * option.
    */
   bool usesInputConversion(const Options& opts, std::ostream& reason) const;
   /**
