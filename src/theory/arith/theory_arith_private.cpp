@@ -1254,11 +1254,12 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
-  Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == ADD || internal);
-  if (logicInfo().isLinear() && Variable::isDivMember(x))
+  Kind xk = x.getKind();
+  Assert(isLeaf(x) || VarList::isMember(x) || xk == ADD || internal);
+  if (logicInfo().isLinear() && (Variable::isDivMember(x) || xk==IAND || isTranscendentalKind(xk)))
   {
     stringstream ss;
-    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to "
+    ss << "A non-linear fact was asserted to "
           "arithmetic in a linear logic: "
        << x << std::endl;
     throw LogicException(ss.str());
