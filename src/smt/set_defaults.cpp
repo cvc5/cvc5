@@ -96,8 +96,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
-
-  if (opts.smt.checkProofs || opts.driver.dumpProofs)
+  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully enabled is implied
+  if (opts.smt.checkProofs || opts.driver.dumpProofs || opts.smt.proofMode == options::ProofMode::FULL)
   {
     opts.smt.produceProofs = true;
   }
