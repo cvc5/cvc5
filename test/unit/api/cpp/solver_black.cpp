@@ -3007,6 +3007,7 @@ TEST_F(TestApiBlackSolver, proj_issue436)
 {
   Solver slv;
   slv.setOption("produce-abducts", "true");
+  slv.setOption("solve-bv-as-int", "sum");
   Sort s8 = slv.mkBitVectorSort(68);
   Term t17 = slv.mkConst(s8, "_x6");
   Term t23;
@@ -3016,7 +3017,8 @@ TEST_F(TestApiBlackSolver, proj_issue436)
   }
   Term t33 = slv.mkTerm(Kind::BITVECTOR_ULT, {t17, t23});
   Term abduct;
-  ASSERT_NO_THROW(slv.getAbduct(t33, abduct));
+  // solve-bv-as-int is incompatible with get-abduct
+  ASSERT_THROW(slv.getAbduct(t33, abduct), CVC5ApiException);
 }
 
 }  // namespace test
