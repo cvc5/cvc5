@@ -47,8 +47,8 @@ namespace
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
  * the remaining (non-numerical) factors. If n is a product itself, its children
- * are merged into a product. If n is a constant or a real algebraic number, it
- * is multiplied to the multiplicity. Otherwise, n is added to product.
+ * are merged into the product. If n is a constant or a real algebraic number,
+ * it is multiplied to the multiplicity. Otherwise, n is added to product.
  *
  * Invariant:
  *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
@@ -68,9 +68,7 @@ void addToProduct(std::vector<Node>& product,
         addToProduct(product, multiplicity, child);
       }
       break;
-    case Kind::REAL_ALGEBRAIC_NUMBER:
-      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
-      break;
+    case Kind::REAL_ALGEBRAIC_NUMBER: multiplicity *= getRAN(n); break;
     default:
       if (n.isConst())
       {
@@ -84,9 +82,10 @@ void addToProduct(std::vector<Node>& product,
 }
 
 /**
- * Add a new summand, consisting of the product and the multiplicity, to a sum
- * as used in the distribution of multiplication. Either adds the summand as a
- * new entry to sum, or adds the multiplicity to an already existing summand.
+ * Add a new summand, consisting of the product and the multiplicity, to a sum.
+ * Either adds the summand as a new entry to the sum, or adds the multiplicity
+ * to an already existing summand. Removes the entry, if the multiplicity is
+ * zero afterwards.
  *
  * Invariant:
  *   add(s.n * s.ran for s in sum')
@@ -112,7 +111,7 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 
 /**
  * Evaluates `basemultiplicity * baseproduct * sum` into a single node (of kind
- * `PLUS`, unless the sum has less than two summands).
+ * `ADD`, unless the sum has less than two summands).
  */
 Node collectSumWithBase(const Sum& sum,
                         const RealAlgebraicNumber& basemultiplicity,

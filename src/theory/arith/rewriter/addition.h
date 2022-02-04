@@ -36,8 +36,11 @@ namespace cvc5::theory::arith::rewriter {
  * a proper comparator (instead of std::unordered_map) to allow easy
  * identification of the leading term. As we need to sort the terms anyway when
  * constructing a node, a std::unordered_map may only be faster if we experience
- * a lot of nullification. Usually, though, this saves us additional memory
- * allocations for sorting the terms.
+ * a lot of nullification (and thus paying the logarithmic overhead when working
+ * with the map, but not having it when sorting in the end). Usually, though,
+ * this saves us additional memory allocations for sorting the terms as it is
+ * done in-place instead of copying the result out of the std::unordered_map
+ * into a sortable container.
  */
 using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
