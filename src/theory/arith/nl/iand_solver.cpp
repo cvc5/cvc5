@@ -105,8 +105,11 @@ void IAndSolver::checkInitialRefine()
       conj.push_back(nm->mkNode(LEQ, i, i[0]));
       // iand(x,y)<=y
       conj.push_back(nm->mkNode(LEQ, i, i[1]));
-      // x=y => iand(x,y)=x
-      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(i[0])));
+      // x=y => iand(x,y)=mod(x, 2^k)
+      size_t bsize = op.getConst<IntAnd>().d_size;
+      Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+      Node argMod = nm->mkNode(kind::INTS_MODULUS, i[0],  twok);
+      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(argMod)));
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
