@@ -136,7 +136,9 @@ class SetDefaults : protected EnvObj
    */
   void setDefaultDecisionMode(const LogicInfo& logic, Options& opts) const;
   /** Notify that we are modifying option x to val due to reason. */
-  void notifyModifyOption(const std::string& x, const std::string& val, const std::string& reason) const;
+  void notifyModifyOption(const std::string& x,
+                          const std::string& val,
+                          const std::string& reason) const;
   /** Are we an internal subsolver? */
   bool d_isInternalSubsolver;
 };

@@ -104,7 +104,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
     {
-      notifyModifyOption("unsatCoresMode", "assumptions", "enabling unsat cores");
+      notifyModifyOption(
+          "unsatCoresMode", "assumptions", "enabling unsat cores");
     }
     opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
@@ -148,7 +149,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       opts.smt.unsatCores = false;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      notifyModifyOption("produceProofs and unsatCores", "false", reasonNoProofs.str());
+      notifyModifyOption(
+          "produceProofs and unsatCores", "false", reasonNoProofs.str());
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
     }
@@ -1705,7 +1707,9 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                << std::endl;
 }
 
-void SetDefaults::notifyModifyOption(const std::string& x, const std::string& val, const std::string& reason) const
+void SetDefaults::notifyModifyOption(const std::string& x,
+                                     const std::string& val,
+                                     const std::string& reason) const
 {
   verbose(1) << "SetDefaults: setting " << x << " to " << val;
   if (!reason.empty())
