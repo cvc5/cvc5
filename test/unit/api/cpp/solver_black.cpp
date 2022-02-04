@@ -3003,5 +3003,21 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   ASSERT_NO_THROW(slv.simplify(t54));
 }
 
+TEST_F(TestApiBlackSolver, proj_issue431)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-unsat-assumptions", "true");
+  slv.setOption("produce-assertions", "true");
+  Sort s1 = slv.getStringSort();
+  Sort s3 = slv.getIntegerSort();
+  Sort s7 = slv.mkArraySort(s1, s3);
+  Term t3 = slv.mkConst(s1, "_x2");
+  Term t57 = slv.mkVar(s7, "_x38");
+  Term t103 = slv.mkTerm(Kind::SELECT, {t57, t3});
+  slv.checkSat();
+  ASSERT_THROW(slv.blockModelValues({t103}));
+}
+
 }  // namespace test
 }  // namespace cvc5

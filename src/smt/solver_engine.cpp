@@ -985,6 +985,7 @@ Node SolverEngine::getValue(const Node& ex) const
 {
   SolverEngineScope smts(this);
 
+  ensureWellFormedTerm(ex, "get value");
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   TypeNode expectedType = ex.getType();
 
@@ -1153,6 +1154,11 @@ Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 
   finishInit();
 
+  for (const Node& e : exprs)
+  {
+    ensureWellFormedTerm(e, "block model values");
+  }
+
   TheoryModel* m = getAvailableModel("block model values");
 
   // get expanded assertions
@@ -1199,6 +1205,18 @@ std::vector<Node> SolverEngine::getAssertionsInternal()
 }
 
 const Options& SolverEngine::options() const { return d_env->getOptions(); }
+
+void SolverEngine::ensureWellFormedTerm(const Node& n, const std::string& src) const
+{
+  bool wasShadow = false;
+  if (expr::hasFreeOrShadowedVar(n, wasShadow))
+  {
+    std::string varType(wasShadow ? "shadowed" : "free");
+    std::stringstream se;
+    se << "Cannot process term with " << varType << " variable in " << src << ".";
+    throw ModalException(se.str().c_str());
+  }
+}
 
 std::vector<Node> SolverEngine::getExpandedAssertions()
 {
