@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-unsat-cores
+; DISABLE-TESTER: unsat-core
 ; EXPECT: unsat
 ; EXPECT: (error "Cannot get unsat core unless explicitly enabled (try --produce-unsat-cores)")
 (set-logic ALL)
