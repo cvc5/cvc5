@@ -10,7 +10,7 @@
 # directory for licensing information.
 # ############################################################################
 #
-# Script for building wheels distribution for pycvc5
+# Script for building wheels distribution for cvc5
 #
 # Example usage (from top-level directory):
 #   python3 ./src/api/python/wheels/build_wheel.py bdist_wheel
@@ -142,14 +142,14 @@ class CMakeBuild(build_ext):
             os.mkdir(extdir)
 
         # copy the library over. we need to consider other users that are not on linux
-        # module is a directory called pycvc5
-        pycvc5_module = os.path.join(python_build_dir, "pycvc5")
-        dst_name = os.path.join(extdir, "pycvc5")
+        # module is a directory called cvc5_python_base_module
+        cvc5_python_base_module = os.path.join(python_build_dir, "cvc5")
+        dst_name = os.path.join(extdir, "cvc5")
         if os.path.isdir(dst_name):
             # remove, then replace
             shutil.rmtree(dst_name)
 
-        shutil.copytree(pycvc5_module, dst_name)
+        shutil.copytree(cvc5_python_base_module, dst_name)
 
 
 version_suffix = os.getenv('VERSION_SUFFIX', '')
@@ -161,13 +161,13 @@ if len(version_suffix) > 0:
 
 
 setup(
-    name='pycvc5',
+    name='cvc5',
     version=get_cvc5_version() + version_suffix,
     long_description='Python bindings for cvc5',
     url='https://github.com/cvc5/cvc5',
     license='BSD-3-Clause',
     zip_safe=False,
-    ext_modules=[CMakeExtension('pycvc5')],
+    ext_modules=[CMakeExtension('cvc5')],
     cmdclass=dict(build_ext=CMakeBuild),
     tests_require=['pytest']
 )

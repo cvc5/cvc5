@@ -240,9 +240,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
                   n1 = veq[1];
                   n2 = veq[0];
                   if( n1.getKind()==BOUND_VARIABLE ){
-                    n2 = nm->mkNode(PLUS, n2, nm->mkConstInt(Rational(1)));
+                    n2 = nm->mkNode(ADD, n2, nm->mkConstInt(Rational(1)));
                   }else{
-                    n1 = nm->mkNode(PLUS, n1, nm->mkConstInt(Rational(-1)));
+                    n1 = nm->mkNode(ADD, n1, nm->mkConstInt(Rational(-1)));
                   }
                   veq = nm->mkNode(GEQ, n1, n2);
                 }
@@ -369,7 +369,7 @@ void BoundedIntegers::checkOwnership(Node f)
                      != bound_int_range_term[b].end());
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
-            Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
+            Node r = nm->mkNode(SUB, d_bounds[1][f][v], d_bounds[0][f][v]);
             d_range[f][v] = rewrite(r);
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
@@ -814,7 +814,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
       }else{
         NodeManager* nm = NodeManager::currentNM();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
-        Node range = rewrite(nm->mkNode(MINUS, u, l));
+        Node range = rewrite(nm->mkNode(SUB, u, l));
         // 9999 is an arbitrary range past which we do not do exhaustive
         // bounded instantation, based on the check below.
         Node ra =
@@ -829,7 +829,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for (long k = 0; k < rr; k++)
           {
-            Node t = nm->mkNode(PLUS, tl, nm->mkConstInt(Rational(k)));
+            Node t = nm->mkNode(ADD, tl, nm->mkConstInt(Rational(k)));
             t = rewrite(t);
             elements.push_back( t );
           }

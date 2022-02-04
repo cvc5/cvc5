@@ -81,7 +81,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       unsigned weight = c.getWeight();
       children.push_back(nm->mkConstInt(Rational(weight)));
       Node res =
-          children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
+          children.size() == 1 ? children[0] : nm->mkNode(kind::ADD, children);
       Trace("datatypes-rewrite")
           << "DatatypesRewriter::postRewrite: rewrite size " << in << " to "
           << res << std::endl;
@@ -244,7 +244,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   else if (kind == TUPLE_PROJECT)
   {
     // returns a tuple that represents
-    // (mkTuple ((_ tupSel i_1) t) ... ((_ tupSel i_n) t))
+    // (tuple ((_ tuple_select i_1) t) ... ((_ tuple_select i_n) t))
     // where each i_j is less than the length of t
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;

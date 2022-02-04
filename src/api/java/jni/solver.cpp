@@ -1210,75 +1210,80 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkConstArray(
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkPosInf
+ * Method:    mkFloatingPointPosInf
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkPosInf(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointPosInf(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkPosInf((uint32_t)exp, (uint32_t)sig));
+  Term* retPointer =
+      new Term(solver->mkFloatingPointPosInf((uint32_t)exp, (uint32_t)sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkNegInf
+ * Method:    mkFloatingPointNegInf
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkNegInf(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNegInf(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkNegInf((uint32_t)exp, (uint32_t)sig));
+  Term* retPointer =
+      new Term(solver->mkFloatingPointNegInf((uint32_t)exp, (uint32_t)sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkNaN
+ * Method:    mkFloatingPointNaN
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkNaN(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNaN(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkNaN((uint32_t)exp, (uint32_t)sig));
+  Term* retPointer =
+      new Term(solver->mkFloatingPointNaN((uint32_t)exp, (uint32_t)sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkPosZero
+ * Method:    mkFloatingPointPosZero
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkPosZero(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointPosZero(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkPosZero((uint32_t)exp, (uint32_t)sig));
+  Term* retPointer =
+      new Term(solver->mkFloatingPointPosZero((uint32_t)exp, (uint32_t)sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkNegZero
+ * Method:    mkFloatingPointNegZero
  * Signature: (JII)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkNegZero(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPointNegZero(
     JNIEnv* env, jobject, jlong pointer, jint exp, jint sig)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->mkNegZero((uint32_t)exp, (uint32_t)sig));
+  Term* retPointer =
+      new Term(solver->mkFloatingPointNegZero((uint32_t)exp, (uint32_t)sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
