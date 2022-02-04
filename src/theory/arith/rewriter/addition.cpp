@@ -235,8 +235,9 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
       }
     }
-    Trace("arith-rewriter-distribute")
-        << "multiplied with " << factor << std::endl;
+    if (Trace.isOn("arith-rewriter-distribute"))
+      Trace("arith-rewriter-distribute")
+          << "multiplied with " << factor << std::endl;
     Trace("arith-rewriter-distribute")
         << "base: " << basemultiplicity << " * " << base << std::endl;
     Trace("arith-rewriter-distribute") << "sum:" << std::endl;
@@ -244,6 +245,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
     {
       Trace("arith-rewriter-distribute")
           << "\t" << summand.second << " * " << summand.first << std::endl;
+    }
     }
 
     sum = std::move(newsum);
