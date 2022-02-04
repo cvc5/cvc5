@@ -175,7 +175,7 @@ name   = "SMT Layer"
   long       = "proof-mode=MODE"
   type       = "ProofMode"
   default    = "OFF"
-  help       = "choose unsat core mode, see --unsat-cores-mode=help"
+  help       = "choose proof mode, see --proof-mode=help"
   help_mode  = "proof modes."
 [[option.mode.OFF]]
   name = "off"
