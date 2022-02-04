@@ -120,6 +120,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (!opts.smt.produceProofs)
   {
+    if (opts.smt.proofMode!=options::ProofMode::OFF)
+    {
+      // if (expert) user set proof mode to something other than off, enable proofs
+      opts.smt.produceProofs = true;
+    }
     // if proofs weren't enabled by user, and we are producing difficulty
     if (opts.smt.produceDifficulty)
     {
@@ -148,9 +153,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
   }
 
-  // if unsat cores are disabled, then unsat cores mode should be OFF
-  Assert(opts.smt.unsatCores
+  // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly for proof mode.
+  Assert(opts.smt.produceProofs
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
+  Assert(opts.smt.unsatCores
+         == (opts.smt.proofMode != options::ProofMode::OFF));
 
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
