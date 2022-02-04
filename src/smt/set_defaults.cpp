@@ -62,12 +62,6 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
-  // internal-only options
-  if (opts.smt.proofMode == options::ProofMode::PP_ONLY)
-  {
-    throw OptionException(
-        std::string("Proof mode pp-only is for internal use only."));
-  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -114,14 +108,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if the user requested proofs, proof mode is full
     opts.smt.proofMode = options::ProofMode::FULL;
     // unsat cores are available due to proofs being enabled
-    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::PROOF)
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
       if (opts.smt.unsatCoresModeWasSetByUser)
       {
         notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
       }
       opts.smt.unsatCores = true;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::PROOF;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
     }
   }
   if (!opts.smt.produceProofs)
@@ -139,12 +133,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.unsatCores)
     {
-      if (opts.smt.produceProofsWasSetByUser)
-      {
-        notifyModifyOption("produceProofs", "true", "enabling unsat cores");
-      }
       opts.smt.produceProofs = true;
-      if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PROOF)
+      if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
       {
         // if requested to be based on proofs, we produce (preprocessing +) SAT
         // proofs
