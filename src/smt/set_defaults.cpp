@@ -108,49 +108,52 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.smt.produceProofs = true;
   }
 
+  // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
+    // if the user requested proofs, proof mode is full
+    opts.smt.proofMode = options::ProofMode::FULL;
+    // unsat cores are available due to proofs being enabled
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::PROOF)
     {
       if (opts.smt.unsatCoresModeWasSetByUser)
       {
         notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
       }
-      // enable unsat cores, because they are available as a consequence of
-      // proofs
       opts.smt.unsatCores = true;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::PROOF;
     }
-    // if the user requested proofs, proof mode is full
-    opts.smt.proofMode = options::ProofMode::FULL;
   }
-  if (opts.smt.produceDifficulty)
+  if (!opts.smt.produceProofs)
   {
-    // ensure at least preprocessing proofs are enabled
-    if (opts.smt.proofMode == options::ProofMode::OFF)
+    // if proofs weren't enabled by user, and we are producing difficulty
+    if (opts.smt.produceDifficulty)
     {
-      opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      opts.smt.produceProofs = true;
+      // ensure at least preprocessing proofs are enabled
+      if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      }
     }
-    opts.smt.produceProofs = true;
-  }
-
-  // set proofs on if not yet set
-  if (opts.smt.unsatCores && !opts.smt.produceProofs)
-  {
-    if (opts.smt.produceProofsWasSetByUser)
+    // if proofs weren't enabled by user, and we are producing unsat cores
+    if (opts.smt.unsatCores)
     {
-      notifyModifyOption("produceProofs", "true", "enabling unsat cores");
-    }
-    opts.smt.produceProofs = true;
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PROOF)
-    {
-      // if based on proofs, we produce (preprocessing +) SAT proofs
-      opts.smt.proofMode = options::ProofMode::SAT;
-    }
-    else
-    {
-      // otherwise, we always produce preprocessing proofs
-      opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      if (opts.smt.produceProofsWasSetByUser)
+      {
+        notifyModifyOption("produceProofs", "true", "enabling unsat cores");
+      }
+      opts.smt.produceProofs = true;
+      if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PROOF)
+      {
+        // if requested to be based on proofs, we produce (preprocessing +) SAT proofs
+        opts.smt.proofMode = options::ProofMode::SAT;
+      }
+      else
+      {
+        // otherwise, we always produce preprocessing proofs
+        opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      }
     }
   }
 
