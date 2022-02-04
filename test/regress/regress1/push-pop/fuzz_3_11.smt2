@@ -1,5 +1,4 @@
-; COMMAND-LINE: --incremental
-; DISABLE-TESTER: proof
+; COMMAND-LINE: --incremental  --no-produce-proofs
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
