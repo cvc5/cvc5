@@ -410,7 +410,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
         nodeVec.push_back(lni);
       }
     }
-    lsum = nm->mkNode(PLUS, nodeVec);
+    lsum = nm->mkNode(ADD, nodeVec);
     lsum = rewrite(lsum);
   }
   else if (n.isConst())

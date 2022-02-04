@@ -117,6 +117,8 @@
 ; "integer-and", see Zohar et al VMCAI 2022.
 (declare f_iand (! x mpz term))
 (define iand (# x mpz (# y term (# z term (apply (apply (f_iand x) y) z)))))
+(declare f_int.pow2 term)
+(define int.pow2 (# x term (apply f_int.pow2 x)))
 
 ;; ---- Arrays
 (declare f_select term)
@@ -398,6 +400,22 @@
 (define bag (# x term (# y term (apply (apply f_bag x) y))))
 (declare f_bag.duplicate_removal term)
 (define bag.duplicate_removal (# x term (apply f_bag.duplicate_removal x)))
+(declare f_bag.card term)
+(define bag.card (# x term (apply f_bag.card x)))
+(declare f_bag.choose term)
+(define bag.choose (# x term (apply f_bag.choose x)))
+(declare f_bag.is_singleton term)
+(define bag.is_singleton (# x term (apply f_bag.is_singleton x)))
+(declare f_bag.from_set term)
+(define bag.from_set (# x term (apply f_bag.from_set x)))
+(declare f_bag.to_set term)
+(define bag.to_set (# x term (apply f_bag.to_set x)))
+(declare f_bag.map term)
+(define bag.map (# x term (# y term (apply (apply f_bag.map x) y))))
+(declare f_bag.filter term)
+(define bag.filter (# x term (# y term (apply (apply f_bag.filter x) y))))
+(declare f_bag.fold term)
+(define bag.fold (# x term (# y term (apply (apply f_bag.fold x) y))))
 
 ;; ---- Separation Logic
 (declare sep.nil (! s sort term))

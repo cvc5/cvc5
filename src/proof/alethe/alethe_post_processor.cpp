@@ -418,17 +418,17 @@ bool AletheProofPostprocessCallback::update(Node res,
               vrule = AletheRule::PROD_SIMPLIFY;
               break;
             }
-            case kind::MINUS:
+            case kind::SUB:
             {
               vrule = AletheRule::MINUS_SIMPLIFY;
               break;
             }
-            case kind::UMINUS:
+            case kind::NEG:
             {
               vrule = AletheRule::UNARY_MINUS_SIMPLIFY;
               break;
             }
-            case kind::PLUS:
+            case kind::ADD:
             {
               vrule = AletheRule::SUM_SIMPLIFY;
               break;
