@@ -67,6 +67,7 @@
 #include "util/resource_manager.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
+#include "expr/node_algorithm.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
