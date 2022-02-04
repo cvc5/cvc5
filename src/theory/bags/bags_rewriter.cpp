@@ -92,6 +92,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_MAP: response = postRewriteMap(n); break;
       case BAG_FILTER: response = postRewriteFilter(n); break;
       case BAG_FOLD: response = postRewriteFold(n); break;
+      case TABLE_PRODUCT: response = postRewriteProduct(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -654,6 +655,20 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
+
+BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  TypeNode tableType = n.getType();
+  Node empty = d_nm->mkConst(EmptyBag(tableType));
+  if (n[0].getKind() == BAG_EMPTY || n[1].getKind() == BAG_EMPTY)
+  {
+    return BagsRewriteResponse(empty, Rewrite::PRODUCT_EMPTY);
+  }
+
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5

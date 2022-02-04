@@ -667,6 +667,8 @@ libcvc5_add_sources(
   theory/datatypes/theory_datatypes_utils.h
   theory/datatypes/tuple_project_op.cpp
   theory/datatypes/tuple_project_op.h
+  theory/datatypes/tuple_utils.cpp
+  theory/datatypes/tuple_utils.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp
@@ -1005,6 +1007,7 @@ libcvc5_add_sources(
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
   theory/sets/singleton_op.cpp
   theory/sets/singleton_op.h
