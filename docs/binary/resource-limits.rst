@@ -10,6 +10,7 @@ The limits configured using :ref:`tlimit <lbl-option-tlimit>` and :ref:`rlimit <
 In contrast to that, :ref:`tlimit-per <lbl-option-tlimit-per>` and :ref:`rlimit-per <lbl-option-rlimit-per>` apply to every check individually (:cpp:func:`checkSat <cvc5::api::Solver::checkSat>`, :cpp:func:`checkSatAssuming <cvc5::api::Solver::checkSatAssuming>`, :cpp:func:`checkEntailed <cvc5::api::Solver::checkEntailed>`, etc).
 
 Except for the overall time limit (see below), the limits are checked by cvc5 itself and the solver is in a safe state after exhausting a limit.
+Due to the way cvc5 checks these limits (see below), cvc5 may seem to not honor per-call time limits: if a subroutine requires a long time to finish without spending resources itself, cvc5 only realizes that the timeout has (long) passed afterwards.
 
 
 Overall time limit (:ref:`--tlimit <lbl-option-tlimit>`)
