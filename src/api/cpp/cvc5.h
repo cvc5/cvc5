@@ -2793,13 +2793,14 @@ class CVC5_EXPORT DriverOptions
  * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
- * - VoidInfo if the option holds no value (or the value has no native type)
- * - ValueInfo<T> if the option is of type bool or std::string, holds the
+ * - `VoidInfo` if the option holds no value (or the value has no native type)
+ * - `ValueInfo<T>` if the option is of type bool or std::string, holds the
  *   current value and the default value.
- * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
+ * - `NumberInfo<T>` if the option is of type int64_t, uint64_t or double, holds
  *   the current and default value, as well as the minimum and maximum.
- * - ModeInfo if the option is a mode option, holds the current and default
+ * - `ModeInfo` if the option is a mode option, holds the current and default
  *   values, as well as a list of valid modes.
+ *
  * Additionally, this class provides convenience functions to obtain the
  * current value of an option in a type-safe manner using boolValue(),
  * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
