@@ -146,7 +146,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
       opts.smt.produceProofs = true;
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PROOF)
       {
-        // if requested to be based on proofs, we produce (preprocessing +) SAT proofs
+        // if requested to be based on proofs, we produce (preprocessing +) SAT
+        // proofs
         opts.smt.proofMode = options::ProofMode::SAT;
       }
       else
