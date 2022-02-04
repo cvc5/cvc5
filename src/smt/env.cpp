@@ -93,8 +93,7 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 bool Env::isSatProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (d_options.smt.proofMode != options::ProofMode::OFF
-             && d_options.smt.proofMode != options::ProofMode::PP_ONLY);
+         && d_options.smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
 bool Env::isTheoryProofProducing() const
