@@ -1,6 +1,8 @@
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 ; EXPECT: unsat
 ; EXPECT: (error "Cannot get unsat core unless explicitly enabled (try --produce-unsat-cores)")
+; EXIT: 1
 (set-logic ALL)
 (set-option :global-declarations true)
 (set-option :produce-difficulty true)
