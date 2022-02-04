@@ -158,9 +158,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
   // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
   // for proof mode.
-  Assert(opts.smt.produceProofs
-         == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
   Assert(opts.smt.unsatCores
+         == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
+  Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
 
   // if we requiring disabling proofs, disable them now
