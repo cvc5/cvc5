@@ -148,7 +148,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
         // proofs
         opts.smt.proofMode = options::ProofMode::SAT;
       }
-      else
+      else if (opts.smt.proofMode == options::ProofMode::OFF)
       {
         // otherwise, we always produce preprocessing proofs
         opts.smt.proofMode = options::ProofMode::PP_ONLY;
