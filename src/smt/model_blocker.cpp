@@ -294,18 +294,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         }
       }
     }
-    if (blockers.size() == 0)
-    {
-      blocker = nm->mkConst<bool>(true);
-    }
-    else if (blockers.size() == 1)
-    {
-      blocker = blockers[0];
-    }
-    else
-    {
-      blocker = nm->mkNode(OR, blockers);
-    }
+    blocker = nm->mkOr(blockers);
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
   return blocker;
