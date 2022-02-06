@@ -44,7 +44,7 @@ if(Editline_INCLUDE_DIRS)
   if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(Editline_LIBRARIES ${Editline_LIBRARIES})
   else()
-    set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd tinfo)
+    set(Editline_LIBRARIES ${Editline_LIBRARIES} tinfo)
   endif()
 endif()
 
