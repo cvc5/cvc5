@@ -71,7 +71,6 @@ Node OperatorElim::eliminateOperators(Node node,
                                       bool partialOnly)
 {
   NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
