@@ -110,7 +110,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '..'] + args)
 
         # build the main library
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10'])
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10', '--', 'VERBOSE=1'])
 
         # build the python binding
         python_build_dir = os.path.join("src", "api", "python")
