@@ -20,11 +20,27 @@
                    (! r (^ (sc_concat_eq s t rev) res) 
                       (holds res))))))))
 
+; Helper method for PfRule::CONCAT_UNIFY. Returns ok if s or a prefix of its
+; head is equal to s1, where the (suffix of the) head of the reverse of s is
+; checked if rev is tt. Fails otherwise.
+(program sc_concat_head_or_self ((s term) (s1 term) (rev flag)) Ok
+  (ifequal s s1
+    ok
+    (let sh (sc_string_head (sc_string_rev s rev))
+    (ifequal sh s1
+      ok
+      ; otherwise we may be splitting a constant, we reverse the characters in sh
+      (ifequal (sc_string_is_prefix
+                 (sc_string_rev (sc_string_nary_intro s1) rev)
+                 (sc_string_rev sh rev))
+          tt ok (fail Ok)))))
+)
+
 ; Computes whether the heads of the premise (= s t) match s1 and t1 for the
 ; PfRule::CONCAT_UNIFY rule
 (program sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag)) Ok
-  (ifequal (sc_string_head (sc_string_rev s rev)) s1
-    (ifequal (sc_string_head (sc_string_rev t rev)) t1
+  (ifequal (sc_concat_head_or_self s s1 rev) ok
+    (ifequal (sc_concat_head_or_self t t1 rev) ok
       ok
       (fail Ok))
     (fail Ok)))
