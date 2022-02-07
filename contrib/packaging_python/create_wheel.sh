@@ -7,19 +7,25 @@ CONFIG="$2"
 VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
 
 # setup and activate venv
-echo "Making venv"
+echo "Making venv with $PYTHONBIN"
 ENVDIR=env$VERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
+echo "Now python is here:"
+which python
+
 # install packages
-pip install --upgrade pip setuptools auditwheel
-pip install twine Cython pytest toml scikit-build
+pip install -q --upgrade pip setuptools auditwheel
+pip install -q twine Cython pytest toml scikit-build
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
-    pip install delocate
+    pip install -q delocate
 fi
 export PATH="$(python -m site --user-base)/bin:$PATH"
+
+echo "With $PATH python is here:"
+which python
 
 # configure cvc5
 echo "Configuring"
