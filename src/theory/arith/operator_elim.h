@@ -108,8 +108,18 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
    * Make the witness term, which creates a witness term based on the skolem
    * manager with this class as a proof generator.
    */
-  Node mkWitnessTerm(Node v,
+  Node mkWitnessSkolem(Node v,
                      Node pred,
+                     const std::string& prefix,
+                     const std::string& comment,
+                     std::vector<SkolemLemma>& lems);
+  /**
+   * Same as above, but makes a purification skolem for t. The lemma lem
+   * is what axiomatizes the behavior of t, and is added as a skolem lemma
+   * to lems.
+   */
+  Node mkPurifySkolem(Node t,
+                     Node lem,
                      const std::string& prefix,
                      const std::string& comment,
                      std::vector<SkolemLemma>& lems);

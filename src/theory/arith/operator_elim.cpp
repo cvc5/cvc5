@@ -127,7 +127,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node diff = nm->mkNode(SUB, node[0], v);
       Node lem = mkInRange(diff, zero, one);
       Node toIntSkolem =
-          mkWitnessTerm(v,
+          mkWitnessSkolem(v,
                         lem,
                         "toInt",
                         "a conversion of a Real term to its Integer part",
@@ -221,8 +221,9 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(
                                 ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
-      Node intVar = mkWitnessTerm(
-          v, lem, "linearIntDiv", "the result of an intdiv-by-k term", lems);
+      // we use the purification skolem for div
+      Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
+      Node intVar = mkPurifySkolem(pterm, "intDiv", "the result of an intdiv-by-k term", lems);
       if (k == INTS_MODULUS_TOTAL)
       {
         Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, intVar));
@@ -256,7 +257,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(nm->mkConstReal(Rational(0))).negate(),
                             nm->mkNode(MULT, den, v).eqNode(num));
-      return mkWitnessTerm(
+      return mkWitnessSkolem(
           v, lem, "nonlinearDiv", "the result of a non-linear div term", lems);
       break;
     }
@@ -397,7 +398,7 @@ Node OperatorElim::eliminateOperators(Node node,
         lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
       }
       Assert(!lem.isNull());
-      return mkWitnessTerm(
+      return mkWitnessSkolem(
           var,
           lem,
           "tfk",
@@ -464,7 +465,7 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
   return !options().arith.arithNoPartialFun || id == SkolemFunId::SQRT;
 }
 
-Node OperatorElim::mkWitnessTerm(Node v,
+Node OperatorElim::mkWitnessSkolem(Node v,
                                  Node pred,
                                  const std::string& prefix,
                                  const std::string& comment,
@@ -486,6 +487,30 @@ Node OperatorElim::mkWitnessTerm(Node v,
   {
     lems.push_back(SkolemLemma(k, nullptr));
   }
+  return k;
+}
+
+Node OperatorElim::mkPurifySkolem(Node t,
+                    Node lem,
+                    const std::string& prefix,
+                    const std::string& comment,
+                    std::vector<SkolemLemma>& lems)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  // we mark that we should send a lemma
+  Node k = sm->mkPurifySkolem(t, prefix, comment);
+  TrustNode tlem;
+  if (d_pnm != nullptr)
+  {
+    tlem =
+        mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
+  }
+  else
+  {
+    tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  }
+  lems.push_back(SkolemLemma(tlem, k));
   return k;
 }
 
