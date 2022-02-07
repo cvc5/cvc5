@@ -105,15 +105,6 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
    */
   Node getArithSkolem(SkolemFunId asi);
   /**
-   * Make the witness term, which creates a witness term based on the skolem
-   * manager with this class as a proof generator.
-   */
-  Node mkWitnessSkolem(Node v,
-                       Node pred,
-                       const std::string& prefix,
-                       const std::string& comment,
-                       std::vector<SkolemLemma>& lems);
-  /**
    * Get the skolem lemma for lem, based on whether we are proof producing.
    * @param lem The lemma that axiomatizing the behavior of k
    * @param k The skolem

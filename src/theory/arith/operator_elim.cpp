@@ -121,24 +121,20 @@ Node OperatorElim::eliminateOperators(Node node,
       // node[0] - 1 < toIntSkolem <= node[0]
       // -1 < toIntSkolem - node[0] <= 0
       // 0 <= node[0] - toIntSkolem < 1
-      Node v =
-          bvm->mkBoundVar<ToIntWitnessVarAttribute>(node[0], nm->integerType());
+      Node pterm = nm->mkNode(TO_INTEGER, node[0]);
+      Node v = sm->mkPurifySkolem(pterm, "toInt",
+                          "a conversion of a Real term to its Integer part");
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(SUB, node[0], v);
       Node lem = mkInRange(diff, zero, one);
-      Node toIntSkolem =
-          mkWitnessSkolem(v,
-                          lem,
-                          "toInt",
-                          "a conversion of a Real term to its Integer part",
-                          lems);
+      lems.push_back(mkSkolemLemma(lem, v));
       if (k == IS_INTEGER)
       {
-        return nm->mkNode(EQUAL, node[0], toIntSkolem);
+        return nm->mkNode(EQUAL, node[0], v);
       }
       Assert(k == TO_INTEGER);
-      return toIntSkolem;
+      return v;
     }
 
     case INTS_DIVISION_TOTAL:
@@ -339,8 +335,8 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       // eliminate inverse functions here
-      Node var =
-          bvm->mkBoundVar<ArithWitnessVarAttribute>(node, nm->realType());
+      Node var = sm->mkPurifySkolem(node, "tfk",
+          "Skolem to eliminate a non-standard transcendental function");
       Node lem;
       if (k == SQRT)
       {
@@ -399,13 +395,8 @@ Node OperatorElim::eliminateOperators(Node node,
         lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
       }
       Assert(!lem.isNull());
-      return mkWitnessSkolem(
-          var,
-          lem,
-          "tfk",
-          "Skolem to eliminate a non-standard transcendental function",
-          lems);
-      break;
+      lems.push_back(mkSkolemLemma(lem, var));
+      return var;
     }
 
     default: break;
@@ -464,31 +455,6 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
 {
   // always use partial function for sqrt
   return !options().arith.arithNoPartialFun || id == SkolemFunId::SQRT;
-}
-
-Node OperatorElim::mkWitnessSkolem(Node v,
-                                   Node pred,
-                                   const std::string& prefix,
-                                   const std::string& comment,
-                                   std::vector<SkolemLemma>& lems)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  // we mark that we should send a lemma
-  Node k = sm->mkSkolem(
-      v, pred, prefix, comment, SkolemManager::SKOLEM_DEFAULT, this);
-  if (d_pnm != nullptr)
-  {
-    Node lem = SkolemLemma::getSkolemLemmaFor(k);
-    TrustNode tlem =
-        mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
-    lems.push_back(SkolemLemma(tlem, k));
-  }
-  else
-  {
-    lems.push_back(SkolemLemma(k, nullptr));
-  }
-  return k;
 }
 
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
