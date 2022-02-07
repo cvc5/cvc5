@@ -834,7 +834,7 @@ Node CoreSolver::getDecomposeConclusion(Node x,
 {
   Assert(l.getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
-  Node n = isRev ? nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), l) : l;
+  Node n = isRev ? nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, x), l) : l;
   Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
   newSkolems.push_back(sk1);
   Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
@@ -1554,7 +1554,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         size_t cIndex = index;
         Node stra = nfc.collectConstantStringAt(cIndex);
         Assert(!stra.isNull());
-        Node strb = nextConstStr;
+        stra = rewrite(stra);
+        Assert(stra.isConst());
+        Node strb = rewrite(nextConstStr);
+        Assert(strb.isConst());
 
         // Since `nc` is non-empty, we use the non-empty overlap
         size_t p = getSufficientNonEmptyOverlap(stra, strb, isRev);
@@ -1964,15 +1967,6 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
 void CoreSolver::processDeq(Node ni, Node nj)
 {
-  // If using the sequence update solver, we always apply extensionality.
-  // This is required for model soundness currently, although we could
-  // investigate determining cases where the disequality is already
-  // satisfied (for optimization).
-  if (options().strings.seqArray != options::SeqArrayMode::NONE)
-  {
-    processDeqExtensionality(ni, nj);
-    return;
-  }
   NodeManager* nm = NodeManager::currentNM();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -2067,12 +2061,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
   if (processReverseDeq(nfi, nfj, ni, nj))
   {
     Trace("strings-solve-debug") << "...processed reverse" << std::endl;
-    return;
-  }
-
-  if (options().strings.stringsDeqExt)
-  {
-    processDeqExtensionality(ni, nj);
     return;
   }
 
@@ -2482,8 +2470,9 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   Node conc = nm->mkNode(OR, lenDeq, nm->mkAnd(concs));
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
+  // Note that we take A != B verbatim, and do not explain it.
   d_im.sendInference(
-      {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
+      {deq}, {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
@@ -2539,9 +2528,12 @@ void CoreSolver::checkNormalFormsDeq()
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   NodeManager* nm = NodeManager::currentNM();
+  Trace("str-deq") << "Process disequalites..." << std::endl;
+  std::vector<Node> relevantDeqs;
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
   for (const Node& eq : deqs)
   {
+    Trace("str-deq") << "- disequality " << eq << std::endl;
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = ee->getRepresentative( eq[i] );
@@ -2556,10 +2548,25 @@ void CoreSolver::checkNormalFormsDeq()
           lt[i] = nm->mkNode(STRING_LENGTH, eq[i]);
         }
       }
-      if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
+      if (d_state.areEqual(lt[0], lt[1]))
+      {
+        // if they have equal lengths, we must process the disequality below
+        relevantDeqs.push_back(eq);
+        Trace("str-deq") << "...relevant" << std::endl;
+      }
+      else if (!d_state.areDisequal(lt[0], lt[1]))
       {
         d_im.sendSplit(lt[0], lt[1], InferenceId::STRINGS_DEQ_LENGTH_SP);
+        Trace("str-deq") << "...split" << std::endl;
       }
+      else
+      {
+        Trace("str-deq") << "...disequal length" << std::endl;
+      }
+    }
+    else
+    {
+      Trace("str-deq") << "...congruent" << std::endl;
     }
   }
 
@@ -2568,55 +2575,37 @@ void CoreSolver::checkNormalFormsDeq()
     // added splitting lemma above
     return;
   }
-  // otherwise, look at pairs of equivalence classes with equal lengths
-  std::map<TypeNode, std::vector<std::vector<Node> > > colsT;
-  std::map<TypeNode, std::vector<Node> > ltsT;
-  d_state.separateByLength(d_strings_eqc, colsT, ltsT);
-  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& ct : colsT)
+  for (const Node& eq : relevantDeqs)
   {
-    std::vector<std::vector<Node> >& cols = ct.second;
-    for( unsigned i=0; i<cols.size(); i++ ){
-      if (cols[i].size() > 1 && !d_im.hasPendingLemma())
-      {
-        if (Trace.isOn("strings-solve"))
-        {
-          Trace("strings-solve") << "- Verify disequalities are processed for "
-                                 << cols[i][0] << ", normal form : ";
-          utils::printConcatTrace(getNormalForm(cols[i][0]).d_nf, "strings-solve");
-          Trace("strings-solve")
-              << "... #eql = " << cols[i].size() << std::endl;
-        }
-        //must ensure that normal forms are disequal
-        for( unsigned j=0; j<cols[i].size(); j++ ){
-          for( unsigned k=(j+1); k<cols[i].size(); k++ ){
-            //for strings that are disequal, but have the same length
-            if (cols[i][j].isConst() && cols[i][k].isConst())
-            {
-              // if both are constants, they should be distinct, and its trivial
-              Assert(cols[i][j] != cols[i][k]);
-            }
-            else if (d_state.areDisequal(cols[i][j], cols[i][k]))
-            {
-              Assert(!d_state.isInConflict());
-              if (Trace.isOn("strings-solve"))
-              {
-                Trace("strings-solve") << "- Compare " << cols[i][j] << ", nf ";
-                utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf,
-                                        "strings-solve");
-                Trace("strings-solve") << " against " << cols[i][k] << ", nf ";
-                utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf,
-                                        "strings-solve");
-                Trace("strings-solve") << "..." << std::endl;
-              }
-              processDeq(cols[i][j], cols[i][k]);
-              if (d_im.hasProcessed())
-              {
-                return;
-              }
-            }
-          }
-        }
-      }
+    Assert(!d_state.isInConflict());
+    // If using the sequence update solver, we always apply extensionality.
+    // This is required for model soundness currently, although we could
+    // investigate determining cases where the disequality is already
+    // satisfied (for optimization).
+    if (options().strings.stringsDeqExt
+        || options().strings.seqArray != options::SeqArrayMode::NONE)
+    {
+      processDeqExtensionality(eq[0], eq[1]);
+      continue;
+    }
+    // the method below requires representatives
+    Node n[2];
+    for (size_t i = 0; i < 2; i++)
+    {
+      n[i] = ee->getRepresentative(eq[i]);
+    }
+    if (Trace.isOn("strings-solve"))
+    {
+      Trace("strings-solve") << "- Compare " << n[0] << ", nf ";
+      utils::printConcatTrace(getNormalForm(n[0]).d_nf, "strings-solve");
+      Trace("strings-solve") << " against " << n[1] << ", nf ";
+      utils::printConcatTrace(getNormalForm(n[1]).d_nf, "strings-solve");
+      Trace("strings-solve") << "..." << std::endl;
+    }
+    processDeq(n[0], n[1]);
+    if (d_im.hasProcessed())
+    {
+      return;
     }
   }
 }

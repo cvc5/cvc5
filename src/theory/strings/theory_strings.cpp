@@ -433,7 +433,7 @@ bool TheoryStrings::collectModelInfoType(
           argVal = nfe.d_nf[0][0];
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        assignedValue = rewrite(nm->mkNode(SEQ_UNIT, argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -768,15 +768,23 @@ void TheoryStrings::preRegisterTerm(TNode n)
 bool TheoryStrings::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  // this is only required for internal facts, others are already registered
-  if (isInternal && atom.getKind() == EQUAL)
+  if (atom.getKind() == EQUAL)
   {
-    // We must ensure these terms are registered. We register eagerly here for
-    // performance reasons. Alternatively, terms could be registered at full
-    // effort in e.g. BaseSolver::init.
-    for (const Node& t : atom)
+    // this is only required for internal facts, others are already registered
+    if (isInternal)
     {
-      d_termReg.registerTerm(t, 0);
+      // We must ensure these terms are registered. We register eagerly here for
+      // performance reasons. Alternatively, terms could be registered at full
+      // effort in e.g. BaseSolver::init.
+      for (const Node& t : atom)
+      {
+        d_termReg.registerTerm(t, 0);
+      }
+    }
+    // store disequalities between strings that occur as literals
+    if (!pol && atom[0].getType().isStringLike())
+    {
+      d_state.addDisequality(atom[0], atom[1]);
     }
   }
   return false;
@@ -945,16 +953,6 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   if (!e2->d_normalizedLength.get().isNull())
   {
     e1->d_normalizedLength.set(e2->d_normalizedLength);
-  }
-}
-
-void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  if (t1.getType().isStringLike())
-  {
-    // store disequalities between strings, may need to check if their lengths
-    // are equal/disequal
-    d_state.addDisequality(t1, t2);
   }
 }
 

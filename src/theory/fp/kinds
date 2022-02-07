@@ -134,26 +134,26 @@ typerule FLOATINGPOINT_GT   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 
 
-operator FLOATINGPOINT_ISN 1 "floating-point is normal"
-typerule FLOATINGPOINT_ISN   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_NORMAL 1 "floating-point is normal"
+typerule FLOATINGPOINT_IS_NORMAL   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_ISSN 1 "floating-point is sub-normal"
-typerule FLOATINGPOINT_ISSN   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_SUBNORMAL 1 "floating-point is sub-normal"
+typerule FLOATINGPOINT_IS_SUBNORMAL   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_ISZ 1 "floating-point is zero"
-typerule FLOATINGPOINT_ISZ   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_ZERO 1 "floating-point is zero"
+typerule FLOATINGPOINT_IS_ZERO   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_ISINF 1 "floating-point is infinite"
-typerule FLOATINGPOINT_ISINF   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_INF 1 "floating-point is infinite"
+typerule FLOATINGPOINT_IS_INF   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_ISNAN 1 "floating-point is NaN"
-typerule FLOATINGPOINT_ISNAN   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_NAN 1 "floating-point is NaN"
+typerule FLOATINGPOINT_IS_NAN   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_ISNEG 1 "floating-point is negative"
-typerule FLOATINGPOINT_ISNEG   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_NEG 1 "floating-point is negative"
+typerule FLOATINGPOINT_IS_NEG   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
-operator FLOATINGPOINT_ISPOS 1 "floating-point is positive"
-typerule FLOATINGPOINT_ISPOS   ::cvc5::theory::fp::FloatingPointTestTypeRule
+operator FLOATINGPOINT_IS_POS 1 "floating-point is positive"
+typerule FLOATINGPOINT_IS_POS   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 
 
