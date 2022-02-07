@@ -437,6 +437,7 @@ set(regress_0_tests
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
+  regress0/bv/proj-issue438-prerewrite-fixed-point.smt2
   regress0/bv/reset-assertions-assert-input.smt2
   regress0/bv/sizecheck.cvc.smt2
   regress0/bv/smtcompbug.smtv1.smt2
@@ -780,6 +781,8 @@ set(regress_0_tests
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/proj-issue-348.smt2
   regress0/nl/proj-issue-444-memout-eqelim.smt2
+  regress0/nl/proj-issue-451-ran-combination-1.smt2
+  regress0/nl/proj-issue-451-ran-combination-2.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -1114,6 +1117,7 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
+  regress0/seq/mixed-types-seq-nth.smt2
   regress0/seq/nth-oob.smt2
   regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
@@ -1149,6 +1153,8 @@ set(regress_0_tests
   regress0/seq/update-concat-non-atomic2.smt2
   regress0/seq/update-eq.smt2
   regress0/seq/update-eq-unsat.smt2
+  regress0/seq/wrong-model-020322.smt2
+  regress0/seq/wrong-sat-020322.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -1708,6 +1714,7 @@ set(regress_1_tests
   regress1/bv/issue3776.smt2
   regress1/bv/issue3958.smt2
   regress1/bv/min-pp-rewrite-error.smt2
+  regress1/bv/proj-issue438-prerewrite-fixed-point-original.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
   regress1/cee-bug0909-dd-scope.smt2
@@ -1874,6 +1881,7 @@ set(regress_1_tests
   regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/issue7924-sqrt-partial.smt2
   regress1/nl/issue8016-iand-rewrite.smt2 
+  regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2396,6 +2404,7 @@ set(regress_1_tests
   regress1/strings/issue6653-4-rre.smt2
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2
+  regress1/strings/issue6654-indexof_re_red.smt2
   regress1/strings/issue6766-re-elim-bv.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
