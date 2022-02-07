@@ -933,19 +933,21 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ssc << dt[index].getConstructor();
       opName << getNameForUserName(ssc.str());
     }
-    else if (k == APPLY_SELECTOR)
+    else if (k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL)
     {
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      unsigned cindex = DType::cindexOf(op);
-      std::stringstream sss;
-      sss << dt[cindex][index].getSelector();
-      opName << getNameForUserName(sss.str());
-    }
-    else if (k == APPLY_SELECTOR_TOTAL)
-    {
-      ret = maybeMkSkolemFun(op, macroApply);
-      Assert(!ret.isNull());
+      if (k == APPLY_SELECTOR_TOTAL)
+      {
+        ret = maybeMkSkolemFun(op, macroApply);
+      }
+      if (ret.isNull())
+      {
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        unsigned cindex = DType::cindexOf(op);
+        std::stringstream sss;
+        sss << dt[cindex][index].getSelector();
+        opName << getNameForUserName(sss.str());
+      }
     }
     else if (k == SET_SINGLETON || k == BAG_MAKE)
     {
@@ -961,6 +963,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     if (ret.isNull())
     {
+      Trace("lfsc-term-process-debug2") << "...default symbol" << std::endl;
       ret = getSymbolInternal(k, ftype, opName.str());
     }
     // TODO: if parametric, instantiate the parameters?
