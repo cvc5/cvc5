@@ -56,7 +56,7 @@ add_custom_target(fuzz-murxla
   COMMAND echo "Run Murxla as follows:"
   COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 --cvc5"
   COMMAND echo "Minimize error traces as follows:"
-  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 -d --cvc5 -d <seed>"
+  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 -d --cvc5 -s <seed>"
   COMMAND echo "Convert traces to SMT-LIB as follows:"
   COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} --smt2 -u <filename>"
   DEPENDS Murxla-EP
