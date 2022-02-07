@@ -128,10 +128,10 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem = mkInRange(diff, zero, one);
       Node toIntSkolem =
           mkWitnessSkolem(v,
-                        lem,
-                        "toInt",
-                        "a conversion of a Real term to its Integer part",
-                        lems);
+                          lem,
+                          "toInt",
+                          "a conversion of a Real term to its Integer part",
+                          lems);
       if (k == IS_INTEGER)
       {
         return nm->mkNode(EQUAL, node[0], toIntSkolem);
@@ -223,7 +223,8 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       // we use the purification skolem for div
       Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
-      Node intVar = mkPurifySkolem(pterm, "intDiv", "the result of an intdiv-by-k term", lems);
+      Node intVar = mkPurifySkolem(
+          pterm, "intDiv", "the result of an intdiv-by-k term", lems);
       if (k == INTS_MODULUS_TOTAL)
       {
         Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, intVar));
@@ -466,10 +467,10 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
 }
 
 Node OperatorElim::mkWitnessSkolem(Node v,
-                                 Node pred,
-                                 const std::string& prefix,
-                                 const std::string& comment,
-                                 std::vector<SkolemLemma>& lems)
+                                   Node pred,
+                                   const std::string& prefix,
+                                   const std::string& comment,
+                                   std::vector<SkolemLemma>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -491,10 +492,10 @@ Node OperatorElim::mkWitnessSkolem(Node v,
 }
 
 Node OperatorElim::mkPurifySkolem(Node t,
-                    Node lem,
-                    const std::string& prefix,
-                    const std::string& comment,
-                    std::vector<SkolemLemma>& lems)
+                                  Node lem,
+                                  const std::string& prefix,
+                                  const std::string& comment,
+                                  std::vector<SkolemLemma>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -503,8 +504,7 @@ Node OperatorElim::mkPurifySkolem(Node t,
   TrustNode tlem;
   if (d_pnm != nullptr)
   {
-    tlem =
-        mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
+    tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }
   else
   {
