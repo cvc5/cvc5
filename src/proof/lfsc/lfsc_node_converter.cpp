@@ -142,10 +142,7 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (n.isVar())
   {
-    std::stringstream ss;
-    ss << n;
-    Node nn = mkInternalSymbol(getNameForUserName(ss.str()), tn);
-    return nn;
+    return mkInternalSymbol(getNameForUserNameOf(n), tn);
   }
   else if (k == APPLY_UF)
   {
@@ -615,9 +612,41 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 
 std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 {
+  std::stringstream ssan;
   std::stringstream ss;
-  ss << "cvc." << name;
+  // We also must sanitize symbols that are not allowed in LFSC identifiers
+  // here. For the sake of generating unique symbols, we record the santization
+  // as a prefix before the "." separating the user name. Thus, e.g.
+  //   cvc.|a b|
+  // is converted to:
+  //   cvc_32@1.ab
+  // where "32" is the unicode value of " ", 32@1 indicates that space was
+  // removed from the user string at position 1.
+  std::string sname = name;
+  size_t sanCount = 0;
+  size_t found;
+  do
+  {
+    found = sname.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                          "0123456789~!@$%^&*_-+=<>.?/");
+    if (found!=std::string::npos)
+    {
+      // erase the character, print that we eliminated that character
+      ssan << "_" << static_cast<size_t>(sname[found])+sanCount << "@" << found;
+      sname.erase(sname.begin()+found, sname.begin()+found+1);
+      // increment sanCount, to make index accurate to original string
+      sanCount++;
+    }
+  }while (found!=std::string::npos);
+  ss << "cvc" << ssan.str() << "." << sname;
   return ss.str();
+}
+
+std::string LfscNodeConverter::getNameForUserNameOf(Node v)
+{
+  std::string name;
+  v.getAttribute(expr::VarNameAttr(), name);
+  return getNameForUserName(name);
 }
 
 bool LfscNodeConverter::shouldTraverse(Node n)
@@ -882,11 +911,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         Assert(indices.size() == 1);
         // must convert to user name
-        std::stringstream sss;
-        sss << indices[0];
         TypeNode intType = nm->integerType();
         indices[0] =
-            getSymbolInternal(k, intType, getNameForUserName(sss.str()));
+            getSymbolInternal(k, intType, getNameForUserNameOf(indices[0]));
       }
     }
     else if (op.getType().isFunction())
@@ -929,9 +956,8 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     {
       unsigned index = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      std::stringstream ssc;
-      ssc << dt[index].getConstructor();
-      opName << getNameForUserName(ssc.str());
+      // get its variable name
+      opName << getNameForUserNameOf(dt[index].getConstructor());
     }
     else if (k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL)
     {
@@ -944,9 +970,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         unsigned index = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
         unsigned cindex = DType::cindexOf(op);
-        std::stringstream sss;
-        sss << dt[cindex][index].getSelector();
-        opName << getNameForUserName(sss.str());
+        opName << getNameForUserNameOf(dt[cindex][index].getSelector());
       }
     }
     else if (k == SET_SINGLETON || k == BAG_MAKE)
