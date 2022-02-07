@@ -19,7 +19,7 @@ if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install delocate
 fi
-export PATH="$(python -m site --user-base)/bin;$PATH"
+export PATH="$(python -m site --user-base)/bin:$PATH"
 
 # configure cvc5
 echo "Configuring"
