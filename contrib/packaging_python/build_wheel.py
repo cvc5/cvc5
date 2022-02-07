@@ -110,11 +110,11 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '..'] + args)
 
         # build the main library
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10', '--', 'VERBOSE=1'])
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10'])
 
         # build the python binding
         python_build_dir = os.path.join("src", "api", "python")
-        subprocess.check_call(['make', 'VERBOSE=1'], cwd=python_build_dir)
+        subprocess.check_call(['make'], cwd=python_build_dir)
 
         # copy the library over. we need to consider other users that are not on linux
         # module is a directory called cvc5_python_base_module
