@@ -19,6 +19,7 @@
 
 #include "expr/node.h"
 #include "test_smt.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
@@ -61,6 +62,24 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_to_fixpoint)
           d_nodeManager->mkNode(BITVECTOR_ITE, boolToBv(b3), zero, bv),
           bv),
       bv);
+  Node nr = Rewriter::rewrite(n);
+  ASSERT_EQ(nr, Rewriter::rewrite(nr));
+}
+
+TEST_F(TestTheoryWhiteBvRewriter, rewrite_concat_to_fixpoint)
+{
+  TypeNode boolType = d_nodeManager->booleanType();
+  TypeNode bvType = d_nodeManager->mkBitVectorType(4);
+
+  Node zero = d_nodeManager->mkConst(BitVector(1, 0u));
+  Node x = d_nodeManager->mkVar("bv", bvType);
+  Node y = d_nodeManager->mkVar("bv", bvType);
+  Node z = d_nodeManager->mkVar("bv", bvType);
+
+  Node n = d_nodeManager->mkNode(
+      BITVECTOR_CONCAT,
+      bv::utils::mkExtract(d_nodeManager->mkNode(BITVECTOR_CONCAT, x, y), 7, 0),
+      z);
   Node nr = Rewriter::rewrite(n);
   ASSERT_EQ(nr, Rewriter::rewrite(nr));
 }
