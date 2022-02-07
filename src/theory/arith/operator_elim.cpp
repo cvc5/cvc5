@@ -154,7 +154,8 @@ Node OperatorElim::eliminateOperators(Node node,
       Node rw = nm->mkNode(k, num, den);
       // we use the purification skolem for div
       Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
-      Node v = sm->mkPurifySkolem(pterm, "intDiv", "the result of an intdiv-by-k term");
+      Node v = sm->mkPurifySkolem(
+          pterm, "intDiv", "the result of an intdiv-by-k term");
       // make the corresponding lemma
       Node lem;
       Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
@@ -252,7 +253,8 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
-      Node v = sm->mkPurifySkolem(rw, "nonlinearDiv", "the result of a non-linear div term");
+      Node v = sm->mkPurifySkolem(
+          rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(nm->mkConstReal(Rational(0))).negate(),
                             nm->mkNode(MULT, den, v).eqNode(num));
