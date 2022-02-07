@@ -106,6 +106,8 @@ class CMakeBuild(build_ext):
             '-DPYTHON_LIBRARY:FILEPATH=' +
                     CMaker.get_python_library(python_version),
         ]
+        print("Extraced python info from python cmake thingy")
+        print(args)
 
         subprocess.check_call(['cmake', '..'] + args)
 
