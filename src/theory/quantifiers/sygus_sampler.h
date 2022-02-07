@@ -19,6 +19,8 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
+
+#include "smt/env_obj.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/term_enumeration.h"
 
@@ -65,7 +67,7 @@ class TermDbSygus;
  * Notice that the number of sample points can be configured for the above
  * options using sygus-samples=N.
  */
-class SygusSampler : public LazyTrieEvaluator
+class SygusSampler : protected EnvObj, public LazyTrieEvaluator
 {
  public:
   SygusSampler(Env& env);
@@ -181,8 +183,6 @@ class SygusSampler : public LazyTrieEvaluator
   void checkEquivalent(Node bv, Node bvr, std::ostream& out);
 
  protected:
-  /** The environment we are using to evaluate terms and samples */
-  Env& d_env;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** term enumerator object (used for random sampling) */

@@ -34,6 +34,9 @@ ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
       d_instRuleIds(
           smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::instRuleId")),
+      d_annotationRuleIds(
+          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+              "finalProof::annotationRuleId")),
       d_totalRuleCount(
           smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -94,6 +97,39 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       {
         d_instRuleIds << id;
       }
+    }
+  }
+  else if (r == PfRule::ANNOTATION)
+  {
+    // we currently assume the annotation is a single inference id
+    const std::vector<Node>& args = pn->getArguments();
+    if (args.size() > 0)
+    {
+      InferenceId id;
+      if (getInferenceId(args[0], id))
+      {
+        d_annotationRuleIds << id;
+        // Use e.g. `--check-proofs --proof-annotate -t im-pf` to see a list of
+        // inference that appear in the final proof.
+        Trace("im-pf") << "(inference-pf " << id << " " << pn->getResult()
+                       << ")" << std::endl;
+        Trace("im-pf-assert")
+            << "(assert " << pn->getResult() << ") ; " << id << std::endl;
+      }
+    }
+  }
+  // print for debugging
+  if (Trace.isOn("final-pf-hole"))
+  {
+    // currently only track theory rewrites
+    if (r == PfRule::THEORY_REWRITE)
+    {
+      const std::vector<Node>& args = pn->getArguments();
+      Node eq = args[0];
+      TheoryId tid = THEORY_BUILTIN;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
+                             << " ---> " << eq[1] << std::endl;
     }
   }
   return false;

@@ -90,21 +90,11 @@ class SExprTypeRule {
   }
 };/* class SExprTypeRule */
 
-class UninterpretedConstantTypeRule {
+class UninterpretedSortValueTypeRule
+{
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};/* class UninterpretedConstantTypeRule */
-
-class AbstractValueTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    // An UnknownTypeException means that this node has no type.  For now,
-    // only abstract values are like this---and then, only if they are created
-    // by the user and don't actually correspond to one that the SolverEngine
-    // gave them previously.
-    throw UnknownTypeException(n);
-  }
-};/* class AbstractValueTypeRule */
+}; /* class UninterpretedSortValueTypeRule */
 
 class WitnessTypeRule
 {

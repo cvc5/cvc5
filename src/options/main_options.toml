@@ -2,11 +2,13 @@ id     = "DRIVER"
 name   = "Driver"
 
 [[option]]
+  name       = "showVersion"
   category   = "common"
   short      = "V"
   long       = "version"
-  type       = "void"
-  handler    = "showVersion"
+  type       = "bool"
+  predicates = ["showVersion"]
+  alternate  = false
   help       = "identify this cvc5 binary"
 
 [[option]]
@@ -19,17 +21,21 @@ name   = "Driver"
   help       = "full command line reference"
 
 [[option]]
+  name       = "showConfiguration"
   category   = "common"
   long       = "show-config"
-  type       = "void"
-  handler    = "showConfiguration"
+  type       = "bool"
+  predicates = ["showConfiguration"]
+  alternate  = false
   help       = "show cvc5 static configuration"
 
 [[option]]
+  name       = "showCopyright"
   category   = "common"
   long       = "copyright"
-  type       = "void"
-  handler    = "showCopyright"
+  type       = "bool"
+  predicates = ["showCopyright"]
+  alternate  = false
   help       = "show cvc5 copyright information"
 
 [[option]]
@@ -42,17 +48,21 @@ name   = "Driver"
   help       = "seed for random number generator"
 
 [[option]]
+  name       = "showDebugTags"
   category   = "regular"
   long       = "show-debug-tags"
-  type       = "void"
-  handler    = "showDebugTags"
+  type       = "bool"
+  predicates = ["showDebugTags"]
+  alternate  = false
   help       = "show all available tags for debugging"
 
 [[option]]
+  name       = "showTraceTags"
   category   = "regular"
   long       = "show-trace-tags"
-  type       = "void"
-  handler    = "showTraceTags"
+  type       = "bool"
+  predicates = ["showTraceTags"]
+  alternate  = false
   help       = "show all available tags for tracing"
 
 [[option]]

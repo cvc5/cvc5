@@ -83,6 +83,19 @@ void test(Solver& slv, Sort& consListSort)
   }
   std::cout << std::endl;
 
+  // You can also define a tester term for constructor 'cons': (_ is cons)
+  Term t_is_cons =
+      slv.mkTerm(APPLY_TESTER, consList["cons"].getTesterTerm(), t);
+  std::cout << "t_is_cons is " << t_is_cons << std::endl << std::endl;
+  slv.assertFormula(t_is_cons);
+  // Updating t at 'head' with value 1 is defined as follows:
+  Term t_updated = slv.mkTerm(APPLY_UPDATER,
+                              consList["cons"]["head"].getUpdaterTerm(),
+                              t,
+                              slv.mkInteger(1));
+  std::cout << "t_updated is " << t_updated << std::endl << std::endl;
+  slv.assertFormula(slv.mkTerm(DISTINCT, t, t_updated));
+
   // You can also define parameterized datatypes.
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
@@ -123,6 +136,7 @@ void test(Solver& slv, Sort& consListSort)
             << "sort of cons is "
             << paramConsList.getConstructorTerm("cons").getSort() << std::endl
             << std::endl;
+
   Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);

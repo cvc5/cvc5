@@ -22,7 +22,7 @@ handle nested '#if 0' pairs.
 """
 
 from collections import OrderedDict
-
+import textwrap
 
 ##################### Useful Constants ################
 OCB = '{'
@@ -96,7 +96,7 @@ class KindsParser:
            4. replace Bitvector with BV
 
         There is one exception:
-           FLOATINGPOINT_ISNAN  --> FPIsNan
+           FLOATINGPOINT_IS_NAN  --> FPIsNan
 
         For every "_IS" in the name, there's an underscore added before step 1,
            so that the word after "Is" is capitalized
@@ -104,7 +104,7 @@ class KindsParser:
         Examples:
            BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
-           FLOATINGPOINT_ISNAN -->  FPIsNan
+           FLOATINGPOINT_IS_NAN -->  FPIsNan
            SET_MINUS            -->  Setminus
 
         See the generated .pxi file for an explicit mapping
@@ -120,19 +120,19 @@ class KindsParser:
 
     def format_comment(self, comment):
         '''
-        Removes the C++ syntax for block comments and returns just the text
+        Removes the C++ syntax for block comments and returns just the text.
         '''
-        assert comment[0]  == '/', \
-            "Expecting to start with / but got %s" % comment[0]
-        assert comment[-1] == '/', \
-            "Expecting to end with / but got %s" % comment[-1]
-        res = ""
-        for line in comment.strip("/* \t").split("\n"):
-            line = line.strip("*")
-            if line:
-                res += line
-                res += "\n"
-        return res
+        assert comment[:2]  == '/*', \
+            "Expecting to start with /* but got \"{}\"".format(comment[:2])
+        assert comment[-2:] == '*/', \
+            "Expecting to end with */ but got \"{}\"".format(comment[-2:])
+        comment = comment[2:-2].strip('*\n')   # /** ... */ -> ...
+        comment = textwrap.dedent(comment)     # remove indentation
+        comment = comment.replace('\n*', '\n') # remove leading "*""
+        comment = textwrap.dedent(comment)     # remove indentation
+        comment = comment.replace('\\rst', '').replace('\\endrst', '')
+        comment = comment.strip()  # remove leading and trailing spaces
+        return comment
 
     def ignore_block(self, line):
         '''

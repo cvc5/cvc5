@@ -20,7 +20,6 @@
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
-#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -28,7 +27,6 @@ namespace theory {
 // optimization: try to rewrite to constant
 Result quickCheck(Node& query)
 {
-  query = theory::Rewriter::rewrite(query);
   if (query.isConst())
   {
     if (!query.getConst<bool>())
@@ -116,9 +114,10 @@ Result checkWithSubsolver(Node query,
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
       // default model
+      NodeManager* nm = NodeManager::currentNM();
       for (const Node& v : vars)
       {
-        modelVals.push_back(v.getType().mkGroundTerm());
+        modelVals.push_back(nm->mkGroundTerm(v.getType()));
       }
     }
     return r;

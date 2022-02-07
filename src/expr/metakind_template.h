@@ -25,29 +25,16 @@
 
 namespace cvc5 {
 
+// clang-format off
+${metakind_fwd_decls}
+// clang-format on
+
 namespace expr {
   class NodeValue;
   }  // namespace expr
 
 namespace kind {
 namespace metakind {
-
-/**
- * Static, compile-time information about types T representing cvc5
- * constants:
- *
- *   typename ConstantMap<T>::OwningTheory
- *
- *     The theory in charge of constructing T when constructing Nodes
- *     with NodeManager::mkConst(T).
- *
- *   typename ConstantMap<T>::kind
- *
- *     The kind to use when constructing Nodes with
- *     NodeManager::mkConst(T).
- */
-template <class T>
-struct ConstantMap;
 
 struct NodeValueCompare {
   template <bool pool>
@@ -132,24 +119,3 @@ struct NodeValuePoolEq {
 }  // namespace cvc5
 
 #endif /* CVC5__KIND__METAKIND_H */
-
-#ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
-
-namespace cvc5 {
-
-// clang-format off
-${metakind_fwd_decls}
-// clang-format on
-
-namespace kind {
-namespace metakind {
-
-// clang-format off
-${metakind_constantMaps_decls}
-// clang-format on
-
-}  // namespace metakind
-}  // namespace kind
-}  // namespace cvc5
-
-#endif /* CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP */

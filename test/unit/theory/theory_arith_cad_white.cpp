@@ -85,7 +85,7 @@ Node operator>=(const Node& a, const Node& b)
 }
 Node operator+(const Node& a, const Node& b)
 {
-  return nodeManager->mkNode(Kind::PLUS, a, b);
+  return nodeManager->mkNode(Kind::ADD, a, b);
 }
 Node operator*(const Node& a, const Node& b)
 {
@@ -182,6 +182,7 @@ poly::Polynomial up_to_poly(const poly::UPolynomial& p, poly::Variable var)
 
 TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
 {
+  Rewriter* rewriter = d_slvEngine->getRewriter();
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
@@ -190,17 +191,17 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
       d_nodeManager->mkNode(
           Kind::EQUAL,
           d_nodeManager->mkNode(
-              Kind::PLUS,
+              Kind::ADD,
               d_nodeManager->mkNode(Kind::NONLINEAR_MULT, a, c),
               d_nodeManager->mkConst(CONST_RATIONAL, d_one)),
           d_nodeManager->mkConst(CONST_RATIONAL, d_zero))});
 
   {
-    Node rewritten = Rewriter::rewrite(orig);
+    Node rewritten = rewriter->rewrite(orig);
     EXPECT_NE(rewritten, d_nodeManager->mkConst(false));
   }
   {
-    Node rewritten = Rewriter::callExtendedRewrite(orig);
+    Node rewritten = rewriter->extendedRewrite(orig);
     EXPECT_EQ(rewritten, d_nodeManager->mkConst(false));
   }
 }

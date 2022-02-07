@@ -123,7 +123,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(CONST_RATIONAL, cvc5::Rational(0));
+  Node zero = nm->mkConstInt(cvc5::Rational(0));
   bool ret = false;
   bool success = true;
   unsigned sindex = 0;
@@ -145,14 +145,14 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           Assert(d_arithEntail.check(curr, true));
           Node s = n1[sindex_use];
           size_t slen = Word::getLength(s);
-          Node ncl = nm->mkConst(CONST_RATIONAL, cvc5::Rational(slen));
-          Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
+          Node ncl = nm->mkConstInt(cvc5::Rational(slen));
+          Node next_s = nm->mkNode(SUB, lowerBound, ncl);
           next_s = d_rr->rewrite(next_s);
           Assert(next_s.isConst());
           // we can remove the entire constant
           if (next_s.getConst<Rational>().sgn() >= 0)
           {
-            curr = d_rr->rewrite(nm->mkNode(MINUS, curr, ncl));
+            curr = d_rr->rewrite(nm->mkNode(SUB, curr, ncl));
             success = true;
             sindex++;
           }
@@ -162,7 +162,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
             // lower bound minus the length of a concrete string is negative,
             // hence lowerBound cannot be larger than long max
             Assert(lbr < Rational(String::maxSize()));
-            curr = d_rr->rewrite(nm->mkNode(MINUS, curr, lowerBound));
+            curr = d_rr->rewrite(nm->mkNode(SUB, curr, lowerBound));
             uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
             Assert(lbsize < slen);
             if (dir == 1)
@@ -190,7 +190,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
     else
     {
       Node next_s = NodeManager::currentNM()->mkNode(
-          MINUS,
+          SUB,
           curr,
           NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
       next_s = d_rr->rewrite(next_s);
@@ -429,7 +429,7 @@ bool StringsEntail::componentContainsBase(
         {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos = nm->mkNode(PLUS, n2[1], n2[2]);
+          Node end_pos = nm->mkNode(ADD, n2[1], n2[2]);
           Node len_n2s = nm->mkNode(STRING_LENGTH, n2[0]);
           if (dir == 1)
           {
@@ -461,7 +461,7 @@ bool StringsEntail::componentContainsBase(
               {
                 n1rb = nm->mkNode(STRING_SUBSTR,
                                   n2[0],
-                                  nm->mkConst(CONST_RATIONAL, Rational(0)),
+                                  nm->mkConstInt(Rational(0)),
                                   start_pos);
               }
               if (dir != 1)
@@ -714,7 +714,7 @@ bool StringsEntail::checkNonEmpty(Node a)
 bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(STRING_LENGTH, s);
   len = d_rr->rewrite(len);
   return d_arithEntail.check(one, len)

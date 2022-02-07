@@ -120,6 +120,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         CONFIGURE_COMMAND <SOURCE_DIR>/configure
             --with-pic
             --disable-antlrdebug
+            --disable-abiflags
             --prefix=<INSTALL_DIR>
             --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
             --srcdir=<SOURCE_DIR>

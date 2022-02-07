@@ -53,6 +53,8 @@ metakind_constDeleters=
 metakind_ubchildren=
 metakind_lbchildren=
 metakind_operatorKinds=
+metakind_mkConst=
+metakind_mkConstDelete=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -280,11 +282,37 @@ ${class} const& NodeValue::getConst< ${class} >() const {
   fi
 
   if [ "${skip_const_map}" != true ]; then
-    metakind_constantMaps_decls="${metakind_constantMaps_decls}
-template <>
-struct ConstantMap< ${class} > {
-  static constexpr Kind kind = ::cvc5::kind::$1;
-};/* ConstantMap< ${class} > */
+    metakind_mkConst="${metakind_mkConst}
+template<>
+Node NodeManager::mkConst<${class}>(const ${class}& val)
+{
+  return mkConstInternal<Node, ${class}>(::cvc5::kind::$1, val);
+}
+
+template<>
+TypeNode NodeManager::mkTypeConst<${class}>(const ${class}& val)
+{
+  return mkConstInternal<TypeNode, ${class}>(::cvc5::kind::$1, val);
+}
+"
+    metakind_mkConst="${metakind_mkConst}
+template<>
+Node NodeManager::mkConst(Kind k, const ${class}& val)
+{
+  return mkConstInternal<Node, ${class}>(k, val);
+}
+"
+  elif [[ "${payload_seen}" != true ]]; then
+    metakind_mkConstDelete="${metakind_mkConstDelete}
+template<>
+Node NodeManager::mkConst<${class}>(const ${class}& val) = delete;
+"
+    metakind_mkConst="${metakind_mkConst}
+template<>
+Node NodeManager::mkConst(Kind k, const ${class}& val)
+{
+  return mkConstInternal<Node, ${class}>(k, val);
+}
 "
   fi
 
@@ -422,7 +450,6 @@ for var in \
     metakind_includes \
     metakind_kinds \
     metakind_constantMaps \
-    metakind_constantMaps_decls \
     metakind_compares \
     metakind_constHashes \
     metakind_constPrinters \
@@ -430,6 +457,8 @@ for var in \
     metakind_ubchildren \
     metakind_lbchildren \
     metakind_operatorKinds \
+    metakind_mkConst \
+    metakind_mkConstDelete \
     template \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"

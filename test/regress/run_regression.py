@@ -50,7 +50,7 @@ class Tester:
         if exit_status == STATUS_TIMEOUT:
             exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
             print("Timeout - Flags: {}".format(benchmark_info.command_line_args))
-        elif output != benchmark_info.expected_output:
+        elif benchmark_info.compare_outputs and output != benchmark_info.expected_output:
             exit_code = EXIT_FAILURE
             print("not ok - Flags: {}".format(benchmark_info.command_line_args))
             print()
@@ -66,7 +66,7 @@ class Tester:
                 print_colored(Color.YELLOW, error)
                 print("=" * 80)
                 print()
-        elif error != benchmark_info.expected_error:
+        elif benchmark_info.compare_outputs and error != benchmark_info.expected_error:
             exit_code = EXIT_FAILURE
             print(
                 "not ok - Differences between expected and actual output on stderr - Flags: {}".format(
@@ -174,7 +174,7 @@ class ProofTester(Tester):
     def run(self, benchmark_info):
         return super().run(
             benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args + ["--check-proofs"]
+                command_line_args=benchmark_info.command_line_args + ["--check-proofs", "--proof-granularity=theory-rewrite"]
             )
         )
 
@@ -245,12 +245,11 @@ class AbductTester(Tester):
 
 class DumpTester(Tester):
     def applies(self, benchmark_info):
-        return benchmark_info.expected_exit_status == EXIT_OK
+        return benchmark_info.benchmark_ext != ".p"
 
     def run(self, benchmark_info):
         ext_to_lang = {
             ".smt2": "smt2",
-            ".p": "tptp",
             ".sy": "sygus",
         }
 
@@ -285,7 +284,8 @@ class DumpTester(Tester):
                     "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
-                expected_output="",
+                expected_exit_status=0,
+                compare_outputs=False,
             )
         )
         os.remove(tmpf.name)
@@ -329,6 +329,7 @@ BenchmarkInfo = collections.namedtuple(
         "expected_error",
         "expected_exit_status",
         "command_line_args",
+        "compare_outputs",
     ],
 )
 
@@ -339,6 +340,7 @@ EXPECT_ERROR = "EXPECT-ERROR:"
 EXIT = "EXIT:"
 COMMAND_LINE = "COMMAND-LINE:"
 REQUIRES = "REQUIRES:"
+DISABLE_TESTER = "DISABLE-TESTER:"
 
 EXIT_OK = 0
 EXIT_FAILURE = 1
@@ -370,33 +372,34 @@ def print_diff(actual, expected):
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
     arguments to execute, `cwd` is the working directory and `s_input` is the
-    input to be sent to the process over stdin. Returns the output, the error
+    input to be sent to the process over stdin. If `args` is a list, the
+    arguments are escaped and concatenated. If `args` is a string, it is
+    executed as-is (without additional escaping. Returns the output, the error
     output and the exit code of the process. If the process times out, the
     output and the error output are empty and the exit code is 124."""
 
-    proc = subprocess.Popen(
-        args,
-        cwd=cwd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    cmd = " ".join([shlex.quote(a) for a in args]) if isinstance(args, list) else args
 
     out = ""
     err = ""
     exit_status = STATUS_TIMEOUT
     try:
-        if timeout:
-            timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
-            timer.start()
-        out, err = proc.communicate(input=s_input)
-        exit_status = proc.returncode
-    finally:
-        if timeout:
-            # The timer killed the process and is not active anymore.
-            if exit_status == -9 and not timer.is_alive():
-                exit_status = STATUS_TIMEOUT
-            timer.cancel()
+        # Instead of setting shell=True, we explicitly call bash. Using
+        # shell=True seems to produce different exit codes on different
+        # platforms under certain circumstances.
+        res = subprocess.run(
+            ["bash", "-c", cmd],
+            cwd=cwd,
+            input=s_input,
+            timeout=timeout,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        out = res.stdout
+        err = res.stderr
+        exit_status = res.returncode
+    except subprocess.TimeoutExpired:
+        exit_status = STATUS_TIMEOUT
 
     return out, err, exit_status
 
@@ -446,14 +449,14 @@ def run_benchmark(benchmark_info):
     # If a scrubber command has been specified then apply it to the output.
     if benchmark_info.scrubber:
         output, _, _ = run_process(
-            shlex.split(benchmark_info.scrubber),
+            benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
     if benchmark_info.error_scrubber:
         error, _, _ = run_process(
-            shlex.split(benchmark_info.error_scrubber),
+            benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,
@@ -544,6 +547,14 @@ def run_regression(
             command_lines.append(line[len(COMMAND_LINE) :].strip())
         elif line.startswith(REQUIRES):
             requires.append(line[len(REQUIRES) :].strip())
+        elif line.startswith(DISABLE_TESTER):
+            disable_tester = line[len(DISABLE_TESTER) :].strip()
+            if disable_tester not in g_testers:
+                print("Unknown tester: {}".format(disable_tester))
+                return EXIT_FAILURE
+            if disable_tester in testers:
+                testers.remove(disable_tester)
+
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
@@ -614,6 +625,7 @@ def run_regression(
             expected_error=expected_error,
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
+            compare_outputs=True,
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):

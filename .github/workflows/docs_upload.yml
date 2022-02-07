@@ -13,20 +13,10 @@ jobs:
     continue-on-error: true
     if: github.repository == 'cvc5/cvc5' && github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Setup Deploy Key
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
-
-      - name: Clone Documentation Repository
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      - name: Setup git config
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
-          git clone git@github.com:cvc5/docs-ci.git target/
       
       - name: Download artifact
         uses: actions/github-script@v3.1.0
@@ -52,38 +42,58 @@ jobs:
       - name: Unpack artifact
         run: unzip download.zip -d docs-new/
       
+      - name: Check for broken links
+        continue-on-error: true
+        run: |
+          python3 -m pip install linkchecker
+          linkchecker --check-extern docs-new/index.html
+
+# This workflow is run for commits in PRs (from branches in forks), commits
+# (from branches in main repo, usually master) and tags. Unfortunately, there
+# are only two properties in the github context that can be used here:
+# - workflow_run.event is "pull_request" for PRs and "push" otherwise
+# - workflow_run.head_branch contains the branch or tag name
+# We can not reliably identify a tag from that, so we simply match the
+# head_branch against the naming pattern of our tags ("cvc5-*"). To prevent PRs
+# with a matching branch name to be recognized as tags, we proceed as follows:
+# - handle PRs (event == "pull_request")
+# - handle tags (head_branch == "cvc5-*")
+# - rest are regular commits
       - name: Setup Context
         run: |
           HASH=${{ github.event.workflow_run.head_commit.id }}
-          ISTAG=${{ startsWith(github.ref, 'refs/tags/') }}
-          if [ "$ISTAG" = true ] ; then
+          ISRELEASE=false
+          if [ "${{ github.event.workflow_run.event }}" == "pull_request" ] ; then
+            NAME=$(cat docs-new/prnum)
+            rm docs-new/prnum
+            echo "Identified PR #$NAME (from $HASH)"
+            NAME="pr$NAME"
+          elif [ "${{ startsWith(github.event.workflow_run.head_branch, 'cvc5-') }}" == "true" ] ; then
+            ISRELEASE=true
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified tag $NAME"
           elif [ "${{ github.event.workflow_run.event }}" == "push" ] ; then
             NAME=${{ github.event.workflow_run.head_branch }}
             echo "Identified branch $NAME"
-          elif [ "${{ github.event.workflow_run.event }}" == "pull_request" ] ; then
-            NAME=$(cat docs-new/prnum)
-            rm docs-new/prnum
-            echo "Identified PR #$NAME (from $HASH)"
-            NAME="pr$NAME"
           fi
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "HASH=$HASH" >> $GITHUB_ENV
-          echo "ISTAG=$ISTAG" >> $GITHUB_ENV
+          echo "ISRELEASE=$ISRELEASE" >> $GITHUB_ENV
 
       - name: Update docs
         continue-on-error: true
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           if [ -n "$NAME" ]; then
+            eval $(ssh-agent -s)
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
+            git clone git@github.com:cvc5/docs-ci.git target/
             cp -r docs-new target/docs-$NAME-$HASH
             cd target/
 
             isdiff=$(diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH >&2; echo $?; exit 0)
 
-            if [[ ("$ISTAG" != true) && ($isdiff = 0) ]]
+            if [[ ("$ISRELEASE" != true) && ($isdiff = 0) ]]
             then
               echo "Ignored run, documentation is the same as for current master"
             else
@@ -103,15 +113,17 @@ jobs:
 
       - name: Update docs for release
         continue-on-error: true
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          if [ "$ISTAG" = true ]; then
-            git clone git@github.com:cvc5/docs-releases.git target-releases/
+          if [ "$ISRELEASE" = true ]; then
+            eval $(ssh-agent -s)
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
+
+            git clone git@github.com:cvc5/docs.git target-releases/
             cp -r docs-new target-releases/$NAME
             cd target-releases/
 
-            git add $NAME
+            python3 genversions.py
+            git add .
 
             git commit -m "Update docs for $NAME"
             git push

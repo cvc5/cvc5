@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
+; REQUIRES: poly
 (set-logic NRA)
 (set-info :status sat)
 (declare-fun a () Real)

@@ -42,7 +42,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_assertionListDefs(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
-      d_assertions()
+      d_assertions(env)
 {
 }
 
@@ -251,9 +251,9 @@ void Assertions::ensureBoolean(const Node& n)
   }
 }
 
-void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
-  d_assertions.setProofGenerator(pppg);
+  d_assertions.enableProofs(pppg);
 }
 
 bool Assertions::isProofEnabled() const

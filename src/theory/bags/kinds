@@ -48,6 +48,7 @@ operator BAG_DIFFERENCE_REMOVE 2  "bag difference remove (removes shared element
 
 operator BAG_SUBBAG            2  "inclusion predicate for bags (less than or equal multiplicities)"
 operator BAG_COUNT             2  "multiplicity of an element in a bag"
+operator BAG_MEMBER            2  "bag membership predicate; is first parameter a member of second?"
 operator BAG_DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
 
 constant BAG_MAKE_OP \
@@ -76,6 +77,18 @@ operator BAG_CHOOSE        1  "return an element in the bag given as a parameter
 # of the second argument, a bag of type (Bag T1), and returns a bag of type (Bag T2).
 operator BAG_MAP           2  "bag map function"
 
+# The bag.filter operator takes a predicate of type (-> T Bool) and a bag of type (Bag T)
+# and return the same bag excluding those elements that do not satisfy the predicate
+operator BAG_FILTER        2  "bag filter operator"
+
+# bag.fold operator combines elements of a bag into a single value.
+# (bag.fold f t B) folds the elements of bag B starting with term t and using
+# the combining function f.
+#  f: a binary operation of type (-> T1 T2 T2)
+#  t: an initial value of type T2
+#  B: a bag of type (Bag T1)
+operator BAG_FOLD          3  "bag fold operator"
+
 typerule BAG_UNION_MAX           ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_UNION_DISJOINT      ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_INTER_MIN           ::cvc5::theory::bags::BinaryOperatorTypeRule
@@ -83,6 +96,7 @@ typerule BAG_DIFFERENCE_SUBTRACT ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_DIFFERENCE_REMOVE   ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_SUBBAG              ::cvc5::theory::bags::SubBagTypeRule
 typerule BAG_COUNT               ::cvc5::theory::bags::CountTypeRule
+typerule BAG_MEMBER              ::cvc5::theory::bags::MemberTypeRule
 typerule BAG_DUPLICATE_REMOVAL   ::cvc5::theory::bags::DuplicateRemovalTypeRule
 typerule BAG_MAKE_OP             "SimpleTypeRule<RBuiltinOperator>"
 typerule BAG_MAKE                ::cvc5::theory::bags::BagMakeTypeRule
@@ -93,8 +107,16 @@ typerule BAG_IS_SINGLETON        ::cvc5::theory::bags::IsSingletonTypeRule
 typerule BAG_FROM_SET            ::cvc5::theory::bags::FromSetTypeRule
 typerule BAG_TO_SET              ::cvc5::theory::bags::ToSetTypeRule
 typerule BAG_MAP                 ::cvc5::theory::bags::BagMapTypeRule
+typerule BAG_FILTER              ::cvc5::theory::bags::BagFilterTypeRule
+typerule BAG_FOLD                ::cvc5::theory::bags::BagFoldTypeRule
 
 construle BAG_UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
 construle BAG_MAKE               ::cvc5::theory::bags::BagMakeTypeRule
+
+
+# bag.product operator returns the cross product of two tables
+operator TABLE_PRODUCT             2 "table cross product"
+
+typerule TABLE_PRODUCT              ::cvc5::theory::bags::TableProductTypeRule
 
 endtheory

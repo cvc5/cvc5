@@ -145,11 +145,11 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
-TrustNode TrustSubstitutionMap::applyTrusted(Node n, bool doRewrite)
+TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
-  Node ns = d_subs.apply(n, doRewrite);
+  Node ns = d_subs.apply(n, r);
   Trace("trust-subs") << "...subs " << ns << std::endl;
   if (n == ns)
   {
@@ -162,15 +162,19 @@ TrustNode TrustSubstitutionMap::applyTrusted(Node n, bool doRewrite)
     return TrustNode::mkTrustRewrite(n, ns, nullptr);
   }
   Node eq = n.eqNode(ns);
-  // remember the index
-  d_eqtIndex[eq] = d_tsubs.size();
+  // If we haven't already stored an index, remember the index. Otherwise, a
+  // (possibly shorter) prefix of the substitution already suffices to show eq
+  if (d_eqtIndex.find(eq) == d_eqtIndex.end())
+  {
+    d_eqtIndex[eq] = d_tsubs.size();
+  }
   // this class will provide a proof if asked
   return TrustNode::mkTrustRewrite(n, ns, this);
 }
 
-Node TrustSubstitutionMap::apply(Node n, bool doRewrite)
+Node TrustSubstitutionMap::apply(Node n, Rewriter* r)
 {
-  return d_subs.apply(n, doRewrite);
+  return d_subs.apply(n, r);
 }
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
@@ -194,11 +198,16 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   {
     return d_subsPg->getProofFor(eq);
   }
+  Trace("trust-subs-pf") << "getProofFor " << eq << std::endl;
+  AlwaysAssert(d_proving.find(eq) == d_proving.end())
+      << "Repeat getProofFor in TrustSubstitutionMap " << eq;
+  d_proving.insert(eq);
   NodeUIntMap::iterator it = d_eqtIndex.find(eq);
   Assert(it != d_eqtIndex.end());
   Trace("trust-subs-pf") << "TrustSubstitutionMap::getProofFor, # assumptions= "
                          << it->second << std::endl;
   Node cs = getSubstitution(it->second);
+  Trace("trust-subs-pf") << "getProofFor substitution is " << cs << std::endl;
   Assert(eq != cs);
   std::vector<Node> pfChildren;
   if (!cs.isConst())
@@ -252,7 +261,9 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   d_applyPg->addSteps(*d_tspb.get());
   d_tspb->clear();
   Trace("trust-subs-pf") << "...finish, make proof" << std::endl;
-  return d_applyPg->getProofFor(eq);
+  std::shared_ptr<ProofNode> ret = d_applyPg->getProofFor(eq);
+  d_proving.erase(eq);
+  return ret;
 }
 
 std::string TrustSubstitutionMap::identify() const { return d_name; }

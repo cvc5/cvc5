@@ -60,6 +60,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH_TOTAL);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -124,7 +126,8 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(tn.mkGroundTerm());
+    NodeManager* nm = NodeManager::currentNM();
+    elements.push_back(nm->mkGroundTerm(tn));
     return elements;
   }
   return *type_refs;
@@ -134,6 +137,7 @@ Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
+  nn = rewrite(nn);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
@@ -797,6 +801,12 @@ std::string TheoryModel::debugPrintModelEqc() const
   }
   ss << "---" << std::endl;
   return ss.str();
+}
+
+bool TheoryModel::isValue(TNode node)
+{
+  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER
+         || node.getKind() == Kind::LAMBDA;
 }
 
 }  // namespace theory

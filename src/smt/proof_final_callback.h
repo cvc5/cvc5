@@ -54,6 +54,11 @@ class ProofFinalCallback : public ProofNodeUpdaterCallback
    * marked with the given inference id.
    */
   HistogramStat<theory::InferenceId> d_instRuleIds;
+  /**
+   * Counts number of postprocessed proof nodes of rule ANNOTATION that were
+   * marked with the given inference id.
+   */
+  HistogramStat<theory::InferenceId> d_annotationRuleIds;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

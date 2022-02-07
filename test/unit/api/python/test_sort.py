@@ -16,14 +16,13 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import kinds
-from pycvc5 import Sort
+import cvc5
+from cvc5 import Sort
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def create_datatype_sort(solver):
@@ -59,6 +58,26 @@ def test_operators_comparison(solver):
     solver.getIntegerSort() <= Sort(solver)
     solver.getIntegerSort() > Sort(solver)
     solver.getIntegerSort() >= Sort(solver)
+
+def test_has_get_symbol(solver):
+    n = Sort(solver)
+    b = solver.getBooleanSort()
+    s0 = solver.mkParamSort("s0")
+    s1 = solver.mkParamSort("|s1\\|")
+
+    with pytest.raises(RuntimeError):
+        n.hasSymbol()
+    assert not b.hasSymbol()
+    assert s0.hasSymbol()
+    assert s1.hasSymbol()
+
+    with pytest.raises(RuntimeError):
+        n.getSymbol()
+    with pytest.raises(RuntimeError):
+        b.getSymbol()
+    assert s0.getSymbol() == "s0"
+    assert s1.getSymbol() == "|s1\\|"
+
 
 def test_is_null(solver):
    x = Sort(solver)
@@ -243,13 +262,6 @@ def test_is_subsort_of(solver):
     assert solver.getIntegerSort().isSubsortOf(solver.getRealSort())
     assert not solver.getIntegerSort().isSubsortOf(solver.getBooleanSort())
     Sort(solver).isSubsortOf(Sort(solver))
-
-
-def test_is_comparable_to(solver):
-    assert solver.getIntegerSort().isComparableTo(solver.getIntegerSort())
-    assert solver.getIntegerSort().isComparableTo(solver.getRealSort())
-    assert not solver.getIntegerSort().isComparableTo(solver.getBooleanSort())
-    Sort(solver).isComparableTo(Sort(solver))
 
 
 def test_get_datatype(solver):
@@ -546,21 +558,14 @@ def test_sort_subtyping(solver):
     realSort = solver.getRealSort()
     assert intSort.isSubsortOf(realSort)
     assert not realSort.isSubsortOf(intSort)
-    assert intSort.isComparableTo(realSort)
-    assert realSort.isComparableTo(intSort)
 
     arraySortII = solver.mkArraySort(intSort, intSort)
     arraySortIR = solver.mkArraySort(intSort, realSort)
-    assert not arraySortII.isComparableTo(intSort)
-    # we do not support subtyping for arrays
-    assert not arraySortII.isComparableTo(arraySortIR)
 
     setSortI = solver.mkSetSort(intSort)
     setSortR = solver.mkSetSort(realSort)
     # we don't support subtyping for sets
-    assert not setSortI.isComparableTo(setSortR)
     assert not setSortI.isSubsortOf(setSortR)
-    assert not setSortR.isComparableTo(setSortI)
     assert not setSortR.isSubsortOf(setSortI)
 
 
@@ -570,6 +575,6 @@ def test_sort_scoped_tostring(solver):
     uninterp_sort = solver.mkUninterpretedSort(name)
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
-    solver2 = pycvc5.Solver()
+    solver2 = cvc5.Solver()
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name

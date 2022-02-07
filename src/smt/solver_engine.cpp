@@ -192,9 +192,9 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
     // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(pppg);
+    d_asserts->enableProofs(pppg);
     // enabled proofs in the preprocessor
-    d_smtSolver->getPreprocessor()->setProofGenerator(pppg);
+    d_smtSolver->getPreprocessor()->enableProofs(pppg);
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
@@ -242,9 +242,6 @@ void SolverEngine::finishInit()
 void SolverEngine::shutdown()
 {
   d_state->shutdown();
-
-  d_smtSolver->shutdown();
-
   d_env->shutdown();
 }
 
@@ -934,11 +931,19 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth()
+Result SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
-  return d_sygusSolver->checkSynth(*d_asserts);
+  if (isNext && d_state->getMode() != SmtMode::SYNTH)
+  {
+    throw RecoverableModalException(
+        "Cannot check-synth-next unless immediately preceded by a successful "
+        "call to check-synth(-next).");
+  }
+  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  d_state->notifyCheckSynthResult(r);
+  return r;
 }
 
 /*
@@ -1014,10 +1019,10 @@ Node SolverEngine::getValue(const Node& ex) const
          || resultNode.getType().isSubtypeOf(expectedType))
       << "Run with -t smt for details.";
 
-  // Ensure it's a constant, or a lambda (for uninterpreted functions). This
-  // assertion only holds for models that do not have approximate values.
-  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
-         || resultNode.isConst());
+  // Ensure it's a value (constant or const-ish like real algebraic
+  // numbers), or a lambda (for uninterpreted functions). This assertion only
+  // holds for models that do not have approximate values.
+  Assert(m->hasApproximations() || TheoryModel::isValue(resultNode));
 
   if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
   {
@@ -1193,6 +1198,8 @@ std::vector<Node> SolverEngine::getAssertionsInternal()
   return res;
 }
 
+const Options& SolverEngine::options() const { return d_env->getOptions(); }
+
 std::vector<Node> SolverEngine::getExpandedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
@@ -1212,6 +1219,13 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   }
   SolverEngineScope smts(this);
   finishInit();
+  // check whether incremental is enabled, where separation logic is not
+  // supported.
+  if (d_env->getOptions().base.incrementalSolving)
+  {
+    throw RecoverableModalException(
+        "Separation logic not supported in incremental mode");
+  }
   TheoryEngine* te = getTheoryEngine();
   te->declareSepHeap(locT, dataT);
 }
@@ -1270,7 +1284,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   Assert(pe != nullptr);
 
   std::shared_ptr<ProofNode> pepf;
-  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
     pepf = pe->getRefutation();
   }
@@ -1282,7 +1296,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
-  if (options::minimalUnsatCores())
+  if (options().smt.minimalUnsatCores)
   {
     core = reduceUnsatCore(core);
   }
@@ -1291,7 +1305,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
 
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
-  Assert(options::unsatCores())
+  Assert(options().smt.unsatCores)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
@@ -1386,7 +1400,7 @@ void SolverEngine::checkUnsatCore()
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
-    Node assertionAfterExpansion = tls.apply(*i, false);
+    Node assertionAfterExpansion = tls.apply(*i);
     d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
                       << *i << ", expanded to " << assertionAfterExpansion
                       << std::endl;
@@ -1432,7 +1446,7 @@ void SolverEngine::checkModel(bool hardFailure)
   Assert(m != nullptr);
 
   // check the model with the theory engine for debugging
-  if (options::debugCheckModels())
+  if (options().smt.debugCheckModels)
   {
     TheoryEngine* te = getTheoryEngine();
     Assert(te != nullptr);
@@ -1527,8 +1541,8 @@ void SolverEngine::printInstantiations(std::ostream& out)
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
-    getRelevantInstantiationTermVectors(rinsts,
-                                        options::dumpInstantiationsDebug());
+    getRelevantInstantiationTermVectors(
+        rinsts, options().driver.dumpInstantiationsDebug);
   }
   else
   {
@@ -1601,39 +1615,50 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
   return d_sygusSolver->getSynthSolutions(solMap);
 }
 
-Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
+bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
   SolverEngineScope smts(this);
   finishInit();
-  const LogicInfo& logic = getLogicInfo();
-  if (!logic.isPure(THEORY_ARITH) && strict)
-  {
-    d_env->warning() << "Unexpected logic for quantifier elimination " << logic
-              << endl;
-  }
+  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
+}
+
+Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
+{
+  SolverEngineScope smts(this);
+  finishInit();
   return d_quantElimSolver->getQuantifierElimination(
       *d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
-bool SolverEngine::getInterpol(const Node& conj,
-                               const TypeNode& grammarType,
-                               Node& interpol)
+bool SolverEngine::getInterpolant(const Node& conj,
+                                  const TypeNode& grammarType,
+                                  Node& interpol)
 {
   SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success =
-      d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
   return success;
 }
 
-bool SolverEngine::getInterpol(const Node& conj, Node& interpol)
+bool SolverEngine::getInterpolantNext(Node& interpol)
 {
-  TypeNode grammarType;
-  return getInterpol(conj, grammarType, interpol);
+  SolverEngineScope smts(this);
+  finishInit();
+  if (d_state->getMode() != SmtMode::INTERPOL)
+  {
+    throw RecoverableModalException(
+        "Cannot get-interpol-next unless immediately preceded by a successful "
+        "call to get-interpol(-next).");
+  }
+  bool success = d_interpolSolver->getInterpolantNext(interpol);
+  // notify the state of whether the get-interpolant-next call was successful
+  d_state->notifyGetInterpol(success);
+  return success;
 }
 
 bool SolverEngine::getAbduct(const Node& conj,
@@ -1644,16 +1669,26 @@ bool SolverEngine::getAbduct(const Node& conj,
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
-  // notify the state of whether the get-abduct call was successfuly, which
+  // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
   return success;
 }
 
-bool SolverEngine::getAbduct(const Node& conj, Node& abd)
+bool SolverEngine::getAbductNext(Node& abd)
 {
-  TypeNode grammarType;
-  return getAbduct(conj, grammarType, abd);
+  SolverEngineScope smts(this);
+  finishInit();
+  if (d_state->getMode() != SmtMode::ABDUCT)
+  {
+    throw RecoverableModalException(
+        "Cannot get-abduct-next unless immediately preceded by a successful "
+        "call to get-abduct(-next).");
+  }
+  bool success = d_abductSolver->getAbductNext(abd);
+  // notify the state of whether the get-abduct-next call was successful
+  d_state->notifyGetAbduct(success);
+  return success;
 }
 
 void SolverEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)

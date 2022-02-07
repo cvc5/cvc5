@@ -30,7 +30,6 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
-#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"

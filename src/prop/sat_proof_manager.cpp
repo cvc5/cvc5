@@ -42,33 +42,20 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
 
 void SatProofManager::printClause(const Minisat::Clause& clause)
 {
-  for (unsigned i = 0, size = clause.size(); i < size; ++i)
+  for (size_t i = 0, size = clause.size(); i < size; ++i)
   {
     SatLiteral satLit = MinisatSatSolver::toSatLiteral(clause[i]);
     Trace("sat-proof") << satLit << " ";
   }
 }
 
-Node SatProofManager::getClauseNode(SatLiteral satLit)
-{
-  Assert(d_cnfStream->getNodeCache().find(satLit)
-         != d_cnfStream->getNodeCache().end())
-      << "SatProofManager::getClauseNode: literal " << satLit
-      << " undefined.\n";
-  return d_cnfStream->getNodeCache()[satLit];
-}
-
 Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
 {
   std::vector<Node> clauseNodes;
-  for (unsigned i = 0, size = clause.size(); i < size; ++i)
+  for (size_t i = 0, size = clause.size(); i < size; ++i)
   {
     SatLiteral satLit = MinisatSatSolver::toSatLiteral(clause[i]);
-    Assert(d_cnfStream->getNodeCache().find(satLit)
-           != d_cnfStream->getNodeCache().end())
-        << "SatProofManager::getClauseNode: literal " << satLit
-        << " undefined\n";
-    clauseNodes.push_back(d_cnfStream->getNodeCache()[satLit]);
+    clauseNodes.push_back(d_cnfStream->getNode(satLit));
   }
   // order children by node id
   std::sort(clauseNodes.begin(), clauseNodes.end());
@@ -140,7 +127,7 @@ void SatProofManager::endResChain(Minisat::Lit lit)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
-  endResChain(getClauseNode(satLit), {satLit});
+  endResChain(d_cnfStream->getNode(satLit), {satLit});
 }
 
 void SatProofManager::endResChain(const Minisat::Clause& clause)
@@ -346,7 +333,7 @@ void SatProofManager::explainLit(SatLiteral lit,
                                  std::unordered_set<TNode>& premises)
 {
   Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit;
-  Node litNode = getClauseNode(lit);
+  Node litNode = d_cnfStream->getNode(lit);
   Trace("sat-proof") << " [" << litNode << "]\n";
   // We don't need to explain nodes who are inputs. Note that it's *necessary*
   // to avoid attempting such explanations because they can introduce cycles at
@@ -450,7 +437,8 @@ void SatProofManager::explainLit(SatLiteral lit,
       Trace("sat-proof") << "SatProofManager::explainLit:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << args[i - 1] << "]";
+        Trace("sat-proof") << " [" << args[(2 * i) - 2] << ", "
+                           << args[(2 * i) - 1] << "]";
       }
       Trace("sat-proof") << "\n";
     }
@@ -722,7 +710,7 @@ void SatProofManager::finalizeProof()
   Trace("sat-proof")
       << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
-  finalizeProof(getClauseNode(d_conflictLit), {d_conflictLit});
+  finalizeProof(d_cnfStream->getNode(d_conflictLit), {d_conflictLit});
   // reset since if in incremental mode this may be used again
   d_conflictLit = undefSatVariable;
 }
@@ -732,7 +720,7 @@ void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(inConflict);
   Trace("sat-proof") << "SatProofManager::finalizeProof: conflicting satLit: "
                      << satLit << "\n";
-  Node clauseNode = getClauseNode(satLit);
+  Node clauseNode = d_cnfStream->getNode(satLit);
   if (adding)
   {
     registerSatAssumptions({clauseNode});
@@ -776,9 +764,11 @@ std::shared_ptr<ProofNode> SatProofManager::getProof()
 void SatProofManager::registerSatLitAssumption(Minisat::Lit lit)
 {
   Trace("sat-proof") << "SatProofManager::registerSatLitAssumption: - "
-                     << getClauseNode(MinisatSatSolver::toSatLiteral(lit))
+                     << d_cnfStream->getNode(
+                            MinisatSatSolver::toSatLiteral(lit))
                      << "\n";
-  d_assumptions.insert(getClauseNode(MinisatSatSolver::toSatLiteral(lit)));
+  d_assumptions.insert(
+      d_cnfStream->getNode(MinisatSatSolver::toSatLiteral(lit)));
 }
 
 void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)

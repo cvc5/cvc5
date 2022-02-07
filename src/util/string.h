@@ -26,6 +26,10 @@
 
 namespace cvc5 {
 
+namespace strings {
+struct StringHashFunction;
+}
+
 /** The cvc5 string class
  *
  * This data structure is the domain of values for the string type. It can also
@@ -33,6 +37,8 @@ namespace cvc5 {
  */
 class String
 {
+  friend strings::StringHashFunction;
+
  public:
   /**
    * This is the cardinality of the alphabet that is representable by this
@@ -267,10 +273,7 @@ namespace strings {
 
 struct StringHashFunction
 {
-  size_t operator()(const ::cvc5::String& s) const
-  {
-    return std::hash<std::string>()(s.toString());
-  }
+  size_t operator()(const ::cvc5::String& s) const;
 }; /* struct StringHashFunction */
 
 }  // namespace strings

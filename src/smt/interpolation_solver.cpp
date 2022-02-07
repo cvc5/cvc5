@@ -36,10 +36,10 @@ InterpolationSolver::InterpolationSolver(Env& env) : EnvObj(env) {}
 
 InterpolationSolver::~InterpolationSolver() {}
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      const TypeNode& grammarType,
-                                      Node& interpol)
+bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
+                                         const Node& conj,
+                                         const TypeNode& grammarType,
+                                         Node& interpol)
 {
   if (options().smt.produceInterpols == options::ProduceInterpols::NONE)
   {
@@ -51,10 +51,11 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
                           << std::endl;
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
+  conjn = rewrite(conjn);
   std::string name("__internal_interpol");
 
-  quantifiers::SygusInterpol interpolSolver(d_env);
-  if (interpolSolver.solveInterpolation(
+  d_subsolver = std::make_unique<quantifiers::SygusInterpol>(d_env);
+  if (d_subsolver->solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
     if (options().smt.checkInterpols)
@@ -66,12 +67,12 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
   return false;
 }
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      Node& interpol)
+bool InterpolationSolver::getInterpolantNext(Node& interpol)
 {
-  TypeNode grammarType;
-  return getInterpol(axioms, conj, grammarType, interpol);
+  // should already have initialized a subsolver, since we are immediately
+  // preceeded by a successful call to get-interpol(-next).
+  Assert(d_subsolver != nullptr);
+  return d_subsolver->solveInterpolationNext(interpol);
 }
 
 void InterpolationSolver::checkInterpol(Node interpol,

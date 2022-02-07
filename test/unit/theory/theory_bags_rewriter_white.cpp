@@ -189,7 +189,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
   ASSERT_TRUE(response1.d_status == REWRITE_AGAIN_FULL
               && response1.d_node == zero);
 
-  // (bag.count x (bag x c) = (ite (>= c 1) c 0)
+  // (bag.count x (bag x c) = c, c > 0 is a constant
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), skolem, three);
   Node n2 = d_nodeManager->mkNode(BAG_COUNT, skolem, bag);
   RewriteResponse response2 = d_rewriter->postRewrite(n2);
@@ -197,7 +197,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
   Node geq = d_nodeManager->mkNode(GEQ, three, one);
   Node ite = d_nodeManager->mkNode(ITE, geq, three, zero);
   ASSERT_TRUE(response2.d_status == REWRITE_AGAIN_FULL
-              && response2.d_node == ite);
+              && response2.d_node == three);
 }
 
 TEST_F(TestTheoryWhiteBagsRewriter, duplicate_removal)
@@ -683,7 +683,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_card)
   Node n3 = d_nodeManager->mkNode(BAG_CARD, unionDisjointAB);
   Node cardA = d_nodeManager->mkNode(BAG_CARD, A);
   Node cardB = d_nodeManager->mkNode(BAG_CARD, B);
-  Node plus = d_nodeManager->mkNode(PLUS, cardA, cardB);
+  Node plus = d_nodeManager->mkNode(ADD, cardA, cardB);
   RewriteResponse response3 = d_rewriter->postRewrite(n3);
   ASSERT_TRUE(response3.d_node == plus
               && response3.d_status == REWRITE_AGAIN_FULL);
@@ -750,7 +750,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
 
   Node empty = d_nodeManager->mkConst(String(""));
   Node xString = d_nodeManager->mkBoundVar("x", d_nodeManager->stringType());
-  Node bound = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, xString);
+  Node bound = d_nodeManager->mkNode(BOUND_VAR_LIST, xString);
   Node lambda = d_nodeManager->mkNode(LAMBDA, bound, empty);
 
   // (bag.map (lambda ((x U))  t) (as bag.empty (Bag String)) =
@@ -798,6 +798,63 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   Node unionDisjointMapK1K2 =
       d_nodeManager->mkNode(BAG_UNION_DISJOINT, mapK1, mapK2);
   ASSERT_TRUE(rewritten3 == unionDisjointMapK1K2);
+}
+
+TEST_F(TestTheoryWhiteBagsRewriter, fold)
+{
+  TypeNode bagIntegerType =
+      d_nodeManager->mkBagType(d_nodeManager->integerType());
+  Node emptybag = d_nodeManager->mkConst(EmptyBag(bagIntegerType));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node ten = d_nodeManager->mkConst(CONST_RATIONAL, Rational(10));
+  Node n = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
+  Node x = d_nodeManager->mkBoundVar("x", d_nodeManager->integerType());
+  Node y = d_nodeManager->mkBoundVar("y", d_nodeManager->integerType());
+  Node xy = d_nodeManager->mkNode(BOUND_VAR_LIST, x, y);
+  Node sum = d_nodeManager->mkNode(ADD, x, y);
+
+  // f(x,y) = 0 for all x, y
+  Node f = d_nodeManager->mkNode(LAMBDA, xy, zero);
+  Node node1 = d_nodeManager->mkNode(BAG_FOLD, f, one, emptybag);
+  RewriteResponse response1 = d_rewriter->postRewrite(node1);
+  ASSERT_TRUE(response1.d_node == one
+              && response1.d_status == REWRITE_AGAIN_FULL);
+
+  // (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times,  where n > 0
+  f = d_nodeManager->mkNode(LAMBDA, xy, sum);
+  Node xSkolem = d_nodeManager->getSkolemManager()->mkDummySkolem(
+      "x", d_nodeManager->integerType());
+  Node bag = d_nodeManager->mkBag(d_nodeManager->integerType(), xSkolem, n);
+  Node node2 = d_nodeManager->mkNode(BAG_FOLD, f, one, bag);
+  Node apply_f_once = d_nodeManager->mkNode(APPLY_UF, f, xSkolem, one);
+  Node apply_f_twice =
+      d_nodeManager->mkNode(APPLY_UF, f, xSkolem, apply_f_once);
+  RewriteResponse response2 = d_rewriter->postRewrite(node2);
+  ASSERT_TRUE(response2.d_node == apply_f_twice
+              && response2.d_status == REWRITE_AGAIN_FULL);
+
+  // (bag.fold (lambda ((x Int)(y Int)) (+ x y)) 1 (bag 10 2)) = 21
+  bag = d_nodeManager->mkBag(d_nodeManager->integerType(), ten, n);
+  Node node3 = d_nodeManager->mkNode(BAG_FOLD, f, one, bag);
+  Node result3 = d_nodeManager->mkConst(CONST_RATIONAL, Rational(21));
+  Node response3 = Rewriter::rewrite(node3);
+  ASSERT_TRUE(response3 == result3);
+
+  // (bag.fold f t (bag.union_disjoint A B)) =
+  //       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+
+  Node A =
+      d_nodeManager->getSkolemManager()->mkDummySkolem("A", bagIntegerType);
+  Node B =
+      d_nodeManager->getSkolemManager()->mkDummySkolem("B", bagIntegerType);
+  Node disjoint = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
+  Node node4 = d_nodeManager->mkNode(BAG_FOLD, f, one, disjoint);
+  Node foldA = d_nodeManager->mkNode(BAG_FOLD, f, one, A);
+  Node fold = d_nodeManager->mkNode(BAG_FOLD, f, foldA, B);
+  RewriteResponse response4 = d_rewriter->postRewrite(node4);
+  ASSERT_TRUE(response4.d_node == fold
+              && response2.d_status == REWRITE_AGAIN_FULL);
 }
 
 }  // namespace test

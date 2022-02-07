@@ -73,7 +73,7 @@ class AverageStat
  * an `std::ostream`.
  * New values are added by
  *    HistogramStat<Kind> stat;
- *    stat << Kind::PLUS << Kind::AND;
+ *    stat << Kind::ADD << Kind::AND;
  */
 template <typename Integral>
 class HistogramStat
@@ -86,7 +86,7 @@ class HistogramStat
   /** Add the value `val` to the histogram */
   HistogramStat& operator<<(Integral val)
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->add(val);
     }
@@ -126,7 +126,7 @@ class ReferenceStat
   void set(const TT& t)
   {
     static_assert(std::is_same_v<T, TT>, "Incorrect type for ReferenceStat");
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
     }
@@ -134,7 +134,7 @@ class ReferenceStat
   /** Commit the value currently pointed to and release it. */
   void reset()
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->commit();
       d_data->d_value = nullptr;
@@ -143,7 +143,7 @@ class ReferenceStat
   /** Copy the current value of the referenced object. */
   ~ReferenceStat()
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->commit();
     }
@@ -174,7 +174,7 @@ class SizeStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->d_value = &t;
     }
@@ -182,7 +182,7 @@ class SizeStat
   /** Copy the current size of the referenced container. */
   ~SizeStat()
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->commit();
     }
@@ -286,7 +286,7 @@ class ValueStat
   /** Set to `t` */
   void set(const T& t)
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       d_data->d_value = t;
     }
@@ -294,7 +294,7 @@ class ValueStat
   /** Set to `t` */
   ValueStat<T>& operator=(const T& t)
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       set(t);
     }
@@ -302,7 +302,7 @@ class ValueStat
   }
   T get() const
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       return d_data->d_value;
     }

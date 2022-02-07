@@ -69,7 +69,10 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-SygusGrammarNorm::SygusGrammarNorm(TermDbSygus* tds) : d_tds(tds) {}
+SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds)
+{
+}
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
     : d_tn(src_tn),
@@ -143,7 +146,7 @@ void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
 bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
 {
   /* Checks whether operator occurs chainable for its type */
-  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == PLUS)
+  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == ADD)
   {
     return true;
   }
@@ -155,7 +158,7 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
    function should realize that it is chainable for integers */
 bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 {
-  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == PLUS
+  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == ADD
       && n == TermUtil::mkTypeValue(tn, 0))
   {
     return true;
@@ -227,9 +230,9 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     std::vector<TypeNode> ctypesp;
     ctypesp.push_back(t);
     ctypesp.push_back(to.d_unres_tn);
-    to.d_sdt.addConstructor(nm->operatorOf(PLUS), kindToString(PLUS), ctypesp);
+    to.d_sdt.addConstructor(nm->operatorOf(ADD), kindToString(ADD), ctypesp);
     Trace("sygus-grammar-normalize-chain")
-        << "\tAdding PLUS to " << to.d_unres_tn << " with arg types "
+        << "\tAdding ADD to " << to.d_unres_tn << " with arg types "
         << to.d_unres_tn << " and " << t << "\n";
   }
   /* In the initial case if not all operators claimed always creates a next */
@@ -282,9 +285,10 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   Trace("sygus-gnorm") << "  #cons = " << op_pos.size() << " / "
                        << dt.getNumConstructors() << std::endl;
   // look for redundant constructors to drop
-  if (options::sygusMinGrammar() && dt.getNumConstructors() == op_pos.size())
+  if (options().quantifiers.sygusMinGrammar
+      && dt.getNumConstructors() == op_pos.size())
   {
-    SygusRedundantCons src;
+    SygusRedundantCons src(d_env);
     src.initialize(d_tds, tn);
     std::vector<unsigned> rindices;
     src.getRedundant(rindices);
@@ -299,7 +303,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
 
   // if normalization option is not enabled, we do not infer the transformations
   // below
-  if (!options::sygusGrammarNorm())
+  if (!options().quantifiers.sygusGrammarNorm)
   {
     return nullptr;
   }
@@ -312,10 +316,10 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   {
     Assert(op_pos[i] < dt.getNumConstructors());
     Node sop = dt[op_pos[i]].getSygusOp();
-    /* Collects a chainable operator such as PLUS */
+    /* Collects a chainable operator such as ADD */
     if (sop.getKind() == BUILTIN && TransfChain::isChainable(sygus_tn, sop))
     {
-      Assert(nm->operatorToKind(sop) == PLUS);
+      Assert(nm->operatorToKind(sop) == ADD);
       /* TODO #1304: be robust for this case */
       /* For now only transforms applications whose arguments have the same type
        * as the root */
@@ -333,7 +337,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
       if (!same_type_plus)
       {
         Trace("sygus-grammar-normalize-infer")
-            << "\tFor OP " << PLUS << " did not collecting sop " << sop
+            << "\tFor OP " << ADD << " did not collecting sop " << sop
             << " in position " << op_pos[i] << "\n";
         continue;
       }
@@ -345,8 +349,8 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
       continue;
     }
     /* TODO #1304: check this for each operator */
-    /* Collects elements that are not the identity (e.g. 0 is the id of PLUS) */
-    if (!TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), sop))
+    /* Collects elements that are not the identity (e.g. 0 is the id of ADD) */
+    if (!TransfChain::isId(sygus_tn, nm->operatorOf(ADD), sop))
     {
       Trace("sygus-grammar-normalize-infer")
           << "\tCollecting for NON_ID_ELEMS the sop " << sop

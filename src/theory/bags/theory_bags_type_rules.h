@@ -58,6 +58,15 @@ struct CountTypeRule
 }; /* struct CountTypeRule */
 
 /**
+ * Type rule for binary operator bag.member to check the sort of the first
+ * argument matches the element sort of the given bag.
+ */
+struct MemberTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
  * Type rule for bag.duplicate_removal to check the argument is of a bag.
  */
 struct DuplicateRemovalTypeRule
@@ -131,6 +140,33 @@ struct BagMapTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagMapTypeRule */
+
+/**
+ * Type rule for (bag.filter p B) to make sure p is a unary predicate of type
+ * (-> T Bool) where B is a bag of type (Bag T)
+ */
+struct BagFilterTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFilterTypeRule */
+
+/**
+ * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
+ * (-> T1 T2 T2), t of type T2, and B is a bag of type (Bag T1)
+ */
+struct BagFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (table.product A B) to make sure A,B are bags of tuples,
+ * and get the type of the cross product
+ */
+struct TableProductTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
 
 struct BagsProperties
 {

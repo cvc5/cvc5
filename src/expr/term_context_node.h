@@ -54,7 +54,7 @@ class TCtxNode
   Node getNodeHash() const;
   /**
    * Get node hash, which is a unique node representation of the pair (n, val).
-   * In particular, this returns (SEXPR n (CONST_RATIONAL val)).
+   * In particular, this returns (SEXPR n (CONST_INTEGER val)).
    */
   static Node computeNodeHash(Node n, uint32_t val);
   /**

@@ -36,12 +36,6 @@ namespace cvc5 {
 #  define IS_TRACING_BUILD false
 #endif /* CVC5_TRACING */
 
-#ifdef CVC5_DUMPING
-#  define IS_DUMPING_BUILD true
-#else /* CVC5_DUMPING */
-#  define IS_DUMPING_BUILD false
-#endif /* CVC5_DUMPING */
-
 #ifdef CVC5_MUZZLE
 #  define IS_MUZZLED_BUILD true
 #else /* CVC5_MUZZLE */

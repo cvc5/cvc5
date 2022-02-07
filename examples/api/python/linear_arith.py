@@ -16,11 +16,11 @@
 # linear_arith-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setLogic("QF_LIRA")
 
     # Prove that if given x (Integer) and y (Real) and some constraints
@@ -40,21 +40,21 @@ if __name__ == "__main__":
     two_thirds = slv.mkReal(2, 3)
 
     # Terms
-    three_y = slv.mkTerm(kinds.Mult, three, y)
-    diff = slv.mkTerm(kinds.Minus, y, x)
+    three_y = slv.mkTerm(Kind.Mult, three, y)
+    diff = slv.mkTerm(Kind.Sub, y, x)
 
     # Formulas
-    x_geq_3y = slv.mkTerm(kinds.Geq, x, three_y)
-    x_leq_y = slv.mkTerm(kinds.Leq, x ,y)
-    neg2_lt_x = slv.mkTerm(kinds.Lt, neg2, x)
+    x_geq_3y = slv.mkTerm(Kind.Geq, x, three_y)
+    x_leq_y = slv.mkTerm(Kind.Leq, x ,y)
+    neg2_lt_x = slv.mkTerm(Kind.Lt, neg2, x)
 
-    assertions = slv.mkTerm(kinds.And, x_geq_3y, x_leq_y, neg2_lt_x)
+    assertions = slv.mkTerm(Kind.And, x_geq_3y, x_leq_y, neg2_lt_x)
 
     print("Given the assertions", assertions)
     slv.assertFormula(assertions)
 
     slv.push()
-    diff_leq_two_thirds = slv.mkTerm(kinds.Leq, diff, two_thirds)
+    diff_leq_two_thirds = slv.mkTerm(Kind.Leq, diff, two_thirds)
     print("Prove that", diff_leq_two_thirds, "with cvc5")
     print("cvc5 should report ENTAILED")
     print("Result from cvc5 is:",
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     print()
 
     slv.push()
-    diff_is_two_thirds = slv.mkTerm(kinds.Equal, diff, two_thirds)
+    diff_is_two_thirds = slv.mkTerm(Kind.Equal, diff, two_thirds)
     slv.assertFormula(diff_is_two_thirds)
     print("Show that the assertions are consistent with\n", diff_is_two_thirds, "with cvc5")
     print("cvc5 should report SAT")

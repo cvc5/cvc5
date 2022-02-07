@@ -64,27 +64,16 @@ enum Kind : int32_t
   /* Builtin --------------------------------------------------------------- */
 
   /**
-   * Uninterpreted constant.
-   *
-   * Parameters:
-   *   - 1: Sort of the constant
-   *   - 2: Index of the constant
-   *
-   * Create with:
-   *   - `Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const`
-   */
-  UNINTERPRETED_CONSTANT,
-  /**
-   * Abstract value (other than uninterpreted sort constants).
+   * Abstract value.
    *
    * Parameters:
    *   - 1: Index of the abstract value
    *
    * Create with:
-   *   - `Solver::mkAbstractValue(const std::string& index) const`
-   *   - `Solver::mkAbstractValue(uint64_t index) const`
+   *   - `Solver::mkUninterpretedSortValue(const std::string& index) const`
+   *   - `Solver::mkUninterpretedSortValue(uint64_t index) const`
    */
-  ABSTRACT_VALUE,
+  UNINTERPRETED_SORT_VALUE,
 #if 0
   /* Built-in operator */
   BUILTIN,
@@ -359,7 +348,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  PLUS,
+  ADD,
   /**
    * Arithmetic multiplication.
    *
@@ -430,7 +419,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MINUS,
+  SUB,
   /**
    * Arithmetic negation.
    *
@@ -440,7 +429,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  UMINUS,
+  NEG,
   /**
    * Real division, division by 0 undefined, left associative.
    *
@@ -1580,7 +1569,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISN,
+  FLOATINGPOINT_IS_NORMAL,
   /**
    * Floating-point is sub-normal.
    *
@@ -1590,7 +1579,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISSN,
+  FLOATINGPOINT_IS_SUBNORMAL,
   /**
    * Floating-point is zero.
    *
@@ -1600,7 +1589,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISZ,
+  FLOATINGPOINT_IS_ZERO,
   /**
    * Floating-point is infinite.
    *
@@ -1610,7 +1599,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISINF,
+  FLOATINGPOINT_IS_INF,
   /**
    * Floating-point is NaN.
    *
@@ -1620,7 +1609,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNAN,
+  FLOATINGPOINT_IS_NAN,
   /**
    * Floating-point is negative.
    *
@@ -1630,7 +1619,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNEG,
+  FLOATINGPOINT_IS_NEG,
   /**
    * Floating-point is positive.
    *
@@ -1640,7 +1629,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISPOS,
+  FLOATINGPOINT_IS_POS,
   /**
    * Operator for to_fp from bit vector.
    *
@@ -2013,7 +2002,7 @@ enum Kind : int32_t
    * Operator for tuple projection indices
    *
    * Parameters:
-   *   - 1: The tuple projection indices
+   *   - 1: A vector of tuple projection indices.
    *
    * Create with:
    *   - `Solver::mkOp(Kind TUPLE_PROJECT, std::vector<uint32_t> param) const`
@@ -2447,6 +2436,17 @@ enum Kind : int32_t
    */
   BAG_COUNT,
   /**
+   * Bag membership predicate.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort (Bag E), is [1] of type E an element of [2]
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_MEMBER,
+  /**
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
    *
@@ -2539,6 +2539,50 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_MAP,
+  /**
+    * bag.filter operator filters the elements of a bag.
+    * (bag.filter p B) takes a predicate p of type (-> T Bool) as a first
+    * argument, and a bag B of type (Bag T) as a second argument, and returns a
+    * subbag of type (Bag T) that includes all elements of B that satisfy p
+    * with the same multiplicity.
+    *
+    * Parameters:
+    *   - 1: a function of type (-> T Bool)
+    *   - 2: a bag of type (Bag T)
+    *
+    * Create with:
+    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+    * const`
+    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+    */
+   BAG_FILTER,
+  /**
+   * bag.fold operator combines elements of a bag into a single value.
+   * (bag.fold f t B) folds the elements of bag B starting with term t and using
+   * the combining function f.
+   *
+   * Parameters:
+   *   - 1: a binary operation of type (-> T1 T2 T2)
+   *   - 2: an initial value of type T2
+   *   - 2: a bag of type (Bag T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
+   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_FOLD,
+  /**
+   * Table cross product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  TABLE_PRODUCT,
 
   /* Strings --------------------------------------------------------------- */
 

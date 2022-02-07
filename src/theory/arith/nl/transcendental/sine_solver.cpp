@@ -45,10 +45,9 @@ namespace {
  */
 inline Node mkValidPhase(TNode a, TNode pi)
 {
+  NodeManager* nm = NodeManager::currentNM();
   return mkBounded(
-      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
-      a,
-      pi);
+      nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi), a, pi);
 }
 }  // namespace
 
@@ -75,13 +74,12 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
       nm->mkNode(Kind::ITE,
                  mkValidPhase(a[0], d_data->d_pi),
                  a[0].eqNode(y),
-                 a[0].eqNode(nm->mkNode(
-                     Kind::PLUS,
-                     y,
-                     nm->mkNode(Kind::MULT,
-                                nm->mkConst(CONST_RATIONAL, Rational(2)),
-                                shift,
-                                d_data->d_pi)))),
+                 a[0].eqNode(nm->mkNode(Kind::ADD,
+                                        y,
+                                        nm->mkNode(Kind::MULT,
+                                                   nm->mkConstReal(Rational(2)),
+                                                   shift,
+                                                   d_data->d_pi)))),
       new_a.eqNode(a));
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())
@@ -138,12 +136,22 @@ void SineSolver::checkInitialRefine()
         }
         {
           // sine symmetry: sin(t) - sin(-t) = 0
-          Node lem = nm->mkNode(Kind::PLUS, t, symn).eqNode(d_data->d_zero);
+          Node lem = nm->mkNode(Kind::ADD, t, symn).eqNode(d_data->d_zero);
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
+            Node tmplem =
+                nm->mkNode(Kind::ADD,
+                           t,
+                           nm->mkNode(
+                               Kind::SINE,
+                               nm->mkNode(Kind::MULT, d_data->d_neg_one, t[0])))
+                    .eqNode(d_data->d_zero);
+            proof->addStep(
+                tmplem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
+            proof->addStep(
+                lem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {lem});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
@@ -181,13 +189,12 @@ void SineSolver::checkInitialRefine()
                   nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
                   nm->mkNode(Kind::GT,
                              t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0]))),
+                             nm->mkNode(Kind::SUB, d_data->d_pi_neg, t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
                   nm->mkNode(Kind::LT, t[0], d_data->d_pi),
-                  nm->mkNode(Kind::LT,
-                             t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))));
+                  nm->mkNode(
+                      Kind::LT, t, nm->mkNode(Kind::SUB, d_data->d_pi, t[0]))));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -385,9 +392,6 @@ void SineSolver::doTangentLemma(
                  e,
                  poly_approx));
 
-  Trace("nl-ext-sine") << "*** Tangent plane lemma (pre-rewrite): " << lem
-                       << std::endl;
-  lem = rewrite(lem);
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
@@ -402,7 +406,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         regionToLowerBound(region),
@@ -413,7 +417,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         c,
@@ -427,7 +431,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         regionToLowerBound(region),
@@ -438,7 +442,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         c,

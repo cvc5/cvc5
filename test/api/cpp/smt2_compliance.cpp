@@ -18,7 +18,6 @@
 #include <sstream>
 
 #include "api/cpp/cvc5.h"
-#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
@@ -32,8 +31,6 @@ void testGetInfo(api::Solver* solver, const char* s);
 
 int main()
 {
-  cout << language::SetLanguage(Language::LANG_SMTLIB_V2_6);
-
   std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
   solver->setOption("input-language", "smtlib2");
   solver->setOption("output-language", "smtlib2");

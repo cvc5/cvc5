@@ -60,9 +60,9 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  * This includes common lookups and caches as well as generic utilities for
  * secant plane lemmas and taylor approximations.
  */
-struct TranscendentalState
+struct TranscendentalState : protected EnvObj
 {
-  TranscendentalState(InferenceManager& im, NlModel& model, Env& env);
+  TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
 
   /**
    * Checks whether proofs are enabled.
@@ -168,8 +168,6 @@ struct TranscendentalState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /** Reference to the environment */
-  Env& d_env;
   /** Utility to compute taylor approximations */
   TaylorGenerator d_taylor;
   /**

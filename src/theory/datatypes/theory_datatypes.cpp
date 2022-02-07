@@ -68,7 +68,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_dtfCounter = 0;
 
   // indicate we are using the default theory state object
@@ -765,7 +765,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
-      d_im.addPendingLemma(eq, InferenceId::DATATYPES_PURIFY);
+      d_im.addPendingInference(eq, InferenceId::DATATYPES_PURIFY, d_true, true);
       return k;
     }else{
       return (*it).second;
@@ -902,7 +902,10 @@ void TheoryDatatypes::addTester(
     std::vector<Node> conf;
     conf.push_back(j);
     conf.push_back(t);
-    conf.push_back(jt[0].eqNode(t_arg));
+    if (jt[0] != t_arg)
+    {
+      conf.push_back(jt[0].eqNode(t_arg));
+    }
     Trace("dt-conflict") << "CONFLICT: Tester conflict : " << conf << std::endl;
     d_im.sendDtConflict(conf, InferenceId::DATATYPES_TESTER_MERGE_CONFLICT);
   }
@@ -1007,10 +1010,11 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       // uninterpreted sorts and arrays, where the solver does not fully
       // handle values of the sort. The call to mkGroundTerm does not introduce
       // values for these sorts.
-      rrs = r.getType().mkGroundTerm();
+      NodeManager* nm = NodeManager::currentNM();
+      rrs = nm->mkGroundTerm(r.getType());
       Trace("datatypes-wrong-sel")
           << "Bad apply " << r << " term = " << rrs
-          << ", value = " << r.getType().mkGroundValue() << std::endl;
+          << ", value = " << nm->mkGroundValue(r.getType()) << std::endl;
     }
     else
     {
@@ -1243,7 +1247,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           for( unsigned i=0; i<pcons.size(); i++ ){
             // must try the infinite ones first
             bool cfinite =
-                d_env.isFiniteType(dt[i].getSpecializedConstructorType(tt));
+                d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;

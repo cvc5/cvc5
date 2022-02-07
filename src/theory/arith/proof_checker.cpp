@@ -49,7 +49,6 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                                           const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
   if (Debug.isOn("arith::pf::check"))
   {
     Debug("arith::pf::check") << "Arith PfRule:" << id << std::endl;
@@ -76,6 +75,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
              || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
+      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
@@ -94,6 +94,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
       Node lhs = args[1][0];
       Node rhs = args[1][1];
+      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::LT, mult, zero), args[1]}),
@@ -110,8 +111,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder leftSum(Kind::PLUS);
-      NodeBuilder rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::ADD);
+      NodeBuilder rightSum(Kind::ADD);
       for (size_t i = 0; i < children.size(); ++i)
       {
         // Adjust strictness
@@ -174,8 +175,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder leftSum(Kind::PLUS);
-      NodeBuilder rightSum(Kind::PLUS);
+      NodeBuilder leftSum(Kind::ADD);
+      NodeBuilder rightSum(Kind::ADD);
       for (size_t i = 0; i < children.size(); ++i)
       {
         Rational scalar = args[i].getConst<Rational>();
@@ -243,12 +244,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
-        leftSum << nm->mkNode(Kind::MULT,
-                              nm->mkConst<Rational>(CONST_RATIONAL, scalar),
-                              children[i][0]);
-        rightSum << nm->mkNode(Kind::MULT,
-                               nm->mkConst<Rational>(CONST_RATIONAL, scalar),
-                               children[i][1]);
+        leftSum << nm->mkNode(Kind::MULT, args[i], children[i][0]);
+        rightSum << nm->mkNode(Kind::MULT, args[i], children[i][1]);
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
                           leftSum.constructNode(),
@@ -265,8 +262,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       if (children.size() != 1
           || (children[0].getKind() != Kind::GT
               && children[0].getKind() != Kind::GEQ)
-          || !children[0][0].getType().isInteger()
-          || children[0][1].getKind() != Kind::CONST_RATIONAL)
+          || !children[0][0].getType().isInteger() || !children[0][1].isConst())
       {
         Debug("arith::pf::check") << "Illformed input: " << children;
         return Node::null();
@@ -275,7 +271,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       {
         Rational originalBound = children[0][1].getConst<Rational>();
         Rational newBound = leastIntGreaterThan(originalBound);
-        Node rational = nm->mkConst<Rational>(CONST_RATIONAL, newBound);
+        Node rational = nm->mkConstInt(newBound);
         return nm->mkNode(kind::GEQ, children[0][0], rational);
       }
     }
@@ -290,8 +286,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       if (children.size() != 1
           || (children[0].getKind() != Kind::LT
               && children[0].getKind() != Kind::LEQ)
-          || !children[0][0].getType().isInteger()
-          || children[0][1].getKind() != Kind::CONST_RATIONAL)
+          || !children[0][0].getType().isInteger() || !children[0][1].isConst())
       {
         Debug("arith::pf::check") << "Illformed input: " << children;
         return Node::null();
@@ -300,7 +295,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       {
         Rational originalBound = children[0][1].getConst<Rational>();
         Rational newBound = greatestIntLessThan(originalBound);
-        Node rational = nm->mkConst<Rational>(CONST_RATIONAL, newBound);
+        Node rational = nm->mkConstInt(newBound);
         return nm->mkNode(kind::LEQ, children[0][0], rational);
       }
     }

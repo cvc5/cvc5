@@ -43,12 +43,15 @@ namespace cvc5 {
 
 namespace fnv1a {
 
+constexpr uint64_t offsetBasis = 14695981039346656037U;
+
 /**
  * FNV-1a hash algorithm for 64-bit numbers.
  *
  * More details here: http://www.isthe.com/chongo/tech/comp/fnv/index.html
  */
-inline uint64_t fnv1a_64(uint64_t v, uint64_t hash = 14695981039346656037U) {
+inline uint64_t fnv1a_64(uint64_t v, uint64_t hash = offsetBasis)
+{
   hash ^= v;
   // Compute (hash * 1099511628211)
   return hash + (hash << 1) + (hash << 4) + (hash << 5) + (hash << 7) +

@@ -14,11 +14,11 @@
 # A simple demonstration of the transcendental extension.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setLogic("QF_NRAT")
 
     real = slv.getRealSort()
@@ -30,14 +30,14 @@ if __name__ == "__main__":
     # Helper terms
     two = slv.mkReal(2)
     pi = slv.mkPi()
-    twopi = slv.mkTerm(kinds.Mult, two, pi)
-    ysq = slv.mkTerm(kinds.Mult, y, y)
-    sinx = slv.mkTerm(kinds.Sine, x)
+    twopi = slv.mkTerm(Kind.Mult, two, pi)
+    ysq = slv.mkTerm(Kind.Mult, y, y)
+    sinx = slv.mkTerm(Kind.Sine, x)
 
     # Formulas
-    x_gt_pi = slv.mkTerm(kinds.Gt, x, pi)
-    x_lt_tpi = slv.mkTerm(kinds.Lt, x, twopi)
-    ysq_lt_sinx = slv.mkTerm(kinds.Lt, ysq, sinx)
+    x_gt_pi = slv.mkTerm(Kind.Gt, x, pi)
+    x_lt_tpi = slv.mkTerm(Kind.Lt, x, twopi)
+    ysq_lt_sinx = slv.mkTerm(Kind.Lt, ysq, sinx)
     
     slv.assertFormula(x_gt_pi)
     slv.assertFormula(x_lt_tpi)

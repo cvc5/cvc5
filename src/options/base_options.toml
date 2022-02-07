@@ -3,27 +3,30 @@ name   = "Base"
 
 [[option]]
   name       = "err"
-  category   = "undocumented"
+  category   = "regular"
   long       = "err=erroutput"
   type       = "ManagedErr"
   alias      = ["diagnostic-output-channel"]
   predicates = ["setErrStream"]
   includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Writes to stderr for \"stderr\" or \"--\", stdout for \"stdout\" or the given filename otherwise."
 
 [[option]]
   name       = "in"
-  category   = "undocumented"
+  category   = "regular"
   long       = "in=input"
   type       = "ManagedIn"
   includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
 
 [[option]]
   name       = "out"
-  category   = "undocumented"
+  category   = "regular"
   long       = "out=output"
   type       = "ManagedOut"
   alias      = ["regular-output-channel"]
   includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
 
 [[option]]
   name       = "inputLanguage"
@@ -63,16 +66,18 @@ name   = "Base"
   category   = "common"
   short      = "v"
   long       = "verbose"
-  type       = "void"
-  handler    = "increaseVerbosity"
+  type       = "bool"
+  alternate  = false
+  predicates = ["increaseVerbosity"]
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
   category   = "common"
   short      = "q"
   long       = "quiet"
-  type       = "void"
-  handler    = "decreaseVerbosity"
+  type       = "bool"
+  alternate  = false
+  predicates = ["decreaseVerbosity"]
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
@@ -136,24 +141,23 @@ name   = "Base"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
-  handler    = "enableTraceTag"
-  help       = "trace something (e.g. -t pushpop), can repeat"
+  predicates = ["enableTraceTag"]
+  help       = "trace something (e.g. -t pushpop), can repeat and may contain wildcards like (e.g. -t theory::*)"
 
 [[option]]
   category   = "regular"
   short      = "d"
   long       = "debug=TAG"
   type       = "std::string"
-  handler    = "enableDebugTag"
+  predicates = ["enableDebugTag"]
   help       = "debug something (e.g. -d arith), can repeat"
 
 [[option]]
-  name       = "outputTag"
   short      = "o"
   long       = "output=TAG"
   type       = "OutputTag"
   default    = "NONE"
-  handler    = "enableOutputTag"
+  predicates = ["enableOutputTag"]
   category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
@@ -182,8 +186,23 @@ name   = "Base"
 [[option.mode.RAW_BENCHMARK]]
   name = "raw-benchmark"
   help = "print the benchmark back on the output verbatim as it is processed"
-  description = "With ``-o raw_benchmark``, cvc5 prints the benchmark back just as it has been parsed."
+  description = "With ``-o raw-benchmark``, cvc5 prints the benchmark back just as it has been parsed."
   example-file = "regress0/datatypes/datatype-dump.cvc.smt2"
+[[option.mode.LEARNED_LITS]]
+  name = "learned-lits"
+  help = "print input literals that hold globally"
+  description = "With ``-o learned-lits``, cvc5 prints input literals that it has learned to hold globally."
+  example-file = "regress0/printer/learned-lit-output.smt2"
+[[option.mode.SUBS]]
+  name = "subs"
+  help = "print top-level substitutions learned during preprocessing"
+  description = "With ``-o subs``, cvc5 prints top-level substitutions learned during preprocessing."
+  example-file = "regress0/printer/print_subs.smt2"
+[[option.mode.POST_ASSERTS]]
+  name = "post-asserts"
+  help = "print assertions corresponding to the input problem after preprocessing"
+  description = "With ``-o post-asserts``, cvc5 prints assertions corresponding to the input problem after preprocessing."
+  example-file = "regress0/printer/post-asserts-output.smt2"
 
 # Stores then enabled output tags.
 [[option]]
@@ -241,7 +260,7 @@ name   = "Base"
   category   = "expert"
   long       = "rweight=VAL=N"
   type       = "std::string"
-  handler    = "setResourceWeight"
+  predicates = ["setResourceWeight"]
   help       = "set a single resource weight"
 
 [[option]]

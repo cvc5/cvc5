@@ -50,6 +50,7 @@ Examples
 --------
 
 .. api-examples::
-    ../../examples/api/cpp/transcendentals.cpp
-    ../../examples/api/python/transcendentals.py
-    ../../examples/api/smtlib/transcendentals.smt2
+    <examples>/api/cpp/transcendentals.cpp
+    <examples>/api/java/Transcendentals.java
+    <examples>/api/python/transcendentals.py
+    <examples>/api/smtlib/transcendentals.smt2

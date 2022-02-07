@@ -17,6 +17,7 @@
 
 #include "options/smt_options.h"
 #include "smt/env.h"
+#include "theory/relevance_manager.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
@@ -25,9 +26,20 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-DifficultyManager::DifficultyManager(context::Context* c, Valuation val)
-    : d_val(val), d_dfmap(c)
+DifficultyManager::DifficultyManager(RelevanceManager* rlv,
+                                     context::Context* c,
+                                     Valuation val)
+    : d_rlv(rlv), d_input(c), d_val(val), d_dfmap(c)
 {
+}
+
+void DifficultyManager::notifyInputAssertions(
+    const std::vector<Node>& assertions)
+{
+  for (const Node& a : assertions)
+  {
+    d_input.insert(a);
+  }
 }
 
 void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
@@ -35,13 +47,23 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
-    dmap[p.first] = nm->mkConst(CONST_RATIONAL, Rational(p.second));
+    dmap[p.first] = nm->mkConstInt(Rational(p.second));
   }
 }
 
-void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
+void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
-  if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
+  // compute if we should consider the lemma
+  bool considerLemma = false;
+  if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL_ALL)
+  {
+    considerLemma = true;
+  }
+  else if (options::difficultyMode() == options::DifficultyMode::LEMMA_LITERAL)
+  {
+    considerLemma = inFullEffortCheck;
+  }
+  if (!considerLemma)
   {
     return;
   }
@@ -63,29 +85,31 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
   {
     litsToCheck.push_back(n);
   }
-  std::map<TNode, TNode>::const_iterator it;
   for (TNode nc : litsToCheck)
   {
     bool pol = nc.getKind() != kind::NOT;
     TNode atom = pol ? nc : nc[0];
-    it = rse.find(atom);
-    if (it != rse.end())
+    TNode exp = d_rlv->getExplanationForRelevant(atom);
+    Trace("diff-man-debug")
+        << "Check literal: " << atom << ", has reason = " << (!exp.isNull())
+        << std::endl;
+    // must be an input assertion
+    if (!exp.isNull() && d_input.find(exp) != d_input.end())
     {
-      incrementDifficulty(it->second);
+      incrementDifficulty(exp);
     }
   }
 }
 
-void DifficultyManager::notifyCandidateModel(const NodeList& input,
-                                             TheoryModel* m)
+void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
   if (options::difficultyMode() != options::DifficultyMode::MODEL_CHECK)
   {
     return;
   }
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
-                    << input.size() << std::endl;
-  for (const Node& a : input)
+                    << d_input.size() << std::endl;
+  for (const Node& a : d_input)
   {
     // should have miniscoped the assertions upstream
     Assert(a.getKind() != kind::AND);

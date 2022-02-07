@@ -51,13 +51,13 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeSelector getSelector(const string& name) except +
         string getName() except +
         size_t getNumConstructors() except +
+        vector[Sort] getParameters() except +
         bint isParametric() except +
         bint isCodatatype() except +
         bint isTuple() except +
         bint isRecord() except +
         bint isFinite() except +
         bint isWellFounded() except +
-        bint hasNestedRecursion() except +
         bint isNull() except +
         string toString() except +
         cppclass const_iterator:
@@ -76,7 +76,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeSelector operator[](const string& name) except +
         string getName() except +
         Term getConstructorTerm() except +
-        Term getSpecializedConstructorTerm(const Sort& retSort) except +
+        Term getInstantiatedConstructorTerm(const Sort& retSort) except +
         Term getTesterTerm() except +
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +
@@ -114,7 +114,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getName() except +
         Term getSelectorTerm() except +
         Term getUpdaterTerm() except +
-        Sort getRangeSort() except +
+        Sort getCodomainSort() except +
         bint isNull() except +
         string toString() except +
 
@@ -183,6 +183,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
+        Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
@@ -202,6 +203,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
         Result checkSynth() except +
+        Result checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
@@ -233,14 +235,12 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkBitVector(const string& s, uint32_t base) except +
         Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
         Term mkConstArray(Sort sort, Term val) except +
-        Term mkPosInf(uint32_t exp, uint32_t sig) except +
-        Term mkNegInf(uint32_t exp, uint32_t sig) except +
-        Term mkNaN(uint32_t exp, uint32_t sig) except +
-        Term mkPosZero(uint32_t exp, uint32_t sig) except +
-        Term mkNegZero(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
         Term mkRoundingMode(RoundingMode rm) except +
-        Term mkUninterpretedConst(Sort sort, int32_t index) except +
-        Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
@@ -293,6 +293,12 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
         void setOption(const string& option, const string& value) except +
+        bint getInterpolant(const Term& conj, Term& output) except +
+        bint getInterpolant(const Term& conj, Grammar& grammar, Term& output) except +
+        bint getInterpolantNext(const Term& conj) except +
+        bint getAbduct(const Term& conj, Term& output) except +
+        bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
+        bint getAbductNext(const Term& conj) except +
 
     cdef cppclass Grammar:
         Grammar() except +
@@ -310,6 +316,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint operator>(const Sort&) except +
         bint operator<=(const Sort&) except +
         bint operator>=(const Sort&) except +
+        bint hasSymbol() except +
+        string getSymbol() except +
         bint isNull() except +
         bint isBoolean() except +
         bint isInteger() except +
@@ -338,7 +346,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isFirstClass() except +
         bint isFunctionLike() except +
         bint isSubsortOf(Sort s) except +
-        bint isComparableTo(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
@@ -417,14 +424,15 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint getBooleanValue() except +
         bint isStringValue() except +
         wstring getStringValue() except +
+        int32_t getRealOrIntegerValueSign() except +
         bint isIntegerValue() except +
         string getIntegerValue() except +
         bint isRealValue() except +
         string getRealValue() except +
         bint isBitVectorValue() except +
         string getBitVectorValue(uint32_t base) except +
-        bint isAbstractValue() except +
-        string getAbstractValue() except +
+        bint isUninterpretedSortValue() except +
+        string getUninterpretedSortValue() except +
         bint isFloatingPointPosZero() except +
         bint isFloatingPointNegZero() except +
         bint isFloatingPointPosInf() except +
@@ -437,8 +445,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         set[Term] getSetValue() except +
         bint isSequenceValue() except +
         vector[Term] getSequenceValue() except +
-        bint isUninterpretedValue() except +
-        pair[Sort, int32_t] getUninterpretedValue() except +
         bint isTupleValue() except +
         vector[Term] getTupleValue() except +
 

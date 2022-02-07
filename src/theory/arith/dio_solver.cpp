@@ -671,7 +671,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   //We need to handle both cases seperately to ensure termination.
   Node qr = SumPair::computeQR(si, a.getValue().getNumerator());
 
-  Assert(qr.getKind() == kind::PLUS);
+  Assert(qr.getKind() == kind::ADD);
   Assert(qr.getNumChildren() == 2);
   SumPair q = SumPair::parseSumPair(qr[0]);
   SumPair r = SumPair::parseSumPair(qr[1]);
@@ -820,8 +820,10 @@ void DioSolver::addTrailElementAsLemma(TrailIndex i) {
 
 Node DioSolver::trailIndexToEquality(TrailIndex i) const {
   const SumPair& sp = d_trail[i].d_eq;
-  Node zero = mkRationalNode(0);
-  Node eq = (sp.getNode()).eqNode(zero);
+  Node n = sp.getNode();
+  Node zero =
+      NodeManager::currentNM()->mkConstRealOrInt(n.getType(), Rational(0));
+  Node eq = n.eqNode(zero);
   return eq;
 }
 

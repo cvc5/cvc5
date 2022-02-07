@@ -14,21 +14,26 @@
 ##
 
 set(EXAMPLES_API_JAVA
-  ## disabled until bindings for the new API are in place (issue #2284)
-  # BitVectors
-  # BitVectorsAndArrays
-  # CVC5Streams
-  # Combination
-  # Datatypes
-  # Exceptions
-  # FloatingPointArith
-  # HelloWorld
-  # LinearArith
-  # PipedInput
-  # Relations
-  # Statistics
-  # Strings
-  # UnsatCores
+   BitVectors
+   BitVectorsAndArrays
+   Combination
+   Datatypes
+   Exceptions
+   Extract
+   FloatingPointArith
+   HelloWorld
+   LinearArith
+   QuickStart
+   Relations
+   Sequences
+   Sets
+   Statistics
+   Strings
+   SygusFun
+   SygusGrammar
+   SygusInv
+   Transcendentals
+   UnsatCores
 )
 
 foreach(example ${EXAMPLES_API_JAVA})
@@ -47,4 +52,6 @@ foreach(example ${EXAMPLES_API_JAVA})
         ${example}
   )
   set_tests_properties(${EXAMPLE_TEST_NAME} PROPERTIES SKIP_RETURN_CODE 77)
+  set_tests_properties(${EXAMPLE_TEST_NAME} PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=${JNI_LIBRARIES_PATHS}")
 endforeach()

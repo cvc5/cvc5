@@ -12,19 +12,18 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import kinds
-from pycvc5 import Sort, Term 
-from pycvc5 import DatatypeDecl
-from pycvc5 import Datatype
-from pycvc5 import DatatypeConstructorDecl
-from pycvc5 import DatatypeConstructor
-from pycvc5 import DatatypeSelector
+import cvc5
+from cvc5 import Sort, Term 
+from cvc5 import DatatypeDecl
+from cvc5 import Datatype
+from cvc5 import DatatypeConstructorDecl
+from cvc5 import DatatypeConstructor
+from cvc5 import DatatypeSelector
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_mk_datatype_sort(solver):
@@ -87,8 +86,8 @@ def test_mk_datatype_sorts(solver):
 
     #Make unresolved types as placeholders
     unresTypes = set([])
-    unresTree = solver.mkUninterpretedSort("tree")
-    unresList = solver.mkUninterpretedSort("list")
+    unresTree = solver.mkUnresolvedSort("tree")
+    unresList = solver.mkUnresolvedSort("list")
     unresTypes.add(unresTree)
     unresTypes.add(unresList)
 
@@ -128,8 +127,8 @@ def test_mk_datatype_sorts(solver):
     dtsTreeNodeLeft = dtcTreeNode[0]
     assert dtsTreeNodeLeft.getName() == "left"
     # argument type should have resolved to be recursive
-    assert dtsTreeNodeLeft.getRangeSort().isDatatype()
-    assert dtsTreeNodeLeft.getRangeSort() == dtsorts[0]
+    assert dtsTreeNodeLeft.getCodomainSort().isDatatype()
+    assert dtsTreeNodeLeft.getCodomainSort() == dtsorts[0]
 
     # fails due to empty datatype
     dtdeclsBad = []
@@ -156,6 +155,8 @@ def test_datatype_structs(solver):
     dtypeSpec.addConstructor(nil)
     dtypeSort = solver.mkDatatypeSort(dtypeSpec)
     dt = dtypeSort.getDatatype()
+    # not parametric datatype
+    with pytest.raises(RuntimeError): dt.getParameters()
     assert not dt.isCodatatype()
     assert not dt.isTuple()
     assert not dt.isRecord()
@@ -244,7 +245,7 @@ def test_datatype_names(solver):
     # get selector
     dselTail = dcons[1]
     assert dselTail.getName() == "tail"
-    assert dselTail.getRangeSort() == dtypeSort
+    assert dselTail.getCodomainSort() == dtypeSort
 
     # get selector from datatype
     dt.getSelector("head")
@@ -272,6 +273,8 @@ def test_parametric_datatype(solver):
     pairType = solver.mkDatatypeSort(pairSpec)
 
     assert pairType.getDatatype().isParametric()
+    dparams = pairType.getDatatype().getParameters()
+    assert dparams[0]==t1 and dparams[1]==t2
 
     v.clear()
     v.append(solver.getIntegerSort())
@@ -297,23 +300,6 @@ def test_parametric_datatype(solver):
     assert pairIntInt != pairRealInt
     assert pairIntReal != pairRealInt
 
-    assert pairRealReal.isComparableTo(pairRealReal)
-    assert not pairIntReal.isComparableTo(pairRealReal)
-    assert not pairRealInt.isComparableTo(pairRealReal)
-    assert not pairIntInt.isComparableTo(pairRealReal)
-    assert not pairRealReal.isComparableTo(pairRealInt)
-    assert not pairIntReal.isComparableTo(pairRealInt)
-    assert pairRealInt.isComparableTo(pairRealInt)
-    assert not pairIntInt.isComparableTo(pairRealInt)
-    assert not pairRealReal.isComparableTo(pairIntReal)
-    assert pairIntReal.isComparableTo(pairIntReal)
-    assert not pairRealInt.isComparableTo(pairIntReal)
-    assert not pairIntInt.isComparableTo(pairIntReal)
-    assert not pairRealReal.isComparableTo(pairIntInt)
-    assert not pairIntReal.isComparableTo(pairIntInt)
-    assert not pairRealInt.isComparableTo(pairIntInt)
-    assert pairIntInt.isComparableTo(pairIntInt)
-
     assert pairRealReal.isSubsortOf(pairRealReal)
     assert not pairIntReal.isSubsortOf(pairRealReal)
     assert not pairRealInt.isSubsortOf(pairRealReal)
@@ -331,6 +317,22 @@ def test_parametric_datatype(solver):
     assert not pairRealInt.isSubsortOf(pairIntInt)
     assert pairIntInt.isSubsortOf(pairIntInt)
 
+def test_is_finite(solver):
+    dtypedecl = solver.mkDatatypeDecl("dt", [])
+    ctordecl = solver.mkDatatypeConstructorDecl("cons")
+    ctordecl.addSelector("sel", solver.getBooleanSort())
+    dtypedecl.addConstructor(ctordecl)
+    dtype = solver.mkDatatypeSort(dtypedecl)
+    assert dtype.getDatatype().isFinite()
+
+    p = solver.mkParamSort("p1")
+    pdtypedecl = solver.mkDatatypeDecl("dt", [p])
+    pctordecl = solver.mkDatatypeConstructorDecl("cons")
+    pctordecl.addSelector("sel", p)
+    pdtypedecl.addConstructor(pctordecl)
+    pdtype = solver.mkDatatypeSort(pdtypedecl)
+    with pytest.raises(RuntimeError):
+        pdtype.getDatatype().isFinite()
 
 def test_datatype_simply_rec(solver):
     # Create mutual datatypes corresponding to this definition block:
@@ -343,9 +345,9 @@ def test_datatype_simply_rec(solver):
 
     # Make unresolved types as placeholders
     unresTypes = set([])
-    unresWList = solver.mkUninterpretedSort("wlist")
-    unresList = solver.mkUninterpretedSort("list")
-    unresNs = solver.mkUninterpretedSort("ns")
+    unresWList = solver.mkUnresolvedSort("wlist")
+    unresList = solver.mkUnresolvedSort("list")
+    unresNs = solver.mkUnresolvedSort("ns")
     unresTypes.add(unresWList)
     unresTypes.add(unresList)
     unresTypes.add(unresNs)
@@ -378,9 +380,6 @@ def test_datatype_simply_rec(solver):
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
     assert dtsorts[2].getDatatype().isWellFounded()
-    assert not dtsorts[0].getDatatype().hasNestedRecursion()
-    assert not dtsorts[1].getDatatype().hasNestedRecursion()
-    assert not dtsorts[2].getDatatype().hasNestedRecursion()
 
     # Create mutual datatypes corresponding to this definition block:
     #   DATATYPE
@@ -388,7 +387,7 @@ def test_datatype_simply_rec(solver):
     #   END
 
     unresTypes.clear()
-    unresNs2 = solver.mkUninterpretedSort("ns2")
+    unresNs2 = solver.mkUnresolvedSort("ns2")
     unresTypes.add(unresNs2)
 
     ns2 = solver.mkDatatypeDecl("ns2")
@@ -405,11 +404,10 @@ def test_datatype_simply_rec(solver):
     # this is not well-founded due to non-simple recursion
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().isArray()
-    assert dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort() \
+    assert dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray()
+    assert dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort() \
         == dtsorts[0]
     assert dtsorts[0].getDatatype().isWellFounded()
-    assert dtsorts[0].getDatatype().hasNestedRecursion()
 
     # Create mutual datatypes corresponding to this definition block:
     #   DATATYPE
@@ -418,9 +416,9 @@ def test_datatype_simply_rec(solver):
     #   END
 
     unresTypes.clear()
-    unresNs3 = solver.mkUninterpretedSort("ns3")
+    unresNs3 = solver.mkUnresolvedSort("ns3")
     unresTypes.add(unresNs3)
-    unresList3 = solver.mkUninterpretedSort("list3")
+    unresList3 = solver.mkUnresolvedSort("list3")
     unresTypes.add(unresList3)
 
     list3 = solver.mkDatatypeDecl("list3")
@@ -445,8 +443,6 @@ def test_datatype_simply_rec(solver):
     assert len(dtsorts) == 2
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
-    assert dtsorts[0].getDatatype().hasNestedRecursion()
-    assert dtsorts[1].getDatatype().hasNestedRecursion()
 
     # Create mutual datatypes corresponding to this definition block:
     #   DATATYPE
@@ -454,9 +450,9 @@ def test_datatype_simply_rec(solver):
     #     ns4 = elem(ndata: list4)
     #   END
     unresTypes.clear()
-    unresNs4 = solver.mkUninterpretedSort("ns4")
+    unresNs4 = solver.mkUnresolvedSort("ns4")
     unresTypes.add(unresNs4)
-    unresList4 = solver.mkUninterpretedSort("list4")
+    unresList4 = solver.mkUnresolvedSort("list4")
     unresTypes.add(unresList4)
 
     list4 = solver.mkDatatypeDecl("list4")
@@ -481,8 +477,6 @@ def test_datatype_simply_rec(solver):
     assert len(dtsorts) == 2
     assert dtsorts[0].getDatatype().isWellFounded()
     assert dtsorts[1].getDatatype().isWellFounded()
-    assert dtsorts[0].getDatatype().hasNestedRecursion()
-    assert dtsorts[1].getDatatype().hasNestedRecursion()
 
     # Create mutual datatypes corresponding to this definition block:
     #   DATATYPE
@@ -516,7 +510,6 @@ def test_datatype_simply_rec(solver):
     dtsorts = solver.mkDatatypeSorts(dtdecls, unresTypes)
     assert len(dtsorts) == 1
     assert dtsorts[0].getDatatype().isWellFounded()
-    assert dtsorts[0].getDatatype().hasNestedRecursion()
 
 
 def test_datatype_specialized_cons(solver):
@@ -559,8 +552,8 @@ def test_datatype_specialized_cons(solver):
 
     testConsTerm = Term(solver)
     # get the specialized constructor term for list[Int]
-    testConsTerm = nilc.getSpecializedConstructorTerm(listInt)
+    testConsTerm = nilc.getInstantiatedConstructorTerm(listInt)
     assert testConsTerm != nilc.getConstructorTerm()
     # error to get the specialized constructor term for Int
     with pytest.raises(RuntimeError):
-        nilc.getSpecializedConstructorTerm(isort)
+        nilc.getInstantiatedConstructorTerm(isort)

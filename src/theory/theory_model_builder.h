@@ -126,11 +126,6 @@ class TheoryEngineModelBuilder : protected EnvObj
    * state of the model m.
    */
   Node evaluateEqc(TheoryModel* m, TNode r);
-  /**
-   * Is the node n a "value"? This is true if n is constant, or if n is a
-   * lambda.
-   */
-  static bool isValue(TNode n);
   /** is n an assignable expression?
    *
    * A term n is an assignable expression if its value is unconstrained by a

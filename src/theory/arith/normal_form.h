@@ -292,7 +292,15 @@ public:
     static inline int cmp(const Node& n, const Node& m) {
       if ( n == m ) { return 0; }
 
-      // this is now slightly off of the old variable order.
+      // RAN < real var < int var < non-variable
+
+      bool nIsRAN = n.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+      bool mIsRAN = m.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+
+      if (mIsRAN != nIsRAN)
+      {
+        return nIsRAN ? -1 : 1;
+      }
 
       bool nIsInteger = n.getType().isInteger();
       bool mIsInteger = m.getType().isInteger();
@@ -334,7 +342,6 @@ public:
 
   size_t getComplexity() const;
 };/* class Variable */
-
 
 class Constant : public NodeWrapper {
 public:
@@ -793,7 +800,7 @@ private:
   static Node makePlusNode(const std::vector<Monomial>& m) {
     Assert(m.size() >= 2);
 
-    return makeNode(kind::PLUS, m.begin(), m.end());
+    return makeNode(kind::ADD, m.begin(), m.end());
   }
 
   typedef expr::NodeSelfIterator internal_iterator;
@@ -925,7 +932,7 @@ public:
     if(singleton()){
       return 1;
     }else{
-      Assert(getNode().getKind() == kind::PLUS);
+      Assert(getNode().getKind() == kind::ADD);
       return getNode().getNumChildren();
     }
   }
@@ -1082,11 +1089,16 @@ public:
   }
 
   uint32_t numMonomials() const {
-    if( getNode().getKind() == kind::PLUS ){
+    if (getNode().getKind() == kind::ADD)
+    {
       return getNode().getNumChildren();
-    }else if(isZero()){
+    }
+    else if (isZero())
+    {
       return 0;
-    }else{
+    }
+    else
+    {
       return 1;
     }
   }
@@ -1140,7 +1152,8 @@ public:
 class SumPair : public NodeWrapper {
 private:
   static Node toNode(const Polynomial& p, const Constant& c){
-    return NodeManager::currentNM()->mkNode(kind::PLUS, p.getNode(), c.getNode());
+    return NodeManager::currentNM()->mkNode(
+        kind::ADD, p.getNode(), c.getNode());
   }
 
   SumPair(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
@@ -1159,7 +1172,8 @@ private:
   }
 
   static bool isMember(TNode n) {
-    if(n.getKind() == kind::PLUS && n.getNumChildren() == 2){
+    if (n.getKind() == kind::ADD && n.getNumChildren() == 2)
+    {
       if(Constant::isMember(n[1])){
         if(Polynomial::isMember(n[0])){
           Polynomial p = Polynomial::parsePolynomial(n[0]);
@@ -1170,7 +1184,9 @@ private:
       }else{
         return false;
       }
-    }else{
+    }
+    else
+    {
       return false;
     }
   }

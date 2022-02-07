@@ -21,9 +21,7 @@ if(NOT TARGET cvc5::cvc5)
   include(${CMAKE_CURRENT_LIST_DIR}/cvc5Targets.cmake)
 endif()
 
-# TODO(project wishue #83): enable these lines
-# if(CVC5_BINDINGS_JAVA AND NOT TARGET cvc5::cvc5jar)
-#  set_and_check(CVC5_JNI_PATH "@PACKAGE_LIBRARY_INSTALL_DIR@")
-# include(${CMAKE_CURRENT_LIST_DIR}/cvc5JavaTargets.cmake)
-# endif()
+if(CVC5_BINDINGS_JAVA AND NOT TARGET cvc5::cvc5jar)
+ include(${CMAKE_CURRENT_LIST_DIR}/cvc5JavaTargets.cmake)
+endif()
 

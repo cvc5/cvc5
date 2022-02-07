@@ -69,7 +69,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       result = current;
     }
     else if (current.getNumChildren() > 2
-             && (current.getKind() == kind::PLUS
+             && (current.getKind() == kind::ADD
                  || current.getKind() == kind::MULT
                  || current.getKind() == kind::NONLINEAR_MULT))
     {
@@ -117,6 +117,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
+    TypeNode tn = current.getType();
+    if (tn.isReal() && !tn.isInteger())
+    {
+      throw TypeCheckingExceptionPrivate(
+          current, string("Cannot translate to BV: ") + current.toString());
+    }
     if (current.getNumChildren() > 0)
     {
       // Not a leaf
@@ -143,7 +149,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         switch (newKind)
         {
-          case kind::PLUS:
+          case kind::ADD:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_ADD;
             max = max + 1;
@@ -154,12 +160,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
             newKind = kind::BITVECTOR_MULT;
             max = max * 2;
             break;
-          case kind::MINUS:
+          case kind::SUB:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_SUB;
             max = max + 1;
             break;
-          case kind::UMINUS:
+          case kind::NEG:
             Assert(children.size() == 1);
             newKind = kind::BITVECTOR_NEG;
             max = max + 1;
@@ -228,32 +234,26 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           Node bv2int = nm->mkNode(
               kind::ITE,
               nm->mkNode(kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
-              nm->mkNode(kind::UMINUS, negResult),
+              nm->mkNode(kind::NEG, negResult),
               nm->mkNode(kind::BITVECTOR_TO_NAT, result));
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }
       else if (current.isConst())
       {
-        switch (current.getKind())
+        if (current.getType().isInteger())
         {
-          case kind::CONST_RATIONAL:
+          Rational constant = current.getConst<Rational>();
+          Assert (constant.isIntegral());
+          BitVector bv(size, constant.getNumerator());
+          if (bv.toSignedInteger() != constant.getNumerator())
           {
-            Rational constant = current.getConst<Rational>();
-            if (constant.isIntegral()) {
-              BitVector bv(size, constant.getNumerator());
-              if (bv.toSignedInteger() != constant.getNumerator())
-              {
-                throw TypeCheckingExceptionPrivate(
-                    current,
-                    string("Not enough bits for constant in intToBV: ")
-                        + current.toString());
-              }
-              result = nm->mkConst(bv);
-            }
-            break;
+            throw TypeCheckingExceptionPrivate(
+                current,
+                string("Not enough bits for constant in intToBV: ")
+                    + current.toString());
           }
-          default: break;
+          result = nm->mkConst(bv);
         }
       }
       else

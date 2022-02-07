@@ -20,7 +20,8 @@ namespace theory {
 namespace strings {
 
 RegExpEnumerator::RegExpEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
-    : TypeEnumeratorBase<RegExpEnumerator>(type), d_senum(type, tep)
+    : TypeEnumeratorBase<RegExpEnumerator>(type),
+      d_senum(NodeManager::currentNM()->stringType(), tep)
 {
 }
 
