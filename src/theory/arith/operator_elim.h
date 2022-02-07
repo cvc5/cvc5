@@ -114,15 +114,12 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
                        const std::string& comment,
                        std::vector<SkolemLemma>& lems);
   /**
-   * Same as above, but makes a purification skolem for t. The lemma lem
-   * is what axiomatizes the behavior of t, and is added as a skolem lemma
-   * to lems.
+   * Get the skolem lemma for lem, based on whether we are proof producing.
+   * @param lem The lemma that axiomatizing the behavior of k
+   * @param k The skolem
+   * @return the skolem lemma corresponding to lem, annotated with k.
    */
-  Node mkPurifySkolem(Node t,
-                      Node lem,
-                      const std::string& prefix,
-                      const std::string& comment,
-                      std::vector<SkolemLemma>& lems);
+  SkolemLemma mkSkolemLemma(Node lem, Node k);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function

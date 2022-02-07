@@ -97,6 +97,7 @@ Node OperatorElim::eliminateOperators(Node node,
 {
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
   {
@@ -151,7 +152,10 @@ Node OperatorElim::eliminateOperators(Node node,
       Node den = rewrite(node[1]);
       Node num = rewrite(node[0]);
       Node rw = nm->mkNode(k, num, den);
-      Node v = bvm->mkBoundVar<ArithWitnessVarAttribute>(rw, nm->integerType());
+      // we use the purification skolem for div
+      Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
+      Node v = sm->mkPurifySkolem(pterm, "intDiv", "the result of an intdiv-by-k term");
+      // make the corresponding lemma
       Node lem;
       Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
       if (den.isConst())
@@ -221,20 +225,14 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(
                                 ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
-      // we use the purification skolem for div
-      Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
-      Node intVar = mkPurifySkolem(
-          pterm, "intDiv", "the result of an intdiv-by-k term", lems);
+      // add the skolem lemma to lems
+      lems.push_back(mkSkolemLemma(lem, v));
       if (k == INTS_MODULUS_TOTAL)
       {
-        Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, intVar));
+        Node nn = nm->mkNode(SUB, num, nm->mkNode(MULT, den, v));
         return nn;
       }
-      else
-      {
-        return intVar;
-      }
-      break;
+      return v;
     }
     case DIVISION_TOTAL:
     {
@@ -254,12 +252,12 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
-      Node v = bvm->mkBoundVar<ArithWitnessVarAttribute>(rw, nm->realType());
+      Node v = sm->mkPurifySkolem(rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(nm->mkConstReal(Rational(0))).negate(),
                             nm->mkNode(MULT, den, v).eqNode(num));
-      return mkWitnessSkolem(
-          v, lem, "nonlinearDiv", "the result of a non-linear div term", lems);
+      lems.push_back(mkSkolemLemma(lem, v));
+      return v;
       break;
     }
     case DIVISION:
@@ -491,16 +489,8 @@ Node OperatorElim::mkWitnessSkolem(Node v,
   return k;
 }
 
-Node OperatorElim::mkPurifySkolem(Node t,
-                                  Node lem,
-                                  const std::string& prefix,
-                                  const std::string& comment,
-                                  std::vector<SkolemLemma>& lems)
+SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  // we mark that we should send a lemma
-  Node k = sm->mkPurifySkolem(t, prefix, comment);
   TrustNode tlem;
   if (d_pnm != nullptr)
   {
@@ -510,8 +500,7 @@ Node OperatorElim::mkPurifySkolem(Node t,
   {
     tlem = TrustNode::mkTrustLemma(lem, nullptr);
   }
-  lems.push_back(SkolemLemma(tlem, k));
-  return k;
+  return SkolemLemma(tlem, k);
 }
 
 }  // namespace arith
