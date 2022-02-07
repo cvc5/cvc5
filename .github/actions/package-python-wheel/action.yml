@@ -14,7 +14,14 @@ runs:
 
         echo "***** Running in docker now"
 
-        docker run --rm \
-          -v `pwd`:/home/pycvc5 \
-          pycvc5-manylinux2014 \
-          ./contrib/packaging_python/build.sh "36 37 38 39 310"
+        OPTS="production --auto-download"
+        for version in "36 37 38 39 310"
+        do
+          echo "***** Building for $version"
+          docker run --rm \
+            -v `pwd`:/home/pycvc5 \
+            pycvc5-manylinux2014 \
+            VERSION_SUFFIX="$version" ./contrib/packaging_python/create_wheel.sh /opt/python/cp${version}-cp${version}m/bin/python "$OPTS"
+        done
+
+        cp dist*/*.whl .
