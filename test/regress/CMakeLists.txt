@@ -2341,6 +2341,7 @@ set(regress_1_tests
   regress1/strings/instance1079-re-loop-cong.smt2
   regress1/strings/instance2984-null-term.smt2
   regress1/strings/instance3303-delta.smt2
+  regress1/strings/instance6561-dd-concat-unify-char.smt2
   regress1/strings/instance7075-delta.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue1684-regex.smt2
