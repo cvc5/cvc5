@@ -15,7 +15,7 @@ runs:
         echo "***** Running in docker now"
 
         OPTS="production --auto-download"
-        for version in "36 37 38 39 310"
+        for version in 36 37 38 39 310
         do
           echo "***** Building for $version"
           docker run --rm \
