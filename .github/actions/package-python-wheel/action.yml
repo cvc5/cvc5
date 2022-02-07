@@ -21,7 +21,8 @@ runs:
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
-            VERSION_SUFFIX="$version" ./contrib/packaging_python/create_wheel.sh /opt/python/cp${version}-cp${version}m/bin/python "$OPTS"
+            --env VERSION_SUFFIX="$version" \
+            ./contrib/packaging_python/create_wheel.sh /opt/python/cp${version}-cp${version}m/bin/python "$OPTS"
         done
 
         cp dist*/*.whl .
