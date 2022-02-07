@@ -829,6 +829,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 #endif
+  if (logic.areTranscendentalsUsed())
+  {
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::FULL;
+      }
+  }
 }
 
 bool SetDefaults::isSygus(const Options& opts) const
