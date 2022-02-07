@@ -122,8 +122,8 @@ Node OperatorElim::eliminateOperators(Node node,
       // -1 < toIntSkolem - node[0] <= 0
       // 0 <= node[0] - toIntSkolem < 1
       Node pterm = nm->mkNode(TO_INTEGER, node[0]);
-      Node v = sm->mkPurifySkolem(pterm, "toInt",
-                          "a conversion of a Real term to its Integer part");
+      Node v = sm->mkPurifySkolem(
+          pterm, "toInt", "a conversion of a Real term to its Integer part");
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(SUB, node[0], v);
@@ -335,7 +335,9 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       // eliminate inverse functions here
-      Node var = sm->mkPurifySkolem(node, "tfk",
+      Node var = sm->mkPurifySkolem(
+          node,
+          "tfk",
           "Skolem to eliminate a non-standard transcendental function");
       Node lem;
       if (k == SQRT)
