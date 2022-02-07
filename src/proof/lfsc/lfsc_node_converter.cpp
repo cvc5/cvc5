@@ -616,17 +616,19 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
   size_t found;
   do
   {
-    found = sname.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                          "0123456789~!@$%^&*_-+=<>.?/");
-    if (found!=std::string::npos)
+    found = sname.find_first_not_of(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        "0123456789~!@$%^&*_-+=<>.?/");
+    if (found != std::string::npos)
     {
       // erase the character, print that we eliminated that character
-      ssan << "_" << static_cast<size_t>(sname[found])+sanCount << "@" << found;
-      sname.erase(sname.begin()+found, sname.begin()+found+1);
+      ssan << "_" << static_cast<size_t>(sname[found]) + sanCount << "@"
+           << found;
+      sname.erase(sname.begin() + found, sname.begin() + found + 1);
       // increment sanCount, to make index accurate to original string
       sanCount++;
     }
-  }while (found!=std::string::npos);
+  } while (found != std::string::npos);
   ss << "cvc" << ssan.str() << "." << sname;
   return ss.str();
 }
