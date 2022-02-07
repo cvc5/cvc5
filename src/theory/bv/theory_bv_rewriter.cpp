@@ -291,7 +291,11 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
       ApplyRuleToChildren<kind::BITVECTOR_CONCAT, ExtractWhole>,
       // Merge the adjacent extracts on constants
       RewriteRule<ConcatConstantMerge>>::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode);
+
+  // Applying ExtractWhole to the children may result in concat nodes that can
+  // be flattened by this method.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
