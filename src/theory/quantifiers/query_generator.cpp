@@ -20,6 +20,8 @@
 #include <sstream>
 
 #include "options/quantifiers_options.h"
+#include "smt/env.h"
+#include "smt/print_benchmark.h"
 #include "util/random.h"
 
 using namespace std;
@@ -167,7 +169,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::ALL)
   {
-    dumpQuery(qy, spIndex);
+    dumpQuery(qy);
   }
 
   if (options().quantifiers.sygusQueryGenCheck)
@@ -199,7 +201,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
     {
       if (r.asSatisfiabilityResult().isSat() != Result::SAT)
       {
-        dumpQuery(qy, spIndex);
+        dumpQuery(qy);
       }
     }
   }
@@ -207,36 +209,15 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
   d_queryCount++;
 }
 
-void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
+void QueryGenerator::dumpQuery(Node qy)
 {
-  // Print the query and the query + its model (commented) to queryN.smt2
-  std::vector<Node> pt;
-  d_sampler->getSamplePoint(spIndex, pt);
-  size_t nvars = d_vars.size();
-  AlwaysAssert(pt.size() == d_vars.size());
+  Node kqy = convertToSkolem(qy);
+  // Print the query to to queryN.smt2
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
-  fs << "(set-logic ALL)" << std::endl;
-  for (unsigned i = 0; i < 2; i++)
-  {
-    for (size_t j = 0; j < nvars; j++)
-    {
-      Node x = d_vars[j];
-      if (i == 0)
-      {
-        fs << "(declare-fun " << x << " () " << x.getType() << ")";
-      }
-      else
-      {
-        fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j]
-           << ")";
-      }
-      fs << std::endl;
-    }
-  }
-  fs << "(assert " << qy << ")" << std::endl;
-  fs << "(check-sat)" << std::endl;
+  smt::PrintBenchmark pb(&d_env.getPrinter());
+  pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {kqy});
   fs.close();
 }
 

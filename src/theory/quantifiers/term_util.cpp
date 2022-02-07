@@ -263,7 +263,7 @@ Node TermUtil::mkNegate(Kind notk, Node n)
 
 bool TermUtil::isNegate(Kind k)
 {
-  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
+  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == NEG;
 }
 
 bool TermUtil::isAssoc(Kind k, bool reqNAry)
@@ -275,7 +275,7 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
       return false;
     }
   }
-  return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
+  return k == ADD || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
          || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
@@ -292,7 +292,7 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
       return false;
     }
   }
-  return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
+  return k == EQUAL || k == ADD || k == MULT || k == NONLINEAR_MULT || k == AND
          || k == OR || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == SET_UNION || k == SET_INTER
@@ -432,12 +432,12 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
   TypeNode tn = n.getType();
   if (n == mkTypeValue(tn, 0))
   {
-    if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_ADD
+    if (ik == ADD || ik == OR || ik == XOR || ik == BITVECTOR_ADD
         || ik == BITVECTOR_OR || ik == BITVECTOR_XOR || ik == STRING_CONCAT)
     {
       return true;
     }
-    else if (ik == MINUS || ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR
+    else if (ik == SUB || ik == BITVECTOR_SHL || ik == BITVECTOR_LSHR
              || ik == BITVECTOR_ASHR || ik == BITVECTOR_SUB
              || ik == BITVECTOR_UREM)
     {

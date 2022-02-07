@@ -71,9 +71,9 @@ class Op(Enum):
     # Arithmetic
     ###########################################################################
 
-    UMINUS = auto()
-    PLUS = auto()
-    MINUS = auto()
+    NEG = auto()
+    ADD = auto()
+    SUB = auto()
     MULT = auto()
     INT_DIV = auto()
     DIV = auto()

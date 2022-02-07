@@ -32,7 +32,7 @@ namespace inst {
 class VarMatchGeneratorTermSubs : public InstMatchGenerator
 {
  public:
-  VarMatchGeneratorTermSubs(Trigger* tparent, Node var, Node subs);
+  VarMatchGeneratorTermSubs(Env& env, Trigger* tparent, Node var, Node subs);
 
   /** Reset */
   bool reset(Node eqc) override;

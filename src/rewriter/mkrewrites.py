@@ -16,9 +16,9 @@ def gen_kind(op):
         Op.OR: 'OR',
         Op.IMPLIES: 'IMPLIES',
         Op.EQ: 'EQUAL',
-        Op.UMINUS: 'UMINUS',
-        Op.PLUS: 'PLUS',
-        Op.MINUS: 'MINUS',
+        Op.NEG: 'NEG',
+        Op.ADD: 'ADD',
+        Op.SUB: 'SUB',
         Op.MULT: 'MULT',
         Op.INT_DIV: 'INTS_DIVISION',
         Op.DIV: 'DIVISION',
@@ -100,7 +100,7 @@ def gen_mk_const(expr):
         return f'Rational({expr.val})'
     elif isinstance(expr, App):
         args = [gen_mk_const(child) for child in expr.children]
-        if expr.op == Op.UMINUS:
+        if expr.op == Op.NEG:
             return f'-({args[0]})'
     die(f'Cannot generate constant for {expr}')
 
@@ -109,7 +109,7 @@ def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
-        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.UMINUS):
+        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.NEG):
           return f'nm->mkConst(CONST_RATIONAL, {gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
@@ -147,7 +147,7 @@ def type_check(expr):
         expr.sort = Sort(BaseSort.Int, is_const=True)
     elif isinstance(expr, App):
         sort = None
-        if expr.op == Op.UMINUS:
+        if expr.op == Op.NEG:
             sort = Sort(BaseSort.Int)
 
         if sort:

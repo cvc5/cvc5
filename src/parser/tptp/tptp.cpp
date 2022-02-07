@@ -337,9 +337,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Unary AND/OR can be replaced with the argument.
       return args[0];
     }
-    if (kind == api::MINUS && args.size() == 1)
+    if (kind == api::SUB && args.size() == 1)
     {
-      return d_solver->mkTerm(api::UMINUS, args[0]);
+      return d_solver->mkTerm(api::NEG, args[0]);
     }
     if (kind == api::TO_REAL)
     {

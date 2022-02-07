@@ -49,8 +49,11 @@ struct substitution_stack_element {
   }
 };/* struct substitution_stack_element */
 
-Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNode>* tracker) {
-
+Node SubstitutionMap::internalSubstitute(TNode t,
+                                         NodeCache& cache,
+                                         std::set<TNode>* tracker,
+                                         const ShouldTraverseCallback* stc)
+{
   Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
   if (d_substitutions.empty()) {
@@ -80,7 +83,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
       Assert(rhs != current);
-      internalSubstitute(rhs, cache, tracker);
+      internalSubstitute(rhs, cache, tracker, stc);
       if (tracker == nullptr)
       {
         d_substitutions[current] = cache[rhs];
@@ -118,7 +121,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
             Assert(rhs != result);
-            internalSubstitute(rhs, cache, tracker);
+            internalSubstitute(rhs, cache, tracker, stc);
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
             if (tracker != nullptr)
@@ -136,7 +139,11 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
     else
     {
       // Mark that we have added the children if any
-      if (current.getNumChildren() > 0 || current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      bool recurse = (stc == nullptr || (*stc)(current));
+      if (recurse
+          && (current.getNumChildren() > 0
+              || current.getMetaKind() == kind::metakind::PARAMETERIZED))
+      {
         stackHead.d_children_added = true;
         // We need to add the operator, if any
         if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -154,7 +161,9 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
             toVisit.push_back(childNode);
           }
         }
-      } else {
+      }
+      else
+      {
         // No children, so we're done
         Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
         cache[current] = current;
@@ -165,8 +174,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
 
   // Return the substituted version
   return cache[t];
-}/* SubstitutionMap::internalSubstitute() */
-
+} /* SubstitutionMap::internalSubstitute() */
 
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
@@ -205,8 +213,11 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-Node SubstitutionMap::apply(TNode t, Rewriter* r, std::set<TNode>* tracker) {
-
+Node SubstitutionMap::apply(TNode t,
+                            Rewriter* r,
+                            std::set<TNode>* tracker,
+                            const ShouldTraverseCallback* stc)
+{
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
@@ -217,7 +228,7 @@ Node SubstitutionMap::apply(TNode t, Rewriter* r, std::set<TNode>* tracker) {
   }
 
   // Perform the substitution
-  Node result = internalSubstitute(t, d_substitutionCache, tracker);
+  Node result = internalSubstitute(t, d_substitutionCache, tracker, stc);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
   if (r != nullptr)

@@ -42,7 +42,7 @@ namespace cvc5 {
  * - For declared functions f that we have not yet looked up in a symbol table,
  * we store (2). We may store a name in a state if f is overloaded and we have
  * not yet parsed its arguments to know how to disambiguate f.
- * - For tuple selectors (_ tupSel n), we store (1) and (3). Kind is set to
+ * - For tuple selectors (_ tuple_select n), we store (1) and (3). Kind is set to
  * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
  * caller as the n^th generic tuple selector. We do this since there is no
  * AST expression representing generic tuple select, and we do not have enough

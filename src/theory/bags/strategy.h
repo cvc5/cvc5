@@ -42,7 +42,9 @@ enum InferStep
   // check bag operator
   CHECK_BAG_MAKE,
   // check basic operations
-  CHECK_BASIC_OPERATIONS
+  CHECK_BASIC_OPERATIONS,
+  // check cardinality constraints
+  CHECK_CARDINALITY_CONSTRAINTS
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 

@@ -10,23 +10,51 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Normal form for bag constants.
+ * Utility functions for bags.
  */
-#include "normal_form.h"
+#include "bags_utils.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::datatypes;
 
 namespace cvc5 {
 namespace theory {
 namespace bags {
 
-bool NormalForm::isConstant(TNode n)
+Node BagsUtils::computeDisjointUnion(TypeNode bagType,
+                                     const std::vector<Node>& bags)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (bags.empty())
+  {
+    return nm->mkConst(EmptyBag(bagType));
+  }
+  if (bags.size() == 1)
+  {
+    return bags[0];
+  }
+  Node unionDisjoint = bags[0];
+  for (size_t i = 1; i < bags.size(); i++)
+  {
+    if (bags[i].getKind() == BAG_EMPTY)
+    {
+      continue;
+    }
+    unionDisjoint = nm->mkNode(BAG_UNION_DISJOINT, unionDisjoint, bags[i]);
+  }
+  return unionDisjoint;
+}
+
+bool BagsUtils::isConstant(TNode n)
 {
   if (n.getKind() == BAG_EMPTY)
   {
@@ -82,12 +110,12 @@ bool NormalForm::isConstant(TNode n)
   return false;
 }
 
-bool NormalForm::areChildrenConstants(TNode n)
+bool BagsUtils::areChildrenConstants(TNode n)
 {
   return std::all_of(n.begin(), n.end(), [](Node c) { return c.isConst(); });
 }
 
-Node NormalForm::evaluate(TNode n)
+Node BagsUtils::evaluate(TNode n)
 {
   Assert(areChildrenConstants(n));
   if (n.isConst())
@@ -110,7 +138,9 @@ Node NormalForm::evaluate(TNode n)
     case BAG_FROM_SET: return evaluateFromSet(n);
     case BAG_TO_SET: return evaluateToSet(n);
     case BAG_MAP: return evaluateBagMap(n);
+    case BAG_FILTER: return evaluateBagFilter(n);
     case BAG_FOLD: return evaluateBagFold(n);
+    case TABLE_PRODUCT: return evaluateProduct(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -118,12 +148,12 @@ Node NormalForm::evaluate(TNode n)
 }
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5>
-Node NormalForm::evaluateBinaryOperation(const TNode& n,
-                                         T1&& equal,
-                                         T2&& less,
-                                         T3&& greaterOrEqual,
-                                         T4&& remainderOfA,
-                                         T5&& remainderOfB)
+Node BagsUtils::evaluateBinaryOperation(const TNode& n,
+                                        T1&& equal,
+                                        T2&& less,
+                                        T3&& greaterOrEqual,
+                                        T4&& remainderOfA,
+                                        T5&& remainderOfB)
 {
   std::map<Node, Rational> elementsA = getBagElements(n[0]);
   std::map<Node, Rational> elementsB = getBagElements(n[1]);
@@ -168,7 +198,7 @@ Node NormalForm::evaluateBinaryOperation(const TNode& n,
   return bag;
 }
 
-std::map<Node, Rational> NormalForm::getBagElements(TNode n)
+std::map<Node, Rational> BagsUtils::getBagElements(TNode n)
 {
   std::map<Node, Rational> elements;
   if (n.getKind() == BAG_EMPTY)
@@ -190,7 +220,7 @@ std::map<Node, Rational> NormalForm::getBagElements(TNode n)
   return elements;
 }
 
-Node NormalForm::constructConstantBagFromElements(
+Node BagsUtils::constructConstantBagFromElements(
     TypeNode t, const std::map<Node, Rational>& elements)
 {
   Assert(t.isBag());
@@ -210,8 +240,8 @@ Node NormalForm::constructConstantBagFromElements(
   return bag;
 }
 
-Node NormalForm::constructBagFromElements(TypeNode t,
-                                          const std::map<Node, Node>& elements)
+Node BagsUtils::constructBagFromElements(TypeNode t,
+                                         const std::map<Node, Node>& elements)
 {
   Assert(t.isBag());
   NodeManager* nm = NodeManager::currentNM();
@@ -230,7 +260,7 @@ Node NormalForm::constructBagFromElements(TypeNode t,
   return bag;
 }
 
-Node NormalForm::evaluateMakeBag(TNode n)
+Node BagsUtils::evaluateMakeBag(TNode n)
 {
   // the case where n is const should be handled earlier.
   // here we handle the case where the multiplicity is zero or negative
@@ -240,7 +270,7 @@ Node NormalForm::evaluateMakeBag(TNode n)
   return emptybag;
 }
 
-Node NormalForm::evaluateBagCount(TNode n)
+Node BagsUtils::evaluateBagCount(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
   // Examples
@@ -263,7 +293,7 @@ Node NormalForm::evaluateBagCount(TNode n)
   return nm->mkConstInt(Rational(0));
 }
 
-Node NormalForm::evaluateDuplicateRemoval(TNode n)
+Node BagsUtils::evaluateDuplicateRemoval(TNode n)
 {
   Assert(n.getKind() == BAG_DUPLICATE_REMOVAL);
 
@@ -288,7 +318,7 @@ Node NormalForm::evaluateDuplicateRemoval(TNode n)
   return bag;
 }
 
-Node NormalForm::evaluateUnionDisjoint(TNode n)
+Node BagsUtils::evaluateUnionDisjoint(TNode n)
 {
   Assert(n.getKind() == BAG_UNION_DISJOINT);
   // Example
@@ -348,7 +378,7 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
-Node NormalForm::evaluateUnionMax(TNode n)
+Node BagsUtils::evaluateUnionMax(TNode n)
 {
   Assert(n.getKind() == BAG_UNION_MAX);
   // Example
@@ -408,7 +438,7 @@ Node NormalForm::evaluateUnionMax(TNode n)
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
-Node NormalForm::evaluateIntersectionMin(TNode n)
+Node BagsUtils::evaluateIntersectionMin(TNode n)
 {
   Assert(n.getKind() == BAG_INTER_MIN);
   // Example
@@ -454,7 +484,7 @@ Node NormalForm::evaluateIntersectionMin(TNode n)
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
-Node NormalForm::evaluateDifferenceSubtract(TNode n)
+Node BagsUtils::evaluateDifferenceSubtract(TNode n)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
   // Example
@@ -506,7 +536,7 @@ Node NormalForm::evaluateDifferenceSubtract(TNode n)
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
-Node NormalForm::evaluateDifferenceRemove(TNode n)
+Node BagsUtils::evaluateDifferenceRemove(TNode n)
 {
   Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
   // Example
@@ -557,7 +587,7 @@ Node NormalForm::evaluateDifferenceRemove(TNode n)
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
-Node NormalForm::evaluateChoose(TNode n)
+Node BagsUtils::evaluateChoose(TNode n)
 {
   Assert(n.getKind() == BAG_CHOOSE);
   // Examples
@@ -571,7 +601,7 @@ Node NormalForm::evaluateChoose(TNode n)
   throw LogicException("BAG_CHOOSE_TOTAL is not supported yet");
 }
 
-Node NormalForm::evaluateCard(TNode n)
+Node BagsUtils::evaluateCard(TNode n)
 {
   Assert(n.getKind() == BAG_CARD);
   // Examples
@@ -592,7 +622,7 @@ Node NormalForm::evaluateCard(TNode n)
   return sumNode;
 }
 
-Node NormalForm::evaluateIsSingleton(TNode n)
+Node BagsUtils::evaluateIsSingleton(TNode n)
 {
   Assert(n.getKind() == BAG_IS_SINGLETON);
   // Examples
@@ -610,7 +640,7 @@ Node NormalForm::evaluateIsSingleton(TNode n)
   return NodeManager::currentNM()->mkConst(false);
 }
 
-Node NormalForm::evaluateFromSet(TNode n)
+Node BagsUtils::evaluateFromSet(TNode n)
 {
   Assert(n.getKind() == BAG_FROM_SET);
 
@@ -635,7 +665,7 @@ Node NormalForm::evaluateFromSet(TNode n)
   return bag;
 }
 
-Node NormalForm::evaluateToSet(TNode n)
+Node BagsUtils::evaluateToSet(TNode n)
 {
   Assert(n.getKind() == BAG_TO_SET);
 
@@ -659,7 +689,7 @@ Node NormalForm::evaluateToSet(TNode n)
   return set;
 }
 
-Node NormalForm::evaluateBagMap(TNode n)
+Node BagsUtils::evaluateBagMap(TNode n)
 {
   Assert(n.getKind() == BAG_MAP);
 
@@ -672,7 +702,7 @@ Node NormalForm::evaluateBagMap(TNode n)
   //       (bag ((lambda ((x String)) "z") "b") 3)) =
   //     (bag "z" 5)
 
-  std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
+  std::map<Node, Rational> elements = BagsUtils::getBagElements(n[1]);
   std::map<Node, Rational> mappedElements;
   std::map<Node, Rational>::iterator it = elements.begin();
   NodeManager* nm = NodeManager::currentNM();
@@ -683,11 +713,42 @@ Node NormalForm::evaluateBagMap(TNode n)
     ++it;
   }
   TypeNode t = nm->mkBagType(n[0].getType().getRangeType());
-  Node ret = NormalForm::constructConstantBagFromElements(t, mappedElements);
+  Node ret = BagsUtils::constructConstantBagFromElements(t, mappedElements);
   return ret;
 }
 
-Node NormalForm::evaluateBagFold(TNode n)
+Node BagsUtils::evaluateBagFilter(TNode n)
+{
+  Assert(n.getKind() == BAG_FILTER);
+
+  // - (bag.filter p (as bag.empty (Bag T)) = (as bag.empty (Bag T))
+  // - (bag.filter p (bag.union_disjoint (bag "a" 3) (bag "b" 2))) =
+  //   (bag.union_disjoint
+  //     (ite (p "a") (bag "a" 3) (as bag.empty (Bag T)))
+  //     (ite (p "b") (bag "b" 2) (as bag.empty (Bag T)))
+
+  Node P = n[0];
+  Node A = n[1];
+  TypeNode bagType = A.getType();
+  NodeManager* nm = NodeManager::currentNM();
+  Node empty = nm->mkConst(EmptyBag(bagType));
+
+  std::map<Node, Rational> elements = getBagElements(n[1]);
+  std::vector<Node> bags;
+
+  for (const auto& [e, count] : elements)
+  {
+    Node multiplicity = nm->mkConst(CONST_RATIONAL, count);
+    Node bag = nm->mkBag(bagType.getBagElementType(), e, multiplicity);
+    Node pOfe = nm->mkNode(APPLY_UF, P, e);
+    Node ite = nm->mkNode(ITE, pOfe, bag, empty);
+    bags.push_back(ite);
+  }
+  Node ret = computeDisjointUnion(bagType, bags);
+  return ret;
+}
+
+Node BagsUtils::evaluateBagFold(TNode n)
 {
   Assert(n.getKind() == BAG_FOLD);
 
@@ -703,7 +764,7 @@ Node NormalForm::evaluateBagFold(TNode n)
   Node f = n[0];    // combining function
   Node ret = n[1];  // initial value
   Node A = n[2];    // bag
-  std::map<Node, Rational> elements = NormalForm::getBagElements(A);
+  std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
 
   std::map<Node, Rational>::iterator it = elements.begin();
   NodeManager* nm = NodeManager::currentNM();
@@ -719,6 +780,52 @@ Node NormalForm::evaluateBagFold(TNode n)
     }
     ++it;
   }
+  return ret;
+}
+
+Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode typeA = A.getType().getBagElementType();
+  TypeNode typeB = B.getType().getBagElementType();
+  Assert(e1.getType().isSubtypeOf(typeA));
+  Assert(e2.getType().isSubtypeOf(typeB));
+
+  TypeNode productTupleType = n.getType().getBagElementType();
+  Node tuple = TupleUtils::concatTuples(productTupleType, e1, e2);
+  return tuple;
+}
+
+Node BagsUtils::evaluateProduct(TNode n)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+
+  // Examples
+  // --------
+  //
+  // - (table.product (bag (tuple "a") 4) (bag (tuple true) 5)) =
+  //     (bag (tuple "a" true) 20
+
+  Node A = n[0];
+  Node B = n[1];
+
+  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
+  std::map<Node, Rational> elementsB = BagsUtils::getBagElements(B);
+
+  std::map<Node, Rational> elements;
+
+  for (const auto& [a, countA] : elementsA)
+  {
+    for (const auto& [b, countB] : elementsB)
+    {
+      Node element = constructProductTuple(n, a, b);
+      elements[element] = countA * countB;
+    }
+  }
+
+  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
   return ret;
 }
 

@@ -15,10 +15,10 @@
 # API
 ##
 
-import pycvc5
+import cvc5
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     integer = slv.getIntegerSort()
     set_ = slv.mkSetSort(integer)
