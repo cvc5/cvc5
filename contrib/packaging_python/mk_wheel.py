@@ -21,16 +21,12 @@
 
 import os
 import re
-import sys
 import platform
-import string
 import subprocess
-import multiprocessing
 import shutil
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-from skbuild.cmaker import CMaker
 from distutils.version import LooseVersion
 
 
@@ -89,22 +85,6 @@ class CMakeBuild(build_ext):
         return tag == "windows"
 
     def build_extension(self, ext):
-        # find correct Python include directory and library
-        # works even for nonstandard Python installations
-        # (e.g., on pypa/manylinux)
-        python_version = CMaker.get_python_version()
-        args = [
-            '-DPYTHON_VERSION_STRING:STRING=' + sys.version.split(' ')[0],
-            '-DPYTHON_INCLUDE_DIR:PATH=' +
-                    CMaker.get_python_include_dir(python_version),
-            '-DPYTHON_LIBRARY:FILEPATH=' +
-                    CMaker.get_python_library(python_version),
-        ]
-        print("Extraced python info from python cmake thingy")
-        print(args)
-
-        subprocess.check_call(['cmake', '..'] + args)
-
         # build the main library
         subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10'])
 

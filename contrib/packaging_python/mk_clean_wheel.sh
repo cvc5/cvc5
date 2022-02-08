@@ -20,7 +20,7 @@ fi
 
 # configure cvc5
 echo "Configuring"
-python contrib/packaging_python/mk_build_dir.py $CONFIG
+python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings
 
 # building wheel
 echo "Building pycvc5 wheel"
