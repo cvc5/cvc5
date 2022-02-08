@@ -23,7 +23,10 @@
 #include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 std::ostream& operator<<(std::ostream& os, const Sum& sum)
 {
@@ -256,4 +259,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   return collectSumWithBase(sum, basemultiplicity, base);
 }
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
