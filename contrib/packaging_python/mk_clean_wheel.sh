@@ -48,4 +48,7 @@ popd
 rm -rf $DISTDIR
 mv build_wheel/$DISTDIR .
 
-#rm -rf build_wheel
+#rm -rf build_wheel/
+
+pwd
+ls
