@@ -37,5 +37,5 @@ runs:
       run: |
         for wheel in `find wheel* -iname "*.whl"`
         do
-          #twine upload --repository testpypi $wheel
+          twine upload --repository testpypi $wheel
         done
