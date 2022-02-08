@@ -12,9 +12,6 @@ ENVDIR=env$VERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
-echo "Now python is here:"
-which python
-
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
 pip install -q twine Cython pytest toml scikit-build
@@ -22,14 +19,18 @@ if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate
 fi
-export PATH="$(which python):$PATH"
 
 echo "With $PATH python is here:"
 which python
 
 # configure cvc5
 echo "Configuring"
-./configure.sh $CONFIG --python-bindings --name=build_wheel
+python $DIR/contrib/packaging_python/wrap_configure.py "$CONFIG"
+#./configure.sh $CONFIG --python-bindings --name=build_wheel
+# -DPYTHON_INCLUDE_DIR:PATH=
+# -DPYTHON_VERSION_STRING:STRING=3.8.10
+# -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.8
+# -DPYTHON_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpython3.8.so
 
 # building wheel
 echo "Building pycvc5 wheel"

@@ -41,7 +41,7 @@ from distutils.version import LooseVersion
 
 
 def get_project_src_path():
-    # expecting this script to be in contrib/packahing_python/
+    # expecting this script to be in contrib/packaging_python/
     # The project source directory is two directories up
     name = __file__
     for i in range(3):
