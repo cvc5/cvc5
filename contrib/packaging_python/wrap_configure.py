@@ -13,4 +13,4 @@ args = [
 			CMaker.get_python_library(python_version),
 ]
 
-subprocess.check_call(['./configure', *sys.argv[1:], '--name=build_wheel', *args])
+subprocess.check_call(['./configure.sh', *sys.argv[1:], '--name=build_wheel', *args])
