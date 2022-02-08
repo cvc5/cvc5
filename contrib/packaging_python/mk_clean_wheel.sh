@@ -1,7 +1,5 @@
 #!/bin/bash
 
-DIR=$(pwd)
-
 PYTHONBIN=$1
 CONFIG="$2"
 VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
@@ -25,19 +23,14 @@ which python
 
 # configure cvc5
 echo "Configuring"
-python $DIR/contrib/packaging_python/wrap_configure.py $CONFIG
-#./configure.sh $CONFIG --python-bindings --name=build_wheel
-# -DPYTHON_INCLUDE_DIR:PATH=
-# -DPYTHON_VERSION_STRING:STRING=3.8.10
-# -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.8
-# -DPYTHON_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpython3.8.so
+python contrib/packaging_python/mk_build_dir.py $CONFIG
 
 # building wheel
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
 DISTDIR=dist$VERSION
-VERSION_SUFFIX=$VERSION_SUFFIX python $DIR/contrib/packaging_python/build_wheel.py bdist_wheel -d $DISTDIR
+VERSION_SUFFIX=$VERSION_SUFFIX python $DIR/contrib/packaging_python/mk_wheel.py bdist_wheel -d $DISTDIR
 
 cd $DISTDIR
 
