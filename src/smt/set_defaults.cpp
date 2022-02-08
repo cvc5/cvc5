@@ -355,15 +355,9 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-  if ((opts.smt.checkModels || opts.smt.checkSynthSol || opts.smt.produceAbducts
-       || opts.smt.produceInterpols != options::ProduceInterpols::NONE
-       || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
-       || opts.smt.blockModelsMode != options::BlockModelsMode::NONE
-       || opts.smt.produceProofs || isSygus(opts))
-      && !opts.smt.produceAssertions)
+  if (!opts.smt.produceAssertions)
   {
-    verbose(1) << "SolverEngine: turning on produce-assertions to support "
-               << "option requiring assertions." << std::endl;
+    verbose(1) << "SolverEngine: turning on produce-assertions." << std::endl;
     opts.smt.produceAssertions = true;
   }
 
@@ -839,6 +833,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 #endif
+  if (logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areTranscendentalsUsed())
+  {
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::FULL;
+      }
+  }
 }
 
 bool SetDefaults::isSygus(const Options& opts) const
