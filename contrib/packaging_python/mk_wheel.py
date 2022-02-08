@@ -40,16 +40,19 @@ def get_project_src_path():
 
 
 def get_cvc5_version():
-    project_src_path = get_project_src_path()
+    # run the version detection in cmake
+    subprocess.check_call([
+        'cmake', '-DPROJECT_SOURCE_DIR=' + get_project_src_path(),
+        '-DCMAKE_BINARY_DIR=.', '-P',
+        get_project_src_path() + '/cmake/version.cmake'
+    ])
 
-    # read CMakeLists.txt to get version number
-    version = ''
-    str_pattern = 'set\(CVC5_LAST_RELEASE\s*"([^"]+)"\)'
-    pattern = re.compile(str_pattern)
-    with open(os.path.join(project_src_path, 'cmake', 'version-base.cmake'), 'r') as f:
-        m = pattern.search(f.read())
+    # read versioninfo.cpp to get version number
+    with open(os.path.join('src', 'base', 'versioninfo.cpp'), 'r') as f:
+        m = re.search('CVC5_FULL_VERSION = "([0-9a-z.-]+)"', f.read())
         if m:
             version = m.group(1)
+            version = re.sub('-dev\.([0-9]+)\.[0-9a-f]+', '.dev\\1', version)
             return version
         else:
             raise Exception('Could not find version')
