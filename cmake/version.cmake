@@ -52,6 +52,9 @@ if(GIT_FOUND)
   # call git describe. If result is not 0 this is not a git repository
   execute_process(
       COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe --long --tags --match cvc5-*
+  )
+  execute_process(
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe --long --tags --match cvc5-*
       RESULT_VARIABLE GIT_RESULT
       OUTPUT_VARIABLE GIT_DESCRIBE
       OUTPUT_STRIP_TRAILING_WHITESPACE
