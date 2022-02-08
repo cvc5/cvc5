@@ -2,11 +2,11 @@
 
 PYTHONBIN=$1
 CONFIG="$2"
-VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
+PYVERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
 
 # setup and activate venv
 echo "Making venv with $PYTHONBIN"
-ENVDIR=env$VERSION
+ENVDIR=env$PYVERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
@@ -43,5 +43,5 @@ fi
 
 popd
 
-rm -rf wheel-$VERSION
-mv build_wheel/dist wheel-$VERSION
+rm -rf wheel-$PYVERSION
+mv build_wheel/dist wheel-$PYVERSION

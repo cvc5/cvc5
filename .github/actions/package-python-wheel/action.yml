@@ -24,5 +24,4 @@ runs:
             ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/cp${version}*/bin/python "$OPTS"
         done
 
-        ls -al wheel*
         find wheel*/
