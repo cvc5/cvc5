@@ -9,7 +9,7 @@ runs:
         res=$(docker image inspect pycvc5-manylinux2014 ; echo $? ; exit 0)
         if [[ "$res" != 0 ]]; then
           echo "Need to build docker image"
-          docker build -t pycvc5-manylinux2014 contrib/packaging_python/manylinux2014
+          docker build -q -t pycvc5-manylinux2014 contrib/packaging_python/manylinux2014
         fi
 
         echo "***** Running in docker now"
