@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ls /opt/python/
+
 PYTHONBIN=$1
 CONFIG="$2"
 VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
