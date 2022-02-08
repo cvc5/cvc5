@@ -28,7 +28,7 @@ runs:
           echo "::endgroup::"
         done
 
-        find wheel*/
+        ls *.whl
 
     - name: Upload wheels
       shell: bash

@@ -87,10 +87,10 @@ runs:
       run: |
         echo "::group::Install software for Python packaging"
         if [[ "${{ inputs.with-python-packaging }}" != "true" ]]; then exit 0; fi
-        echo "::endgroup::"
         python3 -m pip install -q --upgrade pip
         python3 -m pip install twine
         python3 -m pip install -U urllib3 requests
+        echo "::endgroup::"
     
     - name: Install software for documentation
       shell: bash
