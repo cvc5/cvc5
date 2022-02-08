@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ls /opt/python/
-
 PYTHONBIN=$1
 CONFIG="$2"
 VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
@@ -28,10 +26,10 @@ python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
-DISTDIR=dist$VERSION
-python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d $DISTDIR
+DISTDIR=dist
+python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 
-cd $DISTDIR
+cd dist
 
 # resolve the links and bundle the library with auditwheel
 if [ "$(uname)" == "Linux" ]; then
@@ -45,10 +43,5 @@ fi
 
 popd
 
-rm -rf $DISTDIR
-mv build_wheel/$DISTDIR .
-
-#rm -rf build_wheel/
-
-pwd
-ls
+rm -rf wheel-$VERSION
+mv build_wheel/dist wheel-$VERSION
