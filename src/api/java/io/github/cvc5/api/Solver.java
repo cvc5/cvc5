@@ -2292,8 +2292,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( block-model-values ( <terms>+ ) )
    * }
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
+   * Requires enabling 'produce-models' option.
    */
   public void blockModelValues(Term[] terms)
   {
