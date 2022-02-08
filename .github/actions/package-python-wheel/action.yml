@@ -1,5 +1,8 @@
 name: Package python wheels
 description: Package cvc5 into python wheels for all supported python versions
+inputs:
+  twine-token:
+    default: ""
 runs:
   using: composite
   steps:
@@ -25,3 +28,14 @@ runs:
         done
 
         find wheel*/
+
+    - name: Upload wheels
+      shell: bash
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ inputs.twine-token }}
+      run: |
+        for wheel in `find wheel* -iname "*.whl"`
+        do
+          twine upload --repository testpypi $wheel
+        done

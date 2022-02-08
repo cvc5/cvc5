@@ -23,3 +23,5 @@ jobs:
 
     - name: Package PyPi wheel packages
       uses: ./.github/actions/package-python-wheel
+      with:
+        twine-token: ${{ secrets.PYPI_TOKEN }}
