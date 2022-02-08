@@ -21,7 +21,7 @@ runs:
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
-            ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/cp${version}-cp${version}m/bin/python "$OPTS"
+            ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/cp${version}*/bin/python "$OPTS"
         done
 
         cp dist*/*.whl .
