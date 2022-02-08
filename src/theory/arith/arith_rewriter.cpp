@@ -547,8 +547,7 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode node)
   Assert(node.getKind() == kind::MULT
          || node.getKind() == kind::NONLINEAR_MULT);
 
-  auto res = getZeroChild(node);
-  if (res)
+  if (auto res = rewriter::getZeroChild(node); res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
   }
@@ -559,16 +558,27 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
 
-  if (auto res = getZeroChild(t); res)
+  std::vector<TNode> children;
+  expr::algorithm::flatten(t, children, Kind::MULT, Kind::NONLINEAR_MULT);
+
+  if (auto res = rewriter::getZeroChild(children); res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
   }
 
-  Rational rational = Rational(1);
-  RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
-  Polynomial poly = Polynomial::mkOne();
+  // Distribute over addition
+  if (std::any_of(children.begin(), children.end(), [](TNode child) {
+        return child.getKind() == Kind::ADD;
+      }))
+  {
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::distributeMultiplication(children));
+  }
 
-  for (const auto& child : t)
+  RealAlgebraicNumber ran = RealAlgebraicNumber(Integer(1));
+  std::vector<Node> leafs;
+
+  for (const auto& child : children)
   {
     if (child.isConst())
     {
@@ -576,36 +586,20 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
       {
         return RewriteResponse(REWRITE_DONE, child);
       }
-      rational *= child.getConst<Rational>();
+      ran *= child.getConst<Rational>();
     }
-    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+    else if (rewriter::isRAN(child))
     {
-      ran *= child.getOperator().getConst<RealAlgebraicNumber>();
+      ran *= rewriter::getRAN(child);
     }
     else
     {
-      poly = poly * Polynomial::parsePolynomial(child);
+      leafs.emplace_back(child);
     }
   }
 
-  if (!rational.isOne())
-  {
-    poly = poly * rational;
-  }
-  if (isOne(ran))
-  {
-    return RewriteResponse(REWRITE_DONE, poly.getNode());
-  }
-  auto* nm = NodeManager::currentNM();
-  if (poly.isConstant())
-  {
-    ran *= RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
-  }
-  return RewriteResponse(
-      REWRITE_DONE,
-      nm->mkNode(
-          Kind::MULT, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+  return RewriteResponse(REWRITE_DONE,
+                         rewriter::mkMultTerm(ran, std::move(leafs)));
 }
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
