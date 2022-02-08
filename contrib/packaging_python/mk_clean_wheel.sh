@@ -18,9 +18,6 @@ if [ "$(uname)" == "Darwin" ]; then
     pip install -q delocate
 fi
 
-echo "With $PATH python is here:"
-which python
-
 # configure cvc5
 echo "Configuring"
 python contrib/packaging_python/mk_build_dir.py $CONFIG
@@ -30,7 +27,7 @@ echo "Building pycvc5 wheel"
 
 pushd build_wheel
 DISTDIR=dist$VERSION
-python $DIR/contrib/packaging_python/mk_wheel.py bdist_wheel -d $DISTDIR
+python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d $DISTDIR
 
 cd $DISTDIR
 
