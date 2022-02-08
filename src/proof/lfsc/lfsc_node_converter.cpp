@@ -15,6 +15,7 @@
 
 #include "proof/lfsc/lfsc_node_converter.h"
 
+#include <iomanip>
 #include <sstream>
 
 #include "expr/array_store_all.h"
@@ -601,41 +602,43 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 
 std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 {
-  // For user name X, we do cvc_[c1]@[p1]..._[cn]@[pn].Y where c1...cn are code
-  // points and p1...pn are positions and Y is the result of removing all
-  // illegal characters (those not supported in LFSC identifiers) from X.
-  // This ensures the symbol does not clash with LFSC definitions (e.g. proof
-  // rules) and this transformation is injective.
-  std::stringstream ssan;
-  std::stringstream ss;
+  // For user name X, we do cvc.Y, where Y contains an escaped version of X.
+  // Specificcally, since LFSC does not allow these characters in identifier
+  // bodies: "() \t\n\f;", each is replaced with an escape sequence "\xXX"
+  // where XX is the zero-padded hex representation of the code point. "\\" is
+  // also escaped.
+  //
+  // See also: https://github.com/cvc5/LFSC/blob/master/src/lexer.flex#L24
+  //
+  //
+  // The "cvc." prefix ensures we do not clash with LFSC definitions.
+  //
+  // The escaping ensures that all names are valid LFSC identifiers.
+  std::string sanitized("cvc.");
+  size_t found = sanitized.size();
+  sanitized += name;
   // The following sanitizes symbols that are not allowed in LFSC identifiers
   // here. For the sake of generating unique symbols, we record the santization
   // as a prefix before the "." separating the user name. Thus, e.g.
-  //   cvc.|a b|
+  //   |a b|
   // is converted to:
-  //   cvc_32@1.ab
-  // where "32" is the unicode value of " ", 32@1 indicates that space was
-  // removed from the user string at position 1.
-  std::string sname = name;
-  size_t sanCount = 0;
-  size_t found;
+  //   cvc.a\x20b
+  // where "20" is the hex unicode value of " ".
   do
   {
-    found = sname.find_first_not_of(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-        "0123456789~!@$%^&*_-+=<>.?/");
+    found = sanitized.find_first_of("() \t\n\f\\;", found);
     if (found != std::string::npos)
     {
-      // erase the character, print that we eliminated that character
-      ssan << "_" << static_cast<size_t>(sname[found]) << "@"
-           << found + sanCount;
-      sname.erase(sname.begin() + found, sname.begin() + found + 1);
-      // increment sanCount, to make index accurate to original string
-      sanCount++;
+      // Emit hex sequence
+      std::stringstream seq;
+      seq << "\\x" << std::setbase(16) << std::setfill('0') << std::setw(2)
+          << static_cast<size_t>(sanitized[found]);
+      sanitized.replace(found, 1, seq.str());
+      // increment found over the escape
+      found += 3;
     }
   } while (found != std::string::npos);
-  ss << "cvc" << ssan.str() << "." << sname;
-  return ss.str();
+  return sanitized;
 }
 
 std::string LfscNodeConverter::getNameForUserNameOf(Node v)
