@@ -1925,6 +1925,7 @@ set(regress_1_tests
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
   regress1/proj-issue175.smt2
+  regress1/proj-issue406-diff-unsat-core.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2

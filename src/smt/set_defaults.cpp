@@ -62,12 +62,6 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
-  // internal-only options
-  if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY)
-  {
-    throw OptionException(
-        std::string("Unsat core mode pp-only is for internal use only."));
-  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -86,13 +80,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     opts.smt.produceDifficulty = true;
   }
-  if (opts.smt.produceDifficulty)
-  {
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
-    {
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
-    }
-  }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
@@ -109,37 +96,72 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
-
-  if (opts.smt.checkProofs || opts.driver.dumpProofs)
+  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
+  // enabled is implied
+  if (opts.smt.checkProofs || opts.driver.dumpProofs
+      || opts.smt.proofMode == options::ProofMode::FULL)
   {
     opts.smt.produceProofs = true;
   }
 
-  if (opts.smt.produceProofs
-      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
+  // this check assumes the user has requested *full* proofs
+  if (opts.smt.produceProofs)
   {
-    if (opts.smt.unsatCoresModeWasSetByUser)
+    // if the user requested proofs, proof mode is full
+    opts.smt.proofMode = options::ProofMode::FULL;
+    // unsat cores are available due to proofs being enabled
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
-      notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
+      if (opts.smt.unsatCoresModeWasSetByUser)
+      {
+        notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
+      }
+      opts.smt.unsatCores = true;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
     }
-    // enable unsat cores, because they are available as a consequence of proofs
-    opts.smt.unsatCores = true;
-    opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
+  }
+  if (!opts.smt.produceProofs)
+  {
+    if (opts.smt.proofMode != options::ProofMode::OFF)
+    {
+      // if (expert) user set proof mode to something other than off, enable
+      // proofs
+      opts.smt.produceProofs = true;
+    }
+    // if proofs weren't enabled by user, and we are producing difficulty
+    if (opts.smt.produceDifficulty)
+    {
+      opts.smt.produceProofs = true;
+      // ensure at least preprocessing proofs are enabled
+      if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      }
+    }
+    // if proofs weren't enabled by user, and we are producing unsat cores
+    if (opts.smt.unsatCores)
+    {
+      opts.smt.produceProofs = true;
+      if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
+      {
+        // if requested to be based on proofs, we produce (preprocessing +) SAT
+        // proofs
+        opts.smt.proofMode = options::ProofMode::SAT;
+      }
+      else if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        // otherwise, we always produce preprocessing proofs
+        opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      }
+    }
   }
 
-  // set proofs on if not yet set
-  if (opts.smt.unsatCores && !opts.smt.produceProofs)
-  {
-    if (opts.smt.produceProofsWasSetByUser)
-    {
-      notifyModifyOption("produceProofs", "true", "enabling unsat cores");
-    }
-    opts.smt.produceProofs = true;
-  }
-
-  // if unsat cores are disabled, then unsat cores mode should be OFF
+  // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
+  // for proof mode.
   Assert(opts.smt.unsatCores
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
+  Assert(opts.smt.produceProofs
+         == (opts.smt.proofMode != options::ProofMode::OFF));
 
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)

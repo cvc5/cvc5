@@ -93,19 +93,13 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 bool Env::isSatProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (!d_options.smt.unsatCores
-             || (d_options.smt.unsatCoresMode
-                     != options::UnsatCoresMode::ASSUMPTIONS
-                 && d_options.smt.unsatCoresMode
-                        != options::UnsatCoresMode::PP_ONLY));
+         && d_options.smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
 bool Env::isTheoryProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (!d_options.smt.unsatCores
-             || d_options.smt.unsatCoresMode
-                    == options::UnsatCoresMode::FULL_PROOF);
+         && d_options.smt.proofMode == options::ProofMode::FULL;
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
