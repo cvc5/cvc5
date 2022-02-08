@@ -601,9 +601,14 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 
 std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 {
+  // For user name X, we do cvc_[c1]@[p1]..._[cn]@[pn].Y where c1...cn are code
+  // points and p1...pn are positions and Y is the result of removing all
+  // illegal characters (those not supported in LFSC identifiers) from X.
+  // This ensures the symbol does not clash with LFSC definitions (e.g. proof
+  // rules) and this transformation is injective.
   std::stringstream ssan;
   std::stringstream ss;
-  // We also must sanitize symbols that are not allowed in LFSC identifiers
+  // The following sanitizes symbols that are not allowed in LFSC identifiers
   // here. For the sake of generating unique symbols, we record the santization
   // as a prefix before the "." separating the user name. Thus, e.g.
   //   cvc.|a b|
@@ -622,8 +627,8 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
     if (found != std::string::npos)
     {
       // erase the character, print that we eliminated that character
-      ssan << "_" << static_cast<size_t>(sname[found]) + sanCount << "@"
-           << found;
+      ssan << "_" << static_cast<size_t>(sname[found]) << "@"
+           << found+ sanCount;
       sname.erase(sname.begin() + found, sname.begin() + found + 1);
       // increment sanCount, to make index accurate to original string
       sanCount++;
