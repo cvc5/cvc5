@@ -603,13 +603,12 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 {
   // For user name X, we do cvc.Y, where Y contains an escaped version of X.
-  // Specificcally, since LFSC does not allow these characters in identifier
+  // Specifically, since LFSC does not allow these characters in identifier
   // bodies: "() \t\n\f;", each is replaced with an escape sequence "\xXX"
   // where XX is the zero-padded hex representation of the code point. "\\" is
   // also escaped.
   //
   // See also: https://github.com/cvc5/LFSC/blob/master/src/lexer.flex#L24
-  //
   //
   // The "cvc." prefix ensures we do not clash with LFSC definitions.
   //
@@ -618,8 +617,7 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
   size_t found = sanitized.size();
   sanitized += name;
   // The following sanitizes symbols that are not allowed in LFSC identifiers
-  // here. For the sake of generating unique symbols, we record the santization
-  // as a prefix before the "." separating the user name. Thus, e.g.
+  // here, e.g.
   //   |a b|
   // is converted to:
   //   cvc.a\x20b
