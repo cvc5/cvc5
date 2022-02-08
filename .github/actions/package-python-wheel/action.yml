@@ -36,7 +36,9 @@ runs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ inputs.twine-token }}
       run: |
-        for wheel in `find wheel* -iname "*.whl"`
+        echo "::group::Upload to PyPi"
+        for wheel in `ls *.whl`
         do
           twine upload --repository testpypi $wheel
         done
+        echo "::endgroup::"
