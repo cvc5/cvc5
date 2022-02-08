@@ -2102,7 +2102,7 @@ TEST_F(TestApiBlackSolver, blockModelValues2)
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModelValues({x}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.blockModelValues({x}));
 }
 
 TEST_F(TestApiBlackSolver, blockModelValues3)
