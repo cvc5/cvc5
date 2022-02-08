@@ -22,7 +22,7 @@ if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate
 fi
-export PATH="$(python -m site --user-base)/bin:$PATH"
+export PATH="$(which python):$PATH"
 
 echo "With $PATH python is here:"
 which python
