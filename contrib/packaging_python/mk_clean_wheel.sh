@@ -23,6 +23,8 @@ echo "Configuring"
 rm -rf build_wheel/
 python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel
 
+cat build_wheel/src/base/versioninfo.cpp
+
 # building wheel
 echo "Building pycvc5 wheel"
 
