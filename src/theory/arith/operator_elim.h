@@ -106,6 +106,9 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
   Node getArithSkolem(SkolemFunId asi);
   /**
    * Get the skolem lemma for lem, based on whether we are proof producing.
+   * A skolem lemma is a wrapper around lem that also tracks its associated
+   * skolem k.
+   *
    * @param lem The lemma that axiomatizes the behavior of k
    * @param k The skolem
    * @return the skolem lemma corresponding to lem, annotated with k.
