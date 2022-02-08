@@ -25,3 +25,4 @@ runs:
         done
 
         ls -al wheel*
+        find wheel*/

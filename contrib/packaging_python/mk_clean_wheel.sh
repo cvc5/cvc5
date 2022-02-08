@@ -20,13 +20,13 @@ fi
 
 # configure cvc5
 echo "Configuring"
-python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings
+rm -rf build_wheel/
+python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel
 
 # building wheel
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
-DISTDIR=dist
 python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 
 cd dist
