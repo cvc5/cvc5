@@ -9,6 +9,8 @@ runs:
     - name: Build wheels
       shell: bash
       run: |
+        git log
+        
         res=$(docker image inspect pycvc5-manylinux2014 ; echo $? ; exit 0)
         if [[ "$res" != 0 ]]; then
           echo "Need to build docker image"
