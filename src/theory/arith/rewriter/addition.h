@@ -18,14 +18,17 @@
 #ifndef CVC5__THEORY__ARITH__REWRITER__ADDITION_H
 #define CVC5__THEORY__ARITH__REWRITER__ADDITION_H
 
-#include <iosfwd>
 #include <map>
+#include <iosfwd>
 
 #include "expr/node.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 /**
  * Intermediate representation for a sum of terms, mapping monomials to their
@@ -36,8 +39,11 @@ namespace cvc5::theory::arith::rewriter {
  * a proper comparator (instead of std::unordered_map) to allow easy
  * identification of the leading term. As we need to sort the terms anyway when
  * constructing a node, a std::unordered_map may only be faster if we experience
- * a lot of nullification. Usually, though, this saves us additional memory
- * allocations for sorting the terms.
+ * a lot of nullification (and thus paying the logarithmic overhead when working
+ * with the map, but not having it when sorting in the end). Usually, though,
+ * this saves us additional memory allocations for sorting the terms as it is
+ * done in-place instead of copying the result out of the std::unordered_map
+ * into a sortable container.
  */
 using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 
@@ -58,7 +64,7 @@ void addToSum(Sum& sum, TNode n, bool negate = false);
 
 /**
  * Evaluates the sum object (mapping monomials to their multiplicities) into a
- * single node (of kind `PLUS`, unless the sum has less than two summands).
+ * single node (of kind `ADD`, unless the sum has less than two summands).
  */
 Node collectSum(const Sum& sum);
 
@@ -77,6 +83,9 @@ Node collectSum(const Sum& sum);
  */
 Node distributeMultiplication(const std::vector<TNode>& factors);
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

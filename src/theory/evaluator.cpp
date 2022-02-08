@@ -416,7 +416,7 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(av);
           break;
         }
-        case kind::PLUS:
+        case kind::ADD:
         {
           Rational res = results[currNode[0]].d_rat;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -427,7 +427,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::MINUS:
+        case kind::SUB:
         {
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
@@ -435,7 +435,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::UMINUS:
+        case kind::NEG:
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(-x);

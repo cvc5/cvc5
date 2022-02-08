@@ -82,7 +82,7 @@ class SygusDatatype
    *
    * It should be the case that argTypes are sygus datatype types (possibly
    * unresolved) that encode the arguments of the builtin operator. That is,
-   * if op is the builtin PLUS operator, then argTypes could contain 2+
+   * if op is the builtin ADD operator, then argTypes could contain 2+
    * sygus datatype types that encode integer.
    */
   void addConstructor(Node op,

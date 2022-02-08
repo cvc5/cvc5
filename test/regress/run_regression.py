@@ -174,7 +174,7 @@ class ProofTester(Tester):
     def run(self, benchmark_info):
         return super().run(
             benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args + ["--check-proofs"]
+                command_line_args=benchmark_info.command_line_args + ["--check-proofs", "--proof-granularity=theory-rewrite"]
             )
         )
 

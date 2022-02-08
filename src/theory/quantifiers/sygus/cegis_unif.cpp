@@ -485,7 +485,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::vector<TypeNode> cargsPlus;
       cargsPlus.push_back(u);
       cargsPlus.push_back(u);
-      sdt.addConstructor(PLUS, cargsPlus);
+      sdt.addConstructor(ADD, cargsPlus);
       sdt.initializeDatatype(nm->integerType(), bvl, false, false);
       std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());

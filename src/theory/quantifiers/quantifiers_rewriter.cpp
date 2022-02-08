@@ -928,11 +928,11 @@ Node QuantifiersRewriter::getVarElimEqString(Node lit,
           Node slvL = nm->mkNode(STRING_LENGTH, slv);
           Node tpreL = nm->mkNode(STRING_LENGTH, tpre);
           Node tpostL = nm->mkNode(STRING_LENGTH, tpost);
-          slv = nm->mkNode(
-              STRING_SUBSTR,
-              slv,
-              tpreL,
-              nm->mkNode(MINUS, slvL, nm->mkNode(PLUS, tpreL, tpostL)));
+          slv =
+              nm->mkNode(STRING_SUBSTR,
+                         slv,
+                         tpreL,
+                         nm->mkNode(SUB, slvL, nm->mkNode(ADD, tpreL, tpostL)));
           // forall x. r ++ x ++ t = s => P( x )
           //   is equivalent to
           // r ++ s' ++ t = s => P( s' ) where

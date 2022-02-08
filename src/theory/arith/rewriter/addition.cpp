@@ -23,7 +23,10 @@
 #include "theory/arith/rewriter/ordering.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 std::ostream& operator<<(std::ostream& os, const Sum& sum)
 {
@@ -41,13 +44,14 @@ std::ostream& operator<<(std::ostream& os, const Sum& sum)
   return os;
 }
 
-namespace {
+namespace
+{
 
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
  * the remaining (non-numerical) factors. If n is a product itself, its children
- * are merged into a product. If n is a constant or a real algebraic number, it
- * is multiplied to the multiplicity. Otherwise, n is added to product.
+ * are merged into the product. If n is a constant or a real algebraic number,
+ * it is multiplied to the multiplicity. Otherwise, n is added to product.
  *
  * Invariant:
  *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
@@ -67,9 +71,7 @@ void addToProduct(std::vector<Node>& product,
         addToProduct(product, multiplicity, child);
       }
       break;
-    case Kind::REAL_ALGEBRAIC_NUMBER:
-      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
-      break;
+    case Kind::REAL_ALGEBRAIC_NUMBER: multiplicity *= getRAN(n); break;
     default:
       if (n.isConst())
       {
@@ -83,9 +85,10 @@ void addToProduct(std::vector<Node>& product,
 }
 
 /**
- * Add a new summand, consisting of the product and the multiplicity, to a sum
- * as used in the distribution of multiplication. Either adds the summand as a
- * new entry to sum, or adds the multiplicity to an already existing summand.
+ * Add a new summand, consisting of the product and the multiplicity, to a sum.
+ * Either adds the summand as a new entry to the sum, or adds the multiplicity
+ * to an already existing summand. Removes the entry, if the multiplicity is
+ * zero afterwards.
  *
  * Invariant:
  *   add(s.n * s.ran for s in sum')
@@ -111,7 +114,7 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 
 /**
  * Evaluates `basemultiplicity * baseproduct * sum` into a single node (of kind
- * `PLUS`, unless the sum has less than two summands).
+ * `ADD`, unless the sum has less than two summands).
  */
 Node collectSumWithBase(const Sum& sum,
                         const RealAlgebraicNumber& basemultiplicity,
@@ -119,7 +122,7 @@ Node collectSumWithBase(const Sum& sum,
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
+  NodeBuilder nb(Kind::ADD);
   for (const auto& summand : sum)
   {
     Assert(!isZero(summand.second));
@@ -134,11 +137,11 @@ Node collectSumWithBase(const Sum& sum,
   }
   return nb.constructNode();
 }
-}  // namespace
+}
 
 void addToSum(Sum& sum, TNode n, bool negate)
 {
-  if (n.getKind() == Kind::PLUS)
+  if (n.getKind() == Kind::ADD)
   {
     for (const auto& child : n)
     {
@@ -160,7 +163,7 @@ Node collectSum(const Sum& sum)
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::PLUS);
+  NodeBuilder nb(Kind::ADD);
   for (const auto& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);
@@ -196,10 +199,10 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   for (const auto& factor : factors)
   {
     // Subtractions are rewritten already, we only need to care about additions
-    Assert(factor.getKind() != Kind::MINUS);
-    Assert(factor.getKind() != Kind::UMINUS
+    Assert(factor.getKind() != Kind::SUB);
+    Assert(factor.getKind() != Kind::NEG
            || (factor[0].isConst() || isRAN(factor[0])));
-    if (factor.getKind() != Kind::PLUS)
+    if (factor.getKind() != Kind::ADD)
     {
       Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
       addToProduct(base, basemultiplicity, factor);
@@ -235,15 +238,18 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
         addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
       }
     }
-    Trace("arith-rewriter-distribute")
-        << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter-distribute")
-        << "base: " << basemultiplicity << " * " << base << std::endl;
-    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
-    for (const auto& summand : newsum)
+    if (Trace.isOn("arith-rewriter-distribute"))
     {
       Trace("arith-rewriter-distribute")
-          << "\t" << summand.second << " * " << summand.first << std::endl;
+          << "multiplied with " << factor << std::endl;
+      Trace("arith-rewriter-distribute")
+          << "base: " << basemultiplicity << " * " << base << std::endl;
+      Trace("arith-rewriter-distribute") << "sum:" << std::endl;
+      for (const auto& summand : newsum)
+      {
+        Trace("arith-rewriter-distribute")
+            << "\t" << summand.second << " * " << summand.first << std::endl;
+      }
     }
 
     sum = std::move(newsum);
@@ -253,4 +259,7 @@ Node distributeMultiplication(const std::vector<TNode>& factors)
   return collectSumWithBase(sum, basemultiplicity, base);
 }
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

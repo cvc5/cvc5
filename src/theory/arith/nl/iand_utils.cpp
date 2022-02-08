@@ -152,7 +152,7 @@ Node IAndUtils::createSumNode(Node x,
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
     sumNode =
-        nm->mkNode(kind::PLUS,
+        nm->mkNode(kind::ADD,
                    sumNode,
                    nm->mkNode(kind::MULT, pow2(i * granularity), sumPart));
   }
@@ -267,7 +267,7 @@ Node IAndUtils::twoToKMinusOne(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::MINUS, twoToK(k), d_one);
+  return nm->mkNode(kind::SUB, twoToK(k), d_one);
 }
 
 }  // namespace nl

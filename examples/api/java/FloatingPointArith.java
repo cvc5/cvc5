@@ -55,8 +55,8 @@ public class FloatingPointArith
       System.out.println("c = " + solver.getValue(c));
 
       // Now, let's restrict `a` to be either NaN or positive infinity
-      Term nan = solver.mkNaN(8, 24);
-      Term inf = solver.mkPosInf(8, 24);
+      Term nan = solver.mkFloatingPointNaN(8, 24);
+      Term inf = solver.mkFloatingPointPosInf(8, 24);
       solver.assertFormula(solver.mkTerm(
           Kind.OR, solver.mkTerm(Kind.EQUAL, a, inf), solver.mkTerm(Kind.EQUAL, a, nan)));
 
@@ -75,7 +75,7 @@ public class FloatingPointArith
       Op op = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 16); // (_ fp.to_sbv 16)
       lhs = solver.mkTerm(op, rtp, d);
       rhs = solver.mkTerm(op, rtn, d);
-      solver.assertFormula(solver.mkTerm(Kind.FLOATINGPOINT_ISN, d));
+      solver.assertFormula(solver.mkTerm(Kind.FLOATINGPOINT_IS_NORMAL, d));
       solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, lhs, rhs)));
 
       r = solver.checkSat(); // result is sat
@@ -90,7 +90,7 @@ public class FloatingPointArith
 
       // For our final trick, let's try to find a floating-point number between
       // positive zero and the smallest positive floating-point number
-      Term zero = solver.mkPosZero(8, 24);
+      Term zero = solver.mkFloatingPointPosZero(8, 24);
       Term smallest = solver.mkFloatingPoint(8, 24, solver.mkBitVector(32, 0b001));
       solver.assertFormula(solver.mkTerm(Kind.AND,
           solver.mkTerm(Kind.FLOATINGPOINT_LT, zero, e),
