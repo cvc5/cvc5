@@ -30,7 +30,7 @@ echo "Building pycvc5 wheel"
 
 pushd build_wheel
 DISTDIR=dist$VERSION
-VERSION_SUFFIX=$VERSION_SUFFIX python $DIR/contrib/packaging_python/mk_wheel.py bdist_wheel -d $DISTDIR
+python $DIR/contrib/packaging_python/mk_wheel.py bdist_wheel -d $DISTDIR
 
 cd $DISTDIR
 

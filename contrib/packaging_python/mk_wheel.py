@@ -16,12 +16,6 @@
 #   python3 ../contrib/package_python_wheel.py bdist_wheel
 # Creates wheel in ./dist
 #
-# Note: takes an *optional* environment variable VERSION_SUFFIX. If set, this
-# suffix will be appended to the pypi package version.
-# Example:
-#   VERSION_SUFFIX=rc1 python3 ../contrib/package_python_wheel.py bdist_wheel
-# would create versions X.Y.Zrc1
-#
 # The suffix should start with a letter, and end with a number
 ##
 
@@ -129,17 +123,9 @@ class CMakeBuild(build_ext):
         shutil.copytree(cvc5_python_base_module, dst_name)
 
 
-version_suffix = os.getenv('VERSION_SUFFIX', '')
-if len(version_suffix) > 0:
-    assert all(c in string.ascii_letters + string.digits for c in version_suffix)
-    assert version_suffix[0] in string.ascii_letters
-    assert version_suffix[-1] in string.ascii_digits
-    print("Setting version suffix to", version_suffix)
-
-
 setup(
     name='cvc5',
-    version=get_cvc5_version() + version_suffix,
+    version=get_cvc5_version(),
     long_description='Python bindings for cvc5',
     url='https://github.com/cvc5/cvc5',
     license='BSD-3-Clause',

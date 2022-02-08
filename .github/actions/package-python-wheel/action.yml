@@ -20,7 +20,6 @@ runs:
           echo "***** Building for $version"
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
-            --env VERSION_SUFFIX="" \
             pycvc5-manylinux2014 \
             ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/cp${version}-cp${version}m/bin/python "$OPTS"
         done
