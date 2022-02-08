@@ -628,7 +628,7 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
     {
       // erase the character, print that we eliminated that character
       ssan << "_" << static_cast<size_t>(sname[found]) << "@"
-           << found+ sanCount;
+           << found + sanCount;
       sname.erase(sname.begin() + found, sname.begin() + found + 1);
       // increment sanCount, to make index accurate to original string
       sanCount++;
