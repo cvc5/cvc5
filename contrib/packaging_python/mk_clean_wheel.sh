@@ -12,7 +12,7 @@ source ./$ENVDIR/bin/activate
 
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
-pip install -q twine Cython pytest toml scikit-build
+pip install -q Cython pytest toml scikit-build
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate

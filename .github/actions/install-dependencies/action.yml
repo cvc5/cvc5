@@ -75,6 +75,7 @@ runs:
       run: |
         echo "::group::Install software for Python bindings"
         if [[ "${{ inputs.with-python-bindings }}" != "true" ]]; then exit 0; fi
+        python3 -m pip install -q --upgrade pip
         python3 -m pip install pytest scikit-build
         python3 -m pytest --version
         python3 -m pip install Cython==0.29.*
@@ -87,6 +88,8 @@ runs:
         echo "::group::Install software for Python packaging"
         if [[ "${{ inputs.with-python-packaging }}" != "true" ]]; then exit 0; fi
         echo "::endgroup::"
+        python3 -m pip install -q --upgrade pip
+        python3 -m pip install twine
     
     - name: Install software for documentation
       shell: bash
