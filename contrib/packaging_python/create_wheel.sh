@@ -25,7 +25,7 @@ which python
 
 # configure cvc5
 echo "Configuring"
-python $DIR/contrib/packaging_python/wrap_configure.py "$CONFIG"
+python $DIR/contrib/packaging_python/wrap_configure.py $CONFIG
 #./configure.sh $CONFIG --python-bindings --name=build_wheel
 # -DPYTHON_INCLUDE_DIR:PATH=
 # -DPYTHON_VERSION_STRING:STRING=3.8.10
