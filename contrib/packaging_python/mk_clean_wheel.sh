@@ -43,5 +43,4 @@ fi
 
 popd
 
-rm -rf wheel-$PYVERSION
-mv build_wheel/dist wheel-$PYVERSION
+mv build_wheel/dist/wheelhouse/*.whl .
