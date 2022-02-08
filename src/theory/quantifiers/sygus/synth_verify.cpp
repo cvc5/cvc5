@@ -109,6 +109,7 @@ Result SynthVerify::verify(Node query,
     }
   }
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
+  query = rewrite(query);
   Result r = checkWithSubsolver(query, vars, mvs, d_subOptions, d_subLogicInfo);
   Trace("sygus-engine") << "  ...got " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)

@@ -62,7 +62,7 @@ equal (``==``)
 not equal (``!=``)
   :py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
 
-.. autofunction:: cvc5_z3py_compat.Plus
+.. autofunction:: cvc5_z3py_compat.Add
 .. autofunction:: cvc5_z3py_compat.Mult
 .. autofunction:: cvc5_z3py_compat.Sub
 .. autofunction:: cvc5_z3py_compat.UMinus

@@ -109,8 +109,6 @@ class TheoryStrings : public Theory {
   void eqNotifyNewClass(TNode t);
   /** Called just after the merge of two equivalence classes */
   void eqNotifyMerge(TNode t1, TNode t2);
-  /** called a disequality is added */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -161,8 +159,6 @@ class TheoryStrings : public Theory {
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_str.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
