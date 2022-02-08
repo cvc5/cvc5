@@ -30,6 +30,10 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
+#include "theory/arith/rewriter/addition.h"
+#include "theory/arith/rewriter/node_utils.h"
+#include "theory/arith/rewriter/ordering.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/theory.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
@@ -638,21 +642,9 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   Assert(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
   Assert(t.getNumChildren() >= 2);
 
-  std::vector<TNode> children;
-  flatten(t, Kind::MULT, Kind::NONLINEAR_MULT, children);
-
-  if (auto res = getZeroChild(children); res)
+  if (auto res = getZeroChild(t); res)
   {
     return RewriteResponse(REWRITE_DONE, *res);
-  }
-
-  // Distribute over addition
-  if (std::any_of(children.begin(), children.end(), [](TNode child) {
-        return child.getKind() == Kind::PLUS;
-      }))
-  {
-    return RewriteResponse(REWRITE_AGAIN_FULL,
-                           distributeMultiplication(children));
   }
 
   Rational rational = Rational(1);
