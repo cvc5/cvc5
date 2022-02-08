@@ -1156,7 +1156,7 @@ Node FpWordBlaster::wordBlast(TNode node)
             break;
 
           /* ---- Tester -------------------------------------------- */
-          case kind::FLOATINGPOINT_ISN:
+          case kind::FLOATINGPOINT_IS_NORMAL:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1164,7 +1164,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                          (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISSN:
+          case kind::FLOATINGPOINT_IS_SUBNORMAL:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1172,7 +1172,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                             (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISZ:
+          case kind::FLOATINGPOINT_IS_ZERO:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1180,7 +1180,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                        (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISINF:
+          case kind::FLOATINGPOINT_IS_INF:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1188,7 +1188,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISNAN:
+          case kind::FLOATINGPOINT_IS_NAN:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1196,7 +1196,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                       (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISNEG:
+          case kind::FLOATINGPOINT_IS_NEG:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1204,7 +1204,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISPOS:
+          case kind::FLOATINGPOINT_IS_POS:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
