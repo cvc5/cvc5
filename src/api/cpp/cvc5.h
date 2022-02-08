@@ -4566,9 +4566,7 @@ class CVC5_EXPORT Solver
    *
    * Requires enabling option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models' and setting option
-   * :ref:`block-models <lbl-option-block-models>`.
-   * to a mode other than ``none``.
+   * 'produce-models'.
    * \endverbatim
    */
   void blockModelValues(const std::vector<Term>& terms) const;
