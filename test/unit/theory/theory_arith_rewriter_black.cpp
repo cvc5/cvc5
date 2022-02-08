@@ -42,7 +42,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber twosqrt2({-8, 0, 1}, 2, 3);
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
-    n = d_nodeManager->mkNode(Kind::PLUS, n, n);
+    n = d_nodeManager->mkNode(Kind::ADD, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::REAL_ALGEBRAIC_NUMBER);
     EXPECT_EQ(n.getOperator().getConst<RealAlgebraicNumber>(), twosqrt2);
@@ -58,7 +58,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   {
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
-    n = d_nodeManager->mkNode(Kind::MINUS, n, n);
+    n = d_nodeManager->mkNode(Kind::SUB, n, n);
     n = d_slvEngine->getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::CONST_RATIONAL);
     EXPECT_EQ(n.getConst<Rational>(), Rational(0));
@@ -68,8 +68,8 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
     Node m = d_nodeManager->mkRealAlgebraicNumber(msqrt2);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
-    Node mm = d_nodeManager->mkNode(Kind::UMINUS, m);
-    Node mn = d_nodeManager->mkNode(Kind::UMINUS, n);
+    Node mm = d_nodeManager->mkNode(Kind::NEG, m);
+    Node mn = d_nodeManager->mkNode(Kind::NEG, n);
     mm = d_slvEngine->getRewriter()->rewrite(mm);
     mn = d_slvEngine->getRewriter()->rewrite(mn);
     EXPECT_EQ(-msqrt2, sqrt2);
@@ -79,58 +79,39 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
   }
 }
 
-/**
- * Return n! / (k! * (n-k)!). Tries to avoid overflows by keeping the
- * intermediate values small.
- */
-uint64_t binomial(uint64_t n, uint64_t k)
+TEST_F(TestTheoryArithRewriterBlack, Abs)
 {
-  uint64_t result = 1;
-  uint64_t nextmult = k + 1;
-  uint64_t nextdiv = 2;
-  while (nextmult <= n || nextdiv <= n - k)
   {
-    while (nextdiv <= n - k && result % nextdiv == 0)
-    {
-      result /= nextdiv;
-      ++nextdiv;
-    }
-    if (nextmult <= n)
-    {
-      result *= nextmult;
-      ++nextmult;
-    }
+    Node a = d_nodeManager->mkConstReal(10);
+    Node b = d_nodeManager->mkConstReal(-10);
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, a);
+    EXPECT_EQ(n, a);
   }
-  return result;
-}
-
-TEST_F(TestTheoryArithRewriterBlack, distribute)
-{
   {
-    constexpr size_t n = 40;
-    Node a = d_nodeManager->mkBoundVar("a", d_nodeManager->realType());
-    Node b = d_nodeManager->mkBoundVar("b", d_nodeManager->realType());
-    Node sum = d_nodeManager->mkNode(Kind::PLUS, a, b);
-    Node prod = d_nodeManager->mkNode(Kind::MULT, std::vector<Node>(n, sum));
-    prod = d_slvEngine->getRewriter()->rewrite(prod);
-
-    std::vector<Node> reference;
-    for (size_t k = 0; k <= n; ++k)
-    {
-      std::vector<Node> mult;
-      mult.insert(mult.end(), n - k, a);
-      mult.insert(mult.end(), k, b);
-      Node mon = d_nodeManager->mkNode(Kind::NONLINEAR_MULT, std::move(mult));
-      Rational fac = binomial(n, k);
-      if (!fac.isOne())
-      {
-        mon = d_nodeManager->mkNode(
-            Kind::MULT, d_nodeManager->mkConstInt(fac), mon);
-      }
-      reference.emplace_back(mon);
-    }
-    Node ref = d_nodeManager->mkNode(Kind::PLUS, std::move(reference));
-    EXPECT_EQ(ref, prod);
+    Node a = d_nodeManager->mkConstReal(Rational(3,2));
+    Node b = d_nodeManager->mkConstReal(Rational(-3,2));
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, a);
+    EXPECT_EQ(n, a);
+  }
+  {
+    RealAlgebraicNumber msqrt2({-2, 0, 1}, -2, -1);
+    RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
+    Node a = d_nodeManager->mkRealAlgebraicNumber(msqrt2);
+    Node b = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
+    Node m = d_nodeManager->mkNode(Kind::ABS, a);
+    Node n = d_nodeManager->mkNode(Kind::ABS, b);
+    m = d_slvEngine->getRewriter()->rewrite(m);
+    n = d_slvEngine->getRewriter()->rewrite(n);
+    EXPECT_EQ(m, b);
+    EXPECT_EQ(n, b);
   }
 }
 

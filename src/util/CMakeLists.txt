@@ -52,6 +52,8 @@ libcvc5_add_sources(
   resource_manager.h
   result.cpp
   result.h
+  real_algebraic_number_poly_imp.cpp
+  real_algebraic_number_poly_imp.h
   regexp.cpp
   regexp.h
   roundingmode.cpp
@@ -87,8 +89,4 @@ endif()
 
 if(CVC5_USE_GMP_IMP)
   libcvc5_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
-endif()
-
-if(CVC5_USE_POLY_IMP)
-  libcvc5_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
 endif()

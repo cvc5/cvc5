@@ -96,7 +96,7 @@ class KindsParser:
            4. replace Bitvector with BV
 
         There is one exception:
-           FLOATINGPOINT_ISNAN  --> FPIsNan
+           FLOATINGPOINT_IS_NAN  --> FPIsNan
 
         For every "_IS" in the name, there's an underscore added before step 1,
            so that the word after "Is" is capitalized
@@ -104,7 +104,7 @@ class KindsParser:
         Examples:
            BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
-           FLOATINGPOINT_ISNAN -->  FPIsNan
+           FLOATINGPOINT_IS_NAN -->  FPIsNan
            SET_MINUS            -->  Setminus
 
         See the generated .pxi file for an explicit mapping

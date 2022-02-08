@@ -39,7 +39,7 @@ int main() {
 
   Term two = slv.mkInteger(2);
   Term twox = slv.mkTerm(Kind::MULT, two, x);
-  Term twox_plus_y = slv.mkTerm(Kind::PLUS, twox, y);
+  Term twox_plus_y = slv.mkTerm(Kind::ADD, twox, y);
 
   Term three = slv.mkInteger(3);
   Term twox_plus_y_geq_3 = slv.mkTerm(Kind::GEQ, twox_plus_y, three);

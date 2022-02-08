@@ -6,7 +6,6 @@
 (declare-fun y () Int)
 (declare-fun f (Int) Int)
 (assert (= A (bag.union_max (bag x 1) (bag y 2))))
-(assert (= A (bag.union_max (bag x 1) (bag y 2))))
 (assert (= B (bag.map f A)))
 (assert (distinct (f x) (f y) x y))
 (check-sat)

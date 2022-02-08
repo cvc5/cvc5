@@ -54,6 +54,8 @@ set(MURXLA_BINARY "deps/bin/murxla")
 add_custom_target(fuzz-murxla
   COMMAND echo ""
   COMMAND echo "Run Murxla as follows:"
-  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 --cvc5"
+  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 -d --cvc5"
+  COMMAND echo "Convert traces to SMT-LIB as follows:"
+  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} --smt2 -u <filename>"
   DEPENDS Murxla-EP
 )

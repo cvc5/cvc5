@@ -342,12 +342,13 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node diff = d_env.getNodeManager()->mkNode(Kind::MINUS, a, b);
-  if (isExpressionZero(d_env, diff, d_arithModelCache))
+  Node diff = d_env.getNodeManager()->mkNode(Kind::SUB, a, b);
+  std::optional<bool> isZero = isExpressionZero(d_env, diff, d_arithModelCache);
+  if (isZero)
   {
-    return EQUALITY_TRUE_IN_MODEL;
+    return *isZero ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
   }
-  return EQUALITY_FALSE_IN_MODEL;
+  return EQUALITY_UNKNOWN;
 }
 
 Node TheoryArith::getModelValue(TNode var) {

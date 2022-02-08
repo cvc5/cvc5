@@ -1,6 +1,6 @@
 DatatypeConstructor
 ===================
 
-.. autoclass:: pycvc5.DatatypeConstructor
+.. autoclass:: cvc5.DatatypeConstructor
     :members:
     :undoc-members:

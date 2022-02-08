@@ -20,7 +20,6 @@
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
-#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -28,7 +27,6 @@ namespace theory {
 // optimization: try to rewrite to constant
 Result quickCheck(Node& query)
 {
-  query = theory::Rewriter::rewrite(query);
   if (query.isConst())
   {
     if (!query.getConst<bool>())

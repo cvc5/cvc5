@@ -16,13 +16,13 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Sort
+import cvc5
+from cvc5 import Sort
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def create_datatype_sort(solver):
@@ -575,6 +575,6 @@ def test_sort_scoped_tostring(solver):
     uninterp_sort = solver.mkUninterpretedSort(name)
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
-    solver2 = pycvc5.Solver()
+    solver2 = cvc5.Solver()
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name

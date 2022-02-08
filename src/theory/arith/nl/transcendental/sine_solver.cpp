@@ -74,7 +74,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
       nm->mkNode(Kind::ITE,
                  mkValidPhase(a[0], d_data->d_pi),
                  a[0].eqNode(y),
-                 a[0].eqNode(nm->mkNode(Kind::PLUS,
+                 a[0].eqNode(nm->mkNode(Kind::ADD,
                                         y,
                                         nm->mkNode(Kind::MULT,
                                                    nm->mkConstReal(Rational(2)),
@@ -136,13 +136,13 @@ void SineSolver::checkInitialRefine()
         }
         {
           // sine symmetry: sin(t) - sin(-t) = 0
-          Node lem = nm->mkNode(Kind::PLUS, t, symn).eqNode(d_data->d_zero);
+          Node lem = nm->mkNode(Kind::ADD, t, symn).eqNode(d_data->d_zero);
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
             Node tmplem =
-                nm->mkNode(Kind::PLUS,
+                nm->mkNode(Kind::ADD,
                            t,
                            nm->mkNode(
                                Kind::SINE,
@@ -189,13 +189,12 @@ void SineSolver::checkInitialRefine()
                   nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
                   nm->mkNode(Kind::GT,
                              t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0]))),
+                             nm->mkNode(Kind::SUB, d_data->d_pi_neg, t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
                   nm->mkNode(Kind::LT, t[0], d_data->d_pi),
-                  nm->mkNode(Kind::LT,
-                             t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))));
+                  nm->mkNode(
+                      Kind::LT, t, nm->mkNode(Kind::SUB, d_data->d_pi, t[0]))));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {

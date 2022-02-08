@@ -125,6 +125,13 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   NormalForm& nf = d_csolver.getNormalForm(r);
   Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
   std::vector<Node> nfChildren;
+
+  if (k == SEQ_NTH)
+  {
+    // The core solver must process all `nth` terms
+    d_currTerms[SEQ_NTH].push_back(t);
+  }
+
   if (checkInv)
   {
     if (k != STRING_UPDATE)
@@ -213,7 +220,6 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
       }
       else if (ck != CONST_SEQUENCE)
       {
-        bool isAtomic = true;
         if (k == STRING_UPDATE)
         {
           // If the term we are updating is atomic, but the update itself
@@ -221,17 +227,13 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
           // concat rule, based on the normal form of the term itself.
           rself = d_state.getRepresentative(t);
           NormalForm& nfSelf = d_csolver.getNormalForm(rself);
-          if (nfSelf.d_nf.size() > 1)
+          if (nfSelf.d_nf.size() == 1)
           {
-            isAtomic = false;
+            // otherwise, if the normal form is not a constant sequence, and we
+            // are an atomic update term, then this term will be given to the
+            // core array solver.
+            d_currTerms[k].push_back(t);
           }
-        }
-        if (isAtomic)
-        {
-          // otherwise, if the normal form is not a constant sequence, and we
-          // are not a non-atomic update term, then this term will be given to
-          // the core array solver.
-          d_currTerms[k].push_back(t);
         }
         return;
       }
@@ -265,8 +267,8 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     Node currSum = d_zero;
     if (!lacc.empty())
     {
-      currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
-      currIndex = nm->mkNode(MINUS, currIndex, currSum);
+      currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(ADD, lacc);
+      currIndex = nm->mkNode(SUB, currIndex, currSum);
     }
     Node cc;
     if (k == STRING_UPDATE && checkInv)
@@ -315,7 +317,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     lacc.push_back(clen);
     if (k == SEQ_NTH)
     {
-      Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+      Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(ADD, lacc);
       Node cf = nm->mkNode(LT, t[1], currSumPost);
       Trace("seq-array-debug") << "......condition " << cf << std::endl;
       cond.push_back(cf);
@@ -373,16 +375,14 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
   std::vector<Node> exp;
   if (checkInv)
   {
-    d_im.addToExplanation(rself, t, exp);
     NormalForm& nfSelf = d_csolver.getNormalForm(rself);
     exp.insert(exp.end(), nfSelf.d_exp.begin(), nfSelf.d_exp.end());
-    exp.push_back(t.eqNode(nfSelf.d_base));
+    d_im.addToExplanation(t, nfSelf.d_base, exp);
   }
   else
   {
-    d_im.addToExplanation(r, t[0], exp);
     exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-    exp.push_back(t[0].eqNode(nf.d_base));
+    d_im.addToExplanation(t[0], nf.d_base, exp);
   }
   if (d_eqProc.find(eq) == d_eqProc.end())
   {

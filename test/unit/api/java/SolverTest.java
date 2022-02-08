@@ -503,29 +503,29 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkFalse());
   }
 
-  @Test void mkNaN() throws CVC5ApiException
+  @Test void mkFloatingPointNaN() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkNaN(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointNaN(3, 5));
   }
 
-  @Test void mkNegZero() throws CVC5ApiException
+  @Test void mkFloatingPointNegZero() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkNegZero(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointNegZero(3, 5));
   }
 
-  @Test void mkNegInf()
+  @Test void mkFloatingPointNegInf()
   {
-    assertDoesNotThrow(() -> d_solver.mkNegInf(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointNegInf(3, 5));
   }
 
-  @Test void mkPosInf()
+  @Test void mkFloatingPointPosInf()
   {
-    assertDoesNotThrow(() -> d_solver.mkPosInf(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointPosInf(3, 5));
   }
 
-  @Test void mkPosZero()
+  @Test void mkFloatingPointPosZero()
   {
-    assertDoesNotThrow(() -> d_solver.mkPosZero(3, 5));
+    assertDoesNotThrow(() -> d_solver.mkFloatingPointPosZero(3, 5));
   }
 
   @Test void mkOp()
@@ -1407,11 +1407,11 @@ class SolverTest
     Term z = d_solver.mkConst(intSort, "z");
 
     // Assumptions for interpolation: x + y > 0 /\ x < 0
-    d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+    d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(ADD, x, y), zero));
     d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
     // Conjecture for interpolation: y + z > 0 \/ z < 0
     Term conj = d_solver.mkTerm(
-        OR, d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero), d_solver.mkTerm(LT, z, zero));
+        OR, d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero), d_solver.mkTerm(LT, z, zero));
     Term output = d_solver.getNullTerm();
     // Call the interpolation api, while the resulting interpolant is the output
     d_solver.getInterpolant(conj, output);
@@ -1432,10 +1432,10 @@ class SolverTest
     Term y = d_solver.mkConst(intSort, "y");
     Term z = d_solver.mkConst(intSort, "z");
 
-    d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+    d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(ADD, x, y), zero));
     d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
     Term conj = d_solver.mkTerm(
-        OR, d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero), d_solver.mkTerm(LT, z, zero));
+        OR, d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero), d_solver.mkTerm(LT, z, zero));
     Term output = d_solver.getNullTerm();
     d_solver.getInterpolant(conj, output);
     Term output2 = d_solver.getNullTerm();
@@ -1620,7 +1620,7 @@ class SolverTest
     Term one = d_solver.mkInteger(1);
     Term f_x = d_solver.mkTerm(Kind.APPLY_UF, f, x);
     Term f_y = d_solver.mkTerm(Kind.APPLY_UF, f, y);
-    Term sum = d_solver.mkTerm(Kind.PLUS, f_x, f_y);
+    Term sum = d_solver.mkTerm(Kind.ADD, f_x, f_y);
     Term p_0 = d_solver.mkTerm(Kind.APPLY_UF, p, zero);
     Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
     d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_x));
@@ -1716,7 +1716,7 @@ class SolverTest
     Term one = d_solver.mkInteger(1);
     Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
     Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_y);
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
     Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
 
@@ -2079,7 +2079,7 @@ class SolverTest
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.blockModelValues(new Term[] {x}));
+    assertDoesNotThrow(() -> d_solver.blockModelValues(new Term[] {x}));
   }
 
   @Test void blockModelValues3() throws CVC5ApiException
@@ -2176,7 +2176,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.simplify(i2));
     assertNotEquals(i1, i2);
     assertNotEquals(i1, d_solver.simplify(i2));
-    Term i3 = d_solver.mkTerm(PLUS, i1, d_solver.mkInteger(0));
+    Term i3 = d_solver.mkTerm(ADD, i1, d_solver.mkInteger(0));
     assertDoesNotThrow(() -> d_solver.simplify(i3));
     assertNotEquals(i1, i3);
     assertEquals(i1, d_solver.simplify(i3));
@@ -2269,7 +2269,7 @@ class SolverTest
     // Terms
     Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
     Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_y);
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
     Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
     // Assertions
@@ -2353,7 +2353,7 @@ class SolverTest
     // Terms
     Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
     Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_y);
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
     Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
     // Assertions

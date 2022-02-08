@@ -18,11 +18,13 @@
 
 #include "theory/arith/arith_rewriter.h"
 
+#include <optional>
 #include <set>
 #include <sstream>
 #include <stack>
 #include <vector>
 
+#include "expr/algorithm/flatten.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -42,33 +44,88 @@ namespace arith {
 
 namespace {
 
-/** Make a nonlinear multiplication from the given factors */
-template <typename T>
-Node mkMult(T&& factors)
+/**
+ * Implements an ordering on arithmetic leaf nodes, excluding rationals. As this
+ * comparator is meant to be used on children of Kind::NONLINEAR_MULT, we expect
+ * rationals to be handled separately. Furthermore, we expect there to be only a
+ * single real algebraic number.
+ * It broadly categorizes leaf nodes into real algebraic numbers, integers,
+ * variables, and the rest. The ordering is built as follows:
+ * - real algebraic numbers come first
+ * - real terms come before integer terms
+ * - variables come before non-variable terms
+ * - finally, fall back to node ordering
+ */
+struct LeafNodeComparator
 {
-  auto* nm = NodeManager::currentNM();
-  switch (factors.size())
+  /** Implements operator<(a, b) as described above */
+  bool operator()(TNode a, TNode b)
   {
-    case 0: return nm->mkConstInt(Rational(1));
-    case 1: return factors[0];
-    default: return nm->mkNode(Kind::NONLINEAR_MULT, std::forward<T>(factors));
-  }
-}
+    if (a == b) return false;
 
-/** Make a sum from the given summands */
-template <typename T>
-Node mkSum(T&& summands)
+    bool aIsRAN = a.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    bool bIsRAN = b.getKind() == Kind::REAL_ALGEBRAIC_NUMBER;
+    if (aIsRAN != bIsRAN) return aIsRAN;
+    Assert(!aIsRAN && !bIsRAN) << "real algebraic numbers should be combined";
+
+    bool aIsInt = a.getType().isInteger();
+    bool bIsInt = b.getType().isInteger();
+    if (aIsInt != bIsInt) return !aIsInt;
+
+    bool aIsVar = a.isVar();
+    bool bIsVar = b.isVar();
+    if (aIsVar != bIsVar) return aIsVar;
+
+    return a < b;
+  }
+};
+
+/**
+ * Implements an ordering on arithmetic nonlinear multiplications. As we assume
+ * rationals to be handled separately, we only consider Kind::NONLINEAR_MULT as
+ * multiplication terms. For individual factors of the product, we rely on the
+ * ordering from LeafNodeComparator. Furthermore, we expect products to be
+ * sorted according to LeafNodeComparator. The ordering is built as follows:
+ * - single factors come first (everything that is not NONLINEAR_MULT)
+ * - multiplications with less factors come first
+ * - multiplications are compared lexicographically
+ */
+struct ProductNodeComparator
 {
-  auto* nm = NodeManager::currentNM();
-  switch (summands.size())
+  /** Implements operator<(a, b) as described above */
+  bool operator()(TNode a, TNode b)
   {
-    case 0: return nm->mkConstInt(Rational(0));
-    case 1: return summands[0];
-    default: return nm->mkNode(Kind::PLUS, std::forward<T>(summands));
-  }
-}
+    if (a == b) return false;
 
-/** Evaluate the given relation based on values l and r */
+    Assert(a.getKind() != Kind::MULT);
+    Assert(b.getKind() != Kind::MULT);
+
+    bool aIsMult = a.getKind() == Kind::NONLINEAR_MULT;
+    bool bIsMult = b.getKind() == Kind::NONLINEAR_MULT;
+    if (aIsMult != bIsMult) return !aIsMult;
+
+    if (!aIsMult)
+    {
+      return LeafNodeComparator()(a, b);
+    }
+
+    size_t aLen = a.getNumChildren();
+    size_t bLen = b.getNumChildren();
+    if (aLen != bLen) return aLen < bLen;
+
+    for (size_t i = 0; i < aLen; ++i)
+    {
+      if (a[i] != b[i])
+      {
+        return LeafNodeComparator()(a[i], b[i]);
+      }
+    }
+    Unreachable() << "Nodes are different, but have the same content";
+    return false;
+  }
+};
+
+
 template <typename L, typename R>
 bool evaluateRelation(Kind rel, const L& l, const R& r)
 {
@@ -80,26 +137,6 @@ bool evaluateRelation(Kind rel, const L& l, const R& r)
     case Kind::GEQ: return l >= r;
     case Kind::GT: return l > r;
     default: Unreachable(); return false;
-  }
-}
-
-/**
- * Flatten the given node (with child nodes of one of the given kinds) into a
- * vector.
- */
-void flatten(TNode t, Kind k1, Kind k2, std::vector<TNode>& children)
-{
-  Assert(t.getKind() == k1 || t.getKind() == k2);
-  for (const auto& child : t)
-  {
-    if (child.getKind() == k1 || child.getKind() == k2)
-    {
-      flatten(child, k1, k2, children);
-    }
-    else
-    {
-      children.emplace_back(child);
-    }
   }
 }
 
@@ -118,193 +155,6 @@ std::optional<TNode> getZeroChild(const Iterable& parent)
     }
   }
   return std::nullopt;
-}
-
-/**
- * Add a new summand, consisting of the product and the multiplicity, to a sum
- * as used in the distribution of multiplication. Either adds the summand as a
- * new entry to sum, or adds the multiplicity to an already existing summand.
- *
- * Invariant:
- *   add(s.n * s.ran for s in sum')
- *   = add(s.n * s.ran for s in sum) + multiplicity * product
- */
-void addToDistSum(std::unordered_map<Node, RealAlgebraicNumber>& sum,
-                  TNode product,
-                  const RealAlgebraicNumber& multiplicity)
-{
-  auto it = sum.find(product);
-  if (it == sum.end())
-  {
-    sum.emplace(product, multiplicity);
-  }
-  else
-  {
-    it->second += multiplicity;
-    if (isZero(it->second))
-    {
-      sum.erase(it);
-    }
-  }
-}
-
-/**
- * Adds a factor n to a product, consisting of the numerical multiplicity and
- * the remaining (non-numerical) factors. If n is a product itself, its children
- * are merged into a product. If n is a constant or a real algebraic number, it
- * is multiplied to the multiplicity. Otherwise, n is added to product.
- *
- * Invariant:
- *   multiplicity' * multiply(product') = n * multiplicity * multiply(product)
- */
-void addToDistProduct(std::vector<Node>& product,
-                      RealAlgebraicNumber& multiplicity,
-                      TNode n)
-{
-  switch (n.getKind())
-  {
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      for (const auto& child : n)
-      {
-        // make sure constants are properly extracted.
-        // recursion is safe, as mult is already flattened
-        addToDistProduct(product, multiplicity, child);
-      }
-      break;
-    case Kind::REAL_ALGEBRAIC_NUMBER:
-      multiplicity *= n.getOperator().getConst<RealAlgebraicNumber>();
-      break;
-    default:
-      if (n.isConst())
-      {
-        multiplicity *= n.getConst<Rational>();
-      }
-      else
-      {
-        product.emplace_back(n);
-      }
-  }
-}
-
-/**
- * Distribute a multiplication over one or more additions. The multiplication
- * is given as the list of its factors. Though this method also works if none
- * of these factors is an addition, there is no point of calling this method
- * in this case. The result is the resulting sum after expanding the product
- * and pushing the multiplication inside the addition.
- *
- * The method maintains a `sum` as a mapping from Node to RealAlgebraicNumber.
- * The nodes can be understood as monomials, or generally non-value parts of
- * the product, while the real algebraic numbers are the multiplicities of these
- * monomials or products. This allows to combine summands with identical
- * monomials immediately and avoid a potential blow-up.
- */
-Node distributeMultiplication(const std::vector<TNode>& factors)
-{
-  if (Trace.isOn("arith-rewriter-distribute"))
-  {
-    Trace("arith-rewriter-distribute") << "Distributing" << std::endl;
-    for (const auto& f : factors)
-    {
-      Trace("arith-rewriter-distribute") << "\t" << f << std::endl;
-    }
-  }
-  auto* nm = NodeManager::currentNM();
-  // factors that are not sums, separated into numerical and non-numerical
-  RealAlgebraicNumber basemultiplicity(Integer(1));
-  std::vector<Node> base;
-  // maps products to their (possibly real algebraic) multiplicities.
-  // The current (intermediate) value is the sum of these (multiplied by the
-  // base factors).
-  std::unordered_map<Node, RealAlgebraicNumber> sum;
-  // Add a base summand
-  sum.emplace(nm->mkConstReal(Rational(1)), RealAlgebraicNumber(Integer(1)));
-
-  // multiply factors one by one to basmultiplicity * base * sum
-  for (const auto& factor : factors)
-  {
-    // Subtractions are rewritten already, we only need to care about additions
-    Assert(factor.getKind() != Kind::MINUS);
-    Assert(factor.getKind() != Kind::UMINUS
-           || (factor[0].isConst()
-               || factor[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER));
-    if (factor.getKind() != Kind::PLUS)
-    {
-      Assert(!(factor.isConst() && factor.getConst<Rational>().isZero()));
-      addToDistProduct(base, basemultiplicity, factor);
-      continue;
-    }
-    // temporary to store factor * sum, will be moved to sum at the end
-    std::unordered_map<Node, RealAlgebraicNumber> newsum;
-
-    for (const auto& summand : sum)
-    {
-      for (const auto& child : factor)
-      {
-        // add summand * child to newsum
-        RealAlgebraicNumber multiplicity = summand.second;
-        if (child.isConst())
-        {
-          multiplicity *= child.getConst<Rational>();
-          addToDistSum(newsum, summand.first, multiplicity);
-          continue;
-        }
-        if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-        {
-          multiplicity *= child.getOperator().getConst<RealAlgebraicNumber>();
-          addToDistSum(newsum, summand.first, multiplicity);
-          continue;
-        }
-
-        // construct the new product
-        std::vector<Node> newProduct;
-        addToDistProduct(newProduct, multiplicity, summand.first);
-        addToDistProduct(newProduct, multiplicity, child);
-        std::sort(
-            newProduct.begin(), newProduct.end(), Variable::VariableNodeCmp());
-        addToDistSum(newsum, mkMult(std::move(newProduct)), multiplicity);
-      }
-    }
-    Trace("arith-rewriter-distribute")
-        << "multiplied with " << factor << std::endl;
-    Trace("arith-rewriter-distribute")
-        << "base: " << basemultiplicity << " * " << base << std::endl;
-    Trace("arith-rewriter-distribute") << "sum:" << std::endl;
-    for (const auto& summand : newsum)
-    {
-      Trace("arith-rewriter-distribute")
-          << "\t" << summand.second << " * " << summand.first << std::endl;
-    }
-
-    sum = std::move(newsum);
-  }
-  // now mult(factors) == base * add(sum)
-
-  // construct the sum as nodes
-  std::vector<Node> children;
-  for (const auto& summand : sum)
-  {
-    if (isZero(summand.second)) continue;
-    RealAlgebraicNumber mult = basemultiplicity * summand.second;
-    std::vector<Node> product = base;
-    addToDistProduct(product, mult, summand.first);
-    if (mult.isRational())
-    {
-      if (!isOne(mult))
-      {
-        product.emplace_back(nm->mkConstReal(mult.toRational()));
-      }
-    }
-    else
-    {
-      product.emplace_back(nm->mkRealAlgebraicNumber(mult));
-    }
-    children.emplace_back(mkMult(std::move(product)));
-  }
-  // now mult(factors) == add(children)
-
-  return mkSum(std::move(children));
 }
 
 }  // namespace
@@ -505,9 +355,9 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t){
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteMinus(TNode t)
+RewriteResponse ArithRewriter::rewriteSub(TNode t)
 {
-  Assert(t.getKind() == kind::MINUS);
+  Assert(t.getKind() == kind::SUB);
   Assert(t.getNumChildren() == 2);
 
   auto* nm = NodeManager::currentNM();
@@ -517,13 +367,13 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t)
     return RewriteResponse(REWRITE_DONE,
                            nm->mkConstRealOrInt(t.getType(), Rational(0)));
   }
-  return RewriteResponse(
-      REWRITE_AGAIN_FULL,
-      nm->mkNode(Kind::PLUS, t[0], makeUnaryMinusNode(t[1])));
+  return RewriteResponse(REWRITE_AGAIN_FULL,
+                         nm->mkNode(Kind::ADD, t[0], makeUnaryMinusNode(t[1])));
 }
 
-RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
-  Assert(t.getKind() == kind::UMINUS);
+RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
+{
+  Assert(t.getKind() == kind::NEG);
 
   if (t[0].isConst())
   {
@@ -555,11 +405,11 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   }else{
     switch(Kind k = t.getKind()){
       case kind::REAL_ALGEBRAIC_NUMBER: return rewriteRAN(t);
-      case kind::MINUS: return rewriteMinus(t);
-      case kind::UMINUS: return rewriteUMinus(t, true);
+      case kind::SUB: return rewriteSub(t);
+      case kind::NEG: return rewriteNeg(t, true);
       case kind::DIVISION:
       case kind::DIVISION_TOTAL: return rewriteDiv(t, true);
-      case kind::PLUS: return preRewritePlus(t);
+      case kind::ADD: return preRewritePlus(t);
       case kind::MULT:
       case kind::NONLINEAR_MULT: return preRewriteMult(t);
       case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
@@ -582,22 +432,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
-      case kind::ABS:
-        if (t[0].isConst())
-        {
-          const Rational& rat = t[0].getConst<Rational>();
-          if (rat >= 0)
-          {
-            return RewriteResponse(REWRITE_DONE, t[0]);
-          }
-          else
-          {
-            return RewriteResponse(REWRITE_DONE,
-                                   NodeManager::currentNM()->mkConstRealOrInt(
-                                       t[0].getType(), -rat));
-          }
-        }
-        return RewriteResponse(REWRITE_DONE, t);
+      case kind::ABS: return rewriteAbs(t);
       case kind::IS_INTEGER:
       case kind::TO_INTEGER: return RewriteResponse(REWRITE_DONE, t);
       case kind::TO_REAL:
@@ -618,11 +453,11 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     Trace("arith-rewriter") << "postRewriteTerm: " << t << std::endl;
     switch(t.getKind()){
       case kind::REAL_ALGEBRAIC_NUMBER: return rewriteRAN(t);
-      case kind::MINUS: return rewriteMinus(t);
-      case kind::UMINUS: return rewriteUMinus(t, false);
+      case kind::SUB: return rewriteSub(t);
+      case kind::NEG: return rewriteNeg(t, false);
       case kind::DIVISION:
       case kind::DIVISION_TOTAL: return rewriteDiv(t, false);
-      case kind::PLUS: return postRewritePlus(t);
+      case kind::ADD: return postRewritePlus(t);
       case kind::MULT:
       case kind::NONLINEAR_MULT: return postRewriteMult(t);
       case kind::IAND: return postRewriteIAnd(t);
@@ -645,22 +480,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::INTS_MODULUS: return rewriteIntsDivMod(t, false);
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
-      case kind::ABS:
-        if (t[0].isConst())
-        {
-          const Rational& rat = t[0].getConst<Rational>();
-          if (rat >= 0)
-          {
-            return RewriteResponse(REWRITE_DONE, t[0]);
-          }
-          else
-          {
-            return RewriteResponse(REWRITE_DONE,
-                                   NodeManager::currentNM()->mkConstRealOrInt(
-                                       t[0].getType(), -rat));
-          }
-        }
-        return RewriteResponse(REWRITE_DONE, t);
+      case kind::ABS: return rewriteAbs(t);
       case kind::TO_REAL:
       case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
       case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
@@ -718,66 +538,23 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
-RewriteResponse ArithRewriter::preRewriteMult(TNode node)
-{
-  Assert(node.getKind() == kind::MULT
-         || node.getKind() == kind::NONLINEAR_MULT);
-
-  for (const auto& child : node)
-  {
-    if (child.isConst() && child.getConst<Rational>().isZero())
-    {
-      return RewriteResponse(REWRITE_DONE, child);
-    }
-  }
-  return RewriteResponse(REWRITE_DONE, node);
-}
-
-static bool canFlatten(Kind k, TNode t){
-  for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-    TNode child = *i;
-    if(child.getKind() == k){
-      return true;
-    }
-  }
-  return false;
-}
-
-static void flatten(std::vector<TNode>& pb, Kind k, TNode t){
-  if(t.getKind() == k){
-    for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
-      TNode child = *i;
-      if(child.getKind() == k){
-        flatten(pb, k, child);
-      }else{
-        pb.push_back(child);
-      }
-    }
-  }else{
-    pb.push_back(t);
-  }
-}
-
-static Node flatten(Kind k, TNode t){
-  std::vector<TNode> pb;
-  flatten(pb, k, t);
-  Assert(pb.size() >= 2);
-  return NodeManager::currentNM()->mkNode(k, pb);
-}
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
-  Assert(t.getKind() == kind::PLUS);
-
-  if(canFlatten(kind::PLUS, t)){
-    return RewriteResponse(REWRITE_DONE, flatten(kind::PLUS, t));
-  }else{
-    return RewriteResponse(REWRITE_DONE, t);
-  }
+  Assert(t.getKind() == kind::ADD);
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
-  Assert(t.getKind() == kind::PLUS);
+  Assert(t.getKind() == kind::ADD);
   Assert(t.getNumChildren() > 1);
+
+  {
+    Node flat = expr::algorithm::flatten(t);
+    if (flat != t)
+    {
+      return RewriteResponse(REWRITE_AGAIN, flat);
+    }
+  }
 
   Rational rational;
   RealAlgebraicNumber ran;
@@ -841,7 +618,20 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
   }
   return RewriteResponse(
       REWRITE_DONE,
-      nm->mkNode(Kind::PLUS, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+      nm->mkNode(Kind::ADD, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+}
+
+RewriteResponse ArithRewriter::preRewriteMult(TNode node)
+{
+  Assert(node.getKind() == kind::MULT
+         || node.getKind() == kind::NONLINEAR_MULT);
+
+  auto res = getZeroChild(node);
+  if (res)
+  {
+    return RewriteResponse(REWRITE_DONE, *res);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
@@ -954,8 +744,10 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
   }
   else if (t[0] == t[1])
   {
-    // ((_ iand k) x x) ---> x
-    return RewriteResponse(REWRITE_DONE, t[0]);
+    // ((_ iand k) x x) ---> (mod x 2^k)
+    Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+    Node ret = nm->mkNode(kind::INTS_MODULUS, t[0],  twok);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   // simplifications involving constants
   for (unsigned i = 0; i < 2; i++)
@@ -971,8 +763,10 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
     }
     if (t[i].getConst<Rational>().getNumerator() == Integer(2).pow(bsize) - 1)
     {
-      // ((_ iand k) 111...1 y) ---> y
-      return RewriteResponse(REWRITE_DONE, t[i == 0 ? 1 : 0]);
+      // ((_ iand k) 111...1 y) ---> (mod y 2^k)
+      Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+      Node ret = nm->mkNode(kind::INTS_MODULUS, t[1-i],  twok);
+      return RewriteResponse(REWRITE_AGAIN, ret);
     }
   }
   return RewriteResponse(REWRITE_DONE, t);
@@ -998,7 +792,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         return RewriteResponse(REWRITE_DONE, t);
       }
     }
-    else if (t[0].getKind() == kind::PLUS)
+    else if (t[0].getKind() == kind::ADD)
     {
       std::vector<Node> product;
       for (const Node tc : t[0])
@@ -1021,7 +815,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
       }
       else if (rat.sgn() == -1)
       {
-        Node ret = nm->mkNode(kind::UMINUS,
+        Node ret = nm->mkNode(kind::NEG,
                               nm->mkNode(kind::SINE, nm->mkConstReal(-rat)));
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
@@ -1063,29 +857,25 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         Rational r = pi_factor.getConst<Rational>();
         Rational r_abs = r.abs();
         Rational rone = Rational(1);
-        Node ntwo = nm->mkConstInt(Rational(2));
+        Rational rtwo = Rational(2);
         if (r_abs > rone)
         {
           //add/substract 2*pi beyond scope
-          Node ra_div_two = nm->mkNode(
-              kind::INTS_DIVISION, mkRationalNode(r_abs + rone), ntwo);
+          Rational ra_div_two = (r_abs + rone) / rtwo;
           Node new_pi_factor;
-          if( r.sgn()==1 ){
-            new_pi_factor =
-                nm->mkNode(kind::MINUS,
-                           pi_factor,
-                           nm->mkNode(kind::MULT, ntwo, ra_div_two));
-          }else{
+          if (r.sgn() == 1)
+          {
+            new_pi_factor = nm->mkConstReal(r - rtwo * ra_div_two.floor());
+          }
+          else
+          {
             Assert(r.sgn() == -1);
-            new_pi_factor =
-                nm->mkNode(kind::PLUS,
-                           pi_factor,
-                           nm->mkNode(kind::MULT, ntwo, ra_div_two));
+            new_pi_factor = nm->mkConstReal(r + rtwo * ra_div_two.floor());
           }
           Node new_arg = nm->mkNode(kind::MULT, new_pi_factor, pi);
           if (!rem.isNull())
           {
-            new_arg = nm->mkNode(kind::PLUS, new_arg, rem);
+            new_arg = nm->mkNode(kind::ADD, new_arg, rem);
           }
           // sin( 2*n*PI + x ) = sin( x )
           return RewriteResponse(REWRITE_AGAIN_FULL,
@@ -1102,7 +892,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           {
             return RewriteResponse(
                 REWRITE_AGAIN_FULL,
-                nm->mkNode(kind::UMINUS, nm->mkNode(kind::SINE, rem)));
+                nm->mkNode(kind::NEG, nm->mkNode(kind::SINE, rem)));
           }
         }
         else if (rem.isNull())
@@ -1137,7 +927,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
         REWRITE_AGAIN_FULL,
         nm->mkNode(
             kind::SINE,
-            nm->mkNode(kind::MINUS,
+            nm->mkNode(kind::SUB,
                        nm->mkNode(kind::MULT,
                                   nm->mkConstReal(Rational(1) / Rational(2)),
                                   mkPi()),
@@ -1265,6 +1055,36 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
   return RewriteResponse(REWRITE_DONE, t);
 }
 
+RewriteResponse ArithRewriter::rewriteAbs(TNode t)
+{
+  Assert(t.getKind() == Kind::ABS);
+  Assert(t.getNumChildren() == 1);
+
+  if (t[0].isConst())
+  {
+    const Rational& rat = t[0].getConst<Rational>();
+    if (rat >= 0)
+    {
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    return RewriteResponse(
+        REWRITE_DONE,
+        NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+  }
+  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    const RealAlgebraicNumber& ran =
+        t[0].getOperator().getConst<RealAlgebraicNumber>();
+    if (ran >= RealAlgebraicNumber())
+    {
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    }
+    return RewriteResponse(
+        REWRITE_DONE, NodeManager::currentNM()->mkRealAlgebraicNumber(-ran));
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
 RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -1354,7 +1174,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     // (mod x (- c)) ---> (mod x c)
     Node nn = nm->mkNode(k, t[0], nm->mkConstInt(-t[1].getConst<Rational>()));
     Node ret = (k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL)
-                   ? nm->mkNode(kind::UMINUS, nn)
+                   ? nm->mkNode(kind::NEG, nn)
                    : nn;
     return returnRewrite(t, ret, Rewrite::DIV_MOD_PULL_NEG_DEN);
   }
@@ -1385,7 +1205,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       // (mod (mod x c) c) --> (mod x c)
       return returnRewrite(t, t[0], Rewrite::MOD_OVER_MOD);
     }
-    else if (k0 == kind::NONLINEAR_MULT || k0 == kind::MULT || k0 == kind::PLUS)
+    else if (k0 == kind::NONLINEAR_MULT || k0 == kind::MULT || k0 == kind::ADD)
     {
       // can drop all
       std::vector<Node> newChildren;
@@ -1403,7 +1223,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       if (childChanged)
       {
         // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
-        // op is one of { NONLINEAR_MULT, MULT, PLUS }.
+        // op is one of { NONLINEAR_MULT, MULT, ADD }.
         Node ret = nm->mkNode(k0, newChildren);
         ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, ret, t[1]);
         return returnRewrite(t, ret, Rewrite::MOD_CHILD_MOD);
