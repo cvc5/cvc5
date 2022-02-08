@@ -9,22 +9,23 @@ runs:
     - name: Build wheels
       shell: bash
       run: |
+        echo "::group::Create docker image"
         res=$(docker image inspect pycvc5-manylinux2014 ; echo $? ; exit 0)
         if [[ "$res" != 0 ]]; then
           echo "Need to build docker image"
           docker build -q -t pycvc5-manylinux2014 contrib/packaging_python/manylinux2014
         fi
-
-        echo "***** Running in docker now"
+        echo "::endgroup::"
 
         OPTS="production --auto-download"
         for version in 36 37 38 39 310
         do
-          echo "***** Building for $version"
+          echo "::group::Build extension for python $version"
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
             ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/cp${version}*/bin/python "$OPTS"
+          echo "::endgroup::"
         done
 
         find wheel*/
