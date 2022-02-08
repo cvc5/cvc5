@@ -34,7 +34,11 @@ class Rewriter;
  */
 enum RewriteStatus
 {
-  /** The node is fully rewritten (no more rewrites apply) */
+  /**
+   * The node is fully rewritten (no more rewrites apply for the original
+   * kind). If the rewrite changes the kind, the rewriter will apply another
+   * round of rewrites.
+   */
   REWRITE_DONE,
   /** The node may be rewritten further */
   REWRITE_AGAIN,
