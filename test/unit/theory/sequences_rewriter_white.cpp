@@ -229,8 +229,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
 
   Node zero = d_nodeManager->mkConstInt(0);
   Node one = d_nodeManager->mkConstInt(1);
-  // Position that is larger than the maximum value that can be represented with
-  // a uint32_t
+  // Position that is greater than the maximum value that can be represented
+  // with a uint32_t
   Node largePos = d_nodeManager->mkConstInt(
       static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
 
