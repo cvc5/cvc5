@@ -176,7 +176,8 @@ class LazyTreeProofGenerator : public ProofGenerator
   {
     auto& children = getCurrent().d_children;
 
-    auto it = std::remove_if(children.begin(), children.end(), std::forward<F>(f));
+    auto it =
+        std::remove_if(children.begin(), children.end(), std::forward<F>(f));
     children.erase(it, children.end());
   }
 

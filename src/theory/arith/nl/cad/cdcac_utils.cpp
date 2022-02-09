@@ -178,7 +178,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   if (Trace.isOn("cdcac"))
   {
     Trace("cdcac") << "Before pruning:" << std::endl;
-    for (const auto& i: intervals)
+    for (const auto& i : intervals)
     {
       Trace("cdcac") << "\t[" << i.d_id << "] " << i.d_interval << std::endl;
     }
@@ -227,7 +227,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   if (Trace.isOn("cdcac"))
   {
     Trace("cdcac") << "After pruning:" << std::endl;
-    for (const auto& i: intervals)
+    for (const auto& i : intervals)
     {
       Trace("cdcac") << "\t[" << i.d_id << "] " << i.d_interval << std::endl;
     }

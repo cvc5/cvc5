@@ -41,7 +41,8 @@ void LazyTreeProofGenerator::openChild()
 }
 void LazyTreeProofGenerator::closeChild()
 {
-  Trace("proof-ltpg") << "closeChild() start" << std::endl << *this << std::endl;
+  Trace("proof-ltpg") << "closeChild() start" << std::endl
+                      << *this << std::endl;
   Assert(getCurrent().d_rule != PfRule::UNKNOWN);
   d_stack.pop_back();
   Trace("proof-ltpg") << "closeChild() end" << std::endl << *this << std::endl;
