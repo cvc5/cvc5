@@ -81,6 +81,10 @@ void CadicalSolver::init()
 
 CadicalSolver::~CadicalSolver() {}
 
+/**
+ * Terminator class that notifies CaDiCaL to terminate when time limit is
+ * reached (used for time limits specified via --tlimit-per).
+ */
 class TimeLimitTerminator : public CaDiCaL::Terminator
 {
  public:
