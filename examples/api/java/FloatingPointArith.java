@@ -75,7 +75,7 @@ public class FloatingPointArith
       Op op = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 16); // (_ fp.to_sbv 16)
       lhs = solver.mkTerm(op, rtp, d);
       rhs = solver.mkTerm(op, rtn, d);
-      solver.assertFormula(solver.mkTerm(Kind.FLOATINGPOINT_ISN, d));
+      solver.assertFormula(solver.mkTerm(Kind.FLOATINGPOINT_IS_NORMAL, d));
       solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, lhs, rhs)));
 
       r = solver.checkSat(); // result is sat

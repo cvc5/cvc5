@@ -278,10 +278,14 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
   {
-    Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
-    // this should never happen since substitutions should be applied eagerly
-    Assert(false);
-    return false;
+    Node cur = d_substitutions.getSubs(v);
+    if (cur != s)
+    {
+      Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
+      // this should never happen since substitutions should be applied eagerly
+      Assert(false);
+      return false;
+    }
   }
   // if we previously had an approximate bound, the exact bound should be in its
   // range
