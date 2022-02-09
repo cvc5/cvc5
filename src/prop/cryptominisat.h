@@ -98,6 +98,12 @@ class CryptoMinisatSolver : public SatSolver
    */
   void setTimeLimit(ResourceManager* resmgr);
 
+  /**
+   * Set CryptoMiniSat's maximum time limit based on the already elapsed time
+   * of the --tlimit-per limit.
+   */
+  void setMaxTime();
+
   std::unique_ptr<CMSat::SATSolver> d_solver;
   unsigned d_numVariables;
   bool d_okay;

@@ -101,6 +101,15 @@ void CryptoMinisatSolver::setTimeLimit(ResourceManager* resmgr)
   d_resmgr = resmgr;
 }
 
+void CryptoMinisatSolver::setMaxTime()
+{
+  if (d_resmgr)
+  {
+    // Set time limit to remaining number of seconds.
+    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
+  }
+}
+
 ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
                                            bool rhs,
                                            bool removable)
@@ -177,10 +186,7 @@ void CryptoMinisatSolver::interrupt(){
 SatValue CryptoMinisatSolver::solve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   ++d_statistics.d_statCallsToSolve;
-  if (d_resmgr)
-  {
-    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
-  }
+  setMaxTime();
   return toSatLiteralValue(d_solver->solve());
 }
 
@@ -200,10 +206,7 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
     assumpts.push_back(toInternalLit(lit));
   }
   ++d_statistics.d_statCallsToSolve;
-  if (d_resmgr)
-  {
-    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
-  }
+  setMaxTime();
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
