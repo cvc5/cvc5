@@ -30,13 +30,13 @@ MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
 }
 
 SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
-                                                 ResourceManager& resmgr,
+                                                 ResourceManager* resmgr,
                                                  const std::string& name)
 {
 #ifdef CVC5_USE_CRYPTOMINISAT
   CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
   res->init();
-  if (resmgr.limitOn())
+  if (resmgr->limitOn())
   {
     res->setTimeLimit(resmgr);
   }

@@ -333,7 +333,7 @@ void BVSolverBitblast::initSatSolver()
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(),
-          *d_env.getResourceManager(),
+          d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
       break;
     default:

@@ -76,7 +76,8 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry& registry,
     : d_solver(new CMSat::SATSolver()),
       d_numVariables(0),
       d_okay(true),
-      d_statistics(registry, name)
+      d_statistics(registry, name),
+      d_resmgr(nullptr)
 {
 }
 
@@ -95,9 +96,9 @@ void CryptoMinisatSolver::init()
 
 CryptoMinisatSolver::~CryptoMinisatSolver() {}
 
-void CryptoMinisatSolver::setTimeLimit(ResourceManager& resmgr)
+void CryptoMinisatSolver::setTimeLimit(ResourceManager* resmgr)
 {
-  d_solver->set_timeout_all_calls(resmgr.getRemainingTime() / 1000.0);
+  d_resmgr = resmgr;
 }
 
 ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
@@ -176,6 +177,10 @@ void CryptoMinisatSolver::interrupt(){
 SatValue CryptoMinisatSolver::solve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   ++d_statistics.d_statCallsToSolve;
+  if (d_resmgr)
+  {
+    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
+  }
   return toSatLiteralValue(d_solver->solve());
 }
 
@@ -195,6 +200,10 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
     assumpts.push_back(toInternalLit(lit));
   }
   ++d_statistics.d_statCallsToSolve;
+  if (d_resmgr)
+  {
+    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
+  }
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 

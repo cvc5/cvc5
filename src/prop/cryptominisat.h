@@ -96,7 +96,7 @@ class CryptoMinisatSolver : public SatSolver
   /**
    * Set time limit per solve() call.
    */
-  void setTimeLimit(ResourceManager& resmgr);
+  void setTimeLimit(ResourceManager* resmgr);
 
   std::unique_ptr<CMSat::SATSolver> d_solver;
   unsigned d_numVariables;
@@ -105,6 +105,7 @@ class CryptoMinisatSolver : public SatSolver
   SatVariable d_false;
 
   Statistics d_statistics;
+  ResourceManager* d_resmgr;
 };
 
 }  // namespace prop
