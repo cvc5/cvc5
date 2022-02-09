@@ -93,6 +93,11 @@ class CryptoMinisatSolver : public SatSolver
    */
   void init();
 
+  /**
+   * Set time limit per solve() call.
+   */
+  void setTimeLimit(ResourceManager& resmgr);
+
   std::unique_ptr<CMSat::SATSolver> d_solver;
   unsigned d_numVariables;
   bool d_okay;

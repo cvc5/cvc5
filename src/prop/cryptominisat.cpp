@@ -19,10 +19,11 @@
 
 #ifdef CVC5_USE_CRYPTOMINISAT
 
-#include "base/check.h"
-#include "util/statistics_registry.h"
-
 #include <cryptominisat5/cryptominisat.h>
+
+#include "base/check.h"
+#include "util/resource_manager.h"
+#include "util/statistics_registry.h"
 
 namespace cvc5 {
 namespace prop {
@@ -93,6 +94,11 @@ void CryptoMinisatSolver::init()
 }
 
 CryptoMinisatSolver::~CryptoMinisatSolver() {}
+
+void CryptoMinisatSolver::setTimeLimit(ResourceManager& resmgr)
+{
+  d_solver->set_timeout_all_calls(resmgr.getRemainingTime() / 1000.0);
+}
 
 ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
                                            bool rhs,
