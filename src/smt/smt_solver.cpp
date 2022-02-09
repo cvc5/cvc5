@@ -200,11 +200,9 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   catch (const LogicException& e)
   {
     // The exception may have been throw during solving, backtrack to reset the
-    // decision level
+    // decision level to the level expected after this method finishes
     getPropEngine()->resetTrail();
-    d_env.warning() << e.getMessage() << std::endl;
-    result =
-        Result(Result::SAT_UNKNOWN, Result::UnknownExplanation::INCOMPLETE);
+    throw;
   }
 
   // set the filename on the result
