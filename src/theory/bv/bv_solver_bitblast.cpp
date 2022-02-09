@@ -337,7 +337,7 @@ void BVSolverBitblast::initSatSolver()
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
           smtStatisticsRegistry(),
-          *d_env.getResourceManager(),
+          d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
   }
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),

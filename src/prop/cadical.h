@@ -77,7 +77,7 @@ class CadicalSolver : public SatSolver
   /**
    * Set time limit per solve() call.
    */
-  void setTimeLimit(ResourceManager& resmgr);
+  void setTimeLimit(ResourceManager* resmgr);
 
   std::unique_ptr<CaDiCaL::Solver> d_solver;
   std::unique_ptr<CaDiCaL::Terminator> d_terminator;

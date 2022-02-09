@@ -96,9 +96,9 @@ class TimeLimitTerminator : public CaDiCaL::Terminator
   ResourceManager& d_resmgr;
 };
 
-void CadicalSolver::setTimeLimit(ResourceManager& resmgr)
+void CadicalSolver::setTimeLimit(ResourceManager* resmgr)
 {
-  d_terminator.reset(new TimeLimitTerminator(resmgr));
+  d_terminator.reset(new TimeLimitTerminator(*resmgr));
   d_solver->connect_terminator(d_terminator.get());
 }
 
