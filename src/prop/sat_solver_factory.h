@@ -36,6 +36,7 @@ class SatSolverFactory
                                               StatisticsRegistry& registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
+                                        ResourceManager* resmgr,
                                         const std::string& name = "");
 
   static SatSolver* createCadical(StatisticsRegistry& registry,

@@ -332,7 +332,9 @@ void BVSolverBitblast::initSatSolver()
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
+          smtStatisticsRegistry(),
+          d_env.getResourceManager(),
+          "theory::bv::BVSolverBitblast::"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
