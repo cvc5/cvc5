@@ -241,3 +241,12 @@ name   = "Strings Theory"
 [[option.mode.NONE]]
   name = "none"
   help = "do not use array-inspired solver for sequence updates"
+
+[[option]]
+  name       = "stringsModelMaxLength"
+  category   = "regular"
+  long       = "strings-model-max-len=N"
+  type       = "uint64_t"
+  default    = "1000"
+  maximum    = "65536"
+  help       = "The maximum size of string values in models"
