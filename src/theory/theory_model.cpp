@@ -810,8 +810,8 @@ bool TheoryModel::isValue(TNode node)
     return true;
   }
   Kind k = node.getKind();
-  return k == kind::REAL_ALGEBRAIC_NUMBER
-         || k == kind::LAMBDA || k == kind::WITNESS;
+  return k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+         || k == kind::WITNESS;
 }
 
 }  // namespace theory

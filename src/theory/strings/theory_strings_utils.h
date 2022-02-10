@@ -206,7 +206,8 @@ Node mkForallInternal(Node bvl, Node body);
 
 /**
  * Make abstract value for string-like term n whose length is given by len.
- * This is used for constructing models for strings whose lengths are too large to represent in memory.
+ * This is used for constructing models for strings whose lengths are too large
+ * to represent in memory.
  */
 Node mkAbstractStringValueForLength(Node n, Node len);
 
