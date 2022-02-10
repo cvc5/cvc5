@@ -2242,8 +2242,7 @@ bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
 bool Solver::needProof() const
 {
   return isProofEnabled()
-         && options().smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
-         && options().smt.unsatCoresMode != options::UnsatCoresMode::PP_ONLY;
+         && options().smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
 bool Solver::assertionLevelOnly() const
