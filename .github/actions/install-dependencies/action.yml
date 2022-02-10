@@ -71,7 +71,7 @@ runs:
         echo "::endgroup::"
 
     - name: Install software for Python bindings
-      if: inputs.with-python-bindings
+      if: inputs.with-python-bindings == 'true'
       shell: bash
       run: |
         echo "::group::Install software for Python bindings"
@@ -83,7 +83,7 @@ runs:
         echo "::endgroup::"
 
     - name: Install software for Python packaging
-      if: inputs.with-python-packaging
+      if: inputs.with-python-packaging == 'true'
       shell: bash
       run: |
         echo "::group::Install software for Python packaging"
@@ -93,7 +93,7 @@ runs:
         echo "::endgroup::"
     
     - name: Install software for documentation
-      if: inputs.with-documentation
+      if: inputs.with-documentation == 'true'
       shell: bash
       run: |
         echo "::group::Install software for documentation"
