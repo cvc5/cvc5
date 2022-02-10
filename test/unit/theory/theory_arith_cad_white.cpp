@@ -59,9 +59,24 @@ class TestTheoryWhiteArithCAD : public TestSmt
     nodeManager = d_nodeManager;
   }
 
-  Node dummy(int i) const
+  void TearDown() override
   {
-    return d_nodeManager->mkBoundVar("c" + std::to_string(i), d_nodeManager->booleanType());
+    d_dummyCache.clear();
+    TestSmt::TearDown();
+  }
+
+  Node dummy(int i)
+  {
+    auto it = d_dummyCache.find(i);
+    if (it == d_dummyCache.end())
+    {
+      it = d_dummyCache
+               .emplace(i,
+                        d_nodeManager->mkBoundVar("c" + std::to_string(i),
+                                                  d_nodeManager->booleanType()))
+               .first;
+    }
+    return it->second;
   }
 
   Theory::Effort d_level = Theory::EFFORT_FULL;
@@ -69,6 +84,7 @@ class TestTheoryWhiteArithCAD : public TestSmt
   std::unique_ptr<TypeNode> d_intType;
   const Rational d_zero = 0;
   const Rational d_one = 1;
+  std::map<int, Node> d_dummyCache;
 };
 
 poly::AlgebraicNumber get_ran(std::initializer_list<long> init,
