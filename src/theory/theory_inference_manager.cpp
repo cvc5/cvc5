@@ -143,6 +143,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
+  Assert (id != InferenceId::UNKNOWN) << "Must provide an inference id for conflict";
   d_conflictIdStats << id;
   resourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
@@ -280,6 +281,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
       return false;
     }
   }
+  Assert (id != InferenceId::UNKNOWN) << "Must provide an inference id for lemma";
   d_lemmaIdStats << id;
   resourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
@@ -412,6 +414,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  const std::vector<Node>& args,
                                                  ProofGenerator* pg)
 {
+  Assert (iid != InferenceId::UNKNOWN) << "Must provide an inference id for fact";
   d_factIdStats << iid;
   resourceManager()->spendResource(iid);
   // make the node corresponding to the explanation
