@@ -28,6 +28,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
@@ -66,6 +67,16 @@ LfscNodeConverter::LfscNodeConverter()
       getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
   d_typeKindToNodeCons[SEQUENCE_TYPE] =
       getSymbolInternal(FUNCTION_TYPE, setType, "Seq");
+}
+
+Node LfscNodeConverter::preConvert(Node n)
+{
+  // match is not supported in LFSC syntax, we eliminate it at pre-order traversal, which avoids type-checking errors during conversion, since e.g. match case nodes are required but cannot be preserved
+  if (n.getKind()==MATCH)
+  {
+    return theory::datatypes::DatatypesRewriter::expandMatch(n);
+  }
+  return n;
 }
 
 Node LfscNodeConverter::postConvert(Node n)
