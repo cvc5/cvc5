@@ -120,7 +120,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       if (opts.smt.unsatCoresModeWasSetByUser)
       {
-        notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
+        notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
       }
       opts.smt.unsatCores = true;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
@@ -182,6 +182,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       opts.smt.produceProofs = false;
       opts.proof.proofReq = false;
       opts.smt.checkProofs = false;
+      opts.smt.proofMode = options::ProofMode::OFF;
     }
   }
   if (d_isInternalSubsolver)
