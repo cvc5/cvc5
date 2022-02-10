@@ -340,6 +340,7 @@ bool TheoryStrings::collectModelInfoType(
          << ". We only allow strings up to length " << String::maxSize();
       // throw LogicException(ss.str());
       oobIndices.insert(i);
+      lts_values.push_back(Node::null());
     }
     else
     {
@@ -371,10 +372,7 @@ bool TheoryStrings::collectModelInfoType(
   //step 3 : assign values to equivalence classes that are pure variables
   for (size_t i = 0, csize = col.size(); i < csize; i++)
   {
-    if (oobIndices.find(i) != oobIndices.end())
-    {
-      continue;
-    }
+    bool wasOob =  (oobIndices.find(i) != oobIndices.end());
     std::vector< Node > pure_eq;
     Node lenValue = lts_values[i];
     Trace("strings-model") << "Considering (" << col[i].size()
@@ -384,7 +382,7 @@ bool TheoryStrings::collectModelInfoType(
     {
       Trace("strings-model") << "- eqc: " << eqc << std::endl;
       //check if col[i][j] has only variables
-      if (eqc.isConst())
+      if (eqc.isConst() || wasOob)
       {
         processed[eqc] = eqc;
         // Make sure that constants are asserted to the theory model that we
