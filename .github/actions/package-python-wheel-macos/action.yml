@@ -10,7 +10,6 @@ runs:
       if: runner.os == 'macOS'
       with:
         python-version: ${{ inputs.python-version }}
-        cache: 'pip'
     
     - name: Build wheel
       shell: bash
@@ -18,6 +17,8 @@ runs:
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.9
       run: |
+        echo "::group::Build macOS wheel for ${{ inputs.python-version }}"
         ./contrib/packaging_python/mk_clean_wheel.sh python "production --auto-download"
 
         ls *.whl
+        echo "::endgroup::"
