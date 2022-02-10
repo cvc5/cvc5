@@ -3,10 +3,13 @@ name: PyPi packaging
 
 jobs:
   build:
-    runs-on: [ ubuntu-latest, macos-latest ]
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
