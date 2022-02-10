@@ -10,6 +10,8 @@ ENVDIR=env$PYVERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
+which python
+
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
 pip install -q Cython pytest toml scikit-build
