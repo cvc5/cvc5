@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; EXPECT: expecting a sequence
 ; SCRUBBER: grep -o "expecting a sequence"
 ; EXIT: 1
