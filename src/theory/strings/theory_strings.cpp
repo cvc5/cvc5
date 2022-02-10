@@ -315,7 +315,8 @@ bool TheoryStrings::collectModelInfoType(
   std::vector< Node > lts_values;
   std::map<std::size_t, Node> values_used;
   std::vector<Node> len_splits;
-  for( size_t i=0, csize = col.size(); i<csize; i++ ) {
+  for (size_t i = 0, csize = col.size(); i < csize; i++)
+  {
     Trace("strings-model") << "Checking length for {" << col[i];
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     Node len_value;
@@ -336,8 +337,8 @@ bool TheoryStrings::collectModelInfoType(
       // must throw logic exception if we cannot construct the string
       std::stringstream ss;
       ss << "The model was computed to have strings of length " << len_value
-          << ". We only allow strings up to length " << String::maxSize();
-      //throw LogicException(ss.str());
+         << ". We only allow strings up to length " << String::maxSize();
+      // throw LogicException(ss.str());
       oobIndices.insert(i);
     }
     else
@@ -368,8 +369,9 @@ bool TheoryStrings::collectModelInfoType(
     conSeq = &d_asolver.getConnectedSequences();
   }
   //step 3 : assign values to equivalence classes that are pure variables
-  for( size_t i=0, csize = col.size(); i<csize; i++ ) {
-    if (oobIndices.find(i)!=oobIndices.end())
+  for (size_t i = 0, csize = col.size(); i < csize; i++)
+  {
+    if (oobIndices.find(i) != oobIndices.end())
     {
       continue;
     }
