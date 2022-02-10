@@ -26,9 +26,9 @@
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
@@ -71,8 +71,10 @@ LfscNodeConverter::LfscNodeConverter()
 
 Node LfscNodeConverter::preConvert(Node n)
 {
-  // match is not supported in LFSC syntax, we eliminate it at pre-order traversal, which avoids type-checking errors during conversion, since e.g. match case nodes are required but cannot be preserved
-  if (n.getKind()==MATCH)
+  // match is not supported in LFSC syntax, we eliminate it at pre-order
+  // traversal, which avoids type-checking errors during conversion, since e.g.
+  // match case nodes are required but cannot be preserved
+  if (n.getKind() == MATCH)
   {
     return theory::datatypes::DatatypesRewriter::expandMatch(n);
   }
