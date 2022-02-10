@@ -335,12 +335,10 @@ bool TheoryStrings::collectModelInfoType(
     else if (len_value.getConst<Rational>() > String::maxSize())
     {
       // must throw logic exception if we cannot construct the string
-      std::stringstream ss;
-      ss << "The model was computed to have strings of length " << len_value
-         << ". We only allow strings up to length " << String::maxSize();
-      // throw LogicException(ss.str());
+      warning() << "The model was computed to have strings of length " << len_value
+         << ". We only allow strings up to length " << String::maxSize() << std::endl;
       oobIndices.insert(i);
-      lts_values.push_back(Node::null());
+      lts_values.push_back(len_value);
     }
     else
     {
@@ -382,7 +380,7 @@ bool TheoryStrings::collectModelInfoType(
     {
       Trace("strings-model") << "- eqc: " << eqc << std::endl;
       //check if col[i][j] has only variables
-      if (eqc.isConst() || wasOob)
+      if (eqc.isConst())
       {
         processed[eqc] = eqc;
         // Make sure that constants are asserted to the theory model that we
@@ -391,12 +389,23 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
+        Trace("strings-model")
+            << "-> constant" << std::endl;
         continue;
       }
       NormalForm& nfe = d_csolver.getNormalForm(eqc);
       if (nfe.d_nf.size() != 1)
       {
         // will be assigned via a concatenation of normal form eqc
+        continue;
+      }
+      // check if the length is too big to represent
+      if (wasOob)
+      {
+        processed[eqc] = eqc;
+        Trace("strings-model")
+            << "-> length out of bounds" << std::endl;
+        Assert (!lenValue.isNull() && lenValue.isConst());
         continue;
       }
       // ensure we have decided on length value at this point
