@@ -74,6 +74,7 @@ runs:
         python-version: 'pypy-3.8'
 
     - name: Upload wheels
+      if: inputs.twine-token != ''
       shell: bash
       env:
         TWINE_USERNAME: __token__
