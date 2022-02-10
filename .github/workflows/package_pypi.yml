@@ -16,9 +16,18 @@ jobs:
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
+      if: runner.os == 'Linux'
       with:
         with-documentation: false
         with-python-bindings: false
+        with-python-packaging: true
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      if: runner.os == 'macOS'
+      with:
+        with-documentation: false
+        with-python-bindings: true
         with-python-packaging: true
 
     - name: Setup caches
