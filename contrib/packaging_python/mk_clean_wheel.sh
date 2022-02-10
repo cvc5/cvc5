@@ -2,7 +2,7 @@
 
 PYTHONBIN=$1
 CONFIG="$2"
-PYVERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
+PYVERSION=$($PYTHONBIN -c "import sys; print(sys.implementation.name + sys.version.split()[0])")
 
 # setup and activate venv
 echo "Making venv with $PYTHONBIN"
