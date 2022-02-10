@@ -403,8 +403,17 @@ bool TheoryStrings::collectModelInfoType(
       if (wasOob)
       {
         processed[eqc] = eqc;
-        Trace("strings-model") << "-> length out of bounds" << std::endl;
         Assert(!lenValue.isNull() && lenValue.isConst());
+        // make the abstract value (witness ((x String)) (= (str.len x) lenValue))
+        Node w = utils::mkAbstractStringValueForLength(eqc, lenValue);
+        Trace("strings-model") << "-> length out of bounds, assign abstract " << w << std::endl;
+        if (!m->assertEquality(eqc, w, true))
+        {
+          Unreachable()
+              << "TheoryStrings::collectModelInfoType: Inconsistent abstract equality"
+              << std::endl;
+          return false;
+        }
         continue;
       }
       // ensure we have decided on length value at this point
