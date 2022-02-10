@@ -18,13 +18,13 @@ runs:
         echo "::endgroup::"
 
         OPTS="production --auto-download"
-        for version in 36 37 38 39 310
+        for version in cp36 cp37 cp38 cp39 cp310 pp37 pp38
         do
           echo "::group::Build extension for python $version"
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
-            ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/cp${version}*/bin/python "$OPTS"
+            ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/${version}*/bin/python "$OPTS"
           echo "::endgroup::"
         done
 
