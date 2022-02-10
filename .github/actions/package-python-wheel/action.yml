@@ -35,43 +35,43 @@ runs:
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: 3.6
+        python-version: '3.6'
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: 3.7
+        python-version: '3.7'
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: 3.8
+        python-version: '3.8'
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: 3.9
+        python-version: '3.9'
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: 3.10
+        python-version: '3.10'
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: pypy-3.7
+        python-version: 'pypy-3.7'
         
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
-        python-version: pypy-3.8
+        python-version: 'pypy-3.8'
 
     - name: Upload wheels
       shell: bash
