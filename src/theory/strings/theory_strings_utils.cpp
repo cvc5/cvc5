@@ -427,6 +427,7 @@ Node mkAbstractStringValueForLength(Node n, Node len)
   Node v = bvm->mkBoundVar<StringValueForLengthVarAttribute>(
       cacheVal, "s", n.getType());
   Node pred = nm->mkNode(STRING_LENGTH, v).eqNode(len);
+  // return (witness ((v String)) (= (str.len v) len))
   return nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, v), pred);
 }
 
