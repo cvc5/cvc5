@@ -6,7 +6,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Build wheels
+    - name: Build wheels for Linux
+      if: ${{ runner.os == "Linux" }}
       shell: bash
       run: |
         echo "::group::Create docker image"
@@ -29,6 +30,12 @@ runs:
         done
 
         ls *.whl
+      
+    - name: Build wheels for macOS
+      if: ${{ runner.os == "macOS" }}
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 3.6
 
     - name: Upload wheels
       shell: bash
