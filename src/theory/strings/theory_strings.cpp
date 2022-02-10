@@ -334,7 +334,7 @@ bool TheoryStrings::collectModelInfoType(
     }
     else if (len_value.getConst<Rational>() > String::maxSize())
     {
-      // must throw logic exception if we cannot construct the string
+      // note that we give a warning instead of throwing logic exception if we cannot construct the string, these are then assigned witness terms below
       warning() << "The model was computed to have strings of length "
                 << len_value << ". We only allow strings up to length "
                 << String::maxSize() << std::endl;
