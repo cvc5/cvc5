@@ -254,7 +254,7 @@ Node DatatypesRewriter::expandMatch(Node in)
     }
     else
     {
-      AlwaysAssert(false);
+      AlwaysAssert(false) << "Bad case for match term";
     }
     size_t cindex = 0;
     // cons is null in the default case

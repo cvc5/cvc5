@@ -138,6 +138,8 @@
 ; "shared selector" for (sort, index), see Reynolds et al IJCAR 2018.
 (declare sel (! s sort (! z mpz term)))
 
+;; ---- Floating points
+
 ;; ---- Strings
 
 ; In strings, values (i.e. word constants) are represented as null-terminated
