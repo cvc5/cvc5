@@ -283,6 +283,8 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_2)
   EXPECT_TRUE(!cover.empty());
   auto nodes = cad::collectConstraints(cover);
   std::vector<Node> ref{dummy(1), dummy(2), dummy(3), dummy(4), dummy(5)};
+  std::sort(nodes.begin(), nodes.end());
+  std::sort(ref.begin(), ref.end());
   EXPECT_EQ(nodes, ref);
 }
 
