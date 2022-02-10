@@ -48,7 +48,31 @@ runs:
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: 3.8
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 3.9
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 3.10
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: pypy-3.7
         
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: pypy-3.8
+
     - name: Upload wheels
       shell: bash
       env:
