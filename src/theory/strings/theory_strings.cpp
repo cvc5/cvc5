@@ -332,14 +332,14 @@ bool TheoryStrings::collectModelInfoType(
     {
       lts_values.push_back(Node::null());
     }
-    else if (len_value.getConst<Rational>() > String::maxSize())
+    else if (len_value.getConst<Rational>() > options().strings.stringsModelMaxLength)
     {
       // note that we give a warning instead of throwing logic exception if we
       // cannot construct the string, these are then assigned witness terms
       // below
       warning() << "The model was computed to have strings of length "
-                << len_value << ". We only allow strings up to length "
-                << String::maxSize() << std::endl;
+                << len_value << ". Based on the current value of option --strings-model-max-len, we only allow strings up to length "
+                << options().strings.stringsModelMaxLength << std::endl;
       oobIndices.insert(i);
       lts_values.push_back(len_value);
     }
