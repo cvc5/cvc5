@@ -335,8 +335,9 @@ bool TheoryStrings::collectModelInfoType(
     else if (len_value.getConst<Rational>() > String::maxSize())
     {
       // must throw logic exception if we cannot construct the string
-      warning() << "The model was computed to have strings of length " << len_value
-         << ". We only allow strings up to length " << String::maxSize() << std::endl;
+      warning() << "The model was computed to have strings of length "
+                << len_value << ". We only allow strings up to length "
+                << String::maxSize() << std::endl;
       oobIndices.insert(i);
       lts_values.push_back(len_value);
     }
@@ -370,7 +371,7 @@ bool TheoryStrings::collectModelInfoType(
   //step 3 : assign values to equivalence classes that are pure variables
   for (size_t i = 0, csize = col.size(); i < csize; i++)
   {
-    bool wasOob =  (oobIndices.find(i) != oobIndices.end());
+    bool wasOob = (oobIndices.find(i) != oobIndices.end());
     std::vector< Node > pure_eq;
     Node lenValue = lts_values[i];
     Trace("strings-model") << "Considering (" << col[i].size()
@@ -389,8 +390,7 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
-        Trace("strings-model")
-            << "-> constant" << std::endl;
+        Trace("strings-model") << "-> constant" << std::endl;
         continue;
       }
       NormalForm& nfe = d_csolver.getNormalForm(eqc);
@@ -403,9 +403,8 @@ bool TheoryStrings::collectModelInfoType(
       if (wasOob)
       {
         processed[eqc] = eqc;
-        Trace("strings-model")
-            << "-> length out of bounds" << std::endl;
-        Assert (!lenValue.isNull() && lenValue.isConst());
+        Trace("strings-model") << "-> length out of bounds" << std::endl;
+        Assert(!lenValue.isNull() && lenValue.isConst());
         continue;
       }
       // ensure we have decided on length value at this point
