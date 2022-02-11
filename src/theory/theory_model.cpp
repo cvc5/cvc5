@@ -814,7 +814,7 @@ struct IsQuasiValueComputedTag
 typedef expr::Attribute<IsQuasiValueTag, bool> IsQuasiValueAttr;
 typedef expr::Attribute<IsQuasiValueComputedTag, bool> IsQuasiValueComputedAttr;
 
-bool TheoryModel::isValue(TNode n)
+bool TheoryModel::isValue(TNode n) const
 {
   if (!n.getAttribute(IsQuasiValueComputedAttr()))
   {
@@ -829,10 +829,12 @@ bool TheoryModel::isValue(TNode n)
       if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
           || k == kind::WITNESS)
       {
+        // we are a value if we are one of the above kinds
         isQv = true;
       }
       else if (n.getNumChildren() > 0 && rewrite(n)==n)
       {
+        // if in rewritten form
         isQv = true;
         for (TNode nc : n)
         {
