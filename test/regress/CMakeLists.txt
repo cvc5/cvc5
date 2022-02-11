@@ -1127,6 +1127,7 @@ set(regress_0_tests
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/rev.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
+  regress0/seq/shared-term-registration.smt2
   regress0/seq/array/array1.smt2
   regress0/seq/array/array2.smt2
   regress0/seq/array/array3.smt2

@@ -80,6 +80,7 @@ class TheoryStrings : public Theory {
   bool needsEqualityEngine(EeSetupInfo& esi) override;
   /** finish initialization */
   void finishInit() override;
+  void notifySharedTerm(TNode n) override;
   //--------------------------------- end initialization
   /** Identify this theory */
   std::string identify() const override;

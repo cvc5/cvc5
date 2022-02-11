@@ -101,6 +101,15 @@ class TermRegistry : protected EnvObj
    * memberships).
    */
   void preRegisterTerm(TNode n);
+  /**
+   * Register a term with the string theory's equality engine and updates the
+   * list of function application that are relevant to theory combination. This
+   * method is called when terms become relevant (either terms within facts
+   * asserted to the theory or shared terms).
+   *
+   * @param n The relevant term
+   */
+  void notifyRelevant(TNode n);
   /** Register term
    *
    * This performs SAT-context-independent registration for a term n, which
@@ -258,6 +267,10 @@ class TermRegistry : protected EnvObj
   NodeSet d_inputVars;
   /** The user-context dependent cache of terms that have been preregistered */
   NodeSet d_preregisteredTerms;
+  /**
+   * The user-context dependent cache of terms that have been marked relevant
+   */
+  NodeSet d_relevantTerms;
   /** The user-context dependent cache of terms that have been registered */
   NodeSet d_registeredTerms;
   /** The types that we have preregistered */

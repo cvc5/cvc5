@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/kind.h"
+#include "expr/node_traversal.h"
 #include "expr/sequence.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -157,6 +158,12 @@ void TheoryStrings::finishInit()
 
   // memberships are not relevant for model building
   d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
+}
+
+void TheoryStrings::notifySharedTerm(TNode n)
+{
+  d_termReg.notifyRelevant(n);
+  d_extTheory.registerTerm(n);
 }
 
 std::string TheoryStrings::identify() const
@@ -781,15 +788,25 @@ void TheoryStrings::preRegisterTerm(TNode n)
   Trace("strings-preregister")
       << "TheoryStrings::preRegisterTerm: " << n << std::endl;
   d_termReg.preRegisterTerm(n);
-  // Register the term with the extended theory. Notice we do not recurse on
-  // this term here since preRegisterTerm is already called recursively on all
-  // subterms in preregistered literals.
-  d_extTheory.registerTerm(n);
 }
 
 bool TheoryStrings::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
+  if (!isInternal)
+  {
+    for (const TNode& n : NodeDfsIterable(atom, VisitOrder::POSTORDER))
+    {
+      Kind k = n.getKind();
+      if (kindToTheoryId(k) == THEORY_STRINGS)
+      {
+        d_termReg.notifyRelevant(n);
+        // Register the term with the extended theory
+        d_extTheory.registerTerm(n);
+      }
+    }
+  }
+
   if (atom.getKind() == EQUAL)
   {
     // this is only required for internal facts, others are already registered
