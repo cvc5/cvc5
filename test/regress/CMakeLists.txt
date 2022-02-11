@@ -1145,6 +1145,7 @@ set(regress_0_tests
   regress0/seq/seq-ex5.smt2
   regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
+  regress0/seq/seq-nth-type-check.smt2
   regress0/seq/seq-nth-uf-z.smt2
   regress0/seq/seq-nth-uf.smt2
   regress0/seq/seq-nth-undef-unsat.smt2
