@@ -14,6 +14,7 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
@@ -24,7 +25,6 @@
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
-#include "expr/attribute.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -826,13 +826,12 @@ bool TheoryModel::isValue(TNode node)
     else
     {
       Kind k = node.getKind();
-      if (
-          k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+      if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
           || k == kind::WITNESS)
       {
         isQv = true;
       }
-      else if (node.getNumChildren()>0)
+      else if (node.getNumChildren() > 0)
       {
         isQv = true;
         for (TNode nc : node)
