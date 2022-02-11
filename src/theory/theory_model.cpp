@@ -804,19 +804,19 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-struct IsQuasiValueTag
+struct IsModelValueTag
 {
 };
-struct IsQuasiValueComputedTag
+struct IsModelValueComputedTag
 {
 };
 /** Attribute true for expressions that are quasi-values */
-typedef expr::Attribute<IsQuasiValueTag, bool> IsQuasiValueAttr;
-typedef expr::Attribute<IsQuasiValueComputedTag, bool> IsQuasiValueComputedAttr;
+typedef expr::Attribute<IsModelValueTag, bool> IsModelValueAttr;
+typedef expr::Attribute<IsModelValueComputedTag, bool> IsModelValueComputedAttr;
 
 bool TheoryModel::isValue(TNode n) const
 {
-  if (!n.getAttribute(IsQuasiValueComputedAttr()))
+  if (!n.getAttribute(IsModelValueComputedAttr()))
   {
     bool isQv = false;
     if (n.isConst())
@@ -834,7 +834,7 @@ bool TheoryModel::isValue(TNode n) const
       }
       else if (n.getNumChildren() > 0 && rewrite(n)==n)
       {
-        // if in rewritten form
+        // note that we must be in rewritten form
         isQv = true;
         for (TNode nc : n)
         {
@@ -850,11 +850,11 @@ bool TheoryModel::isValue(TNode n) const
         }
       }
     }
-    n.setAttribute(IsQuasiValueAttr(), isQv);
-    n.setAttribute(IsQuasiValueComputedAttr(), true);
+    n.setAttribute(IsModelValueAttr(), isQv);
+    n.setAttribute(IsModelValueComputedAttr(), true);
     return isQv;
   }
-  return n.getAttribute(IsQuasiValueAttr());
+  return n.getAttribute(IsModelValueAttr());
 }
 
 }  // namespace theory
