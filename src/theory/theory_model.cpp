@@ -831,7 +831,7 @@ bool TheoryModel::isValue(TNode n)
       {
         isQv = true;
       }
-      else if (n.getNumChildren() > 0)
+      else if (n.getNumChildren() > 0 && rewrite(n)==n)
       {
         isQv = true;
         for (TNode nc : n)
