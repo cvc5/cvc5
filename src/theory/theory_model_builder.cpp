@@ -1022,6 +1022,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     }
   }
 
+#ifdef CVC5_ASSERTIONS
   // Assert that all representatives have been converted to constants
   for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it)
   {
@@ -1030,9 +1031,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
                              << ", repSet = " << repSet << endl;
-      AlwaysAssert(false);
+      Assert(false);
     }
   }
+#endif /* CVC5_ASSERTIONS */
 
   Trace("model-builder") << "Copy representatives to model..." << std::endl;
   tm->d_reps.clear();
