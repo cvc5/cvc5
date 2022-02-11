@@ -24,6 +24,7 @@
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
+#include "expr/attribute.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -803,15 +804,56 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
+struct IsQuasiValueTag
+{
+};
+struct IsQuasiValueComputedTag
+{
+};
+/** Attribute true for expressions that are quasi-values */
+typedef expr::Attribute<IsQuasiValueTag, bool> IsQuasiValueAttr;
+typedef expr::Attribute<IsQuasiValueComputedTag, bool> IsQuasiValueComputedAttr;
+
 bool TheoryModel::isValue(TNode node)
 {
-  if (node.isConst())
+  if (!node.getAttribute(IsQuasiValueComputedAttr()))
   {
-    return true;
+    bool isQv = false;
+    if (node.isConst())
+    {
+      isQv = true;
+    }
+    else
+    {
+      Kind k = node.getKind();
+      if (
+          k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+          || k == kind::WITNESS)
+      {
+        isQv = true;
+      }
+      else if (node.getNumChildren()>0)
+      {
+        isQv = true;
+        for (TNode nc : node)
+        {
+          if (!isQuasiValue(nc))
+          {
+            isQv = false;
+            break;
+          }
+        }
+        if (isQv && n.hasOperator())
+        {
+          isQv = isQuasiValue(n.getOperator());
+        }
+      }
+    }
+    n.setAttribute(IsQuasiValueAttr(), isQv);
+    n.setAttribute(IsQuasiValueComputedAttr(), true);
+    return isQv;
   }
-  Kind k = node.getKind();
-  return k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-         || k == kind::WITNESS;
+  return n.getAttribute(IsQuasiValueAttr());
 }
 
 }  // namespace theory
