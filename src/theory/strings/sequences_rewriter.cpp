@@ -1755,9 +1755,10 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     size_t len = Word::getLength(s);
     if (i.getConst<Rational>().sgn() != -1)
     {
-      size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
-      if (pos < len)
+      Integer posInt = i.getConst<Rational>().getNumerator();
+      if (posInt.fitsUnsignedInt() && posInt < Integer(len))
       {
+        size_t pos = posInt.toUnsignedInt();
         std::vector<Node> elements = s.getConst<Sequence>().getVec();
         const Node& ret = elements[pos];
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);

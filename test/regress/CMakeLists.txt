@@ -661,6 +661,7 @@ set(regress_0_tests
   regress0/ho/ho-matching-nested-app.smt2
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
+  regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
@@ -1145,6 +1146,7 @@ set(regress_0_tests
   regress0/seq/seq-ex5.smt2
   regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
+  regress0/seq/seq-nth-type-check.smt2
   regress0/seq/seq-nth-uf-z.smt2
   regress0/seq/seq-nth-uf.smt2
   regress0/seq/seq-nth-undef-unsat.smt2
@@ -1296,6 +1298,7 @@ set(regress_0_tests
   regress0/strings/issue6643-ctn-decompose-conflict.smt2
   regress0/strings/issue6681-split-eq-strip-l.smt2
   regress0/strings/issue6834-str-eq-const-nhomog.smt2
+  regress0/strings/issue7974-incomplete-neg-member.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1925,6 +1928,7 @@ set(regress_1_tests
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
   regress1/proj-issue175.smt2
+  regress1/proj-issue406-diff-unsat-core.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -2344,6 +2348,7 @@ set(regress_1_tests
   regress1/strings/instance1079-re-loop-cong.smt2
   regress1/strings/instance2984-null-term.smt2
   regress1/strings/instance3303-delta.smt2
+  regress1/strings/instance6561-dd-concat-unify-char.smt2
   regress1/strings/instance7075-delta.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue1684-regex.smt2
