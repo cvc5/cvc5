@@ -768,6 +768,8 @@ Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                       bool isEntailmentCheck)
 {
+  Result r;
+
   try
   {
     SolverEngineScope smts(this);
@@ -777,7 +779,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
     // check the satisfiability with the solver object
-    Result r = d_smtSolver->checkSatisfiability(
+    r = d_smtSolver->checkSatisfiability(
         *d_asserts.get(), assumptions, isEntailmentCheck);
 
     Trace("smt") << "SolverEngine::"
@@ -809,13 +811,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkUnsatCore();
       }
     }
-    if (d_env->getOptions().base.statisticsEveryQuery)
-    {
-      printStatisticsDiff();
-    }
-    return r;
   }
-  catch (UnsafeInterruptException& e)
+  catch (const UnsafeInterruptException& e)
   {
     AlwaysAssert(getResourceManager()->out());
     // Notice that we do not notify the state of this result. If we wanted to
@@ -826,13 +823,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
 
-    if (d_env->getOptions().base.statisticsEveryQuery)
-    {
-      printStatisticsDiff();
-    }
-    return Result(
-        Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
+    r = Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
   }
+
+  if (d_env->getOptions().base.statisticsEveryQuery)
+  {
+    printStatisticsDiff();
+  }
+  return r;
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)

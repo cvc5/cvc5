@@ -306,6 +306,8 @@ bool TheoryStrings::collectModelInfoType(
   d_state.separateByLength(repVec, colT, ltsT);
   const std::vector<std::vector<Node> >& col = colT[tn];
   const std::vector<Node>& lts = ltsT[tn];
+  // indices in col that have lengths that are too big to represent
+  std::unordered_set<size_t> oobIndices;
 
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
@@ -313,14 +315,9 @@ bool TheoryStrings::collectModelInfoType(
   std::vector< Node > lts_values;
   std::map<std::size_t, Node> values_used;
   std::vector<Node> len_splits;
-  for( unsigned i=0; i<col.size(); i++ ) {
-    Trace("strings-model") << "Checking length for {";
-    for( unsigned j=0; j<col[i].size(); j++ ) {
-      if( j>0 ) {
-        Trace("strings-model") << ", ";
-      }
-      Trace("strings-model") << col[i][j];
-    }
+  for (size_t i = 0, csize = col.size(); i < csize; i++)
+  {
+    Trace("strings-model") << "Checking length for {" << col[i];
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     Node len_value;
     if( lts[i].isConst() ) {
@@ -335,16 +332,19 @@ bool TheoryStrings::collectModelInfoType(
     {
       lts_values.push_back(Node::null());
     }
+    else if (len_value.getConst<Rational>() > options().strings.stringsModelMaxLength)
+    {
+      // note that we give a warning instead of throwing logic exception if we
+      // cannot construct the string, these are then assigned witness terms
+      // below
+      warning() << "The model was computed to have strings of length "
+                << len_value << ". Based on the current value of option --strings-model-max-len, we only allow strings up to length "
+                << options().strings.stringsModelMaxLength << std::endl;
+      oobIndices.insert(i);
+      lts_values.push_back(len_value);
+    }
     else
     {
-      // must throw logic exception if we cannot construct the string
-      if (len_value.getConst<Rational>() > String::maxSize())
-      {
-        std::stringstream ss;
-        ss << "The model was computed to have strings of length " << len_value
-           << ". We only allow strings up to length " << String::maxSize();
-        throw LogicException(ss.str());
-      }
       std::size_t lvalue =
           len_value.getConst<Rational>().getNumerator().toUnsignedInt();
       auto itvu = values_used.find(lvalue);
@@ -371,7 +371,9 @@ bool TheoryStrings::collectModelInfoType(
     conSeq = &d_asolver.getConnectedSequences();
   }
   //step 3 : assign values to equivalence classes that are pure variables
-  for( unsigned i=0; i<col.size(); i++ ){
+  for (size_t i = 0, csize = col.size(); i < csize; i++)
+  {
+    bool wasOob = (oobIndices.find(i) != oobIndices.end());
     std::vector< Node > pure_eq;
     Node lenValue = lts_values[i];
     Trace("strings-model") << "Considering (" << col[i].size()
@@ -390,12 +392,32 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
+        Trace("strings-model") << "-> constant" << std::endl;
         continue;
       }
       NormalForm& nfe = d_csolver.getNormalForm(eqc);
       if (nfe.d_nf.size() != 1)
       {
         // will be assigned via a concatenation of normal form eqc
+        continue;
+      }
+      // check if the length is too big to represent
+      if (wasOob)
+      {
+        processed[eqc] = eqc;
+        Assert(!lenValue.isNull() && lenValue.isConst());
+        // make the abstract value (witness ((x String)) (= (str.len x)
+        // lenValue))
+        Node w = utils::mkAbstractStringValueForLength(eqc, lenValue);
+        Trace("strings-model")
+            << "-> length out of bounds, assign abstract " << w << std::endl;
+        if (!m->assertEquality(eqc, w, true))
+        {
+          Unreachable() << "TheoryStrings::collectModelInfoType: Inconsistent "
+                           "abstract equality"
+                        << std::endl;
+          return false;
+        }
         continue;
       }
       // ensure we have decided on length value at this point
