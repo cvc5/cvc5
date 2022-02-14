@@ -3012,7 +3012,8 @@ std::vector<Node> Term::termVectorToNodes(const std::vector<Term>& terms)
   return res;
 }
 
-std::vector<Term> Term::nodeVectorToTerms(const Solver* slv, const std::vector<Node>& nodes)
+std::vector<Term> Term::nodeVectorToTerms(const Solver* slv,
+                                          const std::vector<Node>& nodes)
 {
   std::vector<Term> res;
   for (const Node& n : nodes)
@@ -7286,12 +7287,13 @@ std::vector<Term> Solver::getLearnedLiterals(void) const
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT
                              || d_slv->getSmtMode() == SmtMode::SAT
                              || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
-      << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN response.";
+      << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
+         "response.";
   //////// all checks before this line
   std::vector<Node> lits = d_slv->getLearnedLiterals();
   return Term::nodeVectorToTerms(this, lits);
   ////////
- CVC5_API_TRY_CATCH_END;
+  CVC5_API_TRY_CATCH_END;
 }
 
 Term Solver::getValue(const Term& term) const

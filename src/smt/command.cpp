@@ -2626,8 +2626,8 @@ void GetLearnedLiteralsCommand::printResult(std::ostream& out) const
   }
 }
 
-const std::map<api::Term, api::Term>& GetLearnedLiteralsCommand::getDifficultyMap()
-    const
+const std::map<api::Term, api::Term>&
+GetLearnedLiteralsCommand::getDifficultyMap() const
 {
   return d_result;
 }
@@ -2645,9 +2645,9 @@ std::string GetLearnedLiteralsCommand::getCommandName() const
 }
 
 void GetLearnedLiteralsCommand::toStream(std::ostream& out,
-                                    int toDepth,
-                                    size_t dag,
-                                    Language language) const
+                                         int toDepth,
+                                         size_t dag,
+                                         Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetLearnedLiterals(out);
 }
