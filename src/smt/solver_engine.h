@@ -273,7 +273,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Get the list of top-level learned literals.
-   * 
+   *
    * TODO (wishue #104): implement for different modes
    */
   std::vector<Node> getLearnedLiterals();

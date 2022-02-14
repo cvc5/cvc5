@@ -4184,7 +4184,8 @@ class CVC5_EXPORT Solver
   /**
    * Get learned literals
    *
-   * @return a list of literals that were learned at top-level. In other words, these are literals that are entailed by the current set of assertions.
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
    */
   std::vector<Term> getLearnedLiterals() const;
 
