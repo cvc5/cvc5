@@ -1241,7 +1241,11 @@ std::vector<Node> SolverEngine::getLearnedLiterals()
 {
   Trace("smt") << "SMT getLearnedLiterals()" << std::endl;
   SolverEngineScope smts(this);
-  finishInit();
+  // note that the default mode for learned literals is via the prop engine,
+  // although other modes could use the preprocessor
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getLearnedZeroLevelLiterals();
 }
 
 void SolverEngine::checkProof()
