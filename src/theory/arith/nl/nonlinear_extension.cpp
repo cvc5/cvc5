@@ -277,11 +277,9 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     d_approximations.clear();
-    d_witnesses.clear();
     // modify the model values
     d_model.getModelValueRepair(arithModel,
                                 d_approximations,
-                                d_witnesses,
                                 options().smt.modelWitnessValue);
     for (auto& am : arithModel)
     {
@@ -304,10 +302,6 @@ Node NonlinearExtension::getModelValue(TNode var) const
     }
     return Node::null();
   }
-  if (auto it = d_witnesses.find(var); it != d_witnesses.end())
-  {
-    return it->second;
-  }
   return Node::null();
 }
 
@@ -324,11 +318,6 @@ bool NonlinearExtension::assertModel(TheoryModel* tm, TNode var) const
     {
       tm->recordApproximation(var, approx.first, approx.second);
     }
-    return true;
-  }
-  if (auto it = d_witnesses.find(var); it != d_witnesses.end())
-  {
-    tm->recordApproximation(var, it->second);
     return true;
   }
   return false;
