@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic QF_UFNRAT)
 (set-info :status sat)
 (declare-fun b (Real) Real)
