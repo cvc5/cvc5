@@ -2626,8 +2626,8 @@ void GetLearnedLiteralsCommand::printResult(std::ostream& out) const
   }
 }
 
-const std::vector<api::Term>&
-GetLearnedLiteralsCommand::getLearnedLiterals() const
+const std::vector<api::Term>& GetLearnedLiteralsCommand::getLearnedLiterals()
+    const
 {
   return d_result;
 }

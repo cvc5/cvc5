@@ -1773,7 +1773,7 @@ public class Solver implements IPointer, AutoCloseable
     long[] retPointers = getLearnedLiterals(pointer);
     return Utils.getTerms(this, retPointers);
   }
-  
+
   private native long[] getLearnedLiterals(long pointer);
 
   /**

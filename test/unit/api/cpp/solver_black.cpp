@@ -1725,7 +1725,8 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
   Term zero = d_solver.mkInteger(0);
   Term ten = d_solver.mkInteger(10);
   Term f0 = d_solver.mkTerm(GEQ, x, ten);
-  Term f1 = d_solver.mkTerm(OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
+  Term f1 = d_solver.mkTerm(
+      OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
   d_solver.assertFormula(f0);
   d_solver.assertFormula(f1);
   d_solver.checkSat();
