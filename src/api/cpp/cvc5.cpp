@@ -3012,6 +3012,16 @@ std::vector<Node> Term::termVectorToNodes(const std::vector<Term>& terms)
   return res;
 }
 
+std::vector<Term> Term::nodeVectorToTerms(const Solver* slv, const std::vector<Node>& nodes)
+{
+  std::vector<Term> res;
+  for (const Node& n : nodes)
+  {
+    res.push_back(Term(slv, n));
+  }
+  return res;
+}
+
 bool Term::isReal32Value() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -6963,12 +6973,7 @@ std::vector<Term> Solver::getAssertions(void) const
   /* Can not use
    *   return std::vector<Term>(assertions.begin(), assertions.end());
    * here since constructor is private */
-  std::vector<Term> res;
-  for (const Node& e : assertions)
-  {
-    res.push_back(Term(this, e));
-  }
-  return res;
+  return Term::nodeVectorToTerms(this, assertions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7272,7 +7277,7 @@ std::string Solver::getProof(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<Term> getLearnedLiterals(void) const
+std::vector<Term> Solver::getLearnedLiterals(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceLearedLiterals)
@@ -7283,7 +7288,8 @@ std::vector<Term> getLearnedLiterals(void) const
                              || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
       << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
          "response.";
-  std::vector<Node> llits = d_slv->getLearnedLiterals();
+  std::vector<Node> lits = d_slv->getLearnedLiterals();
+  return Term::nodeVectorToTerms(this, lits);
   return CVC5_API_TRY_CATCH_END;
 }
 

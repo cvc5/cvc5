@@ -1585,6 +1585,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(
+      const Solver* slv, const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
