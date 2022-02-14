@@ -2590,7 +2590,7 @@ void GetDifficultyCommand::toStream(std::ostream& out,
 /* class GetLearnedLiteralsCommand */
 /* -------------------------------------------------------------------------- */
 
-GetLearnedLiteralsCommand::GetLearnedLiteralsCommand() : d_sm(nullptr) {}
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand() {}
 void GetLearnedLiteralsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
@@ -2626,8 +2626,8 @@ void GetLearnedLiteralsCommand::printResult(std::ostream& out) const
   }
 }
 
-const std::map<api::Term, api::Term>&
-GetLearnedLiteralsCommand::getDifficultyMap() const
+const std::vector<api::Term>&
+GetLearnedLiteralsCommand::getLearnedLiterals() const
 {
   return d_result;
 }

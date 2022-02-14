@@ -1761,6 +1761,20 @@ public class Solver implements IPointer, AutoCloseable
   // TODO: void echo(std::ostream& out, String  str)
 
   /**
+   * Get a list of literals that are entailed by the current set of assertions
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals )
+   * }
+   * @return the list of learned literals
+   */
+  public Term[] getLearnedLiterals()
+  {
+    long[] retPointers = getLearnedLiterals(pointer);
+    return Utils.getTerms(this, retPointers);
+  }
+
+  /**
    * Get the list of asserted formulas.
    * SMT-LIB:
    * {@code
