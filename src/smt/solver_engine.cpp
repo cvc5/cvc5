@@ -1237,6 +1237,13 @@ Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Node SolverEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+std::vector<Node> SolverEngine::getLearnedLiterals()
+{
+  Trace("smt") << "SMT getLearnedLiterals()" << std::endl;
+  SolverEngineScope smts(this);
+  finishInit();
+}
+
 void SolverEngine::checkProof()
 {
   Assert(d_env->getOptions().smt.produceProofs);

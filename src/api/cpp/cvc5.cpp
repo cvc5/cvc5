@@ -7272,6 +7272,20 @@ std::string Solver::getProof(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Term> getLearnedLiterals(void) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceLearedLiterals)
+      << "Cannot get learned literals unless enabled (try --produce-learned-literals)";
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT
+                             || d_slv->getSmtMode() == SmtMode::SAT
+                             || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
+      << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN response.";
+  std::vector<Node> llits = d_slv->getLearnedLiterals();
+  return 
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::getValue(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
