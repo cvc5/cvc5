@@ -1695,7 +1695,7 @@ class SolverTest
     d_solver.setOption("produce-learned-literals", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
-    Term x = d_solver.mkConst(intSort, "y");
+    Term y = d_solver.mkConst(intSort, "y");
     Term zero = d_solver.mkInteger(0);
     Term ten = d_solver.mkInteger(10);
     Term f0 = d_solver.mkTerm(GEQ, x, ten);
