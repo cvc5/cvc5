@@ -1796,8 +1796,10 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasRelevantAssertions = false;
   if (d_relManager != nullptr)
   {
+    d_relManager->beginRound();
     relevantAssertions =
         d_relManager->getRelevantAssertions(hasRelevantAssertions);
+    d_relManager->endRound();
   }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
