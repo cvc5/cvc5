@@ -1924,6 +1924,7 @@ set(regress_1_tests
   regress1/nl/sugar-ident-3.smt2
   regress1/nl/sugar-ident.smt2
   regress1/nl/tan-rewrite2.smt2
+  regress1/nl/transcedental_model_simple.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
   regress1/proj-issue175.smt2
