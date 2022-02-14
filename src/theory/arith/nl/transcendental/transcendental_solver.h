@@ -153,7 +153,9 @@ class TranscendentalSolver : protected EnvObj
   void checkTranscendentalTangentPlanes();
 
   /**
-   * Post-process model. This ensures that the domain of arithModel does not contain terms that are equal to any transcendental function applications, as their values cannot be properly represented in the model.
+   * Post-process model. This ensures that the domain of arithModel does not
+   * contain terms that are equal to any transcendental function applications,
+   * as their values cannot be properly represented in the model.
    */
   void postProcessModel(std::map<Node, Node>& arithModel,
                         const std::set<Node>& termSet);
