@@ -964,7 +964,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-si-rcons=MODE"
   type       = "CegqiSingleInvRconsMode"
-  default    = "ALL_LIMIT"
+  default    = "ALL"
   help       = "policy for reconstructing solutions for single invocation conjectures"
   help_mode  = "Modes for reconstruction solutions while using single invocation techniques."
 [[option.mode.NONE]]

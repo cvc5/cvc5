@@ -2593,6 +2593,7 @@ set(regress_1_tests
   regress1/sygus/list_recursor.sy
   regress1/sygus/logiccell_help.sy
   regress1/sygus/max-all.sy
+  regress1/sygus/max-limit.sy
   regress1/sygus/max-try1.sy
   regress1/sygus/max-try2.sy
   regress1/sygus/max.sy
