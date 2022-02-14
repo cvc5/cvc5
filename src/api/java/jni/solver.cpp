@@ -1785,7 +1785,7 @@ Java_io_github_cvc5_api_Solver_defineFunsRec(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    getAssertions
+ * Method:    getLearnedLiterals
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getLearnedLiterals(
