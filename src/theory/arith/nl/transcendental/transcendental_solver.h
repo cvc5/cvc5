@@ -28,6 +28,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+class ArithState;
 class InferenceManager;
 
 namespace nl {
@@ -51,7 +52,7 @@ namespace transcendental {
 class TranscendentalSolver : protected EnvObj
 {
  public:
-  TranscendentalSolver(Env& env, InferenceManager& im, NlModel& m);
+  TranscendentalSolver(Env& env, ArithState& state, InferenceManager& im, NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call
@@ -148,6 +149,12 @@ class TranscendentalSolver : protected EnvObj
    */
   void checkTranscendentalTangentPlanes();
 
+  /**
+   * Post-process model
+   */
+  void postProcessModel(std::map<Node, Node>& arithModel,
+                       const std::set<Node>& termSet);
+
  private:
   /** check transcendental function refinement for tf
    *
@@ -178,6 +185,8 @@ class TranscendentalSolver : protected EnvObj
    */
   int regionToConcavity(Kind k, int region);
 
+  /** A reference to the arithmetic state object */
+  ArithState& d_astate;
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of

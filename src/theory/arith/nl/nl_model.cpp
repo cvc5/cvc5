@@ -300,9 +300,6 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
-      << "We tried to add a substitution where we already had a witness term."
-      << std::endl;
   Subs tmp;
   tmp.add(v, s);
   for (auto& sub : d_substitutions.d_subs)

@@ -49,7 +49,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(env),
-      d_trSlv(d_env, d_im, d_model),
+      d_trSlv(d_env, d_astate, d_im, d_model),
       d_extState(d_im, d_model, d_env),
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
@@ -290,6 +290,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       }
     }
   }
+  // must post-process model with transcendental solver, to ensure we don't assign values for equivalence classes with transcendental function applications
+  d_trSlv.postProcessModel(arithModel, termSet);
 }
 
 Node NonlinearExtension::getModelValue(TNode var) const
