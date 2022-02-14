@@ -245,7 +245,7 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 void CadSolver::addToModel(TNode var, TNode value) const
 {
   Trace("nl-cad") << "-> " << var << " = " << value << std::endl;
-  Assert (value.getType().isRealOrInt());
+  Assert(value.getType().isRealOrInt());
   d_model.addSubstitution(var, value);
 }
 

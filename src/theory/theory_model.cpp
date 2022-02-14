@@ -832,7 +832,7 @@ bool TheoryModel::isValue(TNode n) const
         // we are a value if we are one of the above kinds
         isQv = true;
       }
-      else if (n.getNumChildren() > 0 && rewrite(n)==n)
+      else if (n.getNumChildren() > 0 && rewrite(n) == n)
       {
         // note that we must be in rewritten form
         isQv = true;

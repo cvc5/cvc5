@@ -362,7 +362,7 @@ class TheoryModel : protected EnvObj
    * a base value is one where isConst() returns tru, a constant-like
    * value (e.g. a real algebraic number) or if n is a lambda or witness
    * term.
-   * 
+   *
    * We also return true for rewritten nodes whose leafs are base values.
    * For example, (str.++ (witness ((x String)) (= (str.len x) 1000)) "A") is
    * a value.

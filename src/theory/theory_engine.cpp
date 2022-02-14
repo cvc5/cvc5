@@ -1817,8 +1817,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         if (val != d_true)
         {
           std::stringstream ss;
-          ss << " " << theoryId
-             << " has an asserted fact that";
+          ss << " " << theoryId << " has an asserted fact that";
           if (val == d_false)
           {
             ss << " the model doesn't satisfy." << std::endl;

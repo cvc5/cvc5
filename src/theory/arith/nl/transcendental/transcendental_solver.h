@@ -52,7 +52,10 @@ namespace transcendental {
 class TranscendentalSolver : protected EnvObj
 {
  public:
-  TranscendentalSolver(Env& env, ArithState& state, InferenceManager& im, NlModel& m);
+  TranscendentalSolver(Env& env,
+                       ArithState& state,
+                       InferenceManager& im,
+                       NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call
@@ -153,7 +156,7 @@ class TranscendentalSolver : protected EnvObj
    * Post-process model
    */
   void postProcessModel(std::map<Node, Node>& arithModel,
-                       const std::set<Node>& termSet);
+                        const std::set<Node>& termSet);
 
  private:
   /** check transcendental function refinement for tf

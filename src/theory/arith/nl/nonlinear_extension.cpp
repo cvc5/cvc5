@@ -290,7 +290,9 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       }
     }
   }
-  // must post-process model with transcendental solver, to ensure we don't assign values for equivalence classes with transcendental function applications
+  // must post-process model with transcendental solver, to ensure we don't
+  // assign values for equivalence classes with transcendental function
+  // applications
   d_trSlv.postProcessModel(arithModel, termSet);
 }
 
