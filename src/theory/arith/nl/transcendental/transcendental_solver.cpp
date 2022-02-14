@@ -449,17 +449,19 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
 void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
                                             const std::set<Node>& termSet)
 {
+  Trace("nl-ext") << "TranscendentalSolver::postProcessModel" << std::endl;
   std::unordered_set<Node> trReps;
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
+  for (const Node& n : termSet)
   {
-    for (const Node& tf : tfs.second)
+    if (isTranscendentalKind(n.getKind()))
     {
-      Node r = d_astate.getRepresentative(tf);
+      Node r = d_astate.getRepresentative(n);
       trReps.insert(r);
     }
   }
   if (trReps.empty())
   {
+    Trace("nl-ext") << "...no transcendental functions" << std::endl;
     return;
   }
   std::vector<Node> rmFromModel;
@@ -471,6 +473,10 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
       Trace("nl-ext") << "...erase value for " << am.first
                       << ", since approximate" << std::endl;
       rmFromModel.push_back(am.first);
+    }
+    else
+    {
+      Trace("nl-ext") << "...keep model value for " << am.first << std::endl;
     }
   }
   for (const Node& n : rmFromModel)

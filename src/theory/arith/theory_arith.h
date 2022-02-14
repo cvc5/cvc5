@@ -180,6 +180,10 @@ class TheoryArith : public Theory {
    * used to augment the TheoryModel.
    */
   std::map<Node, Node> d_arithModelCache;
+  /**
+   * Is the above set?
+   */
+  bool d_arithModelCacheSet;
 
 };/* class TheoryArith */
 
