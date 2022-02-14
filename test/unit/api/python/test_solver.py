@@ -1262,9 +1262,9 @@ def test_get_unsat_core3(solver):
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")
     with pytest.raises(RuntimeError):
-        d_solver.getLearnedLiterals()
+        solver.getLearnedLiterals()
     solver.checkSat()
-    d_solver.getLearnedLiterals()
+    solver.getLearnedLiterals()
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
