@@ -3,19 +3,13 @@
 
 (set-logic LIA)
 
-(synth-fun max ((x Int) (y Int)) Int
-  ((Start Int) (StartBool Bool))
-  ((Start Int (0 1 x y
-               (+ Start Start)
-               (- Start Start)
-               (ite StartBool Start Start)))
-   (StartBool Bool ((and StartBool StartBool)
-                    (not StartBool)
-                    (>= (+ Start (* (- 1) Start)) 1)))))
+(synth-fun sum ((x Int) (y Int)) Int
+  ((Start Int))
+  ((Start Int (0 1 x y (+ Start Start)))))
 
 (declare-var x Int)
 (declare-var y Int)
 
-(constraint (= (max x y) (ite (<= x y) y x)))
+(constraint (= (sum x y) (+ x y)))
 
 (check-synth)
