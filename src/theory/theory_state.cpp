@@ -36,10 +36,7 @@ bool TheoryState::hasTerm(TNode t) const
 void TheoryState::addTerm(TNode t)
 {
   Assert(d_ee != nullptr);
-  if (!d_ee->hasTerm(t))
-  {
-    d_ee->addTerm(t);
-  }
+  d_ee->addTerm(t);
 }
 
 TNode TheoryState::getRepresentative(TNode t) const
