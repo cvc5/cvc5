@@ -37,8 +37,18 @@ class InferenceGenerator
  public:
   InferenceGenerator(SolverState* state, InferenceManager* im);
 
+  /**
+   * @param n a node of the form (bag.count e A)
+   * @return a skolem that equals (bag.count repE repA) where
+   * repE, repA are representatives of e, A respectively
+   */
   Node registerCountTerm(Node n);
 
+  /**
+   * @param n a node of the form (bag.card A)
+   * @return a skolem that equals (bag.card repA) where repA is the
+   * representative of A
+   */
   void registerCardinalityTerm(Node n);
 
   /**

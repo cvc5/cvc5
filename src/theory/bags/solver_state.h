@@ -40,6 +40,7 @@ class SolverState : public TheoryState
   void registerBag(TNode n);
 
   /**
+   * register the pair <element, skolem> with the given bag
    * @param bag a representative of type (Bag E)
    * @param element a representative of type E
    * @param skolem an integer variable
