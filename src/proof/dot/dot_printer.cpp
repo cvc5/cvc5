@@ -282,60 +282,6 @@ uint64_t DotPrinter::printInternal(std::ostream& out,
   return currentRuleID;
 }
 
-bool DotPrinter::eqProofNode(const ProofNode* pn1, const ProofNode* pn2)
-{
-  // Both pointers are equal
-  if (pn1 == pn2)
-  {
-    return true;
-  }
-  // If the conclusions are different
-  if (pn1->getResult() != pn2->getResult())
-  {
-    return false;
-  }
-  // If the rules are different
-  if (pn1->getRule() != pn2->getRule())
-  {
-    return false;
-  }
-  // Compare the children of both nodes
-  const std::vector<cvc5::Pf>& children1 = pn1->getChildren();
-  const std::vector<cvc5::Pf>& children2 = pn2->getChildren();
-  size_t size1 = children1.size();
-  size_t size2 = children2.size();
-  if (size1 != size2)
-  {
-    return false;
-  }
-  for (size_t i = 0; i < size1; i++)
-  {
-    // Compare the children conclusion
-    if (children1[i]->getResult() != children2[i]->getResult())
-    {
-      return false;
-    }
-  }
-  // Compare the args of both nodes
-  const std::vector<cvc5::Node>& args1 = pn1->getArguments();
-  const std::vector<cvc5::Node>& args2 = pn2->getArguments();
-  size1 = args1.size();
-  size2 = args2.size();
-  if (size1 != size2)
-  {
-    return false;
-  }
-  for (size_t i = 0; i < size1; i++)
-  {
-    if (args1[i] != args2[i])
-    {
-      return false;
-    }
-  }
-  // Then the proofs are identical
-  return true;
-}
-
 void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
                                const ProofNode* pn)
 {

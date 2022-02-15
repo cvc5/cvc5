@@ -91,14 +91,6 @@ class DotPrinter
    */
   void letifyResults(const ProofNode* pn);
 
-  /** Compare two given nodes and returns if they are equal (True) or not
-   * (False)
-   *
-   * @param pn1 the first proof node to be compared
-   * @param pn2 the second proof node to be compared
-   */
-  bool eqProofNode(const ProofNode* pn1, const ProofNode* pn2);
-
   /** All unique subproofs of a given proof node (counting itself). */
   std::map<const ProofNode*, size_t> d_subpfCounter;
 
