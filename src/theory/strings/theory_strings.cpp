@@ -1290,13 +1290,13 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
       computeRelevantTerms(termSet);
       d_asolver.checkArrayConcat(termSet);
     }
-      break;
+    break;
     case CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
     case CHECK_SEQUENCES_ARRAY_EAGER:
     {
       std::set<Node> termSet;
       computeRelevantTerms(termSet);
-      d_asolver.checkArrayEager(termSet); 
+      d_asolver.checkArrayEager(termSet);
     }
     break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;

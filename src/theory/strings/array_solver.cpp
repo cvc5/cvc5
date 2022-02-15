@@ -90,11 +90,11 @@ void ArraySolver::checkArrayEager(const std::set<Node>& termSet)
   for (const Node& n : termSet)
   {
     Kind k = n.getKind();
-    if (k==STRING_UPDATE)
+    if (k == STRING_UPDATE)
     {
       updateTerms.push_back(n);
     }
-    else if (k==SEQ_NTH)
+    else if (k == SEQ_NTH)
     {
       nthTerms.push_back(n);
     }
@@ -109,7 +109,7 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet, Kind k)
   // current context by context-dependent simplification
   for (const Node& t : termSet)
   {
-    if (t.getKind()!=k)
+    if (t.getKind() != k)
     {
       continue;
     }
