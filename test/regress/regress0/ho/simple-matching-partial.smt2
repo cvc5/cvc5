@@ -1,5 +1,6 @@
 ; EXPECT: unsat
 (set-logic HO_ALL)
+(set-option :uf-lazy-ll false)
 (set-info :status unsat)
 (declare-sort U 0)
 (declare-fun f (U U) U)

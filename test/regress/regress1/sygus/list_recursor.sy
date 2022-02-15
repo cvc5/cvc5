@@ -2,7 +2,7 @@
 ; COMMAND-LINE: --sygus-out=status --lang=sygus2
 
 (set-logic HO_ALL)
-
+(set-option :uf-lazy-ll false)
 (declare-datatype List ((cons (head Int) (tail List)) (nil)))
 
 (define-fun-rec List_rec ((x Int) (y (-> Int List Int Int)) (l List)) Int
