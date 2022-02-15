@@ -246,7 +246,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
 void BagSolver::checkDisequalBagTerms()
 {
-  for (auto [equality, witness] : d_state.getDisequalBagTerms())
+  for (const auto& [equality, witness] : d_state.getDisequalBagTerms())
   {
     InferInfo info = d_ig.bagDisequality(equality, witness);
     d_im.lemmaTheoryInference(&info);

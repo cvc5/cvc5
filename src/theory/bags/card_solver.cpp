@@ -122,11 +122,10 @@ void CardSolver::generateRelatedCardinalityTerms()
     // enumerate all bag terms that are related to the current bag
     for (const auto& bag : bags)
     {
-      if (rep == bag)
+      if (rep == bag || !d_state.hasTerm(bag))
       {
         continue;
       }
-
       eq::EqClassIterator it = eq::EqClassIterator(
           d_state.getRepresentative(bag), d_state.getEqualityEngine());
       while (!it.isFinished())
