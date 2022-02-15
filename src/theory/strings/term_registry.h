@@ -234,7 +234,7 @@ class TermRegistry : protected EnvObj
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;
 
   /** compute relevant terms of the theory of strings */
-  void computeRelevantTerms(std::set<Node>& termSet);
+  void getRelevantTermSet(std::set<Node>& termSet);
 
  private:
   /** Reference to theory of strings, for computing relevant terms */

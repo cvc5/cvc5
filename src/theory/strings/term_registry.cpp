@@ -674,8 +674,10 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
-void TermRegistry::computeRelevantTerms(std::set<Node>& termSet)
+void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
 {
+  d_theory.collectAssertedTerms(termSet);
+  // also, get relevant terms
   d_theory.computeRelevantTerms(termSet);
 }
 

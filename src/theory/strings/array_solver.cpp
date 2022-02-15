@@ -63,7 +63,7 @@ void ArraySolver::checkArrayConcat()
   // Get the set of relevant terms. The core array solver requires knowing this
   // set to ensure its write model is only over relevant terms.
   std::set<Node> termSet;
-  d_termReg.computeRelevantTerms(termSet);
+  d_termReg.getRelevantTermSet(termSet);
   checkTerms(termSet);
 }
 
@@ -90,7 +90,7 @@ void ArraySolver::checkArrayEager()
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
   // get the set of relevant terms, for reasons described above
   std::set<Node> termSet;
-  d_termReg.computeRelevantTerms(termSet);
+  d_termReg.getRelevantTermSet(termSet);
   std::vector<Node> nthTerms;
   std::vector<Node> updateTerms;
   for (const Node& n : termSet)
