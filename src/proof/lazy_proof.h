@@ -18,8 +18,8 @@
 #ifndef CVC5__PROOF__LAZY_PROOF_H
 #define CVC5__PROOF__LAZY_PROOF_H
 
-#include "proof/proof.h"
 #include "context/cdhashset.h"
+#include "proof/proof.h"
 
 namespace cvc5 {
 

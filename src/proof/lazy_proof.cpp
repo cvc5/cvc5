@@ -28,8 +28,7 @@ LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          context::Context* c,
                          const std::string& name,
                          bool autoSym,
-                         bool doCache
-                        )
+                         bool doCache)
     : CDProof(pnm, c, name, autoSym),
       d_gens(c ? c : &d_context),
       d_defaultGen(dpg),
@@ -66,11 +65,11 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
     visit.pop_back();
     if (d_doCache)
     {
-      alreadyVisited = d_allVisited.find(cur)!=d_allVisited.end();
+      alreadyVisited = d_allVisited.find(cur) != d_allVisited.end();
     }
     else
     {
-      alreadyVisited = visited.find(cur)!=visited.end();
+      alreadyVisited = visited.find(cur) != visited.end();
     }
 
     if (!alreadyVisited)
