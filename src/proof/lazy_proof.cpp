@@ -30,7 +30,8 @@ LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          bool autoSym)
     : CDProof(pnm, c, name, autoSym),
       d_gens(c ? c : &d_context),
-      d_defaultGen(dpg)
+      d_defaultGen(dpg),
+      d_allVisited(c ? c : &d_context)
 {
 }
 
@@ -51,8 +52,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
   }
   // otherwise, we traverse the proof opf and fill in the ASSUME leafs that
   // have generators
-  std::unordered_set<ProofNode*> visited;
-  std::unordered_set<ProofNode*>::iterator it;
+  ProofNodeSet::const_iterator it;
   std::vector<ProofNode*> visit;
   ProofNode* cur;
   visit.push_back(opf.get());
@@ -60,11 +60,11 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
   {
     cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
+    it = d_allVisited.find(cur);
 
-    if (it == visited.end())
+    if (it == d_allVisited.end())
     {
-      visited.insert(cur);
+      d_allVisited.insert(cur);
       Node cfact = cur->getResult();
       if (getProof(cfact).get() != cur)
       {

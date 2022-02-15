@@ -19,6 +19,7 @@
 #define CVC5__PROOF__LAZY_PROOF_H
 
 #include "proof/proof.h"
+#include "context/cdhashset.h"
 
 namespace cvc5 {
 
@@ -97,6 +98,7 @@ class LazyCDProof : public CDProof
 
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*> NodeProofGeneratorMap;
+  typedef context::CDHashSet<ProofNode*> ProofNodeSet;
   /** Maps facts that can be proven to generators */
   NodeProofGeneratorMap d_gens;
   /** The default proof generator */
@@ -107,6 +109,8 @@ class LazyCDProof : public CDProof
    * proof generator for the symmetric form of fact was provided.
    */
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
+  /** The set of proof nodes we have processed in getProofFor */
+  ProofNodeSet d_allVisited;
 };
 
 }  // namespace cvc5
