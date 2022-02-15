@@ -1051,6 +1051,10 @@ class CVC5_EXPORT SolverEngine
   /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.
+   * 
+   * @param n The node to check
+   * @param src The source of the check, which is printed in the exception if
+   * this check fails.
    */
   void ensureWellFormedTerm(const Node& n, const std::string& src) const;
 
