@@ -280,10 +280,10 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         size_t nenum = es.second.size();
         for (size_t i=0; i<nenum; i++)
         {
-          Node vi = nonClosedValue[es.second[i]];
+          const Node& vi = nonClosedValue[es.second[i]];
           for (size_t j=(i+1); j<nenum; j++)
           {
-            Node vj = nonClosedValue[es.second[j]];
+            const Node& vj = nonClosedValue[es.second[j]];
             Node eq = es.second[i].eqNode(es.second[j]);
             if (vi==vj)
             {
