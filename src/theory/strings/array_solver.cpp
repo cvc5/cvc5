@@ -127,7 +127,7 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet)
       // for update terms, also check the inverse inference
       checkTerm(t, true);
     }
-    else if (k!= SEQ_NTH)
+    else if (k != SEQ_NTH)
     {
       continue;
     }
