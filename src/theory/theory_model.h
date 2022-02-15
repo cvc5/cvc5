@@ -359,7 +359,7 @@ class TheoryModel : protected EnvObj
 
   /**
    * Is the node n a "value"? This is true if n is a "base value", where
-   * a base value is one where isConst() returns tru, a constant-like
+   * a base value is one where isConst() returns true, a constant-like
    * value (e.g. a real algebraic number) or if n is a lambda or witness
    * term.
    *
