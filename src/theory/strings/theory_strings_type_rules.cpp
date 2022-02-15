@@ -312,13 +312,14 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      bool check)
 {
   TypeNode t = n[0].getType(check);
+  if (check && !t.isSequence())
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
+  }
+
   TypeNode t1 = t.getSequenceElementType();
   if (check)
   {
-    if (!t.isSequence())
-    {
-      throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
-    }
     TypeNode t2 = n[1].getType(check);
     if (!t2.isInteger())
     {

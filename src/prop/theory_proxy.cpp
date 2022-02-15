@@ -167,7 +167,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Node theoryExplanation = tte.getNode();
   if (d_env.isSatProofProducing())
   {
-    Assert(options().smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF
+    Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }

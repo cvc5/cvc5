@@ -97,7 +97,7 @@ class WitnessFormGenerator : public ProofGenerator
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */
-  std::unordered_set<TNode> d_visited;
+  std::unordered_set<Node> d_visited;
   /** The set of equalities added as proof steps */
   std::unordered_set<Node> d_eqs;
   /** Lazy proof storing witness intro steps */
