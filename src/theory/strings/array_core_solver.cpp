@@ -85,10 +85,16 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
   {
     for (size_t j = i + 1; j < nthTerms.size(); j++)
     {
-      Node x = nthTerms[i][0];
-      Node y = nthTerms[j][0];
-      Node n = nthTerms[i][1];
-      Node m = nthTerms[j][1];
+      TNode x = nthTerms[i][0];
+      TNode y = nthTerms[j][0];
+
+      if (x.getType() != y.getType())
+      {
+        continue;
+      }
+
+      TNode n = nthTerms[i][1];
+      TNode m = nthTerms[j][1];
       if (d_state.areEqual(n, m) && !d_state.areEqual(x, y)
           && !d_state.areDisequal(x, y))
       {
