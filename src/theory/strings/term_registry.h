@@ -33,7 +33,7 @@
 
 namespace cvc5 {
 namespace theory {
-  
+
 class Theory;
 
 namespace strings {
@@ -235,6 +235,7 @@ class TermRegistry : protected EnvObj
 
   /** compute relevant terms of the theory of strings */
   void computeRelevantTerms(std::set<Node>& termSet);
+
  private:
   /** Reference to theory of strings, for computing relevant terms */
   Theory& d_theory;
