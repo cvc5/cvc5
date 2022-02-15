@@ -1050,7 +1050,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Check that the given term is a valid closed term, which can be used as an
-   * argument to e.g. assert, get-value, block-model-values, etc.
+   * argument to, e.g., assert, get-value, block-model-values, etc.
    */
   void ensureWellFormedTerm(const Node& n, const std::string& src) const;
 
