@@ -65,8 +65,6 @@ class TheoryBags : public Theory
   void initialize();
   /**
    * collect bags' representatives and all count terms.
-   * This function is called during postCheck
-   * @return a list of skolem lemmas to be asserted
    */
   void collectBagsAndCountTerms();
 
