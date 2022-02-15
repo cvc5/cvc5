@@ -336,7 +336,9 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
  private:
-  /** generate skolem variable for node n and add it to inferInfo */
+  /**
+   * generate skolem variable for node n and add pending lemma for the equality
+   */
   Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
 
   NodeManager* d_nm;
