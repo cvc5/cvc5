@@ -64,8 +64,7 @@ void ArraySolver::checkArrayConcat()
   // set to ensure its write model is only over relevant terms.
   std::set<Node> termSet;
   d_termReg.computeRelevantTerms(termSet);
-  checkTerms(termSet, STRING_UPDATE);
-  checkTerms(termSet, SEQ_NTH);
+  checkTerms(termSet);
 }
 
 void ArraySolver::checkArray()
@@ -109,17 +108,13 @@ void ArraySolver::checkArrayEager()
   d_coreSolver.check(nthTerms, updateTerms);
 }
 
-void ArraySolver::checkTerms(const std::set<Node>& termSet, Kind k)
+void ArraySolver::checkTerms(const std::set<Node>& termSet)
 {
-  Assert(k == STRING_UPDATE || k == SEQ_NTH);
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
   for (const Node& t : termSet)
   {
-    if (t.getKind() != k)
-    {
-      continue;
-    }
+    Kind k = t.getKind();
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     if (k == STRING_UPDATE)
     {
@@ -131,6 +126,10 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet, Kind k)
       }
       // for update terms, also check the inverse inference
       checkTerm(t, true);
+    }
+    else if (k!= SEQ_NTH)
+    {
+      continue;
     }
     // check the normal inference
     checkTerm(t, false);
