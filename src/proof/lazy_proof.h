@@ -45,12 +45,18 @@ class LazyCDProof : public CDProof
    * @param name The name of this proof generator (for debugging)
    * @param autoSym Whether symmetry steps are automatically added when adding
    * steps to this proof
+   * @param doCache Whether the proofs we process in getProofFor are cached
+   * based on the context of this class. In other words, we assume that the
+   * subproofs returned by getProofFor are not re-processed on repeated calls
+   * to getProofFor, even if new steps are provided to this class in the
+   * meantime.
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
               context::Context* c = nullptr,
               const std::string& name = "LazyCDProof",
-              bool autoSym = true);
+              bool autoSym = true,
+              bool doCache = true);
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
@@ -109,6 +115,8 @@ class LazyCDProof : public CDProof
    * proof generator for the symmetric form of fact was provided.
    */
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
+  /** whether d_allVisited is maintained */
+  bool d_doCache;
   /** The set of proof nodes we have processed in getProofFor */
   ProofNodeSet d_allVisited;
 };
