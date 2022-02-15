@@ -89,7 +89,7 @@ class InferenceGenerator
   /**
    * @param equality is (= A B) where A, B are bags of type (Bag E), and
    * (not (= A B)) is an assertion in the equality engine
-   * @param witness a skolem node that witness the disequality
+   * @param witness a skolem node that witnesses the disequality
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
