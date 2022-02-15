@@ -35,10 +35,12 @@ namespace theory {
 namespace strings {
 
 TermRegistry::TermRegistry(Env& env,
+                           Theory& t,
                            SolverState& s,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : EnvObj(env),
+      d_theory(t),
       d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
@@ -668,6 +670,11 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     Trace("strings-subs-proxy") << "...unprocessed" << std::endl;
     unproc.push_back(n);
   }
+}
+
+void TermRegistry::computeRelevantTerms(std::set<Node>& termSet)
+{
+  d_theory.computeRelevantTerms(termSet);
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const

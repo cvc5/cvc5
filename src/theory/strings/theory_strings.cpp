@@ -55,7 +55,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(*this),
       d_statistics(),
       d_state(env, d_valuation),
-      d_termReg(env, d_state, d_statistics, d_pnm),
+      d_termReg(env, *this, d_state, d_statistics, d_pnm),
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
@@ -1285,19 +1285,11 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_CODES: checkCodes(); break;
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_SEQUENCES_ARRAY_CONCAT:
-    {
-      std::set<Node> termSet;
-      computeRelevantTerms(termSet);
-      d_asolver.checkArrayConcat(termSet);
-    }
+      d_asolver.checkArrayConcat();
     break;
     case CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
     case CHECK_SEQUENCES_ARRAY_EAGER:
-    {
-      std::set<Node> termSet;
-      computeRelevantTerms(termSet);
-      d_asolver.checkArrayEager(termSet);
-    }
+      d_asolver.checkArrayEager();
     break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;

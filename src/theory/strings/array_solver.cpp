@@ -50,7 +50,7 @@ ArraySolver::ArraySolver(Env& env,
 
 ArraySolver::~ArraySolver() {}
 
-void ArraySolver::checkArrayConcat(const std::set<Node>& termSet)
+void ArraySolver::checkArrayConcat()
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -60,6 +60,10 @@ void ArraySolver::checkArrayConcat(const std::set<Node>& termSet)
   }
   d_currTerms.clear();
   Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
+  // Get the set of relevant terms. The core array solver requires knowing this
+  // set to ensure its write model is only over relevant terms.
+  std::set<Node> termSet;
+  d_termReg.computeRelevantTerms(termSet);
   checkTerms(termSet, STRING_UPDATE);
   checkTerms(termSet, SEQ_NTH);
 }
@@ -76,7 +80,7 @@ void ArraySolver::checkArray()
   d_coreSolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
 
-void ArraySolver::checkArrayEager(const std::set<Node>& termSet)
+void ArraySolver::checkArrayEager()
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -85,6 +89,9 @@ void ArraySolver::checkArrayEager(const std::set<Node>& termSet)
     return;
   }
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
+  // get the set of relevant terms, for reasons described above
+  std::set<Node> termSet;
+  d_termReg.computeRelevantTerms(termSet);
   std::vector<Node> nthTerms;
   std::vector<Node> updateTerms;
   for (const Node& n : termSet)
