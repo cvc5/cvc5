@@ -85,7 +85,7 @@ class SolverState : public TheoryState
   /**
    * return disequal bag terms where keys are equality nodes and values are
    * skolems that witness the negation of these equalities
-   * */
+   */
   const std::map<Node, Node>& getDisequalBagTerms();
   /**
    * return a list of bag elements and their skolem counts

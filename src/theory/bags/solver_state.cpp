@@ -38,10 +38,6 @@ void SolverState::registerBag(TNode n)
 {
   Assert(n.getType().isBag());
   d_bags.insert(n);
-  if (!d_ee->hasTerm(n))
-  {
-    d_ee->addTerm(n);
-  }
 }
 
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
@@ -118,7 +114,7 @@ void SolverState::collectDisequalBagTerms()
       Node A = getRepresentative(n[0]);
       Node B = getRepresentative(n[1]);
       Node equal = A <= B ? A.eqNode(B) : B.eqNode(A);
-      if (d_deq.find(equal) != d_deq.end())
+      if (d_deq.find(equal) == d_deq.end())
       {
         TypeNode elementType = A.getType().getBagElementType();
         BoundVarManager* bvm = d_nm->getBoundVarManager();

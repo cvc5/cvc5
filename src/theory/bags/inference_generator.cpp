@@ -59,19 +59,14 @@ Node InferenceGenerator::registerCountTerm(Node n)
 void InferenceGenerator::registerCardinalityTerm(Node n)
 {
   Assert(n.getKind() == BAG_CARD);
-  if (!d_state->hasTerm(n))
-  {
-    d_state->addTerm(n);
-  }
   Node bag = d_state->getRepresentative(n[0]);
   Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
   Node skolem = registerAndAssertSkolemLemma(cardTerm, "bag.card");
   d_state->registerCardinalityTerm(cardTerm, skolem);
-  // congruence
-  InferInfo inferInfo(d_im, InferenceId::BAGS_SKOLEM);
-  inferInfo.d_conclusion = skolem.eqNode(n);
-  inferInfo.d_premises.push_back(n[0].eqNode(bag));
-  d_im->lemmaTheoryInference(&inferInfo);
+  Node premise = n[0].eqNode(bag);
+  Node conclusion = skolem.eqNode(n);
+  Node lemma = premise.notNode().orNode(conclusion);
+  d_im->addPendingLemma(lemma, InferenceId::BAGS_SKOLEM);
 }
 
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
@@ -185,10 +180,8 @@ Node InferenceGenerator::registerAndAssertSkolemLemma(Node& n,
                                                       const std::string& prefix)
 {
   Node skolem = d_sm->mkPurifySkolem(n, prefix);
-  d_state->addTerm(n);
-  InferInfo i(d_im, InferenceId::BAGS_SKOLEM);
-  i.d_conclusion = n.eqNode(skolem);
-  d_im->lemmaTheoryInference(&i);
+  Node lemma = n.eqNode(skolem);
+  d_im->addPendingLemma(lemma, InferenceId::BAGS_SKOLEM);
   Trace("bags-skolems") << "bags-skolems:  " << skolem << " = " << n
                         << std::endl;
   return skolem;
