@@ -50,7 +50,7 @@ ArraySolver::ArraySolver(Env& env,
 
 ArraySolver::~ArraySolver() {}
 
-void ArraySolver::checkArrayConcat()
+void ArraySolver::checkArrayConcat(const std::set<Node>& termSet)
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -60,8 +60,8 @@ void ArraySolver::checkArrayConcat()
   }
   d_currTerms.clear();
   Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
-  checkTerms(STRING_UPDATE);
-  checkTerms(SEQ_NTH);
+  checkTerms(termSet, STRING_UPDATE);
+  checkTerms(termSet, SEQ_NTH);
 }
 
 void ArraySolver::checkArray()
@@ -76,7 +76,7 @@ void ArraySolver::checkArray()
   d_coreSolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
 
-void ArraySolver::checkArrayEager()
+void ArraySolver::checkArrayEager(const std::set<Node>& termSet)
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -85,21 +85,35 @@ void ArraySolver::checkArrayEager()
     return;
   }
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
-  std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
-  std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
+  std::vector<Node> nthTerms;
+  std::vector<Node> updateTerms;
+  for (const Node& n : termSet)
+  {
+    Kind k = n.getKind();
+    if (k==STRING_UPDATE)
+    {
+      updateTerms.push_back(n);
+    }
+    else if (k==SEQ_NTH)
+    {
+      nthTerms.push_back(n);
+    }
+  }
   d_coreSolver.check(nthTerms, updateTerms);
 }
 
-void ArraySolver::checkTerms(Kind k)
+void ArraySolver::checkTerms(const std::set<Node>& termSet, Kind k)
 {
   Assert(k == STRING_UPDATE || k == SEQ_NTH);
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
-  std::vector<Node> terms = d_esolver.getActive(k);
-  for (const Node& t : terms)
+  for (const Node& t : termSet)
   {
+    if (t.getKind()!=k)
+    {
+      continue;
+    }
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
-    Assert(t.getKind() == k);
     if (k == STRING_UPDATE)
     {
       if (!d_termReg.isHandledUpdate(t))

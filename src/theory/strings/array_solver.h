@@ -54,7 +54,7 @@ class ArraySolver : protected EnvObj
    * Perform reasoning about seq.nth and seq.update operations, in particular,
    * their application to concatenation terms.
    */
-  void checkArrayConcat();
+  void checkArrayConcat(const std::set<Node>& termSet);
   /**
    * Perform reasoning about seq.nth and seq.update operations (lazily), which
    * calls the core sequences-array solver for the set of nth/update terms over atomic
@@ -65,7 +65,7 @@ class ArraySolver : protected EnvObj
    * Same as `checkArray`, but called eagerly, and for all nth/update terms, not just
    * those over atomic equivalence classes.
    */
-  void checkArrayEager();
+  void checkArrayEager(const std::set<Node>& termSet);
 
   /**
    * @param eqc The sequence equivalence class representative. We can assume
@@ -84,7 +84,7 @@ class ArraySolver : protected EnvObj
 
  private:
   /** check terms of given kind */
-  void checkTerms(Kind k);
+  void checkTerms(const std::set<Node>& termSet, Kind k);
   /** check inferences for the given term
    *
    * @param t the term to check
