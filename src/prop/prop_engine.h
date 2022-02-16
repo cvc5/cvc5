@@ -71,6 +71,8 @@ class PropEngine : protected EnvObj
    */
   void finishInit();
 
+  //TODO: Add an interface here for getting the decisions from the sat solver. 
+
   /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
    * rewriting node. New lemmas and skolems are added to ppLemmas and
@@ -141,6 +143,8 @@ class PropEngine : protected EnvObj
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  std::vector<Node> getPropDecisions() const;
 
   /**
    * Return SAT context level at which `lit` was decided on.

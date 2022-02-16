@@ -708,9 +708,73 @@ void Solver::resetTrail() { cancelUntil(0); }
 //=================================================================================================
 // Major methods:
 
-
+int visits = 0; 
 Lit Solver::pickBranchLit()
 {
+  // int target_visits = 1;
+  // visits++; 
+  // // Emit some random cubes. 
+  // // TODO: dumb random strategy here.
+  // // pick some number n of variables, emit 2^n partitions. 
+  // Trace("dtview") << "order_heap.size() " << order_heap.size() << std::endl;
+  // Trace("dtview") << "random cube " << d_proxy->getNode(order_heap[irand(random_seed,order_heap.size())]) << std::endl;
+  // int part_depth = 3;
+  // if (visits == target_visits) {
+  //   std::vector<Node> part_nodes; 
+  //   for (int i = 0; i < part_depth; ++i) {
+  //     Node dec = d_proxy->getNode(order_heap[irand(random_seed,order_heap.size())]);
+  //     // prevent repeats.
+  //     while (std::find(part_nodes.begin(), part_nodes.end(), dec) != part_nodes.end()) {
+  //       dec = d_proxy->getNode(order_heap[irand(random_seed,order_heap.size())]);
+  //     }
+  //     part_nodes.push_back(dec);
+  //   }
+
+  //   // This complicated thing is basically making a truth table
+  //   // of length 2^depth so that these can be put together into a partition later.
+  //   std::vector<std::vector<Node> > result_node_lists(pow(2,part_depth)); 
+  //   std::vector<std::vector<std::string> > testv(pow(2,part_depth));
+  //   int i = 1;
+  //   bool t = false;
+  //   int q = part_depth;
+  //   for (Node n : part_nodes) {
+  //     NodeBuilder notBuilder(kind::NOT);
+  //     notBuilder << n;
+  //     Node lemma = notBuilder.constructNode();
+  //     std::cout << "node " << std::endl;
+  //     int total = pow(2,part_depth);
+  //     q = q-1;
+  //     int loc = 0;
+  //     for (int z = 0; z < total/pow(2,q); ++z) {
+  //       t = !t;
+  //     for (int j = 0; j < total; ++j) {
+  //       if (j < pow(2,q)){
+  //         std::cout << j << (t ? "T" : "F") << " " << loc << std::endl;
+  //         result_node_lists[loc].push_back((t ? n : lemma));;
+  //         ++loc;
+  //       }
+  //     }
+  //     }
+  //   }
+
+  //   for (std::vector<Node> lst : result_node_lists) {
+  //     Node conj = NodeManager::currentNM()->mkAnd(lst);
+  //     std::cout << conj << std::endl;
+  //   }
+
+  //     // NodeBuilder notBuilder(kind::NOT);
+  //     // notBuilder << dec;
+  //     // Node lemma = notBuilder.constructNode();
+  //     // std::cout << lemma << std::endl;
+  // }
+
+  // // TODO: 
+  // // - Figure out how to stop execution from here. 
+  // // - Use this for the next random node: value(next) == l_Undef && decision[next]
+    
+  
+  
+
     Lit nextLit;
 
     // Theory requests
@@ -1171,6 +1235,8 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     d_proxy->enqueueTheoryLiteral(MinisatSatSolver::toSatLiteral(p));
   }
 }
+
+// TODO: return trail. 
 
 CRef Solver::propagate(TheoryCheckType type)
 {

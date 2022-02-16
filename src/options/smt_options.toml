@@ -10,6 +10,50 @@ name   = "SMT Layer"
   help       = "eliminate functions by ackermannization"
 
 [[option]]
+  name       = "computePartitions"
+  category   = "expert"
+  long       = "compute-partitions=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "make n partitions"
+
+[[option]]
+  name       = "numChecks"
+  category   = "expert"
+  long       = "num-checks=N"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "number of standard effort checks until partitioning"
+
+[[option]]
+  name       = "partitionStrategy"
+  category   = "expert"
+  long       = "partition-strategy=X"
+  type       = "std::string"
+  help       = "select which algorithm for making partitions"
+
+[[option]]
+  name       = "partitionCheck"
+  category   = "expert"
+  long       = "partition-check=X"
+  type       = "std::string"
+  help       = "select whether partitioning happens at full or standard check"
+
+[[option]]
+  name       = "decisionStrategy"
+  category   = "expert"
+  long       = "decision-strategy=X"
+  type       = "std::string"
+  help       = "select the algorithm for choosing which decisions to make cubes from"
+
+[[option]]
+  name       = "writePartitionsToFileName"
+  category   = "expert"
+  long       = "write-partitions-to=N"
+  type       = "std::string"
+  help       = "file to write partitions to"
+
+[[option]]
   name       = "simplificationMode"
   alias      = ["simplification-mode"]
   category   = "regular"

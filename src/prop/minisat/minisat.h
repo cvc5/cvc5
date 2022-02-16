@@ -94,6 +94,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 
   bool isDecision(SatVariable decn) const override;
 
+  std::vector<SatLiteral> getDecisions() const override;
+
   /** Return decision level at which `lit` was decided on. */
   int32_t getDecisionLevel(SatVariable v) const override;
 
