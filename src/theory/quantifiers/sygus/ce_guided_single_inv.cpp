@@ -339,7 +339,7 @@ Node CegSingleInv::getSolution(size_t sol_index,
   sol = sol.substitute(
       vars.begin(), vars.end(), sygusVars.begin(), sygusVars.end());
   sol = reconstructToSyntax(sol, stn, reconstructed, rconsSygus);
-  return s.getKind() == LAMBDA
+  return !sol.isNull() && s.getKind() == LAMBDA
              ? NodeManager::currentNM()->mkNode(LAMBDA, s[0], sol)
              : sol;
 }
