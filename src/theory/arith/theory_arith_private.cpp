@@ -1738,8 +1738,9 @@ void TheoryArithPrivate::outputConflicts(){
       Node conflict = trustedConflict.getNode();
 
       ++conflicts;
-      Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
-                               << " has proof: " << hasProof << ", id = " << conf.second << endl;
+      Debug("arith::conflict")
+          << "d_conflicts[" << i << "] " << conflict
+          << " has proof: " << hasProof << ", id = " << conf.second << endl;
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
