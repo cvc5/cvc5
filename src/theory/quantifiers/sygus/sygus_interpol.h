@@ -84,6 +84,21 @@ class SygusInterpol : protected EnvObj
                           const TypeNode& itpGType,
                           Node& interpol);
 
+  /**
+   * Returns the sygus conjecture in interpol corresponding to the interpolation
+   * problem for input problem (F above) given by axioms (Fa above), and conj
+   * (Fc above). And solve the interpolation by sygus. Note that axioms is
+   * expected to be a subset of assertions in SMT-LIB.
+   *
+   * @param name the name for the interpol-to-synthesize.
+   * @param axioms the assertions (Fa above)
+   * @param conj the conjecture (Fc above)
+   * @param itpGType (if non-null) a sygus datatype type that encodes the
+   * grammar that should be used for solutions of the interpolation conjecture.
+   * @interpol the solution to the sygus conjecture.
+   */
+  bool solveInterpolationNext(Node& interpol);
+
  private:
   /**
    * Collects symbols from axioms (axioms) and conjecture (conj), which are
@@ -212,6 +227,13 @@ class SygusInterpol : protected EnvObj
    * the sygus conjecture to synthesis for interpolation problem
    */
   Node d_sygusConj;
+  /**
+   * The predicate for interpolation in the subsolver, which we pass to
+   * findInterpol above when the solving is successful.
+   */
+  Node d_itp;
+  /** The subsolver to initialize */
+  std::unique_ptr<SolverEngine> d_subSolver;
 };
 
 }  // namespace quantifiers

@@ -28,6 +28,50 @@ class TestApiBlackSolver : public TestApi
 {
 };
 
+TEST_F(TestApiBlackSolver, pow2Large1)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/371
+  Sort s1 = d_solver.getStringSort();
+  Sort s2 = d_solver.getIntegerSort();
+  Sort s4 = d_solver.mkArraySort(s1, s2);
+  Sort s7 = d_solver.mkArraySort(s2, s1);
+  Term t10 = d_solver.mkInteger("68038927088685865242724985643");
+  Term t74 = d_solver.mkInteger("8416288636405");
+  std::vector<DatatypeConstructorDecl> ctors;
+  ctors.push_back(d_solver.mkDatatypeConstructorDecl("_x109"));
+  ctors.back().addSelector("_x108", s7);
+  ctors.push_back(d_solver.mkDatatypeConstructorDecl("_x113"));
+  ctors.back().addSelector("_x110", s4);
+  ctors.back().addSelector("_x111", s2);
+  ctors.back().addSelector("_x112", s7);
+  Sort s11 = d_solver.declareDatatype("_x107", ctors);
+  Term t82 = d_solver.mkConst(s11, "_x114");
+  Term t180 = d_solver.mkTerm(POW2, t10);
+  Term t258 = d_solver.mkTerm(GEQ, t74, t180);
+  d_solver.assertFormula(t258);
+  ASSERT_THROW(d_solver.simplify(t82), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, pow2Large2)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/333
+  Term t1 = d_solver.mkBitVector(63, ~(((uint64_t)1) << 62));
+  Term t2 = d_solver.mkTerm(Kind::BITVECTOR_TO_NAT, t1);
+  Term t3 = d_solver.mkTerm(Kind::POW2, t2);
+  Term t4 = d_solver.mkTerm(Kind::DISTINCT, t3, t2);
+  ASSERT_THROW(d_solver.checkSatAssuming({t4}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, pow2Large3)
+{
+  // Based on https://github.com/cvc5/cvc5-projects/issues/339
+  Sort s4 = d_solver.getIntegerSort();
+  Term t203 = d_solver.mkInteger("6135470354240554220207");
+  Term t262 = d_solver.mkTerm(POW2, t203);
+  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, 49), t262);
+  ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, recoverableException)
 {
   d_solver.setOption("produce-models", "true");
@@ -153,7 +197,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(throwsDecls), CVC5ApiException);
 
   /* with unresolved sorts */
-  Sort unresList = d_solver.mkUninterpretedSort("ulist");
+  Sort unresList = d_solver.mkUnresolvedSort("ulist");
   std::set<Sort> unresSorts = {unresList};
   DatatypeDecl ulist = d_solver.mkDatatypeDecl("ulist");
   DatatypeConstructorDecl ucons = d_solver.mkDatatypeConstructorDecl("ucons");
@@ -166,6 +210,29 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls, unresSorts));
 
   ASSERT_THROW(slv.mkDatatypeSorts(udecls, unresSorts), CVC5ApiException);
+
+  /* mutually recursive with unresolved parameterized sorts */
+  Sort p0 = d_solver.mkParamSort("p0");
+  Sort p1 = d_solver.mkParamSort("p1");
+  Sort u0 = d_solver.mkUnresolvedSort("dt0", 1);
+  Sort u1 = d_solver.mkUnresolvedSort("dt1", 1);
+  DatatypeDecl dtdecl0 = d_solver.mkDatatypeDecl("dt0", p0);
+  DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("dt1", p1);
+  DatatypeConstructorDecl ctordecl0 = d_solver.mkDatatypeConstructorDecl("c0");
+  ctordecl0.addSelector("s0", u1.instantiate({p0}));
+  DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("c1");
+  ctordecl1.addSelector("s1", u0.instantiate({p1}));
+  dtdecl0.addConstructor(ctordecl0);
+  dtdecl1.addConstructor(ctordecl1);
+  std::vector<Sort> dt_sorts =
+      d_solver.mkDatatypeSorts({dtdecl0, dtdecl1}, {u0, u1});
+  Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
+  Term t1 = d_solver.mkConst(isort1, "t");
+  Term t0 = d_solver.mkTerm(
+      APPLY_SELECTOR,
+      t1.getSort().getDatatype().getSelector("s1").getSelectorTerm(),
+      t1);
+  ASSERT_EQ(dt_sorts[0].instantiate({d_solver.getBooleanSort()}), t0.getSort());
 
   /* Note: More tests are in datatype_api_black. */
 }
@@ -286,6 +353,14 @@ TEST_F(TestApiBlackSolver, mkUninterpretedSort)
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort(""));
 }
 
+TEST_F(TestApiBlackSolver, mkUnresolvedSort)
+{
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u"));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("u", 1));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort(""));
+  ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
+}
+
 TEST_F(TestApiBlackSolver, mkSortConstructorSort)
 {
   ASSERT_NO_THROW(d_solver.mkSortConstructorSort("s", 2));
@@ -379,24 +454,6 @@ TEST_F(TestApiBlackSolver, mkRoundingMode)
   ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 }
 
-TEST_F(TestApiBlackSolver, mkAbstractValue)
-{
-  ASSERT_NO_THROW(d_solver.mkAbstractValue(std::string("1")));
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("0")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("-1")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue(std::string("1.2")), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue("1/2"), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkAbstractValue("asdf"), CVC5ApiException);
-
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((uint32_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int32_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((uint64_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int64_t)1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int32_t)-1));
-  ASSERT_NO_THROW(d_solver.mkAbstractValue((int64_t)-1));
-  ASSERT_THROW(d_solver.mkAbstractValue(0), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, mkFloatingPoint)
 {
   Term t1 = d_solver.mkBitVector(8);
@@ -461,26 +518,29 @@ TEST_F(TestApiBlackSolver, mkFalse)
   ASSERT_NO_THROW(d_solver.mkFalse());
 }
 
-TEST_F(TestApiBlackSolver, mkNaN) { ASSERT_NO_THROW(d_solver.mkNaN(3, 5)); }
-
-TEST_F(TestApiBlackSolver, mkNegZero)
+TEST_F(TestApiBlackSolver, mkFloatingPointNaN)
 {
-  ASSERT_NO_THROW(d_solver.mkNegZero(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointNaN(3, 5));
 }
 
-TEST_F(TestApiBlackSolver, mkNegInf)
+TEST_F(TestApiBlackSolver, mkFloatingPointNegZero)
 {
-  ASSERT_NO_THROW(d_solver.mkNegInf(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointNegZero(3, 5));
 }
 
-TEST_F(TestApiBlackSolver, mkPosInf)
+TEST_F(TestApiBlackSolver, mkFloatingPointNegInf)
 {
-  ASSERT_NO_THROW(d_solver.mkPosInf(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointNegInf(3, 5));
 }
 
-TEST_F(TestApiBlackSolver, mkPosZero)
+TEST_F(TestApiBlackSolver, mkFloatingPointPosInf)
 {
-  ASSERT_NO_THROW(d_solver.mkPosZero(3, 5));
+  ASSERT_NO_THROW(d_solver.mkFloatingPointPosInf(3, 5));
+}
+
+TEST_F(TestApiBlackSolver, mkFloatingPointPosZero)
+{
+  ASSERT_NO_THROW(d_solver.mkFloatingPointPosZero(3, 5));
 }
 
 TEST_F(TestApiBlackSolver, mkOp)
@@ -730,8 +790,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(
       d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(MINUS, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(MINUS), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(SUB, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SUB), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
   ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
@@ -929,22 +989,35 @@ TEST_F(TestApiBlackSolver, mkConstArray)
 
 TEST_F(TestApiBlackSolver, declareDatatype)
 {
+  DatatypeConstructorDecl lin = d_solver.mkDatatypeConstructorDecl("lin");
+  std::vector<DatatypeConstructorDecl> ctors0 = {lin};
+  ASSERT_NO_THROW(d_solver.declareDatatype(std::string(""), ctors0));
+
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors1 = {nil};
   ASSERT_NO_THROW(d_solver.declareDatatype(std::string("a"), ctors1));
+
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil2 = d_solver.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
   ASSERT_NO_THROW(d_solver.declareDatatype(std::string("b"), ctors2));
+
   DatatypeConstructorDecl cons2 = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil3 = d_solver.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
   ASSERT_NO_THROW(d_solver.declareDatatype(std::string(""), ctors3));
+
+  // must have at least one constructor
   std::vector<DatatypeConstructorDecl> ctors4;
   ASSERT_THROW(d_solver.declareDatatype(std::string("c"), ctors4),
                CVC5ApiException);
-  ASSERT_THROW(d_solver.declareDatatype(std::string(""), ctors4),
+  // constructors may not be reused
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
                CVC5ApiException);
+  // constructor belongs to different solver instance
   Solver slv;
   ASSERT_THROW(slv.declareDatatype(std::string("a"), ctors1), CVC5ApiException);
 }
@@ -1307,6 +1380,30 @@ TEST_F(TestApiBlackSolver, getAbduct2)
   ASSERT_THROW(d_solver.getAbduct(conj, output), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, getAbductNext)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-abducts", "true");
+  d_solver.setOption("incremental", "true");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+
+  // Assumptions for abduction: x > 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+  // Conjecture for abduction: y > 0
+  Term conj = d_solver.mkTerm(GT, y, zero);
+  Term output;
+  // Call the abduction api, while the resulting abduct is the output
+  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  Term output2;
+  ASSERT_TRUE(d_solver.getAbductNext(output2));
+  // should produce a different output
+  ASSERT_TRUE(output != output2);
+}
+
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
@@ -1320,13 +1417,12 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term z = d_solver.mkConst(intSort, "z");
 
   // Assumptions for interpolation: x + y > 0 /\ x < 0
-  d_solver.assertFormula(
-      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(ADD, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
   // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj =
       d_solver.mkTerm(OR,
-                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
   Term output;
   // Call the interpolation api, while the resulting interpolant is the output
@@ -1334,6 +1430,34 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
+}
+
+TEST_F(TestApiBlackSolver, getInterpolantNext)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("incremental", "true");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term z = d_solver.mkConst(intSort, "z");
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(ADD, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  Term conj =
+      d_solver.mkTerm(OR,
+                      d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
+                      d_solver.mkTerm(LT, z, zero));
+  Term output;
+  d_solver.getInterpolant(conj, output);
+  Term output2;
+  d_solver.getInterpolantNext(output2);
+
+  // We expect the next output to be distinct
+  ASSERT_TRUE(output != output2);
 }
 
 TEST_F(TestApiBlackSolver, declarePool)
@@ -1521,7 +1645,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   Term one = d_solver.mkInteger(1);
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   d_solver.assertFormula(d_solver.mkTerm(GT, zero, f_x));
@@ -1618,7 +1742,7 @@ TEST_F(TestApiBlackSolver, getValue3)
   Term one = d_solver.mkInteger(1);
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
 
@@ -1761,6 +1885,7 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 TEST_F(TestApiBlackSolver, declareSepHeap)
 {
   d_solver.setLogic("ALL");
+  d_solver.setOption("incremental", "false");
   Sort integer = d_solver.getIntegerSort();
   ASSERT_NO_THROW(d_solver.declareSepHeap(integer, integer));
   // cannot declare separation logic heap more than once
@@ -1977,7 +2102,7 @@ TEST_F(TestApiBlackSolver, blockModelValues2)
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModelValues({x}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.blockModelValues({x}));
 }
 
 TEST_F(TestApiBlackSolver, blockModelValues3)
@@ -2074,7 +2199,7 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(d_solver.simplify(i2));
   ASSERT_NE(i1, i2);
   ASSERT_NE(i1, d_solver.simplify(i2));
-  Term i3 = d_solver.mkTerm(PLUS, i1, d_solver.mkInteger(0));
+  Term i3 = d_solver.mkTerm(ADD, i1, d_solver.mkInteger(0));
   ASSERT_NO_THROW(d_solver.simplify(i3));
   ASSERT_NE(i1, i3);
   ASSERT_EQ(i1, d_solver.simplify(i3));
@@ -2164,7 +2289,7 @@ TEST_F(TestApiBlackSolver, checkEntailed2)
   // Terms
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   // Assertions
@@ -2244,7 +2369,7 @@ TEST_F(TestApiBlackSolver, checkSatAssuming2)
   // Terms
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-  Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   // Assertions
@@ -2545,6 +2670,37 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, checkSynthNext)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  d_solver.checkSynth();
+  ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
+  d_solver.checkSynthNext();
+  ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
+}
+
+TEST_F(TestApiBlackSolver, checkSynthNext2)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "false");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  d_solver.checkSynth();
+  ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, checkSynthNext3)
+{
+  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("incremental", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Sort> sorts = {d_solver.getBooleanSort(),
@@ -2661,14 +2817,190 @@ TEST_F(TestApiBlackSolver, proj_issue373)
       CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, doubleUseCons)
+TEST_F(TestApiBlackSolver, proj_issue378)
+{
+  DatatypeDecl dtdecl;
+  DatatypeConstructorDecl cdecl;
+
+  Sort s1 = d_solver.getBooleanSort();
+
+  dtdecl = d_solver.mkDatatypeDecl("_x0");
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x6");
+  cdecl.addSelector("_x1", s1);
+  dtdecl.addConstructor(cdecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+
+  dtdecl = d_solver.mkDatatypeDecl("_x36");
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x42");
+  cdecl.addSelector("_x37", s1);
+  dtdecl.addConstructor(cdecl);
+  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
+
+  Term t1 = d_solver.mkConst(s1, "_x53");
+  Term t4 = d_solver.mkConst(s4, "_x56");
+  Term t7 = d_solver.mkConst(s2, "_x58");
+
+  Sort sp = d_solver.mkParamSort("_x178");
+  dtdecl = d_solver.mkDatatypeDecl("_x176", sp);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x184");
+  cdecl.addSelector("_x180", s2);
+  dtdecl.addConstructor(cdecl);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x186");
+  cdecl.addSelector("_x185", sp);
+  dtdecl.addConstructor(cdecl);
+  Sort s7 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s9 = s7.instantiate({s2});
+  Term t1507 = d_solver.mkTerm(
+      APPLY_CONSTRUCTOR, s9.getDatatype().getConstructorTerm("_x184"), t7);
+  ASSERT_NO_THROW(d_solver.mkTerm(
+      APPLY_UPDATER,
+      s9.getDatatype().getConstructor("_x186").getSelectorTerm("_x185"),
+      t1507,
+      t7));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue379)
+{
+  Sort bsort = d_solver.getBooleanSort();
+  Sort psort = d_solver.mkParamSort("_x1");
+  DatatypeConstructorDecl cdecl;
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("x_0", psort);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x8");
+  cdecl.addSelector("_x7", bsort);
+  dtdecl.addConstructor(cdecl);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x6");
+  cdecl.addSelector("_x2", psort);
+  cdecl.addSelectorSelf("_x3");
+  cdecl.addSelector("_x4", psort);
+  cdecl.addSelector("_x5", bsort);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s2.instantiate({bsort});
+  Term t317 = d_solver.mkConst(bsort, "_x345");
+  Term t843 = d_solver.mkConst(s6, "_x346");
+  Term t879 = d_solver.mkTerm(APPLY_UPDATER,
+                              t843.getSort()
+                                  .getDatatype()
+                                  .getConstructor("_x8")
+                                  .getSelector("_x7")
+                                  .getUpdaterTerm(),
+                              t843,
+                              t317);
+  ASSERT_EQ(t879.getSort(), s6);
+}
+
+TEST_F(TestApiBlackSolver, getDatatypeArity)
 {
   DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
   DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
   Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+  ASSERT_EQ(s3.getDatatypeArity(), 0);
+}
 
-  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
-               CVC5ApiException);
+TEST_F(TestApiBlackSolver, proj_issue381)
+{
+  Sort s1 = d_solver.getBooleanSort();
+
+  Sort psort = d_solver.mkParamSort("_x9");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x8", psort);
+  DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x22");
+  ctor.addSelector("_x19", s1);
+  dtdecl.addConstructor(ctor);
+  Sort s3 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s3.instantiate({s1});
+  Term t26 = d_solver.mkConst(s6, "_x63");
+  Term t5 = d_solver.mkTrue();
+  Term t187 = d_solver.mkTerm(APPLY_UPDATER,
+                              t26.getSort()
+                                  .getDatatype()
+                                  .getConstructor("_x22")
+                                  .getSelector("_x19")
+                                  .getUpdaterTerm(),
+                              t26,
+                              t5);
+  ASSERT_NO_THROW(d_solver.simplify(t187));
+}
+
+
+TEST_F(TestApiBlackSolver, proj_issue382)
+{
+  Sort s1 = d_solver.getBooleanSort();
+  Sort psort = d_solver.mkParamSort("_x1");
+  DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x20");
+  ctor.addSelector("_x19", psort);
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", psort);
+  dtdecl.addConstructor(ctor);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s2.instantiate({s1});
+  Term t13 = d_solver.mkVar(s6, "_x58");
+  Term t18 = d_solver.mkConst(s6, "_x63");
+  Term t52 = d_solver.mkVar(s6, "_x70");
+  Term t53 = d_solver.mkTerm(
+      MATCH_BIND_CASE, d_solver.mkTerm(VARIABLE_LIST, t52), t52, t18);
+  Term t73 = d_solver.mkVar(s1, "_x78");
+  Term t81 =
+      d_solver.mkTerm(MATCH_BIND_CASE,
+                      d_solver.mkTerm(VARIABLE_LIST, t73),
+                      d_solver.mkTerm(APPLY_CONSTRUCTOR,
+                                      s6.getDatatype()
+                                          .getConstructor("_x20")
+                                          .getInstantiatedConstructorTerm(s6),
+                                      t73),
+                      t18);
+  Term t82 = d_solver.mkTerm(MATCH, {t13, t53, t53, t53, t81});
+  Term t325 = d_solver.mkTerm(
+      APPLY_SELECTOR,
+      t82.getSort().getDatatype().getSelector("_x19").getSelectorTerm(),
+      t82);
+  ASSERT_NO_THROW(d_solver.simplify(t325));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue383)
+{
+  d_solver.setOption("produce-models", "true");
+
+  Sort s1 = d_solver.getBooleanSort();
+
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("_x5");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0");
+  dtdecl.addConstructor(ctordecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+
+  ctordecl = d_solver.mkDatatypeConstructorDecl("_x23");
+  ctordecl.addSelectorSelf("_x21");
+  dtdecl = d_solver.mkDatatypeDecl("_x12");
+  dtdecl.addConstructor(ctordecl);
+  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
+  ASSERT_FALSE(s4.getDatatype().isWellFounded());
+
+  Term t3 = d_solver.mkConst(s4, "_x25");
+  Term t13 = d_solver.mkConst(s1, "_x34");
+
+  d_solver.checkEntailed(t13);
+  ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, proj_issue386)
+{
+  Sort s1 = d_solver.getBooleanSort();
+  Sort p1 = d_solver.mkParamSort("_p1");
+  Sort p2 = d_solver.mkParamSort("_p2");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x0", {p1, p2});
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("_x1");
+  ctordecl.addSelector("_x2", p1);
+  dtdecl.addConstructor(ctordecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, proj_issue414)
+{
+  Solver slv;
+  Sort s2 = slv.getRealSort();
+  Term t1 = slv.mkConst(s2, "_x0");
+  Term t16 = slv.mkTerm(Kind::PI);
+  Term t53 = slv.mkTerm(Kind::SUB, {t1, t16});
+  Term t54 = slv.mkTerm(Kind::SECANT, {t53});
+  ASSERT_NO_THROW(slv.simplify(t54));
 }
 
 }  // namespace test

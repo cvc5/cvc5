@@ -57,7 +57,7 @@ SygusExtension::SygusExtension(Env& env,
       d_active_terms(context()),
       d_currTermSize(context())
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
@@ -691,7 +691,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
 
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
-  bool doSymBreak = options().datatypes.sygusSymBreak;
+  bool doSymBreak = options().datatypes.sygusSimpleSymBreak
+                    != options::SygusSimpleSymBreakMode::NONE;
   if (isAnyConstant || depth > 2)
   {
     doSymBreak = false;
@@ -700,7 +701,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   if (doSymBreak)
   {
     // direct solving for children
-    //   for instance, we may want to insist that the LHS of MINUS is 0
+    //   for instance, we may want to insist that the LHS of SUB is 0
     Trace("sygus-sb-simple-debug") << "  Solve children..." << std::endl;
     std::map<unsigned, unsigned> children_solved;
     for (unsigned j = 0; j < dt_index_nargs; j++)
@@ -746,7 +747,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           {
             // other cases of rewriting x k x -> x'
             Node req_const;
-            if (nk == GT || nk == LT || nk == XOR || nk == MINUS
+            if (nk == GT || nk == LT || nk == XOR || nk == SUB
                 || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
                 || nk == BITVECTOR_UREM)
             {
@@ -1047,12 +1048,12 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = extendedRewrite(bv);
+    Node bvr = d_tds->rewriteNode(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
     if( d_tds->involvesDivByZero( bvr ) ){
-      quantifiers::DivByZeroSygusInvarianceTest dbzet;
+      quantifiers::DivByZeroSygusInvarianceTest dbzet(d_env.getRewriter());
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
                                    << bv << std::endl;
       registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), var_count);
@@ -1161,7 +1162,7 @@ Node SygusExtension::registerSearchValue(Node a,
 
         // generalize the explanation for why the analog of bad_val
         // is equivalent to bvr
-        quantifiers::EquivSygusInvarianceTest eset;
+        quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
         eset.init(d_tds, tn, aconj, a, bvr);
 
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
@@ -1379,7 +1380,7 @@ void SygusExtension::registerSizeTerm(Node e)
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue();
       Node newMt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(nm->mkNode(PLUS, newMt, ds));
+      slem = mt.eqNode(nm->mkNode(ADD, newMt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);
@@ -1624,7 +1625,9 @@ void SygusExtension::check()
 
         // register the search value ( prog -> progv ), this may invoke symmetry
         // breaking
-        if (!isExc && options().datatypes.sygusSymBreakDynamic)
+        if (!isExc
+            && options().datatypes.sygusRewriter
+                   != options::SygusRewriterMode::NONE)
         {
           bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
           // check that it is unique up to theory-specific rewriting and
@@ -1772,8 +1775,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
-    Node mtlem = nm->mkNode(
-        kind::GEQ, d_measure_value, nm->mkConst(CONST_RATIONAL, Rational(0)));
+    Node mtlem =
+        nm->mkNode(kind::GEQ, d_measure_value, nm->mkConstInt(Rational(0)));
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
   return d_measure_value;
@@ -1787,8 +1790,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
-    Node mtlem =
-        nm->mkNode(kind::GEQ, new_mt, nm->mkConst(CONST_RATIONAL, Rational(0)));
+    Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConstInt(Rational(0)));
     d_measure_value_active = new_mt;
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
@@ -1817,8 +1819,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
-  return nm->mkNode(
-      DT_SYGUS_BOUND, d_this, nm->mkConst(CONST_RATIONAL, Rational(s)));
+  return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConstInt(Rational(s)));
 }
 
 int SygusExtension::getGuardStatus( Node g ) {

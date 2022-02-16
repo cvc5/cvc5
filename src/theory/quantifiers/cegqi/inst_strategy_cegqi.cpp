@@ -56,17 +56,17 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_vtsCache(new VtsTermCache(qim)),
+      d_vtsCache(new VtsTermCache(env, qim)),
       d_bv_invert(nullptr),
-      d_small_const_multiplier(NodeManager::currentNM()->mkConst(
-          CONST_RATIONAL, Rational(1) / Rational(1000000))),
+      d_small_const_multiplier(NodeManager::currentNM()->mkConstReal(
+          Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier)
 {
   d_check_vts_lemma_lc = false;
   if (options().quantifiers.cegqiBv)
   {
     // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new BvInverter);
+    d_bv_invert.reset(new BvInverter(env.getRewriter()));
   }
   if (options().quantifiers.cegqiNestedQE)
   {
@@ -435,6 +435,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
     }
     d_curr_quant = Node::null();
   }else if( e==1 ){
+    NodeManager* nm = NodeManager::currentNM();
     //minimize the free delta heuristically on demand
     if( d_check_vts_lemma_lc ){
       Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
@@ -453,12 +454,10 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
-        Node inf_lem_lb = NodeManager::currentNM()->mkNode(
+        Node inf_lem_lb = nm->mkNode(
             GT,
             inf[i],
-            NodeManager::currentNM()->mkConst(
-                CONST_RATIONAL,
-                Rational(1) / d_small_const.getConst<Rational>()));
+            nm->mkConstReal(Rational(1) / d_small_const.getConst<Rational>()));
         d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
       }
     }

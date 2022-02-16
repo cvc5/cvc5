@@ -1,4 +1,5 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1  
+; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
+; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
 ; EXPECT: sat
 (set-logic QF_BV)
 (declare-fun _substvar_183_ () (_ BitVec 32))

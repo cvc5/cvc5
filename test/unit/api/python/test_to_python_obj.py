@@ -14,12 +14,12 @@
 from fractions import Fraction
 import pytest
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 
 def testGetBool():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     t = solver.mkTrue()
     f = solver.mkFalse()
     assert t.toPythonObj() is True
@@ -27,13 +27,13 @@ def testGetBool():
 
 
 def testGetInt():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     two = solver.mkInteger(2)
     assert two.toPythonObj() == 2
 
 
 def testGetReal():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     half = solver.mkReal("1/2")
     assert half.toPythonObj() == Fraction(1, 2)
 
@@ -45,18 +45,18 @@ def testGetReal():
 
 
 def testGetBV():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     three = solver.mkBitVector(8, 3)
     assert three.toPythonObj() == 3
 
 
 def testGetArray():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
     zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
-    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
+    stores = solver.mkTerm(Kind.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
+    stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
+    stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
 
     array_dict = stores.toPythonObj()
 
@@ -68,12 +68,12 @@ def testGetArray():
 
 
 def testGetSymbol():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     solver.mkConst(solver.getBooleanSort(), "x")
 
 
 def testGetString():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
 
     s1 = '"test\n"😃\\u{a}'
     t1 = solver.mkString(s1)
@@ -85,12 +85,12 @@ def testGetString():
 
 
 def testGetValueInt():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     solver.setOption("produce-models", "true")
 
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
-    solver.assertFormula(solver.mkTerm(kinds.Equal, x, solver.mkInteger(6)))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, solver.mkInteger(6)))
 
     r = solver.checkSat()
     assert r.isSat()
@@ -100,14 +100,14 @@ def testGetValueInt():
 
 
 def testGetValueReal():
-    solver = pycvc5.Solver()
+    solver = cvc5.Solver()
     solver.setOption("produce-models", "true")
 
     realsort = solver.getRealSort()
     x = solver.mkConst(realsort, "x")
     y = solver.mkConst(realsort, "y")
-    solver.assertFormula(solver.mkTerm(kinds.Equal, x, solver.mkReal("6")))
-    solver.assertFormula(solver.mkTerm(kinds.Equal, y, solver.mkReal("8.33")))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, solver.mkReal("6")))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, y, solver.mkReal("8.33")))
 
     r = solver.checkSat()
     assert r.isSat()

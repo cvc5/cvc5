@@ -170,6 +170,8 @@ enum class InferenceId
   // ---------------------------------- bags theory
   BAGS_NON_NEGATIVE_COUNT,
   BAGS_BAG_MAKE,
+  BAGS_BAG_MAKE_SPLIT,
+  BAGS_COUNT_SKOLEM,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
@@ -180,7 +182,12 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
+  BAGS_FILTER_DOWN,
+  BAGS_FILTER_UP,
   BAGS_FOLD,
+  BAGS_CARD,
+  TABLES_PRODUCT_UP,
+  TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -286,6 +293,8 @@ enum class InferenceId
   QUANTIFIERS_INST_E_MATCHING_HO,
   // E-matching based on variable triggers
   QUANTIFIERS_INST_E_MATCHING_VAR_GEN,
+  // E-matching based on relational triggers
+  QUANTIFIERS_INST_E_MATCHING_RELATIONAL,
   // conflicting instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation
@@ -342,12 +351,6 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
-  // Q where Q was solved by a subcall to the single invocation module
-  QUANTIFIERS_SYGUS_SI_SOLVED,
-  // Q where Q was (trusted) solved by sampling
-  QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
-  // Q where Q was solved by a verification subcall
-  QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // unif+pi symmetry breaking between multiple enumerators
@@ -689,10 +692,26 @@ enum class InferenceId
   STRINGS_ARRAY_UPDATE_UNIT,
   // update over conatenation
   STRINGS_ARRAY_UPDATE_CONCAT,
+  // update over conatenation, inverse
+  STRINGS_ARRAY_UPDATE_CONCAT_INVERSE,
   // nth over unit
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation
   STRINGS_ARRAY_NTH_CONCAT,
+  // nth over extract
+  STRINGS_ARRAY_NTH_EXTRACT,
+  // nth over update
+  STRINGS_ARRAY_NTH_UPDATE,
+  // reasoning about the nth term from update term
+  STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+  // reasoning about whether an update changes a term or not
+  STRINGS_ARRAY_UPDATE_BOUND,
+  // splitting about equality of sequences
+  STRINGS_ARRAY_EQ_SPLIT,
+  // nth over update when updated with an unit term
+  STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
+  // nth over reverse
+  STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false

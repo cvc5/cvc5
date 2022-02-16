@@ -86,28 +86,40 @@ name   = "Datatypes Theory"
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
-  name       = "sygusSymBreak"
+  name       = "sygusSimpleSymBreak"
   category   = "regular"
-  long       = "sygus-sym-break"
-  type       = "bool"
-  default    = "true"
-  help       = "simple sygus symmetry breaking lemmas"
-
+  long       = "sygus-simple-sym-break=MODE"
+  type       = "SygusSimpleSymBreakMode"
+  default    = "AGG"
+  help       = "if and how to apply simple symmetry breaking based on the grammar for smart enumeration"
+  help_mode  = "Modes for applying simple symmetry breaking based on the grammar for smart enumeration."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not apply simple symmetry breaking."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Apply basic simple symmetry breaking."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Apply aggressive simple symmetry breaking."
+  
 [[option]]
-  name       = "sygusSymBreakAgg"
+  name       = "sygusRewriter"
   category   = "regular"
-  long       = "sygus-sym-break-agg"
-  type       = "bool"
-  default    = "true"
-  help       = "use aggressive checks for simple sygus symmetry breaking lemmas"
-
-[[option]]
-  name       = "sygusSymBreakDynamic"
-  category   = "regular"
-  long       = "sygus-sym-break-dynamic"
-  type       = "bool"
-  default    = "true"
-  help       = "dynamic sygus symmetry breaking lemmas"
+  long       = "sygus-rewriter=MODE"
+  type       = "SygusRewriterMode"
+  default    = "EXTENDED"
+  help       = "if and how to apply rewriting for sygus symmetry breaking"
+  help_mode  = "Modes for applying rewriting for sygus symmetry breaking."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use the rewriter."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Use the basic rewriter."
+[[option.mode.EXTENDED]]
+  name = "extended"
+  help = "Use the extended rewriter."
 
 [[option]]
   name       = "sygusSymBreakPbe"

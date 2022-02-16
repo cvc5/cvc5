@@ -155,7 +155,7 @@ void TheoryEngine::finishInit()
   // create the relevance filter if any option requires it
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
-    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
+    d_relManager.reset(new RelevanceManager(d_env, Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -221,7 +221,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_relManager(nullptr),
       d_inConflict(context(), false),
       d_inSatMode(false),
-      d_hasShutDown(false),
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
@@ -255,7 +254,6 @@ TheoryEngine::TheoryEngine(Env& env)
 }
 
 TheoryEngine::~TheoryEngine() {
-  Assert(d_hasShutDown);
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if(d_theoryTable[theoryId] != NULL) {
@@ -384,15 +382,15 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): d_factsAsserted = " << (d_factsAsserted ? "true" : "false") << endl;
 
-    // Reset round for the relevance manager, which notice only sets a flag
-    // to indicate that its information must be recomputed.
-    if (d_relManager != nullptr)
-    {
-      d_relManager->beginRound();
-    }
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
+      // Reset round for the relevance manager, which notice only sets a flag
+      // to indicate that its information must be recomputed.
+      if (d_relManager != nullptr)
+      {
+        d_relManager->beginRound();
+      }
       d_tc->resetRound();
     }
 
@@ -488,6 +486,10 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     if (Theory::fullEffort(effort))
     {
+      if (d_relManager != nullptr)
+      {
+        d_relManager->endRound();
+      }
       if (!d_inConflict && !needCheck())
       {
         // Do post-processing of model from the theories (e.g. used for
@@ -713,20 +715,6 @@ bool TheoryEngine::isRelevant(Node lit) const
   return true;
 }
 
-void TheoryEngine::shutdown() {
-  // Set this first; if a Theory shutdown() throws an exception,
-  // at least the destruction of the TheoryEngine won't confound
-  // matters.
-  d_hasShutDown = true;
-
-  // Shutdown all the theories
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
-      theoryOf(theoryId)->shutdown();
-    }
-  }
-}
-
 theory::Theory::PPAssertStatus TheoryEngine::solve(
     TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
@@ -775,7 +763,7 @@ void TheoryEngine::notifyPreprocessedAssertions(
   }
   if (d_relManager != nullptr)
   {
-    d_relManager->notifyPreprocessedAssertions(assertions);
+    d_relManager->notifyPreprocessedAssertions(assertions, true);
   }
 }
 
@@ -1075,14 +1063,14 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
-    bool& success)
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
 {
   // if we are not in SAT mode, or there is no relevance manager, we fail
   if (!d_inSatMode || d_relManager == nullptr)
   {
     success = false;
-    return d_emptyRelevantSet;
+    // return empty set
+    return std::unordered_set<TNode>();
   }
   return d_relManager->getRelevantAssertions(success);
 }
@@ -1093,13 +1081,19 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_relManager->getDifficultyMap(dmap);
 }
 
+theory::IncompleteId TheoryEngine::getIncompleteId() const
+{
+  return d_incompleteId.get();
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
     // the model value of a constant must be itself
     return var;
   }
-  Assert(d_sharedSolver->isShared(var));
+  Assert(d_sharedSolver->isShared(var))
+      << "node " << var << " is not shared" << std::endl;
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
@@ -1317,8 +1311,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
-      d_relManager->notifyPreprocessedAssertion(retLemma);
-      d_relManager->notifyPreprocessedAssertions(skAsserts);
+      d_relManager->notifyPreprocessedAssertion(retLemma, false);
+      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
   }
@@ -1796,6 +1790,15 @@ bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasFailure = false;
   std::stringstream serror;
+  // If possible, get the list of relevant assertions. Those that are not
+  // relevant will be skipped.
+  std::unordered_set<TNode> relevantAssertions;
+  bool hasRelevantAssertions = false;
+  if (d_relManager != nullptr)
+  {
+    relevantAssertions =
+        d_relManager->getRelevantAssertions(hasRelevantAssertions);
+  }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1804,7 +1807,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
-        if (!isRelevant(assertion))
+        if (hasRelevantAssertions
+            && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
           continue;

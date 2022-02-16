@@ -31,6 +31,16 @@ SubstitutionMap::SubstitutionMap(context::Context* context)
 {
 }
 
+std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions()
+{
+  std::unordered_map<Node, Node> subs;
+  for (const auto& sub : d_substitutions)
+  {
+    subs.emplace(sub.first, sub.second);
+  }
+  return subs;
+}
+
 struct substitution_stack_element {
   TNode d_node;
   bool d_children_added;
@@ -39,8 +49,11 @@ struct substitution_stack_element {
   }
 };/* struct substitution_stack_element */
 
-Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
-
+Node SubstitutionMap::internalSubstitute(TNode t,
+                                         NodeCache& cache,
+                                         std::set<TNode>* tracker,
+                                         const ShouldTraverseCallback* stc)
+{
   Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
   if (d_substitutions.empty()) {
@@ -70,10 +83,17 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
       Assert(rhs != current);
-      internalSubstitute(rhs, cache);
-      d_substitutions[current] = cache[rhs];
+      internalSubstitute(rhs, cache, tracker, stc);
+      if (tracker == nullptr)
+      {
+        d_substitutions[current] = cache[rhs];
+      }
       cache[current] = cache[rhs];
       toVisit.pop_back();
+      if (tracker != nullptr)
+      {
+        tracker->insert(current);
+      }
       continue;
     }
 
@@ -101,9 +121,13 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
             Assert(rhs != result);
-            internalSubstitute(rhs, cache);
+            internalSubstitute(rhs, cache, tracker, stc);
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
+            if (tracker != nullptr)
+            {
+              tracker->insert(result);
+            }
             result = cache[rhs];
           }
         }
@@ -115,7 +139,11 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     else
     {
       // Mark that we have added the children if any
-      if (current.getNumChildren() > 0 || current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      bool recurse = (stc == nullptr || (*stc)(current));
+      if (recurse
+          && (current.getNumChildren() > 0
+              || current.getMetaKind() == kind::metakind::PARAMETERIZED))
+      {
         stackHead.d_children_added = true;
         // We need to add the operator, if any
         if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -133,7 +161,9 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
             toVisit.push_back(childNode);
           }
         }
-      } else {
+      }
+      else
+      {
         // No children, so we're done
         Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
         cache[current] = current;
@@ -144,8 +174,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
 
   // Return the substituted version
   return cache[t];
-}/* SubstitutionMap::internalSubstitute() */
-
+} /* SubstitutionMap::internalSubstitute() */
 
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
@@ -170,8 +199,8 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 
 void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateCache)
 {
-  SubstitutionMap::NodeMap::const_iterator it = subMap.begin();
-  SubstitutionMap::NodeMap::const_iterator it_end = subMap.end();
+  NodeMap::const_iterator it = subMap.begin();
+  NodeMap::const_iterator it_end = subMap.end();
   for (; it != it_end; ++ it) {
     Assert(d_substitutions.find((*it).first) == d_substitutions.end());
     d_substitutions[(*it).first] = (*it).second;
@@ -184,8 +213,11 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-Node SubstitutionMap::apply(TNode t, bool doRewrite) {
-
+Node SubstitutionMap::apply(TNode t,
+                            Rewriter* r,
+                            std::set<TNode>* tracker,
+                            const ShouldTraverseCallback* stc)
+{
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
@@ -196,12 +228,14 @@ Node SubstitutionMap::apply(TNode t, bool doRewrite) {
   }
 
   // Perform the substitution
-  Node result = internalSubstitute(t, d_substitutionCache);
+  Node result = internalSubstitute(t, d_substitutionCache, tracker, stc);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
-  if (doRewrite)
+  if (r != nullptr)
   {
-    result = Rewriter::rewrite(result);
+    result = r->rewrite(result);
+    Assert(r->rewrite(result) == result) << "Non-idempotent rewrite: " << result
+                                         << " --> " << r->rewrite(result);
   }
 
   return result;

@@ -221,7 +221,7 @@ class TheoryModel : protected EnvObj
    * kind k in getModelValue. We distinguish four categories of kinds:
    *
    * [1] "Evaluated"
-   * This includes (standard) interpreted symbols like NOT, PLUS, SET_UNION,
+   * This includes (standard) interpreted symbols like NOT, ADD, SET_UNION,
    * etc. These operators can be characterized by the invariant that they are
    * "evaluatable". That is, if they are applied to only constants, the rewriter
    * is guaranteed to rewrite the application to a constant. When getting
@@ -356,6 +356,12 @@ class TheoryModel : protected EnvObj
    * engine.
    */
   std::string debugPrintModelEqc() const;
+
+  /**
+   * Is the node n a "value"? This is true if n is constant, a constant-like
+   * value (e.g. a real algebraic number) or if n is a lambda.
+   */
+  static bool isValue(TNode node);
 
  protected:
   /** Unique name of this model */

@@ -16,12 +16,12 @@
 ##
 
 import copy
-import pycvc5
+import cvc5
 import utils
-from pycvc5 import kinds
+from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = pycvc5.Solver()
+  slv = cvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")
@@ -45,13 +45,13 @@ if __name__ == "__main__":
   zero = slv.mkInteger(0)
   one = slv.mkInteger(1)
 
-  plus = slv.mkTerm(kinds.Plus, start, start)
-  minus = slv.mkTerm(kinds.Minus, start, start)
-  ite = slv.mkTerm(kinds.Ite, start_bool, start, start)
+  plus = slv.mkTerm(Kind.Add, start, start)
+  minus = slv.mkTerm(Kind.Sub, start, start)
+  ite = slv.mkTerm(Kind.Ite, start_bool, start, start)
 
-  And = slv.mkTerm(kinds.And, start_bool, start_bool)
-  Not = slv.mkTerm(kinds.Not, start_bool)
-  leq = slv.mkTerm(kinds.Leq, start, start)
+  And = slv.mkTerm(Kind.And, start_bool, start_bool)
+  Not = slv.mkTerm(Kind.Not, start_bool)
+  leq = slv.mkTerm(Kind.Leq, start, start)
 
   # create the grammar object
   g = slv.mkSygusGrammar([x, y], [start, start_bool])
@@ -69,25 +69,25 @@ if __name__ == "__main__":
   varX = slv.mkSygusVar(integer, "x")
   varY = slv.mkSygusVar(integer, "y")
 
-  max_x_y = slv.mkTerm(kinds.ApplyUf, max, varX, varY)
-  min_x_y = slv.mkTerm(kinds.ApplyUf, min, varX, varY)
+  max_x_y = slv.mkTerm(Kind.ApplyUf, max, varX, varY)
+  min_x_y = slv.mkTerm(Kind.ApplyUf, min, varX, varY)
 
   # add semantic constraints
   # (constraint (>= (max x y) x))
-  slv.addSygusConstraint(slv.mkTerm(kinds.Geq, max_x_y, varX))
+  slv.addSygusConstraint(slv.mkTerm(Kind.Geq, max_x_y, varX))
 
   # (constraint (>= (max x y) y))
-  slv.addSygusConstraint(slv.mkTerm(kinds.Geq, max_x_y, varY))
+  slv.addSygusConstraint(slv.mkTerm(Kind.Geq, max_x_y, varY))
 
   # (constraint (or (= x (max x y))
   #                 (= y (max x y))))
   slv.addSygusConstraint(slv.mkTerm(
-      kinds.Or, slv.mkTerm(kinds.Equal, max_x_y, varX), slv.mkTerm(kinds.Equal, max_x_y, varY)))
+      Kind.Or, slv.mkTerm(Kind.Equal, max_x_y, varX), slv.mkTerm(Kind.Equal, max_x_y, varY)))
 
   # (constraint (= (+ (max x y) (min x y))
   #                (+ x y)))
   slv.addSygusConstraint(slv.mkTerm(
-      kinds.Equal, slv.mkTerm(kinds.Plus, max_x_y, min_x_y), slv.mkTerm(kinds.Plus, varX, varY)))
+      Kind.Equal, slv.mkTerm(Kind.Add, max_x_y, min_x_y), slv.mkTerm(Kind.Add, varX, varY)))
 
   # print solutions if available
   if (slv.checkSynth().isUnsat()):

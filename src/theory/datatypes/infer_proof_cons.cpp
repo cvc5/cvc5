@@ -108,7 +108,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         }
         if (argSuccess)
         {
-          narg = nm->mkConst(CONST_RATIONAL, Rational(i));
+          narg = nm->mkConstInt(Rational(i));
           break;
         }
       }
@@ -141,7 +141,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         if (n >= 0)
         {
           Node t = exp[0];
-          Node nn = nm->mkConst(CONST_RATIONAL, Rational(n));
+          Node nn = nm->mkConstInt(Rational(n));
           Node eq = exp.eqNode(conc);
           cdp->addStep(eq, PfRule::DT_INST, {}, {t, nn});
           cdp->addStep(conc, PfRule::EQ_RESOLVE, {exp, eq}, {});
@@ -218,14 +218,17 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT:
     {
-      Assert(expv.size() == 3);
+      Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
       Node tester1c =
           nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
-      cdp->addStep(tester1c,
-                   PfRule::MACRO_SR_PRED_TRANSFORM,
-                   {expv[1], expv[2]},
-                   {tester1c});
+      std::vector<Node> targs{expv[1]};
+      if (expv.size() == 3)
+      {
+        targs.push_back(expv[2]);
+      }
+      cdp->addStep(
+          tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
       Node fn = nm->mkConst(false);
       cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
       success = true;
@@ -233,7 +236,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_PURIFY:
     {
-      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {});
+      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {conc});
       success = true;
     }
     break;

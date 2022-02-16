@@ -1,4 +1,4 @@
-C++ API Documentation
+C++ API
 =====================
 
 The C++ API is the primary interface for cvc5 and exposes the full functionality of cvc5.
@@ -9,7 +9,6 @@ For most applications, the :cpp:class:`Solver <cvc5::api::Solver>` class is the 
 .. container:: hide-toctree
 
   .. toctree::
-    :maxdepth: 0
 
     quickstart
     exceptions

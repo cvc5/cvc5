@@ -1,0 +1,6 @@
+(set-logic ALL)
+(set-option :produce-models true)
+(set-info :status sat)
+(declare-const A (Bag Bool))
+(declare-const B (Bag Bool))
+(check-sat-assuming ((distinct A B)))

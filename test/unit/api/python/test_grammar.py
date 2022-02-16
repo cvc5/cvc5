@@ -15,13 +15,13 @@
 
 import pytest
 
-import pycvc5
-from pycvc5 import kinds, Term
+import cvc5
+from cvc5 import Term
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_add_rule(solver):

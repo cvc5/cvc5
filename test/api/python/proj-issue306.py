@@ -12,10 +12,10 @@
 #
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
-slv = pycvc5.Solver()
+slv = cvc5.Solver()
 slv.setOption("check-proofs", "true")
 slv.setOption("proof-check", "eager")
 s1 = slv.getBooleanSort()
@@ -24,8 +24,8 @@ t1 = slv.mkConst(s3, "_x0")
 t3 = slv.mkConst(s1, "_x2")
 t11 = slv.mkString("")
 t14 = slv.mkConst(s3, "_x11")
-t42 = slv.mkTerm(kinds.Ite, t3, t14, t1)
-t58 = slv.mkTerm(kinds.StringLeq, t14, t11)
-t95 = slv.mkTerm(kinds.Equal, t14, t42)
+t42 = slv.mkTerm(Kind.Ite, t3, t14, t1)
+t58 = slv.mkTerm(Kind.StringLeq, t14, t11)
+t95 = slv.mkTerm(Kind.Equal, t14, t42)
 slv.assertFormula(t95)
 slv.checkSatAssuming([t58])

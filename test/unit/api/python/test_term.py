@@ -12,15 +12,15 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import kinds
-from pycvc5 import Sort, Term
+import cvc5
+from cvc5 import Kind
+from cvc5 import Sort, Term
 from fractions import Fraction
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_eq(solver):
@@ -73,23 +73,23 @@ def test_get_kind(solver):
     zero = solver.mkInteger(0)
     zero.getKind()
 
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     f_x.getKind()
-    f_y = solver.mkTerm(kinds.ApplyUf, f, y)
+    f_y = solver.mkTerm(Kind.ApplyUf, f, y)
     f_y.getKind()
-    sum = solver.mkTerm(kinds.Plus, f_x, f_y)
+    sum = solver.mkTerm(Kind.Add, f_x, f_y)
     sum.getKind()
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.getKind()
-    p_f_y = solver.mkTerm(kinds.ApplyUf, p, f_y)
+    p_f_y = solver.mkTerm(Kind.ApplyUf, p, f_y)
     p_f_y.getKind()
 
     # Sequence kinds do not exist internally, test that the API properly
     # converts them back.
     seqSort = solver.mkSequenceSort(intSort)
     s = solver.mkConst(seqSort, "s")
-    ss = solver.mkTerm(kinds.SeqConcat, s, s)
-    assert ss.getKind() == kinds.SeqConcat
+    ss = solver.mkTerm(Kind.SeqConcat, s, s)
+    assert ss.getKind() == Kind.SeqConcat
 
 
 def test_get_sort(solver):
@@ -120,19 +120,19 @@ def test_get_sort(solver):
     zero.getSort()
     assert zero.getSort() == intSort
 
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     f_x.getSort()
     assert f_x.getSort() == intSort
-    f_y = solver.mkTerm(kinds.ApplyUf, f, y)
+    f_y = solver.mkTerm(Kind.ApplyUf, f, y)
     f_y.getSort()
     assert f_y.getSort() == intSort
-    sum = solver.mkTerm(kinds.Plus, f_x, f_y)
+    sum = solver.mkTerm(Kind.Add, f_x, f_y)
     sum.getSort()
     assert sum.getSort() == intSort
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.getSort()
     assert p_0.getSort() == boolSort
-    p_f_y = solver.mkTerm(kinds.ApplyUf, p, f_y)
+    p_f_y = solver.mkTerm(Kind.ApplyUf, p, f_y)
     p_f_y.getSort()
     assert p_f_y.getSort() == boolSort
 
@@ -151,8 +151,8 @@ def test_get_op(solver):
     with pytest.raises(RuntimeError):
         x.getOp()
 
-    ab = solver.mkTerm(kinds.Select, a, b)
-    ext = solver.mkOp(kinds.BVExtract, 4, 0)
+    ab = solver.mkTerm(Kind.Select, a, b)
+    ext = solver.mkOp(Kind.BVExtract, 4, 0)
     extb = solver.mkTerm(ext, b)
 
     assert ab.hasOp()
@@ -163,7 +163,7 @@ def test_get_op(solver):
     assert extb.getOp() == ext
 
     f = solver.mkConst(funsort, "f")
-    fx = solver.mkTerm(kinds.ApplyUf, f, x)
+    fx = solver.mkTerm(Kind.ApplyUf, f, x)
 
     assert not f.hasOp()
     with pytest.raises(RuntimeError):
@@ -192,11 +192,11 @@ def test_get_op(solver):
     headOpTerm = list1["cons"].getSelectorTerm("head")
     tailOpTerm = list1["cons"].getSelectorTerm("tail")
 
-    nilTerm = solver.mkTerm(kinds.ApplyConstructor, nilOpTerm)
-    consTerm = solver.mkTerm(kinds.ApplyConstructor, consOpTerm,
+    nilTerm = solver.mkTerm(Kind.ApplyConstructor, nilOpTerm)
+    consTerm = solver.mkTerm(Kind.ApplyConstructor, consOpTerm,
                              solver.mkInteger(0), nilTerm)
-    headTerm = solver.mkTerm(kinds.ApplySelector, headOpTerm, consTerm)
-    tailTerm = solver.mkTerm(kinds.ApplySelector, tailOpTerm, consTerm)
+    headTerm = solver.mkTerm(Kind.ApplySelector, headOpTerm, consTerm)
+    tailTerm = solver.mkTerm(Kind.ApplySelector, tailOpTerm, consTerm)
 
     assert nilTerm.hasOp()
     assert consTerm.hasOp()
@@ -255,15 +255,15 @@ def test_not_term(solver):
     zero = solver.mkInteger(0)
     with pytest.raises(RuntimeError):
         zero.notTerm()
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.notTerm()
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.notTerm()
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.notTerm()
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.notTerm()
 
 
@@ -312,7 +312,7 @@ def test_and_term(solver):
         zero.andTerm(p)
     with pytest.raises(RuntimeError):
         zero.andTerm(zero)
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.andTerm(b)
     with pytest.raises(RuntimeError):
@@ -325,7 +325,7 @@ def test_and_term(solver):
         f_x.andTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.andTerm(f_x)
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.andTerm(b)
     with pytest.raises(RuntimeError):
@@ -340,7 +340,7 @@ def test_and_term(solver):
         sum.andTerm(f_x)
     with pytest.raises(RuntimeError):
         sum.andTerm(sum)
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.andTerm(b)
     with pytest.raises(RuntimeError):
         p_0.andTerm(x)
@@ -355,7 +355,7 @@ def test_and_term(solver):
     with pytest.raises(RuntimeError):
         p_0.andTerm(sum)
     p_0.andTerm(p_0)
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.andTerm(b)
     with pytest.raises(RuntimeError):
         p_f_x.andTerm(x)
@@ -418,7 +418,7 @@ def test_or_term(solver):
         zero.orTerm(p)
     with pytest.raises(RuntimeError):
         zero.orTerm(zero)
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.orTerm(b)
     with pytest.raises(RuntimeError):
@@ -431,7 +431,7 @@ def test_or_term(solver):
         f_x.orTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.orTerm(f_x)
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.orTerm(b)
     with pytest.raises(RuntimeError):
@@ -446,7 +446,7 @@ def test_or_term(solver):
         sum.orTerm(f_x)
     with pytest.raises(RuntimeError):
         sum.orTerm(sum)
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.orTerm(b)
     with pytest.raises(RuntimeError):
         p_0.orTerm(x)
@@ -461,7 +461,7 @@ def test_or_term(solver):
     with pytest.raises(RuntimeError):
         p_0.orTerm(sum)
     p_0.orTerm(p_0)
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.orTerm(b)
     with pytest.raises(RuntimeError):
         p_f_x.orTerm(x)
@@ -524,7 +524,7 @@ def test_xor_term(solver):
         zero.xorTerm(p)
     with pytest.raises(RuntimeError):
         zero.xorTerm(zero)
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.xorTerm(b)
     with pytest.raises(RuntimeError):
@@ -537,7 +537,7 @@ def test_xor_term(solver):
         f_x.xorTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.xorTerm(f_x)
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.xorTerm(b)
     with pytest.raises(RuntimeError):
@@ -552,7 +552,7 @@ def test_xor_term(solver):
         sum.xorTerm(f_x)
     with pytest.raises(RuntimeError):
         sum.xorTerm(sum)
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.xorTerm(b)
     with pytest.raises(RuntimeError):
         p_0.xorTerm(x)
@@ -567,7 +567,7 @@ def test_xor_term(solver):
     with pytest.raises(RuntimeError):
         p_0.xorTerm(sum)
     p_0.xorTerm(p_0)
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.xorTerm(b)
     with pytest.raises(RuntimeError):
         p_f_x.xorTerm(x)
@@ -626,7 +626,7 @@ def test_eq_term(solver):
     with pytest.raises(RuntimeError):
         zero.eqTerm(p)
     zero.eqTerm(zero)
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.eqTerm(b)
     with pytest.raises(RuntimeError):
@@ -637,7 +637,7 @@ def test_eq_term(solver):
         f_x.eqTerm(p)
     f_x.eqTerm(zero)
     f_x.eqTerm(f_x)
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.eqTerm(b)
     with pytest.raises(RuntimeError):
@@ -649,7 +649,7 @@ def test_eq_term(solver):
     sum.eqTerm(zero)
     sum.eqTerm(f_x)
     sum.eqTerm(sum)
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.eqTerm(b)
     with pytest.raises(RuntimeError):
         p_0.eqTerm(x)
@@ -664,7 +664,7 @@ def test_eq_term(solver):
     with pytest.raises(RuntimeError):
         p_0.eqTerm(sum)
     p_0.eqTerm(p_0)
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.eqTerm(b)
     with pytest.raises(RuntimeError):
         p_f_x.eqTerm(x)
@@ -727,7 +727,7 @@ def test_imp_term(solver):
         zero.impTerm(p)
     with pytest.raises(RuntimeError):
         zero.impTerm(zero)
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.impTerm(b)
     with pytest.raises(RuntimeError):
@@ -740,7 +740,7 @@ def test_imp_term(solver):
         f_x.impTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.impTerm(f_x)
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.impTerm(b)
     with pytest.raises(RuntimeError):
@@ -755,7 +755,7 @@ def test_imp_term(solver):
         sum.impTerm(f_x)
     with pytest.raises(RuntimeError):
         sum.impTerm(sum)
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.impTerm(b)
     with pytest.raises(RuntimeError):
         p_0.impTerm(x)
@@ -770,7 +770,7 @@ def test_imp_term(solver):
     with pytest.raises(RuntimeError):
         p_0.impTerm(sum)
     p_0.impTerm(p_0)
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.impTerm(b)
     with pytest.raises(RuntimeError):
         p_f_x.impTerm(x)
@@ -827,22 +827,22 @@ def test_ite_term(solver):
         zero.iteTerm(x, x)
     with pytest.raises(RuntimeError):
         zero.iteTerm(x, b)
-    f_x = solver.mkTerm(kinds.ApplyUf, f, x)
+    f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.iteTerm(b, b)
     with pytest.raises(RuntimeError):
         f_x.iteTerm(b, x)
-    sum = solver.mkTerm(kinds.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.iteTerm(x, x)
     with pytest.raises(RuntimeError):
         sum.iteTerm(b, x)
-    p_0 = solver.mkTerm(kinds.ApplyUf, p, zero)
+    p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.iteTerm(b, b)
     p_0.iteTerm(x, x)
     with pytest.raises(RuntimeError):
         p_0.iteTerm(x, b)
-    p_f_x = solver.mkTerm(kinds.ApplyUf, p, f_x)
+    p_f_x = solver.mkTerm(Kind.ApplyUf, p, f_x)
     p_f_x.iteTerm(b, b)
     p_f_x.iteTerm(x, x)
     with pytest.raises(RuntimeError):
@@ -860,8 +860,8 @@ def test_substitute(solver):
     x = solver.mkConst(solver.getIntegerSort(), "x")
     one = solver.mkInteger(1)
     ttrue = solver.mkTrue()
-    xpx = solver.mkTerm(kinds.Plus, x, x)
-    onepone = solver.mkTerm(kinds.Plus, one, one)
+    xpx = solver.mkTerm(Kind.Add, x, x)
+    onepone = solver.mkTerm(Kind.Add, one, one)
 
     assert xpx.substitute(x, one) == onepone
     assert onepone.substitute(one, x) == xpx
@@ -871,8 +871,8 @@ def test_substitute(solver):
 
     # simultaneous substitution
     y = solver.mkConst(solver.getIntegerSort(), "y")
-    xpy = solver.mkTerm(kinds.Plus, x, y)
-    xpone = solver.mkTerm(kinds.Plus, y, one)
+    xpy = solver.mkTerm(Kind.Add, x, y)
+    xpone = solver.mkTerm(Kind.Add, y, one)
     es = []
     rs = []
     es.append(x)
@@ -917,8 +917,8 @@ def test_substitute(solver):
 
 def test_term_compare(solver):
     t1 = solver.mkInteger(1)
-    t2 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
-    t3 = solver.mkTerm(kinds.Plus, solver.mkInteger(2), solver.mkInteger(2))
+    t2 = solver.mkTerm(Kind.Add, solver.mkInteger(2), solver.mkInteger(2))
+    t3 = solver.mkTerm(Kind.Add, solver.mkInteger(2), solver.mkInteger(2))
     assert t2 >= t3
     assert t2 <= t3
     assert (t1 > t2) != (t1 < t2)
@@ -928,7 +928,7 @@ def test_term_compare(solver):
 def test_term_children(solver):
     # simple term 2+3
     two = solver.mkInteger(2)
-    t1 = solver.mkTerm(kinds.Plus, two, solver.mkInteger(3))
+    t1 = solver.mkTerm(Kind.Add, two, solver.mkInteger(3))
     assert t1[0] == two
     assert t1.getNumChildren() == 2
     tnull = Term(solver)
@@ -939,8 +939,8 @@ def test_term_children(solver):
     intSort = solver.getIntegerSort()
     fsort = solver.mkFunctionSort(intSort, intSort)
     f = solver.mkConst(fsort, "f")
-    t2 = solver.mkTerm(kinds.ApplyUf, f, two)
-    # due to our higher-order view of terms, we treat f as a child of kinds.ApplyUf
+    t2 = solver.mkTerm(Kind.ApplyUf, f, two)
+    # due to our higher-order view of terms, we treat f as a child of Kind.ApplyUf
     assert t2.getNumChildren() == 2
     assert t2[0] == f
     assert t2[1] == two
@@ -958,17 +958,18 @@ def test_get_const_array_base(solver):
     assert one == constarr.getConstArrayBase()
 
 
-def test_get_abstract_value(solver):
-    v1 = solver.mkAbstractValue(1)
-    v2 = solver.mkAbstractValue("15")
-    v3 = solver.mkAbstractValue("18446744073709551617")
-
-    assert v1.isAbstractValue()
-    assert v2.isAbstractValue()
-    assert v3.isAbstractValue()
-    assert "1" == v1.getAbstractValue()
-    assert "15" == v2.getAbstractValue()
-    assert "18446744073709551617" == v3.getAbstractValue()
+def test_get_uninterpreted_sort_value(solver):
+    solver.setOption("produce-models", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, y))
+    assert solver.checkSat().isSat()
+    vx = solver.getValue(x)
+    vy = solver.getValue(y)
+    assert vx.isUninterpretedSortValue()
+    assert vy.isUninterpretedSortValue()
+    assert vx.getUninterpretedSortValue() == vy.getUninterpretedSortValue()
 
 
 def test_get_tuple(solver):
@@ -993,11 +994,11 @@ def test_get_set(solver):
     i2 = solver.mkInteger(7)
 
     s1 = solver.mkEmptySet(s)
-    s2 = solver.mkTerm(kinds.SetSingleton, i1)
-    s3 = solver.mkTerm(kinds.SetSingleton, i1)
-    s4 = solver.mkTerm(kinds.SetSingleton, i2)
+    s2 = solver.mkTerm(Kind.SetSingleton, i1)
+    s3 = solver.mkTerm(Kind.SetSingleton, i1)
+    s4 = solver.mkTerm(Kind.SetSingleton, i2)
     s5 = solver.mkTerm(
-            kinds.SetUnion, s2, solver.mkTerm(kinds.SetUnion, s3, s4))
+            Kind.SetUnion, s2, solver.mkTerm(Kind.SetUnion, s3, s4))
 
     assert s1.isSetValue()
     assert s2.isSetValue()
@@ -1021,11 +1022,11 @@ def test_get_sequence(solver):
     i2 = solver.mkInteger(7)
 
     s1 = solver.mkEmptySequence(s)
-    s2 = solver.mkTerm(kinds.SeqUnit, i1)
-    s3 = solver.mkTerm(kinds.SeqUnit, i1)
-    s4 = solver.mkTerm(kinds.SeqUnit, i2)
-    s5 = solver.mkTerm(kinds.SeqConcat, s2,
-                       solver.mkTerm(kinds.SeqConcat, s3, s4))
+    s2 = solver.mkTerm(Kind.SeqUnit, i1)
+    s3 = solver.mkTerm(Kind.SeqUnit, i1)
+    s4 = solver.mkTerm(Kind.SeqUnit, i2)
+    s5 = solver.mkTerm(Kind.SeqConcat, s2,
+                       solver.mkTerm(Kind.SeqConcat, s3, s4))
 
     assert s1.isSequenceValue()
     assert not s2.isSequenceValue()
@@ -1045,18 +1046,6 @@ def test_get_sequence(solver):
     assert [i1, i1, i2] == s5.getSequenceValue()
 
 
-def test_get_uninterpreted_const(solver):
-    s = solver.mkUninterpretedSort("test")
-    t1 = solver.mkUninterpretedConst(s, 3)
-    t2 = solver.mkUninterpretedConst(s, 5)
-
-    assert t1.isUninterpretedValue()
-    assert t2.isUninterpretedValue()
-
-    assert (s, 3) == t1.getUninterpretedValue()
-    assert (s, 5) == t2.getUninterpretedValue()
-
-
 def test_get_floating_point(solver):
     bvval = solver.mkBitVector(16, "0000110000000011", 2)
     fp = solver.mkFloatingPoint(5, 11, bvval)
@@ -1069,11 +1058,11 @@ def test_get_floating_point(solver):
     assert not fp.isFloatingPointNaN()
     assert (5, 11, bvval) == fp.getFloatingPointValue()
 
-    assert solver.mkPosZero(5, 11).isFloatingPointPosZero()
-    assert solver.mkNegZero(5, 11).isFloatingPointNegZero()
-    assert solver.mkPosInf(5, 11).isFloatingPointPosInf()
-    assert solver.mkNegInf(5, 11).isFloatingPointNegInf()
-    assert solver.mkNaN(5, 11).isFloatingPointNaN()
+    assert solver.mkFloatingPointPosZero(5, 11).isFloatingPointPosZero()
+    assert solver.mkFloatingPointNegZero(5, 11).isFloatingPointNegZero()
+    assert solver.mkFloatingPointPosInf(5, 11).isFloatingPointPosInf()
+    assert solver.mkFloatingPointNegInf(5, 11).isFloatingPointNegInf()
+    assert solver.mkFloatingPointNaN(5, 11).isFloatingPointNaN()
 
 
 def test_is_integer(solver):
@@ -1132,6 +1121,10 @@ def test_is_integer(solver):
     assert int9.getIntegerValue() == 4294967296
     assert int10.getIntegerValue() == 18446744073709551615
     assert int11.getIntegerValue() == 18446744073709551616
+    
+    assert int1.getRealOrIntegerValueSign() == -1
+    assert int6.getRealOrIntegerValueSign() == 0
+    assert int7.getRealOrIntegerValueSign() == 1
 
 
 def test_get_string(solver):
@@ -1244,18 +1237,18 @@ def test_const_array(solver):
     one = solver.mkInteger(1)
     constarr = solver.mkConstArray(arrsort, one)
 
-    assert constarr.getKind() == kinds.ConstArray
+    assert constarr.getKind() == Kind.ConstArray
     assert constarr.getConstArrayBase() == one
     with pytest.raises(RuntimeError):
         a.getConstArrayBase()
 
     arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
     zero_array = solver.mkConstArray(arrsort, solver.mkReal(0))
-    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkReal(1),
+    stores = solver.mkTerm(Kind.Store, zero_array, solver.mkReal(1),
                            solver.mkReal(2))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(2),
+    stores = solver.mkTerm(Kind.Store, stores, solver.mkReal(2),
                            solver.mkReal(3))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkReal(4),
+    stores = solver.mkTerm(Kind.Store, stores, solver.mkReal(4),
                            solver.mkReal(5))
 
 
@@ -1264,14 +1257,14 @@ def test_const_sequence_elements(solver):
     seqsort = solver.mkSequenceSort(realsort)
     s = solver.mkEmptySequence(seqsort)
 
-    assert s.getKind() == kinds.ConstSequence
+    assert s.getKind() == Kind.ConstSequence
     # empty sequence has zero elements
     cs = s.getSequenceValue()
     assert len(cs) == 0
 
     # A seq.unit app is not a constant sequence (regardless of whether it is
     # applied to a constant).
-    su = solver.mkTerm(kinds.SeqUnit, solver.mkReal(1))
+    su = solver.mkTerm(Kind.SeqUnit, solver.mkReal(1))
     with pytest.raises(RuntimeError):
         su.getSequenceValue()
 
@@ -1280,5 +1273,5 @@ def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
     assert str(x) == "x"
-    solver2 = pycvc5.Solver()
+    solver2 = cvc5.Solver()
     assert str(x) == "x"

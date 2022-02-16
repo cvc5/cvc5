@@ -59,9 +59,10 @@ SynthConjecture::SynthConjecture(Env& env,
       d_tds(tr.getTermDatabaseSygus()),
       d_verify(env, d_tds),
       d_hasSolution(false),
+      d_computedSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
-      d_ceg_proc(new SynthConjectureProcess),
+      d_ceg_proc(new SynthConjectureProcess(env)),
       d_ceg_gc(new CegGrammarConstructor(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
@@ -93,8 +94,22 @@ SynthConjecture::~SynthConjecture() {}
 
 void SynthConjecture::presolve()
 {
-  // we don't have a solution yet
-  d_hasSolution = false;
+  // If we previously had a solution, block it. Notice that
+  // excludeCurrentSolution in the block below ensures we implement a
+  // policy where a *new* solution is generated for check-synth if the set of
+  // SyGuS constraints has not changed. This call will block solutions for
+  // *smart* enumerators only. This behavior makes smart enumeration have
+  // a consistent policy with *fast* enumerators, which will generate
+  // a new, next solution in their enumeration.
+  if (d_hasSolution)
+  {
+    excludeCurrentSolution(d_solutionValues.back());
+    // we don't have a solution yet
+    d_hasSolution = false;
+    d_computedSolution = false;
+    d_sol.clear();
+    d_solStatus.clear();
+  }
 }
 
 void SynthConjecture::assign(Node q)
@@ -306,6 +321,10 @@ bool SynthConjecture::needsCheck()
 
 bool SynthConjecture::doCheck()
 {
+  if (d_hasSolution)
+  {
+    return true;
+  }
   if (isSingleInvocation())
   {
     // We now try to solve with the single invocation solver, which may or may
@@ -314,14 +333,12 @@ bool SynthConjecture::doCheck()
     if (d_ceg_si->solve())
     {
       d_hasSolution = true;
-      // the conjecture has a solution, so its negation holds
-      Node qn = d_quant.negate();
-      d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
+      // the conjecture has a solution, we set incomplete
+      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     }
     return true;
   }
   Assert(d_master != nullptr);
-  Assert(!d_hasSolution);
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -343,15 +360,10 @@ bool SynthConjecture::doCheck()
   {
     // have we tried to repair the previous solution?
     // if not, call the repair constant utility
-    unsigned ninst = d_cinfo[d_candidates[0]].d_inst.size();
+    size_t ninst = d_solutionValues.size();
     if (d_repair_index < ninst)
     {
-      std::vector<Node> fail_cvs;
-      for (const Node& cprog : d_candidates)
-      {
-        Assert(d_repair_index < d_cinfo[cprog].d_inst.size());
-        fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
-      }
+      std::vector<Node> fail_cvs = d_solutionValues[d_repair_index];
       if (Trace.isOn("sygus-engine"))
       {
         Trace("sygus-engine") << "CegConjuncture : repair previous solution ";
@@ -466,7 +478,7 @@ bool SynthConjecture::doCheck()
   {
     if (!checkSideCondition(candidate_values))
     {
-      excludeCurrentSolution(terms, candidate_values);
+      excludeCurrentSolution(candidate_values);
       Trace("sygus-engine") << "...failed side condition" << std::endl;
       return false;
     }
@@ -506,11 +518,10 @@ bool SynthConjecture::doCheck()
   if (options().quantifiers.cegisSample == options::CegisSampleMode::TRUST)
   {
     // we have that the current candidate passed a sample test
-    // since we trust sampling in this mode, we assert there is no
-    // counterexample to the conjecture here.
-    Node qn = d_quant.negate();
-    d_qim.addPendingLemma(qn,
-                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
+    // since we trust sampling in this mode, we assume there is a solution here
+    // and set incomplete.
+    d_hasSolution = true;
+    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -554,7 +565,7 @@ bool SynthConjecture::doCheck()
     // In the rare case that the subcall is unknown, we simply exclude the
     // solution, without adding a counterexample point. This should only
     // happen if the quantifier free logic is undecidable.
-    excludeCurrentSolution(terms, candidate_values);
+    excludeCurrentSolution(candidate_values);
     // We should set incomplete, since a "sat" answer should not be
     // interpreted as "infeasible", which would make a difference in the rare
     // case where e.g. we had a finite grammar and exhausted the grammar.
@@ -568,15 +579,16 @@ bool SynthConjecture::doCheck()
   if (options().quantifiers.sygusStream)
   {
     // immediately print the current solution
-    printAndContinueStream(terms, candidate_values);
+    printAndContinueStream(candidate_values);
     // streaming means now we immediately are looking for a new solution
     d_hasSolution = false;
+    d_computedSolution = false;
+    d_sol.clear();
+    d_solStatus.clear();
     return false;
   }
-  // Use lemma to terminate with "unsat", this is justified by the verification
-  // check above, which confirms the synthesis conjecture is solved.
-  Node qn = d_quant.negate();
-  d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED);
+  // We set incomplete and terminate with unknown.
+  d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
   return true;
 }
 
@@ -592,6 +604,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     }
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    sc = rewrite(sc);
     Result r = checkWithSubsolver(sc, options(), logicInfo());
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
     if (r == Result::UNSAT)
@@ -635,13 +648,9 @@ bool SynthConjecture::processCounterexample(const std::vector<Node>& skModel)
     Trace("sygus-engine-debug") << "  ...(warning) failed to refine candidate, "
                                    "manually exclude candidate."
                                 << std::endl;
-    std::vector<Node> cvals;
-    for (const Node& c : d_candidates)
-    {
-      cvals.push_back(d_cinfo[c].d_inst.back());
-    }
+    std::vector<Node> cvals = d_solutionValues.back();
     // something went wrong, exclude the current candidate
-    excludeCurrentSolution(d_candidates, cvals);
+    excludeCurrentSolution(cvals);
     // Note this happens when evaluation is incapable of disproving a candidate
     // for counterexample point c, but satisfiability checking happened to find
     // the the same point c is indeed a true counterexample. It is sound
@@ -729,28 +738,26 @@ void SynthConjecture::debugPrint(const char* c)
   Trace(c) << "  * Counterexample skolems : " << d_innerSks << std::endl;
 }
 
-void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
-                                             const std::vector<Node>& values)
+void SynthConjecture::printAndContinueStream(const std::vector<Node>& values)
 {
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
   printSynthSolutionInternal(*options().base.out);
-  excludeCurrentSolution(enums, values);
+  excludeCurrentSolution(values);
 }
 
-void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
-                                             const std::vector<Node>& values)
+void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
 {
-  Trace("cegqi-debug") << "Exclude current solution: " << enums << " / "
-                       << values << std::endl;
+  Assert(values.size() == d_candidates.size());
+  Trace("cegqi-debug") << "Exclude current solution: " << values << std::endl;
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution. We do this only
   // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).
   std::vector<Node> exp;
-  for (unsigned i = 0, tsize = enums.size(); i < tsize; i++)
+  for (size_t i = 0, tsize = d_candidates.size(); i < tsize; i++)
   {
-    Node cprog = enums[i];
+    Node cprog = d_candidates[i];
     Assert(d_tds->isEnumerator(cprog));
     if (d_tds->isPassiveEnumerator(cprog))
     {
@@ -936,14 +943,11 @@ bool SynthConjecture::getSynthSolutions(
   return true;
 }
 
-void SynthConjecture::recordSolution(std::vector<Node>& vs)
+void SynthConjecture::recordSolution(const std::vector<Node>& vs)
 {
   Assert(vs.size() == d_candidates.size());
-  d_cinfo.clear();
-  for (unsigned i = 0; i < vs.size(); i++)
-  {
-    d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
-  }
+  d_solutionValues.clear();
+  d_solutionValues.push_back(vs);
 }
 
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
@@ -952,6 +956,19 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
   if (!d_hasSolution)
   {
     return false;
+  }
+  if (d_computedSolution)
+  {
+    sols.insert(sols.end(), d_sol.begin(), d_sol.end());
+    statuses.insert(statuses.end(), d_solStatus.begin(), d_solStatus.end());
+    return true;
+  }
+  d_computedSolution = true;
+  // get the (SyGuS datatype) values of the solutions, if they exist
+  std::vector<Node> svals;
+  if (!d_solutionValues.empty())
+  {
+    svals = d_solutionValues.back();
   }
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
@@ -975,10 +992,10 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     else
     {
       Node cprog = d_candidates[i];
-      if (!d_cinfo[cprog].d_inst.empty())
+      if (!svals.empty())
       {
-        // the solution is just the last instantiated term
-        sol = d_cinfo[cprog].d_inst.back();
+        // the solution is the value of the last term
+        sol = svals[i];
         status = 1;
 
         // check if there was a template
@@ -1026,9 +1043,11 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
                             << std::endl;
       }
     }
-    sols.push_back(sol);
-    statuses.push_back(status);
+    d_sol.push_back(sol);
+    d_solStatus.push_back(status);
   }
+  sols.insert(sols.end(), d_sol.begin(), d_sol.end());
+  statuses.insert(statuses.end(), d_solStatus.begin(), d_solStatus.end());
   return true;
 }
 

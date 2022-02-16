@@ -60,6 +60,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH_TOTAL);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -135,6 +137,7 @@ Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
+  nn = rewrite(nn);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
@@ -798,6 +801,17 @@ std::string TheoryModel::debugPrintModelEqc() const
   }
   ss << "---" << std::endl;
   return ss.str();
+}
+
+bool TheoryModel::isValue(TNode node)
+{
+  if (node.isConst())
+  {
+    return true;
+  }
+  Kind k = node.getKind();
+  return k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+         || k == kind::WITNESS;
 }
 
 }  // namespace theory

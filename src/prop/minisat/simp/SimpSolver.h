@@ -42,7 +42,8 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-  SimpSolver(cvc5::prop::TheoryProxy* proxy,
+  SimpSolver(Env& env,
+             cvc5::prop::TheoryProxy* proxy,
              cvc5::context::Context* context,
              cvc5::context::UserContext* userContext,
              ProofNodeManager* pnm,

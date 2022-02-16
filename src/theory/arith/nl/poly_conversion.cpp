@@ -81,7 +81,7 @@ cvc5::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::Node& var)
       Node coeff =
           nm->mkConst(CONST_RATIONAL, poly_utils::toRational(coeffs[i]));
       Node term = nm->mkNode(Kind::MULT, coeff, monomial);
-      res = nm->mkNode(Kind::PLUS, res, term);
+      res = nm->mkNode(Kind::ADD, res, term);
     }
     monomial = nm->mkNode(Kind::NONLINEAR_MULT, monomial, var);
   }
@@ -108,7 +108,7 @@ poly::UPolynomial as_poly_upolynomial_impl(const cvc5::Node& n,
       denominator = poly_utils::toInteger(r.getDenominator());
       return poly::UPolynomial(poly_utils::toInteger(r.getNumerator()));
     }
-    case Kind::PLUS:
+    case Kind::ADD:
     {
       poly::UPolynomial res;
       poly::Integer denom;
@@ -166,7 +166,7 @@ poly::Polynomial as_poly_polynomial_impl(const cvc5::Node& n,
       denominator = poly_utils::toInteger(r.getDenominator());
       return poly::Polynomial(poly_utils::toInteger(r.getNumerator()));
     }
-    case Kind::PLUS:
+    case Kind::ADD:
     {
       poly::Polynomial res;
       poly::Integer denom;
@@ -273,7 +273,7 @@ cvc5::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
   {
     return cmd.d_terms.front();
   }
-  return cmd.d_nm->mkNode(Kind::PLUS, cmd.d_terms);
+  return cmd.d_nm->mkNode(Kind::ADD, cmd.d_terms);
 }
 
 poly::SignCondition normalize_kind(cvc5::Kind kind,
@@ -402,11 +402,12 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable)
   Assert(!is_none(v)) << "Can not convert none.";
   Assert(!is_plus_infinity(v)) << "Can not convert plus infinity.";
 
+  auto* nm = NodeManager::currentNM();
   if (is_algebraic_number(v))
   {
-    return ran_to_node(as_algebraic_number(v), ran_variable);
+    auto ran = as_algebraic_number(v);
+    return nm->mkRealAlgebraicNumber(RealAlgebraicNumber(std::move(ran)));
   }
-  auto* nm = NodeManager::currentNM();
   if (is_dyadic_rational(v))
   {
     return nm->mkConst(CONST_RATIONAL,

@@ -12,11 +12,11 @@ properties check propagate ppStaticLearn presolve notifyRestart
 
 rewriter ::cvc5::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 
-operator PLUS 2: "arithmetic addition (N-ary)"
+operator ADD 2: "arithmetic addition (N-ary)"
 operator MULT 2: "arithmetic multiplication (N-ary)"
 operator NONLINEAR_MULT 2: "synonym for MULT"
-operator MINUS 2 "arithmetic binary subtraction operator"
-operator UMINUS 1 "arithmetic unary negation"
+operator SUB 2 "arithmetic binary subtraction operator"
+operator NEG 1 "arithmetic unary negation"
 operator DIVISION 2 "real division, division by 0 undefined (user symbol)"
 operator DIVISION_TOTAL 2 "real division with interpreted division by 0 (internal symbol)"
 operator INTS_DIVISION 2 "integer division, division by 0 undefined (user symbol)"
@@ -54,13 +54,13 @@ constant DIVISIBLE_OP \
 sort REAL_TYPE \
     Cardinality::REALS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0))" \
+        "NodeManager::currentNM()->mkConstReal(Rational(0))" \
         "expr/node_manager.h" \
     "real type"
 sort INTEGER_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0))" \
+        "NodeManager::currentNM()->mkConstInt(Rational(0))" \
         "expr/node_manager.h" \
     "integer type"
 
@@ -73,10 +73,18 @@ constant CONST_RATIONAL \
 
 constant CONST_INTEGER \
     class \
-    Rational \
+    Rational+ \
     ::cvc5::RationalHashFunction \
     "util/rational.h" \
     "a multiple-precision integer constant; payload is an instance of the cvc5::Rational class"
+
+constant REAL_ALGEBRAIC_NUMBER_OP \
+    class \
+    RealAlgebraicNumber+ \
+    ::cvc5::RealAlgebraicNumberHashFunction \
+    "util/real_algebraic_number.h" \
+    "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
+parameterized REAL_ALGEBRAIC_NUMBER REAL_ALGEBRAIC_NUMBER_OP 0 "a real algebraic number constant; payload is an instance of the cvc5::RealAlgebraicNumber class"
 
 enumerator REAL_TYPE \
     "::cvc5::theory::arith::RationalEnumerator" \
@@ -110,16 +118,19 @@ operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this
 # This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
 operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
 
-typerule PLUS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule ADD ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule MULT ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule NONLINEAR_MULT ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule MINUS ::cvc5::theory::arith::ArithOperatorTypeRule
-typerule UMINUS ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule SUB ::cvc5::theory::arith::ArithOperatorTypeRule
+typerule NEG ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule DIVISION ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
 
 typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
 typerule CONST_INTEGER ::cvc5::theory::arith::ArithConstantTypeRule
+
+typerule REAL_ALGEBRAIC_NUMBER_OP ::cvc5::theory::arith::ArithRealAlgebraicNumberOpTypeRule
+typerule REAL_ALGEBRAIC_NUMBER ::cvc5::theory::arith::ArithRealAlgebraicNumberTypeRule
 
 typerule LT ::cvc5::theory::arith::ArithRelationTypeRule
 typerule LEQ ::cvc5::theory::arith::ArithRelationTypeRule
@@ -134,7 +145,7 @@ typerule CAST_TO_REAL ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule TO_INTEGER ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
 
-typerule ABS "SimpleTypeRule<RInteger, AInteger>"
+typerule ABS ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"

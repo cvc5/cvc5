@@ -16,7 +16,6 @@
 #include "theory/quantifiers/quant_bound_inference.h"
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/rewriter.h"
 #include "util/rational.h"
 
 using namespace cvc5::kind;
@@ -60,14 +59,8 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())
     {
-      NodeManager* nm = NodeManager::currentNM();
-      Node card =
-          nm->mkConst(CONST_RATIONAL, Rational(c.getFiniteCardinality()));
       // check if less than fixed upper bound
-      Node oth = nm->mkConst(CONST_RATIONAL, Rational(maxCard));
-      Node eq = nm->mkNode(LEQ, card, oth);
-      eq = Rewriter::rewrite(eq);
-      mc = eq.isConst() && eq.getConst<bool>();
+      mc = (c.getFiniteCardinality() < Integer(maxCard));
     }
   }
   return mc;

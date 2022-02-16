@@ -35,7 +35,6 @@ namespace nl {
 FactoringCheck::FactoringCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
 }
 
@@ -124,7 +123,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           {
             continue;
           }
-          Node sum = nm->mkNode(Kind::PLUS, itf->second);
+          Node sum = nm->mkNode(Kind::ADD, itf->second);
           sum = rewrite(sum);
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
@@ -151,11 +150,11 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
                   itm->second, itm->first.isNull() ? d_one : itm->first));
             }
           }
-          Node polyn =
-              poly.size() == 1 ? poly[0] : nm->mkNode(Kind::PLUS, poly);
+          Node polyn = poly.size() == 1 ? poly[0] : nm->mkNode(Kind::ADD, poly);
           Trace("nl-ext-factor")
               << "...factored polynomial : " << polyn << std::endl;
-          Node conc_lit = nm->mkNode(atom.getKind(), polyn, d_zero);
+          Node zero = nm->mkConstRealOrInt(polyn.getType(), Rational(0));
+          Node conc_lit = nm->mkNode(atom.getKind(), polyn, zero);
           conc_lit = rewrite(conc_lit);
           if (!polarity)
           {

@@ -35,6 +35,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/utils/Options.h"
 #include "prop/sat_proof_manager.h"
+#include "smt/env_obj.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
 
@@ -52,7 +53,8 @@ namespace Minisat {
 //=================================================================================================
 // Solver -- the main class:
 
-class Solver {
+class Solver : protected EnvObj
+{
   /** The only two cvc5 entry points to the private solver data */
   friend class cvc5::prop::PropEngine;
   friend class cvc5::prop::TheoryProxy;
@@ -92,6 +94,17 @@ class Solver {
   int getAssertionLevel() const { return assertionLevel; }
 
  protected:
+  /*
+   * Returns true if the solver should add all clauses at the current assertion
+   * level.
+   *
+   * FIXME: This is a workaround. Currently, our resolution proofs do not
+   * handle clauses with a lower-than-assertion-level correctly because the
+   * resolution proofs get removed when popping the context but the SAT solver
+   * keeps using them.
+   */
+  const bool d_assertionLevelOnly;
+
   /** Do we allow incremental solving */
   bool d_enable_incremental;
 
@@ -128,7 +141,8 @@ public:
 
     // Constructor/Destructor:
     //
- Solver(cvc5::prop::TheoryProxy* proxy,
+ Solver(Env& env,
+        cvc5::prop::TheoryProxy* proxy,
         cvc5::context::Context* context,
         cvc5::context::UserContext* userContext,
         ProofNodeManager* pnm,
@@ -549,10 +563,7 @@ public:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
-
 };
-
-
 
 //=================================================================================================
 // Implementation of inline methods:

@@ -18,16 +18,16 @@
 # which the datastructure needs to handle properly problematic.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
-slv = pycvc5.Solver()
+slv = cvc5.Solver()
 slv.setOption("incremental", "true")
 
 real = slv.getRealSort()
 x = slv.mkConst(real, "x")
 four = slv.mkInteger(4)
-xEqFour = slv.mkTerm(kinds.Equal, x, four)
+xEqFour = slv.mkTerm(Kind.Equal, x, four)
 slv.assertFormula(xEqFour)
 print(slv.checkSat())
 
@@ -37,8 +37,8 @@ elementType = slv.getIntegerSort()
 indexType = slv.getIntegerSort()
 arrayType = slv.mkArraySort(indexType, elementType)
 array = slv.mkConst(arrayType, "array")
-arrayAtFour = slv.mkTerm(kinds.Select, array, four)
+arrayAtFour = slv.mkTerm(Kind.Select, array, four)
 ten = slv.mkInteger(10)
-arrayAtFour_eq_ten = slv.mkTerm(kinds.Equal, arrayAtFour, ten)
+arrayAtFour_eq_ten = slv.mkTerm(Kind.Equal, arrayAtFour, ten)
 slv.assertFormula(arrayAtFour_eq_ten)
 print(slv.checkSat())

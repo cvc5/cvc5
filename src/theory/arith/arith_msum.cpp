@@ -65,7 +65,7 @@ bool ArithMSum::getMonomial(Node n, std::map<Node, Node>& msum)
 
 bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 {
-  if (n.getKind() == PLUS)
+  if (n.getKind() == ADD)
   {
     for (Node nc : n)
     {
@@ -81,7 +81,8 @@ bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 
 bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
 {
-  if (lit.getKind() == GEQ || lit.getKind() == EQUAL)
+  if (lit.getKind() == GEQ
+      || (lit.getKind() == EQUAL && lit[0].getType().isRealOrInt()))
   {
     if (getMonomialSum(lit[0], msum))
     {
@@ -96,6 +97,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
         NodeManager* nm = NodeManager::currentNM();
         if (getMonomialSum(lit[1], msum2))
         {
+          TypeNode tn = lit[0].getType();
           for (std::map<Node, Node>::iterator it = msum2.begin();
                it != msum2.end();
                ++it)
@@ -103,20 +105,20 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             std::map<Node, Node>::iterator it2 = msum.find(it->first);
             if (it2 != msum.end())
             {
-              Node r = nm->mkNode(MINUS,
-                                  it2->second.isNull()
-                                      ? nm->mkConst(CONST_RATIONAL, Rational(1))
-                                      : it2->second,
-                                  it->second.isNull()
-                                      ? nm->mkConst(CONST_RATIONAL, Rational(1))
-                                      : it->second);
-              msum[it->first] = Rewriter::rewrite(r);
+              Rational r1 = it2->second.isNull()
+                                ? Rational(1)
+                                : it2->second.getConst<Rational>();
+              Rational r2 = it->second.isNull()
+                                ? Rational(1)
+                                : it->second.getConst<Rational>();
+              msum[it->first] = nm->mkConstRealOrInt(tn, r1 - r2);
             }
             else
             {
               msum[it->first] = it->second.isNull()
-                                    ? nm->mkConst(CONST_RATIONAL, Rational(-1))
-                                    : negate(it->second);
+                                    ? nm->mkConstRealOrInt(tn, Rational(-1))
+                                    : nm->mkConstRealOrInt(
+                                          tn, -it->second.getConst<Rational>());
             }
           }
           return true;
@@ -127,7 +129,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
   return false;
 }
 
-Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
+Node ArithMSum::mkNode(TypeNode tn, const std::map<Node, Node>& msum)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
@@ -146,10 +148,10 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
     }
     children.push_back(m);
   }
-  return children.size() > 1 ? nm->mkNode(PLUS, children)
-                             : (children.size() == 1
-                                    ? children[0]
-                                    : nm->mkConst(CONST_RATIONAL, Rational(0)));
+  return children.size() > 1
+             ? nm->mkNode(ADD, children)
+             : (children.size() == 1 ? children[0]
+                                     : nm->mkConstRealOrInt(tn, Rational(0)));
 }
 
 int ArithMSum::isolate(
@@ -159,11 +161,13 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
+    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     Rational r =
         itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
     if (r.sgn() != 0)
     {
+      TypeNode vtn = v.getType();
       for (std::map<Node, Node>::const_iterator it = msum.begin();
            it != msum.end();
            ++it)
@@ -182,27 +186,25 @@ int ArithMSum::isolate(
           children.push_back(m);
         }
       }
-      val = children.size() > 1
-                ? NodeManager::currentNM()->mkNode(PLUS, children)
-                : (children.size() == 1 ? children[0]
-                                        : NodeManager::currentNM()->mkConst(
-                                            CONST_RATIONAL, Rational(0)));
+      val =
+          children.size() > 1
+              ? nm->mkNode(ADD, children)
+              : (children.size() == 1 ? children[0]
+                                      : nm->mkConstRealOrInt(vtn, Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
-        if (v.getType().isInteger())
+        if (vtn.isInteger())
         {
-          veq_c = NodeManager::currentNM()->mkConst(CONST_RATIONAL, r.abs());
+          veq_c = nm->mkConstInt(r.abs());
         }
         else
         {
-          val = NodeManager::currentNM()->mkNode(
-              MULT,
-              val,
-              NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                                Rational(1) / r.abs()));
+          val = nm->mkNode(MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
-      val = r.sgn() == 1 ? negate(val) : Rewriter::rewrite(val);
+      val = r.sgn() == 1
+                ? nm->mkNode(MULT, nm->mkConstRealOrInt(vtn, Rational(-1)), val)
+                : val;
       return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
     }
   }
@@ -284,27 +286,11 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(msum);
+      rem = mkNode(n.getType(), msum);
       return true;
     }
   }
   return false;
-}
-
-Node ArithMSum::negate(Node t)
-{
-  Node tt = NodeManager::currentNM()->mkNode(
-      MULT, NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1)), t);
-  tt = Rewriter::rewrite(tt);
-  return tt;
-}
-
-Node ArithMSum::offset(Node t, int i)
-{
-  Node tt = NodeManager::currentNM()->mkNode(
-      PLUS, NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(i)), t);
-  tt = Rewriter::rewrite(tt);
-  return tt;
 }
 
 void ArithMSum::debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c)

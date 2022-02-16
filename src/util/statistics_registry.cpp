@@ -48,7 +48,7 @@ TimerStat StatisticsRegistry::registerTimer(const std::string& name,
 
 void StatisticsRegistry::storeSnapshot()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_lastSnapshot = std::make_unique<Snapshot>();
     for (const auto& s : d_stats)
@@ -64,7 +64,7 @@ void StatisticsRegistry::storeSnapshot()
 
 StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     auto it = d_stats.find(name);
     if (it == d_stats.end()) return nullptr;
@@ -75,7 +75,7 @@ StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 
 void StatisticsRegistry::print(std::ostream& os) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     for (const auto& s : d_stats)
     {
@@ -88,7 +88,7 @@ void StatisticsRegistry::print(std::ostream& os) const
 
 void StatisticsRegistry::printSafe(int fd) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     for (const auto& s : d_stats)
     {
@@ -104,7 +104,7 @@ void StatisticsRegistry::printSafe(int fd) const
 }
 void StatisticsRegistry::printDiff(std::ostream& os) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     if (!d_lastSnapshot)
     {
