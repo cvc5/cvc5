@@ -348,7 +348,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  PLUS,
+  ADD,
   /**
    * Arithmetic multiplication.
    *
@@ -419,7 +419,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MINUS,
+  SUB,
   /**
    * Arithmetic negation.
    *
@@ -429,7 +429,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  UMINUS,
+  NEG,
   /**
    * Real division, division by 0 undefined, left associative.
    *
@@ -1569,7 +1569,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISN,
+  FLOATINGPOINT_IS_NORMAL,
   /**
    * Floating-point is sub-normal.
    *
@@ -1579,7 +1579,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISSN,
+  FLOATINGPOINT_IS_SUBNORMAL,
   /**
    * Floating-point is zero.
    *
@@ -1589,7 +1589,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISZ,
+  FLOATINGPOINT_IS_ZERO,
   /**
    * Floating-point is infinite.
    *
@@ -1599,7 +1599,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISINF,
+  FLOATINGPOINT_IS_INF,
   /**
    * Floating-point is NaN.
    *
@@ -1609,7 +1609,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNAN,
+  FLOATINGPOINT_IS_NAN,
   /**
    * Floating-point is negative.
    *
@@ -1619,7 +1619,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNEG,
+  FLOATINGPOINT_IS_NEG,
   /**
    * Floating-point is positive.
    *
@@ -1629,7 +1629,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISPOS,
+  FLOATINGPOINT_IS_POS,
   /**
    * Operator for to_fp from bit vector.
    *
@@ -2540,6 +2540,23 @@ enum Kind : int32_t
    */
   BAG_MAP,
   /**
+    * bag.filter operator filters the elements of a bag.
+    * (bag.filter p B) takes a predicate p of type (-> T Bool) as a first
+    * argument, and a bag B of type (Bag T) as a second argument, and returns a
+    * subbag of type (Bag T) that includes all elements of B that satisfy p
+    * with the same multiplicity.
+    *
+    * Parameters:
+    *   - 1: a function of type (-> T Bool)
+    *   - 2: a bag of type (Bag T)
+    *
+    * Create with:
+    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+    * const`
+    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+    */
+   BAG_FILTER,
+  /**
    * bag.fold operator combines elements of a bag into a single value.
    * (bag.fold f t B) folds the elements of bag B starting with term t and using
    * the combining function f.
@@ -2555,6 +2572,17 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_FOLD,
+  /**
+   * Table cross product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  TABLE_PRODUCT,
 
   /* Strings --------------------------------------------------------------- */
 

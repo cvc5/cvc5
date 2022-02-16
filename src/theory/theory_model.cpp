@@ -805,8 +805,13 @@ std::string TheoryModel::debugPrintModelEqc() const
 
 bool TheoryModel::isValue(TNode node)
 {
-  return node.isConst() || node.getKind() == Kind::REAL_ALGEBRAIC_NUMBER
-         || node.getKind() == Kind::LAMBDA;
+  if (node.isConst())
+  {
+    return true;
+  }
+  Kind k = node.getKind();
+  return k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+         || k == kind::WITNESS;
 }
 
 }  // namespace theory

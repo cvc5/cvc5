@@ -221,7 +221,7 @@ class TheoryModel : protected EnvObj
    * kind k in getModelValue. We distinguish four categories of kinds:
    *
    * [1] "Evaluated"
-   * This includes (standard) interpreted symbols like NOT, PLUS, SET_UNION,
+   * This includes (standard) interpreted symbols like NOT, ADD, SET_UNION,
    * etc. These operators can be characterized by the invariant that they are
    * "evaluatable". That is, if they are applied to only constants, the rewriter
    * is guaranteed to rewrite the application to a constant. When getting

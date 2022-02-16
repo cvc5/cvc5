@@ -243,7 +243,6 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  eq = rewrite(eq);
   addPendingPhaseRequirement(eq, preq);
   addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;

@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; COMMAND-LINE: -vvv --sygus-out=status --check-synth-sol --check-abducts
 ; ERROR-SCRUBBER: sed -e 's/.*//g'
 ; SCRUBBER: sed -e 's/.*//g'

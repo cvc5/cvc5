@@ -214,9 +214,6 @@ void SolverEngine::finishInit()
   // of context-dependent data structures
   d_state->setup();
 
-  Trace("smt-debug") << "Set up assertions..." << std::endl;
-  d_asserts->finishInit();
-
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
@@ -771,6 +768,8 @@ Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                       bool isEntailmentCheck)
 {
+  Result r;
+
   try
   {
     SolverEngineScope smts(this);
@@ -780,7 +779,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
     // check the satisfiability with the solver object
-    Result r = d_smtSolver->checkSatisfiability(
+    r = d_smtSolver->checkSatisfiability(
         *d_asserts.get(), assumptions, isEntailmentCheck);
 
     Trace("smt") << "SolverEngine::"
@@ -812,13 +811,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkUnsatCore();
       }
     }
-    if (d_env->getOptions().base.statisticsEveryQuery)
-    {
-      printStatisticsDiff();
-    }
-    return r;
   }
-  catch (UnsafeInterruptException& e)
+  catch (const UnsafeInterruptException& e)
   {
     AlwaysAssert(getResourceManager()->out());
     // Notice that we do not notify the state of this result. If we wanted to
@@ -829,13 +823,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
 
-    if (d_env->getOptions().base.statisticsEveryQuery)
-    {
-      printStatisticsDiff();
-    }
-    return Result(
-        Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
+    r = Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
   }
+
+  if (d_env->getOptions().base.statisticsEveryQuery)
+  {
+    printStatisticsDiff();
+  }
+  return r;
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -1433,10 +1428,7 @@ void SolverEngine::checkUnsatCore()
 void SolverEngine::checkModel(bool hardFailure)
 {
   const context::CDList<Node>& al = d_asserts->getAssertionList();
-  // --check-model implies --produce-assertions, which enables the
-  // assertion list, so we should be ok.
-  Assert(d_env->getOptions().smt.produceAssertions)
-      << "don't have an assertion list to check in SolverEngine::checkModel()";
+  // we always enable the assertion list, so it is able to be checked
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
@@ -1534,10 +1526,8 @@ void SolverEngine::printInstantiations(std::ostream& out)
 
   // Second, extract and print the instantiations
   std::map<Node, InstantiationList> rinsts;
-  if (d_env->getOptions().smt.produceProofs
-      && (!d_env->getOptions().smt.unsatCores
-          || d_env->getOptions().smt.unsatCoresMode
-                 == options::UnsatCoresMode::FULL_PROOF)
+  if ((d_env->getOptions().smt.produceProofs
+       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL)
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
@@ -1714,13 +1704,7 @@ std::vector<Node> SolverEngine::getAssertions()
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT getAssertions()" << endl;
-  if (!d_env->getOptions().smt.produceAssertions)
-  {
-    const char* msg =
-        "Cannot query the current assertion list when not in "
-        "produce-assertions mode.";
-    throw ModalException(msg);
-  }
+  // note we always enable assertions, so it is available here
   return getAssertionsInternal();
 }
 

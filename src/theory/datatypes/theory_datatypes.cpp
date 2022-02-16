@@ -902,7 +902,10 @@ void TheoryDatatypes::addTester(
     std::vector<Node> conf;
     conf.push_back(j);
     conf.push_back(t);
-    conf.push_back(jt[0].eqNode(t_arg));
+    if (jt[0] != t_arg)
+    {
+      conf.push_back(jt[0].eqNode(t_arg));
+    }
     Trace("dt-conflict") << "CONFLICT: Tester conflict : " << conf << std::endl;
     d_im.sendDtConflict(conf, InferenceId::DATATYPES_TESTER_MERGE_CONFLICT);
   }

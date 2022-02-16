@@ -30,7 +30,7 @@ int main()
   Term const2 = slv.mkConst(sort_bool, "_c4");
   Term ite = slv.mkTerm(ITE, const2, const1, const0);
   Term rem = slv.mkTerm(FLOATINGPOINT_REM, ite, const1);
-  Term isnan = slv.mkTerm(FLOATINGPOINT_ISNAN, rem);
+  Term isnan = slv.mkTerm(FLOATINGPOINT_IS_NAN, rem);
   slv.checkSatAssuming(isnan);
   return 0;
 }

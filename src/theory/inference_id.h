@@ -182,8 +182,12 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
+  BAGS_FILTER_DOWN,
+  BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
+  TABLES_PRODUCT_UP,
+  TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -289,6 +293,8 @@ enum class InferenceId
   QUANTIFIERS_INST_E_MATCHING_HO,
   // E-matching based on variable triggers
   QUANTIFIERS_INST_E_MATCHING_VAR_GEN,
+  // E-matching based on relational triggers
+  QUANTIFIERS_INST_E_MATCHING_RELATIONAL,
   // conflicting instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation
@@ -698,6 +704,10 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_UPDATE,
   // reasoning about the nth term from update term
   STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+  // reasoning about whether an update changes a term or not
+  STRINGS_ARRAY_UPDATE_BOUND,
+  // splitting about equality of sequences
+  STRINGS_ARRAY_EQ_SPLIT,
   // nth over update when updated with an unit term
   STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
   // nth over reverse

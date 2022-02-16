@@ -72,7 +72,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     // trivial case
     return tw;
   }
-  std::unordered_set<TNode>::iterator it;
+  std::unordered_set<Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   TNode curw;

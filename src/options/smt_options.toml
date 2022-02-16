@@ -164,15 +164,27 @@ name   = "SMT Layer"
   help = "Do not produce unsat cores."
 [[option.mode.SAT_PROOF]]
   name = "sat-proof"
-  help = "Produce unsat cores from SAT and preprocessing proofs."
-[[option.mode.FULL_PROOF]]
-  name = "full-proof"
-  help = "Produce unsat cores from full proofs."
+  help = "Produce unsat cores from the SAT proof and prepocessing proofs."
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+
+[[option]]
+  name       = "proofMode"
+  category   = "expert"
+  long       = "proof-mode=MODE"
+  type       = "ProofMode"
+  default    = "OFF"
+  help       = "choose proof mode, see --proof-mode=help"
+  help_mode  = "proof modes."
+[[option.mode.OFF]]
+  name = "off"
 [[option.mode.PP_ONLY]]
   name = "pp-only"
+[[option.mode.SAT]]
+  name = "sat-proof"
+[[option.mode.FULL]]
+  name = "full-proof"
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -215,6 +227,9 @@ name   = "SMT Layer"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
   name = "lemma-literal"
+  help = "Difficulty of an assertion is how many lemmas (at full effort) use a literal that the assertion depends on to be satisfied."
+[[option.mode.LEMMA_LITERAL_ALL]]
+  name = "lemma-literal-all"
   help = "Difficulty of an assertion is how many lemmas use a literal that the assertion depends on to be satisfied."
 [[option.mode.MODEL_CHECK]]
   name = "model-check"
@@ -242,7 +257,8 @@ name   = "SMT Layer"
   long       = "produce-assertions"
   type       = "bool"
   alias      = ["interactive-mode"]
-  help       = "keep an assertions list (enables get-assertions command)"
+  default    = "true"
+  help       = "keep an assertions list. Note this option is always enabled."
 
 [[option]]
   name       = "doITESimp"

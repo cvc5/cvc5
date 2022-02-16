@@ -292,7 +292,12 @@ void Smt2Printer::toStream(std::ostream& out,
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
       out << "((as const ";
       toStreamType(out, asa.getType());
-      out << ") " << asa.getValue() << ")";
+      out << ") ";
+      toStreamCastToType(out,
+                         asa.getValue(),
+                         toDepth < 0 ? toDepth : toDepth - 1,
+                         asa.getType().getArrayConstituentType());
+      out << ")";
       break;
     }
 
@@ -592,6 +597,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::HO_APPLY:
       if (!options::flattenHOChains())
       {
+        out << smtKindString(k, d_variant) << ' ';
         break;
       }
       // collapse "@" chains, i.e.
@@ -759,7 +765,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (op.getIndices().empty())
     {
       // e.g. (tuple_project tuple)
-      out << "project " << n[0] << ")";
+      out << "tuple_project " << n[0] << ")";
     }
     else
     {
@@ -863,7 +869,7 @@ void Smt2Printer::toStream(std::ostream& out,
         {
           out << "(! ";
           annot << ":no-pattern ";
-          toStream(annot, nc, toDepth, nullptr);
+          toStream(annot, nc[0], toDepth, nullptr);
           annot << ") ";
         }
       }
@@ -983,7 +989,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::WITNESS: return "witness";
 
   // arith theory
-  case kind::PLUS: return "+";
+  case kind::ADD: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
@@ -1003,8 +1009,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::ARCCOTANGENT: return "arccot";
   case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
-  case kind::MINUS: return "-";
-  case kind::UMINUS: return "-";
+  case kind::SUB: return "-";
+  case kind::NEG: return "-";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";
@@ -1117,7 +1123,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
+  case kind::TABLE_PRODUCT: return "table.product";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1142,13 +1150,13 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_GEQ: return "fp.geq";
   case kind::FLOATINGPOINT_GT: return "fp.gt";
 
-  case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
-  case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";
-  case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
-  case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
-  case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
-  case kind::FLOATINGPOINT_ISPOS: return "fp.isPositive";
+  case kind::FLOATINGPOINT_IS_NORMAL: return "fp.isNormal";
+  case kind::FLOATINGPOINT_IS_SUBNORMAL: return "fp.isSubnormal";
+  case kind::FLOATINGPOINT_IS_ZERO: return "fp.isZero";
+  case kind::FLOATINGPOINT_IS_INF: return "fp.isInfinite";
+  case kind::FLOATINGPOINT_IS_NAN: return "fp.isNaN";
+  case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
+  case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
 
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
@@ -1225,6 +1233,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // quantifiers
   case kind::FORALL: return "forall";
   case kind::EXISTS: return "exists";
+
+  // HO
+  case kind::HO_APPLY: return "@";
 
   default:
     ; /* fall through */
@@ -1481,7 +1492,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  out << "(define-fun " << id << " (";
+  out << "(define-fun " << cvc5::quoteSymbol(id) << " (";
   if (!formals.empty())
   {
     vector<Node>::const_iterator i = formals.cbegin();

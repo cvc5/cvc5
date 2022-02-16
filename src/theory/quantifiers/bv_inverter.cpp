@@ -279,7 +279,7 @@ Node BvInverter::solveBvLit(Node sv,
     k = sv_t.getKind();
 
     /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
-     *       BITVECTOR_OR, MULT, PLUS) are commutative (no case split
+     *       BITVECTOR_OR, MULT, ADD) are commutative (no case split
      *       based on index). */
     Node s = dropChild(sv_t, index);
     Assert((nchildren == 1 && s.isNull()) || (nchildren > 1 && !s.isNull()));
