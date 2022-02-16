@@ -964,7 +964,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-si-rcons=MODE"
   type       = "CegqiSingleInvRconsMode"
-  default    = "ALL_LIMIT"
+  default    = "ALL"
   help       = "policy for reconstructing solutions for single invocation conjectures"
   help_mode  = "Modes for reconstruction solutions while using single invocation techniques."
 [[option.mode.NONE]]
@@ -975,7 +975,7 @@ name   = "Quantifiers"
   help = "Try to reconstruct solutions in the original grammar when using single invocation techniques in an incomplete (fail-fast) manner."
 [[option.mode.ALL_LIMIT]]
   name = "all-limit"
-  help = "Try to reconstruct solutions in the original grammar, but termintate if a maximum number of rounds for reconstruction is exceeded."
+  help = "Try to reconstruct solutions in the original grammar, but terminate if a maximum number of rounds for reconstruction is exceeded."
 [[option.mode.ALL]]
   name = "all"
   help = "Try to reconstruct solutions in the original grammar. In this mode, we do not terminate until a solution is successfully reconstructed."
