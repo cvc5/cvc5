@@ -20,6 +20,7 @@
 #include <fstream>
 #include <list>
 #include <sstream>
+#include <math.h>
 
 #include "options/smt_options.h"
 #include "proof/trust_node.h"
@@ -31,7 +32,6 @@ class TheoryEngine;
 
 namespace prop {
 class PropEngine;
-class ZeroLevelLearner;
 }
 
 namespace theory {
@@ -41,8 +41,8 @@ class Splitter
  public:
   Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine)
       : d_numPartitions(options::computePartitions()),
-        d_numPartitionsSoFar(0),
         d_numChecks(0),
+        d_numPartitionsSoFar(0),
         d_partitionFile(options::writePartitionsToFileName())
   {
     // Assert(numPartitions > 1);
@@ -54,6 +54,12 @@ class Splitter
       d_partitionFileStream.open(d_partitionFile);
       d_output = &d_partitionFileStream;
       d_partitionFileStream.close();
+    }
+    if (options::partitionConflictSize() == 0){
+      d_conflictSize = (unsigned)log2(d_numPartitions);
+    }
+    else {
+      d_conflictSize = options::partitionConflictSize();
     }
   }
 
@@ -70,9 +76,9 @@ class Splitter
   std::ostream* d_output;
   std::list<Node> d_assertedLemmas;
   std::vector<Node> d_cubes;
+  unsigned d_conflictSize;
   TrustNode makeFinalConflict();
-  void collectLiteralsOld(std::vector<TNode>& literals);
-  void collectLiteralsNew(std::vector<TNode>& literals);
+  void collectDecisionLiterals(std::vector<TNode>& literals);
 };
 }  // namespace theory
 }  // namespace cvc5

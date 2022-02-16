@@ -32,6 +32,7 @@
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
+#include "theory/splitter.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_substitutions.h"
@@ -402,6 +403,10 @@ class TheoryEngine : protected EnvObj
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
           PropagationMap;
 
+
+  std::unique_ptr<cvc5::theory::Splitter> d_splitter;
+  int d_numPartitions;
+  std::list<Node> d_assertedPartitions;
   /**
    * Called by the theories to notify of a conflict.
    *

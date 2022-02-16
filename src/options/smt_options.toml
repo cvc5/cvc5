@@ -26,6 +26,14 @@ name   = "SMT Layer"
   help       = "number of standard effort checks until partitioning"
 
 [[option]]
+  name       = "partitionConflictSize"
+  category   = "expert"
+  long       = "conflict-size=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "number of literals in a cube"
+
+[[option]]
   name       = "partitionStrategy"
   category   = "expert"
   long       = "partition-strategy=X"

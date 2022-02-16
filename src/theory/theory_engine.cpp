@@ -39,6 +39,7 @@
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/shared_solver.h"
+#include "theory/splitter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_id.h"
@@ -199,6 +200,13 @@ void TheoryEngine::finishInit()
     t->setDecisionManager(d_decManager.get());
     // finish initializing the theory
     t->finishInit();
+  }
+
+  // Won't work with incremental solving, but the partitioning
+  // is focused on non-incremental anyway. 
+  if (options::computePartitions() > 1)
+  {
+      d_splitter = make_unique<Splitter>(this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -392,7 +400,21 @@ void TheoryEngine::check(Theory::Effort effort) {
         d_relManager->beginRound();
       }
       d_tc->resetRound();
+
+      if (options::computePartitions() > 1 && options::partitionCheck() == "full"){
+        TrustNode tl = d_splitter->makePartitions();
+        if (!tl.isNull()){
+          lemma(tl, LemmaProperty::NONE, THEORY_LAST);
+        }
+      }
     }
+
+    if (options::computePartitions() > 1 && options::partitionCheck() == "standard"){
+      TrustNode tl = d_splitter->makePartitions();
+      if (!tl.isNull()){
+        lemma(tl, LemmaProperty::NONE, THEORY_LAST);
+      }
+    } 
 
     // Check until done
     while (d_factsAsserted && !d_inConflict && !d_lemmasAdded) {
