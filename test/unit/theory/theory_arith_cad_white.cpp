@@ -422,8 +422,6 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_proof_1)
   std::vector<Node> mis{dummy(1), dummy(3), dummy(4), dummy(5)};
   LazyTreeProofGenerator* pg = dynamic_cast<LazyTreeProofGenerator*>(cac.closeProof(mis));
   EXPECT_TRUE(pg != nullptr);
-  //std::cout << *pg << std::endl;
-  //std::cout << *pg->getProof() << std::endl;
 }
 
 TEST_F(TestTheoryWhiteArithCAD, test_delta_one)
