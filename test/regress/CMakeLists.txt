@@ -1153,6 +1153,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
+  regress0/seq/shared-term-registration.smt2
   regress0/seq/update-concat-non-atomic.smt2
   regress0/seq/update-concat-non-atomic2.smt2
   regress0/seq/update-eq.smt2
@@ -2592,6 +2593,10 @@ set(regress_1_tests
   regress1/sygus/list-head-x.sy
   regress1/sygus/list_recursor.sy
   regress1/sygus/logiccell_help.sy
+  regress1/sygus/max-all.sy
+  regress1/sygus/max-limit.sy
+  regress1/sygus/max-try1.sy
+  regress1/sygus/max-try2.sy
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
   regress1/sygus/multi-fun-polynomial2.sy
