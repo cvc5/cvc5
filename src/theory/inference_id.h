@@ -74,6 +74,8 @@ enum class InferenceId
   ARITH_CONF_REPLAY_LOG,
   // conflict in replayLogRec
   ARITH_CONF_REPLAY_LOG_REC,
+  // conflict from handleUnateProp
+  ARITH_CONF_UNATE_PROP,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
   // tighten integer inequalities to ceiling

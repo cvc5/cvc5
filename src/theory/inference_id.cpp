@@ -43,6 +43,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_CONF_REPLAY_ASSERT: return "ARITH_CONF_REPLAY_ASSERT";
     case InferenceId::ARITH_CONF_REPLAY_LOG: return "ARITH_CONF_REPLAY_LOG";
     case InferenceId::ARITH_CONF_REPLAY_LOG_REC: return "ARITH_CONF_REPLAY_LOG_REC";
+    case InferenceId::ARITH_CONF_UNATE_PROP: return "ARITH_CONF_UNATE_PROP";
     case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
     case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
     case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
