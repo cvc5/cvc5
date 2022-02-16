@@ -292,14 +292,14 @@ Node LfscNodeConverter::postConvert(Node n)
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     return nm->mkNode(APPLY_UF, f, convert(storeAll.getValue()));
   }
-  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
+  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == SUB
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
-           || k == INTS_MODULUS_TOTAL || k == UMINUS || k == POW
+           || k == INTS_MODULUS_TOTAL || k == NEG || k == POW
            || isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
-    // note that MINUS is not n-ary
+    // note that SUB is not n-ary
     // get the macro-apply version of the operator
     Node opc = getOperatorOfTerm(n, true);
     std::vector<Node> children;
@@ -428,7 +428,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
     Node opc;
-    if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
+    if (k == ADD || k == MULT || k == NONLINEAR_MULT)
     {
       std::stringstream opName;
       // currently allow subtyping
@@ -450,6 +450,8 @@ Node LfscNodeConverter::postConvert(Node n)
         ret = nm->mkNode(ck, children[i], ret);
       }
     }
+    Trace("lfsc-term-process-debug")
+        << "...return n-ary conv " << ret << std::endl;
     return ret;
   }
   return n;
@@ -730,7 +732,7 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
 
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
-  return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
+  return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
          || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER
@@ -743,6 +745,13 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
   std::vector<Node> indices;
   switch (k)
   {
+    case REGEXP_LOOP:
+    {
+      RegExpLoop op = n.getConst<RegExpLoop>();
+      indices.push_back(nm->mkConstInt(Rational(op.d_loopMinOcc)));
+      indices.push_back(nm->mkConstInt(Rational(op.d_loopMaxOcc)));
+      break;
+    }
     case BITVECTOR_EXTRACT:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
@@ -915,17 +924,19 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     else if (k == APPLY_SELECTOR)
     {
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      unsigned cindex = DType::cindexOf(op);
-      std::stringstream sss;
-      sss << dt[cindex][index].getSelector();
-      opName << getNameForUserName(sss.str());
-    }
-    else if (k == APPLY_SELECTOR_TOTAL)
-    {
-      ret = maybeMkSkolemFun(op, macroApply);
-      Assert(!ret.isNull());
+      if (k == APPLY_SELECTOR_TOTAL)
+      {
+        ret = maybeMkSkolemFun(op, macroApply);
+      }
+      if (ret.isNull())
+      {
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        unsigned cindex = DType::cindexOf(op);
+        std::stringstream sss;
+        sss << dt[cindex][index].getSelector();
+        opName << getNameForUserName(sss.str());
+      }
     }
     else if (k == SET_SINGLETON || k == BAG_MAKE)
     {
@@ -973,16 +984,15 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
-      || k == LEQ || k == LT || k == MINUS || k == DIVISION
-      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS
-      || k == POW)
+  if (k == ADD || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
+      || k == LEQ || k == LT || k == SUB || k == DIVISION || k == DIVISION_TOTAL
+      || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
+      || k == INTS_MODULUS_TOTAL || k == NEG || k == POW)
   {
     // currently allow subtyping
     opName << "a.";
   }
-  if (k == UMINUS)
+  if (k == NEG)
   {
     opName << "u";
   }

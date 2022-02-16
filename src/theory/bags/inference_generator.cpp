@@ -17,15 +17,19 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/uf/equality_engine.h"
 #include "util/rational.h"
 
 using namespace cvc5::kind;
+using namespace cvc5::theory::datatypes;
 
 namespace cvc5 {
 namespace theory {
@@ -49,6 +53,14 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
   Node count = d_nm->mkNode(BAG_COUNT, e, n);
   Node gte = d_nm->mkNode(GEQ, count, d_zero);
+  inferInfo.d_conclusion = gte;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::nonNegativeCardinality(Node n)
+{
+  InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
+  Node gte = d_nm->mkNode(GEQ, n, d_zero);
   inferInfo.d_conclusion = gte;
   return inferInfo;
 }
@@ -189,7 +201,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
   Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
-  Node sum = d_nm->mkNode(PLUS, countA, countB);
+  Node sum = d_nm->mkNode(ADD, countA, countB);
   Node equal = count.eqNode(sum);
 
   inferInfo.d_conclusion = equal;
@@ -254,7 +266,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
   Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
-  Node subtract = d_nm->mkNode(MINUS, countA, countB);
+  Node subtract = d_nm->mkNode(SUB, countA, countB);
   Node gte = d_nm->mkNode(GEQ, countA, countB);
   Node difference = d_nm->mkNode(ITE, gte, subtract, d_zero);
   Node equal = count.eqNode(difference);
@@ -300,6 +312,78 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   Node ite = d_nm->mkNode(ITE, gte, d_one, d_zero);
   Node equal = count.eqNode(ite);
   inferInfo.d_conclusion = equal;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardEmpty(const std::pair<Node, Node>& pair,
+                                        Node n)
+{
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_EMPTY && n.getType() == pair.first[0].getType());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node premise = pair.first[0].eqNode(n);
+  Node conclusion = pair.second.eqNode(d_zero);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardBagMake(const std::pair<Node, Node>& pair,
+                                          Node n)
+{
+  Assert(pair.first.getKind() == BAG_CARD);
+  Assert(n.getKind() == BAG_MAKE && n.getType() == pair.first[0].getType());
+  //(=>
+  //  (and (= A (bag x c)) (>= 0 c))
+  //  (= (bag.card A) c))
+  Node c = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+  Node nonNegative = d_nm->mkNode(GEQ, c, d_zero);
+  Node premise = pair.first[0].eqNode(n).andNode(nonNegative);
+  Node conclusion = pair.second.eqNode(c);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
+                                                Node parent,
+                                                const std::set<Node>& children)
+{
+  Assert(premise.getType().isBoolean());
+  Assert(!children.empty());
+  InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
+
+  std::set<Node>::iterator it = children.begin();
+  Node child = *it;
+  d_state->registerBag(child);
+  Node unionDisjoints = child;
+  Node card = d_nm->mkNode(BAG_CARD, child);
+  std::vector<Node> lemmas;
+  lemmas.push_back(d_state->registerCardinalityTerm(card));
+  Node sum = d_state->getCardinalitySkolem(card);
+  ++it;
+  while (it != children.end())
+  {
+    child = *it;
+    d_state->registerBag(child);
+    unionDisjoints =
+        d_nm->mkNode(kind::BAG_UNION_DISJOINT, unionDisjoints, child);
+    card = d_nm->mkNode(BAG_CARD, child);
+    lemmas.push_back(d_state->registerCardinalityTerm(card));
+    d_state->getCardinalitySkolem(card);
+    Node skolem = d_state->getCardinalitySkolem(card);
+    sum = d_nm->mkNode(ADD, sum, skolem);
+    ++it;
+  }
+  Node parentCard = d_nm->mkNode(BAG_CARD, parent);
+  lemmas.push_back(d_state->registerCardinalityTerm(parentCard));
+  Node parentSkolem = d_state->getCardinalitySkolem(parentCard);
+
+  Node bags = parent.eqNode(unionDisjoints);
+  lemmas.push_back(bags);
+  Node cards = parentSkolem.eqNode(sum);
+  lemmas.push_back(cards);
+  Node conclusion = d_nm->mkNode(AND, lemmas);
+  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
   return inferInfo;
 }
 
@@ -366,8 +450,8 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
       bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(BOUND_VAR_LIST, j);
-  Node iPlusOne = d_nm->mkNode(PLUS, i, d_one);
-  Node iMinusOne = d_nm->mkNode(MINUS, i, d_one);
+  Node iPlusOne = d_nm->mkNode(ADD, i, d_one);
+  Node iMinusOne = d_nm->mkNode(SUB, i, d_one);
   Node uf_i = d_nm->mkNode(APPLY_UF, uf, i);
   Node uf_j = d_nm->mkNode(APPLY_UF, uf, j);
   Node f_uf_i = d_nm->mkNode(APPLY_UF, f, uf_i);
@@ -381,7 +465,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   Node count_iMinusOne = d_nm->mkNode(BAG_COUNT, uf_iMinusOne, A);
   Node count_uf_i = d_nm->mkNode(BAG_COUNT, uf_i, A);
   Node inductiveCase =
-      d_nm->mkNode(EQUAL, sum_i, d_nm->mkNode(PLUS, sum_iMinusOne, count_uf_i));
+      d_nm->mkNode(EQUAL, sum_i, d_nm->mkNode(ADD, sum_iMinusOne, count_uf_i));
   Node f_iEqualE = d_nm->mkNode(EQUAL, f_uf_i, e);
   Node geqOne = d_nm->mkNode(GEQ, count_uf_i, d_one);
 
@@ -434,6 +518,106 @@ InferInfo InferenceGenerator::mapUpwards(
   inferInfo.d_conclusion = implies;
   Trace("bags::InferenceGenerator::mapUpwards")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::filterDownwards(Node n, Node e)
+{
+  Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
+  Assert(e.getType().isSubtypeOf(n[1].getType().getBagElementType()));
+
+  Node P = n[0];
+  Node A = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_FILTER_DOWN);
+
+  Node countA = getMultiplicityTerm(e, A);
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node member = d_nm->mkNode(GEQ, count, d_one);
+  Node pOfe = d_nm->mkNode(APPLY_UF, P, e);
+  Node equal = count.eqNode(countA);
+
+  inferInfo.d_conclusion = pOfe.andNode(equal);
+  inferInfo.d_premises.push_back(member);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::filterUpwards(Node n, Node e)
+{
+  Assert(n.getKind() == BAG_FILTER && n[1].getType().isBag());
+  Assert(e.getType().isSubtypeOf(n[1].getType().getBagElementType()));
+
+  Node P = n[0];
+  Node A = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_FILTER_UP);
+
+  Node countA = getMultiplicityTerm(e, A);
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node member = d_nm->mkNode(GEQ, countA, d_one);
+  Node pOfe = d_nm->mkNode(APPLY_UF, P, e);
+  Node equal = count.eqNode(countA);
+  Node included = pOfe.andNode(equal);
+  Node equalZero = count.eqNode(d_zero);
+  Node excluded = pOfe.notNode().andNode(equalZero);
+  inferInfo.d_conclusion = included.orNode(excluded);
+  inferInfo.d_premises.push_back(member);
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::productUp(Node n, Node e1, Node e2)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  Node A = n[0];
+  Node B = n[1];
+  Node tuple = BagsUtils::constructProductTuple(n, e1, e2);
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_UP);
+
+  Node countA = getMultiplicityTerm(e1, A);
+  Node countB = getMultiplicityTerm(e2, B);
+
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(tuple, skolem);
+
+  Node multiply = d_nm->mkNode(MULT, countA, countB);
+  inferInfo.d_conclusion = count.eqNode(multiply);
+
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::productDown(Node n, Node e)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
+
+  Node A = n[0];
+  Node B = n[1];
+
+  TypeNode tupleBType = B.getType().getBagElementType();
+  TypeNode tupleAType = A.getType().getBagElementType();
+  size_t tupleALength = tupleAType.getTupleLength();
+  size_t productTupleLength = n.getType().getBagElementType().getTupleLength();
+
+  std::vector<Node> elements = TupleUtils::getTupleElements(e);
+  Node a = TupleUtils::constructTupleFromElements(
+      tupleAType, elements, 0, tupleALength - 1);
+  Node b = TupleUtils::constructTupleFromElements(
+      tupleBType, elements, tupleALength, productTupleLength - 1);
+
+  InferInfo inferInfo(d_im, InferenceId::TABLES_PRODUCT_DOWN);
+
+  Node countA = getMultiplicityTerm(a, A);
+  Node countB = getMultiplicityTerm(b, B);
+
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+
+  Node multiply = d_nm->mkNode(MULT, countA, countB);
+  inferInfo.d_conclusion = count.eqNode(multiply);
+
   return inferInfo;
 }
 

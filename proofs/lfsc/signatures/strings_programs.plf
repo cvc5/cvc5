@@ -36,6 +36,9 @@
 ; Decompose str.++ term t into a head and tail.
 (program sc_string_decompose ((t term)) termPair (nary_decompose f_str.++ t emptystr))
 
+; String is prefix, returns tt if s is a prefix of t
+(program sc_string_is_prefix ((s term) (t term)) flag (nary_is_prefix f_str.++ s t emptystr))
+
 ; Insert a string into str.++ term t.
 (program sc_string_insert ((elem term) (t term)) term (nary_insert f_str.++ elem t emptystr))
 

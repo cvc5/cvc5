@@ -1155,7 +1155,8 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
     }
   }
 
-  if(polyNode.getKind() == PLUS){
+  if (polyNode.getKind() == ADD)
+  {
     d_tableauSizeHasBeenModified = true;
 
     vector<ArithVar> variables;
@@ -1193,7 +1194,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
 
   /* Note:
    * It is worth documenting that polyNode should only be marked as
-   * being setup by this function if it has kind PLUS.
+   * being setup by this function if it has kind ADD.
    * Other kinds will be marked as being setup by lower levels of setup
    * specifically setupVariableList.
    */
@@ -1253,11 +1254,13 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
-  Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS || internal);
-  if (logicInfo().isLinear() && Variable::isDivMember(x))
+  Kind xk = x.getKind();
+  Assert(isLeaf(x) || VarList::isMember(x) || xk == ADD || internal);
+  if (logicInfo().isLinear()
+      && (Variable::isDivMember(x) || xk == IAND || isTranscendentalKind(xk)))
   {
     stringstream ss;
-    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to "
+    ss << "A non-linear fact was asserted to "
           "arithmetic in a linear logic: "
        << x << std::endl;
     throw LogicException(ss.str());
@@ -1690,7 +1693,7 @@ Node flattenAndSort(Node n){
   switch(k){
   case kind::OR:
   case kind::AND:
-  case kind::PLUS:
+  case kind::ADD:
   case kind::MULT:
     break;
   default:
@@ -2076,7 +2079,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   {
     return children[0];
   }
-  return nm->mkNode(kind::PLUS, children);
+  return nm->mkNode(kind::ADD, children);
 }
 
 ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& conflict){
@@ -3763,7 +3766,8 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
     case kind::CONST_RATIONAL:
       return term.getConst<Rational>();
 
-    case kind::PLUS: {  // 2+ args
+    case kind::ADD:
+    {  // 2+ args
       DeltaRational value(0);
       for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
            ++i) {
@@ -3782,10 +3786,12 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
       }
       return value;
     }
-    case kind::MINUS: {  // 2 args
+    case kind::SUB:
+    {  // 2 args
       return getDeltaValue(term[0]) - getDeltaValue(term[1]);
     }
-    case kind::UMINUS: {  // 1 arg
+    case kind::NEG:
+    {  // 1 arg
       return (-getDeltaValue(term[0]));
     }
 
@@ -4878,8 +4884,7 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   success = decomposeTerm(rewrite(right), rm, rp, rc);
   if(!success){ return false; }
 
-  Node diff =
-      rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
+  Node diff = rewrite(NodeManager::currentNM()->mkNode(kind::SUB, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
   Assert(success);
@@ -4957,7 +4962,10 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
 void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const {
   tmp.first = Node::null();
   if(sgn == 0){ return; }
-  if(tp.getKind() != PLUS){ return; }
+  if (tp.getKind() != ADD)
+  {
+    return;
+  }
   Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);

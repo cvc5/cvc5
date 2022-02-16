@@ -23,6 +23,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/theory.h"
 #include "util/rational.h"
 #include "util/string.h"
 
@@ -35,10 +36,12 @@ namespace theory {
 namespace strings {
 
 TermRegistry::TermRegistry(Env& env,
+                           Theory& t,
                            SolverState& s,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : EnvObj(env),
+      d_theory(t),
       d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
@@ -54,10 +57,11 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          pnm ? new EagerProofGenerator(
-              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
-              : nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
@@ -410,7 +414,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
         nodeVec.push_back(lni);
       }
     }
-    lsum = nm->mkNode(PLUS, nodeVec);
+    lsum = nm->mkNode(ADD, nodeVec);
     lsum = rewrite(lsum);
   }
   else if (n.isConst())
@@ -668,6 +672,13 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     Trace("strings-subs-proxy") << "...unprocessed" << std::endl;
     unproc.push_back(n);
   }
+}
+
+void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
+{
+  d_theory.collectAssertedTerms(termSet);
+  // also, get the additionally relevant terms
+  d_theory.computeRelevantTerms(termSet);
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const

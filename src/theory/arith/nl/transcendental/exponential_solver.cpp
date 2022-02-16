@@ -120,7 +120,7 @@ void ExponentialSolver::checkInitialRefine()
               Kind::OR,
               nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
-                  Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
+                  Kind::GT, t, nm->mkNode(Kind::ADD, t[0], d_data->d_one)));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -264,13 +264,13 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   {
     // pick c-1
     bounds.first = rewrite(
-        NodeManager::currentNM()->mkNode(Kind::MINUS, center, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::SUB, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
     bounds.second = rewrite(
-        NodeManager::currentNM()->mkNode(Kind::PLUS, center, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::ADD, center, d_data->d_one));
   }
   return bounds;
 }

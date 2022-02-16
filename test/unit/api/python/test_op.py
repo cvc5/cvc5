@@ -16,15 +16,15 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Kind
-from pycvc5 import Sort
-from pycvc5 import Op
+import cvc5
+from cvc5 import Kind
+from cvc5 import Sort
+from cvc5 import Op
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_get_kind(solver):
@@ -40,13 +40,13 @@ def test_is_null(solver):
 
 
 def test_op_from_kind(solver):
-    solver.mkOp(Kind.Plus)
+    solver.mkOp(Kind.Add)
     with pytest.raises(RuntimeError):
         solver.mkOp(Kind.BVExtract)
 
 
 def test_get_num_indices(solver):
-    plus = solver.mkOp(Kind.Plus)
+    plus = solver.mkOp(Kind.Add)
     divisible = solver.mkOp(Kind.Divisible, 4)
     bitvector_repeat = solver.mkOp(Kind.BVRepeat, 5)
     bitvector_zero_extend = solver.mkOp(Kind.BVZeroExtend, 6)

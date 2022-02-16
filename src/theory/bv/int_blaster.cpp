@@ -303,7 +303,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(
           kind::ITE,
           d_nm->mkNode(kind::EQUAL, translated_children[1], d_zero),
-          d_nm->mkNode(kind::MINUS, pow2BvSize, d_one),
+          d_nm->mkNode(kind::SUB, pow2BvSize, d_one),
           divNode);
       break;
     }
@@ -448,7 +448,7 @@ Node IntBlaster::translateWithChildren(
       Node a =
           d_nm->mkNode(kind::MULT, translated_children[0], pow2BvSizeRight);
       Node b = translated_children[1];
-      returnNode = d_nm->mkNode(kind::PLUS, a, b);
+      returnNode = d_nm->mkNode(kind::ADD, a, b);
       break;
     }
     case kind::BITVECTOR_EXTRACT:
@@ -598,7 +598,7 @@ Node IntBlaster::uts(Node x, uint64_t bvsize)
   Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
   Node two = d_nm->mkConstInt(Rational(2));
   Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
-  return d_nm->mkNode(kind::MINUS, twoTimesNode, x);
+  return d_nm->mkNode(kind::SUB, twoTimesNode, x);
 }
 
 Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
@@ -644,7 +644,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
       Node thenResult = x;
       Node left = maxInt(amount);
       Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-      Node sum = d_nm->mkNode(kind::PLUS, mul, x);
+      Node sum = d_nm->mkNode(kind::ADD, mul, x);
       Node elseResult = sum;
       Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
       returnNode = ite;
@@ -1064,14 +1064,14 @@ Node IntBlaster::createBVOrNode(Node x,
 
 Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
 {
-  Node minus = d_nm->mkNode(kind::MINUS, x, y);
+  Node minus = d_nm->mkNode(kind::SUB, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
 }
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
 {
-  Node plus = d_nm->mkNode(kind::PLUS, x, y);
+  Node plus = d_nm->mkNode(kind::ADD, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
 }
@@ -1081,12 +1081,12 @@ Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
   // Based on Hacker's Delight section 2-2 equation a:
   // -x = ~x+1
   Node p2 = pow2(bvsize);
-  return d_nm->mkNode(kind::MINUS, p2, n);
+  return d_nm->mkNode(kind::SUB, p2, n);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
 {
-  return d_nm->mkNode(kind::MINUS, maxInt(bvsize), n);
+  return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
 }
 
 }  // namespace cvc5

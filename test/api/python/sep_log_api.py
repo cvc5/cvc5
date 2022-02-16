@@ -19,14 +19,14 @@
 # correct and can be interrogated.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 
 # Test function to validate that we *cannot* obtain the heap/nil expressions
 # when *not* using the separation logic theory
 def validate_exception():
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     # Setup some options for cvc5 -- we explictly want to use a simplistic
     # theory (e.g., QF_IDL)
     slv.setLogic("QF_IDL")
@@ -95,7 +95,7 @@ def validate_exception():
 # Test function to demonstrate the use of, and validate the capability, of
 # obtaining the heap/nil expressions when using separation logic.
 def validate_getters():
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # Setup some options for cvc5
     slv.setLogic("QF_ALL")
