@@ -93,6 +93,13 @@ public:
  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class StringToRegExpTypeRule {
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+ 
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+};
+
 class ConstSequenceTypeRule
 {
  public:
