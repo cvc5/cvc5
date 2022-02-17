@@ -1,5 +1,6 @@
-; COMMAND-LINE: --simplification=none --tlimit 100
-; EXPECT: unknown
+; COMMAND-LINE: --simplification=none --tlimit=100
+; EXPECT-ERROR: cvc5 interrupted by timeout.
+; EXIT: -6
 (set-logic ALL)
 (declare-fun a () Real)
 (declare-fun b () Real)
