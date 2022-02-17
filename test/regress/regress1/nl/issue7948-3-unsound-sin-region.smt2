@@ -1,8 +1,9 @@
-; COMMAND-LINE: --simplification=none
-; EXPECT: sat
+; COMMAND-LINE: --simplification=none --tlimit 100
+; EXPECT: unknown
 (set-logic ALL)
-(set-info :status sat)
 (declare-fun a () Real)
 (declare-fun b () Real)
 (assert (and (= a 0) (= b (cos a))))
+
+; currently this cannot be solved due to limitations on how arguments to sin are processed
 (check-sat)

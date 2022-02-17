@@ -1887,6 +1887,7 @@ set(regress_1_tests
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/issue7924-sqrt-partial.smt2
+  regress1/nl/issue7948-3-unsound-sin-region.smt2
   regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/metitarski-1025.smt2
