@@ -266,13 +266,27 @@ void SineSolver::checkMonotonic()
                                d_data->d_zero,
                                d_data->d_pi_neg_2,
                                d_data->d_pi_neg};
-  std::vector<Node> mpoints_vals;
+  // sound upper, lower bounds for the above points
+  std::vector<Node> mpointsBound[2];
 
   // get model values for points
-  for (const auto& point : mpoints)
+  TNode tpi = d_data->d_pi;
+  for (size_t j = 0; j < 5; j++)
   {
-    mpoints_vals.emplace_back(d_data->d_model.computeAbstractModelValue(point));
-    Assert(mpoints_vals.back().isConst());
+    Node point = mpoints[j];
+    for (size_t i = 0; i < 2; i++)
+    {
+      Node mpointapprox = point;
+      if (j != 2)
+      {
+        // bounds are flipped for negative pi
+        TNode tb = d_data->d_pi_bound[j > 2 ? 1 - i : i];
+        mpointapprox = point.substitute(tpi, tb);
+      }
+      mpointsBound[i].emplace_back(
+          d_data->d_model.computeAbstractModelValue(mpointapprox));
+      Assert(mpointsBound[i].back().isConst());
+    }
   }
 
   unsigned mdir_index = 0;
@@ -283,6 +297,7 @@ void SineSolver::checkMonotonic()
   {
     Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
     Assert(sargval.isConst());
+    Rational sargvalr = sargval.getConst<Rational>();
     Node s = tf_arg_to_term[sarg];
     Node sval = d_data->d_model.computeAbstractModelValue(s);
     Assert(sval.isConst());
@@ -292,14 +307,15 @@ void SineSolver::checkMonotonic()
     while (increment && mdir_index < mpoints.size())
     {
       increment = false;
-      Node pval = mpoints_vals[mdir_index];
-      Assert(pval.isConst());
-      if (sargval.getConst<Rational>() < pval.getConst<Rational>())
+      // if we are less than the upper bound of the next point
+      Node pvalUpper = mpointsBound[1][mdir_index];
+      Assert(pvalUpper.isConst());
+      if (sargvalr < pvalUpper.getConst<Rational>())
       {
         increment = true;
         Trace("nl-ext-tf-mono")
             << "...increment at " << sarg << " since model value is less than "
-            << mpoints[mdir_index] << std::endl;
+            << mpointsBound[1][mdir_index] << std::endl;
       }
       if (increment)
       {
@@ -317,10 +333,24 @@ void SineSolver::checkMonotonic()
         }
       }
     }
-    // store the concavity region
-    d_data->d_tf_region[s] = mdir_index;
-    Trace("nl-ext-concavity")
-        << "Transcendental function " << s << " is in region #" << mdir_index;
+    // must ensure that we are actually less than or equal to the lower bound of
+    // the previous point
+    if (mdir_index > 0
+        && sargvalr > mpointsBound[0][mdir_index - 1].getConst<Rational>())
+    {
+      d_data->d_tf_region[s] = -1;
+      Trace("nl-ext-concavity")
+          << "Cannot determine the region of transcendental function " << s
+          << ", perhaps its value is close to the boundary "
+          << mpointsBound[1][mdir_index - 1];
+    }
+    else
+    {
+      // store the concavity region
+      d_data->d_tf_region[s] = mdir_index;
+      Trace("nl-ext-concavity")
+          << "Transcendental function " << s << " is in region #" << mdir_index;
+    }
     Trace("nl-ext-concavity") << ", arg model value = " << sargval << std::endl;
 
     if (!tval.isNull())
@@ -372,7 +402,9 @@ void SineSolver::doTangentLemma(
     TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Assert (region != -1);
 
+  Trace("nl-ext-sine") << c << " in region " << region << std::endl;
   // compute tangent plane
   // Figure 3: T( x )
   // We use zero slope tangent planes, since the concavity of the Taylor

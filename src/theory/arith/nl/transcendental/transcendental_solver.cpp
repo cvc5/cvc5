@@ -400,7 +400,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     {
       d_expSlv.doTangentLemma(tf, c, poly_approx_c, d);
     }
-    else if (k == Kind::SINE)
+    else if (k == Kind::SINE && region!=-1)
     {
       d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region, d);
     }
@@ -411,7 +411,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     {
       d_expSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d, actual_d);
     }
-    else if (k == Kind::SINE)
+    else if (k == Kind::SINE && region!=-1)
     {
       d_sineSlv.doSecantLemmas(
           tf, poly_approx, c, poly_approx_c, d, actual_d, region);
