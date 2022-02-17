@@ -292,7 +292,6 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
-
 TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
 {
   if (check)
@@ -305,10 +304,10 @@ TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   }
   return nodeManager->regExpType();
 }
- 
+
 bool computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert (n.getKind()==kind::STRING_TO_REGEXP);
+  Assert(n.getKind() == kind::STRING_TO_REGEXP);
   return n[0].isConst();
 }
 
