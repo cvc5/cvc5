@@ -304,6 +304,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     region = itr->second;
     Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;
   }
+  if (region==-1)
+  {
+    // the region cannot be assigned, return false without lemma
+    return false;
+  }
   // Figure 3 : conc
   int concavity = regionToConcavity(k, itr->second);
   Trace("nl-ext-tftp-debug") << "  concavity is : " << concavity << std::endl;
@@ -400,7 +405,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     {
       d_expSlv.doTangentLemma(tf, c, poly_approx_c, d);
     }
-    else if (k == Kind::SINE && region!=-1)
+    else if (k == Kind::SINE)
     {
       d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region, d);
     }
@@ -411,7 +416,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     {
       d_expSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d, actual_d);
     }
-    else if (k == Kind::SINE && region!=-1)
+    else if (k == Kind::SINE)
     {
       d_sineSlv.doSecantLemmas(
           tf, poly_approx, c, poly_approx_c, d, actual_d, region);

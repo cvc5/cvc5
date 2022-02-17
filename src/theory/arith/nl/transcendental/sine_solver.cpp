@@ -494,6 +494,7 @@ void SineSolver::doSecantLemmas(TNode e,
                                 unsigned actual_d,
                                 int region)
 {
+  Assert (region != -1);
   d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
                          poly_approx,
                          c,
