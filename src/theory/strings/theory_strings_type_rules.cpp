@@ -292,7 +292,9 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
-TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
+TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check)
 {
   if (check)
   {
