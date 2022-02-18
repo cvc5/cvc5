@@ -751,7 +751,7 @@ void getTypes(TNode n,
       if (k == kind::CARDINALITY_CONSTRAINT)
       {
         const CardinalityConstraint& cc =
-            n.getOperator().getConst<CardinalityConstraint>();
+            cur.getOperator().getConst<CardinalityConstraint>();
         types.insert(cc.getType());
       }
       else if (cur.hasOperator() && !cur.isConst())
