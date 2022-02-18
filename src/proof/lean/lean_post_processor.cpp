@@ -50,7 +50,8 @@ bool LeanProofPostprocessCallback::addLeanStep(
     CDProof& cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node leanId = nm->mkConst<Rational>(kind::CONST_RATIONAL, static_cast<unsigned>(rule));
+  Node leanId =
+      nm->mkConst<Rational>(kind::CONST_RATIONAL, static_cast<unsigned>(rule));
   std::vector<Node> leanArgs = {leanId, res};
   leanArgs.insert(leanArgs.end(), args.begin(), args.end());
   return cdp.addStep(res, PfRule::LEAN_RULE, children, leanArgs);

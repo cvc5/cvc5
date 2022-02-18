@@ -18,8 +18,8 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
-#include "expr/dtype.h"
 #include "expr/cardinality_constraint.h"
+#include "expr/dtype.h"
 
 namespace cvc5 {
 namespace expr {
@@ -748,13 +748,13 @@ void getTypes(TNode n,
       types.insert(cur.getType());
       // special case where the type is embedded in the operator
       Kind k = cur.getKind();
-      if (k==kind::CARDINALITY_CONSTRAINT)
+      if (k == kind::CARDINALITY_CONSTRAINT)
       {
         const CardinalityConstraint& cc =
             n.getOperator().getConst<CardinalityConstraint>();
         types.insert(cc.getType());
       }
-      else  if (cur.hasOperator() && !cur.isConst())
+      else if (cur.hasOperator() && !cur.isConst())
       {
         visit.push_back(cur.getOperator());
       }

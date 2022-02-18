@@ -458,7 +458,9 @@ FloatingPoint::PartialRational FloatingPoint::convertToRational(void) const
 
 BitVector FloatingPoint::pack(void) const { return d_fpl->pack(); }
 
-void FloatingPoint::getToStringBitvectors(BitVector& s, BitVector& e, BitVector& i) const
+void FloatingPoint::getToStringBitvectors(BitVector& s,
+                                          BitVector& e,
+                                          BitVector& i) const
 {
   // retrive BV value
   BitVector bv(pack());

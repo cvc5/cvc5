@@ -18,10 +18,10 @@
 #include <sstream>
 
 #include "expr/array_store_all.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
-#include "expr/cardinality_constraint.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
@@ -31,11 +31,11 @@
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
+#include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "util/floatingpoint.h"
 
 using namespace cvc5::kind;
 
@@ -158,15 +158,17 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (n.isVar())
   {
     return mkInternalSymbol(getNameForUserNameOf(n), tn);
-  }  
+  }
   else if (k == CARDINALITY_CONSTRAINT)
   {
-    Trace("lfsc-term-process-debug") << "...convert cardinality constraint" << std::endl;
+    Trace("lfsc-term-process-debug")
+        << "...convert cardinality constraint" << std::endl;
     const CardinalityConstraint& cc =
         n.getOperator().getConst<CardinalityConstraint>();
     Node tnn = typeAsNode(convertType(cc.getType()));
     Node ub = nm->mkConstInt(Rational(cc.getUpperBound()));
-    TypeNode tnc = nm->mkFunctionType({tnn.getType(), ub.getType()}, nm->booleanType());
+    TypeNode tnc =
+        nm->mkFunctionType({tnn.getType(), ub.getType()}, nm->booleanType());
     Node fcard = getSymbolInternal(k, tnc, "fmf.card");
     return nm->mkNode(APPLY_UF, fcard, tnn, ub);
   }
@@ -655,17 +657,19 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
   size_t found;
   do
   {
-    found = sname.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                          "0123456789~!@$%^&*_-+=<>.?/");
-    if (found!=std::string::npos)
+    found = sname.find_first_not_of(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        "0123456789~!@$%^&*_-+=<>.?/");
+    if (found != std::string::npos)
     {
       // erase the character, print that we eliminated that character
-      ssan << "_" << static_cast<size_t>(sname[found])+sanCount << "@" << found;
-      sname.erase(sname.begin()+found, sname.begin()+found+1);
+      ssan << "_" << static_cast<size_t>(sname[found]) + sanCount << "@"
+           << found;
+      sname.erase(sname.begin() + found, sname.begin() + found + 1);
       // increment sanCount, to make index accurate to original string
       sanCount++;
     }
-  }while (found!=std::string::npos);
+  } while (found != std::string::npos);
   ss << "cvc" << ssan.str() << "." << sname;
   return ss.str();
 }
@@ -821,14 +825,12 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
   return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND || 
-    k ==  FLOATINGPOINT_TO_FP_FLOATINGPOINT || 
-    k ==  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR || 
-    k ==  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR || 
-    k ==  FLOATINGPOINT_TO_FP_REAL || 
-    k ==  FLOATINGPOINT_TO_FP_GENERIC || 
-         k == APPLY_UPDATER
-         || k == APPLY_TESTER;
+         || k == INT_TO_BITVECTOR || k == IAND
+         || k == FLOATINGPOINT_TO_FP_FLOATINGPOINT
+         || k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
+         || k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
+         || k == FLOATINGPOINT_TO_FP_REAL || k == FLOATINGPOINT_TO_FP_GENERIC
+         || k == APPLY_UPDATER || k == APPLY_TESTER;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
@@ -880,39 +882,43 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       break;
     case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
     {
-      const FloatingPointToFPFloatingPoint& ffp = n.getConst<FloatingPointToFPFloatingPoint>();
+      const FloatingPointToFPFloatingPoint& ffp =
+          n.getConst<FloatingPointToFPFloatingPoint>();
       indices.push_back(nm->mkConstInt(ffp.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
     }
-      break;
+    break;
     case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
     {
-      const FloatingPointToFPIEEEBitVector& fbv = n.getConst<FloatingPointToFPIEEEBitVector>();
+      const FloatingPointToFPIEEEBitVector& fbv =
+          n.getConst<FloatingPointToFPIEEEBitVector>();
       indices.push_back(nm->mkConstInt(fbv.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
     }
-      break;
+    break;
     case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
     {
-      const FloatingPointToFPSignedBitVector& fsbv = n.getConst<FloatingPointToFPSignedBitVector>();
+      const FloatingPointToFPSignedBitVector& fsbv =
+          n.getConst<FloatingPointToFPSignedBitVector>();
       indices.push_back(nm->mkConstInt(fsbv.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
     }
-      break;
+    break;
     case FLOATINGPOINT_TO_FP_REAL:
     {
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
     }
-      break;
+    break;
     case FLOATINGPOINT_TO_FP_GENERIC:
     {
-      const FloatingPointToFPGeneric& fg = n.getConst<FloatingPointToFPGeneric>();
+      const FloatingPointToFPGeneric& fg =
+          n.getConst<FloatingPointToFPGeneric>();
       indices.push_back(nm->mkConstInt(fg.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fg.getSize().significandWidth()));
     }
-      break;
+    break;
     case APPLY_TESTER:
     {
       unsigned index = DType::indexOf(n);
@@ -1038,17 +1044,24 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         }
       }
       // must avoid overloading for to_fp variants
-      if (k ==  FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+      if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
       {
         opName << "to_fp_fp";
       }
-      else if (k ==  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR){
+      else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
+      {
         opName << "to_fp_ieee_bv";
-      }else if (k ==  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR){
+      }
+      else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
+      {
         opName << "to_fp_sbv";
-      }else if (k ==  FLOATINGPOINT_TO_FP_REAL){
+      }
+      else if (k == FLOATINGPOINT_TO_FP_REAL)
+      {
         opName << "to_fp_real";
-      }else if (k ==  FLOATINGPOINT_TO_FP_GENERIC){
+      }
+      else if (k == FLOATINGPOINT_TO_FP_GENERIC)
+      {
         opName << "to_fp_generic";
       }
       else
