@@ -230,13 +230,13 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_LT, cvc5::Kind::FLOATINGPOINT_LT},
     {FLOATINGPOINT_GEQ, cvc5::Kind::FLOATINGPOINT_GEQ},
     {FLOATINGPOINT_GT, cvc5::Kind::FLOATINGPOINT_GT},
-    {FLOATINGPOINT_ISN, cvc5::Kind::FLOATINGPOINT_ISN},
-    {FLOATINGPOINT_ISSN, cvc5::Kind::FLOATINGPOINT_ISSN},
-    {FLOATINGPOINT_ISZ, cvc5::Kind::FLOATINGPOINT_ISZ},
-    {FLOATINGPOINT_ISINF, cvc5::Kind::FLOATINGPOINT_ISINF},
-    {FLOATINGPOINT_ISNAN, cvc5::Kind::FLOATINGPOINT_ISNAN},
-    {FLOATINGPOINT_ISNEG, cvc5::Kind::FLOATINGPOINT_ISNEG},
-    {FLOATINGPOINT_ISPOS, cvc5::Kind::FLOATINGPOINT_ISPOS},
+    {FLOATINGPOINT_IS_NORMAL, cvc5::Kind::FLOATINGPOINT_IS_NORMAL},
+    {FLOATINGPOINT_IS_SUBNORMAL, cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL},
+    {FLOATINGPOINT_IS_ZERO, cvc5::Kind::FLOATINGPOINT_IS_ZERO},
+    {FLOATINGPOINT_IS_INF, cvc5::Kind::FLOATINGPOINT_IS_INF},
+    {FLOATINGPOINT_IS_NAN, cvc5::Kind::FLOATINGPOINT_IS_NAN},
+    {FLOATINGPOINT_IS_NEG, cvc5::Kind::FLOATINGPOINT_IS_NEG},
+    {FLOATINGPOINT_IS_POS, cvc5::Kind::FLOATINGPOINT_IS_POS},
     {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
      cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
     {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
@@ -525,13 +525,13 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::FLOATINGPOINT_LT, FLOATINGPOINT_LT},
         {cvc5::Kind::FLOATINGPOINT_GEQ, FLOATINGPOINT_GEQ},
         {cvc5::Kind::FLOATINGPOINT_GT, FLOATINGPOINT_GT},
-        {cvc5::Kind::FLOATINGPOINT_ISN, FLOATINGPOINT_ISN},
-        {cvc5::Kind::FLOATINGPOINT_ISSN, FLOATINGPOINT_ISSN},
-        {cvc5::Kind::FLOATINGPOINT_ISZ, FLOATINGPOINT_ISZ},
-        {cvc5::Kind::FLOATINGPOINT_ISINF, FLOATINGPOINT_ISINF},
-        {cvc5::Kind::FLOATINGPOINT_ISNAN, FLOATINGPOINT_ISNAN},
-        {cvc5::Kind::FLOATINGPOINT_ISNEG, FLOATINGPOINT_ISNEG},
-        {cvc5::Kind::FLOATINGPOINT_ISPOS, FLOATINGPOINT_ISPOS},
+        {cvc5::Kind::FLOATINGPOINT_IS_NORMAL, FLOATINGPOINT_IS_NORMAL},
+        {cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL, FLOATINGPOINT_IS_SUBNORMAL},
+        {cvc5::Kind::FLOATINGPOINT_IS_ZERO, FLOATINGPOINT_IS_ZERO},
+        {cvc5::Kind::FLOATINGPOINT_IS_INF, FLOATINGPOINT_IS_INF},
+        {cvc5::Kind::FLOATINGPOINT_IS_NAN, FLOATINGPOINT_IS_NAN},
+        {cvc5::Kind::FLOATINGPOINT_IS_NEG, FLOATINGPOINT_IS_NEG},
+        {cvc5::Kind::FLOATINGPOINT_IS_POS, FLOATINGPOINT_IS_POS},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
          FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
@@ -7639,9 +7639,6 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceAssertions)
-      << "Cannot block model value unless produce-assertions is enabled "
-         "(try --produce-assertions)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
