@@ -15,7 +15,9 @@
 
 #include "proof/lfsc/lfsc_node_converter.h"
 
+#include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
@@ -261,9 +263,9 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     BitVector s, e, i;
     n.getConst<FloatingPoint>().getToStringBitvectors(s, e, i);
-    Node sn = convertBitVector(s);
-    Node en = convertBitVector(e);
-    Node in = convertBitVector(i);
+    Node sn = convert(nm->mkConst(s));
+    Node en = convert(nm->mkConst(e));
+    Node in = convert(nm->mkConst(i));
     TypeNode btn = nm->booleanType();
     TypeNode tnv = nm->mkFunctionType({btn, btn, btn}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
@@ -640,45 +642,68 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   return cur;
 }
 
-std::string LfscNodeConverter::getNameForUserName(const std::string& name)
-{
-  std::stringstream ssan;
+std::string LfscNodeConverter::getNameForUserName(const std::string& name, size_t variant)
+{  
+  // For user name X, we do cvc.Y, where Y contains an escaped version of X.
+  // Specifically, since LFSC does not allow these characters in identifier
+  // bodies: "() \t\n\f;", each is replaced with an escape sequence "\xXX"
+  // where XX is the zero-padded hex representation of the code point. "\\" is
+  // also escaped.
+  //
+  // See also: https://github.com/cvc5/LFSC/blob/master/src/lexer.flex#L24
+  //
+  // The "cvc." prefix ensures we do not clash with LFSC definitions.
+  //
+  // The escaping ensures that all names are valid LFSC identifiers.
   std::stringstream ss;
-  // We also must sanitize symbols that are not allowed in LFSC identifiers
-  // here. For the sake of generating unique symbols, we record the santization
-  // as a prefix before the "." separating the user name. Thus, e.g.
-  //   cvc.|a b|
+  ss << "cvc";
+  if (variant!=0)
+  {
+    ss << variant;
+  }
+  ss << ".";
+  std::string sanitized = ss.str();
+  size_t found = sanitized.size();
+  sanitized += name;
+  // The following sanitizes symbols that are not allowed in LFSC identifiers
+  // here, e.g.
+  //   |a b|
   // is converted to:
-  //   cvc_32@1.ab
-  // where "32" is the unicode value of " ", 32@1 indicates that space was
-  // removed from the user string at position 1.
-  std::string sname = name;
-  size_t sanCount = 0;
-  size_t found;
+  //   cvc.a\x20b
+  // where "20" is the hex unicode value of " ".
   do
   {
-    found = sname.find_first_not_of(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-        "0123456789~!@$%^&*_-+=<>.?/");
+    found = sanitized.find_first_of("() \t\n\f\\;", found);
     if (found != std::string::npos)
     {
-      // erase the character, print that we eliminated that character
-      ssan << "_" << static_cast<size_t>(sname[found]) + sanCount << "@"
-           << found;
-      sname.erase(sname.begin() + found, sname.begin() + found + 1);
-      // increment sanCount, to make index accurate to original string
-      sanCount++;
+      // Emit hex sequence
+      std::stringstream seq;
+      seq << "\\x" << std::setbase(16) << std::setfill('0') << std::setw(2)
+          << static_cast<size_t>(sanitized[found]);
+      sanitized.replace(found, 1, seq.str());
+      // increment found over the escape
+      found += 3;
     }
   } while (found != std::string::npos);
-  ss << "cvc" << ssan.str() << "." << sname;
-  return ss.str();
+  return sanitized;
 }
 
 std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
   std::string name;
   v.getAttribute(expr::VarNameAttr(), name);
-  return getNameForUserName(name);
+  std::vector<Node>& syms = d_userSymbolList[name];
+  size_t variant = 0;
+  std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
+  if (itr != syms.cend()) {
+    variant = std::distance(syms.begin(), itr);
+  }
+  else
+  {
+    variant = syms.size();
+    syms.push_back(v);
+  }
+  return getNameForUserName(name, variant);
 }
 
 bool LfscNodeConverter::shouldTraverse(Node n)

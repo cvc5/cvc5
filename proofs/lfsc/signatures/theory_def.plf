@@ -345,8 +345,10 @@
 
 ;; ---- Floating points
 
-; a floating point constant is indexed by 3 bitvector constants
-(declare fp (! s bitvec (! e bitvec (! i bitvec term))))
+; A floating point constant is a term having 3 bitvector children.
+; Note this is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT
+(declare f_fp term)
+(define fp (# x term (# y term (# z term (apply (apply (apply f_fp x) y) z)))))
 (declare f_fp.add term)
 (define fp.add (# x term (# y term (# z term (apply (apply (apply f_fp.add x) y) z)))))
 (declare f_fp.sub term)
