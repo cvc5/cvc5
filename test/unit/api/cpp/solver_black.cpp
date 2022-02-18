@@ -2102,7 +2102,7 @@ TEST_F(TestApiBlackSolver, blockModelValues2)
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModelValues({x}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.blockModelValues({x}));
 }
 
 TEST_F(TestApiBlackSolver, blockModelValues3)
@@ -3040,6 +3040,40 @@ TEST_F(TestApiBlackSolver, proj_issue434)
   Term t1072 = slv.mkTerm(Kind::APPLY_UF, {t1040, t510});
   Term t1073 = slv.mkTerm(Kind::APPLY_UF, {t73, t1072});
   ASSERT_NO_THROW(slv.checkSatAssuming({t1073, t510}));
+}
+  
+TEST_F(TestApiBlackSolver, proj_issue436)
+{
+  Solver slv;
+  slv.setOption("produce-abducts", "true");
+  slv.setOption("solve-bv-as-int", "sum");
+  Sort s8 = slv.mkBitVectorSort(68);
+  Term t17 = slv.mkConst(s8, "_x6");
+  Term t23;
+  {
+    uint32_t bw = s8.getBitVectorSize();
+    t23 = slv.mkBitVector(bw, 1);
+  }
+  Term t33 = slv.mkTerm(Kind::BITVECTOR_ULT, {t17, t23});
+  Term abduct;
+  // solve-bv-as-int is incompatible with get-abduct
+  ASSERT_THROW(slv.getAbduct(t33, abduct), CVC5ApiException);
+}
+  
+TEST_F(TestApiBlackSolver, proj_issue431)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-unsat-assumptions", "true");
+  slv.setOption("produce-assertions", "true");
+  Sort s1 = slv.getStringSort();
+  Sort s3 = slv.getIntegerSort();
+  Sort s7 = slv.mkArraySort(s1, s3);
+  Term t3 = slv.mkConst(s1, "_x2");
+  Term t57 = slv.mkVar(s7, "_x38");
+  Term t103 = slv.mkTerm(Kind::SELECT, {t57, t3});
+  slv.checkSat();
+  ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
 
 }  // namespace test

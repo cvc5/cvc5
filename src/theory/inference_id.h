@@ -66,6 +66,16 @@ enum class InferenceId
   ARITH_CONF_SOI_SIMPLEX,
   // conflict when getting constraint from fact queue
   ARITH_CONF_FACT_QUEUE,
+  // conflict in tryBranchCut
+  ARITH_CONF_BRANCH_CUT,
+  // conflict in replayAssert
+  ARITH_CONF_REPLAY_ASSERT,
+  // conflict in replayLog
+  ARITH_CONF_REPLAY_LOG,
+  // conflict in replayLogRec
+  ARITH_CONF_REPLAY_LOG_REC,
+  // conflict from handleUnateProp
+  ARITH_CONF_UNATE_PROP,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
   // tighten integer inequalities to ceiling
@@ -293,6 +303,8 @@ enum class InferenceId
   QUANTIFIERS_INST_E_MATCHING_HO,
   // E-matching based on variable triggers
   QUANTIFIERS_INST_E_MATCHING_VAR_GEN,
+  // E-matching based on relational triggers
+  QUANTIFIERS_INST_E_MATCHING_RELATIONAL,
   // conflicting instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation

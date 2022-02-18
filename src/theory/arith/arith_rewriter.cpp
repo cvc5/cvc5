@@ -732,8 +732,10 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
   }
   else if (t[0] == t[1])
   {
-    // ((_ iand k) x x) ---> x
-    return RewriteResponse(REWRITE_DONE, t[0]);
+    // ((_ iand k) x x) ---> (mod x 2^k)
+    Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+    Node ret = nm->mkNode(kind::INTS_MODULUS, t[0],  twok);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   // simplifications involving constants
   for (unsigned i = 0; i < 2; i++)

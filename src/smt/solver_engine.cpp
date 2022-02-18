@@ -22,6 +22,7 @@
 #include "decision/decision_engine.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -213,9 +214,6 @@ void SolverEngine::finishInit()
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
   d_state->setup();
-
-  Trace("smt-debug") << "Set up assertions..." << std::endl;
-  d_asserts->finishInit();
 
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
@@ -771,6 +769,8 @@ Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                       bool isEntailmentCheck)
 {
+  Result r;
+
   try
   {
     SolverEngineScope smts(this);
@@ -780,7 +780,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
     // check the satisfiability with the solver object
-    Result r = d_smtSolver->checkSatisfiability(
+    r = d_smtSolver->checkSatisfiability(
         *d_asserts.get(), assumptions, isEntailmentCheck);
 
     Trace("smt") << "SolverEngine::"
@@ -812,13 +812,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkUnsatCore();
       }
     }
-    if (d_env->getOptions().base.statisticsEveryQuery)
-    {
-      printStatisticsDiff();
-    }
-    return r;
   }
-  catch (UnsafeInterruptException& e)
+  catch (const UnsafeInterruptException& e)
   {
     AlwaysAssert(getResourceManager()->out());
     // Notice that we do not notify the state of this result. If we wanted to
@@ -829,13 +824,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
 
-    if (d_env->getOptions().base.statisticsEveryQuery)
-    {
-      printStatisticsDiff();
-    }
-    return Result(
-        Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
+    r = Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
   }
+
+  if (d_env->getOptions().base.statisticsEveryQuery)
+  {
+    printStatisticsDiff();
+  }
+  return r;
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -874,6 +870,8 @@ Result SolverEngine::assertFormula(const Node& formula)
   finishInit();
   d_state->doPendingPops();
 
+  // as an optimization we do not check whether formula is well-formed here, and
+  // defer this check for certain cases within the assertions module.
   Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
 
   // Substitute out any abstract values in ex
@@ -985,6 +983,7 @@ Node SolverEngine::getValue(const Node& ex) const
 {
   SolverEngineScope smts(this);
 
+  ensureWellFormedTerm(ex, "get value");
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   TypeNode expectedType = ex.getType();
 
@@ -1022,7 +1021,11 @@ Node SolverEngine::getValue(const Node& ex) const
   // Ensure it's a value (constant or const-ish like real algebraic
   // numbers), or a lambda (for uninterpreted functions). This assertion only
   // holds for models that do not have approximate values.
-  Assert(m->hasApproximations() || TheoryModel::isValue(resultNode));
+  if (!TheoryModel::isValue(resultNode))
+  {
+    d_env->warning() << "Could not evaluate " << resultNode
+                     << " in getValue." << std::endl;
+  }
 
   if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
   {
@@ -1153,6 +1156,11 @@ Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 
   finishInit();
 
+  for (const Node& e : exprs)
+  {
+    ensureWellFormedTerm(e, "block model values");
+  }
+
   TheoryModel* m = getAvailableModel("block model values");
 
   // get expanded assertions
@@ -1199,6 +1207,20 @@ std::vector<Node> SolverEngine::getAssertionsInternal()
 }
 
 const Options& SolverEngine::options() const { return d_env->getOptions(); }
+
+void SolverEngine::ensureWellFormedTerm(const Node& n,
+                                        const std::string& src) const
+{
+  bool wasShadow = false;
+  if (expr::hasFreeOrShadowedVar(n, wasShadow))
+  {
+    std::string varType(wasShadow ? "shadowed" : "free");
+    std::stringstream se;
+    se << "Cannot process term with " << varType << " variable in " << src
+       << ".";
+    throw ModalException(se.str().c_str());
+  }
+}
 
 std::vector<Node> SolverEngine::getExpandedAssertions()
 {
@@ -1433,10 +1455,7 @@ void SolverEngine::checkUnsatCore()
 void SolverEngine::checkModel(bool hardFailure)
 {
   const context::CDList<Node>& al = d_asserts->getAssertionList();
-  // --check-model implies --produce-assertions, which enables the
-  // assertion list, so we should be ok.
-  Assert(d_env->getOptions().smt.produceAssertions)
-      << "don't have an assertion list to check in SolverEngine::checkModel()";
+  // we always enable the assertion list, so it is able to be checked
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
@@ -1534,10 +1553,8 @@ void SolverEngine::printInstantiations(std::ostream& out)
 
   // Second, extract and print the instantiations
   std::map<Node, InstantiationList> rinsts;
-  if (d_env->getOptions().smt.produceProofs
-      && (!d_env->getOptions().smt.unsatCores
-          || d_env->getOptions().smt.unsatCoresMode
-                 == options::UnsatCoresMode::FULL_PROOF)
+  if ((d_env->getOptions().smt.produceProofs
+       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL)
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
@@ -1714,13 +1731,7 @@ std::vector<Node> SolverEngine::getAssertions()
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT getAssertions()" << endl;
-  if (!d_env->getOptions().smt.produceAssertions)
-  {
-    const char* msg =
-        "Cannot query the current assertion list when not in "
-        "produce-assertions mode.";
-    throw ModalException(msg);
-  }
+  // note we always enable assertions, so it is available here
   return getAssertionsInternal();
 }
 

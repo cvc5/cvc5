@@ -60,8 +60,11 @@ void ArraySolver::checkArrayConcat()
   }
   d_currTerms.clear();
   Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
-  checkTerms(STRING_UPDATE);
-  checkTerms(SEQ_NTH);
+  // Get the set of relevant terms. The core array solver requires knowing this
+  // set to ensure its write model is only over relevant terms.
+  std::set<Node> termSet;
+  d_termReg.getRelevantTermSet(termSet);
+  checkTerms(termSet);
 }
 
 void ArraySolver::checkArray()
@@ -85,21 +88,34 @@ void ArraySolver::checkArrayEager()
     return;
   }
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
-  std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
-  std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
+  // get the set of relevant terms, for reasons described above
+  std::set<Node> termSet;
+  d_termReg.getRelevantTermSet(termSet);
+  std::vector<Node> nthTerms;
+  std::vector<Node> updateTerms;
+  for (const Node& n : termSet)
+  {
+    Kind k = n.getKind();
+    if (k == STRING_UPDATE)
+    {
+      updateTerms.push_back(n);
+    }
+    else if (k == SEQ_NTH)
+    {
+      nthTerms.push_back(n);
+    }
+  }
   d_coreSolver.check(nthTerms, updateTerms);
 }
 
-void ArraySolver::checkTerms(Kind k)
+void ArraySolver::checkTerms(const std::set<Node>& termSet)
 {
-  Assert(k == STRING_UPDATE || k == SEQ_NTH);
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
-  std::vector<Node> terms = d_esolver.getActive(k);
-  for (const Node& t : terms)
+  for (const Node& t : termSet)
   {
+    Kind k = t.getKind();
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
-    Assert(t.getKind() == k);
     if (k == STRING_UPDATE)
     {
       if (!d_termReg.isHandledUpdate(t))
@@ -110,6 +126,10 @@ void ArraySolver::checkTerms(Kind k)
       }
       // for update terms, also check the inverse inference
       checkTerm(t, true);
+    }
+    else if (k != SEQ_NTH)
+    {
+      continue;
     }
     // check the normal inference
     checkTerm(t, false);
