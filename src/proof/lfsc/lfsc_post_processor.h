@@ -70,7 +70,7 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** add refl step */
   std::map<Node, std::shared_ptr<ProofNode> > d_refl;
   /** add refl */
-  void addRefl(CDProof* cdp,Node t);
+  void addRefl(CDProof* cdp, Node t);
   /** Add LFSC rule to cdp with children, args, conc */
   void addLfscRule(CDProof* cdp,
                    Node conc,

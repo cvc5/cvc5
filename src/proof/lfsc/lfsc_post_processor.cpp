@@ -186,7 +186,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           Node v = res[0][0][nvars - 1 - i];
           Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
           Node vopEq = vop.eqNode(vop);
-          //cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
+          // cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
           addRefl(cdp, vop);
           Node nextEq;
           if (i + 1 == nvars)
@@ -222,7 +222,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Assert(!op.isNull());
       // initial base step is REFL
       Node opEq = op.eqNode(op);
-      //cdp->addStep(opEq, PfRule::REFL, {}, {op});
+      // cdp->addStep(opEq, PfRule::REFL, {}, {op});
       addRefl(cdp, op);
       size_t nchildren = children.size();
       Node nullTerm = d_tproc.getNullTerminator(k, res[0].getType());
@@ -245,7 +245,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           currEq = nullTerm.eqNode(nullTerm);
           // if we have a null terminator, we do a final REFL step to add
           // the null terminator to both sides.
-          //cdp->addStep(currEq, PfRule::REFL, {}, {nullTerm});
+          // cdp->addStep(currEq, PfRule::REFL, {}, {nullTerm});
           addRefl(cdp, nullTerm);
         }
         else
@@ -342,7 +342,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // proof of null terminator base 0 = 0
       Node zero = d_tproc.getNullTerminator(ADD);
       Node cur = zero.eqNode(zero);
-      //cdp->addStep(cur, PfRule::REFL, {}, {zero});
+      // cdp->addStep(cur, PfRule::REFL, {}, {zero});
       addRefl(cdp, zero);
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
@@ -379,7 +379,7 @@ bool LfscProofPostprocessCallback::update(Node res,
 void LfscProofPostprocessCallback::addRefl(CDProof* cdp, Node t)
 {
   std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_refl.find(t);
-  if (it==d_refl.end())
+  if (it == d_refl.end())
   {
     d_refl[t] = d_pnm->mkNode(PfRule::REFL, {}, {t});
     it = d_refl.find(t);
