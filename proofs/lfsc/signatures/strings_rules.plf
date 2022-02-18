@@ -107,7 +107,7 @@
   (holds (or (and (= (str.len t) (int 0)) (and (= t emptystr) true)) (or (a.> (str.len t) (int 0)) false)))))
 
 (declare re_inter (! x term (! s term (! t term (! p1 (holds (str.in_re x s)) (! p2 (holds (str.in_re x t)) 
-  (holds (str.in_re x (re.inter s t)))))))))
+  (holds (str.in_re x (re.inter s (re.inter t (re.* re.allchar)))))))))))
 
 (declare string_reduction (! r term (! t term (! s sort (! u (^ (sc_string_reduction t s) r)
   (holds r))))))))
