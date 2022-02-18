@@ -53,7 +53,9 @@ void LfscPrinter::print(std::ostream& out,
 
   // clear the rules we have warned about
   d_trustWarned.clear();
-
+  d_useWarned.clear();
+  d_useLfscWarned.clear();
+  
   Trace("lfsc-print-debug") << "; print declarations" << std::endl;
   // [1] compute and print the declarations
   std::unordered_set<Node> syms;
@@ -224,6 +226,15 @@ void LfscPrinter::print(std::ostream& out,
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
   }
+  for (PfRule r: d_useWarned)
+  {
+    out << "; USE: rule " << r << std::endl;
+  }
+  for (LfscRule r: d_useLfscWarned)
+  {
+    out << "; USE: LFSC rule " << r << std::endl;
+  }
+
 
   // [4] print the DSL rewrite rule declarations
   const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
@@ -439,6 +450,7 @@ void LfscPrinter::printProofInternal(
             visit.insert(visit.end(), args.begin(), args.end());
             // print the rule name
             out->printOpenRule(cur);
+            d_useWarned.insert(r);
           }
           else
           {
@@ -446,10 +458,7 @@ void LfscPrinter::printProofInternal(
             Node res = d_tproc.convert(cur->getResult());
             res = lbind.convert(res, "__t", true);
             out->printTrust(res, r);
-            if (d_trustWarned.find(r) == d_trustWarned.end())
-            {
-              d_trustWarned.insert(r);
-            }
+            d_trustWarned.insert(r);
           }
         }
       }
@@ -520,7 +529,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::NOT_NOT_ELIM: pf << h << cs[0]; break;
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
     case PfRule::MODUS_PONENS:
-    case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
+    case PfRule::EQ_RESOLVE: 
+      pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
     case PfRule::NOT_OR_ELIM:
     case PfRule::AND_ELIM: pf << h << h << args[0] << cs[0]; break;
@@ -545,7 +555,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // print second argument as a raw integer (mpz)
       pf << h << as[0] << args[1];
       break;
-    case PfRule::CNF_AND_NEG: pf << h << as[0]; break;
+    case PfRule::CNF_AND_NEG: 
+      pf << h << as[0]; break;
     case PfRule::CNF_OR_POS:
       pf << as[0];
       break;
@@ -560,13 +571,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::CNF_XOR_POS1:
     case PfRule::CNF_XOR_POS2:
     case PfRule::CNF_XOR_NEG1:
-    case PfRule::CNF_XOR_NEG2: pf << as[0][0] << as[0][1]; break;
+    case PfRule::CNF_XOR_NEG2: 
+      pf << as[0][0] << as[0][1]; break;
     case PfRule::CNF_ITE_POS1:
     case PfRule::CNF_ITE_POS2:
     case PfRule::CNF_ITE_POS3:
     case PfRule::CNF_ITE_NEG1:
     case PfRule::CNF_ITE_NEG2:
-    case PfRule::CNF_ITE_NEG3: pf << as[0][0] << as[0][1] << as[0][2]; break;
+    case PfRule::CNF_ITE_NEG3: 
+      pf << as[0][0] << as[0][1] << as[0][2]; break;
     // equality
     case PfRule::REFL: pf << as[0]; break;
     case PfRule::SYMM: pf << h << h << cs[0]; break;
@@ -658,6 +671,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
+      d_useLfscWarned.insert(lr);
       // lambda should be processed elsewhere
       Assert(lr != LfscRule::LAMBDA);
       // Note that `args` has 2 builtin arguments, thus the first real argument
