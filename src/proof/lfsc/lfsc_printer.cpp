@@ -143,8 +143,13 @@ void LfscPrinter::print(std::ostream& out,
         for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
           const DTypeConstructor& cons = dt[i];
-          std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
-          // for now, must print as node to ensure same policy for printing variable names. For instance, this means that cvc.X is printed as LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not SMT-LIB. We should disable printing quote escapes in the smt2 printing of LFSC converted terms.
+          std::string cname =
+              d_tproc.getNameForUserNameOf(cons.getConstructor());
+          // for now, must print as node to ensure same policy for printing
+          // variable names. For instance, this means that cvc.X is printed as
+          // LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not
+          // SMT-LIB. We should disable printing quote escapes in the smt2
+          // printing of LFSC converted terms.
           Node cc = nm->mkBoundVar(cname, stc);
           // print construct/tester
           preamble << "(declare " << cc << " term)" << std::endl;
@@ -152,8 +157,7 @@ void LfscPrinter::print(std::ostream& out,
           {
             const DTypeSelector& arg = cons[j];
             // print selector
-            std::string sname =
-                d_tproc.getNameForUserNameOf(arg.getSelector());
+            std::string sname = d_tproc.getNameForUserNameOf(arg.getSelector());
             Node sc = nm->mkBoundVar(sname, stc);
             preamble << "(declare " << sc << " term)" << std::endl;
           }

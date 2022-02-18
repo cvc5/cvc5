@@ -15,9 +15,9 @@
 
 #include "proof/lfsc/lfsc_node_converter.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include <algorithm>
 
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
@@ -642,8 +642,9 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   return cur;
 }
 
-std::string LfscNodeConverter::getNameForUserName(const std::string& name, size_t variant)
-{  
+std::string LfscNodeConverter::getNameForUserName(const std::string& name,
+                                                  size_t variant)
+{
   // For user name X, we do cvc.Y, where Y contains an escaped version of X.
   // Specifically, since LFSC does not allow these characters in identifier
   // bodies: "() \t\n\f;", each is replaced with an escape sequence "\xXX"
@@ -657,7 +658,7 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name, size_
   // The escaping ensures that all names are valid LFSC identifiers.
   std::stringstream ss;
   ss << "cvc";
-  if (variant!=0)
+  if (variant != 0)
   {
     ss << variant;
   }
@@ -695,7 +696,8 @@ std::string LfscNodeConverter::getNameForUserNameOf(Node v)
   std::vector<Node>& syms = d_userSymbolList[name];
   size_t variant = 0;
   std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
-  if (itr != syms.cend()) {
+  if (itr != syms.cend())
+  {
     variant = std::distance(syms.begin(), itr);
   }
   else

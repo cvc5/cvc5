@@ -103,13 +103,14 @@ class LfscNodeConverter : public NodeConverter
    */
   Kind getBuiltinKindForInternalSymbol(Node op) const;
 
-  /** 
+  /**
    * get name for user name
    * @param name The user provided name for the symbol
    * @param variant A unique index for the symbol to resolve multiple symbols
    * with the same name.
    */
-  static std::string getNameForUserName(const std::string& name, size_t variant = 0);
+  static std::string getNameForUserName(const std::string& name,
+                                        size_t variant = 0);
   /** get name for the name of node v, where v should be a variable */
   std::string getNameForUserNameOf(Node v);
 
@@ -155,7 +156,7 @@ class LfscNodeConverter : public NodeConverter
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
   std::unordered_set<Node> d_symbols;
-  /** 
+  /**
    * Mapping from user symbols to the (list of) symbols with that name. This
    * is used to resolve symbol overloading, which is forbidden in LFSC.
    */
