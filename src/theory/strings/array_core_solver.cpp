@@ -145,14 +145,15 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                          false,
                          true);
 
-      // update(s, n, t)
+      // x = update(s, n, t)
       // ------------------------
-      // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t)) ||
-      // s = update(s, n, t)
+      // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t))  and x != s ||
+      // x = s
       lem = nm->mkNode(
           OR,
           nm->mkNode(AND,
                      left.eqNode(nm->mkNode(SEQ_NTH, n[0], n[1])).notNode(),
+                     n.eqNode(n[0]).negate(),
                      cond),
           n.eqNode(n[0]));
       d_im.sendInference(
