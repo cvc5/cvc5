@@ -86,7 +86,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_stringsFmf(env, valuation, d_termReg),
       d_strat(d_env)
 {
-  d_termReg.finishInit(&d_im);
+  d_termReg.finishInit(&d_extTheory, &d_im);
 
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_one = NodeManager::currentNM()->mkConstInt(Rational(1));

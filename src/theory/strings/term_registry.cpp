@@ -42,6 +42,7 @@ TermRegistry::TermRegistry(Env& env,
                            ProofNodeManager* pnm)
     : EnvObj(env),
       d_theory(t),
+      d_extt(nullptr),
       d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
@@ -75,7 +76,11 @@ TermRegistry::~TermRegistry() {}
 
 uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
-void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
+void TermRegistry::finishInit(ExtTheory* extt, InferenceManager* im)
+{
+  d_extt = extt;
+  d_im = im;
+}
 
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
@@ -676,9 +681,20 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
 
 void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
 {
-  d_theory.collectAssertedTerms(termSet);
+  std::set<Node> relevantTerms;
+  d_theory.collectAssertedTerms(relevantTerms);
   // also, get the additionally relevant terms
-  d_theory.computeRelevantTerms(termSet);
+  d_theory.computeRelevantTerms(relevantTerms);
+
+  // Remove inactive terms from the relevant term set
+  for (const Node& n : relevantTerms)
+  {
+    if (d_extt->hasFunctionKind(n.getKind()) && !d_extt->isActive(n))
+    {
+      continue;
+    }
+    termSet.insert(n);
+  }
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const

@@ -112,8 +112,10 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet)
 {
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
+  std::unordered_set<Node> processed;
   for (const Node& t : termSet)
   {
+    bool checkInv = false;
     Kind k = t.getKind();
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     if (k == STRING_UPDATE)
@@ -125,14 +127,33 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet)
         continue;
       }
       // for update terms, also check the inverse inference
-      checkTerm(t, true);
+      checkInv = true;
     }
     else if (k != SEQ_NTH)
     {
       continue;
     }
+
+    // Ignore congruent terms
+    std::vector<Node> rchildren;
+    for (const Node& child : t)
+    {
+      rchildren.push_back(d_state.getRepresentative(child));
+    }
+    Node rt = NodeManager::currentNM()->mkNode(k, rchildren);
+    if (processed.find(rt) != processed.end())
+    {
+      Trace("seq-array-debug") << "...congruent" << std::endl;
+      continue;
+    }
+    processed.insert(rt);
+
     // check the normal inference
     checkTerm(t, false);
+    if (checkInv)
+    {
+      checkTerm(t, true);
+    }
   }
 }
 

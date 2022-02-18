@@ -23,6 +23,7 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
+#include "theory/ext_theory.h"
 #include "theory/output_channel.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/infer_info.h"
@@ -62,10 +63,11 @@ class TermRegistry : protected EnvObj
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
+
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
-  void finishInit(InferenceManager* im);
+  void finishInit(ExtTheory* extt, InferenceManager* im);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent
@@ -239,6 +241,8 @@ class TermRegistry : protected EnvObj
  private:
   /** Reference to theory of strings, for computing relevant terms */
   Theory& d_theory;
+  /** the extended theory object for the theory of strings */
+  ExtTheory* d_extt;
   /** Common constants */
   Node d_zero;
   Node d_one;
