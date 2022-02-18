@@ -3003,6 +3003,45 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   ASSERT_NO_THROW(slv.simplify(t54));
 }
 
+TEST_F(TestApiBlackSolver, proj_issue434)
+{
+  Solver slv;
+  slv.setOption("dump-difficulty", "true");
+  slv.setOption("debug-check-models", "true");
+  Sort s1 = slv.mkUninterpretedSort("_u0");
+  Sort s2 = slv.mkUninterpretedSort("_u1");
+  Sort s3 = slv.mkUninterpretedSort("_u2");
+  Sort s4 = slv.getBooleanSort();
+  Term t1 = slv.mkConst(s1, "_x3");
+  Term t3 = slv.mkConst(s3, "_x5");
+  Term t15 = slv.mkConst(s1, "_x17");
+  Term t26 = slv.mkBoolean(false);
+  Term t60 = slv.mkVar(s4, "_f29_1");
+  Term t73 = slv.defineFun("_f29", {t60}, t60.getSort(), t60);
+  Term t123 = slv.mkVar(s4, "_f31_0");
+  Term t135 = slv.defineFun("_f31", {t123}, t123.getSort(), t123);
+  Term t506 = slv.mkVar(s1, "_f37_0");
+  Term t507 = slv.mkVar(s4, "_f37_1");
+  Term t510 = slv.mkTerm(Kind::APPLY_UF, {t73, t507});
+  Term t530 = slv.defineFun("_f37", {t507}, t510.getSort(), t510);
+  Term t559 = slv.mkTerm(Kind::DISTINCT, {t15, t1});
+  Term t631 = slv.mkTerm(Kind::XOR, {t559, t26});
+  Term t632 = slv.mkTerm(Kind::APPLY_UF, {t135, t631});
+  Term t715 = slv.mkVar(s4, "_f40_0");
+  Term t721 = slv.mkTerm(Kind::APPLY_UF, {t530, t715});
+  Term t722 = slv.mkTerm(Kind::APPLY_UF, {t530, t721});
+  Term t731 = slv.defineFun("_f40", {t715}, t722.getSort(), t722);
+  Term t1014 = slv.mkVar(s4, "_f45_0");
+  Term t1034 = slv.mkTerm(Kind::DISTINCT, {t510, t510});
+  Term t1035 = slv.mkTerm(Kind::XOR, {t1034, t632});
+  Term t1037 = slv.mkTerm(Kind::APPLY_UF, {t135, t1035});
+  Term t1039 = slv.mkTerm(Kind::APPLY_UF, {t731, t1037});
+  Term t1040 = slv.defineFun("_f45", {t1014}, t1039.getSort(), t1039);
+  Term t1072 = slv.mkTerm(Kind::APPLY_UF, {t1040, t510});
+  Term t1073 = slv.mkTerm(Kind::APPLY_UF, {t73, t1072});
+  ASSERT_NO_THROW(slv.checkSatAssuming({t1073, t510}));
+}
+  
 TEST_F(TestApiBlackSolver, proj_issue436)
 {
   Solver slv;
