@@ -146,6 +146,12 @@ class FloatingPoint
    * FP value as indexed symbols, otherwise in binary notation.
    */
   std::string toString(bool printAsIndexed = false) const;
+  
+  /** 
+   * Get the bitvectors to print, returns bitvectors such that this floating
+   * point should print as (fp s e i).
+   */
+  void getToStringBitvectors(BitVector& s, BitVector& e, BitVector& i) const;
 
   /** Return the packed (IEEE-754) representation of this floating-point. */
   BitVector pack(void) const;

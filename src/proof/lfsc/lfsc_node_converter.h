@@ -140,6 +140,8 @@ class LfscNodeConverter : public NodeConverter
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
+  /** convert bitvector to its LFSC term (of LFSC sort bitvec) */
+  Node convertBitVector(const BitVector& bv);
   /** Is k a kind that is printed as an indexed operator in LFSC? */
   static bool isIndexedOperatorKind(Kind k);
   /** get indices for printing the operator of n in the LFSC format */

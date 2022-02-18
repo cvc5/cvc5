@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
@@ -34,6 +35,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "util/floatingpoint.h"
 
 using namespace cvc5::kind;
 
@@ -156,6 +158,17 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (n.isVar())
   {
     return mkInternalSymbol(getNameForUserNameOf(n), tn);
+  }  
+  else if (k == CARDINALITY_CONSTRAINT)
+  {
+    Trace("lfsc-term-process-debug") << "...convert cardinality constraint" << std::endl;
+    const CardinalityConstraint& cc =
+        n.getOperator().getConst<CardinalityConstraint>();
+    Node tnn = typeAsNode(convertType(cc.getType()));
+    Node ub = nm->mkConstInt(Rational(cc.getUpperBound()));
+    TypeNode tnc = nm->mkFunctionType({tnn.getType(), ub.getType()}, nm->booleanType());
+    Node fcard = getSymbolInternal(k, tnc, "fmf.card");
+    return nm->mkNode(APPLY_UF, fcard, tnn, ub);
   }
   else if (k == APPLY_UF)
   {
@@ -237,20 +250,22 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     TypeNode btn = nm->booleanType();
     TypeNode tnv = nm->mkFunctionType(btn, tn);
-    TypeNode btnv = nm->mkFunctionType({btn, btn}, btn);
     BitVector bv = n.getConst<BitVector>();
-    size_t w = bv.getSize();
-    Node ret = getSymbolInternal(k, btn, "bvn");
-    Node b0 = getSymbolInternal(k, btn, "b0");
-    Node b1 = getSymbolInternal(k, btn, "b1");
-    Node bvc = getSymbolInternal(k, btnv, "bvc");
-    for (size_t i = 0; i < w; i++)
-    {
-      Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
-      ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
-    }
+    Node ret = convertBitVector(bv);
     Node bconstf = getSymbolInternal(k, tnv, "bv");
     return nm->mkNode(APPLY_UF, bconstf, ret);
+  }
+  else if (k == CONST_FLOATINGPOINT)
+  {
+    BitVector s, e, i;
+    n.getConst<FloatingPoint>().getToStringBitvectors(s, e, i);
+    Node sn = convertBitVector(s);
+    Node en = convertBitVector(e);
+    Node in = convertBitVector(i);
+    TypeNode btn = nm->booleanType();
+    TypeNode tnv = nm->mkFunctionType({btn, btn, btn}, tn);
+    Node bconstf = getSymbolInternal(k, tnv, "fp");
+    return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
   }
   else if (k == CONST_STRING)
   {
@@ -783,12 +798,36 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
   }
 }
 
+Node LfscNodeConverter::convertBitVector(const BitVector& bv)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode btn = nm->booleanType();
+  TypeNode btnv = nm->mkFunctionType({btn, btn}, btn);
+  size_t w = bv.getSize();
+  Node ret = getSymbolInternal(CONST_BITVECTOR, btn, "bvn");
+  Node b0 = getSymbolInternal(CONST_BITVECTOR, btn, "b0");
+  Node b1 = getSymbolInternal(CONST_BITVECTOR, btn, "b1");
+  Node bvc = getSymbolInternal(CONST_BITVECTOR, btnv, "bvc");
+  for (size_t i = 0; i < w; i++)
+  {
+    Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
+    ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
+  }
+  return ret;
+}
+
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
   return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER
+         || k == INT_TO_BITVECTOR || k == IAND || 
+    k ==  FLOATINGPOINT_TO_FP_FLOATINGPOINT || 
+    k ==  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR || 
+    k ==  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR || 
+    k ==  FLOATINGPOINT_TO_FP_REAL || 
+    k ==  FLOATINGPOINT_TO_FP_GENERIC || 
+         k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -838,6 +877,41 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       break;
     case IAND:
       indices.push_back(nm->mkConstInt(Rational(n.getConst<IntAnd>().d_size)));
+      break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    {
+      const FloatingPointToFPFloatingPoint& ffp = n.getConst<FloatingPointToFPFloatingPoint>();
+      indices.push_back(nm->mkConstInt(ffp.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
+    }
+      break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    {
+      const FloatingPointToFPIEEEBitVector& fbv = n.getConst<FloatingPointToFPIEEEBitVector>();
+      indices.push_back(nm->mkConstInt(fbv.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
+    }
+      break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    {
+      const FloatingPointToFPSignedBitVector& fsbv = n.getConst<FloatingPointToFPSignedBitVector>();
+      indices.push_back(nm->mkConstInt(fsbv.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
+    }
+      break;
+    case FLOATINGPOINT_TO_FP_REAL:
+    {
+      const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
+      indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
+    }
+      break;
+    case FLOATINGPOINT_TO_FP_GENERIC:
+    {
+      const FloatingPointToFPGeneric& fg = n.getConst<FloatingPointToFPGeneric>();
+      indices.push_back(nm->mkConstInt(fg.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fg.getSize().significandWidth()));
+    }
       break;
     case APPLY_TESTER:
     {
@@ -963,7 +1037,24 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
           opName << "f_";
         }
       }
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
+      // must avoid overloading for to_fp variants
+      if (k ==  FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+      {
+        opName << "to_fp_fp";
+      }
+      else if (k ==  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR){
+        opName << "to_fp_ieee_bv";
+      }else if (k ==  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR){
+        opName << "to_fp_sbv";
+      }else if (k ==  FLOATINGPOINT_TO_FP_REAL){
+        opName << "to_fp_real";
+      }else if (k ==  FLOATINGPOINT_TO_FP_GENERIC){
+        opName << "to_fp_generic";
+      }
+      else
+      {
+        opName << printer::smt2::Smt2Printer::smtKindString(k);
+      }
     }
     else if (k == APPLY_CONSTRUCTOR)
     {

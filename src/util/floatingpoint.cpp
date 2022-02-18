@@ -458,19 +458,25 @@ FloatingPoint::PartialRational FloatingPoint::convertToRational(void) const
 
 BitVector FloatingPoint::pack(void) const { return d_fpl->pack(); }
 
-std::string FloatingPoint::toString(bool printAsIndexed) const
+void FloatingPoint::getToStringBitvectors(BitVector& s, BitVector& e, BitVector& i) const
 {
-  std::string str;
   // retrive BV value
   BitVector bv(pack());
   uint32_t largestSignificandBit =
       getSize().significandWidth() - 2;  // -1 for -inclusive, -1 for hidden
   uint32_t largestExponentBit =
       (getSize().exponentWidth() - 1) + (largestSignificandBit + 1);
+  s = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
+  e = bv.extract(largestExponentBit, largestSignificandBit + 1);
+  i = bv.extract(largestSignificandBit, 0);
+}
+
+std::string FloatingPoint::toString(bool printAsIndexed) const
+{
+  std::string str;
+  // retrive BV value
   BitVector v[3];
-  v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
-  v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
-  v[2] = bv.extract(largestSignificandBit, 0);
+  getToStringBitvectors(v[0], v[1], v[2]);
   str.append("(fp ");
   for (uint32_t i = 0; i < 3; ++i)
   {
