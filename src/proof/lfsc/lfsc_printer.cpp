@@ -139,25 +139,23 @@ void LfscPrinter::print(std::ostream& out,
           }
           preamble << " sort)" << cdttparens.str() << std::endl;
         }
+        NodeManager* nm = NodeManager::currentNM();
         for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
           const DTypeConstructor& cons = dt[i];
-          std::stringstream sscons;
-          sscons << d_tproc.convert(cons.getConstructor());
-          std::string cname =
-              LfscNodeConverter::getNameForUserName(sscons.str());
+          std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
+          // for now, must print as node to ensure same policy for printing variable names. For instance, this means that cvc.X is printed as LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not SMT-LIB. We should disable printing quote escapes in the smt2 printing of LFSC converted terms.
+          Node cc = nm->mkBoundVar(cname, stc);
           // print construct/tester
-          preamble << "(declare " << cname << " term)" << std::endl;
+          preamble << "(declare " << cc << " term)" << std::endl;
           for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
           {
             const DTypeSelector& arg = cons[j];
             // print selector
-            Node si = d_tproc.convert(arg.getSelector());
-            std::stringstream sns;
-            sns << si;
             std::string sname =
-                LfscNodeConverter::getNameForUserName(sns.str());
-            preamble << "(declare " << sname << " term)" << std::endl;
+                d_tproc.getNameForUserNameOf(arg.getSelector());
+            Node sc = nm->mkBoundVar(sname, stc);
+            preamble << "(declare " << sc << " term)" << std::endl;
           }
         }
         // testers and updaters are instances of parametric symbols
