@@ -23,7 +23,6 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
-#include "theory/ext_theory.h"
 #include "theory/output_channel.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/infer_info.h"
@@ -63,7 +62,6 @@ class TermRegistry : protected EnvObj
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
-
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
