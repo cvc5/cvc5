@@ -62,9 +62,8 @@ void ArraySolver::checkArrayConcat()
   Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
   // Get the set of relevant terms. The core array solver requires knowing this
   // set to ensure its write model is only over relevant terms.
-  std::set<Node> termSet;
-  d_termReg.getRelevantTermSet(termSet);
-  checkTerms(termSet);
+  std::vector<Node> terms = d_esolver.getRelevantActive();
+  checkTerms(terms);
 }
 
 void ArraySolver::checkArray()
@@ -89,11 +88,10 @@ void ArraySolver::checkArrayEager()
   }
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
   // get the set of relevant terms, for reasons described above
-  std::set<Node> termSet;
-  d_termReg.getRelevantTermSet(termSet);
+  std::vector<Node> terms = d_esolver.getRelevantActive();
   std::vector<Node> nthTerms;
   std::vector<Node> updateTerms;
-  for (const Node& n : termSet)
+  for (const Node& n : terms)
   {
     Kind k = n.getKind();
     if (k == STRING_UPDATE)
@@ -108,12 +106,12 @@ void ArraySolver::checkArrayEager()
   d_coreSolver.check(nthTerms, updateTerms);
 }
 
-void ArraySolver::checkTerms(const std::set<Node>& termSet)
+void ArraySolver::checkTerms(const std::vector<Node>& terms)
 {
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
   std::unordered_set<Node> processed;
-  for (const Node& t : termSet)
+  for (const Node& t : terms)
   {
     bool checkInv = false;
     Kind k = t.getKind();

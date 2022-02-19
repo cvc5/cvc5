@@ -84,7 +84,7 @@ class ArraySolver : protected EnvObj
 
  private:
   /** check terms of nth or update kind that occur in termSet */
-  void checkTerms(const std::set<Node>& termSet);
+  void checkTerms(const std::vector<Node>& terms);
   /** check inferences for the given term
    *
    * @param t the term to check
