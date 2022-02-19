@@ -53,6 +53,8 @@ void LfscPrinter::print(std::ostream& out,
 
   // clear the rules we have warned about
   d_trustWarned.clear();
+  d_useWarned.clear();
+  d_useLfscWarned.clear();
 
   Trace("lfsc-print-debug") << "; print declarations" << std::endl;
   // [1] compute and print the declarations
@@ -139,25 +141,27 @@ void LfscPrinter::print(std::ostream& out,
           }
           preamble << " sort)" << cdttparens.str() << std::endl;
         }
+        NodeManager* nm = NodeManager::currentNM();
         for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
           const DTypeConstructor& cons = dt[i];
-          std::stringstream sscons;
-          sscons << d_tproc.convert(cons.getConstructor());
           std::string cname =
-              LfscNodeConverter::getNameForUserName(sscons.str());
+              d_tproc.getNameForUserNameOf(cons.getConstructor());
+          // for now, must print as node to ensure same policy for printing
+          // variable names. For instance, this means that cvc.X is printed as
+          // LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not
+          // SMT-LIB. We should disable printing quote escapes in the smt2
+          // printing of LFSC converted terms.
+          Node cc = nm->mkBoundVar(cname, stc);
           // print construct/tester
-          preamble << "(declare " << cname << " term)" << std::endl;
+          preamble << "(declare " << cc << " term)" << std::endl;
           for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
           {
             const DTypeSelector& arg = cons[j];
             // print selector
-            Node si = d_tproc.convert(arg.getSelector());
-            std::stringstream sns;
-            sns << si;
-            std::string sname =
-                LfscNodeConverter::getNameForUserName(sns.str());
-            preamble << "(declare " << sname << " term)" << std::endl;
+            std::string sname = d_tproc.getNameForUserNameOf(arg.getSelector());
+            Node sc = nm->mkBoundVar(sname, stc);
+            preamble << "(declare " << sc << " term)" << std::endl;
           }
         }
         // testers and updaters are instances of parametric symbols
@@ -221,6 +225,14 @@ void LfscPrinter::print(std::ostream& out,
   for (PfRule r : d_trustWarned)
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
+  }
+  for (PfRule r : d_useWarned)
+  {
+    out << "; USE: rule " << r << std::endl;
+  }
+  for (LfscRule r : d_useLfscWarned)
+  {
+    out << "; USE: LFSC rule " << r << std::endl;
   }
 
   // [4] print the DSL rewrite rule declarations
@@ -437,6 +449,7 @@ void LfscPrinter::printProofInternal(
             visit.insert(visit.end(), args.begin(), args.end());
             // print the rule name
             out->printOpenRule(cur);
+            d_useWarned.insert(r);
           }
           else
           {
@@ -444,10 +457,7 @@ void LfscPrinter::printProofInternal(
             Node res = d_tproc.convert(cur->getResult());
             res = lbind.convert(res, "__t", true);
             out->printTrust(res, r);
-            if (d_trustWarned.find(r) == d_trustWarned.end())
-            {
-              d_trustWarned.insert(r);
-            }
+            d_trustWarned.insert(r);
           }
         }
       }
@@ -656,6 +666,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
+      d_useLfscWarned.insert(lr);
       // lambda should be processed elsewhere
       Assert(lr != LfscRule::LAMBDA);
       // Note that `args` has 2 builtin arguments, thus the first real argument

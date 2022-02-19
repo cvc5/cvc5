@@ -294,7 +294,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                ':produce-unsat-cores true' not in benchmark_content and \
                '--sygus-inference' not in all_args and \
                ':sygus-inference true' not in benchmark_content:
-                extra_command_line_args += ['--dump-proofs --proof-format=lfsc']
+                extra_command_line_args += ['--dump-proofs --proof-format=lfsc --proof-granularity=theory-rewrite']
 
         # Create a test case for each extra argument
         for extra_arg in extra_command_line_args:
