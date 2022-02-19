@@ -362,7 +362,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case PfRule::THEORY_REWRITE:
     {
-	    return addAletheStep(AletheRule::ALL_SIMPLIFY,
+       return addAletheStep(AletheRule::ALL_SIMPLIFY,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
