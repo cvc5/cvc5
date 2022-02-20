@@ -48,7 +48,7 @@ class DotPrinter
    * the child as argument.
    * @param out the output stream
    * @param pn the proof node to print
-   * @param pfLet the map of the variables that were already printed
+   * @param pfLet the map of the hashs of proof nodes already printed to their ids
    * @param scopeCounter counter of how many SCOPE were already depth-first
    * traversed in the proof up to this point
    * @param inPropositionalView flag used to mark the proof node being traversed
