@@ -81,7 +81,7 @@ void SygusExtension::assertTester(int tindex, TNode n, Node exp)
       bool do_add = true;
       if (options().datatypes.sygusSymBreakLazy)
       {
-        if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+        if( n.getKind()==kind::APPLY_SELECTOR ){
           NodeSet::const_iterator it = d_active_terms.find( n[0] );
           if( it==d_active_terms.end() ){
             do_add = false;
@@ -158,7 +158,7 @@ void SygusExtension::registerTerm(Node n)
     unsigned d = 0;
     bool is_top_level = false;
     bool success = false;
-    if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+    if( n.getKind()==kind::APPLY_SELECTOR ){
       registerTerm(n[0]);
       std::unordered_map<Node, Node>::iterator it = d_term_to_anchor.find(n[0]);
       if( it!=d_term_to_anchor.end() ) {
@@ -197,7 +197,7 @@ void SygusExtension::registerTerm(Node n)
 bool SygusExtension::computeTopLevel( TypeNode tn, Node n ){
   if( n.getType()==tn ){
     return false;
-  }else if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+  }else if( n.getKind()==kind::APPLY_SELECTOR ){
     return computeTopLevel( tn, n[0] );
   }else{
     return true;
@@ -368,7 +368,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     Trace("sygus-sb-debug") << "Do lazy symmetry breaking...\n";
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(ntn, j), n);
+          APPLY_SELECTOR, dt[tindex].getSelectorInternal(ntn, j), n);
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
       Assert(d_active_terms.find(sel) == d_active_terms.end());
       IntMap::const_iterator itt = d_testers.find( sel );
@@ -389,7 +389,7 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
   std::map< Node, Node >::iterator itr = d_rlv_cond.find( n );
   if( itr==d_rlv_cond.end() ){
     Node cond;
-    if (n.getKind() == APPLY_SELECTOR_TOTAL)
+    if (n.getKind() == APPLY_SELECTOR)
     {
       TypeNode ntn = n[0].getType();
       const DType& dt = ntn.getDType();
@@ -476,7 +476,7 @@ Node SygusExtension::eliminateTraversalPredicates(Node n)
       {
         Assert(cur.getType().isBoolean());
         Assert(cur.getNumChildren() == 1
-               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR_TOTAL));
+               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR));
         ittb = d_traversal_bool.find(cur);
         Node ret;
         if (ittb == d_traversal_bool.end())
@@ -594,7 +594,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   for (unsigned j = 0; j < dt_index_nargs; j++)
   {
     Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(tn, j), n);
+        APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, j), n);
     Assert(sel.getType().isDatatype());
     children.push_back(sel);
   }
@@ -919,7 +919,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           && children[0].getType() == tn && children[1].getType() == tn)
       {
         // chainable
-        Node child11 = nm->mkNode(APPLY_SELECTOR_TOTAL,
+        Node child11 = nm->mkNode(APPLY_SELECTOR,
                                   dt[tindex].getSelectorInternal(tn, 1),
                                   children[0]);
         Assert(child11.getType() == children[1].getType());
@@ -1008,7 +1008,7 @@ Node SygusExtension::registerSearchValue(Node a,
     for (unsigned i = 0, nchild = nv.getNumChildren(); i < nchild; i++)
     {
       Node sel = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), n);
+          APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), n);
       Node nvc = registerSearchValue(a,
                                      sel,
                                      nv[i],
@@ -1727,7 +1727,7 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
     Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), n);
+        APPLY_SELECTOR, dt[cindex].getSelectorInternal(tn, i), n);
     if (!checkValue(sel, vn[i], ind + 1))
     {
       return false;
@@ -1749,7 +1749,7 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
       Node sel = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(tn, i), n);
+          APPLY_SELECTOR, dt[tindex].getSelectorInternal(tn, i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }

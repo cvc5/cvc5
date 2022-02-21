@@ -275,7 +275,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+          APPLY_SELECTOR, dt[i].getSelectorInternal(headType, 0), en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -298,7 +298,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       s = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
+          APPLY_SELECTOR, dt[i].getSelectorInternal(headType, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)

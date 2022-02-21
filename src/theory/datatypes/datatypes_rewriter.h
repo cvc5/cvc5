@@ -65,7 +65,7 @@ class DatatypesRewriter : public TheoryRewriter
    *   (APPLY_SELECTOR selC x)
    * its expanded form is
    *   (ITE (APPLY_TESTER is-C x)
-   *     (APPLY_SELECTOR_TOTAL selC' x)
+   *     (APPLY_SELECTOR selC' x)
    *     (f x))
    * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
    * internal selector function for selC (possibly a shared selector).

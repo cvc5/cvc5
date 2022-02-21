@@ -50,7 +50,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteConstructor(in);
   }
-  else if (kind == kind::APPLY_SELECTOR_TOTAL || kind == kind::APPLY_SELECTOR)
+  else if (kind == kind::APPLY_SELECTOR || kind == kind::APPLY_SELECTOR_TOTAL)
   {
     return rewriteSelector(in);
   }
@@ -391,7 +391,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     // The argument that the selector extracts, or -1 if the selector is
     // is wrongly applied.
     int selectorIndex = -1;
-    if (k == kind::APPLY_SELECTOR_TOTAL)
+    if (k == kind::APPLY_SELECTOR)
     {
       // The argument index of internal selectors is obtained by
       // getSelectorIndexInternal.
@@ -438,7 +438,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }
     }
-    else if (k == kind::APPLY_SELECTOR_TOTAL)
+    else if (k == kind::APPLY_SELECTOR)
     {
       // evaluates to the first ground value of type tn.
       NodeManager* nm = NodeManager::currentNM();
@@ -912,7 +912,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(tn, i), n[0]);
+              APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
         }
       }
       ret = b;

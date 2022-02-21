@@ -104,7 +104,7 @@ void TheoryDatatypes::finishInit()
   Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   // We could but don't do congruence for DT_SIZE and DT_HEIGHT_BOUND here.
   // It also could make sense in practice to do congruence for APPLY_UF, but
@@ -991,14 +991,14 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Node r;
   bool wrong = false;
   Node eq_exp = s[0].eqNode(c);
-  if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+  if( s.getKind()==kind::APPLY_SELECTOR ){
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
     const DType& dt = utils::datatypeOf(selector);
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
     wrong = selectorIndex<0;
-    r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
+    r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR, s.getOperator(), c );
   }
   if( !r.isNull() ){
     Node rrs;
@@ -1365,7 +1365,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
     }
     return;
   }
-  if (nk == APPLY_SELECTOR_TOTAL || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
   {
     d_functionTerms.push_back(n);
     // we must also record which selectors exist
