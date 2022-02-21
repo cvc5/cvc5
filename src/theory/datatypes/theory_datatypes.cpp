@@ -1091,8 +1091,8 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
       }
       for (std::pair<TNode, TNode>& p : currentPairs)
       {
-        Trace("dt-cg-pair") << "Pair : " << p.first << " "
-                            << p.second << std::endl;
+        Trace("dt-cg-pair")
+            << "Pair : " << p.first << " " << p.second << std::endl;
         addCarePair(p.first, p.second);
         n_pairs++;
       }
@@ -1101,7 +1101,7 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
   }
   if (t2 == nullptr)
   {
-    if (depth+1 < arity)
+    if (depth + 1 < arity)
     {
       // add care pairs internal to each child
       for (std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
