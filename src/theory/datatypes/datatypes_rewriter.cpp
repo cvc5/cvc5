@@ -854,7 +854,7 @@ Node DatatypesRewriter::expandApplySelector(Node n)
     selector_use = selector;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
+  Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
   if (options::dtRewriteErrorSel())
   {
     return sel;
@@ -865,7 +865,7 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
   Node f = sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
   Node sk = nm->mkNode(kind::APPLY_UF, f, n[0]);
-  Node ret = nm->mkNode(kind::ITE, tst, sel, sk);
+  Node ret = sel;//nm->mkNode(kind::ITE, tst, sel, sk);
   Trace("dt-expand") << "Expand def : " << n << " to " << ret << std::endl;
   return ret;
 }
