@@ -141,12 +141,14 @@ inline size_t ProofNodeHashFunction::operator()(const ProofNode* pfn) const
   ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(pfn->getResult()));
   ret = fnv1a::fnv1a_64(ret, static_cast<size_t>(pfn->getRule()));
 
-  for (const cvc5::Pf& child : pfn->getChildren())
+  const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  for (const Pf& child : children)
   {
     ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(child->getResult()));
   }
 
-  for (const Node& arg : pfn->getArguments())
+  const std::vector<Node>& args = pfn->getArguments();
+  for (const Node& arg : args)
   {
     ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(arg));
   }
