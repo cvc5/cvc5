@@ -444,8 +444,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
-  // external selectors should be preprocessed away by now
-  Assert(n.getKind() != APPLY_SELECTOR);
+  // should not use APPLY_SELECTOR_TOTAL
+  Assert(n.getKind() != APPLY_SELECTOR_TOTAL);
   // must ensure the type is well founded and has no nested recursion if
   // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
@@ -997,6 +997,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     const DType& dt = utils::datatypeOf(selector);
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
+    Trace("dt-collapse-sel") << "selector index is " << selectorIndex << std::endl;
     wrong = selectorIndex<0;
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR, s.getOperator(), c );
   }
@@ -1004,6 +1005,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     Node rrs;
     if (wrong)
     {
+      return;
       // Must use make ground term here instead of the rewriter, since we
       // do not want to introduce arbitrary values. This is important so that
       // we avoid constants for types that are not "closed enumerable", e.g.

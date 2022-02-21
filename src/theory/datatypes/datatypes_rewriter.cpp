@@ -50,7 +50,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteConstructor(in);
   }
-  else if (kind == kind::APPLY_SELECTOR || kind == kind::APPLY_SELECTOR_TOTAL)
+  else if (kind == kind::APPLY_SELECTOR_TOTAL || kind == kind::APPLY_SELECTOR)
   {
     return rewriteSelector(in);
   }
@@ -390,29 +390,9 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
                                      << std::endl;
     // The argument that the selector extracts, or -1 if the selector is
     // is wrongly applied.
-    int selectorIndex = -1;
-    if (k == kind::APPLY_SELECTOR)
-    {
-      // The argument index of internal selectors is obtained by
-      // getSelectorIndexInternal.
-      selectorIndex = c.getSelectorIndexInternal(selector);
-    }
-    else
-    {
-      // The argument index of external selectors (applications of
-      // APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
-      // The argument is only valid if it is the proper constructor.
-      selectorIndex = utils::indexOf(selector);
-      if (selectorIndex < 0
-          || selectorIndex >= static_cast<int>(c.getNumArgs()))
-      {
-        selectorIndex = -1;
-      }
-      else if (c[selectorIndex].getSelector() != selector)
-      {
-        selectorIndex = -1;
-      }
-    }
+    // The argument index of internal selectors is obtained by
+    // getSelectorIndexInternal.
+    int selectorIndex = c.getSelectorIndexInternal(selector);
     Trace("datatypes-rewrite-debug") << "Internal selector index is "
                                      << selectorIndex << std::endl;
     if (selectorIndex >= 0)
@@ -438,7 +418,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }
     }
-    else if (k == kind::APPLY_SELECTOR)
+    else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
       // evaluates to the first ground value of type tn.
       NodeManager* nm = NodeManager::currentNM();
