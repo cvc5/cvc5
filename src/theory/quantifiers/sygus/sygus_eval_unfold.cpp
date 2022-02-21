@@ -100,6 +100,10 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TNode vt = v;
       Node vn = n.substitute(at, vt);
       vn = rewrite(vn);
+      if (!vn.isConst())
+      {
+        continue;
+      }
       unsigned start = d_node_mv_args_proc[n][vn];
       // get explanation in terms of testers
       std::vector<Node> antec_exp;

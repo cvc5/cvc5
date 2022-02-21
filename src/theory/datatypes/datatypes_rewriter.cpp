@@ -815,30 +815,24 @@ Node DatatypesRewriter::expandApplySelector(Node n)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
+  if (!options::dtSharedSelectors() || !selector.hasAttribute(DTypeConsIndexAttr()))
+  {
+    return n;
+  }
   // APPLY_SELECTOR always applies to an external selector, cindexOf is
   // legal here
   size_t cindex = utils::cindexOf(selector);
   const DType& dt = utils::datatypeOf(selector);
   const DTypeConstructor& c = dt[cindex];
-  Node selector_use;
   TypeNode ndt = n[0].getType();
-  if (options::dtSharedSelectors())
-  {
-    size_t selectorIndex = utils::indexOf(selector);
-    Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
-    Assert(selectorIndex < c.getNumArgs());
-    selector_use = c.getSelectorInternal(ndt, selectorIndex);
-  }
-  else
-  {
-    selector_use = selector;
-  }
+  size_t selectorIndex = utils::indexOf(selector);
+  Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
+  Assert(selectorIndex < c.getNumArgs());
+  Node selector_use = c.getSelectorInternal(ndt, selectorIndex);
   NodeManager* nm = NodeManager::currentNM();
   Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
-  if (options::dtRewriteErrorSel())
-  {
-    return sel;
-  }
+  return sel;
+  /*
   Node tester = c.getTester();
   Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
   SkolemManager* sm = nm->getSkolemManager();
@@ -848,6 +842,7 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   Node ret = sel;//nm->mkNode(kind::ITE, tst, sel, sk);
   Trace("dt-expand") << "Expand def : " << n << " to " << ret << std::endl;
   return ret;
+  */
 }
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
