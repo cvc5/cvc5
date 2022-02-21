@@ -146,13 +146,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make synth variables for types..." << std::endl;
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
-  unsigned nvars = options().quantifiers.sygusRewSynthInputNVars;
+  uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
   // must have at least one variable per type
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
-  unsigned varCounter = 0;
+  uint64_t varCounter = 0;
   for (std::pair<const TypeNode, bool> tfp : typesFound)
   {
     TypeNode tn = tfp.first;
@@ -161,11 +161,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // This ensures that no type in our grammar has zero constructors. If
     // our input does not contain a Boolean variable, we need not allocate any
     // Boolean variables here.
-    unsigned useNVars =
+    uint64_t useNVars =
         (options().quantifiers.sygusRewSynthInputUseBool || !tn.isBoolean())
             ? nvars
             : (hasBoolVar ? 1 : 0);
-    for (unsigned i = 0; i < useNVars; i++)
+    for (uint64_t i = 0; i < useNVars; i++)
     {
       // We must have a good name for these variables, these are
       // the ones output in rewrite rules. We choose
@@ -173,7 +173,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       std::stringstream ssv;
       if (varCounter < 26)
       {
-        ssv << static_cast<char>(varCounter + 61);
+        ssv << static_cast<char>(varCounter + static_cast<uint64_t>('A'));
       }
       else
       {
@@ -187,6 +187,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     }
   }
   Trace("srs-input") << "...finished." << std::endl;
+
+  // if the problem is trivial, e.g. contains no non-constant terms, then we
+  // exit with an exception.
+  if (allVars.empty())
+  {
+    throw Exception("No terms to consider for synthesizing rewrites");
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
 
   Trace("srs-input") << "Convert subterms to free variable form..."
                      << std::endl;
@@ -271,7 +279,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
     // add the variables for the type
     TypeNode ctt = ct.getType();
-    Assert(tvars.find(ctt) != tvars.end());
     std::vector<TypeNode> argList;
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
@@ -279,6 +286,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
         || ct.getKind() == BOUND_VARIABLE)
     {
+      Assert(tvars.find(ctt) != tvars.end())
+          << "Unexpected type " << ctt << " for " << ct;
       for (const Node& v : tvars[ctt])
       {
         std::stringstream ssc;
@@ -302,28 +311,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argList.push_back(cterm_to_utype[ctc]);
       }
       // check if we should chain
-      bool do_chain = false;
-      if (argList.size() > 2)
-      {
-        Kind k = NodeManager::operatorToKind(op);
-        do_chain = theory::quantifiers::TermUtil::isAssoc(k)
-                   && theory::quantifiers::TermUtil::isComm(k);
-        // eliminate duplicate child types
-        std::vector<TypeNode> argListTmp = argList;
-        argList.clear();
-        std::map<TypeNode, bool> hasArgType;
-        for (unsigned j = 0, size = argListTmp.size(); j < size; j++)
-        {
-          TypeNode tn = argListTmp[j];
-          if (hasArgType.find(tn) == hasArgType.end())
-          {
-            hasArgType[tn] = true;
-            argList.push_back(tn);
-          }
-        }
-      }
+      Kind k = NodeManager::operatorToKind(op);
+      bool do_chain = argList.size() > 2
+                      && theory::quantifiers::TermUtil::isAssoc(k)
+                      && theory::quantifiers::TermUtil::isComm(k);
       if (do_chain)
       {
+        // eliminate duplicate child types
+        std::set<TypeNode> argSet(argList.begin(), argList.end());
+
         // we make one type per child
         // the operator of each constructor is a no-op
         Node tbv = nm->mkBoundVar(ctt);
@@ -338,10 +334,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         // Notice this construction allows to abstract subsets of the factors
         // of t1+t2+t3. This is particularly helpful for terms t1+...+tn for
         // large n, where we would like to consider binary applications of +.
-        for (unsigned j = 0, size = argList.size(); j < size; j++)
+        size_t j = 0;
+        for (const TypeNode& arg : argSet)
         {
           argListc.clear();
-          argListc.push_back(argList[j]);
+          argListc.push_back(arg);
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
           // ID function is not printed and does not count towards weight
@@ -349,6 +346,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                                  sscs.str(),
                                  argListc,
                                  0);
+          j++;
         }
         // recursive apply
         TypeNode recType = cterm_to_utype[ct];

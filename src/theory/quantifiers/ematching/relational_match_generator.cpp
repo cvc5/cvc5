@@ -25,17 +25,15 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-RelationalMatchGenerator::RelationalMatchGenerator(Trigger* tparent,
-                                                   Node rtrigger,
-                                                   bool hasPol,
-                                                   bool pol)
-    : InstMatchGenerator(tparent, Node::null()),
+RelationalMatchGenerator::RelationalMatchGenerator(
+    Env& env, Trigger* tparent, Node rtrigger, bool hasPol, bool pol)
+    : InstMatchGenerator(env, tparent, Node::null()),
       d_vindex(-1),
       d_hasPol(hasPol),
       d_pol(pol),
       d_counter(0)
 {
-  Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isReal())
+  Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isRealOrInt())
          || rtrigger.getKind() == GEQ);
   Trace("relational-match-gen")
       << "Relational trigger: " << rtrigger << ", hasPol/pol = " << hasPol
@@ -94,7 +92,10 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     s = rhs;
     if (!checkPol)
     {
-      s = nm->mkNode(PLUS, s, nm->mkConst(Rational(d_rel == GEQ ? -1 : 1)));
+      s = nm->mkNode(
+          ADD,
+          s,
+          nm->mkConstRealOrInt(s.getType(), Rational(d_rel == GEQ ? -1 : 1)));
     }
     d_counter++;
     Trace("relational-match-gen")
@@ -102,7 +103,8 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     if (m.set(d_qstate, d_vindex, s))
     {
       Trace("relational-match-gen") << "...success" << std::endl;
-      int ret = continueNextMatch(q, m, InferenceId::UNKNOWN);
+      int ret = continueNextMatch(
+          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;

@@ -33,8 +33,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumStreamPermutation::EnumStreamPermutation(TermDbSygus* tds)
-    : d_tds(tds), d_first(true), d_curr_ind(0)
+EnumStreamPermutation::EnumStreamPermutation(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds), d_first(true), d_curr_ind(0)
 {
 }
 
@@ -125,7 +125,7 @@ Node EnumStreamPermutation::getNext()
   {
     d_first = false;
     Node bultin_value = d_tds->sygusToBuiltin(d_value, d_value.getType());
-    d_perm_values.insert(Rewriter::callExtendedRewrite(bultin_value));
+    d_perm_values.insert(d_tds->rewriteNode(bultin_value));
     return d_value;
   }
   unsigned n_classes = d_perm_state_class.size();
@@ -192,9 +192,9 @@ Node EnumStreamPermutation::getNext()
     bultin_perm_value = d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
         << " ......perm builtin is " << bultin_perm_value;
-    if (options::sygusSymBreakDynamic())
+    if (options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
     {
-      bultin_perm_value = Rewriter::callExtendedRewrite(bultin_perm_value);
+      bultin_perm_value = d_tds->rewriteNode(bultin_perm_value);
       Trace("synth-stream-concrete-debug")
           << " and rewrites to " << bultin_perm_value;
     }
@@ -327,8 +327,8 @@ bool EnumStreamPermutation::PermutationState::getNextPermutation()
   return true;
 }
 
-EnumStreamSubstitution::EnumStreamSubstitution(quantifiers::TermDbSygus* tds)
-    : d_tds(tds), d_stream_permutations(tds), d_curr_ind(0)
+EnumStreamSubstitution::EnumStreamSubstitution(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds), d_stream_permutations(env, tds), d_curr_ind(0)
 {
 }
 
@@ -512,9 +512,9 @@ Node EnumStreamSubstitution::getNext()
   // construction (unless it's equiv to a constant, e.g. true / false)
   Node builtin_comb_value =
       d_tds->sygusToBuiltin(comb_value, comb_value.getType());
-  if (options::sygusSymBreakDynamic())
+  if (options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
   {
-    builtin_comb_value = Rewriter::callExtendedRewrite(builtin_comb_value);
+    builtin_comb_value = d_tds->rewriteNode(builtin_comb_value);
   }
   if (Trace.isOn("synth-stream-concrete"))
   {
@@ -604,6 +604,11 @@ bool EnumStreamSubstitution::CombinationState::getNextCombination()
     }
   }
   return new_comb;
+}
+
+EnumStreamConcrete::EnumStreamConcrete(Env& env, TermDbSygus* tds)
+    : EnumValGenerator(env), d_ess(env, tds)
+{
 }
 
 void EnumStreamConcrete::initialize(Node e) { d_ess.initialize(e.getType()); }

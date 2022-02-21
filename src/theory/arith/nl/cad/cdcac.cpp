@@ -25,6 +25,8 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace std {
 /** Generic streaming operator for std::vector. */
 template <typename T>
@@ -77,7 +79,7 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (!options().arith.nlCadUseInitial) return;
+  if (options().arith.nlCadLinearModel == options::NlCadLinearModelMode::NONE) return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -103,16 +105,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
   LazardEvaluation le;
-  if (options().arith.nlCadLifting
-      == options::NlCadLiftingMode::LAZARD)
-  {
-    for (size_t vid = 0; vid < cur_variable; ++vid)
-    {
-      const auto& val = d_assignment.get(d_variableOrdering[vid]);
-      le.add(d_variableOrdering[vid], val);
-    }
-    le.addFreeVariable(d_variableOrdering[cur_variable]);
-  }
+  prepareRootIsolation(le, cur_variable);
   for (const auto& c : d_constraints.getConstraints())
   {
     const poly::Polynomial& p = std::get<0>(c);
@@ -174,7 +167,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
                                      poly::Value& sample,
                                      std::size_t cur_variable)
 {
-  if (options().arith.nlCadUseInitial
+  if (options().arith.nlCadLinearModel != options::NlCadLinearModelMode::NONE
       && cur_variable < d_initialAssignment.size())
   {
     const poly::Value& suggested = d_initialAssignment[cur_variable];
@@ -182,7 +175,10 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        d_initialAssignment.clear();
+        if (options().arith.nlCadLinearModel == options::NlCadLinearModelMode::INITIAL)
+        {
+          d_initialAssignment.clear();
+        }
         return sampleOutside(infeasible, sample);
       }
     }
@@ -255,7 +251,8 @@ PolyVector requiredCoefficientsLazard(const poly::Polynomial& p,
 PolyVector requiredCoefficientsLazardModified(
     const poly::Polynomial& p,
     const poly::Assignment& assignment,
-    VariableMapper& vm)
+    VariableMapper& vm,
+    Rewriter* rewriter)
 {
   PolyVector res;
   auto lc = poly::leading_coefficient(p);
@@ -271,15 +268,15 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConst(Rational(0));
+  auto zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
     conditions.emplace_back(NodeManager::currentNM()->mkNode(
         Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  Node rewritten = Rewriter::callExtendedRewrite(
-      NodeManager::currentNM()->mkAnd(conditions));
+  Node rewritten =
+      rewriter->extendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
   if (rewritten.isConst())
   {
     Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);
@@ -305,7 +302,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
     Trace("cdcac::projection")
         << "LMod: "
         << requiredCoefficientsLazardModified(
-               p, d_assignment, d_constraints.varMapper())
+               p, d_assignment, d_constraints.varMapper(), d_env.getRewriter())
         << std::endl;
     Trace("cdcac::projection")
         << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
@@ -319,7 +316,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
       return requiredCoefficientsLazard(p, d_assignment);
     case options::NlCadProjectionMode::LAZARDMOD:
       return requiredCoefficientsLazardModified(
-          p, d_assignment, d_constraints.varMapper());
+          p, d_assignment, d_constraints.varMapper(), d_env.getRewriter());
     default:
       Assert(false);
       return requiredCoefficientsOriginal(p, d_assignment);
@@ -423,11 +420,17 @@ CACInterval CDCAC::intervalFromCharacterization(
   m.pushDownPolys(d, d_variableOrdering[cur_variable]);
 
   // Collect -oo, all roots, oo
+
+  LazardEvaluation le;
+  prepareRootIsolation(le, cur_variable);
   std::vector<poly::Value> roots;
   roots.emplace_back(poly::Value::minus_infty());
   for (const auto& p : m)
   {
-    auto tmp = isolate_real_roots(p, d_assignment);
+    Trace("cdcac") << "Isolating real roots of " << p << " over "
+                   << d_assignment << std::endl;
+
+    auto tmp = isolateRealRoots(le, p);
     roots.insert(roots.end(), tmp.begin(), tmp.end());
   }
   roots.emplace_back(poly::Value::plus_infty());
@@ -459,6 +462,8 @@ CACInterval CDCAC::intervalFromCharacterization(
     d_assignment.set(d_variableOrdering[cur_variable], lower);
     for (const auto& p : m)
     {
+      Trace("cdcac") << "Evaluating " << p << " = 0 over " << d_assignment
+                     << std::endl;
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
         l.add(p, true);
@@ -472,6 +477,8 @@ CACInterval CDCAC::intervalFromCharacterization(
     d_assignment.set(d_variableOrdering[cur_variable], upper);
     for (const auto& p : m)
     {
+      Trace("cdcac") << "Evaluating " << p << " = 0 over " << d_assignment
+                     << std::endl;
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
         u.add(p, true);
@@ -565,8 +572,10 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
 
     d_assignment.unset(d_variableOrdering[curVariable]);
 
+    Trace("cdcac") << "Building interval..." << std::endl;
     auto newInterval =
         intervalFromCharacterization(characterization, curVariable, sample);
+    Trace("cdcac") << "New interval: " << newInterval.d_interval << std::endl;
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
     if (isProofEnabled())
@@ -692,9 +701,30 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
 
 void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 {
+  cleanIntervals(intervals);
+  if (options().arith.nlCadPrune)
+  {
+    if (Trace.isOn("cdcac"))
+    {
+      auto copy = intervals;
+      removeRedundantIntervals(intervals);
+      if (copy.size() != intervals.size())
+      {
+        Trace("cdcac") << "Before pruning:";
+        for (const auto& i : copy) Trace("cdcac") << " " << i.d_interval;
+        Trace("cdcac") << std::endl;
+        Trace("cdcac") << "After pruning: ";
+        for (const auto& i : intervals) Trace("cdcac") << " " << i.d_interval;
+        Trace("cdcac") << std::endl;
+      }
+    }
+    else
+    {
+      removeRedundantIntervals(intervals);
+    }
+  }
   if (isProofEnabled())
   {
-    cleanIntervals(intervals);
     d_proof->pruneChildren([&intervals](std::size_t id) {
       return std::find_if(intervals.begin(),
                           intervals.end(),
@@ -702,10 +732,30 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
              != intervals.end();
     });
   }
-  else
+}
+
+void CDCAC::prepareRootIsolation(LazardEvaluation& le,
+                                 size_t cur_variable) const
+{
+  if (options().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
   {
-    cleanIntervals(intervals);
+    for (size_t vid = 0; vid < cur_variable; ++vid)
+    {
+      const auto& val = d_assignment.get(d_variableOrdering[vid]);
+      le.add(d_variableOrdering[vid], val);
+    }
+    le.addFreeVariable(d_variableOrdering[cur_variable]);
   }
+}
+
+std::vector<poly::Value> CDCAC::isolateRealRoots(
+    LazardEvaluation& le, const poly::Polynomial& p) const
+{
+  if (options().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  {
+    return le.isolateRealRoots(p);
+  }
+  return poly::isolate_real_roots(p, d_assignment);
 }
 
 }  // namespace cad

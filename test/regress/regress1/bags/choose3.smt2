@@ -4,5 +4,5 @@
 (set-info :status sat)
 (declare-fun A () (Bag Int))
 (assert (= (bag.choose A) 10))
-(assert (= A (as emptybag (Bag Int))))
+(assert (= A (as bag.empty (Bag Int))))
 (check-sat)

@@ -79,10 +79,10 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
 
-  // make the expression (PLUS x y (MULT z 0))
-  Node zero = d_nodeManager->mkConst(Rational("0"));
+  // make the expression (ADD x y (MULT z 0))
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
   Node zTimesZero = d_nodeManager->mkNode(MULT, z, zero);
-  Node n = d_nodeManager->mkNode(PLUS, x, y, zTimesZero);
+  Node n = d_nodeManager->mkNode(ADD, x, y, zTimesZero);
 
   Node nExpected = n;
   Node nOut;
@@ -111,8 +111,8 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
       "g",
       d_nodeManager->mkFunctionType(d_nodeManager->realType(),
                                     d_nodeManager->integerType()));
-  Node one = d_nodeManager->mkConst(Rational("1"));
-  Node two = d_nodeManager->mkConst(Rational("2"));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational("1"));
+  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational("2"));
 
   Node f1 = d_nodeManager->mkNode(APPLY_UF, f, one);
   Node f2 = d_nodeManager->mkNode(APPLY_UF, f, two);

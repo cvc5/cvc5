@@ -67,8 +67,9 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
     }
     if( c[index].getType().isSort() ){
       //for star: check if all children are defined and have generalizations
-      if( c[index]==st ){     ///options::fmfFmcCoverSimplify()
-        //check if all children exist and are complete
+      if (c[index] == st)
+      {  /// option fmfFmcCoverSimplify
+        // check if all children exist and are complete
         unsigned num_child_def =
             d_child.size() - (d_child.find(st) != d_child.end() ? 1 : 0);
         if (num_child_def == m->getRepSet()->getNumRepresentatives(tn))
@@ -399,6 +400,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     //reset the model
     d_fm->d_models[op]->reset();
 
+    // if we've already assigned the function, ignore
+    if (m->hasAssignedFunctionDefinition(op))
+    {
+      continue;
+    }
+
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
     bool needsDefault = true;
@@ -539,8 +546,15 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 
   //make function values
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
-    Node f_def = getFunctionValue( fm, it->first, "$x" );
-    m->assignFunctionDefinition( it->first, f_def );
+    // For lazy lambda lifting, a function may already have been assigned
+    // during uf::HoExtension's collectModelValues method. In this case,
+    // the Def in it->second was not used, as all such functions are eagerly
+    // eliminated.
+    if (!m->hasAssignedFunctionDefinition(it->first))
+    {
+      Node f_def = getFunctionValue(fm, it->first, "$x");
+      m->assignFunctionDefinition(it->first, f_def);
+    }
   }
   return TheoryEngineModelBuilder::processBuildModel( m );
 }

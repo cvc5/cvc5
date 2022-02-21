@@ -9,6 +9,6 @@
 (declare-fun x () Rec)
 (assert (= (set.card A) 5))
 (assert (= (set.card B) 5))
-(assert (= (set.card (set.intersection A B)) 1))
+(assert (= (set.card (set.inter A B)) 1))
 (assert (= universe (as set.universe (Set Rec))))
 (check-sat)

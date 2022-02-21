@@ -102,7 +102,6 @@ namespace cvc5 {
 
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"
@@ -249,7 +248,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    LPAREN_TOK symbolList[names,CHECK_UNDECLARED,SYM_SORT] RPAREN_TOK
     { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
@@ -372,7 +371,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if (PARSER_STATE->sygus()) {
+    {
+      if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
       cmd->reset(new CheckSatCommand());
@@ -406,10 +406,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new GetDifficultyCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support push command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
         if(num == 0) {
@@ -439,16 +435,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support pop command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num > PARSER_STATE->scopeLevel()) {
-          PARSER_STATE->parseError("Attempted to pop above the top stack "
-                                   "frame.");
-        }
+        // we don't compare num to PARSER_STATE->scopeLevel() here, since
+        // when global declarations is true, the scope level of the parser
+        // is not indicative of the context level.
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
@@ -584,6 +575,12 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     {
       PARSER_STATE->checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
+    }
+  | /* check-synth-next */
+    CHECK_SYNTH_NEXT_TOK
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd.reset(new CheckSynthCommand(true));
     }
   | /* set-feature */
     SET_FEATURE_TOK keyword[name] symbolicExpr[expr]
@@ -1010,6 +1007,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name, e, g));
     }
+  | GET_ABDUCT_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetAbductNextCommand);
+    }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
     }
@@ -1020,6 +1021,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     )?
     {
       cmd->reset(new GetInterpolCommand(name, e, g));
+    }
+  | GET_INTERPOL_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetInterpolNextCommand);
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
@@ -1373,7 +1378,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           {
             // lookup constructor by name
             api::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            api::Term scons = dc.getSpecializedConstructorTerm(expr.getSort());
+            api::Term scons = dc.getInstantiatedConstructorTerm(expr.getSort());
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }
@@ -1396,7 +1401,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
           api::Term c = MK_TERM(api::APPLY_CONSTRUCTOR,cargs);
-          api::Term bvla = MK_TERM(api::BOUND_VAR_LIST,args);
+          api::Term bvla = MK_TERM(api::VARIABLE_LIST,args);
           api::Term mc = MK_TERM(api::MATCH_BIND_CASE, bvla, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
@@ -1427,7 +1432,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           api::Term mc;
           if (f.getKind() == api::VARIABLE)
           {
-            api::Term bvlf = MK_TERM(api::BOUND_VAR_LIST, f);
+            api::Term bvlf = MK_TERM(api::VARIABLE_LIST, f);
             mc = MK_TERM(api::MATCH_BIND_CASE, bvlf, f, f3);
           }
           else
@@ -1803,8 +1808,10 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->preemptCommand(
-          new DefineFunctionCommand(s, expr.getSort(), expr));
+      DefineFunctionCommand* defFunCmd =
+          new DefineFunctionCommand(s, expr.getSort(), expr);
+      defFunCmd->setMuted(true);
+      PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
@@ -1935,7 +1942,7 @@ boundVarList[cvc5::api::Term& expr]
    {
      std::vector<cvc5::api::Term> args =
          PARSER_STATE->bindBoundVars(sortedVarNames);
-     expr = MK_TERM(api::BOUND_VAR_LIST, args);
+     expr = MK_TERM(api::VARIABLE_LIST, args);
    }
  ;
 
@@ -2239,7 +2246,9 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
+GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
 GET_INTERPOL_TOK : 'get-interpol';
+GET_INTERPOL_NEXT_TOK : 'get-interpol-next';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
 
@@ -2247,6 +2256,7 @@ DECLARE_POOL : 'declare-pool';
 SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';
 SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
+CHECK_SYNTH_NEXT_TOK : { PARSER_STATE->sygus()}?'check-synth-next';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';

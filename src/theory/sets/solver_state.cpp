@@ -90,7 +90,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       }
     }
   }
-  else if (nk == SET_SINGLETON || nk == SET_UNION || nk == SET_INTERSECTION
+  else if (nk == SET_SINGLETON || nk == SET_UNION || nk == SET_INTER
            || nk == SET_MINUS || nk == SET_EMPTY || nk == SET_UNIVERSE)
   {
     if (nk == SET_SINGLETON)

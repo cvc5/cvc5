@@ -19,6 +19,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
 #include "theory/arith/infer_bounds.h"
@@ -175,7 +176,6 @@ void TheoryArith::postCheck(Effort level)
         d_im.doPendingPhaseRequirements();
         return;
       }
-      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }
@@ -290,6 +290,13 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
+    if (d_nonlinearExtension != nullptr)
+    {
+      if (d_nonlinearExtension->assertModel(m, p.first))
+      {
+        continue;
+      }
+    }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
     if (m->assertEquality(p.first, p.second, true))
@@ -327,19 +334,21 @@ void TheoryArith::presolve(){
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  if (a == b)
+  {
+    return EQUALITY_TRUE_IN_MODEL;
+  }
   if (d_arithModelCache.empty())
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node aval =
-      rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  Node bval =
-      rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  if (aval == bval)
+  Node diff = d_env.getNodeManager()->mkNode(Kind::SUB, a, b);
+  std::optional<bool> isZero = isExpressionZero(d_env, diff, d_arithModelCache);
+  if (isZero)
   {
-    return EQUALITY_TRUE_IN_MODEL;
+    return *isZero ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
   }
-  return EQUALITY_FALSE_IN_MODEL;
+  return EQUALITY_UNKNOWN;
 }
 
 Node TheoryArith::getModelValue(TNode var) {

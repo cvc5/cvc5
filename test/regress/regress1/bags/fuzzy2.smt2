@@ -8,8 +8,8 @@
   (let ((D (bag d c))) ; when c = zero, then D is empty
     (and
       (= a (bag (tuple 1 1) c)) ; when c = zero, then a is empty
-      (= a (union_max a D))
-      (= a (difference_subtract a (bag d 1)))
-      (= a (union_disjoint a D))
-      (= a (intersection_min a D)))))
+      (= a (bag.union_max a D))
+      (= a (bag.difference_subtract a (bag d 1)))
+      (= a (bag.union_disjoint a D))
+      (= a (bag.inter_min a D)))))
 (check-sat)

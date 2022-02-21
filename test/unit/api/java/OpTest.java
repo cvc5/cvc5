@@ -54,7 +54,7 @@ class OpTest
 
   @Test void opFromKind()
   {
-    assertDoesNotThrow(() -> d_solver.mkOp(PLUS));
+    assertDoesNotThrow(() -> d_solver.mkOp(ADD));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkOp(BITVECTOR_EXTRACT));
   }
 

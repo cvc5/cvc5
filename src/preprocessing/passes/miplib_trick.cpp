@@ -33,12 +33,13 @@
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
+using namespace std;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
-
-using namespace std;
-using namespace cvc5::theory;
 
 namespace {
 
@@ -212,7 +213,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
+  Node zero = nm->mkConstInt(Rational(0)), one = nm->mkConstInt(Rational(1));
   Node trueNode = nm->mkConst(true);
 
   unordered_map<TNode, Node> intVars;
@@ -274,10 +275,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         break;
       }
       if ((*j1)[1].getKind() != kind::EQUAL
-          || !(((*j1)[1][0].isVar()
-                && (*j1)[1][1].getKind() == kind::CONST_RATIONAL)
-               || ((*j1)[1][0].getKind() == kind::CONST_RATIONAL
-                   && (*j1)[1][1].isVar())))
+          || !(((*j1)[1][0].isVar() && (*j1)[1][1].isConst())
+               || ((*j1)[1][0].isConst() && (*j1)[1][1].isVar())))
       {
         eligible = false;
         Debug("miplib") << "  -- INELIGIBLE -- (=> (and X X) X)" << endl;
@@ -330,14 +329,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         }
         sort(posv.begin(), posv.end());
         const Node pos = NodeManager::currentNM()->mkNode(kind::AND, posv);
-        const TNode var = ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
-                              ? (*j1)[1][1]
-                              : (*j1)[1][0];
+        const TNode var = ((*j1)[1][0].isConst()) ? (*j1)[1][1] : (*j1)[1][0];
         const pair<Node, Node> pos_var(pos, var);
-        const Rational& constant =
-            ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
-                ? (*j1)[1][0].getConst<Rational>()
-                : (*j1)[1][1].getConst<Rational>();
+        const Rational& constant = ((*j1)[1][0].isConst())
+                                       ? (*j1)[1][0].getConst<Rational>()
+                                       : (*j1)[1][1].getConst<Rational>();
         uint64_t mark = 0;
         unsigned countneg = 0, thepos = 0;
         for (unsigned ii = 0; ii < pos.getNumChildren(); ++ii)
@@ -404,14 +400,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         const bool xneg = (x.getKind() == kind::NOT);
         x = xneg ? x[0] : x;
         Debug("miplib") << "  x:" << x << "  " << xneg << endl;
-        const TNode var = ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
-                              ? (*j1)[1][1]
-                              : (*j1)[1][0];
+        const TNode var = ((*j1)[1][0].isConst()) ? (*j1)[1][1] : (*j1)[1][0];
         const pair<Node, Node> x_var(x, var);
-        const Rational& constant =
-            ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
-                ? (*j1)[1][0].getConst<Rational>()
-                : (*j1)[1][1].getConst<Rational>();
+        const Rational& constant = ((*j1)[1][0].isConst())
+                                       ? (*j1)[1][0].getConst<Rational>()
+                                       : (*j1)[1][1].getConst<Rational>();
         unsigned mark = (xneg ? 0 : 1);
         if ((marks[x_var] & (1u << mark)) != 0)
         {
@@ -568,18 +561,18 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Node sum;
           if (pos.getKind() == kind::AND)
           {
-            NodeBuilder sumb(kind::PLUS);
+            NodeBuilder sumb(kind::ADD);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
               sumb << nm->mkNode(
-                  kind::MULT, nm->mkConst(coef[pos_var][jj]), newVars[jj]);
+                  kind::MULT, nm->mkConstInt(coef[pos_var][jj]), newVars[jj]);
             }
             sum = sumb;
           }
           else
           {
             sum = nm->mkNode(
-                kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
+                kind::MULT, nm->mkConstInt(coef[pos_var][0]), newVars[0]);
           }
           Debug("miplib") << "vars[] " << var << endl
                           << "    eq " << rewrite(sum) << endl;

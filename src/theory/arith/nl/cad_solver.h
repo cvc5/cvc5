@@ -23,6 +23,7 @@
 #include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
+#include "theory/arith/nl/equality_substitution.h"
 
 namespace cvc5 {
 
@@ -82,6 +83,12 @@ class CadSolver: protected EnvObj
 
  private:
   /**
+   * Add the variable assignment `var = value` to the nonlinear model.
+   * Depending on `value`, it is either added as substitution or witness.
+   */
+  void addToModel(TNode var, TNode value) const;
+
+  /**
    * The variable used to encode real algebraic numbers to nodes.
    */
   Node d_ranVariable;
@@ -104,6 +111,9 @@ class CadSolver: protected EnvObj
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  /** Utility to eliminate variables from simple equalities before going into
+   * the actual coverings solver */
+  EqualitySubstitution d_eqsubs;
 }; /* class CadSolver */
 
 }  // namespace nl

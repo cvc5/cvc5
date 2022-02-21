@@ -41,10 +41,6 @@ bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
 
-bool Configuration::isDumpingBuild() {
-  return IS_DUMPING_BUILD && !IS_MUZZLED_BUILD;
-}
-
 bool Configuration::isMuzzledBuild() {
   return IS_MUZZLED_BUILD;
 }

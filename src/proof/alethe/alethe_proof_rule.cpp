@@ -92,7 +92,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::NOT_ITE1: return "not_ite1";
     case AletheRule::NOT_ITE2: return "not_ite2";
     case AletheRule::ITE_INTRO: return "ite_intro";
-    case AletheRule::DUPLICATED_LITERALS: return "duplicate_literals";
+    case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
     case AletheRule::ITE_SIMPLIFY: return "ite_simplify";
     case AletheRule::EQ_SIMPLIFY: return "eq_simplify";
@@ -114,9 +114,10 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::QNT_SIMPLIFY: return "qnt_simplify";
     case AletheRule::SKO_EX: return "sko_ex";
     case AletheRule::SKO_FORALL: return "sko_forall";
+    case AletheRule::ALL_SIMPLIFY: return "all_simplify";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
-    case AletheRule::REORDER: return "reorder";
+    case AletheRule::REORDERING: return "reordering";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";

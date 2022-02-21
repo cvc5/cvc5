@@ -33,8 +33,6 @@ typerule LAMBDA ::cvc5::theory::uf::LambdaTypeRule
 
 variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 
-variable LAMBDA_VARIABLE "Lambda variable, used for lazy lambda lifting"
-
 # lambda expressions that are isomorphic to array constants can be considered constants
 construle LAMBDA ::cvc5::theory::uf::LambdaTypeRule
 

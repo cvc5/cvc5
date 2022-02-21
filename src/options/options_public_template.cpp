@@ -206,7 +206,7 @@ namespace cvc5::options
     Trace("options") << "set option " << name << " = " << optionarg
                      << std::endl;
     // clang-format off
-  ${set_impl}$
+    ${set_impl}$
     // clang-format on
   }
   else

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of interacting with unsat cores using CVC4's Java API.
+ * An example of interacting with unsat cores using cvc5's Java API.
  */
 
 import io.github.cvc5.api.*;

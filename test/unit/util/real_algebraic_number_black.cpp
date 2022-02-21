@@ -37,7 +37,7 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, creation)
   ASSERT_TRUE(sqrt2 < RealAlgebraicNumber(Integer(2)));
 }
 
-TEST_F(TestUtilBlackRealAlgebraicNumber, comprison)
+TEST_F(TestUtilBlackRealAlgebraicNumber, comparison)
 {
   RealAlgebraicNumber msqrt3({-3, 0, 1}, -2, -1);
   RealAlgebraicNumber msqrt2({-2, 0, 1}, -2, -1);
@@ -79,5 +79,16 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, arithmetic)
   ASSERT_EQ(-msqrt2 + sqrt2, sqrt2 + sqrt2);
   ASSERT_EQ(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
 }
+
+TEST_F(TestUtilBlackRealAlgebraicNumber, division)
+{
+  RealAlgebraicNumber msqrt2({-2, 0, 1}, -2, -1);
+  RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
+  RealAlgebraicNumber mone({1, 1}, -2, 0);
+
+  ASSERT_EQ(msqrt2 / sqrt2, mone);
+  ASSERT_TRUE(isOne(sqrt2 / sqrt2));
+}
+
 }  // namespace test
 }  // namespace cvc5

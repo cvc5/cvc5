@@ -16,11 +16,11 @@
 # bitvectors-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setLogic("QF_BV") # Set the logic
     # The following example has been adapted from the book A Hacker's Delight by
     # Henry S. Warren.
@@ -50,9 +50,9 @@ if __name__ == "__main__":
     b = slv.mkConst(bitvector32, "b")
 
     # First encode the assumption that x must be equal to a or b
-    x_eq_a = slv.mkTerm(kinds.Equal, x, a)
-    x_eq_b = slv.mkTerm(kinds.Equal, x, b)
-    assumption = slv.mkTerm(kinds.Or, x_eq_a, x_eq_b)
+    x_eq_a = slv.mkTerm(Kind.Equal, x, a)
+    x_eq_b = slv.mkTerm(Kind.Equal, x, b)
+    assumption = slv.mkTerm(Kind.Or, x_eq_a, x_eq_b)
 
     # Assert the assumption
     slv.assertFormula(assumption)
@@ -65,8 +65,8 @@ if __name__ == "__main__":
 
     # Encoding code (0)
     # new_x = x == a ? b : a
-    ite = slv.mkTerm(kinds.Ite, x_eq_a, b, a)
-    assignment0 = slv.mkTerm(kinds.Equal, new_x, ite)
+    ite = slv.mkTerm(Kind.Ite, x_eq_a, b, a)
+    assignment0 = slv.mkTerm(Kind.Equal, new_x, ite)
 
     # Assert the encoding of code (0)
     print("Asserting {} to cvc5".format(assignment0))
@@ -76,13 +76,13 @@ if __name__ == "__main__":
 
     # Encoding code (1)
     # new_x_ = a xor b xor x
-    a_xor_b_xor_x = slv.mkTerm(kinds.BVXor, a, b, x)
-    assignment1 = slv.mkTerm(kinds.Equal, new_x_, a_xor_b_xor_x)
+    a_xor_b_xor_x = slv.mkTerm(Kind.BVXor, a, b, x)
+    assignment1 = slv.mkTerm(Kind.Equal, new_x_, a_xor_b_xor_x)
 
     # Assert encoding to cvc5 in current context
     print("Asserting {} to cvc5".format(assignment1))
     slv.assertFormula(assignment1)
-    new_x_eq_new_x_ = slv.mkTerm(kinds.Equal, new_x, new_x_)
+    new_x_eq_new_x_ = slv.mkTerm(Kind.Equal, new_x, new_x_)
 
     print("Checking entailment assuming:", new_x_eq_new_x_)
     print("Expect ENTAILED.")
@@ -92,9 +92,9 @@ if __name__ == "__main__":
 
     # Encoding code (2)
     # new_x_ = a + b - x
-    a_plus_b = slv.mkTerm(kinds.BVAdd, a, b)
-    a_plus_b_minus_x = slv.mkTerm(kinds.BVSub, a_plus_b, x)
-    assignment2 = slv.mkTerm(kinds.Equal, new_x_, a_plus_b_minus_x)
+    a_plus_b = slv.mkTerm(Kind.BVAdd, a, b)
+    a_plus_b_minus_x = slv.mkTerm(Kind.BVSub, a_plus_b, x)
+    assignment2 = slv.mkTerm(Kind.Equal, new_x_, a_plus_b_minus_x)
 
     # Assert encoding to cvc5 in current context
     print("Asserting {} to cvc5".format(assignment2))
@@ -105,17 +105,17 @@ if __name__ == "__main__":
     print("cvc5:", slv.checkEntailed(new_x_eq_new_x_))
 
 
-    x_neq_x = slv.mkTerm(kinds.Equal, x, x).notTerm()
+    x_neq_x = slv.mkTerm(Kind.Equal, x, x).notTerm()
     v = [new_x_eq_new_x_, x_neq_x]
     print("Check entailment assuming: ", v)
     print("Expect NOT_ENTAILED.")
     print("cvc5:", slv.checkEntailed(v))
 
     # Assert that a is odd
-    extract_op = slv.mkOp(kinds.BVExtract, 0, 0)
+    extract_op = slv.mkOp(Kind.BVExtract, 0, 0)
     lsb_of_a = slv.mkTerm(extract_op, a)
     print("Sort of {} is {}".format(lsb_of_a, lsb_of_a.getSort()))
-    a_odd = slv.mkTerm(kinds.Equal, lsb_of_a, slv.mkBitVector(1, 1))
+    a_odd = slv.mkTerm(Kind.Equal, lsb_of_a, slv.mkBitVector(1, 1))
     print("Assert", a_odd)
     print("Check satisifiability")
     slv.assertFormula(a_odd)

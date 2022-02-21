@@ -19,20 +19,14 @@ set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/jni")
 file(MAKE_DIRECTORY ${JNI_DIR})
 
 # Generate Kind.java
+configure_file(genkinds.py.in genkinds.py)
+
 set(JAVA_KIND_FILE
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind.java"
-  )
-configure_file(genkinds.py.in genkinds.py)
-# Generate NativeCode.java
-set(JAVA_NATIVE_CODE_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/NativeCode.java"
-  )
-configure_file(${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/NativeCode.java.in ${JAVA_NATIVE_CODE_FILE})
+)
 
 add_custom_command(
   OUTPUT
-    ${JAVA_KIND_FILE}
-  BYPRODUCTS
     ${JAVA_KIND_FILE}
   COMMAND
     "${PYTHON_EXECUTABLE}"
@@ -76,7 +70,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Utils.java
   ${JAVA_KIND_FILE}
-  ${JAVA_NATIVE_CODE_FILE}
 )
 
 # specify generated jni headers
@@ -147,17 +140,20 @@ add_jar(cvc5jar
   VERSION ${CVC5_VERSION}
   OUTPUT_NAME cvc5
 )
-set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
 
-#create a jar file with linux dependencies
-set(LINUX_AMD64_DIR "linux-amd64")
-add_jar(apijar
-  SOURCES
-  ${JAVA_FILES}
-  RESOURCES NAMESPACE ${LINUX_AMD64_DIR} ${CVC5_JNI}
-  RESOURCES NAMESPACE ${LINUX_AMD64_DIR} ${CMAKE_CURRENT_BINARY_DIR}/../../libcvc5.so.1
-  VERSION ${CVC5_VERSION}
-  OUTPUT_NAME api
+# install in the same directory of cvc5-targets
+install(TARGETS cvc5jni
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install_jar(cvc5jar DESTINATION share/java)
+
+install_jar_exports(
+  TARGETS cvc5jar
+  NAMESPACE cvc5::
+  FILE cvc5JavaTargets.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )

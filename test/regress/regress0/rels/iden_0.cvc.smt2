@@ -21,5 +21,5 @@
 (assert (set.member v x))
 (assert (set.member a x))
 (assert (= id (rel.iden t)))
-(assert (not (set.member (tuple 1 1) (set.intersection id x))))
+(assert (not (set.member (tuple 1 1) (set.inter id x))))
 (check-sat)

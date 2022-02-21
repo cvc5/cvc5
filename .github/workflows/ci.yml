@@ -15,17 +15,17 @@ jobs:
             check-examples: true
             store-to-release: true
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production
             os: macos-11
-            config: production --auto-download --all-bindings --editline
+            config: production --auto-download --python-bindings --editline
             cache-key: production
             python-bindings: true
             check-examples: true
             store-to-release: true
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
@@ -34,15 +34,14 @@ jobs:
             cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --java-bindings --editline
             cache-key: dbg
-            check-units: true
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
@@ -50,7 +49,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -86,7 +85,6 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         check-examples: ${{ matrix.check-examples }}
         check-python-bindings: ${{ matrix.python-bindings }}
-        check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
   
@@ -97,7 +95,6 @@ jobs:
         check-examples: false
         check-install: false
         check-python-bindings: false
-        check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: 1-4
 
@@ -113,3 +110,16 @@ jobs:
       with:
         binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  update-pr:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5' && github.event_name == 'push'
+    needs: build
+    steps:
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.5.1
+        with:
+          token: ${{ secrets.ACTION_USER_TOKEN }}
+          base: 'master'
+          required_approval_count: 1

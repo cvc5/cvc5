@@ -41,11 +41,11 @@ TranscendentalSolver::TranscendentalSolver(Env& env,
                                            InferenceManager& im,
                                            NlModel& m)
     : EnvObj(env),
-      d_tstate(im, m, env),
+      d_tstate(env, im, m),
       d_expSlv(env, &d_tstate),
       d_sineSlv(env, &d_tstate)
 {
-  d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
+  d_taylor_degree = options().arith.nlExtTfTaylorDegree;
 }
 
 TranscendentalSolver::~TranscendentalSolver() {}
@@ -67,8 +67,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
     Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-    Node y = sm->mkDummySkolem(
-        "y", nm->realType(), "phase shifted trigonometric arg");
+    Node y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), a);
     Node new_a = nm->mkNode(k, y);
     d_tstate.d_trSlaves[new_a].insert(new_a);
     d_tstate.d_trSlaves[new_a].insert(a);
@@ -182,7 +182,14 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node tf = std::get<0>(sp);
     unsigned d = std::get<1>(sp);
     Node c = std::get<2>(sp);
-    d_tstate.d_secant_points[tf][d].push_back(c);
+    // we have a CDList within the maps, creating it requires some care
+    auto& secant_points = d_tstate.d_secant_points[tf];
+    auto it = secant_points.find(d);
+    if (it == secant_points.end())
+    {
+      it = secant_points.emplace(d, userContext()).first;
+    }
+    it->second.push_back(c);
   }
 }
 

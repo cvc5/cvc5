@@ -81,8 +81,6 @@ class AbstractValues;
 class Assertions;
 class ResourceOutListener;
 class SmtNodeManagerListener;
-class OptionsManager;
-class Preprocessor;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
@@ -453,9 +451,12 @@ class CVC5_EXPORT SolverEngine
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    *
+   * @param isNext Whether we are asking for the next synthesis solution (if
+   * using incremental).
+   *
    * @throw Exception
    */
-  Result checkSynth();
+  Result checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -563,6 +564,16 @@ class CVC5_EXPORT SolverEngine
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& solMap);
+  /**
+   * Same as above, but used for getting synthesis solutions from a "subsolver"
+   * that has been initialized to assert the synthesis conjecture as a
+   * normal assertion.
+   *
+   * This method returns true if we are in a state immediately preceded by
+   * a successful call to checkSat, where this SolverEngine has an asserted
+   * synthesis conjecture.
+   */
+  bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
   /**
    * Do quantifier elimination.
@@ -606,13 +617,8 @@ class CVC5_EXPORT SolverEngine
    * extended command get-qe-disjunct, which can be used
    * for incrementally computing the result of a
    * quantifier elimination.
-   *
-   * The argument strict is whether to output
-   * warnings, such as when an unexpected logic is used.
-   *
-   * throw@ Exception
    */
-  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
@@ -626,12 +632,18 @@ class CVC5_EXPORT SolverEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+  bool getInterpolant(const Node& conj,
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Node& conj, Node& interpol);
+  /**
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
+   *
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
+   */
+  bool getInterpolantNext(Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -647,8 +659,13 @@ class CVC5_EXPORT SolverEngine
    */
   bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getAbduct(const Node& conj, Node& abd);
+  /**
+   * Get next abduct. This can only be called immediately after a successful
+   * call to getAbduct or getAbductNext.
+   *
+   * Returns true if an abduct was found, and sets abd to the abduct.
+   */
+  bool getAbductNext(Node& abd);
 
   /**
    * Get list of quantified formulas that were instantiated on the last call
@@ -1025,6 +1042,22 @@ class CVC5_EXPORT SolverEngine
    * changes.
    */
   std::vector<Node> getAssertionsInternal();
+
+  /**
+   * Return a reference to options like for `EnvObj`.
+   */
+  const Options& options() const;
+
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @param src The source of the check, which is printed in the exception if
+   * this check fails.
+   */
+  void ensureWellFormedTerm(const Node& n, const std::string& src) const;
+
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */

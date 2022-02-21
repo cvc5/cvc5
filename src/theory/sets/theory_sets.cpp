@@ -76,7 +76,7 @@ void TheorySets::finishInit()
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(SET_SINGLETON);
   d_equalityEngine->addFunctionKind(SET_UNION);
-  d_equalityEngine->addFunctionKind(SET_INTERSECTION);
+  d_equalityEngine->addFunctionKind(SET_INTER);
   d_equalityEngine->addFunctionKind(SET_MINUS);
   d_equalityEngine->addFunctionKind(SET_MEMBER);
   d_equalityEngine->addFunctionKind(SET_SUBSET);
@@ -93,6 +93,9 @@ void TheorySets::finishInit()
 
   // finish initialization internally
   d_internal->finishInit();
+
+  // memberships are not relevant for model building
+  d_valuation.setIrrelevantKind(SET_MEMBER);
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }

@@ -94,7 +94,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *       TermsToRecons'' = {}
  *       for each subfield type T of T0
  *         for each t in TermsToRecons'[T]
- *           TermsToRecons'[T] += t
+ *           TermsToRecons[T] += t
  *           for each s[zs] in Pool[T]
  *             TermsToRecons'' += matchNewObs(t, s[zs])
  *         TermsToRecons' = TermsToRecons''
@@ -109,7 +109,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *     Sub = {} // substitution map from zs to corresponding new vars ks
  *     for each (z, st) in {zs -> sts}
  *       // let X be the theory the solver is invoked with
- *       if exists (k, ts) in Obs s.t. !=_X ts[0] = st
+ *       if exists (k, ts) in Obs s.t. |=_X ts[0] = st
  *         ts += st
  *         Sub[z] = k
  *       else
@@ -176,6 +176,29 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
                            uint64_t enumLimit);
 
  private:
+  /**
+   * Implements the reconstruction procedure.
+   *
+   * @param sol the target term
+   * @param stn the sygus datatype type encoding the syntax restrictions
+   * @param reconstructed the flag to update, set to 1 if we successfully return
+   *                      a node, otherwise it is set to -1
+   * @param enumLimit a value to limit the effort spent by this class (roughly
+   *                  equal to the number of intermediate terms to try)
+   */
+  void main(Node sol, TypeNode stn, int8_t& reconstructed, uint64_t enumLimit);
+
+  /**
+   * Implements the match phase of the reconstruction procedure with the pool
+   * prepopulated with sygus datatype type constructors (grammar rules).
+   *
+   * @param sol the target term
+   * @param stn the sygus datatype type encoding the syntax restrictions
+   * @param reconstructed the flag to update, set to 1 if we successfully return
+   *                      a node, otherwise it is set to -1
+   */
+  void fast(Node sol, TypeNode stn, int8_t& reconstructed);
+
   /** Match builtin term `t` with pattern `sz`.
    *
    * This function matches the builtin term to reconstruct `t` with the builtin
@@ -293,11 +316,8 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
    * Print the pool of patterns/shape used in the matching phase.
    *
    * \note requires enabling "sygus-rcons" trace
-   *
-   * @param pool a pool of patterns/shapes to print
    */
-  void printPool(
-      const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
+  void printPool() const;
 
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
@@ -320,6 +340,9 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
   /** a cache of sygus variables treated as ground terms by matching */
   std::unordered_map<Node, Node> d_sygusVars;
 
+  /** a set of unique (up to rewriting) patterns/shapes in the grammar used by
+   * matching */
+  std::unordered_map<TypeNode, std::vector<Node>> d_pool;
   /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;
 };

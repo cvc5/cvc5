@@ -11,7 +11,7 @@
 (assert (= t1 (set.union s (set.singleton 2.5))))
 (assert (= t2 (set.union s (set.singleton 2.0))))
 (assert (= t3 (set.union r3 (set.singleton 2.5))))
-(assert (= (set.intersection r1 r2) (set.intersection s (set.singleton 0.0))))
+(assert (= (set.inter r1 r2) (set.inter s (set.singleton 0.0))))
 (assert (not (= r1 (as set.empty (Set Real)))))
 
 (check-sat)

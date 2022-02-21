@@ -103,7 +103,7 @@ class IAndSolver : protected EnvObj
 
   /**
    * convert integer value to bitvector value of bitwidth k,
-   * equivalent to Rewriter::rewrite( ((_ intToBv k) n) ).
+   * equivalent to rewrite( ((_ intToBv k) n) ).
    */
   Node convertToBvK(unsigned k, Node n) const;
   /** make iand */
@@ -115,7 +115,7 @@ class IAndSolver : protected EnvObj
   /**
    * Value-based refinement lemma for i of the form ((_ iand k) x y). Returns:
    *   x = M(x) ^ y = M(y) =>
-   *     ((_ iand k) x y) = Rewriter::rewrite(((_ iand k) M(x) M(y)))
+   *     ((_ iand k) x y) = rewrite(((_ iand k) M(x) M(y)))
    */
   Node valueBasedLemma(Node i);
   /**

@@ -39,7 +39,7 @@ int main() {
 
   Term two = slv.mkInteger(2);
   Term twox = slv.mkTerm(Kind::MULT, two, x);
-  Term twox_plus_y = slv.mkTerm(Kind::PLUS, twox, y);
+  Term twox_plus_y = slv.mkTerm(Kind::ADD, twox, y);
 
   Term three = slv.mkInteger(3);
   Term twox_plus_y_geq_3 = slv.mkTerm(Kind::GEQ, twox_plus_y, three);
@@ -47,10 +47,10 @@ int main() {
   Term formula =
       slv.mkTerm(Kind::AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
-  std::cout << "Checking entailment of formula " << formula << " with CVC4."
+  std::cout << "Checking entailment of formula " << formula << " with cvc5."
             << std::endl;
-  std::cout << "CVC4 should report ENTAILED." << std::endl;
-  std::cout << "Result from CVC4 is: " << slv.checkEntailed(formula)
+  std::cout << "cvc5 should report ENTAILED." << std::endl;
+  std::cout << "Result from cvc5 is: " << slv.checkEntailed(formula)
             << std::endl;
 
   return 0;

@@ -6,7 +6,7 @@
 (define-fun smt_set_mem ((x Elt) (s mySet)) Bool (set.member x s))
 (define-fun smt_set_add ((s mySet) (x Elt)) mySet (set.union s (set.singleton x)))
 (define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (set.union s1 s2))
-(define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (set.intersection s1 s2))
+(define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (set.inter s1 s2))
 (define-fun smt_set_dif ((s1 mySet) (s2 mySet)) mySet (set.minus s1 s2))
 (define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (set.subset s1 s2))
 (declare-fun z3v66 () Int)

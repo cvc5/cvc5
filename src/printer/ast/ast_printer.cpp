@@ -70,7 +70,7 @@ void AstPrinter::toStream(std::ostream& out,
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     // constant
     out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, n);
+    n.constToStream(out);
   }
   else if (n.isClosure())
   {

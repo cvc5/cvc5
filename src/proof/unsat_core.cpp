@@ -16,8 +16,8 @@
 #include "proof/unsat_core.h"
 
 #include "base/check.h"
-#include "expr/expr_iomanip.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "printer/printer.h"
 #include "smt/solver_engine_scope.h"
 
@@ -50,8 +50,10 @@ UnsatCore::const_iterator UnsatCore::end() const {
 }
 
 void UnsatCore::toStream(std::ostream& out) const {
-  expr::ExprDag::Scope scope(out, false);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, *this);
 }
 
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {

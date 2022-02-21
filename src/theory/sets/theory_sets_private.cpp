@@ -59,7 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 TheorySetsPrivate::~TheorySetsPrivate()
@@ -523,7 +523,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
           // see if there are members in second argument
           const std::map<Node, Node>& r2mem = d_state.getMembers(r2);
           const std::map<Node, Node>& r2nmem = d_state.getNegativeMembers(r2);
-          if (!r2mem.empty() || k != kind::SET_INTERSECTION)
+          if (!r2mem.empty() || k != kind::SET_INTER)
           {
             Trace("sets-debug")
                 << "Checking " << term << ", members = " << (!r1mem.empty())
@@ -546,7 +546,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 {
                   valid = true;
                 }
-                else if (k == kind::SET_INTERSECTION)
+                else if (k == kind::SET_INTER)
                 {
                   // conclude x is in term
                   // if also existing in members of r2
@@ -1289,7 +1289,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     case kind::RELATION_JOIN_IMAGE:
     {
       // these are logic exceptions, not type checking exceptions
-      if (node[1].getKind() != kind::CONST_RATIONAL)
+      if (!node[1].isConst())
       {
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");

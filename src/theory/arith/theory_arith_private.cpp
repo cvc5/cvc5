@@ -235,17 +235,6 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
     }
   }
   Assert(negPos < neg.size());
-
-  // Assert(dnconf.getKind() == kind::AND);
-  // Assert(upconf.getKind() == kind::AND);
-  // Assert(dnpos < dnconf.getNumChildren());
-  // Assert(uppos < upconf.getNumChildren());
-  // Assert(equalUpToNegation(dnconf[dnpos], upconf[uppos]));
-
-  // NodeBuilder nb(kind::AND);
-  // dropPosition(nb, dnconf, dnpos);
-  // dropPosition(nb, upconf, uppos);
-  // return safeConstructNary(nb);
 }
 
 TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
@@ -389,6 +378,8 @@ bool TheoryArithPrivate::isProofEnabled() const
 
 void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(a->inConflict());
+  Assert(id != InferenceId::UNKNOWN)
+      << "Must provide an inference id in TheoryArithPrivate::raiseConflict";
   d_conflicts.push_back(std::make_pair(a, id));
 }
 
@@ -421,21 +412,6 @@ void TheoryArithPrivate::revertOutOfConflict(){
 void TheoryArithPrivate::clearUpdates(){
   d_updatedBounds.purge();
 }
-
-// void TheoryArithPrivate::raiseConflict(ConstraintCP a, ConstraintCP b){
-//   ConstraintCPVec v;
-//   v.push_back(a);
-//   v.push_back(b);
-//   d_conflicts.push_back(v);
-// }
-
-// void TheoryArithPrivate::raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c){
-//   ConstraintCPVec v;
-//   v.push_back(a);
-//   v.push_back(b);
-//   v.push_back(c);
-//   d_conflicts.push_back(v);
-// }
 
 void TheoryArithPrivate::zeroDifferenceDetected(ArithVar x){
   if(d_cmEnabled){
@@ -959,7 +935,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
     const DeltaRational drv = getDeltaValue(term);
     const Rational& delta = d_partialModel.getDelta();
     const Rational qmodel = drv.substituteDelta( delta );
-    return mkRationalNode( qmodel );
+    return NodeManager::currentNM()->mkConstRealOrInt(term.getType(), qmodel);
   } catch (DeltaRationalException& dr) {
     return Node::null();
   } catch (ModelException& me) {
@@ -1166,7 +1142,8 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
     }
   }
 
-  if(polyNode.getKind() == PLUS){
+  if (polyNode.getKind() == ADD)
+  {
     d_tableauSizeHasBeenModified = true;
 
     vector<ArithVar> variables;
@@ -1204,7 +1181,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
 
   /* Note:
    * It is worth documenting that polyNode should only be marked as
-   * being setup by this function if it has kind PLUS.
+   * being setup by this function if it has kind ADD.
    * Other kinds will be marked as being setup by lower levels of setup
    * specifically setupVariableList.
    */
@@ -1264,17 +1241,19 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
-  Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS || internal);
-  if (logicInfo().isLinear() && Variable::isDivMember(x))
+  Kind xk = x.getKind();
+  Assert(isLeaf(x) || VarList::isMember(x) || xk == ADD || internal);
+  if (logicInfo().isLinear()
+      && (Variable::isDivMember(x) || xk == IAND || isTranscendentalKind(xk)))
   {
     stringstream ss;
-    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to "
+    ss << "A non-linear fact was asserted to "
           "arithmetic in a linear logic: "
        << x << std::endl;
     throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
-  Assert(x.getType().isReal());  // real or integer
+  Assert(x.getType().isRealOrInt());  // real or integer
 
   ArithVar max = d_partialModel.getNumberOfVariables();
   ArithVar varX = d_partialModel.allocate(x, aux);
@@ -1427,10 +1406,10 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
-      Pf pfSum =
-          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
-                        {pfGt, pfLt},
-                        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+      Pf pfSum = d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                               {pfGt, pfLt},
+                               {nm->mkConst<Rational>(CONST_RATIONAL, -1),
+                                nm->mkConst<Rational>(CONST_RATIONAL, 1)});
       Pf pfBot = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
       std::vector<Node> assumptions = {leq.getNode().negate(),
@@ -1701,7 +1680,7 @@ Node flattenAndSort(Node n){
   switch(k){
   case kind::OR:
   case kind::AND:
-  case kind::PLUS:
+  case kind::ADD:
   case kind::MULT:
     break;
   default:
@@ -1759,8 +1738,9 @@ void TheoryArithPrivate::outputConflicts(){
       Node conflict = trustedConflict.getNode();
 
       ++conflicts;
-      Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
-                               << " has proof: " << hasProof << endl;
+      Debug("arith::conflict")
+          << "d_conflicts[" << i << "] " << conflict
+          << " has proof: " << hasProof << ", id = " << conf.second << endl;
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -1839,7 +1819,6 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
     << " " << effortLevel
     << " " << d_lastContextIntegerAttempted
     << " " << level
-    << " " << hasIntegerModel()
     << endl;
 
   if(d_qflraStatus == Result::UNSAT){ return false; }
@@ -1925,7 +1904,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
                                      << "  (" << neg_at_j->isTrue() <<") " << neg_at_j << endl
                                      << "  (" << at_j->isTrue() <<") " << at_j << endl;
           neg_at_j->impliedByIntHole(vec, true);
-          raiseConflict(at_j, InferenceId::UNKNOWN);
+          raiseConflict(at_j, InferenceId::ARITH_CONF_REPLAY_LOG);
           break;
         }
       }
@@ -1961,7 +1940,9 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
 
   Assert(k == kind::LEQ || k == kind::GEQ);
 
-  Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
+  NodeManager* nm = NodeManager::currentNM();
+  Node comparison =
+      nm->mkNode(k, sum, nm->mkConstRealOrInt(sum.getType(), rhs));
   Node rewritten = rewrite(comparison);
   if(!(Comparison::isNormalAtom(rewritten))){
     return make_pair(NullConstraint, added);
@@ -2061,21 +2042,12 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
   return replayGetConstraint(lhs, k, rhs, ci.getKlass() == BranchCutKlass);
 }
 
-// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv,
-// Kind k){
-//   NodeManager* nm = NodeManager::currentNM();
-//   Node sumLhs = toSumNode(vars, dv.lhs);
-//   Node ineq = nm->mkNode(k, sumLhs, mkRationalNode(dv.rhs) );
-//   Node lit = rewrite(ineq);
-//   return lit;
-// }
-
 Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   Debug("arith::toSumNode") << "toSumNode() begin" << endl;
-  NodeBuilder nb(kind::PLUS);
   NodeManager* nm = NodeManager::currentNM();
   DenseMap<Rational>::const_iterator iter, end;
   iter = sum.begin(), end = sum.end();
+  std::vector<Node> children;
   for(; iter != end; ++iter){
     ArithVar x = *iter;
     if(!vars.hasNode(x)){ return Node::null(); }
@@ -2083,10 +2055,19 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     const Rational& q = sum[x];
     Node mult = nm->mkNode(kind::MULT, mkRationalNode(q), xNode);
     Debug("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
-    nb << mult;
+    children.push_back(mult);
   }
   Debug("arith::toSumNode") << "toSumNode() end" << endl;
-  return safeConstructNary(nb);
+  if (children.empty())
+  {
+    // NOTE: real type assumed here
+    return nm->mkConstReal(Rational(0));
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  return nm->mkNode(kind::ADD, children);
 }
 
 ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& conflict){
@@ -2187,7 +2168,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
     if(!contains(conf, bcneg)){
       Debug("approx::branch") << "reraise " << conf  << endl;
       ConstraintCP conflicting = vectorToIntHoleConflict(conf);
-      raiseConflict(conflicting, InferenceId::UNKNOWN);
+      raiseConflict(conflicting, InferenceId::ARITH_CONF_BRANCH_CUT);
     }else if(!bci.proven()){
       drop(conf, bcneg);
       bci.setExplanation(conf);
@@ -2207,7 +2188,7 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
     }
     Debug("approx::replayAssert") << "replayAssertion " << c << endl;
     if(inConflict){
-      raiseConflict(c, InferenceId::UNKNOWN);
+      raiseConflict(c, InferenceId::ARITH_CONF_REPLAY_ASSERT);
     }else{
       assertionCases(c);
     }
@@ -2356,7 +2337,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             }else {
               con->impliedByIntHole(exp, true);
               Debug("approx::replayLogRec") << "cut into conflict " << con << endl;
-              raiseConflict(con, InferenceId::UNKNOWN);
+              raiseConflict(con, InferenceId::ARITH_CONF_REPLAY_LOG_REC);
             }
           }else{
             ++d_statistics.d_cutsProofFailed;
@@ -2530,12 +2511,9 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       Assert(d_partialModel.canBeReleased(v));
       if(!d_tableau.isBasic(v)){
         /* if it is not basic make it basic. */
-        ArithVar b = ARITHVAR_SENTINEL;
-        for(Tableau::ColIterator ci = d_tableau.colIterator(v); !ci.atEnd(); ++ci){
-          const Tableau::Entry& e = *ci;
-          b = d_tableau.rowIndexToBasic(e.getRowIndex());
-          break;
-        }
+        auto ci = d_tableau.colIterator(v);
+        Assert(!ci.atEnd());
+        ArithVar b = d_tableau.rowIndexToBasic((*ci).getRowIndex());
         Assert(b != ARITHVAR_SENTINEL);
         DeltaRational cp = d_partialModel.getAssignment(b);
         if(d_partialModel.cmpAssignmentLowerBound(b) < 0){
@@ -2590,7 +2568,8 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
       }
       Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
-      Node leq = nm->mkNode(kind::LEQ, n, mkRationalNode(fl));
+      Node leq =
+          nm->mkNode(kind::LEQ, n, nm->mkConstRealOrInt(n.getType(), fl));
       Node norm = rewrite(leq);
       return norm;
     }
@@ -2604,11 +2583,10 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
   const DenseMap<Rational>& lhs = ci.getReconstruction().lhs;
   Node sum = toSumNode(d_partialModel, lhs);
   if(!sum.isNull()){
+    NodeManager* nm = NodeManager::currentNM();
     Kind k = ci.getKind();
     Assert(k == kind::LEQ || k == kind::GEQ);
-    Node rhs = mkRationalNode(ci.getReconstruction().rhs);
-
-    NodeManager* nm = NodeManager::currentNM();
+    Node rhs = nm->mkConstRealOrInt(sum.getType(), ci.getReconstruction().rhs);
     Node ineq = nm->mkNode(k, sum, rhs);
     return rewrite(ineq);
   }
@@ -3044,12 +3022,17 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   case kind::LT:
     return !isSatLiteral(n);
   case kind::EQUAL:
-    if(n[0].getType().isReal()){
+    if (n[0].getType().isRealOrInt())
+    {
       return !isSatLiteral(n);
-    }else if(n[0].getType().isBoolean()){
+    }
+    else if (n[0].getType().isBoolean())
+    {
       return hasFreshArithLiteral(n[0]) ||
         hasFreshArithLiteral(n[1]);
-    }else{
+    }
+    else
+    {
       return false;
     }
   case kind::IMPLIES:
@@ -3370,8 +3353,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
   Debug("arith") << "integer? "
        << " conf/split " << emmittedConflictOrSplit
-       << " fulleffort " << Theory::fullEffort(effortLevel)
-       << " hasintmodel " << hasIntegerModel() << endl;
+       << " fulleffort " << Theory::fullEffort(effortLevel) << endl;
 
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel) && !hasIntegerModel()){
     Node possibleConflict = Node::null();
@@ -3687,6 +3669,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
     }
   }
 
+  NodeManager* nm = NodeManager::currentNM();
   while(d_congruenceManager.hasMorePropagations()){
     TNode toProp = d_congruenceManager.getNextPropagation();
 
@@ -3706,7 +3689,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
       Node notNormalized = normalized.negate();
       std::vector<Node> ants(exp.getNode().begin(), exp.getNode().end());
       ants.push_back(notNormalized);
-      Node lp = safeConstructNary(kind::AND, ants);
+      Node lp = nm->mkAnd(ants);
       Debug("arith::prop") << "propagate conflict" <<  lp << endl;
       if (proofsEnabled())
       {
@@ -3771,7 +3754,8 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
     case kind::CONST_RATIONAL:
       return term.getConst<Rational>();
 
-    case kind::PLUS: {  // 2+ args
+    case kind::ADD:
+    {  // 2+ args
       DeltaRational value(0);
       for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
            ++i) {
@@ -3790,10 +3774,12 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
       }
       return value;
     }
-    case kind::MINUS: {  // 2 args
+    case kind::SUB:
+    {  // 2 args
       return getDeltaValue(term[0]) - getDeltaValue(term[1]);
     }
-    case kind::UMINUS: {  // 1 arg
+    case kind::NEG:
+    {  // 1 arg
       return (-getDeltaValue(term[0]));
     }
 
@@ -3901,6 +3887,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
+  NodeManager* nm = NodeManager::currentNM();
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -3913,7 +3900,7 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
         const DeltaRational& mod = d_partialModel.getAssignment(v);
         Rational qmodel = mod.substituteDelta(delta);
 
-        Node qNode = mkRationalNode(qmodel);
+        Node qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
         // Add to the map
         arithModel[term] = qNode;
@@ -4474,11 +4461,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::vector<Node> farkasCoefficients;
         farkasCoefficients.reserve(coeffs->size());
         auto nm = NodeManager::currentNM();
-        std::transform(
-            coeffs->begin(),
-            coeffs->end(),
-            std::back_inserter(farkasCoefficients),
-            [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
+        std::transform(coeffs->begin(),
+                       coeffs->end(),
+                       std::back_inserter(farkasCoefficients),
+                       [nm](const Rational& r) {
+                         return nm->mkConst<Rational>(CONST_RATIONAL, r);
+                       });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(
@@ -4779,8 +4767,11 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
   return make_pair(false, Node::null());
 }
 
-bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational& c){
-  Node t = Rewriter::rewrite(term);
+bool TheoryArithPrivate::decomposeTerm(Node t,
+                                       Rational& m,
+                                       Node& p,
+                                       Rational& c)
+{
   if(!Polynomial::isMember(t)){
     return false;
   }
@@ -4876,12 +4867,12 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   // left : lm*( lp ) + lc
   // right: rm*( rp ) + rc
   Rational lc, rc;
-  bool success = decomposeTerm(left, lm, lp, lc);
+  bool success = decomposeTerm(rewrite(left), lm, lp, lc);
   if(!success){ return false; }
-  success = decomposeTerm(right, rm, rp, rc);
+  success = decomposeTerm(rewrite(right), rm, rp, rc);
   if(!success){ return false; }
 
-  Node diff = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
+  Node diff = rewrite(NodeManager::currentNM()->mkNode(kind::SUB, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
   Assert(success);
@@ -4959,7 +4950,10 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
 void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const {
   tmp.first = Node::null();
   if(sgn == 0){ return; }
-  if(tp.getKind() != PLUS){ return; }
+  if (tp.getKind() != ADD)
+  {
+    return;
+  }
   Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);

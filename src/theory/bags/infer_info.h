@@ -32,7 +32,6 @@ class TheoryInferenceManager;
 
 namespace bags {
 
-
 /**
  * An inference. This is a class to track an unprocessed call to either
  * send a fact, lemma, or conflict that is waiting to be asserted to the

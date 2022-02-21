@@ -30,7 +30,7 @@ TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
 {
-  Assert(n.getKind() == kind::SET_UNION || n.getKind() == kind::SET_INTERSECTION
+  Assert(n.getKind() == kind::SET_UNION || n.getKind() == kind::SET_INTER
          || n.getKind() == kind::SET_MINUS);
   TypeNode setType = n[0].getType(check);
   if (check)
@@ -57,7 +57,7 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
                                                 TNode n)
 {
   // only SET_UNION has a const rule in kinds.
-  // SET_INTERSECTION and SET_MINUS are not used in the canonical representation
+  // SET_INTER and SET_MINUS are not used in the canonical representation
   // of sets and therefore they do not have const rules in kinds
   Assert(n.getKind() == kind::SET_UNION);
   return NormalForm::checkNormalConstant(n);
@@ -131,7 +131,7 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
     TypeNode type2 = n[0].getType(check);
     TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
     // the type of the element should be a subtype of the type of the operator
-    // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
+    // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
     if (leastCommonType.isNull() || leastCommonType != type1)
     {
       std::stringstream ss;
@@ -293,6 +293,48 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
+TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+{
+  Assert(n.getKind() == kind::SET_MAP);
+  TypeNode functionType = n[0].getType(check);
+  TypeNode setType = n[1].getType(check);
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "set.map operator expects a set in the second argument, "
+          "a non-set is found");
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " *) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    if (!(argTypes.size() == 1 && argTypes[0] == elementType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " *). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  TypeNode rangeType = n[0].getType().getRangeType();
+  TypeNode retType = nodeManager->mkSetType(rangeType);
+  return retType;
+}
+
 TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
                                                 bool check)
@@ -420,6 +462,13 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
   {
     throw TypeCheckingExceptionPrivate(
         n, " JoinImage operates on a non-binary relation");
+  }
+  if (tupleTypes[0] != tupleTypes[1])
+  {
+    // TODO: Investigate supporting JoinImage for general binary
+    // relationshttps://github.com/cvc5/cvc5-projects/issues/346
+    throw TypeCheckingExceptionPrivate(
+        n, " JoinImage operates on a pair of different types");
   }
   TypeNode valType = n[1].getType(check);
   if (valType != nodeManager->integerType())

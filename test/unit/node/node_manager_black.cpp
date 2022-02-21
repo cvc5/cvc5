@@ -140,7 +140,7 @@ TEST_F(TestNodeBlackNodeManager, mkConst_bool)
 TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 {
   Rational r("3/2");
-  Node n = d_nodeManager->mkConst(r);
+  Node n = d_nodeManager->mkConst(CONST_RATIONAL, r);
   ASSERT_EQ(n.getConst<Rational>(), r);
 }
 

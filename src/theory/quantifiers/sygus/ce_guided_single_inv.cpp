@@ -39,7 +39,7 @@ namespace quantifiers {
 CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
     : EnvObj(env),
       d_isSolved(false),
-      d_sip(new SingleInvocationPartition),
+      d_sip(new SingleInvocationPartition(env)),
       d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
       d_single_invocation(false),
       d_treg(tr)
@@ -339,7 +339,7 @@ Node CegSingleInv::getSolution(size_t sol_index,
   sol = sol.substitute(
       vars.begin(), vars.end(), sygusVars.begin(), sygusVars.end());
   sol = reconstructToSyntax(sol, stn, reconstructed, rconsSygus);
-  return s.getKind() == LAMBDA
+  return !sol.isNull() && s.getKind() == LAMBDA
              ? NodeManager::currentNM()->mkNode(LAMBDA, s[0], sol)
              : sol;
 }
@@ -431,7 +431,12 @@ void CegSingleInv::setSolution()
   if (!d_solvedf.empty())
   {
     // replace the final solution into the solved functions
-    finalSol.applyToRange(d_solvedf, true);
+    finalSol.applyToRange(d_solvedf);
+    // rewrite the solution
+    for (Node& n : d_solvedf.d_subs)
+    {
+      n = rewrite(n);
+    }
   }
 }
 
@@ -508,7 +513,7 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter qrew(options());
+    QuantifiersRewriter qrew(d_env.getRewriter(), options());
     qrew.getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())

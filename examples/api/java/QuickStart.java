@@ -70,11 +70,11 @@ public class QuickStart
       Term one = solver.mkReal(1);
 
       // Next, we construct the term x + y
-      Term xPlusY = solver.mkTerm(Kind.PLUS, x, y);
+      Term xPlusY = solver.mkTerm(Kind.ADD, x, y);
 
       // Now we can define the constraints.
       // They use the operators +, <=, and <.
-      // In the API, these are denoted by PLUS, LEQ, and LT.
+      // In the API, these are denoted by ADD, LEQ, and LT.
       // A list of available operators is available in:
       // src/api/cpp/cvc5_kind.h
       Term constraint1 = solver.mkTerm(Kind.LT, zero, x);
@@ -103,14 +103,35 @@ public class QuickStart
 
       // It is also possible to get values for compound terms,
       // even if those did not appear in the original formula.
-      Term xMinusY = solver.mkTerm(Kind.MINUS, x, y);
+      Term xMinusY = solver.mkTerm(Kind.SUB, x, y);
       Term xMinusYVal = solver.getValue(xMinusY);
 
-      // Further, we can convert the values to java types,
-      Pair<BigInteger, BigInteger> xRational = xVal.getRealValue();
-      Pair<BigInteger, BigInteger> yRational = yVal.getRealValue();
-      System.out.println("value for x: " + xRational.first + "/" + xRational.second);
-      System.out.println("value for y: " + yRational.first + "/" + yRational.second);
+      // Further, we can convert the values to java types
+      Pair<BigInteger, BigInteger> xPair = xVal.getRealValue();
+      Pair<BigInteger, BigInteger> yPair = yVal.getRealValue();
+      Pair<BigInteger, BigInteger> xMinusYPair = xMinusYVal.getRealValue();
+
+      System.out.println("value for x: " + xPair.first + "/" + xPair.second);
+      System.out.println("value for y: " + yPair.first + "/" + yPair.second);
+      System.out.println("value for x - y: " + xMinusYPair.first + "/" + xMinusYPair.second);
+
+      // Another way to independently compute the value of x - y would be
+      // to perform the (rational) arithmetic manually.
+      // However, for more complex terms,
+      // it is easier to let the solver do the evaluation.
+      Pair<BigInteger, BigInteger> xMinusYComputed =
+          new Pair(xPair.first.multiply(yPair.second).subtract(xPair.second.multiply(yPair.first)),
+              xPair.second.multiply(yPair.second));
+      BigInteger g = xMinusYComputed.first.gcd(xMinusYComputed.second);
+      xMinusYComputed = new Pair(xMinusYComputed.first.divide(g), xMinusYComputed.second.divide(g));
+      if (xMinusYComputed.equals(xMinusYPair))
+      {
+        System.out.println("computed correctly");
+      }
+      else
+      {
+        System.out.println("computed incorrectly");
+      }
 
       // Next, we will check satisfiability of the same formula,
       // only this time over integer variables a and b.
@@ -124,7 +145,7 @@ public class QuickStart
       solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), a));
       solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), b));
       solver.assertFormula(
-          solver.mkTerm(Kind.LT, solver.mkTerm(Kind.PLUS, a, b), solver.mkInteger(1)));
+          solver.mkTerm(Kind.LT, solver.mkTerm(Kind.ADD, a, b), solver.mkInteger(1)));
       solver.assertFormula(solver.mkTerm(Kind.LEQ, a, b));
 
       // We check whether the revised assertion is satisfiable.

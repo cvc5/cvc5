@@ -113,7 +113,7 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       }else if( q[1][1]==h ){
         return q[1][0];
       }
-      else if (q[1][0].getType().isReal())
+      else if (q[1][0].getType().isRealOrInt())
       {
         // solve for h in the equality
         std::map<Node, Node> msum;

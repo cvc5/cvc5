@@ -13,6 +13,6 @@
 (assert (set.subset A (set.insert g h i (set.singleton f))))
 (assert (= C (set.minus A B) ))
 (assert (set.subset B A))
-(assert (= C (set.intersection A B)))
+(assert (= C (set.inter A B)))
 (assert (set.member j C))
 (check-sat)

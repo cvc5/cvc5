@@ -11,6 +11,6 @@
 (assert (= (set.card b) d))
 (assert (= (set.card c) 0))
 (assert (= 0 (mod 0 d)))
-(assert (> (set.card (set.minus e (set.intersection (set.intersection e b) (set.minus e c)))) 1))
+(assert (> (set.card (set.minus e (set.inter (set.inter e b) (set.minus e c)))) 1))
 
 (check-sat)

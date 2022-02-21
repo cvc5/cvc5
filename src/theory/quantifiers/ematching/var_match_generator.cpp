@@ -24,10 +24,11 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Trigger* tparent,
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Env& env,
+                                                     Trigger* tparent,
                                                      Node var,
                                                      Node subs)
-    : InstMatchGenerator(tparent, Node::null()),
+    : InstMatchGenerator(env, tparent, Node::null()),
       d_var(var),
       d_subs(subs),
       d_rm_prev(false)
@@ -51,7 +52,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
                                   << d_var << " in " << d_subs << std::endl;
     TNode tvar = d_var;
     Node s = d_subs.substitute(tvar, d_eq_class);
-    s = Rewriter::rewrite(s);
+    s = rewrite(s);
     Trace("var-trigger-matching")
         << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();

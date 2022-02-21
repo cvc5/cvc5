@@ -74,46 +74,11 @@ class CVC5_EXPORT Rational
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
    *
-   * Throws std::invalid_argument if the string is not a valid rational.
-   * For more information about what is a valid rational string,
-   * see CLN's documentation for read_rational.
+   * Throws std::invalid_argument if the string is not a valid rational, i.e.,
+   * if it does not match sign{digit}+/sign{digit}+.
    */
-  explicit Rational(const char* s, unsigned base = 10)
-  {
-    cln::cl_read_flags flags;
-
-    flags.syntax = cln::syntax_rational;
-    flags.lsyntax = cln::lsyntax_standard;
-    flags.rational_base = base;
-    try
-    {
-      d_value = read_rational(flags, s, NULL, NULL);
-    }
-    catch (...)
-    {
-      std::stringstream ss;
-      ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
-      throw std::invalid_argument(ss.str());
-    }
-  }
-  Rational(const std::string& s, unsigned base = 10)
-  {
-    cln::cl_read_flags flags;
-
-    flags.syntax = cln::syntax_rational;
-    flags.lsyntax = cln::lsyntax_standard;
-    flags.rational_base = base;
-    try
-    {
-      d_value = read_rational(flags, s.c_str(), NULL, NULL);
-    }
-    catch (...)
-    {
-      std::stringstream ss;
-      ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
-      throw std::invalid_argument(ss.str());
-    }
-  }
+  explicit Rational(const char* s, uint32_t base = 10);
+  Rational(const std::string& s, uint32_t base = 10);
 
   /**
    * Creates a Rational from another Rational, q, by performing a deep copy.
@@ -228,7 +193,7 @@ class CVC5_EXPORT Rational
     }
   }
 
-  bool isIntegral() const { return getDenominator() == 1; }
+  bool isIntegral() const { return cln::denominator(d_value) == 1; }
 
   Integer floor() const { return Integer(cln::floor1(d_value)); }
 

@@ -44,7 +44,7 @@ class BaseSolver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(Env& env, SolverState& s, InferenceManager& im);
+  BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BaseSolver();
 
   //-----------------------inference steps
@@ -106,7 +106,7 @@ class BaseSolver : protected EnvObj
   /**
    * Get the set of equivalence classes of type string.
    */
-  const std::vector<Node>& getStringEqc() const;
+  const std::vector<Node>& getStringLikeEqc() const;
   //-----------------------end query functions
 
  private:
@@ -217,6 +217,8 @@ class BaseSolver : protected EnvObj
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager& d_im;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
   /** Commonly used constants */
   Node d_emptyString;
   Node d_false;
@@ -236,8 +238,8 @@ class BaseSolver : protected EnvObj
    * for more information.
    */
   std::map<Node, BaseEqcInfo> d_eqcInfo;
-  /** The list of equivalence classes of type string */
-  std::vector<Node> d_stringsEqc;
+  /** The list of equivalence classes of string-like types */
+  std::vector<Node> d_stringLikeEqc;
   /** A term index for each type, function kind pair */
   std::map<TypeNode, std::map<Kind, TermIndex> > d_termIndex;
   /** the cardinality of the alphabet */

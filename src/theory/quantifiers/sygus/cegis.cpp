@@ -516,7 +516,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
-      EvalSygusInvarianceTest vsit;
+      EvalSygusInvarianceTest vsit(d_env.getRewriter());
       Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lem
                                << " against current model." << std::endl;
       Trace("sygus-cref-eval2") << "Check refinement lemma conjunct " << lem

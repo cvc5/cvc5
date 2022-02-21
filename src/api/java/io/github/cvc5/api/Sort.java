@@ -70,6 +70,27 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int compareTo(long pointer1, long pointer2);
 
   /**
+   * @return true if the sort has a symbol.
+   */
+  public boolean hasSymbol()
+  {
+    return hasSymbol(pointer);
+  }
+
+  private native boolean hasSymbol(long pointer);
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the symbol.
+   */
+  public String getSymbol()
+  {
+    return getSymbol(pointer);
+  }
+
+  private native String getSymbol(long pointer);
+
+  /**
    * @return true if this Sort is a null sort.
    */
   public boolean isNull()
@@ -372,7 +393,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * or return value for any term that is function-like.
    * This is mainly to avoid higher order.
    *
-   * Note that arrays are explicitly not considered function-like here.
+   * @apiNote Arrays are explicitly not considered function-like here.
    *
    * @return true if this is a function-like sort
    */
@@ -393,18 +414,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isSubsortOf(long pointer, long sortPointer);
-
-  /**
-   * Is this sort comparable to the given sort (i.e., do they share
-   * a common ancestor in the subsort tree)?
-   * @return true if this sort is comparable to s
-   */
-  public boolean isComparableTo(Sort s)
-  {
-    return isComparableTo(pointer, s.getPointer());
-  }
-
-  private native boolean isComparableTo(long pointer, long sortPointer);
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -445,6 +454,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Substitution of Sorts.
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point.
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
@@ -458,6 +470,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Simultaneous substitution of Sorts.
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point. In the case that
+   * sorts contains duplicates, the replacement earliest in the list takes
+   * priority.
+   *
+   * For example,
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
@@ -752,6 +773,12 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Datatype sort ------------------------------------------------------- */
 
   /**
+   * Return the parameters of a parametric datatype sort. If this sort is a
+   * non-instantiated parametric datatype, this returns the parameter sorts of
+   * the underlying datatype. If this sort is an instantiated parametric
+   * datatype, then this returns the sort parameters that were used to
+   * construct the sort via Sort.instantiate().
+   *
    * @return the parameter sorts of a datatype sort
    */
   public Sort[] getDatatypeParamSorts()

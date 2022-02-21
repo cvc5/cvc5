@@ -32,13 +32,13 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlModel::NlModel() : d_used_approx(false)
+NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_two = NodeManager::currentNM()->mkConst(Rational(2));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_two = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(2));
 }
 
 NlModel::~NlModel() {}
@@ -122,7 +122,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
         children.emplace_back(computeModelValue(n[i], isConcrete));
       }
       ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
-      ret = Rewriter::rewrite(ret);
+      ret = rewrite(ret);
     }
   }
   Trace("nl-ext-mv-debug") << "computed " << (isConcrete ? "M" : "M_A") << "["
@@ -205,10 +205,10 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       if (visited.find(cur) == visited.end())
       {
         visited.insert(cur);
-        if (cur.getType().isReal() && !cur.isConst())
+        if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
-          if (k != MULT && k != PLUS && k != NONLINEAR_MULT
+          if (k != MULT && k != ADD && k != NONLINEAR_MULT
               && !isTranscendentalKind(k))
           {
             // if we have not set an approximate bound for it
@@ -246,7 +246,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       // apply the substitution to a
       if (!d_substitutions.empty())
       {
-        av = Rewriter::rewrite(arithSubstitute(av, d_substitutions));
+        av = rewrite(arithSubstitute(av, d_substitutions));
       }
       // simple check literal
       if (!simpleCheckModelLit(av))
@@ -278,10 +278,14 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
   {
-    Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
-    // this should never happen since substitutions should be applied eagerly
-    Assert(false);
-    return false;
+    Node cur = d_substitutions.getSubs(v);
+    if (cur != s)
+    {
+      Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
+      // this should never happen since substitutions should be applied eagerly
+      Assert(false);
+      return false;
+    }
   }
   // if we previously had an approximate bound, the exact bound should be in its
   // range
@@ -307,7 +311,7 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     Node ms = arithSubstitute(sub, tmp);
     if (ms != sub)
     {
-      sub = Rewriter::rewrite(ms);
+      sub = rewrite(ms);
     }
   }
   d_substitutions.add(v, s);
@@ -376,7 +380,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   if (!d_substitutions.empty())
   {
     seq = arithSubstitute(eq, d_substitutions);
-    seq = Rewriter::rewrite(seq);
+    seq = rewrite(seq);
     if (seq.isConst())
     {
       if (seq.getConst<bool>())
@@ -538,7 +542,8 @@ bool NlModel::solveEqualitySimple(Node eq,
       Assert(false);
       return false;
     }
-    Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
+    Node val = nm->mkConst(CONST_RATIONAL,
+                           -c.getConst<Rational>() / b.getConst<Rational>());
     if (Trace.isOn("nl-ext-cm"))
     {
       Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
@@ -579,7 +584,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
       {
         lit2 = lit2.negate();
       }
-      lit2 = Rewriter::rewrite(lit2);
+      lit2 = rewrite(lit2);
       bool success = simpleCheckModelLit(lit2);
       if (success != pol)
       {
@@ -643,7 +648,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   Node invalid_vsum = vs_invalid.empty() ? d_zero
                                          : (vs_invalid.size() == 1
                                                 ? vs_invalid[0]
-                                                : nm->mkNode(PLUS, vs_invalid));
+                                                : nm->mkNode(ADD, vs_invalid));
   // substitution to try
   Subs qsub;
   for (const Node& v : vs)
@@ -666,17 +671,17 @@ bool NlModel::simpleCheckModelLit(Node lit)
         if (it != v_b.end())
         {
           b = it->second;
-          t = nm->mkNode(PLUS, t, nm->mkNode(MULT, b, v));
+          t = nm->mkNode(ADD, t, nm->mkNode(MULT, b, v));
         }
-        t = Rewriter::rewrite(t);
+        t = rewrite(t);
         Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
                                   << t << "..." << std::endl;
         Trace("nl-ext-cms-debug") << "    a = " << a << std::endl;
         Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
         Node apex = nm->mkNode(
-            DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
-        apex = Rewriter::rewrite(apex);
+            DIVISION, nm->mkNode(NEG, b), nm->mkNode(MULT, d_two, a));
+        apex = rewrite(apex);
         Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex
         bool cmp[2];
@@ -685,7 +690,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         {
           boundn[r] = r == 0 ? bit->second.first : bit->second.second;
           Node cmpn = nm->mkNode(GT, boundn[r], apex);
-          cmpn = Rewriter::rewrite(cmpn);
+          cmpn = rewrite(cmpn);
           Assert(cmpn.isConst());
           cmp[r] = cmpn.getConst<bool>();
         }
@@ -716,12 +721,12 @@ bool NlModel::simpleCheckModelLit(Node lit)
             {
               qsub.d_subs.back() = boundn[r];
               Node ts = arithSubstitute(t, qsub);
-              tcmpn[r] = Rewriter::rewrite(ts);
+              tcmpn[r] = rewrite(ts);
             }
             Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
             Trace("nl-ext-cms-debug")
                 << "  ...both sides of apex, compare " << tcmp << std::endl;
-            tcmp = Rewriter::rewrite(tcmp);
+            tcmp = rewrite(tcmp);
             Assert(tcmp.isConst());
             unsigned bindex_use = (tcmp.getConst<bool>() == pol) ? 1 : 0;
             Trace("nl-ext-cms-debug")
@@ -755,7 +760,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   if (!qsub.empty())
   {
     Node slit = arithSubstitute(lit, qsub);
-    slit = Rewriter::rewrite(slit);
+    slit = rewrite(slit);
     return simpleCheckModelLit(slit);
   }
   return false;
@@ -985,7 +990,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   Node bound;
   if (sum_bound.size() > 1)
   {
-    bound = nm->mkNode(kind::PLUS, sum_bound);
+    bound = nm->mkNode(kind::ADD, sum_bound);
   }
   else if (sum_bound.size() == 1)
   {
@@ -1002,7 +1007,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
     comp = comp.negate();
   }
   Trace("nl-ext-cms") << "  comparison is : " << comp << std::endl;
-  comp = Rewriter::rewrite(comp);
+  comp = rewrite(comp);
   Assert(comp.isConst());
   Trace("nl-ext-cms") << "  returned : " << comp << std::endl;
   return comp == d_true;
@@ -1069,9 +1074,10 @@ void NlModel::getModelValueRepair(
       if (witnessToValue)
       {
         // witness is the midpoint
-        witness = nm->mkNode(
-            MULT, nm->mkConst(Rational(1, 2)), nm->mkNode(PLUS, l, u));
-        witness = Rewriter::rewrite(witness);
+        witness = nm->mkNode(MULT,
+                             nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
+                             nm->mkNode(ADD, l, u));
+        witness = rewrite(witness);
         Trace("nl-model") << v << " witness is " << witness << std::endl;
       }
       approximations[v] = std::pair<Node, Node>(pred, witness);

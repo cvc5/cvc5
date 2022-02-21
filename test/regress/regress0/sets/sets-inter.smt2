@@ -5,7 +5,7 @@
 (declare-fun b () (Set Int))
 (declare-fun x () Int)
 ;(assert (not (set.member x a)))
-(assert (set.member x (set.intersection a b)))
+(assert (set.member x (set.inter a b)))
 (assert (not (set.member x b)))
 (check-sat)
 (exit)

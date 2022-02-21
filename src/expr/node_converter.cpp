@@ -199,7 +199,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
         if (ret.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           // push the operator
-          nb << ret.getOperator();
+          nb << NodeManager::operatorFromType(ret);
         }
         for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
              j != iend;

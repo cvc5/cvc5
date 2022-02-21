@@ -334,13 +334,13 @@ enum class AletheRule : uint32_t
   // ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if
   // Hi is of sort Bool
   ITE_INTRO,
-  // ======== duplicated_literals
+  // ======== contraction
   // > i. (cl F1 ... Fn)
   // ...
   // > j. (cl Fk1 ... Fkm)
   // where m <= n and k1,...,km is a monotonic map to 1,...,n such that Fk1 ...
   // Fkm are pairwise distinct and {F1,...,Fn} = {Fk1 ... Fkm}
-  DUPLICATED_LITERALS,
+  CONTRACTION,
   // ======== connective_def
   //  G > i. (= (xor F1 F2) (or (and (not F1) F2) (and F1 (not F2))))
   // or
@@ -349,8 +349,8 @@ enum class AletheRule : uint32_t
   //  G > i. (= (ite F1 F2 F3) (and (=> F1 F2) (=> (not F1) (not F3))))
   CONNECTIVE_DEF,
   // ======== Simplify rules
-  // The following rules are simplifying rules introduced as tautologies that can be
-  // verified by a number of simple transformations
+  // The following rules are simplifying rules introduced as tautologies that
+  // can be verified by a number of simple transformations
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
   AND_SIMPLIFY,
@@ -368,6 +368,7 @@ enum class AletheRule : uint32_t
   COMP_SIMPLIFY,
   NARY_ELIM,
   QNT_SIMPLIFY,
+  ALL_SIMPLIFY,
   // ======== let
   // G,x1->F1,...,xn->Fn > j. (= G G')
   // ---------------------------------
@@ -399,7 +400,7 @@ enum class AletheRule : uint32_t
   // > j. F2
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
-  REORDER,
+  REORDERING,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED

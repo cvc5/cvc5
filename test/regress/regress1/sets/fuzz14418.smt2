@@ -34,7 +34,7 @@
 (let ((e14 (set.minus v2 v2)))
 (let ((e15 (f1 v1 v4 v1)))
 (let ((e16 (f1 e14 v1 v4)))
-(let ((e17 (set.intersection e16 e15)))
+(let ((e17 (set.inter e16 e15)))
 (let ((e18 (f1 v4 e15 v2)))
 (let ((e19 (ite (p1 e13) (set.singleton 1) (set.singleton 0))))
 (let ((e20 (set.member v0 e17)))

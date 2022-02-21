@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --strict-parsing
 ; SCRUBBER: grep -o "Symbol 'abs' not declared as a variable"

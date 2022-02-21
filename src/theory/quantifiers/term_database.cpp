@@ -86,7 +86,7 @@ Node TermDb::getOperator(size_t i) const
 }
 
 /** ground terms */
-size_t TermDb::getNumGroundTerms(Node f) const
+size_t TermDb::getNumGroundTerms(TNode f) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -96,7 +96,7 @@ size_t TermDb::getNumGroundTerms(Node f) const
   return 0;
 }
 
-Node TermDb::getGroundTerm(Node f, size_t i) const
+Node TermDb::getGroundTerm(TNode f, size_t i) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -106,6 +106,16 @@ Node TermDb::getGroundTerm(Node f, size_t i) const
   }
   Assert(false);
   return Node::null();
+}
+
+DbList* TermDb::getGroundTermList(TNode f) const
+{
+  NodeDbListMap::const_iterator it = d_opMap.find(f);
+  if (it != d_opMap.end())
+  {
+    return it->second.get();
+  }
+  return nullptr;
 }
 
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
@@ -158,7 +168,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    ss << language::SetLanguage(options::outputLanguage());
+    options::ioutils::applyOutputLang(ss, options().base.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
@@ -176,7 +186,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
 Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
-  if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTERSECTION
+  if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
       || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
       || k == SET_SINGLETON || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR
       || k == APPLY_TESTER || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH
@@ -286,7 +296,8 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     return;
   }
-  d_func_map_eqc_trie[f].clear();
+  TNodeTrie& tnt = d_func_map_eqc_trie[f];
+  tnt.clear();
   // get the matchable operators in the equivalence class of f
   std::vector<TNode> ops;
   getOperatorsFor(f, ops);
@@ -300,7 +311,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
-        d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
+        tnt.d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
   }

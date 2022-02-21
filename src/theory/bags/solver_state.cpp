@@ -38,21 +38,75 @@ void SolverState::registerBag(TNode n)
 {
   Assert(n.getType().isBag());
   d_bags.insert(n);
+  if (!d_ee->hasTerm(n))
+  {
+    d_ee->addTerm(n);
+  }
 }
 
-void SolverState::registerCountTerm(TNode n)
+Node SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
   Node element = getRepresentative(n[0]);
   Node bag = getRepresentative(n[1]);
-  d_bagElements[bag].insert(element);
+  Node count = d_nm->mkNode(BAG_COUNT, element, bag);
+  Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(count, "bag.count");
+  std::pair<Node, Node> pair = std::make_pair(element, skolem);
+  if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
+      == d_bagElements[bag].end())
+  {
+    d_bagElements[bag].push_back(pair);
+  }
+  return count.eqNode(skolem);
 }
+
+Node SolverState::registerCardinalityTerm(TNode n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  if (!d_ee->hasTerm(n))
+  {
+    d_ee->addTerm(n);
+  }
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  Node skolem = d_nm->getSkolemManager()->mkPurifySkolem(cardTerm, "bag.card");
+  d_cardTerms[cardTerm] = skolem;
+  return cardTerm.eqNode(skolem).andNode(skolem.eqNode(n));
+}
+
+Node SolverState::getCardinalitySkolem(TNode n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  return d_cardTerms[cardTerm];
+}
+
+bool SolverState::hasCardinalityTerms() const { return !d_cardTerms.empty(); }
 
 const std::set<Node>& SolverState::getBags() { return d_bags; }
 
-const std::set<Node>& SolverState::getElements(Node B)
+const std::map<Node, Node>& SolverState::getCardinalityTerms()
+{
+  return d_cardTerms;
+}
+
+std::set<Node> SolverState::getElements(Node B)
 {
   Node bag = getRepresentative(B);
+  std::set<Node> elements;
+  std::vector<std::pair<Node, Node>> pairs = d_bagElements[bag];
+  for (std::pair<Node, Node> pair : pairs)
+  {
+    elements.insert(pair.first);
+  }
+  return elements;
+}
+
+const std::vector<std::pair<Node, Node>>& SolverState::getElementCountPairs(
+    Node n)
+{
+  Node bag = getRepresentative(n);
   return d_bagElements[bag];
 }
 
@@ -63,17 +117,20 @@ void SolverState::reset()
   d_bagElements.clear();
   d_bags.clear();
   d_deq.clear();
+  d_cardTerms.clear();
 }
 
-void SolverState::initialize()
+std::vector<Node> SolverState::initialize()
 {
   reset();
-  collectBagsAndCountTerms();
   collectDisequalBagTerms();
+  return collectBagsAndCountTerms();
 }
 
-void SolverState::collectBagsAndCountTerms()
+std::vector<Node> SolverState::collectBagsAndCountTerms()
 {
+  std::vector<Node> lemmas;
+
   eq::EqClassesIterator repIt = eq::EqClassesIterator(d_ee);
   while (!repIt.isFinished())
   {
@@ -91,21 +148,28 @@ void SolverState::collectBagsAndCountTerms()
       Node n = (*it);
       Trace("bags-eqc") << (*it) << " ";
       Kind k = n.getKind();
-      if (k == MK_BAG)
+      if (k == BAG_MAKE)
       {
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))
         Node count = d_nm->mkNode(BAG_COUNT, n[0], n);
-        registerCountTerm(count);
+        Node lemma = registerCountTerm(count);
+        lemmas.push_back(lemma);
         Trace("SolverState::collectBagsAndCountTerms")
             << "registered " << count << endl;
       }
       if (k == BAG_COUNT)
       {
         // this takes care of all count terms in each equivalent class
-        registerCountTerm(n);
+        Node lemma = registerCountTerm(n);
+        lemmas.push_back(lemma);
         Trace("SolverState::collectBagsAndCountTerms")
             << "registered " << n << endl;
+      }
+      if (k == BAG_CARD)
+      {
+        Node lemma = registerCardinalityTerm(n);
+        lemmas.push_back(lemma);
       }
       ++it;
     }
@@ -114,7 +178,7 @@ void SolverState::collectBagsAndCountTerms()
   }
 
   Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
-  Trace("bags-eqc") << "bag elements: " << d_bagElements << endl;
+  return lemmas;
 }
 
 void SolverState::collectDisequalBagTerms()

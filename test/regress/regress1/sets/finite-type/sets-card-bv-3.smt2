@@ -9,7 +9,7 @@
 (assert (= (set.card A) 3))
 (assert (= (set.card B) 3))
 (assert (not (= A B)))
-(assert (= (set.card (set.intersection A B)) 1))
+(assert (= (set.card (set.inter A B)) 1))
 (assert (= (set.card (set.minus A B)) 2))
 (assert (= (set.card (set.minus B A)) 2))
 (assert (not (set.member x A)))

@@ -200,14 +200,11 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
     CDNodeToMinMaxMap::const_iterator minFind = d_minMap.find(n);
     if (minFind == d_minMap.end() || (*minFind).second < min) {
       d_minMap.insert(n, min);
-      Node nGeqMin;
-      if (min.getInfinitesimalPart() == 0) {
-        nGeqMin = NodeBuilder(kind::GEQ)
-                  << n << mkRationalNode(min.getNoninfinitesimalPart());
-      } else {
-        nGeqMin = NodeBuilder(kind::GT)
-                  << n << mkRationalNode(min.getNoninfinitesimalPart());
-      }
+      NodeManager* nm = NodeManager::currentNM();
+      Node nGeqMin = nm->mkNode(
+          min.getInfinitesimalPart() == 0 ? kind::GEQ : kind::GT,
+          n,
+          nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
       learned << nGeqMin;
       Debug("arith::static") << n << " iteConstant"  << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
@@ -221,14 +218,11 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
     CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n);
     if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
       d_maxMap.insert(n, max);
-      Node nLeqMax;
-      if (max.getInfinitesimalPart() == 0) {
-        nLeqMax = NodeBuilder(kind::LEQ)
-                  << n << mkRationalNode(max.getNoninfinitesimalPart());
-      } else {
-        nLeqMax = NodeBuilder(kind::LT)
-                  << n << mkRationalNode(max.getNoninfinitesimalPart());
-      }
+      NodeManager* nm = NodeManager::currentNM();
+      Node nLeqMax = nm->mkNode(
+          max.getInfinitesimalPart() == 0 ? kind::LEQ : kind::LT,
+          n,
+          nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
       learned << nLeqMax;
       Debug("arith::static") << n << " iteConstant"  << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);

@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -53,9 +54,10 @@ namespace arith {
    * A utility class that extracts direct bounds on arithmetic terms from theory
    * atoms.
    */
-  class BoundInference
+  class BoundInference : protected EnvObj
   {
    public:
+    BoundInference(Env& env);
     void reset();
 
     /**
@@ -109,8 +111,6 @@ namespace arith {
 
 /** Print the current variable bounds. */
 std::ostream& operator<<(std::ostream& os, const BoundInference& bi);
-
-std::map<Node, std::pair<Node,Node>> getBounds(const std::vector<Node>& assertions);
 
 }  // namespace arith
 }  // namespace theory

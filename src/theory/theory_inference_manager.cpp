@@ -15,7 +15,13 @@
 
 #include "theory/theory_inference_manager.h"
 
+#include "options/proof_options.h"
+#include "proof/annotation_proof_generator.h"
+#include "proof/eager_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine_scope.h"
+#include "theory/builtin/proof_checker.h"
+#include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -56,6 +62,20 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
+
+  if (isProofEnabled())
+  {
+    context::UserContext* u = userContext();
+    ProofNodeManager* pnm = env.getProofNodeManager();
+    d_defaultPg.reset(
+        new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
+    if (options().proof.proofAnnotate)
+    {
+      d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));
+      d_apg.reset(new AnnotationProofGenerator(
+          pnm, u, statsName + "AnnotationProofGenerator"));
+    }
+  }
 }
 
 TheoryInferenceManager::~TheoryInferenceManager()
@@ -123,10 +143,17 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
+  Assert(id != InferenceId::UNKNOWN)
+      << "Must provide an inference id for conflict";
   d_conflictIdStats << id;
   resourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
+  // annotate if the annotation proof generator is active
+  if (d_apg != nullptr)
+  {
+    tconf = annotateId(tconf, id);
+  }
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
 }
@@ -255,13 +282,24 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
       return false;
     }
   }
+  Assert(id != InferenceId::UNKNOWN)
+      << "Must provide an inference id for lemma";
   d_lemmaIdStats << id;
   resourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   // shouldn't send trivially true or false lemmas
   Assert(!rewrite(tlem.getProven()).isConst());
   d_numCurrentLemmas++;
-  d_out.trustedLemma(tlem, p);
+  // annotate if the annotation proof generator is active
+  if (d_apg != nullptr)
+  {
+    TrustNode tlema = annotateId(tlem, id);
+    d_out.trustedLemma(tlema, p);
+  }
+  else
+  {
+    d_out.trustedLemma(tlem, p);
+  }
   return true;
 }
 
@@ -378,6 +416,8 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  const std::vector<Node>& args,
                                                  ProofGenerator* pg)
 {
+  Assert(iid != InferenceId::UNKNOWN)
+      << "Must provide an inference id for fact";
   d_factIdStats << iid;
   resourceManager()->spendResource(iid);
   // make the node corresponding to the explanation
@@ -542,6 +582,24 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   }
   d_lemmasSent.insert(rewritten);
   return true;
+}
+
+TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
+                                             InferenceId id)
+{
+  Assert(d_iipa != nullptr && d_apg != nullptr);
+  Node lemma = trn.getProven();
+  TrustNode trna = trn;
+  // ensure we have a proof generator, make trusted theory lemma if not
+  if (trn.getGenerator() == nullptr)
+  {
+    Node tidn =
+        builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
+    trna = d_defaultPg->mkTrustNode(
+        lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
+  }
+  d_iipa->setAnnotation(lemma, id);
+  return d_apg->transform(trna, d_iipa.get());
 }
 
 DecisionManager* TheoryInferenceManager::getDecisionManager()

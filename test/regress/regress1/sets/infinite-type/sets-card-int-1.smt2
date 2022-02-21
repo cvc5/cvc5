@@ -7,6 +7,6 @@
 (declare-const B (Set Int))
 (assert (= (set.card A) 6))
 (assert (= (set.card B) 5))
-(assert (= (set.intersection A B) (as set.empty (Set Int))))
+(assert (= (set.inter A B) (as set.empty (Set Int))))
 (assert (= universe (as set.universe (Set Int))))
 (check-sat)

@@ -23,7 +23,7 @@ namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op)
 {
-  return out << "(singleton_op " << op.getType() << ')';
+  return out << "(SetSingletonOp " << op.getType() << ')';
 }
 
 size_t SetSingletonOpHashFunction::operator()(const SetSingletonOp& op) const

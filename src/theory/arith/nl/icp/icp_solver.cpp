@@ -66,7 +66,7 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 }  // namespace
 
 ICPSolver::ICPSolver(Env& env, InferenceManager& im)
-    : EnvObj(env), d_im(im), d_state(d_mapper)
+    : EnvObj(env), d_im(im), d_state(env, d_mapper)
 {
 }
 

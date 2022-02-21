@@ -33,7 +33,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
-#include "expr/uninterpreted_constant.h"
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -52,9 +52,11 @@
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
+#include "util/real_algebraic_number.h"
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 
@@ -182,7 +184,7 @@ void Smt2Printer::toStream(std::ostream& out,
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
-        kind::metakind::NodeValueConstPrinter::toStream(out, n);
+        n.constToStream(out);
       }
       break;
     case kind::BITVECTOR_TYPE:
@@ -290,7 +292,12 @@ void Smt2Printer::toStream(std::ostream& out,
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
       out << "((as const ";
       toStreamType(out, asa.getType());
-      out << ") " << asa.getValue() << ")";
+      out << ") ";
+      toStreamCastToType(out,
+                         asa.getValue(),
+                         toDepth < 0 ? toDepth : toDepth - 1,
+                         asa.getType().getArrayConstituentType());
+      out << ")";
       break;
     }
 
@@ -322,11 +329,12 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
-    
-    case kind::UNINTERPRETED_CONSTANT: {
-      const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
+
+    case kind::UNINTERPRETED_SORT_VALUE:
+    {
+      const UninterpretedSortValue& av = n.getConst<UninterpretedSortValue>();
       std::stringstream ss;
-      ss << "(as @" << uc << " " << n.getType() << ")";
+      ss << "(as " << av << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -336,8 +344,8 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")";
       break;
 
-    case kind::EMPTYBAG:
-      out << "(as emptybag ";
+    case kind::BAG_EMPTY:
+      out << "(as bag.empty ";
       toStreamType(out, n.getConst<EmptyBag>().getType());
       out << ")";
       break;
@@ -454,7 +462,7 @@ void Smt2Printer::toStream(std::ostream& out,
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
-      kind::metakind::NodeValueConstPrinter::toStream(out, n);
+      n.constToStream(out);
     }
 
     return;
@@ -495,7 +503,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   if (!type_asc_arg.isNull())
   {
-    if (force_nt.isReal())
+    if (force_nt.isRealOrInt())
     {
       // we prefer using (/ x 1) instead of (to_real x) here.
       // the reason is that (/ x 1) is SMT-LIB compliant when x is a constant
@@ -522,7 +530,7 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
     }
-    else
+    else if (k != kind::UNINTERPRETED_SORT_VALUE)
     {
       // use type ascription
       out << "(as ";
@@ -532,9 +540,17 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  // variable
-  if (n.isVar())
+  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
   {
+    // abstract value
+    std::string s;
+    n.getAttribute(expr::VarNameAttr(), s);
+    out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
+    return;
+  }
+  else if (n.isVar())
+  {
+    // variable
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
@@ -581,6 +597,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::HO_APPLY:
       if (!options::flattenHOChains())
       {
+        out << smtKindString(k, d_variant) << ' ';
         break;
       }
       // collapse "@" chains, i.e.
@@ -641,6 +658,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
       stillNeedToPrintParams = false;
       break;
+    case kind::REAL_ALGEBRAIC_NUMBER:
+    {
+      const RealAlgebraicNumber& ran = n.getOperator().getConst<RealAlgebraicNumber>();
+      out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
+      break;
+    }
     case kind::INDEXED_ROOT_PREDICATE_OP:
     {
       const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
@@ -701,9 +725,9 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_UNIVERSE: out << "(as set.universe " << n.getType() << ")"; break;
 
   // bags
-  case kind::MK_BAG:
+  case kind::BAG_MAKE:
   {
-    // print (bag (mkBag_op Real) 1 3) as (bag 1.0 3)
+    // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
     out << smtKindString(k, d_variant) << " ";
     TypeNode elemType = n.getType().getBagElementType();
     toStreamCastToType(
@@ -741,7 +765,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (op.getIndices().empty())
     {
       // e.g. (tuple_project tuple)
-      out << "project " << n[0] << ")";
+      out << "tuple_project " << n[0] << ")";
     }
     else
     {
@@ -845,7 +869,7 @@ void Smt2Printer::toStream(std::ostream& out,
         {
           out << "(! ";
           annot << ":no-pattern ";
-          toStream(annot, nc, toDepth, nullptr);
+          toStream(annot, nc[0], toDepth, nullptr);
           annot << ") ";
         }
       }
@@ -965,7 +989,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::WITNESS: return "witness";
 
   // arith theory
-  case kind::PLUS: return "+";
+  case kind::ADD: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
@@ -985,8 +1009,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::ARCCOTANGENT: return "arccot";
   case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
-  case kind::MINUS: return "-";
-  case kind::UMINUS: return "-";
+  case kind::SUB: return "-";
+  case kind::NEG: return "-";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";
@@ -1061,7 +1085,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // set theory
   case kind::SET_UNION: return "set.union";
-  case kind::SET_INTERSECTION: return "set.intersection";
+  case kind::SET_INTER: return "set.inter";
   case kind::SET_MINUS: return "set.minus";
   case kind::SET_SUBSET: return "set.subset";
   case kind::SET_MEMBER: return "set.member";
@@ -1073,6 +1097,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_COMPREHENSION: return "set.comprehension";
   case kind::SET_CHOOSE: return "set.choose";
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
+  case kind::SET_MAP: return "set.map";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";
@@ -1082,21 +1107,25 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
-  case kind::UNION_MAX: return "union_max";
-  case kind::UNION_DISJOINT: return "union_disjoint";
-  case kind::INTERSECTION_MIN: return "intersection_min";
-  case kind::DIFFERENCE_SUBTRACT: return "difference_subtract";
-  case kind::DIFFERENCE_REMOVE: return "difference_remove";
-  case kind::SUBBAG: return "subbag";
+  case kind::BAG_UNION_MAX: return "bag.union_max";
+  case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
+  case kind::BAG_INTER_MIN: return "bag.inter_min";
+  case kind::BAG_DIFFERENCE_SUBTRACT: return "bag.difference_subtract";
+  case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
+  case kind::BAG_SUBBAG: return "bag.subbag";
   case kind::BAG_COUNT: return "bag.count";
-  case kind::DUPLICATE_REMOVAL: return "duplicate_removal";
-  case kind::MK_BAG: return "bag";
+  case kind::BAG_MEMBER: return "bag.member";
+  case kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
+  case kind::BAG_MAKE: return "bag";
   case kind::BAG_CARD: return "bag.card";
   case kind::BAG_CHOOSE: return "bag.choose";
   case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FILTER: return "bag.filter";
+  case kind::BAG_FOLD: return "bag.fold";
+  case kind::TABLE_PRODUCT: return "table.product";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1121,13 +1150,13 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_GEQ: return "fp.geq";
   case kind::FLOATINGPOINT_GT: return "fp.gt";
 
-  case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
-  case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";
-  case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
-  case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
-  case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
-  case kind::FLOATINGPOINT_ISPOS: return "fp.isPositive";
+  case kind::FLOATINGPOINT_IS_NORMAL: return "fp.isNormal";
+  case kind::FLOATINGPOINT_IS_SUBNORMAL: return "fp.isSubnormal";
+  case kind::FLOATINGPOINT_IS_ZERO: return "fp.isZero";
+  case kind::FLOATINGPOINT_IS_INF: return "fp.isInfinite";
+  case kind::FLOATINGPOINT_IS_NAN: return "fp.isNaN";
+  case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
+  case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
 
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
@@ -1205,6 +1234,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FORALL: return "forall";
   case kind::EXISTS: return "exists";
 
+  // HO
+  case kind::HO_APPLY: return "@";
+
   default:
     ; /* fall through */
   }
@@ -1219,7 +1251,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
-  tn.toStream(out, Language::LANG_SMTLIB_V2_6);
+  tn.toStream(out);
 }
 
 template <class T>
@@ -1460,7 +1492,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  out << "(define-fun " << id << " (";
+  out << "(define-fun " << cvc5::quoteSymbol(id) << " (";
   if (!formals.empty())
   {
     vector<Node>::const_iterator i = formals.cbegin();
@@ -1897,6 +1929,11 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
   out << "(check-synth)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
+{
+  out << "(check-synth-next)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          const std::string& name,
                                          Node conj,
@@ -1908,6 +1945,11 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
     out << ' ' << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  out << "(get-interpol-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
@@ -1925,6 +1967,11 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
     out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetAbductNext(std::ostream& out) const
+{
+  out << "(get-abduct-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,

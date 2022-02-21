@@ -16,7 +16,6 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -25,6 +24,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
+#include "util/uninterpreted_sort_value.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -79,7 +79,7 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
-      if (normalized.isConst())
+      if (TheoryModel::isValue(normalized))
       {
         return normalized;
       }
@@ -101,7 +101,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
     // Members of exclusion set must have values, otherwise we are not yet
     // assignable.
     Node er = eset[i];
-    if (er.isConst())
+    if (TheoryModel::isValue(er))
     {
       // already processed
       continue;
@@ -127,7 +127,8 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL)
+  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL
+      || n.getKind() == kind::SEQ_NTH_TOTAL || n.getKind() == kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -319,7 +320,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
       unsigned card = eqc_usort_count[tn];
       Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
       unsigned index =
-          v.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+          v.getConst<UninterpretedSortValue>().getIndex().toUnsignedInt();
       Trace("model-builder-debug") << "  Index is " << index << std::endl;
       return index > 0 && index >= card;
     }
@@ -499,8 +500,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       tm->addTermInternal(n);
 
       // (2) Record constant representative or assign representative, if
-      // applicable
-      if (n.isConst())
+      // applicable. We check if n is a value here, e.g. a term for which
+      // isConst returns true, or a lambda. The latter is required only for
+      // higher-order.
+      if (TheoryModel::isValue(n))
       {
         Assert(constRep.isNull());
         constRep = n;
@@ -729,7 +732,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             }
             if (!normalized.isNull())
             {
-              Assert(normalized.isConst());
+              Assert(TheoryModel::isValue(normalized));
               typeConstSet.add(tb, normalized);
               assignConstantRep(tm, *i2, normalized);
               Trace("model-builder") << "    Eval: Setting constant rep of "
@@ -768,7 +771,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Trace("model-builder") << "    Normalizing rep (" << rep
                                    << "), normalized to (" << normalized << ")"
                                    << endl;
-            if (normalized.isConst())
+            if (TheoryModel::isValue(normalized))
             {
               changed = true;
               typeConstSet.add(tb, normalized);
@@ -984,9 +987,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           }
           else
           {
+            // Otherwise, we get the first value from the type enumerator.
             Trace("model-builder-debug")
                 << "Get first value from finite type..." << std::endl;
-            // Otherwise, we get the first value from the type enumerator.
             TypeEnumerator te(t);
             n = *te;
           }
@@ -1023,11 +1026,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // Assert that all representatives have been converted to constants
   for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it)
   {
-    set<Node>& repSet = TypeSet::getSet(it);
+    std::set<Node>& repSet = TypeSet::getSet(it);
     if (!repSet.empty())
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
-                             << ", first = " << *(repSet.begin()) << endl;
+                             << ", repSet = " << repSet << endl;
       Assert(false);
     }
   }
@@ -1121,18 +1124,24 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
           << n.getType() << ")";
-      // non-linear mult is not necessarily accurate wrt getValue
-      if (n.getKind() != kind::NONLINEAR_MULT)
+      Node val = tm->getValue(*eqc_i);
+      if (val != rep)
       {
-        if (tm->getValue(*eqc_i) != rep)
+        std::stringstream err;
+        err << "Failed representative check:" << std::endl
+            << "( " << repCheckInstance << ") "
+            << "n: " << n << endl
+            << "getValue(n): " << tm->getValue(n) << std::endl
+            << "rep: " << rep << std::endl;
+        if (val.isConst() && rep.isConst())
         {
-          std::stringstream err;
-          err << "Failed representative check:" << std::endl
-              << "( " << repCheckInstance << ") "
-              << "n: " << n << endl
-              << "getValue(n): " << tm->getValue(n) << std::endl
-              << "rep: " << rep << std::endl;
-          AlwaysAssert(tm->getValue(*eqc_i) == rep) << err.str();
+          AlwaysAssert(val == rep) << err.str();
+        }
+        else
+        {
+          // if it does not evaluate, it is just a warning, which may be the
+          // case for non-constant values, e.g. lambdas.
+          warning() << err.str();
         }
       }
     }
@@ -1194,7 +1203,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!ri.isConst())
+        if (!TheoryModel::isValue(ri))
         {
           childrenConst = false;
         }
@@ -1241,7 +1250,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
       Node rc = m->getRepresentative(un[j]);
       Trace("model-builder-debug2") << "    get rep : " << un[j] << " returned "
                                     << rc << std::endl;
-      Assert(rc.isConst());
+      Assert(rewrite(rc) == rc);
       children.push_back(rc);
     }
     Node simp = NodeManager::currentNM()->mkNode(un.getKind(), children);
@@ -1265,7 +1274,8 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   }
   std::stringstream ss;
   ss << "_arg_";
-  Node val = ufmt.getFunctionValue(ss.str().c_str(), condenseFuncValues);
+  Rewriter* r = condenseFuncValues ? d_env.getRewriter() : nullptr;
+  Node val = ufmt.getFunctionValue(ss.str(), r);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );
 }
@@ -1302,7 +1312,6 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Node hni = m->getRepresentative(hn[1]);
       Trace("model-builder-debug2") << "      get rep : " << hn[0]
                                     << " returned " << hni << std::endl;
-      Assert(hni.isConst());
       Assert(hni.getType().isSubtypeOf(args[0].getType()));
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);

@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
@@ -137,9 +138,7 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(Rational(d_coeff.getConst<Rational>()
-                                   * p.d_coeff.getConst<Rational>()));
+    d_coeff = arith::multConstants(d_coeff, p.d_coeff);
   }
 }
 
@@ -162,11 +161,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    Assert(new_theta.getKind() == CONST_RATIONAL);
-    Assert(pv_prop.d_coeff.getKind() == CONST_RATIONAL);
-    NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(Rational(new_theta.getConst<Rational>()
-                                     * pv_prop.d_coeff.getConst<Rational>()));
+    new_theta = arith::multConstants(new_theta, pv_prop.d_coeff);
   }
   d_theta.push_back(new_theta);
 }
@@ -257,7 +252,7 @@ bool CegInstantiator::isEligible( Node n ) {
 
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
-  if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
+  if (quantifiers::TermUtil::isBoolConnective(k) || k == ADD || k == GEQ
       || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
       || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
@@ -335,7 +330,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     return itv->second;
   }
   CegHandledStatus ret = CEG_UNHANDLED;
-  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector()
+  if (tn.isRealOrInt() || tn.isBoolean() || tn.isBitVector()
       || tn.isFloatingPoint())
   {
     ret = CEG_HANDLED;
@@ -355,7 +350,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       if (dt.isParametric())
       {
         // if parametric, must instantiate the argument types
-        consType = dt[i].getSpecializedConstructorType(tn);
+        consType = dt[i].getInstantiatedConstructorType(tn);
       }
       else
       {
@@ -480,15 +475,24 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
   if( d_instantiator.find( v )==d_instantiator.end() ){
     TypeNode tn = v.getType();
     Instantiator * vinst;
-    if( tn.isReal() ){
+    if (tn.isRealOrInt())
+    {
       vinst = new ArithInstantiator(d_env, tn, d_parent->getVtsTermCache());
-    }else if( tn.isDatatype() ){
+    }
+    else if (tn.isDatatype())
+    {
       vinst = new DtInstantiator(d_env, tn);
-    }else if( tn.isBitVector() ){
+    }
+    else if (tn.isBitVector())
+    {
       vinst = new BvInstantiator(d_env, tn, d_parent->getBvInverter());
-    }else if( tn.isBoolean() ){
+    }
+    else if (tn.isBoolean())
+    {
       vinst = new ModelValueInstantiator(d_env, tn);
-    }else{
+    }
+    else
+    {
       //default
       vinst = new Instantiator(d_env, tn);
     }
@@ -1151,7 +1155,11 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         if( !prop[i].d_coeff.isNull() ){
           Assert(vars[i].getType().isInteger());
           Assert(prop[i].d_coeff.isConst());
-          Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
+          Node nn = NodeManager::currentNM()->mkNode(
+              MULT,
+              subs[i],
+              NodeManager::currentNM()->mkConstReal(
+                  Rational(1) / prop[i].d_coeff.getConst<Rational>()));
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn = rewrite(nn);
           nsubs.push_back( nn );
@@ -1198,7 +1206,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
-              c_coeff = rewrite(NodeManager::currentNM()->mkConst(
+              c_coeff = rewrite(NodeManager::currentNM()->mkConstReal(
                   pv_prop.d_coeff.getConst<Rational>()
                   / msum_coeff[it->first].getConst<Rational>()));
             }else{
@@ -1217,7 +1225,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             children.push_back( c );
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
+          Node nretc = children.size() == 1
+                           ? children[0]
+                           : NodeManager::currentNM()->mkNode(ADD, children);
           nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
@@ -1253,7 +1263,9 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
-    if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
+    if (atom.getKind() == GEQ
+        || (atom.getKind() == EQUAL && !pol && atom[0].getType().isRealOrInt()))
+    {
       NodeManager* nm = NodeManager::currentNM();
       Assert(atom.getKind() != GEQ || atom[1].isConst());
       Node atom_lhs;
@@ -1262,9 +1274,9 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
+        atom_lhs = nm->mkNode(SUB, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
-        atom_rhs = nm->mkConst(Rational(0));
+        atom_rhs = nm->mkConstRealOrInt(atom_lhs.getType(), Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){
@@ -1288,7 +1300,9 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
           }
         }
       }
-    }else{
+    }
+    else
+    {
       // don't know how to apply substitution to literal
     }
   }
@@ -1388,7 +1402,8 @@ void CegInstantiator::processAssertions() {
     TheoryId tid = Theory::theoryOf( rtn );
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
-      if( rtn.isInteger() || rtn.isReal() ){
+      if (rtn.isRealOrInt())
+      {
         rtn = rtn.getBaseType();
       }
       Trace("cegqi-proc-debug") << "...type eqc: " << r << std::endl;

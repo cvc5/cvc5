@@ -64,27 +64,16 @@ enum Kind : int32_t
   /* Builtin --------------------------------------------------------------- */
 
   /**
-   * Uninterpreted constant.
-   *
-   * Parameters:
-   *   - 1: Sort of the constant
-   *   - 2: Index of the constant
-   *
-   * Create with:
-   *   - `Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const`
-   */
-  UNINTERPRETED_CONSTANT,
-  /**
-   * Abstract value (other than uninterpreted sort constants).
+   * Abstract value.
    *
    * Parameters:
    *   - 1: Index of the abstract value
    *
    * Create with:
-   *   - `Solver::mkAbstractValue(const std::string& index) const`
-   *   - `Solver::mkAbstractValue(uint64_t index) const`
+   *   - `Solver::mkUninterpretedSortValue(const std::string& index) const`
+   *   - `Solver::mkUninterpretedSortValue(uint64_t index) const`
    */
-  ABSTRACT_VALUE,
+  UNINTERPRETED_SORT_VALUE,
 #if 0
   /* Built-in operator */
   BUILTIN,
@@ -159,7 +148,7 @@ enum Kind : int32_t
    * Lambda expression.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST
+   *   - 1: VARIABLE_LIST
    *   - 2: Lambda body
    *
    * Create with:
@@ -169,7 +158,7 @@ enum Kind : int32_t
   LAMBDA,
   /**
    * The syntax of a witness term is similar to a quantified formula except that
-   * only one bound variable is allowed.
+   * only one variable is allowed.
    * The term `(witness ((x T)) F)` returns an element `x` of type `T`
    * and asserts `F`.
    *
@@ -201,7 +190,7 @@ enum Kind : int32_t
    * whereas notice that `(or (= z 0) (not (= z 0)))` is true for any `z`.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST
+   *   - 1: VARIABLE_LIST
    *   - 2: Witness body
    *
    * Create with:
@@ -331,10 +320,6 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   CARDINALITY_CONSTRAINT,
-#if 0
-  /* Partial uninterpreted function application.  */
-  PARTIAL_APPLY_UF,
-#endif
   /**
    * Higher-order applicative encoding of function application, left
    * associative.
@@ -363,7 +348,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  PLUS,
+  ADD,
   /**
    * Arithmetic multiplication.
    *
@@ -434,7 +419,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MINUS,
+  SUB,
   /**
    * Arithmetic negation.
    *
@@ -444,7 +429,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  UMINUS,
+  NEG,
   /**
    * Real division, division by 0 undefined, left associative.
    *
@@ -1584,7 +1569,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISN,
+  FLOATINGPOINT_IS_NORMAL,
   /**
    * Floating-point is sub-normal.
    *
@@ -1594,7 +1579,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISSN,
+  FLOATINGPOINT_IS_SUBNORMAL,
   /**
    * Floating-point is zero.
    *
@@ -1604,7 +1589,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISZ,
+  FLOATINGPOINT_IS_ZERO,
   /**
    * Floating-point is infinite.
    *
@@ -1614,7 +1599,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISINF,
+  FLOATINGPOINT_IS_INF,
   /**
    * Floating-point is NaN.
    *
@@ -1624,7 +1609,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNAN,
+  FLOATINGPOINT_IS_NAN,
   /**
    * Floating-point is negative.
    *
@@ -1634,7 +1619,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNEG,
+  FLOATINGPOINT_IS_NEG,
   /**
    * Floating-point is positive.
    *
@@ -1644,7 +1629,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISPOS,
+  FLOATINGPOINT_IS_POS,
   /**
    * Operator for to_fp from bit vector.
    *
@@ -1958,7 +1943,7 @@ enum Kind : int32_t
    * is represented by the AST
    *
    *     (MATCH l
-   *       (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
+   *       (MATCH_BIND_CASE (VARIABLE_LIST h t) (cons h t) h)
    *       (MATCH_CASE nil 0))
    *
    * The type of the last argument of each case term could be equal.
@@ -1991,7 +1976,7 @@ enum Kind : int32_t
    * A (non-constant) case expression to be used within a match expression.
    *
    * Parameters:
-   *   - 1: a BOUND_VAR_LIST Term containing the free variables of the case
+   *   - 1: a VARIABLE_LIST Term containing the free variables of the case
    *   - 2: Term denoting the pattern expression
    *   - 3: Term denoting the return value
    *
@@ -2017,7 +2002,7 @@ enum Kind : int32_t
    * Operator for tuple projection indices
    *
    * Parameters:
-   *   - 1: The tuple projection indices
+   *   - 1: A vector of tuple projection indices.
    *
    * Create with:
    *   - `Solver::mkOp(Kind TUPLE_PROJECT, std::vector<uint32_t> param) const`
@@ -2139,7 +2124,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SET_INTERSECTION,
+  SET_INTER,
   /**
    * Set subtraction.
    *
@@ -2232,7 +2217,7 @@ enum Kind : int32_t
   SET_UNIVERSE,
   /**
    * Set comprehension
-   * A set comprehension is specified by a bound variable list x1 ... xn,
+   * A set comprehension is specified by a variable list x1 ... xn,
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
@@ -2244,7 +2229,7 @@ enum Kind : int32_t
    * y in the above formula.
    *
    * Parameters:
-   *   - 1: Term BOUND_VAR_LIST
+   *   - 1: Term VARIABLE_LIST
    *   - 2: Term denoting the predicate of the comprehension
    *   - 3: (optional) a Term denoting the generator for the comprehension
    *
@@ -2256,9 +2241,9 @@ enum Kind : int32_t
   SET_COMPREHENSION,
   /**
    * Returns an element from a given set.
-   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
-   * If the set is empty, then (choose A) is an arbitrary value.
-   * If the set has cardinality > 1, then (choose A) will deterministically
+   * If a set A = {x}, then the term (set.choose A) is equivalent to the term x.
+   * If the set is empty, then (set.choose A) is an arbitrary value.
+   * If the set has cardinality > 1, then (set.choose A) will deterministically
    * return an element in A.
    *
    * Parameters:
@@ -2278,6 +2263,21 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
   SET_IS_SINGLETON,
+  /**
+   * set.map operator applies the first argument, a function of type (-> T1 T2),
+   * to every element of the second argument, a set of type (Set T1),
+   * and returns a set of type (Set T2).
+   *
+   * Parameters:
+   *   - 1: a function of type (-> T1 T2)
+   *   - 2: a set of type (Set T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+   * const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+   SET_MAP,
 
   /* Relations ------------------------------------------------------------- */
 
@@ -2356,7 +2356,7 @@ enum Kind : int32_t
    * Create with:
    *   mkEmptyBag(const Sort& sort)
    */
-  EMPTYBAG,
+  BAG_EMPTY,
   /**
    * Bag max union.
    * Parameters:
@@ -2366,7 +2366,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION_MAX,
+  BAG_UNION_MAX,
   /**
    * Bag disjoint union (sum).
    *
@@ -2377,7 +2377,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION_DISJOINT,
+  BAG_UNION_DISJOINT,
   /**
    * Bag intersection (min).
    *
@@ -2388,7 +2388,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INTERSECTION_MIN,
+  BAG_INTER_MIN,
   /**
    * Bag difference subtract (subtracts multiplicities of the second from the
    * first).
@@ -2400,7 +2400,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DIFFERENCE_SUBTRACT,
+  BAG_DIFFERENCE_SUBTRACT,
   /**
    * Bag difference 2 (removes shared elements in the two bags).
    *
@@ -2411,7 +2411,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DIFFERENCE_REMOVE,
+  BAG_DIFFERENCE_REMOVE,
   /**
    * Inclusion predicate for bags
    * (multiplicities of the first bag <= multiplicities of the second bag).
@@ -2423,7 +2423,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SUBBAG,
+  BAG_SUBBAG,
   /**
    * Element multiplicity in a bag
    *
@@ -2436,6 +2436,17 @@ enum Kind : int32_t
    */
   BAG_COUNT,
   /**
+   * Bag membership predicate.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort (Bag E), is [1] of type E an element of [2]
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_MEMBER,
+  /**
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
    *
@@ -2446,17 +2457,19 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DUPLICATE_REMOVAL,
+  BAG_DUPLICATE_REMOVAL,
   /**
-   * The bag of the single element given as a parameter.
+   * Construct a bag with the given element and given multiplicity.
    *
    * Parameters:
-   *   - 1: Single element
+   *   - 1: The element
+   *   - 2: The multiplicity of the element. 
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child, const Term& child) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MK_BAG,
+  BAG_MAKE,
   /**
    * Bag cardinality.
    *
@@ -2526,6 +2539,50 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_MAP,
+  /**
+    * bag.filter operator filters the elements of a bag.
+    * (bag.filter p B) takes a predicate p of type (-> T Bool) as a first
+    * argument, and a bag B of type (Bag T) as a second argument, and returns a
+    * subbag of type (Bag T) that includes all elements of B that satisfy p
+    * with the same multiplicity.
+    *
+    * Parameters:
+    *   - 1: a function of type (-> T Bool)
+    *   - 2: a bag of type (Bag T)
+    *
+    * Create with:
+    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+    * const`
+    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+    */
+   BAG_FILTER,
+  /**
+   * bag.fold operator combines elements of a bag into a single value.
+   * (bag.fold f t B) folds the elements of bag B starting with term t and using
+   * the combining function f.
+   *
+   * Parameters:
+   *   - 1: a binary operation of type (-> T1 T2 T2)
+   *   - 2: an initial value of type T2
+   *   - 2: a bag of type (Bag T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
+   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_FOLD,
+  /**
+   * Table cross product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  TABLE_PRODUCT,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -3262,7 +3319,7 @@ enum Kind : int32_t
    * Universally quantified formula.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST Term
+   *   - 1: VARIABLE_LIST Term
    *   - 2: Quantifier body
    *   - 3: (optional) INST_PATTERN_LIST Term
    *
@@ -3276,7 +3333,7 @@ enum Kind : int32_t
    * Existentially quantified formula.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST Term
+   *   - 1: VARIABLE_LIST Term
    *   - 2: Quantifier body
    *   - 3: (optional) INST_PATTERN_LIST Term
    *
@@ -3287,24 +3344,24 @@ enum Kind : int32_t
    */
   EXISTS,
   /**
-   * A list of bound variables (used to bind variables under a quantifier)
+   * A list of variables (used to bind variables under a quantifier)
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind BOUND_VARIABLE
+   *   - 1..n: Terms with kind VARIABLE
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  BOUND_VAR_LIST,
+  VARIABLE_LIST,
   /**
    * An instantiation pattern.
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind BOUND_VARIABLE
+   *   - 1..n: Terms of any sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -3318,7 +3375,7 @@ enum Kind : int32_t
    * quantifier instantiation.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind BOUND_VARIABLE
+   *   - 1..n: Terms of any sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`

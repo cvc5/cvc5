@@ -40,21 +40,39 @@ class BagSolver : protected EnvObj
   BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BagSolver();
 
-  void postCheck();
+  /**
+   * apply inference rules for basic bag operators:
+   * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
+   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
+   */
+  void checkBasicOperations();
+
+  /**
+   * apply inference rules for BAG_MAKE terms.
+   * For each term (bag x c) that is neither equal nor disequal to the empty
+   * bag, we do a split using the following lemma:
+   * (or
+   *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
+   *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
+   * where (Bag E) is the type of the bag term
+   * @return true if a new lemma was successfully sent.
+   */
+  bool checkBagMake();
 
  private:
   /** apply inference rules for empty bags */
   void checkEmpty(const Node& n);
+
   /**
-   * apply inference rules for MK_BAG operator.
+   * apply inference rules for BAG_MAKE operator.
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
    * and (bag.count y n).
    * This function will add inferences for the count terms as documented in
-   * InferenceGenerator::mkBag.
+   * InferenceGenerator::bagMake.
    * Note that element y may not be in bag n. See the documentation of
    * SolverState::getElements.
    */
-  void checkMkBag(const Node& n);
+  void checkBagMake(const Node& n);
   /**
    * @param n is a bag that has the form (op A B)
    * @return the set union of known elements in (op A B) , A, and B.
@@ -78,6 +96,10 @@ class BagSolver : protected EnvObj
   void checkDisequalBagTerms();
   /** apply inference rules for map operator */
   void checkMap(Node n);
+  /** apply inference rules for filter operator */
+  void checkFilter(Node n);
+  /** apply inference rules for product operator */
+  void checkProduct(Node n);
 
   /** The solver state object */
   SolverState& d_state;

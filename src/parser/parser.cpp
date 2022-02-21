@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -535,7 +534,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == api::EMPTYBAG)
+  else if (k == api::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
@@ -584,7 +583,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       // lookup by name
       api::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getSpecializedConstructorTerm(s);
+      t = dc.getInstantiatedConstructorTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
@@ -751,18 +750,7 @@ void Parser::pushGetValueScope()
     std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
     for (const api::Term& e : elements)
     {
-      // Uninterpreted constants are abstract values, which by SMT-LIB are
-      // required to be annotated with their type, e.g. (as @uc_Foo_0 Foo).
-      // Thus, the element is not printed simply as its name.
-      std::string en = e.toString();
-      size_t index = en.find("(as ");
-      if (index == 0)
-      {
-        index = en.find(" ", 4);
-        en = en.substr(4, index - 4);
-      }
-      Trace("parser") << "Get value scope : " << en << " -> " << e << std::endl;
-      defineVar(en, e);
+      defineVar(e.getUninterpretedSortValue(), e);
     }
   }
 }

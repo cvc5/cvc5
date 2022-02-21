@@ -17,7 +17,7 @@ The time limits for each level are:
 ## Running Regression Tests
 
 For running regressions tests, see the
-[INSTALL](https://github.com/CVC4/CVC4/blob/master/INSTALL.md#testing-cvc4)
+[INSTALL](https://github.com/cvc5/cvc5/blob/master/INSTALL.rst#testing-cvc5)
 file.
 
 By default, each invocation of cvc5 is done with a 10 minute timeout. To use a
@@ -48,11 +48,10 @@ The following types of regression files are supported:
 
 - `*.smt`: An [SMT1.x](http://smtlib.cs.uiowa.edu/papers/format-v1.2-r06.08.30.pdf) benchmark
 - `*.smt2`: An [SMT 2.x](http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf) benchmark
-- `*.cvc`: A benchmark that uses [cvc5's native input language](https://github.com/CVC4/CVC4/wiki/CVC4-Native-Input-Language)
 - `*.sy`: A [SyGuS](http://sygus.seas.upenn.edu/files/SyGuS-IF.pdf) benchmark
 - `*.p`: A [TPTP](http://www.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html) benchmark
 
-## Expected Output, Error, and Exit Codes
+## Directives
 
 In the regression file, you can specify expected stdout, stderr, and exit codes
 with the following directives:
@@ -123,3 +122,12 @@ This benchmark is only run when CryptoMiniSat has been configured.  Multiple
 as a requirement, refer to cvc5's `--show-config` output. Features can also be
 excluded by adding the `no-` prefix, e.g. `no-cryptominisat` means that the
 test is not valid for builds that include CryptoMiniSat support.
+
+To disable a specific type of test, the `DISABLE-TESTER` directive can be used.
+The following example disables the proof tester for a regression:
+
+```
+; DISABLE-TESTER: proof
+```
+
+Multiple testers can be disabled using multiple `DISABLE-TESTER` directives.

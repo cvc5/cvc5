@@ -38,6 +38,12 @@ enum class SkolemFunId
   MOD_BY_ZERO,
   /** an uninterpreted function f s.t. f(x) = sqrt(x) */
   SQRT,
+  /**
+   * Argument used to purify trancendental function app f(x).
+   * For sin(x), this is a variable that is assumed to be in phase with x that
+   * is between -pi and pi
+   */
+  TRANSCENDENTAL_PURIFY_ARG,
   /** a wrongly applied selector */
   SELECTOR_WRONG,
   /** a shared selector */
@@ -112,6 +118,16 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
+  /** Sequence model construction, element for base */
+  SEQ_MODEL_BASE_ELEMENT,
+  BAGS_CARD_CARDINALITY,
+  BAGS_CARD_ELEMENTS,
+  BAGS_CARD_N,
+  BAGS_CARD_UNION_DISJOINT,
+  BAGS_FOLD_CARD,
+  BAGS_FOLD_COMBINE,
+  BAGS_FOLD_ELEMENTS,
+  BAGS_FOLD_UNION_DISJOINT,
   /** An interpreted function for bag.choose operator:
    * (bag.choose A) is expanded as
    * (witness ((x elementType))
@@ -207,9 +223,14 @@ class SkolemManager
    */
   enum SkolemFlags
   {
-    SKOLEM_DEFAULT = 0,    /**< default behavior */
-    SKOLEM_EXACT_NAME = 1, /**< do not make the name unique by adding the id */
-    SKOLEM_BOOL_TERM_VAR = 2 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+    /** default behavior */
+    SKOLEM_DEFAULT = 0,
+    /** do not make the name unique by adding the id */
+    SKOLEM_EXACT_NAME = 1,
+    /** vars requiring kind BOOLEAN_TERM_VARIABLE */
+    SKOLEM_BOOL_TERM_VAR = 2,
+    /** a skolem that stands for an abstract value (used for printing) */
+    SKOLEM_ABSTRACT_VALUE = 4,
   };
   /**
    * This makes a skolem of same type as bound variable v, (say its type is T),
@@ -394,6 +415,10 @@ class SkolemManager
    * the proof generator that was provided in a call to mkSkolem above.
    */
   ProofGenerator* getProofGenerator(Node q) const;
+
+  /** Returns true if n is a skolem that stands for an abstract value */
+  bool isAbstractValue(TNode n) const;
+
   /**
    * Convert to witness form, which gets the witness form of a skolem k.
    * Notice this method is *not* recursive, instead, it is a simple attribute
@@ -430,6 +455,7 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
+
   /** Get or make skolem attribute for term w, which may be a witness term */
   Node mkSkolemInternal(Node w,
                         const std::string& prefix,

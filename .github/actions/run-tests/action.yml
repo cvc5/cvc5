@@ -9,8 +9,6 @@ inputs:
     default: true
   check-python-bindings:
     default: false
-  check-unit-tests:
-    default: true
   regressions-args:
     default: ""
   regressions-exclude:
@@ -28,13 +26,6 @@ runs:
         RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
       working-directory: ${{ inputs.build-dir }}
 
-    - name: Run Unit Tests
-      shell: bash
-      run: |
-        if [[ "${{ inputs.check-unit-tests }}" != "true" ]]; then exit 0; fi
-        make -j${{ env.num_proc }} apitests units
-      working-directory: ${{ inputs.build-dir }}
-
     - name: Install Check
       shell: bash
       run: |
@@ -48,8 +39,8 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.check-python-bindings }}" != "true" ]]; then exit 0; fi
-        export PYTHONPATH="$PYTHONPATH:$(dirname $(find ${{ inputs.build-dir }}/install/ -name "pycvc5" -type d))"
-        python3 -c "import pycvc5"
+        export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install -name 'cvc5_python_base*')))"
+        python3 -c "import cvc5"
 
     - name: Check Examples
       shell: bash
