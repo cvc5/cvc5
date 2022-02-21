@@ -636,6 +636,7 @@ set(regress_0_tests
   regress0/fuzz_3.smtv1.smt2
   regress0/get-value-incremental.smt2
   regress0/get-value-ints.smt2
+  regress0/get-value-no-evaluate.smt2
   regress0/get-value-reals-ints.smt2
   regress0/get-value-reals.smt2
   regress0/ho/apply-collapse-sat.smt2
