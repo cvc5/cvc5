@@ -1065,8 +1065,8 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
     if (!areEqual(f1, f2))
     {
       Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
-      vector<pair<TNode, TNode> > currentPairs;
-      for (unsigned k = 0; k < f1.getNumChildren(); ++k)
+      std::vector<std::pair<TNode, TNode> > currentPairs;
+      for (size_t k = 0, nchild = f1.getNumChildren(); k < nchild; ++k)
       {
         TNode x = f1[k];
         TNode y = f2[k];
@@ -1089,11 +1089,11 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
           }
         }
       }
-      for (unsigned c = 0; c < currentPairs.size(); ++c)
+      for (std::pair<TNode, TNode>& p : currentPairs)
       {
-        Trace("dt-cg-pair") << "Pair : " << currentPairs[c].first << " "
-                            << currentPairs[c].second << std::endl;
-        addCarePair(currentPairs[c].first, currentPairs[c].second);
+        Trace("dt-cg-pair") << "Pair : " << p.first << " "
+                            << p.second << std::endl;
+        addCarePair(p.first, p.second);
         n_pairs++;
       }
     }
@@ -1101,7 +1101,7 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
   }
   if (t2 == nullptr)
   {
-    if (depth < (arity - 1))
+    if (depth+1 < arity)
     {
       // add care pairs internal to each child
       for (std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
