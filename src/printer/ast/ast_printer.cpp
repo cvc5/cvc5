@@ -136,9 +136,9 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
-  out << "Model(";
+  out << "Model(" << std::endl;
   this->Printer::toStream(out, m);
-  out << ")";
+  out << ")" << std::endl;
 }
 
 void AstPrinter::toStreamModelSort(std::ostream& out,
