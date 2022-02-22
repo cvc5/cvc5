@@ -1172,8 +1172,6 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
   }
 }
 
-// TODO: return trail. 
-
 CRef Solver::propagate(TheoryCheckType type)
 {
     CRef confl = CRef_Undef;
