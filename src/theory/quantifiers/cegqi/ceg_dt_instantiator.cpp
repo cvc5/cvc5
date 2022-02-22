@@ -66,9 +66,8 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       // now must solve for selectors applied to pv
       for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
       {
-        Node c = nm->mkNode(APPLY_SELECTOR,
-                            dt[cindex].getSelectorInternal(d_type, j),
-                            pv);
+        Node c = nm->mkNode(
+            APPLY_SELECTOR, dt[cindex].getSelectorInternal(d_type, j), pv);
         ci->pushStackVariable(c);
         children.push_back(c);
       }

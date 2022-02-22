@@ -991,15 +991,18 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Node r;
   bool wrong = false;
   Node eq_exp = s[0].eqNode(c);
-  if( s.getKind()==kind::APPLY_SELECTOR ){
+  if (s.getKind() == kind::APPLY_SELECTOR)
+  {
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
     const DType& dt = utils::datatypeOf(selector);
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
-    Trace("dt-collapse-sel") << "selector index is " << selectorIndex << std::endl;
+    Trace("dt-collapse-sel")
+        << "selector index is " << selectorIndex << std::endl;
     wrong = selectorIndex<0;
-    r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR, s.getOperator(), c );
+    r = NodeManager::currentNM()->mkNode(
+        kind::APPLY_SELECTOR, s.getOperator(), c);
   }
   if( !r.isNull() ){
     Node rrs;

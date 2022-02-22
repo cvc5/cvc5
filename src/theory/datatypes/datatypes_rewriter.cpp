@@ -815,7 +815,8 @@ Node DatatypesRewriter::expandApplySelector(Node n)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
-  if (!options::dtSharedSelectors() || !selector.hasAttribute(DTypeConsIndexAttr()))
+  if (!options::dtSharedSelectors()
+      || !selector.hasAttribute(DTypeConsIndexAttr()))
   {
     return n;
   }
@@ -886,8 +887,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
         else
         {
-          b << nm->mkNode(
-              APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
+          b << nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
         }
       }
       ret = b;

@@ -960,7 +960,8 @@ bool TermDbSygus::involvesDivByZero( Node n ) {
 }
 
 Node TermDbSygus::getAnchor( Node n ) {
-  if( n.getKind()==APPLY_SELECTOR ){
+  if (n.getKind() == APPLY_SELECTOR)
+  {
     return getAnchor( n[0] );
   }else{
     return n;
@@ -968,7 +969,8 @@ Node TermDbSygus::getAnchor( Node n ) {
 }
 
 unsigned TermDbSygus::getAnchorDepth( Node n ) {
-  if( n.getKind()==APPLY_SELECTOR ){
+  if (n.getKind() == APPLY_SELECTOR)
+  {
     return 1+getAnchorDepth( n[0] );
   }else{
     return 0;
