@@ -264,7 +264,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
   // might be a builtin selector
   if (sel.hasAttribute(DTypeIndexAttr()))
   {
-    unsigned sindex = DType::indexOf(sel);
+    size_t sindex = DType::indexOf(sel);
     if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
       return static_cast<int>(sindex);
