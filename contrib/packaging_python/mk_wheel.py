@@ -89,7 +89,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # build the main library
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10'])
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_base', '-j', '10'])
 
         # build the python binding
         python_build_dir = os.path.join("src", "api", "python")
