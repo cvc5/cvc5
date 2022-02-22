@@ -262,10 +262,13 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
   Assert(isResolved());
   Assert(sel.getType().isSelector());
   // might be a builtin selector
-  unsigned sindex = DType::indexOf(sel);
-  if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
+  if (sel.hasAttribute(DTypeIndexAttr()))
   {
-    return static_cast<int>(sindex);
+    unsigned sindex = DType::indexOf(sel);
+    if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
+    {
+      return static_cast<int>(sindex);
+    }
   }
   // otherwise, check shared selector
   TypeNode domainType = sel.getType().getSelectorDomainType();
