@@ -83,11 +83,13 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
   // pivot = (lowerBound + upperBound) / 2
   // rounded towards -infinity
   BitVector pivot;
+  int pushLayers = 0;  // how many layers have we pushed?
   while ((d_isSigned && lowerBound.signedLessThan(upperBound))
          || (!d_isSigned && lowerBound.unsignedLessThan(upperBound)))
   {
     pivot = computeAverage(lowerBound, upperBound, d_isSigned);
     optChecker->push();
+    pushLayers += 1;
     if (lowerBound == pivot)
     {
       optChecker->assertFormula(
@@ -105,7 +107,9 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
     switch (intermediateSatResult.isSat())
     {
       case Result::SAT_UNKNOWN:
-        optChecker->pop();
+        for (int j = 0; j < pushLayers; ++j) {
+          optChecker->pop();
+        }
         return OptimizationResult(intermediateSatResult, value);
       case Result::SAT:
         lastSatResult = intermediateSatResult;
@@ -118,16 +122,22 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
           // lowerBound == pivot ==> upperbound = lowerbound + 1
           // and lowerbound <= target < upperbound is UNSAT
           // return the upperbound
-          optChecker->pop();
+          for (int j = 0; j < pushLayers; ++j) {
+            optChecker->pop();
+          }
           return OptimizationResult(lastSatResult, value);
         }
         else
         {
           lowerBound = pivot;
+          optChecker->pop();
+          pushLayers -= 1;
         }
         break;
       default: Unreachable();
     }
+  }
+  for (int j = 0; j < pushLayers; ++j) {
     optChecker->pop();
   }
   return OptimizationResult(lastSatResult, value);
@@ -173,12 +183,14 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
   // pivot = (lowerBound + upperBound) / 2
   // rounded towards -infinity
   BitVector pivot;
+  int pushLayers = 0;
   while ((d_isSigned && lowerBound.signedLessThan(upperBound))
          || (!d_isSigned && lowerBound.unsignedLessThan(upperBound)))
   {
     pivot = computeAverage(lowerBound, upperBound, d_isSigned);
 
     optChecker->push();
+    pushLayers += 1;
     // notice that we don't have boundary condition here
     // because lowerBound == pivot / lowerBound == upperBound + 1 is also
     // covered
@@ -191,7 +203,9 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
     switch (intermediateSatResult.isSat())
     {
       case Result::SAT_UNKNOWN:
-        optChecker->pop();
+        for (int j = 0; j < pushLayers; ++j) {
+          optChecker->pop();
+        }
         return OptimizationResult(intermediateSatResult, value);
       case Result::SAT:
         lastSatResult = intermediateSatResult;
@@ -204,16 +218,22 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
           // upperbound = lowerbound + 1
           // and lowerbound < target <= upperbound is UNSAT
           // return the lowerbound
-          optChecker->pop();
+          for (int j = 0; j < pushLayers; ++j) {
+            optChecker->pop();
+          }
           return OptimizationResult(lastSatResult, value);
         }
         else
         {
           upperBound = pivot;
+          optChecker->pop();
+          pushLayers -= 1;
         }
         break;
       default: Unreachable();
     }
+  }
+  for (int j = 0; j < pushLayers; ++j) {
     optChecker->pop();
   }
   return OptimizationResult(lastSatResult, value);
