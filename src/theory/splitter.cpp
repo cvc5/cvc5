@@ -105,15 +105,16 @@ TrustNode Splitter::handlePartitionTwoOfTwo()
 TrustNode Splitter::makePartitions()
 {
   d_numChecks = d_numChecks + 1;
-  if (d_partitionFile != "")
-  {
-    d_partitionFileStream.open(d_partitionFile, std::ios_base::app);
-    d_output = &d_partitionFileStream;
-  }
   if (d_numChecks < options::numChecks())
   {
     closeFile();
     return TrustNode::null();
+  }
+
+  if (d_partitionFile != "")
+  {
+    d_partitionFileStream.open(d_partitionFile, std::ios_base::app);
+    d_output = &d_partitionFileStream;
   }
 
   // This is the revised version of the old splitting strategy.

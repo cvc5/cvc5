@@ -71,8 +71,6 @@ class PropEngine : protected EnvObj
    */
   void finishInit();
 
-  //TODO: Add an interface here for getting the decisions from the sat solver. 
-
   /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
    * rewriting node. New lemmas and skolems are added to ppLemmas and

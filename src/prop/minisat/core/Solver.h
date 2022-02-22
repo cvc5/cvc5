@@ -293,7 +293,6 @@ const vec<Lit>& getMiniSatDecisions() {
   return trail; 
 }
 
-
  // Read state:
  //
  lbool value(Var x) const;  // The current value of a variable.
