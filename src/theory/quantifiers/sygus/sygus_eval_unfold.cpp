@@ -100,6 +100,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TNode vt = v;
       Node vn = n.substitute(at, vt);
       vn = rewrite(vn);
+      // it might be incorrectly applied
       if (!vn.isConst())
       {
         continue;

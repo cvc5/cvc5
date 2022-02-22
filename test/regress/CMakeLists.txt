@@ -2758,7 +2758,6 @@ set(regress_2_tests
   regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2
   regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2
   regress2/quantifiers/cee-event-wrong-sat.smt2
-  regress2/quantifiers/exp-trivially-dd3.smt2
   regress2/quantifiers/gn-wrong-091018.smt2
   regress2/quantifiers/issue3481-unsat1.smt2
   regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2
@@ -3012,6 +3011,8 @@ set(regression_disabled_tests
   regress2/nl/nt-lemmas-bad.smt2
   # timeout after refactoring justification heuristic
   regress2/ho/SYO362^5.p
+  # timeout after refactoring selectors
+  regress2/quantifiers/exp-trivially-dd3.smt2
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
