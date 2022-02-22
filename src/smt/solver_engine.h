@@ -903,7 +903,7 @@ class CVC5_EXPORT SolverEngine
    * command.
    */
   UnsatCore getUnsatCoreInternal();
-  
+
   /** Internal version of assertFormula */
   Result assertFormulaInternal(const Node& formula);
 
@@ -1061,7 +1061,8 @@ class CVC5_EXPORT SolverEngine
    */
   void ensureWellFormedTerm(const Node& n, const std::string& src) const;
   /** Vector version of above. */
-  void ensureWellFormedTerms(const std::vector<Node>& ns, const std::string& src) const;
+  void ensureWellFormedTerms(const std::vector<Node>& ns,
+                             const std::string& src) const;
 
   /* Members -------------------------------------------------------------- */
 

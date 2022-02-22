@@ -1231,7 +1231,8 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
   }
 }
 
-void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns, const std::string& src) const
+void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
+                                         const std::string& src) const
 {
   for (const Node& n : ns)
   {
