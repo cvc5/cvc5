@@ -766,7 +766,7 @@ Result SolverEngine::checkEntailed(const Node& node)
 
 Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
 {
-  ensureWellFormedTerms(assumptions, "checkEntailed");
+  ensureWellFormedTerms(nodes, "checkEntailed");
   return checkSatInternal(nodes, true).asEntailmentResult();
 }
 
