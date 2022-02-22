@@ -46,6 +46,6 @@ jobs:
       uses: ./.github/actions/package-python-wheel
       with:
         upload-to-pypi: ${{ github.event_name == 'release' }}
-        upload-to-test-pypi: true
+        upload-to-test-pypi: false
         test-pypi-token: ${{ secrets.PYPI_TOKEN }}
         pypi-token: ${{ secrets.PYPI_TOKEN }}
