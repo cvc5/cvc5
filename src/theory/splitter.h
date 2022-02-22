@@ -17,10 +17,11 @@
 #ifndef CVC5__THEORY__SPLITTER_H
 #define CVC5__THEORY__SPLITTER_H
 
+#include <math.h>
+
 #include <fstream>
 #include <list>
 #include <sstream>
-#include <math.h>
 
 #include "options/smt_options.h"
 #include "proof/trust_node.h"
@@ -55,10 +56,12 @@ class Splitter
       d_output = &d_partitionFileStream;
       d_partitionFileStream.close();
     }
-    if (options::partitionConflictSize() == 0){
+    if (options::partitionConflictSize() == 0)
+    {
       d_conflictSize = (unsigned)log2(d_numPartitions);
     }
-    else {
+    else
+    {
       d_conflictSize = options::partitionConflictSize();
     }
   }
