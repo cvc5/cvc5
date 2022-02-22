@@ -57,6 +57,12 @@ class SetDefaults : protected EnvObj
    */
   bool usesSygus(const Options& opts) const;
   /**
+   * Does options enable an input conversion, e.g. solve-bv-as-int?
+   * If this method returns true, then reason is updated with the name of the
+   * option.
+   */
+  bool usesInputConversion(const Options& opts, std::ostream& reason) const;
+  /**
    * Check if incompatible with incremental mode. Notice this method may modify
    * the options to ensure that we are compatible with incremental mode.
    *
@@ -93,6 +99,12 @@ class SetDefaults : protected EnvObj
    * techniques that may interfere with producing correct unsat cores.
    */
   bool safeUnsatCores(const Options& opts) const;
+  /**
+   * Check if incompatible with sygus. Notice this method may
+   * modify the options to ensure that we are compatible with sygus.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithSygus(Options& opts, std::ostream& reason) const;
   /**
    * Check if incompatible with quantified formulas. Notice this method may
    * modify the options to ensure that we are compatible with quantified logics.
