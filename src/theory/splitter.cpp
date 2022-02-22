@@ -44,24 +44,65 @@ void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
 
     // If the literal is the not of some node, do the checks for the child
     // of the not instead of the not itself.
-    if (originalN.getKind() == kind::NOT)
-    {
-      if (expr::hasSubtermKinds(kinds, originalN[0])
-          || !d_valuation->isSatLiteral(originalN[0])
-          || !d_valuation->isDecision(originalN[0]))
-      {
-        continue;
-      }
-    }
-    else if (expr::hasSubtermKinds(kinds, originalN)
-             || !d_valuation->isSatLiteral(originalN)
-             || !d_valuation->isDecision(originalN))
+    originalN = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
+    if (expr::hasSubtermKinds(kinds, originalN)
+        || !d_valuation->isSatLiteral(originalN)
+        || !d_valuation->isDecision(originalN))
     {
       continue;
     }
 
     literals.push_back(originalN);
   }
+}
+
+void Splitter::emitCube(Node toEmit)
+{
+  *d_output << toEmit << "\n";
+  ++d_numPartitionsSoFar;
+}
+
+void Splitter::closeFile()
+{
+  if (d_partitionFile != "")
+  {
+    d_partitionFileStream.close();
+  }
+}
+
+TrustNode Splitter::blockPath(Node toBlock)
+{
+  // Now block that path in the search.
+  NodeBuilder notBuilder(kind::NOT);
+  notBuilder << toBlock;
+  Node lemma = notBuilder.constructNode();
+  d_assertedLemmas.push_back(lemma);
+  TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma);
+  return trustedLemma;
+}
+
+TrustNode Splitter::stopPartitioning()
+{
+  NodeBuilder andBuilder2(kind::AND);
+  for (const auto d : d_assertedLemmas) andBuilder2 << d;
+  Node conj = andBuilder2.constructNode();
+  NodeBuilder notBuilder(kind::NOT);
+  notBuilder << conj;
+  Node lemma = notBuilder.constructNode();
+  return TrustNode::mkTrustLemma(lemma);
+}
+
+TrustNode Splitter::handlePartitionTwoOfTwo()
+{
+  *d_output << d_assertedLemmas.front() << "\n";
+  NodeBuilder notBuilder(kind::NOT);
+  notBuilder << d_assertedLemmas.front();
+  Node lemma = notBuilder.constructNode();
+  if (d_partitionFile != "")
+  {
+    d_partitionFileStream.close();
+  }
+  return TrustNode::mkTrustLemma(lemma);
 }
 
 TrustNode Splitter::makePartitions()
@@ -72,6 +113,11 @@ TrustNode Splitter::makePartitions()
     d_partitionFileStream.open(d_partitionFile, std::ios_base::app);
     d_output = &d_partitionFileStream;
   }
+  if (d_numChecks < options::numChecks())
+  {
+    closeFile();
+    return TrustNode::null();
+  }
 
   // This is the revised version of the old splitting strategy.
   // Cubes look like the following:
@@ -79,84 +125,55 @@ TrustNode Splitter::makePartitions()
   // C2 = l2_{1} & .... & l2_{d_conflictSize}
   // C3 = l3_{1} & .... & l3_{d_conflictSize}
   // C4 = !C1 & !C2 & !C3
-  if (options::partitionStrategy() == "revised")
+  else if (options::partitionStrategy() == "revised")
   {
-    // If we're at the last cube
-    if (d_numPartitionsSoFar == d_numPartitions - 1)
+    // If we're not at the last cube
+    if (d_numPartitionsSoFar < d_numPartitions - 1)
+    {
+      std::vector<TNode> literals;
+      collectDecisionLiterals(literals);
+
+      // Make sure we have enough literals.
+      // Conflict size can be set through options, but the default is log base 2
+      // of the requested number of partitions.
+      if (literals.size() < d_conflictSize) return TrustNode::null();
+
+      std::vector<Node> tmpLiterals(literals.begin(),
+                                    literals.begin() + d_conflictSize);
+      // Make first cube and emit it.
+      Node conj = NodeManager::currentNM()->mkAnd(tmpLiterals);
+      emitCube(conj);
+      closeFile();
+      return blockPath(conj);
+    }
+
+    // At the last cube
+    else
     {
       if (d_numPartitionsSoFar == 1)
       {
-        *d_output << d_assertedLemmas.front() << "\n";
-        NodeBuilder notBuilder(kind::NOT);
-        notBuilder << d_assertedLemmas.front();
-        Node lemma = notBuilder.constructNode();
-        return TrustNode::mkTrustLemma(lemma);
+        handlePartitionTwoOfTwo();
       }
       // If we ask for more than two partitions.
       else
       {
-        NodeBuilder andBuilder(kind::AND);
+        // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
+        NodeBuilder andOfNegatedCubesBuilder(kind::AND);
         for (const auto d : d_assertedLemmas)
         {
           NodeBuilder notBuilder(kind::NOT);
           notBuilder << d;
           Node negated_cube = notBuilder.constructNode();
-          andBuilder << negated_cube;
+          andOfNegatedCubesBuilder << negated_cube;
         }
 
-        Node last_cube = andBuilder.constructNode();
-        *d_output << last_cube << "\n";
-
-        if (d_partitionFile != "")
-        {
-          d_partitionFileStream.close();
-        }
-
-        NodeBuilder andBuilder2(kind::AND);
-        for (const auto d : d_assertedLemmas) andBuilder2 << d;
-        Node conj = andBuilder2.constructNode();
-        NodeBuilder notBuilder(kind::NOT);
-        notBuilder << conj;
-        Node lemma = notBuilder.constructNode();
-        ++d_numPartitionsSoFar;
-
-        return TrustNode::mkTrustLemma(lemma);
+        emitCube(andOfNegatedCubesBuilder.constructNode());
+        closeFile();
+        return stopPartitioning();
       }
     }
 
-    // Not at the last cube
-    else
-    {
-      std::vector<TNode> literals;
-      collectDecisionLiterals(literals);
-
-      if (literals.size() >= d_conflictSize)
-      {
-        std::vector<Node> tmpLiterals(literals.begin(),
-                                      literals.begin() + d_conflictSize);
-        Node conj = NodeManager::currentNM()->mkAnd(tmpLiterals);
-        *d_output << conj << "\n";
-        if (d_partitionFile != "")
-        {
-          d_partitionFileStream.close();
-        }
-
-        NodeBuilder notBuilder(kind::NOT);
-        notBuilder << conj;
-        Node lemma = notBuilder.constructNode();
-
-        ++d_numPartitionsSoFar;
-        d_assertedLemmas.push_back(lemma);
-
-        TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma);
-        return trustedLemma;
-      }
-    }
-    if (d_partitionFile != "")
-    {
-      d_partitionFileStream.close();
-    }
-
+    closeFile();
     return TrustNode::null();
   }
 

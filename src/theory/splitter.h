@@ -80,7 +80,11 @@ class Splitter
   std::list<Node> d_assertedLemmas;
   std::vector<Node> d_cubes;
   unsigned d_conflictSize;
-  TrustNode makeFinalConflict();
+  void emitCube(Node toEmit);
+  TrustNode blockPath(Node toBlock);
+  void closeFile();
+  TrustNode stopPartitioning();
+  TrustNode handlePartitionTwoOfTwo();
   void collectDecisionLiterals(std::vector<TNode>& literals);
 };
 }  // namespace theory
