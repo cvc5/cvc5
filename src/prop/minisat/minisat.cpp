@@ -271,7 +271,7 @@ std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
   std::vector<SatLiteral> decisions;
   Minisat::vec<Minisat::Lit> miniDecisions;
   d_minisat->getMiniSatDecisions().copyTo(miniDecisions);
-  for (uint i = 0; i < miniDecisions.size(); ++i) {
+  for (int i = 0; i < miniDecisions.size(); ++i) {
     decisions.push_back(toSatLiteral(miniDecisions[i]));
   }
   return decisions;

@@ -37,26 +37,26 @@ void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
   std::vector<Node> decisionNodes = d_propEngine->getPropDecisions();
   for (Node n : decisionNodes)
   {
-    TNode t = n;
-
-    Node og = SkolemManager::getOriginalForm(n);
+    Node originalN = SkolemManager::getOriginalForm(n);
 
     // Make sure the literal does not have a boolean term or skolem in it.
     std::unordered_set<Kind, kind::KindHashFunction> kinds = {
         kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE};
 
-    if (og.getKind() == kind::NOT) {
-      if (expr::hasSubtermKinds(kinds, og[0]) ||
-      !d_valuation->isSatLiteral(og[0]) || !d_valuation->isDecision(og[0])){
+    // If the literal is the not of some node, do the checks for the child
+    // of the not instead of the not itself. 
+    if (originalN.getKind() == kind::NOT) {
+      if (expr::hasSubtermKinds(kinds, originalN[0]) ||
+      !d_valuation->isSatLiteral(originalN[0]) || !d_valuation->isDecision(originalN[0])){
         continue;
       }
-    } else if (expr::hasSubtermKinds(kinds, og) || !d_valuation->isSatLiteral(og)
-        || !d_valuation->isDecision(og))
+    } else if (expr::hasSubtermKinds(kinds, originalN) || !d_valuation->isSatLiteral(originalN)
+        || !d_valuation->isDecision(originalN))
     {
       continue;
     }
 
-    literals.push_back(og);
+    literals.push_back(originalN);
   }
 }
 
@@ -71,9 +71,9 @@ TrustNode Splitter::makePartitions()
 
   // This is the revised version of the old splitting strategy. 
   // Cubes look like the following: 
-  // C1 = l1_1 & .... & l1_d_conflictSize
-  // C2 = l2_1 & .... & l2_d_conflictSize
-  // C3 = l3_1 & .... & l3_d_conflictSize
+  // C1 = l1_{1} & .... & l1_{d_conflictSize}
+  // C2 = l2_{1} & .... & l2_{d_conflictSize}
+  // C3 = l3_{1} & .... & l3_{d_conflictSize}
   // C4 = !C1 & !C2 & !C3
   if (options::partitionStrategy() == "revised")
   {
