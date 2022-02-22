@@ -963,7 +963,9 @@ Node TermDbSygus::getAnchor( Node n ) {
   if (n.getKind() == APPLY_SELECTOR)
   {
     return getAnchor( n[0] );
-  }else{
+  }
+  else
+  {
     return n;
   }
 }
@@ -972,7 +974,9 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
   if (n.getKind() == APPLY_SELECTOR)
   {
     return 1+getAnchorDepth( n[0] );
-  }else{
+  }
+  else
+  {
     return 0;
   }
 }

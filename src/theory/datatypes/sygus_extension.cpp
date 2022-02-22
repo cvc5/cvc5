@@ -171,7 +171,9 @@ void SygusExtension::registerTerm(Node n)
         is_top_level = computeTopLevel( tn, n[0] );
         success = true;
       }
-    }else if( n.isVar() ){
+    }
+    else if (n.isVar())
+    {
       registerSizeTerm(n);
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
@@ -203,7 +205,9 @@ bool SygusExtension::computeTopLevel( TypeNode tn, Node n ){
   else if (n.getKind() == kind::APPLY_SELECTOR)
   {
     return computeTopLevel( tn, n[0] );
-  }else{
+  }
+  else
+  {
     return true;
   }
 }
