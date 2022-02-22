@@ -40,14 +40,15 @@ void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
 
     // Make sure the literal does not have a boolean term or skolem in it.
     std::unordered_set<Kind, kind::KindHashFunction> kinds = {
-        kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE};
+        kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE, kind::CONST_BOOLEAN};
 
     // If the literal is the not of some node, do the checks for the child
     // of the not instead of the not itself.
-    originalN = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
-    if (expr::hasSubtermKinds(kinds, originalN)
-        || !d_valuation->isSatLiteral(originalN)
-        || !d_valuation->isDecision(originalN))
+    Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
+    if (expr::hasSubtermKinds(kinds, original)
+        || !d_valuation->isSatLiteral(original)
+        || !d_valuation->isDecision(original)
+        || Theory::theoryOf(original) == THEORY_BOOL)
     {
       continue;
     }
@@ -106,9 +107,9 @@ TrustNode Splitter::handlePartitionTwoOfTwo()
 TrustNode Splitter::makePartitions()
 {
   d_numChecks = d_numChecks + 1;
+
   if (d_numChecks < options::numChecks())
   {
-    closeFile();
     return TrustNode::null();
   }
 
