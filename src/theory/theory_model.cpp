@@ -811,8 +811,8 @@ struct IsModelValueComputedTag
 {
 };
 /** Attribute true for expressions that are quasi-values */
-typedef expr::Attribute<IsModelValueTag, bool> IsModelValueAttr;
-typedef expr::Attribute<IsModelValueComputedTag, bool> IsModelValueComputedAttr;
+using IsModelValueAttr = expr::Attribute<IsModelValueTag, bool>;
+using IsModelValueComputedAttr = expr::Attribute<IsModelValueComputedTag, bool>;
 
 bool TheoryModel::isValue(TNode n) const
 {
