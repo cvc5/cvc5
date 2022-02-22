@@ -88,18 +88,14 @@ class CMakeBuild(build_ext):
         return tag == "windows"
 
     def build_extension(self, ext):
-        # build the main library
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_base', '-j', '10'])
-
-        # build the python binding
-        python_build_dir = os.path.join("src", "api", "python")
-        subprocess.check_call(['make'], cwd=python_build_dir)
+        # build the python api
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_api', '-j', '10'])
 
         # copy the library over. we need to consider other users that are not on linux
         # module is a directory called cvc5_python_base_module
         extdir = os.path.abspath(
             os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cvc5_python_base_module = os.path.join(python_build_dir, "cvc5")
+        cvc5_python_base_module = os.path.join("src", "api", "python", "cvc5")
         dst_name = os.path.join(extdir, "cvc5")
 
         shutil.rmtree(dst_name, ignore_errors=True)
