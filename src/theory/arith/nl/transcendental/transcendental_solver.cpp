@@ -67,8 +67,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
     Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-    Node y = sm->mkDummySkolem(
-        "y", nm->realType(), "phase shifted trigonometric arg");
+    Node y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), a);
     Node new_a = nm->mkNode(k, y);
     d_tstate.d_trSlaves[new_a].insert(new_a);
     d_tstate.d_trSlaves[new_a].insert(a);
