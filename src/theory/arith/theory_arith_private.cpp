@@ -378,6 +378,8 @@ bool TheoryArithPrivate::isProofEnabled() const
 
 void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(a->inConflict());
+  Assert(id != InferenceId::UNKNOWN)
+      << "Must provide an inference id in TheoryArithPrivate::raiseConflict";
   d_conflicts.push_back(std::make_pair(a, id));
 }
 
@@ -410,21 +412,6 @@ void TheoryArithPrivate::revertOutOfConflict(){
 void TheoryArithPrivate::clearUpdates(){
   d_updatedBounds.purge();
 }
-
-// void TheoryArithPrivate::raiseConflict(ConstraintCP a, ConstraintCP b){
-//   ConstraintCPVec v;
-//   v.push_back(a);
-//   v.push_back(b);
-//   d_conflicts.push_back(v);
-// }
-
-// void TheoryArithPrivate::raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c){
-//   ConstraintCPVec v;
-//   v.push_back(a);
-//   v.push_back(b);
-//   v.push_back(c);
-//   d_conflicts.push_back(v);
-// }
 
 void TheoryArithPrivate::zeroDifferenceDetected(ArithVar x){
   if(d_cmEnabled){
@@ -1751,8 +1738,9 @@ void TheoryArithPrivate::outputConflicts(){
       Node conflict = trustedConflict.getNode();
 
       ++conflicts;
-      Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
-                               << " has proof: " << hasProof << endl;
+      Debug("arith::conflict")
+          << "d_conflicts[" << i << "] " << conflict
+          << " has proof: " << hasProof << ", id = " << conf.second << endl;
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -1916,7 +1904,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
                                      << "  (" << neg_at_j->isTrue() <<") " << neg_at_j << endl
                                      << "  (" << at_j->isTrue() <<") " << at_j << endl;
           neg_at_j->impliedByIntHole(vec, true);
-          raiseConflict(at_j, InferenceId::UNKNOWN);
+          raiseConflict(at_j, InferenceId::ARITH_CONF_REPLAY_LOG);
           break;
         }
       }
@@ -2180,7 +2168,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
     if(!contains(conf, bcneg)){
       Debug("approx::branch") << "reraise " << conf  << endl;
       ConstraintCP conflicting = vectorToIntHoleConflict(conf);
-      raiseConflict(conflicting, InferenceId::UNKNOWN);
+      raiseConflict(conflicting, InferenceId::ARITH_CONF_BRANCH_CUT);
     }else if(!bci.proven()){
       drop(conf, bcneg);
       bci.setExplanation(conf);
@@ -2200,7 +2188,7 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
     }
     Debug("approx::replayAssert") << "replayAssertion " << c << endl;
     if(inConflict){
-      raiseConflict(c, InferenceId::UNKNOWN);
+      raiseConflict(c, InferenceId::ARITH_CONF_REPLAY_ASSERT);
     }else{
       assertionCases(c);
     }
@@ -2349,7 +2337,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             }else {
               con->impliedByIntHole(exp, true);
               Debug("approx::replayLogRec") << "cut into conflict " << con << endl;
-              raiseConflict(con, InferenceId::UNKNOWN);
+              raiseConflict(con, InferenceId::ARITH_CONF_REPLAY_LOG_REC);
             }
           }else{
             ++d_statistics.d_cutsProofFailed;
