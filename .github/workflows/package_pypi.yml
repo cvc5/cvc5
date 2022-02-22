@@ -45,7 +45,7 @@ jobs:
     - name: Package PyPi wheel packages
       uses: ./.github/actions/package-python-wheel
       with:
-        upload-to-pypi: ${{ github.event_name == "release" }}
+        upload-to-pypi: ${{ github.event_name == 'release' }}
         upload-to-test-pypi: true
         test-pypi-token: ${{ secrets.PYPI_TOKEN }}
         pypi-token: ${{ secrets.PYPI_TOKEN }}
