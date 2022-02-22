@@ -65,6 +65,7 @@ set(regress_0_tests
   regress0/arith/issue5219-conflict-rewrite.smt2
   regress0/arith/issue5761-ppr.smt2
   regress0/arith/issue7984-quant-trans.smt2
+  regress0/arith/issue8097-iid.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -635,6 +636,7 @@ set(regress_0_tests
   regress0/fuzz_3.smtv1.smt2
   regress0/get-value-incremental.smt2
   regress0/get-value-ints.smt2
+  regress0/get-value-no-evaluate.smt2
   regress0/get-value-reals-ints.smt2
   regress0/get-value-reals.smt2
   regress0/ho/apply-collapse-sat.smt2
@@ -661,6 +663,7 @@ set(regress_0_tests
   regress0/ho/ho-matching-nested-app.smt2
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
+  regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
@@ -1152,6 +1155,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
+  regress0/seq/shared-term-registration.smt2
   regress0/seq/update-concat-non-atomic.smt2
   regress0/seq/update-concat-non-atomic2.smt2
   regress0/seq/update-eq.smt2
@@ -2594,6 +2598,10 @@ set(regress_1_tests
   regress1/sygus/list-head-x.sy
   regress1/sygus/list_recursor.sy
   regress1/sygus/logiccell_help.sy
+  regress1/sygus/max-all.sy
+  regress1/sygus/max-limit.sy
+  regress1/sygus/max-try1.sy
+  regress1/sygus/max-try2.sy
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
   regress1/sygus/multi-fun-polynomial2.sy
