@@ -903,6 +903,9 @@ class CVC5_EXPORT SolverEngine
    * command.
    */
   UnsatCore getUnsatCoreInternal();
+  
+  /** Internal version of assertFormula */
+  Result assertFormulaInternal(const Node& formula);
 
   /**
    * Check that a generated proof checks. This method is the same as printProof,
@@ -1057,6 +1060,8 @@ class CVC5_EXPORT SolverEngine
    * this check fails.
    */
   void ensureWellFormedTerm(const Node& n, const std::string& src) const;
+  /** Vector version of above. */
+  void ensureWellFormedTerms(const std::vector<Node>& ns, const std::string& src) const;
 
   /* Members -------------------------------------------------------------- */
 
