@@ -81,11 +81,12 @@ TrustNode Splitter::blockPath(Node toBlock)
   return trustedLemma;
 }
 
+// Emit the negation of all previously asserted lemmas. 
 TrustNode Splitter::stopPartitioning()
 {
-  NodeBuilder andBuilder2(kind::AND);
-  for (const auto d : d_assertedLemmas) andBuilder2 << d;
-  Node conj = andBuilder2.constructNode();
+  NodeBuilder andBuilder(kind::AND);
+  for (const auto d : d_assertedLemmas) andBuilder << d;
+  Node conj = andBuilder.constructNode();
   NodeBuilder notBuilder(kind::NOT);
   notBuilder << conj;
   Node lemma = notBuilder.constructNode();
