@@ -98,10 +98,7 @@ TrustNode Splitter::handlePartitionTwoOfTwo()
   NodeBuilder notBuilder(kind::NOT);
   notBuilder << d_assertedLemmas.front();
   Node lemma = notBuilder.constructNode();
-  if (d_partitionFile != "")
-  {
-    d_partitionFileStream.close();
-  }
+  closeFile();
   return TrustNode::mkTrustLemma(lemma);
 }
 
@@ -152,7 +149,7 @@ TrustNode Splitter::makePartitions()
     {
       if (d_numPartitionsSoFar == 1)
       {
-        handlePartitionTwoOfTwo();
+        return handlePartitionTwoOfTwo();
       }
       // If we ask for more than two partitions.
       else
