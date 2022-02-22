@@ -708,6 +708,7 @@ void Solver::resetTrail() { cancelUntil(0); }
 //=================================================================================================
 // Major methods:
 
+
 Lit Solver::pickBranchLit()
 {
     Lit nextLit;
