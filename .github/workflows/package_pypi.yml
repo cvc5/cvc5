@@ -1,4 +1,11 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 1 * * *'
+
 name: PyPi packaging
 
 jobs:
@@ -38,4 +45,7 @@ jobs:
     - name: Package PyPi wheel packages
       uses: ./.github/actions/package-python-wheel
       with:
-        twine-token: ${{ secrets.PYPI_TOKEN }}
+        upload-to-pypi: ${{ github.event_name == "release" }}
+        upload-to-test-pypi: true
+        test-pypi-token: ${{ secrets.PYPI_TOKEN }}
+        pypi-token: ${{ secrets.PYPI_TOKEN }}

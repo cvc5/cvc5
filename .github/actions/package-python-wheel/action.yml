@@ -1,7 +1,13 @@
 name: Package python wheels
 description: Package cvc5 into python wheels for all supported python versions
 inputs:
-  twine-token:
+  upload-to-pypi:
+    default: false
+  upload-to-test-pypi:
+    default: false
+  pypi-token:
+    default: ""
+  test-pypi-token:
     default: ""
 runs:
   using: composite
@@ -73,14 +79,28 @@ runs:
       with:
         python-version: 'pypy-3.8'
 
-    - name: Upload wheels
-      if: inputs.twine-token != ''
+    - name: Upload wheels to pypi.org
+      if: inputs.upload-to-pypi
       shell: bash
       env:
         TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ inputs.twine-token }}
+        TWINE_PASSWORD: ${{ inputs.pypi-token }}
       run: |
-        echo "::group::Upload to PyPi"
+        echo "::group::Upload to pypi.org"
+        for wheel in `ls *.whl`
+        do
+          twine upload $wheel
+        done
+        echo "::endgroup::"
+
+    - name: Upload wheels to test.pypi.org
+      if: inputs.upload-to-test-pypi
+      shell: bash
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ inputs.test-pypi-token }}
+      run: |
+        echo "::group::Upload to test.pypi.org"
         for wheel in `ls *.whl`
         do
           twine upload --repository testpypi $wheel
