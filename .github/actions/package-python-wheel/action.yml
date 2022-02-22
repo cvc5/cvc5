@@ -80,7 +80,7 @@ runs:
         python-version: 'pypy-3.8'
 
     - name: Upload wheels to pypi.org
-      if: inputs.upload-to-pypi
+      if: inputs.upload-to-pypi == 'true'
       shell: bash
       env:
         TWINE_USERNAME: __token__
@@ -94,7 +94,7 @@ runs:
         echo "::endgroup::"
 
     - name: Upload wheels to test.pypi.org
-      if: inputs.upload-to-test-pypi
+      if: inputs.upload-to-test-pypi == 'true'
       shell: bash
       env:
         TWINE_USERNAME: __token__
