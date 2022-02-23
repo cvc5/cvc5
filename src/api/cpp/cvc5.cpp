@@ -5435,14 +5435,14 @@ bool Solver::isValidInteger(const std::string& s) const
   return true;
 }
 
-
 void Solver::ensureWellFormedTerm(const Term& t) const
 {
   bool wasShadow = false;
   if (expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
   {
     std::stringstream se;
-    se << "Cannot process term with " << (wasShadow ? "shadowed" : "free") << " variable";
+    se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
+       << " variable";
     throw CVC5ApiException(se.str().c_str());
   }
 }

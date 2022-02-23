@@ -5010,7 +5010,7 @@ class CVC5_EXPORT Solver
   void ensureWellFormedTerm(const Term& t) const;
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Term>& ts) const;
-                             
+
   /** Increment the term stats counter. */
   void increment_term_stats(Kind kind) const;
   /** Increment the vars stats (if 'is_var') or consts stats counter. */

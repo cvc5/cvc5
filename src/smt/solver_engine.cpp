@@ -1212,7 +1212,7 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
       std::string varType(wasShadow ? "shadowed" : "free");
       std::stringstream se;
       se << "Cannot process term with " << varType << " variable in " << src
-        << ".";
+         << ".";
       throw ModalException(se.str().c_str());
     }
   }
