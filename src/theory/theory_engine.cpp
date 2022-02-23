@@ -399,7 +399,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       d_tc->resetRound();
 
-      if (options::computePartitions() > 1 && options::partitionCheck() == options::CheckMode::FULL){
+      if (options::computePartitions() > 1
+          && options::partitionCheck() == options::CheckMode::FULL)
+      {
         TrustNode tl = d_splitter->makePartitions();
         if (!tl.isNull()){
           lemma(tl, LemmaProperty::NONE, THEORY_LAST);

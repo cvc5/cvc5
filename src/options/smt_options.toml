@@ -44,7 +44,7 @@ name   = "SMT Layer"
   help_mode  = "Partition strategy modes."
 [[option.mode.REVISED]]
   name = "revised"
-  help = "For 4 partitions, creates cubes C1, C2, C3, !C! & !C2 & !C3"
+  help = "For 4 partitions, creates cubes C1, C2, C3, !C1 & !C2 & !C3"
 
 [[option]]
   name       = "partitionCheck"
@@ -53,14 +53,14 @@ name   = "SMT Layer"
   long       = "partition-check=MODE"
   type       = "CheckMode"
   default    = "STANDARD"
-  help       = "choose partition check mode"
+  help       = "select whether partitioning happens at full or standard check"
   help_mode  = "Partition check modes."
 [[option.mode.STANDARD]]
   name = "standard"
-  help = "Create partitions at standard checks"
+  help = "create partitions at standard checks"
 [[option.mode.FULL]]
   name = "full"
-  help = "Create partitions at full checks"
+  help = "create partitions at full checks"
 
 [[option]]
   name       = "writePartitionsToFileName"

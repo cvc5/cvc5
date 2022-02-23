@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The trust node utility.
+ * Splitter for creating partitiongs. 
  */
 
 #include "theory/splitter.h"
@@ -36,7 +36,6 @@ Splitter::Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine)
       d_numPartitionsSoFar(0),
       d_partitionFile(options::writePartitionsToFileName())
 {
-  // Assert(numPartitions > 1);
   d_valuation = std::make_unique<Valuation>(theoryEngine);
   d_propEngine = propEngine;
   d_output = &std::cout;
