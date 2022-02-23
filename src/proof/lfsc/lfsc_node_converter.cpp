@@ -463,16 +463,6 @@ Node LfscNodeConverter::postConvert(Node n)
       std::stringstream opName;
       // currently allow subtyping
       opName << "a.";
-      /*
-      if (n.getType().isInteger())
-      {
-        opName << "int.";
-      }
-      else
-      {
-        opName << "real.";
-      }
-      */
       opName << printer::smt2::Smt2Printer::smtKindString(k);
       TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
       opc = getSymbolInternal(k, ftype, opName.str());
@@ -1172,16 +1162,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     // currently allow subtyping
     opName << "a.";
-    /*
-    if (n[0].getType().isInteger())
-    {
-      opName << "int.";
-    }
-    else
-    {
-      opName << "real.";
-    }
-    */
   }
   if (k == NEG)
   {
