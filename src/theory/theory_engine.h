@@ -39,7 +39,6 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
 

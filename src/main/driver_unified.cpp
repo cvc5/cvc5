@@ -182,12 +182,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           << Configuration::copyright() << std::endl;
 
       while(true) {
-        try {
-          cmd.reset(shell.readCommand());
-        } catch(UnsafeInterruptException& e) {
-          dopts.out() << CommandInterrupted();
-          break;
-        }
+        cmd.reset(shell.readCommand());
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
@@ -226,13 +221,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           pExecutor->reset();
           break;
         }
-        try {
-          cmd.reset(parser->nextCommand());
-          if (cmd == nullptr) break;
-        } catch (UnsafeInterruptException& e) {
-          interrupted = true;
-          continue;
-        }
+        cmd.reset(parser->nextCommand());
+        if (cmd == nullptr) break;
 
         status = pExecutor->doCommand(cmd);
         if (cmd->interrupted() && status == 0) {
