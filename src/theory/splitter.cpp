@@ -30,6 +30,31 @@ using namespace cvc5::theory;
 namespace cvc5 {
 
 namespace theory {
+Splitter::Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine)
+    : d_numPartitions(options::computePartitions()),
+      d_numChecks(0),
+      d_numPartitionsSoFar(0),
+      d_partitionFile(options::writePartitionsToFileName())
+{
+  // Assert(numPartitions > 1);
+  d_valuation = std::make_unique<Valuation>(theoryEngine);
+  d_propEngine = propEngine;
+  d_output = &std::cout;
+  if (d_partitionFile != "")
+  {
+    d_partitionFileStream.open(d_partitionFile);
+    d_output = &d_partitionFileStream;
+    d_partitionFileStream.close();
+  }
+  if (options::partitionConflictSize() == 0)
+  {
+    d_conflictSize = (unsigned)log2(d_numPartitions);
+  }
+  else
+  {
+    d_conflictSize = options::partitionConflictSize();
+  }
+}
 
 void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
 {
@@ -73,34 +98,17 @@ void Splitter::closeFile()
 
 TrustNode Splitter::blockPath(Node toBlock)
 {
-  // Now block that path in the search.
-  NodeBuilder notBuilder(kind::NOT);
-  notBuilder << toBlock;
-  Node lemma = notBuilder.constructNode();
+  // Now block the path in the search.
+  Node lemma = toBlock.notNode();
   d_assertedLemmas.push_back(lemma);
   TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma);
   return trustedLemma;
 }
 
-// Emit the negation of all previously asserted lemmas.
+// Send lemma that is the negation of all previously asserted lemmas.
 TrustNode Splitter::stopPartitioning()
 {
-  NodeBuilder andBuilder(kind::AND);
-  for (const auto d : d_assertedLemmas) andBuilder << d;
-  Node conj = andBuilder.constructNode();
-  NodeBuilder notBuilder(kind::NOT);
-  notBuilder << conj;
-  Node lemma = notBuilder.constructNode();
-  return TrustNode::mkTrustLemma(lemma);
-}
-
-TrustNode Splitter::handlePartitionTwoOfTwo()
-{
-  *d_output << d_assertedLemmas.front() << "\n";
-  NodeBuilder notBuilder(kind::NOT);
-  notBuilder << d_assertedLemmas.front();
-  Node lemma = notBuilder.constructNode();
-  closeFile();
+  Node lemma = NodeManager::currentNM()->mkAnd(d_assertedLemmas).notNode();
   return TrustNode::mkTrustLemma(lemma);
 }
 
@@ -119,13 +127,15 @@ TrustNode Splitter::makePartitions()
     d_output = &d_partitionFileStream;
   }
 
+  options::PartitionMode pmode = options::partitionStrategy();
+
   // This is the revised version of the old splitting strategy.
   // Cubes look like the following:
   // C1 = l1_{1} & .... & l1_{d_conflictSize}
   // C2 = l2_{1} & .... & l2_{d_conflictSize}
   // C3 = l3_{1} & .... & l3_{d_conflictSize}
   // C4 = !C1 & !C2 & !C3
-  else if (options::partitionStrategy() == "revised")
+  if (pmode == options::PartitionMode::REVISED)
   {
     // If we're not at the last cube
     if (d_numPartitionsSoFar < d_numPartitions - 1)
@@ -138,11 +148,12 @@ TrustNode Splitter::makePartitions()
       // of the requested number of partitions.
       if (literals.size() < d_conflictSize) return TrustNode::null();
 
-      std::vector<Node> tmpLiterals(literals.begin(),
-                                    literals.begin() + d_conflictSize);
+      literals.resize(d_conflictSize);
       // Make first cube and emit it.
-      Node conj = NodeManager::currentNM()->mkAnd(tmpLiterals);
+      Node conj = NodeManager::currentNM()->mkAnd(literals);
       emitCube(conj);
+      // Add to the list of cubes. 
+      d_cubes.push_back(conj);
       closeFile();
       return blockPath(conj);
     }
@@ -150,27 +161,13 @@ TrustNode Splitter::makePartitions()
     // At the last cube
     else
     {
-      if (d_numPartitionsSoFar == 1)
-      {
-        return handlePartitionTwoOfTwo();
-      }
-      // If we ask for more than two partitions.
-      else
-      {
+        vector<Node> nots;
+        for (auto c : d_cubes) nots.push_back(c.notNode());
+        Node lemma = NodeManager::currentNM()->mkAnd(nots);
         // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
-        NodeBuilder andOfNegatedCubesBuilder(kind::AND);
-        for (const auto d : d_assertedLemmas)
-        {
-          NodeBuilder notBuilder(kind::NOT);
-          notBuilder << d;
-          Node negated_cube = notBuilder.constructNode();
-          andOfNegatedCubesBuilder << negated_cube;
-        }
-
-        emitCube(andOfNegatedCubesBuilder.constructNode());
+        emitCube(lemma);
         closeFile();
         return stopPartitioning();
-      }
     }
 
     closeFile();

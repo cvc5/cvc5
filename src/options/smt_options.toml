@@ -35,10 +35,16 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "partitionStrategy"
+  alias      = ["partition"]
   category   = "expert"
-  long       = "partition-strategy=X"
-  type       = "std::string"
-  help       = "select which algorithm for making partitions"
+  long       = "partition-strategy=MODE"
+  type       = "PartitionMode"
+  default    = "REVISED"
+  help       = "choose partition strategy mode"
+  help_mode  = "Partition strategy modes."
+[[option.mode.REVISED]]
+  name = "revised"
+  help = "For 4 partitions, creates cubes C1, C2, C3, !C! & !C2 & !C3"
 
 [[option]]
   name       = "partitionCheck"
@@ -46,13 +52,6 @@ name   = "SMT Layer"
   long       = "partition-check=X"
   type       = "std::string"
   help       = "select whether partitioning happens at full or standard check"
-
-[[option]]
-  name       = "decisionStrategy"
-  category   = "expert"
-  long       = "decision-strategy=X"
-  type       = "std::string"
-  help       = "select the algorithm for choosing which decisions to make cubes from"
 
 [[option]]
   name       = "writePartitionsToFileName"

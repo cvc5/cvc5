@@ -1021,6 +1021,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
+  if (opts.smt.computePartitions > 0)
+  {
+    reason << "compute partitions";
+    return true;
+  }
 
   // disable modes not supported by incremental
   notifyModifyOption("sortInference", "false", "incremental solving");

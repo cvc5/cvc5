@@ -403,10 +403,6 @@ class TheoryEngine : protected EnvObj
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
           PropagationMap;
 
-
-  std::unique_ptr<cvc5::theory::Splitter> d_splitter;
-  int d_numPartitions;
-  std::list<Node> d_assertedPartitions;
   /**
    * Called by the theories to notify of a conflict.
    *
@@ -641,6 +637,12 @@ class TheoryEngine : protected EnvObj
    * check()
    */
   context::CDO<bool> d_factsAsserted;
+
+  /**
+   * The splitter produces partitions when the compute-partitions option is
+   * used.
+   */
+  std::unique_ptr<cvc5::theory::Splitter> d_splitter;
 
 }; /* class TheoryEngine */
 

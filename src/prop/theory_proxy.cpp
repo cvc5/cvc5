@@ -52,11 +52,11 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr)
 {
-  // bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS);
-  // if (trackTopLevelLearned)
-  // {
+  bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS);
+  if (trackTopLevelLearned)
+  {
     d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
-  // }
+  }
 }
 
 TheoryProxy::~TheoryProxy() {

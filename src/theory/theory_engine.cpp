@@ -202,8 +202,6 @@ void TheoryEngine::finishInit()
     t->finishInit();
   }
 
-  // Won't work with incremental solving, but the partitioning
-  // is focused on non-incremental anyway. 
   if (options::computePartitions() > 1)
   {
       d_splitter = make_unique<Splitter>(this, getPropEngine());
@@ -409,12 +407,14 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
     }
 
-    if (options::computePartitions() > 1 && options::partitionCheck() == "standard"){
+    if (options::computePartitions() > 1
+        && options::partitionCheck() == "standard")
+    {
       TrustNode tl = d_splitter->makePartitions();
       if (!tl.isNull()){
         lemma(tl, LemmaProperty::NONE, THEORY_LAST);
       }
-    } 
+    }
 
     // Check until done
     while (d_factsAsserted && !d_inConflict && !d_lemmasAdded) {

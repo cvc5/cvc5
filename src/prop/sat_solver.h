@@ -143,6 +143,9 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual bool isDecision(SatVariable decn) const = 0;
 
+  /**
+   * Return the current list of decisions made by the SAT solver.
+   */
   virtual std::vector<SatLiteral> getDecisions() const = 0;
 
   /**

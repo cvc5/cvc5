@@ -40,52 +40,97 @@ namespace theory {
 class Splitter
 {
  public:
-  Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine)
-      : d_numPartitions(options::computePartitions()),
-        d_numChecks(0),
-        d_numPartitionsSoFar(0),
-        d_partitionFile(options::writePartitionsToFileName())
-  {
-    // Assert(numPartitions > 1);
-    d_valuation = std::make_unique<Valuation>(theoryEngine);
-    d_propEngine = propEngine;
-    d_output = &std::cout;
-    if (d_partitionFile != "")
-    {
-      d_partitionFileStream.open(d_partitionFile);
-      d_output = &d_partitionFileStream;
-      d_partitionFileStream.close();
-    }
-    if (options::partitionConflictSize() == 0)
-    {
-      d_conflictSize = (unsigned)log2(d_numPartitions);
-    }
-    else
-    {
-      d_conflictSize = options::partitionConflictSize();
-    }
-  }
+  Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine);
 
+  /**
+   * Make partitions for parallel solving.
+   */
   TrustNode makePartitions();
 
  private:
-  prop::PropEngine* d_propEngine;
-  std::unique_ptr<Valuation> d_valuation;
-  const unsigned d_numPartitions;
-  unsigned d_numChecks;
-  unsigned d_numPartitionsSoFar;
-  std::string d_partitionFile;
-  std::ofstream d_partitionFileStream;
-  std::ostream* d_output;
-  std::list<Node> d_assertedLemmas;
-  std::vector<Node> d_cubes;
-  unsigned d_conflictSize;
+  /**
+   * Print the cube to the specified output.
+   */
   void emitCube(Node toEmit);
+
+  /**
+   * Block a path in the search by sending the not of toBlock as a lemma to the
+   * SAT solver.
+   */
   TrustNode blockPath(Node toBlock);
+
+  /**
+   * Close the output file if it is specified.
+   */
   void closeFile();
+
+  /**
+   * Stop partitioning and return unsat.
+   */
   TrustNode stopPartitioning();
-  TrustNode handlePartitionTwoOfTwo();
+
+  /**
+   * Get the list of decisions from the SAT solver
+   */
   void collectDecisionLiterals(std::vector<TNode>& literals);
+
+  /**
+   * Current propEngine.
+   */
+  prop::PropEngine* d_propEngine;
+
+  /**
+   * Valuation of the theory engine.
+   */
+  std::unique_ptr<Valuation> d_valuation;
+
+  /**
+   * The number of partitions requested through the compute-partitions option.
+   */
+  const unsigned d_numPartitions;
+
+  /**
+   * How long to wait in terms of the number of checks until creating the first
+   * partition.
+   */
+  unsigned d_numChecks;
+
+  /**
+   * The number of partitions that have been created.
+   */
+  unsigned d_numPartitionsSoFar;
+
+  /**
+   * The name of the output file to write the partitions.
+   */
+  std::string d_partitionFile;
+
+  /**
+   * The filestream for writing the partitions.
+   */
+  std::ofstream d_partitionFileStream;
+
+  /**
+   * The output stream: either std::cout or the filestream if an output file is
+   * specified.
+   */
+  std::ostream* d_output;
+
+  /**
+   * Lemmas that have been sent to the SAT solver.
+   */
+  std::vector<Node> d_assertedLemmas;
+
+  /**
+   * List of the cubes that have been created.
+   */
+  std::vector<Node> d_cubes;
+
+  /**
+   * Minimum number of literals required in the list of decisions for cubes to
+   * be made.
+   */
+  unsigned d_conflictSize;
 };
 }  // namespace theory
 }  // namespace cvc5
