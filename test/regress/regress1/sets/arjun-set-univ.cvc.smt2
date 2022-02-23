@@ -14,5 +14,3 @@
 (check-sat)
 
 (pop 1)
-
-(get-model)
