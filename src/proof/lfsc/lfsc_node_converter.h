@@ -103,6 +103,8 @@ class LfscNodeConverter : public NodeConverter
 
   /** get name for user name */
   static std::string getNameForUserName(const std::string& name);
+  /** get name for the name of node v, where v should be a variable */
+  static std::string getNameForUserNameOf(Node v);
 
  private:
   /** Should we traverse n? */
