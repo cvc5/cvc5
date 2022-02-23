@@ -212,8 +212,8 @@ TheoryId Theory::theoryOf(TNode node,
         else
         {
           // If both sides belong to the same theory the choice is easy
-          TheoryId T1 = theoryOf(l, usortOwner);
-          TheoryId T2 = theoryOf(r, usortOwner);
+          TheoryId T1 = theoryOf(l, mode, usortOwner);
+          TheoryId T2 = theoryOf(r, mode, usortOwner);
           if (T1 == T2)
           {
             tid = T1;
