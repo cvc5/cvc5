@@ -938,6 +938,9 @@ Node DatatypesRewriter::sygusToBuiltinEval(Node n,
                                            const std::vector<Node>& args)
 {
   Assert(d_sygusEval != nullptr);
+  Assert (n.getType().isDatatype());
+  Assert (n.getType().getDType().isSygus());
+  Assert (n.getType().getDType().getSygusVarList().getNumChildren()==args.size());
   NodeManager* nm = NodeManager::currentNM();
   // constant arguments?
   bool constArgs = true;

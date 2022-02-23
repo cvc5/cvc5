@@ -18,10 +18,10 @@
 #include <sstream>
 
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
@@ -407,6 +407,28 @@ unsigned getLoopMinOccurrences(TNode node)
 Node mkForallInternal(Node bvl, Node body)
 {
   return quantifiers::BoundedIntegers::mkBoundedForall(bvl, body);
+}
+
+/**
+ * Mapping to the variable used for binding the witness term for the abstract
+ * value below.
+ */
+struct StringValueForLengthVarAttributeId
+{
+};
+typedef expr::Attribute<StringValueForLengthVarAttributeId, Node>
+    StringValueForLengthVarAttribute;
+
+Node mkAbstractStringValueForLength(Node n, Node len)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  Node cacheVal = BoundVarManager::getCacheValue(n, len);
+  Node v = bvm->mkBoundVar<StringValueForLengthVarAttribute>(
+      cacheVal, "s", n.getType());
+  Node pred = nm->mkNode(STRING_LENGTH, v).eqNode(len);
+  // return (witness ((v String)) (= (str.len v) len))
+  return nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, v), pred);
 }
 
 }  // namespace utils

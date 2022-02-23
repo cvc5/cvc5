@@ -74,7 +74,14 @@ class CadicalSolver : public SatSolver
    */
   void init();
 
+  /**
+   * Set time limit per solve() call.
+   */
+  void setTimeLimit(ResourceManager* resmgr);
+
   std::unique_ptr<CaDiCaL::Solver> d_solver;
+  std::unique_ptr<CaDiCaL::Terminator> d_terminator;
+
   /**
    * Stores the current set of assumptions provided via solve() and is used to
    * query the solver if a given assumption is false.
