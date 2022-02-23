@@ -290,7 +290,7 @@ class Theory : protected EnvObj
   /**
    * Return the ID of the theory responsible for the given type.
    */
-  static inline TheoryId theoryOf(TypeNode typeNode, TheoryId usortOwner)
+  static inline TheoryId theoryOf(TypeNode typeNode, TheoryId usortOwner = theory::THEORY_UF)
   {
     TheoryId id;
     if (typeNode.getKind() == kind::TYPE_CONSTANT)
@@ -311,31 +311,23 @@ class Theory : protected EnvObj
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
-  
-  /**
-   * Returns the ID of the theory responsible for the given node.
-   */
-  inline TheoryId theoryOf(TNode node) const
-  {
-    return d_env.theoryOf(node);
-  }
+  static TheoryId theoryOf(TNode node, options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED);
 
   /**
    * Checks if the node is a leaf node of this theory.
    */
   inline bool isLeaf(TNode node)
   {
-    return node.getNumChildren() == 0 || theoryOf(options().theory.theoryOfMode, node) != d_id;
+    return node.getNumChildren() == 0 || theoryOf(node, options().theory.theoryOfMode) != d_id;
   }
   
   /**
    * Checks if the node is a leaf node of a theory. Note that this assumes
    * type-based policy for theoryOf. This only impacts equalities.
    */
-  inline static bool isLeafOf(TNode node, TheoryId theoryId)
+  inline static bool isLeafOf(TNode node, TheoryId theoryId, options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
-    return node.getNumChildren() == 0 || theoryOf(options::TheoryOfMode::THEORY_OF_TYPE_BASED, node) != theoryId;
+    return node.getNumChildren() == 0 || theoryOf(mode, node) != theoryId;
   }
 
 
