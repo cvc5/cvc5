@@ -725,12 +725,13 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
-  if (!d_logicInfo.isTheoryEnabled(d_env.theoryOf(atom))
-      && d_env.theoryOf(atom) != THEORY_SAT_SOLVER)
+  theory::TheoryId tid = d_env.theoryOf(atom);
+  if (!d_logicInfo.isTheoryEnabled(tid)
+      && tid != THEORY_SAT_SOLVER)
   {
     stringstream ss;
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
-       << ", which doesn't include " << d_env.theoryOf(atom)
+       << ", which doesn't include " << tid
        << ", but got a preprocessing-time fact for that theory." << endl
        << "The fact:" << endl
        << literal;
