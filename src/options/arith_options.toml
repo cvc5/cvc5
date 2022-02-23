@@ -568,7 +568,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlICP"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-icp"
   type       = "bool"
   default    = "false"
