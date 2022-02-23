@@ -245,14 +245,8 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 void CadSolver::addToModel(TNode var, TNode value) const
 {
   Trace("nl-cad") << "-> " << var << " = " << value << std::endl;
-  if (value.getType().isRealOrInt())
-  {
-    d_model.addSubstitution(var, value);
-  }
-  else
-  {
-    d_model.addWitness(var, value);
-  }
+  Assert(value.getType().isRealOrInt());
+  d_model.addSubstitution(var, value);
 }
 
 }  // namespace nl

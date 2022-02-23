@@ -1595,14 +1595,7 @@ lbool Solver::search(int nof_conflicts)
                  progressEstimate() * 100);
       }
 
-      if (theoryConflict && options::sat_refine_conflicts())
-      {
-        check_type = CHECK_FINAL_FAKE;
-      }
-      else
-      {
-        check_type = CHECK_WITH_THEORY;
-      }
+      check_type = CHECK_WITH_THEORY;
     }
     else
     {
@@ -2190,8 +2183,7 @@ bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
 bool Solver::needProof() const
 {
   return isProofEnabled()
-         && options().smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
-         && options().smt.unsatCoresMode != options::UnsatCoresMode::PP_ONLY;
+         && options().smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
 }  // namespace Minisat
