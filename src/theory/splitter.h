@@ -85,18 +85,18 @@ class Splitter
   /**
    * The number of partitions requested through the compute-partitions option.
    */
-  const unsigned d_numPartitions;
+  const uint16_t d_numPartitions;
 
   /**
    * How long to wait in terms of the number of checks until creating the first
    * partition.
    */
-  unsigned d_numChecks;
+  const uint16_t d_numChecks;
 
   /**
    * The number of partitions that have been created.
    */
-  unsigned d_numPartitionsSoFar;
+  uint16_t d_numPartitionsSoFar;
 
   /**
    * The name of the output file to write the partitions.
@@ -128,7 +128,7 @@ class Splitter
    * Minimum number of literals required in the list of decisions for cubes to
    * be made.
    */
-  unsigned d_conflictSize;
+  uint16_t d_conflictSize;
 };
 }  // namespace theory
 }  // namespace cvc5

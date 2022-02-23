@@ -1021,7 +1021,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
-  if (opts.smt.computePartitions > 0)
+  if (opts.smt.computePartitions > 1)
   {
     reason << "compute partitions";
     return true;
