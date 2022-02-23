@@ -19,7 +19,7 @@
 #define CVC5__THEORY__SPLITTER_H
 
 #include <fstream>
-#include <list>
+#include <vector>
 #include <sstream>
 
 #include "proof/trust_node.h"
