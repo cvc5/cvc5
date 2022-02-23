@@ -152,7 +152,7 @@ TrustNode Splitter::makePartitions()
       // Make first cube and emit it.
       Node conj = NodeManager::currentNM()->mkAnd(literals);
       emitCube(conj);
-      // Add to the list of cubes. 
+      // Add to the list of cubes.
       d_cubes.push_back(conj);
       closeFile();
       return blockPath(conj);
@@ -161,13 +161,13 @@ TrustNode Splitter::makePartitions()
     // At the last cube
     else
     {
-        vector<Node> nots;
-        for (auto c : d_cubes) nots.push_back(c.notNode());
-        Node lemma = NodeManager::currentNM()->mkAnd(nots);
-        // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
-        emitCube(lemma);
-        closeFile();
-        return stopPartitioning();
+      vector<Node> nots;
+      for (auto c : d_cubes) nots.push_back(c.notNode());
+      Node lemma = NodeManager::currentNM()->mkAnd(nots);
+      // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
+      emitCube(lemma);
+      closeFile();
+      return stopPartitioning();
     }
 
     closeFile();
