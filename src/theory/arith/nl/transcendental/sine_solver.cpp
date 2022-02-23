@@ -244,10 +244,9 @@ void SineSolver::checkMonotonic()
                                d_data->d_zero,
                                d_data->d_pi_neg_2,
                                d_data->d_pi_neg};
-  // sound upper, lower bounds for the above points
+  // Sound lower (index=0), upper (index=1) bounds for the above points. We
+  // compute this by plugging in the upper and lower bound of pi.
   std::vector<Node> mpointsBound[2];
-
-  // get model values for points
   TNode tpi = d_data->d_pi;
   for (size_t j = 0; j < 5; j++)
   {
