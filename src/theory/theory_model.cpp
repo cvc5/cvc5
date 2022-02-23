@@ -814,7 +814,6 @@ struct IsModelValueComputedTag
 using IsModelValueAttr = expr::Attribute<IsModelValueTag, bool>;
 using IsModelValueComputedAttr = expr::Attribute<IsModelValueComputedTag, bool>;
 
-
 bool TheoryModel::isBaseModelValue(TNode n) const
 {
   if (n.isConst())
@@ -858,7 +857,7 @@ bool TheoryModel::isValue(TNode n) const
     }
     bool finishedComputing = false;
     // if we just pushed to the stack, do initial checks
-    if (v.second==0)
+    if (v.second == 0)
     {
       if (isBaseModelValue(cur))
       {
@@ -880,12 +879,12 @@ bool TheoryModel::isValue(TNode n) const
     {
       bool hasOperator = cur.hasOperator();
       size_t nextChildIndex = v.second;
-      if (hasOperator && nextChildIndex>0)
+      if (hasOperator && nextChildIndex > 0)
       {
         // if have an operator, we shift the child index we are looking at
         nextChildIndex--;
       }
-      if (nextChildIndex==cur.getNumChildren())
+      if (nextChildIndex == cur.getNumChildren())
       {
         // finished, we are a value
         currentReturn = true;
@@ -893,15 +892,16 @@ bool TheoryModel::isValue(TNode n) const
       else
       {
         visit.back().second++;
-        if (hasOperator && v.second==0)
+        if (hasOperator && v.second == 0)
         {
           // if we have an operator, process it as the first child
           visit.emplace_back(cur.getOperator(), 0);
         }
         else
         {
-          Assert (nextChildIndex<cur.getNumChildren());
-          // process the next child, which may be shifted from v.second to account for the operator
+          Assert(nextChildIndex < cur.getNumChildren());
+          // process the next child, which may be shifted from v.second to
+          // account for the operator
           visit.emplace_back(cur[nextChildIndex], 0);
         }
         continue;
@@ -911,7 +911,7 @@ bool TheoryModel::isValue(TNode n) const
     cur.setAttribute(imva, currentReturn);
     cur.setAttribute(imvca, true);
   }
-  Assert (n.getAttribute(imvca));
+  Assert(n.getAttribute(imvca));
   return currentReturn;
 }
 

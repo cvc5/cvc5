@@ -427,6 +427,7 @@ class TheoryModel : protected EnvObj
    * if n is a base model value.
    */
   bool isBaseModelValue(TNode n) const;
+
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node> d_modelCache;
