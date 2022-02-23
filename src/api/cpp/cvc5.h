@@ -5001,6 +5001,16 @@ class CVC5_EXPORT Solver
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
 
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param t The term to check
+   */
+  void ensureWellFormedTerm(const Term& t) const;
+  /** Vector version of above. */
+  void ensureWellFormedTerms(const std::vector<Term>& ts) const;
+                             
   /** Increment the term stats counter. */
   void increment_term_stats(Kind kind) const;
   /** Increment the vars stats (if 'is_var') or consts stats counter. */

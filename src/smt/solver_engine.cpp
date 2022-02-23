@@ -1220,23 +1220,29 @@ const Options& SolverEngine::options() const { return d_env->getOptions(); }
 void SolverEngine::ensureWellFormedTerm(const Node& n,
                                         const std::string& src) const
 {
-  bool wasShadow = false;
-  if (expr::hasFreeOrShadowedVar(n, wasShadow))
+  if (Configuration::isAssertionBuild())
   {
-    std::string varType(wasShadow ? "shadowed" : "free");
-    std::stringstream se;
-    se << "Cannot process term with " << varType << " variable in " << src
-       << ".";
-    throw ModalException(se.str().c_str());
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(n, wasShadow))
+    {
+      std::string varType(wasShadow ? "shadowed" : "free");
+      std::stringstream se;
+      se << "Cannot process term with " << varType << " variable in " << src
+        << ".";
+      throw ModalException(se.str().c_str());
+    }
   }
 }
 
 void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
                                          const std::string& src) const
 {
-  for (const Node& n : ns)
+  if (Configuration::isAssertionBuild())
   {
-    ensureWellFormedTerm(n, src);
+    for (const Node& n : ns)
+    {
+      ensureWellFormedTerm(n, src);
+    }
   }
 }
 
