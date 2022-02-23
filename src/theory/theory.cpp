@@ -339,21 +339,11 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options().smt.produceModels && !logicInfo().isQuantified())
-  {
-    // Don't care about the model and logic is not quantified, we can eliminate.
-    return true;
-  }
-  // If models are enabled, then it depends on whether the term contains any
-  // unevaluable operators like FORALL, SINE, etc. Having such operators makes
-  // model construction contain non-constant values for variables, which is
-  // not ideal from a user perspective.
-  // We also insist on this check since the term to eliminate should never
-  // contain quantifiers, or else variable shadowing issues may arise.
-  // there should be a model object
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  return tm->isLegalElimination(x, val);
+  // Notice that val may contain unevaluatable kinds, but we return true
+  // regardless. Notice that means that e.g. a Boolean variable may be
+  // eliminated based on an equality (= b (forall ((x)) (P x))), where its
+  // model value is (forall ((x)) (P x)).
+  return true;
 }
 
 std::unordered_set<TNode> Theory::currentlySharedTerms() const

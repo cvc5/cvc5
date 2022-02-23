@@ -270,13 +270,6 @@ class TheoryModel : protected EnvObj
    * method.
    */
   const std::set<Kind>& getIrrelevantKinds() const;
-  /** is legal elimination
-   *
-   * Returns true if x -> val is a legal elimination of variable x.
-   * In particular, this ensures that val does not have any subterms that
-   * are of unevaluated kinds.
-   */
-  bool isLegalElimination(TNode x, TNode val);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
