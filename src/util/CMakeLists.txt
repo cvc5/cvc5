@@ -78,7 +78,6 @@ libcvc5_add_sources(
   string.h
   uninterpreted_sort_value.cpp
   uninterpreted_sort_value.h
-  unsafe_interrupt_exception.h
   utility.cpp
   utility.h
 )

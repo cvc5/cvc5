@@ -175,6 +175,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
+      // different on proof-new we silently disable
       opts.smt.unsatCores = false;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
       notifyModifyOption(

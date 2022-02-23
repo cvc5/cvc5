@@ -2210,8 +2210,7 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 inline bool Solver::withinBudget(Resource r) const
 {
   Assert(d_proxy);
-  // spendResource sets async_interrupt or throws UnsafeInterruptException
-  // depending on whether hard-limit is enabled
+  // spendResource may interrupt the solver via a callback.
   d_proxy->spendResource(r);
 
   bool within_budget =
