@@ -78,8 +78,15 @@ class CADProofGenerator
   template <typename F>
   void pruneChildren(F&& f)
   {
-    d_current->pruneChildren(
-        [&f](const detail::TreeProofNode& tpn) { return f(tpn.d_objectId); });
+    d_current->pruneChildren([&f](const detail::TreeProofNode& tpn) {
+      // The direct children of recursive rules are scopes, but the ids are
+      // attached to their children
+      if (tpn.d_rule == PfRule::SCOPE && tpn.d_children.size() == 1)
+      {
+        return f(tpn.d_children[0].d_objectId);
+      }
+      return f(tpn.d_objectId);
+    });
   }
 
   /**
