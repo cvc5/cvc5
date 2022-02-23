@@ -771,60 +771,44 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
 {
   Result r;
 
-  try
+  SolverEngineScope smts(this);
+  finishInit();
+
+  Trace("smt") << "SolverEngine::"
+                << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
+                << assumptions << ")" << endl;
+  // check the satisfiability with the solver object
+  r = d_smtSolver->checkSatisfiability(
+      *d_asserts.get(), assumptions, isEntailmentCheck);
+
+  Trace("smt") << "SolverEngine::"
+                << (isEntailmentCheck ? "query" : "checkSat") << "("
+                << assumptions << ") => " << r << endl;
+
+  // Check that SAT results generate a model correctly.
+  if (d_env->getOptions().smt.checkModels)
   {
-    SolverEngineScope smts(this);
-    finishInit();
-
-    Trace("smt") << "SolverEngine::"
-                 << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
-                 << assumptions << ")" << endl;
-    // check the satisfiability with the solver object
-    r = d_smtSolver->checkSatisfiability(
-        *d_asserts.get(), assumptions, isEntailmentCheck);
-
-    Trace("smt") << "SolverEngine::"
-                 << (isEntailmentCheck ? "query" : "checkSat") << "("
-                 << assumptions << ") => " << r << endl;
-
-    // Check that SAT results generate a model correctly.
-    if (d_env->getOptions().smt.checkModels)
+    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
-      if (r.asSatisfiabilityResult().isSat() == Result::SAT)
-      {
-        checkModel();
-      }
-    }
-    // Check that UNSAT results generate a proof correctly.
-    if (d_env->getOptions().smt.checkProofs)
-    {
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-      {
-        checkProof();
-      }
-    }
-    // Check that UNSAT results generate an unsat core correctly.
-    if (d_env->getOptions().smt.checkUnsatCores)
-    {
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-      {
-        TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
-        checkUnsatCore();
-      }
+      checkModel();
     }
   }
-  catch (const UnsafeInterruptException& e)
+  // Check that UNSAT results generate a proof correctly.
+  if (d_env->getOptions().smt.checkProofs)
   {
-    AlwaysAssert(getResourceManager()->out());
-    // Notice that we do not notify the state of this result. If we wanted to
-    // make the solver resume a working state after an interupt, then we would
-    // implement a different callback and use it here, e.g.
-    // d_state.notifyCheckSatInterupt.
-    Result::UnknownExplanation why = getResourceManager()->outOfResources()
-                                         ? Result::RESOURCEOUT
-                                         : Result::TIMEOUT;
-
-    r = Result(Result::SAT_UNKNOWN, why, d_env->getOptions().driver.filename);
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      checkProof();
+    }
+  }
+  // Check that UNSAT results generate an unsat core correctly.
+  if (d_env->getOptions().smt.checkUnsatCores)
+  {
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
+      checkUnsatCore();
+    }
   }
 
   if (d_env->getOptions().base.statisticsEveryQuery)

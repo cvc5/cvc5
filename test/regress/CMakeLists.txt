@@ -765,6 +765,7 @@ set(regress_0_tests
   regress0/nl/issue5737-div00.smt2
   regress0/nl/issue5740-mod00.smt2
   regress0/nl/issue5740-2-mod00.smt2
+  regress0/nl/issue8135-icp-candidates.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -1804,6 +1805,7 @@ set(regress_1_tests
   regress1/fmf/issue6690-re-enum.smt2
   regress1/fmf/issue6744-2-unc-bool-var.smt2
   regress1/fmf/issue6744-3-unc-bool-var.smt2
+  regress1/fmf/issue8096-non-const-rep.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc.smt2

@@ -80,7 +80,7 @@ class Assertions : protected EnvObj
    * literals and conjunction of literals.  Returns false if
    * immediately determined to be inconsistent.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   void assertFormula(const Node& n);
   /**
