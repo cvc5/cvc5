@@ -23,6 +23,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
@@ -38,9 +39,11 @@ namespace nl {
 namespace transcendental {
 
 TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           ArithState& state,
                                            InferenceManager& im,
                                            NlModel& m)
     : EnvObj(env),
+      d_astate(state),
       d_tstate(env, im, m),
       d_expSlv(env, &d_tstate),
       d_sineSlv(env, &d_tstate)
@@ -441,6 +444,45 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
     }
   }
   return 0;
+}
+
+void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
+                                            const std::set<Node>& termSet)
+{
+  Trace("nl-ext") << "TranscendentalSolver::postProcessModel" << std::endl;
+  std::unordered_set<Node> trReps;
+  for (const Node& n : termSet)
+  {
+    if (isTranscendentalKind(n.getKind()))
+    {
+      Node r = d_astate.getRepresentative(n);
+      trReps.insert(r);
+    }
+  }
+  if (trReps.empty())
+  {
+    Trace("nl-ext") << "...no transcendental functions" << std::endl;
+    return;
+  }
+  std::vector<Node> rmFromModel;
+  for (auto& am : arithModel)
+  {
+    Node r = d_astate.getRepresentative(am.first);
+    if (trReps.find(r) != trReps.end())
+    {
+      Trace("nl-ext") << "...erase value for " << am.first
+                      << ", since approximate" << std::endl;
+      rmFromModel.push_back(am.first);
+    }
+    else
+    {
+      Trace("nl-ext") << "...keep model value for " << am.first << std::endl;
+    }
+  }
+  for (const Node& n : rmFromModel)
+  {
+    arithModel.erase(n);
+  }
 }
 
 }  // namespace transcendental
