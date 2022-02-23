@@ -17,8 +17,6 @@
 #ifndef CVC5__THEORY__SPLITTER_H
 #define CVC5__THEORY__SPLITTER_H
 
-#include <math.h>
-
 #include <fstream>
 #include <list>
 #include <sstream>
