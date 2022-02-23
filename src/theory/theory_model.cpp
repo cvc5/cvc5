@@ -848,17 +848,17 @@ bool TheoryModel::isValue(TNode n) const
   {
     v = visit.back();
     TNode cur = v.first;
-    if (cur.getAttribute(imvca))
-    {
-      // already cached
-      visit.pop_back();
-      currentReturn = cur.getAttribute(imva);
-      continue;
-    }
     bool finishedComputing = false;
     // if we just pushed to the stack, do initial checks
     if (v.second == 0)
     {
+      if (cur.getAttribute(imvca))
+      {
+        // already cached
+        visit.pop_back();
+        currentReturn = cur.getAttribute(imva);
+        continue;
+      }
       if (isBaseModelValue(cur))
       {
         finishedComputing = true;
