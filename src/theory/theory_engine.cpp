@@ -726,8 +726,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
   theory::TheoryId tid = d_env.theoryOf(atom);
-  if (!d_logicInfo.isTheoryEnabled(tid)
-      && tid != THEORY_SAT_SOLVER)
+  if (!d_logicInfo.isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
   {
     stringstream ss;
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
