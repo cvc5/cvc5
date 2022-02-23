@@ -329,9 +329,7 @@ class Env
   const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
-  /**
-   * The theory that owns the uninterpreted sort.
-   */
+  /** The theory that owns the uninterpreted sort. */
   theory::TheoryId d_uninterpretedSortOwner;
 }; /* class Env */
 
