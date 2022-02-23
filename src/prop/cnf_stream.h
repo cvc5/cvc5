@@ -65,7 +65,7 @@ enum class FormulaLitPolicy : uint32_t
  * each subexpression in the constructed equi-satisfiable formula, then
  * substitute the new literal for the formula, and so on, recursively.
  */
-class CnfStream {
+class CnfStream : protected EnvObj {
   friend PropEngine;
   friend ProofCnfStream;
 
@@ -210,9 +210,6 @@ class CnfStream {
 
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
-
-  /** Pointer to the env of the smt engine */
-  Env* d_env;
 
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;

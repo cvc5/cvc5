@@ -125,7 +125,7 @@ void CnfStream::ensureLiteral(TNode n)
   }
   // remove top level negation
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally

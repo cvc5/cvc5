@@ -1575,7 +1575,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       Node result = builder;
 
       // If this is an atom, we process it
-      if (theory::Theory::theoryOf(result) != theory::THEORY_BOOL
+      if (d_env.theoryOf(result) != theory::THEORY_BOOL
           && result.getType().isBoolean())
       {
         result = simpITEAtom(result);

@@ -81,7 +81,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Debug("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
-  ResourceManager* rm = d_env.getResourceManager();
 
   options::DecisionMode dmode = options().decision.decisionMode;
   if (dmode == options::DecisionMode::JUSTIFICATION
@@ -380,7 +379,7 @@ Result PropEngine::checkSat() {
   }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    ResourceManager* rm = d_env.getResourceManager();
+    ResourceManager* rm = resourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
     if (rm->outOfTime())
     {
