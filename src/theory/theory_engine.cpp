@@ -400,7 +400,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       d_tc->resetRound();
 
       if (options::computePartitions() > 1
-          && options::partitionCheck() == options::CheckMode::FULL)
+          && options::partitionCheck() == options::CheckMode::FULL && d_splitter != nullptr)
       {
         TrustNode tl = d_splitter->makePartitions();
         if (!tl.isNull()){
@@ -410,7 +410,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
 
     if (options::computePartitions() > 1
-        && options::partitionCheck() == options::CheckMode::STANDARD)
+        && options::partitionCheck() == options::CheckMode::STANDARD && d_splitter != nullptr)
     {
       TrustNode tl = d_splitter->makePartitions();
       if (!tl.isNull()){
