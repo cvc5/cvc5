@@ -35,24 +35,21 @@
 namespace cvc5 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver* satSolver,
+CnfStream::CnfStream(Env& env,
+                     SatSolver* satSolver,
                      Registrar* registrar,
-                     context::Context* context,
-                     Env* env,
-                     ResourceManager* rm,
                      FormulaLitPolicy flpol,
                      std::string name)
-    : d_satSolver(satSolver),
-      d_env(env),
-      d_booleanVariables(context),
-      d_notifyFormulas(context),
-      d_nodeToLiteralMap(context),
-      d_literalToNodeMap(context),
+    : EnvObj(env),
+      d_satSolver(satSolver),
+      d_booleanVariables(context()),
+      d_notifyFormulas(context()),
+      d_nodeToLiteralMap(context()),
+      d_literalToNodeMap(context()),
       d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
       d_removable(false),
-      d_resourceManager(rm),
       d_stats(name)
 {
 }
@@ -712,7 +709,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  d_resourceManager->spendResource(Resource::CnfStep);
+  resourceManager()->spendResource(Resource::CnfStep);
 
   switch(node.getKind()) {
     case kind::AND: convertAndAssertAnd(node, negated); break;

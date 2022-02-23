@@ -106,11 +106,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // theory proxy first
   d_theoryProxy = new TheoryProxy(
       d_env, this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get());
-  d_cnfStream = new CnfStream(d_satSolver,
+  d_cnfStream = new CnfStream(env,
+                              d_satSolver,
                               d_theoryProxy,
-                              userContext,
-                              &d_env,
-                              rm,
                               FormulaLitPolicy::TRACK,
                               "prop");
 
@@ -127,10 +125,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   if (satProofs)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext,
+        env,
         *d_cnfStream,
-        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
-        pnm));
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }

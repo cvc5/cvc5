@@ -46,7 +46,7 @@ bool isAlreadyVisited(Env& env,
                       TNode current,
                       TNode parent)
 {
-  TheoryId currentTheoryId = Theory::theoryOf(current);
+  TheoryId currentTheoryId = env.theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
   {
     // current theory not visited, return false
@@ -61,7 +61,7 @@ bool isAlreadyVisited(Env& env,
 
   // The current theory has already visited it, so now it depends on the parent
   // and the type
-  TheoryId parentTheoryId = Theory::theoryOf(parent);
+  TheoryId parentTheoryId = env.theoryOf(parent);
   if (!TheoryIdSetUtil::setContains(parentTheoryId, visitedTheories))
   {
     // parent theory not visited, return false
@@ -75,7 +75,7 @@ bool isAlreadyVisited(Env& env,
     // current and parent are the same theory, and we are infinite, return true
     return true;
   }
-  TheoryId typeTheoryId = Theory::theoryOf(type);
+  TheoryId typeTheoryId = env.theoryOf(type);
   return TheoryIdSetUtil::setContains(typeTheoryId, visitedTheories);
 }
 

@@ -196,11 +196,6 @@ class Theory : protected EnvObj
    */
   virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
 
-  /**
-   * The theory that owns the uninterpreted sort.
-   */
-  static TheoryId s_uninterpretedSortOwner;
-
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
@@ -291,12 +286,12 @@ class Theory : protected EnvObj
   void finishInitStandalone();
   //--------------------------------- end initialization
 
+
   /**
    * Return the ID of the theory responsible for the given type.
    */
-  static inline TheoryId theoryOf(TypeNode typeNode)
+  static inline TheoryId theoryOf(TypeNode typeNode, TheoryId usortOwner)
   {
-    Trace("theory::internal") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
     if (typeNode.getKind() == kind::TYPE_CONSTANT)
     {
@@ -308,10 +303,7 @@ class Theory : protected EnvObj
     }
     if (id == THEORY_BUILTIN)
     {
-      Trace("theory::internal")
-          << "theoryOf(" << typeNode << ") == " << s_uninterpretedSortOwner
-          << std::endl;
-      return s_uninterpretedSortOwner;
+      return usortOwner;
     }
     return id;
   }
@@ -320,46 +312,32 @@ class Theory : protected EnvObj
    * Returns the ID of the theory responsible for the given node.
    */
   static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
-
+  
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static inline TheoryId theoryOf(TNode node)
+  inline TheoryId theoryOf(TNode node) const
   {
-    return theoryOf(options::theoryOfMode(), node);
+    return d_env.theoryOf(node);
   }
 
   /**
-   * Set the owner of the uninterpreted sort.
+   * Checks if the node is a leaf node of this theory.
    */
-  static void setUninterpretedSortOwner(TheoryId theory)
+  inline bool isLeaf(TNode node)
   {
-    s_uninterpretedSortOwner = theory;
+    return node.getNumChildren() == 0 || theoryOf(options().theory.theoryOfMode, node) != d_id;
   }
-
+  
   /**
-   * Get the owner of the uninterpreted sort.
-   */
-  static TheoryId getUninterpretedSortOwner()
-  {
-    return s_uninterpretedSortOwner;
-  }
-
-  /**
-   * Checks if the node is a leaf node of this theory
-   */
-  inline bool isLeaf(TNode node) const
-  {
-    return node.getNumChildren() == 0 || theoryOf(node) != d_id;
-  }
-
-  /**
-   * Checks if the node is a leaf node of a theory.
+   * Checks if the node is a leaf node of a theory. Note that this assumes
+   * type-based policy for theoryOf. This only impacts equalities.
    */
   inline static bool isLeafOf(TNode node, TheoryId theoryId)
   {
-    return node.getNumChildren() == 0 || theoryOf(node) != theoryId;
+    return node.getNumChildren() == 0 || theoryOf(options::TheoryOfMode::THEORY_OF_TYPE_BASED, node) != theoryId;
   }
+
 
   /** Returns true if the assertFact queue is empty*/
   bool done() const { return d_factsHead == d_facts.size(); }

@@ -42,9 +42,6 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 
-/** Default value for the uninterpreted sorts is the UF theory */
-TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
-
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
   case Theory::EFFORT_STANDARD:
@@ -181,7 +178,7 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
         if (Theory::theoryOf(node.getType()) != theory::THEORY_BOOL)
         {
           // We treat the variables as uninterpreted
-          tid = s_uninterpretedSortOwner;
+          tid = THEORY_UF;
         }
         else
         {
@@ -267,7 +264,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
   default:
     Unreachable();
   }
-  Trace("theory::internal") << "theoryOf(" << mode << ", " << node << ") -> " << tid << std::endl;
   return tid;
 }
 
