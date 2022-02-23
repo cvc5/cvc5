@@ -141,7 +141,8 @@ void Theory::finishInitStandalone()
   finishInit();
 }
 
-TheoryId Theory::theoryOf(TNode node, options::TheoryOfMode mode)
+TheoryId Theory::theoryOf(TNode node, options::TheoryOfMode mode,
+                                  TheoryId usortOwner)
 {
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {
@@ -155,13 +156,13 @@ TheoryId Theory::theoryOf(TNode node, options::TheoryOfMode mode)
         }
         else
         {
-          tid = Theory::theoryOf(node.getType());
+          tid = theoryOf(node.getType(), usortOwner);
         }
       }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
-        tid = Theory::theoryOf(node[0].getType());
+        tid = theoryOf(node[0].getType(), usortOwner);
       }
       else
       {
@@ -175,7 +176,7 @@ TheoryId Theory::theoryOf(TNode node, options::TheoryOfMode mode)
       // Variables
       if (node.isVar())
       {
-        if (Theory::theoryOf(node.getType()) != theory::THEORY_BOOL)
+        if (theoryOf(node.getType(), usortOwner) != theory::THEORY_BOOL)
         {
           // We treat the variables as uninterpreted
           tid = THEORY_UF;
@@ -205,20 +206,20 @@ TheoryId Theory::theoryOf(TNode node, options::TheoryOfMode mode)
         // a Boolean equality, we must assign THEORY_BOOL.
         if (ltype != rtype || ltype.isBoolean())
         {
-          tid = Theory::theoryOf(ltype);
+          tid = theoryOf(ltype, usortOwner);
         }
         else
         {
           // If both sides belong to the same theory the choice is easy
-          TheoryId T1 = Theory::theoryOf(l);
-          TheoryId T2 = Theory::theoryOf(r);
+          TheoryId T1 = theoryOf(l, usortOwner);
+          TheoryId T2 = theoryOf(r, usortOwner);
           if (T1 == T2)
           {
             tid = T1;
           }
           else
           {
-            TheoryId T3 = Theory::theoryOf(ltype);
+            TheoryId T3 = theoryOf(ltype, usortOwner);
             // This is a case of
             // * x*y = f(z) -> UF
             // * x = c      -> UF
