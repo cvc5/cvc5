@@ -36,9 +36,11 @@ class LfscNodeConverter : public NodeConverter
  public:
   LfscNodeConverter();
   ~LfscNodeConverter() {}
-  /** convert to internal */
+  /** convert at pre-order traversal */
+  Node preConvert(Node n) override;
+  /** convert at post-order traversal */
   Node postConvert(Node n) override;
-  /** convert to internal */
+  /** convert type at post-order traversal */
   TypeNode postConvertType(TypeNode tn) override;
   /**
    * Get the null terminator for kind k and type tn. The type tn can be

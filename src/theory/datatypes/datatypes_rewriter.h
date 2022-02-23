@@ -71,6 +71,14 @@ class DatatypesRewriter : public TheoryRewriter
    * internal selector function for selC (possibly a shared selector).
    */
   static Node expandApplySelector(Node n);
+  /**
+   * Expand a match term into its definition.
+   * For example
+   *   (MATCH x (((APPLY_CONSTRUCTOR CONS y z) z) (APPLY_CONSTRUCTOR NIL x)))
+   * returns
+   *   (ITE (APPLY_TESTER CONS x) (APPLY_SELECTOR x) x)
+   */
+  static Node expandMatch(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
 

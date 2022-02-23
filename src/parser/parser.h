@@ -31,7 +31,6 @@
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
 
