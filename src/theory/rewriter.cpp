@@ -224,7 +224,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           // pre-rewrite again.
           if ((originalKind == newNode.getKind()
                && response.d_status == REWRITE_DONE)
-              || newNode.isConst())
+              || newNode.getNumChildren() == 0)
           {
             if (Configuration::isAssertionBuild())
             {
@@ -326,7 +326,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         }
         else if ((response.d_status == REWRITE_DONE
                   && originalKind == newNode.getKind())
-                 || newNode.isConst())
+                 || newNode.getNumChildren() == 0)
         {
 #ifdef CVC5_ASSERTIONS
           RewriteResponse r2 =
