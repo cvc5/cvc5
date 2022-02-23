@@ -141,8 +141,9 @@ void Theory::finishInitStandalone()
   finishInit();
 }
 
-TheoryId Theory::theoryOf(TNode node, options::TheoryOfMode mode,
-                                  TheoryId usortOwner)
+TheoryId Theory::theoryOf(TNode node,
+                          options::TheoryOfMode mode,
+                          TheoryId usortOwner)
 {
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {

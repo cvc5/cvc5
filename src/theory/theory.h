@@ -314,7 +314,7 @@ class Theory : protected EnvObj
   static TheoryId theoryOf(
       TNode node,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED,
-                                  TheoryId usortOwner = theory::THEORY_UF);
+      TheoryId usortOwner = theory::THEORY_UF);
 
   /**
    * Checks if the node is a leaf node of this theory.
@@ -336,7 +336,6 @@ class Theory : protected EnvObj
   {
     return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
-
 
   /** Returns true if the assertFact queue is empty*/
   bool done() const { return d_factsHead == d_facts.size(); }

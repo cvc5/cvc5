@@ -252,7 +252,8 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
-  return theory::Theory::theoryOf(node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
+  return theory::Theory::theoryOf(
+      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
 }
 
 }  // namespace cvc5
