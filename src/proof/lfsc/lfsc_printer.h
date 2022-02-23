@@ -64,9 +64,16 @@ class LfscPrinter
   void printType(std::ostream& out, TypeNode n);
 
  private:
-   void ensureTypeDefinitionPrinted(std::ostream& os, TypeNode tn, std::unordered_set<TypeNode>& processed, std::unordered_set<size_t>& tupleArityProcessed);
+  void ensureTypeDefinitionPrinted(
+      std::ostream& os,
+      TypeNode tn,
+      std::unordered_set<TypeNode>& processed,
+      std::unordered_set<size_t>& tupleArityProcessed);
   /** print type definition */
-  void printTypeDefinition(std::ostream& os, TypeNode tn, std::unordered_set<TypeNode>& processed, std::unordered_set<size_t>& tupleArityProcessed);
+  void printTypeDefinition(std::ostream& os,
+                           TypeNode tn,
+                           std::unordered_set<TypeNode>& processed,
+                           std::unordered_set<size_t>& tupleArityProcessed);
   /**
    * Print node to stream in the expected format of LFSC.
    */

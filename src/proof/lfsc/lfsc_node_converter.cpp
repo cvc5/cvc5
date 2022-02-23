@@ -89,7 +89,7 @@ Node LfscNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  Assert (k!=MATCH);
+  Assert(k != MATCH);
   if (k == ASCRIPTION_TYPE)
   {
     // dummy node, return it

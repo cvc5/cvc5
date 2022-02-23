@@ -97,8 +97,7 @@ void LfscPrinter::print(std::ostream& out,
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& cons = dt[i];
-      std::string cname =
-          d_tproc.getNameForUserNameOf(cons.getConstructor());
+      std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
       // for now, must print as node to ensure same policy for printing
       // variable names. For instance, this means that cvc.X is printed as
       // LFSC identifier |cvc.X| if X contains symbols legal in LFSC but not
@@ -216,7 +215,11 @@ void LfscPrinter::print(std::ostream& out,
   out << cparen.str() << std::endl;
 }
 
-void LfscPrinter::ensureTypeDefinitionPrinted(std::ostream& os, TypeNode tn, std::unordered_set<TypeNode>& processed, std::unordered_set<size_t>& tupleArityProcessed)
+void LfscPrinter::ensureTypeDefinitionPrinted(
+    std::ostream& os,
+    TypeNode tn,
+    std::unordered_set<TypeNode>& processed,
+    std::unordered_set<size_t>& tupleArityProcessed)
 {
   // note that we must get all "component types" of a type, so that
   // e.g. U is printed as a sort declaration when we have type (Array U Int).
@@ -229,7 +232,11 @@ void LfscPrinter::ensureTypeDefinitionPrinted(std::ostream& os, TypeNode tn, std
   }
 }
 
-void LfscPrinter::printTypeDefinition(std::ostream& os, TypeNode tn, std::unordered_set<TypeNode>& processed, std::unordered_set<size_t>& tupleArityProcessed)
+void LfscPrinter::printTypeDefinition(
+    std::ostream& os,
+    TypeNode tn,
+    std::unordered_set<TypeNode>& processed,
+    std::unordered_set<size_t>& tupleArityProcessed)
 {
   if (processed.find(tn) != processed.end())
   {
@@ -607,20 +614,28 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     }
     break;
     // strings
-    case PfRule::STRING_LENGTH_POS: pf << as[0] << d_tproc.convertType(as[0].getType()) << h; break;
+    case PfRule::STRING_LENGTH_POS:
+      pf << as[0] << d_tproc.convertType(as[0].getType()) << h;
+      break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << h << cs[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
     case PfRule::CONCAT_EQ:
-      pf << h << h << h << args[0].getConst<bool>() << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
+      pf << h << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
     case PfRule::CONCAT_UNIFY:
-      pf << h << h << h << h << args[0].getConst<bool>() << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0] << cs[1];
+      pf << h << h << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
+         << cs[1];
       break;
     case PfRule::CONCAT_CSPLIT:
-      pf << h << h << h << h << args[0].getConst<bool>() << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0] << cs[1];
+      pf << h << h << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
+         << cs[1];
       break;
     case PfRule::CONCAT_CONFLICT:
-      pf << h << h << args[0].getConst<bool>() << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
+      pf << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
     case PfRule::RE_UNFOLD_POS:
       if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)
