@@ -355,9 +355,7 @@ void ICPSolver::check()
         }
         d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
                              InferenceId::ARITH_NL_ICP_CONFLICT);
-        did_progress = true;
-        progress = false;
-        break;
+        return;
     }
   } while (progress);
   if (did_progress)
