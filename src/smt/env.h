@@ -24,8 +24,8 @@
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
-#include "util/statistics_registry.h"
 #include "theory/theory_id.h"
+#include "util/statistics_registry.h"
 
 namespace cvc5 {
 
@@ -255,6 +255,7 @@ class Env
    * Returns the ID of the theory responsible for the given node.
    */
   theory::TheoryId theoryOf(TNode node) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -331,7 +332,7 @@ class Env
   /**
    * The theory that owns the uninterpreted sort.
    */
-   theory::TheoryId d_uninterpretedSortOwner;
+  theory::TheoryId d_uninterpretedSortOwner;
 }; /* class Env */
 
 }  // namespace cvc5

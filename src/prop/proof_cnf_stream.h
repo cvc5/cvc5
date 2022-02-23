@@ -46,9 +46,7 @@ class SatProofManager;
 class ProofCnfStream : protected EnvObj, public ProofGenerator
 {
  public:
-  ProofCnfStream(Env& env,
-                 CnfStream& cnfStream,
-                 SatProofManager* satPM);
+  ProofCnfStream(Env& env, CnfStream& cnfStream, SatProofManager* satPM);
 
   /** Invokes getProofFor of the underlying LazyCDProof */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;

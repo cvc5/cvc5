@@ -27,10 +27,10 @@
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "theory/theory.h"
 
 using namespace cvc5::smt;
 

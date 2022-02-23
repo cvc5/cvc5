@@ -65,7 +65,8 @@ enum class FormulaLitPolicy : uint32_t
  * each subexpression in the constructed equi-satisfiable formula, then
  * substitute the new literal for the formula, and so on, recursively.
  */
-class CnfStream : protected EnvObj {
+class CnfStream : protected EnvObj
+{
   friend PropEngine;
   friend ProofCnfStream;
 
