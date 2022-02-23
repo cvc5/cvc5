@@ -177,12 +177,7 @@ void LfscPrinter::print(std::ostream& out,
   }
 
   // [4] print the DSL rewrite rule declarations
-  const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
-  for (DslPfRule dslr : dslrs)
-  {
-    // also computes the format for the rule
-    printDslRule(out, dslr, d_dslFormat[dslr]);
-  }
+  // TODO cvc5-projects #285.
 
   // [5] print the check command and term lets
   out << preamble.str();
@@ -333,13 +328,6 @@ void LfscPrinter::printProofLetify(
       out->printOpenLfscRule(LfscRule::LAMBDA);
       cparen++;
       out->printProofId(pid);
-      // debugging
-      /*
-      if (Trace.isOn("lfsc-print-debug"))
-      {
-        out << "; proves " << p->getResult();
-      }
-      */
       out->printEndLine();
     }
     out->printEndLine();
@@ -778,133 +766,6 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 {
   TypeNode tni = d_tproc.convertType(tn);
   LfscPrintChannelOut::printTypeNodeInternal(out, tni);
-}
-
-void LfscPrinter::printDslRule(std::ostream& out,
-                               DslPfRule id,
-                               std::vector<Node>& format)
-{
-  const rewriter::RewriteProofRule& rpr = d_rdb->getRule(id);
-  const std::vector<Node>& varList = rpr.getVarList();
-  const std::vector<Node>& uvarList = rpr.getUserVarList();
-  const std::vector<Node>& conds = rpr.getConditions();
-  Node conc = rpr.getConclusion();
-
-  std::stringstream oscs;
-  std::stringstream odecl;
-
-  std::stringstream rparen;
-  odecl << "(declare ";
-  LfscPrintChannelOut::printDslProofRuleId(odecl, id);
-  std::vector<Node> vlsubs;
-  // streams for printing the computation of term in side conditions or
-  // list semantics substitutions
-  std::stringstream argList;
-  std::stringstream argListTerms;
-  // the list variables
-  std::unordered_set<Node> listVars;
-  argList << "(";
-  // use the names from the user variable list (uvarList)
-  for (const Node& v : uvarList)
-  {
-    std::stringstream sss;
-    sss << v;
-    Node s = d_tproc.mkInternalSymbol(sss.str(), v.getType());
-    odecl << " (! " << sss.str() << " term";
-    argList << "(" << sss.str() << " term)";
-    argListTerms << " " << sss.str();
-    rparen << ")";
-    vlsubs.push_back(s);
-    // remember if v was a list variable, we must convert these in side
-    // condition printing below
-    if (expr::isListVar(v))
-    {
-      listVars.insert(s);
-    }
-  }
-  argList << ")";
-  // print conditions
-  size_t termCount = 0;
-  size_t scCount = 0;
-  // print conditions, then conclusion
-  // TODO: incorporate other side conditions
-  for (size_t i = 0, nconds = conds.size(); i <= nconds; i++)
-  {
-    bool isConclusion = i == nconds;
-    Node term = isConclusion ? conc : conds[i];
-    Node sterm = term.substitute(
-        varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
-    if (expr::hasListVar(term))
-    {
-      Assert(!listVars.empty());
-      scCount++;
-      std::stringstream scName;
-      scName << "dsl.sc." << scCount << "." << id;
-      // generate the side condition
-      oscs << "(program " << scName.str() << " " << argList.str() << " term"
-           << std::endl;
-      // body must be converted to incorporate list semantics for substitutions
-      // first traversal applies nary_elim to required n-ary applications
-      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
-      Node tscp;
-      if (isConclusion)
-      {
-        Assert(sterm.getKind() == EQUAL);
-        // optimization: don't need nary_elim for heads
-        tscp = llsncp.convert(sterm[1]);
-        tscp = sterm[0].eqNode(tscp);
-      }
-      else
-      {
-        tscp = llsncp.convert(sterm);
-      }
-      // second traversal converts to LFSC form
-      Node t = d_tproc.convert(tscp);
-      // third traversal applies nary_concat where list variables are used
-      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
-      Node tsc = llsnc.convert(t);
-      oscs << "  ";
-      printInternal(oscs, tsc);
-      oscs << ")" << std::endl;
-      termCount++;
-      // introduce a term computed by side condition
-      odecl << " (! _t" << termCount << " term";
-      rparen << ")";
-      format.push_back(Node::null());
-      // side condition, which is an implicit argument
-      odecl << " (! _s" << scCount << " (^ (" << scName.str();
-      rparen << ")";
-      // arguments to side condition
-      odecl << argListTerms.str() << ") ";
-      // matches condition
-      odecl << "_t" << termCount << ")";
-      if (!isConclusion)
-      {
-        // the child proof
-        odecl << " (! _u" << i;
-        rparen << ")";
-        format.push_back(term);
-      }
-      odecl << " (holds _t" << termCount << ")";
-      continue;
-    }
-    // ordinary condition/conclusion, print the term directly
-    if (!isConclusion)
-    {
-      odecl << " (! _u" << i;
-      rparen << ")";
-      format.push_back(term);
-    }
-    odecl << " (holds ";
-    Node t = d_tproc.convert(sterm);
-    printInternal(odecl, t);
-    odecl << ")";
-  }
-  odecl << rparen.str() << std::endl;
-  // print the side conditions
-  out << oscs.str();
-  // print the rule declaration
-  out << odecl.str();
 }
 
 }  // namespace proof
