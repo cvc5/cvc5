@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "options/expr_options.h"
+#include "options/proof_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
@@ -27,7 +28,9 @@ namespace cvc5 {
 namespace proof {
 
 DotPrinter::DotPrinter()
-    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1 : 0)
+    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
+                                          : 0),
+      d_ruleID(0)
 {
 }
 
@@ -141,7 +144,6 @@ void DotPrinter::letifyResults(const ProofNode* pn)
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
-  uint64_t ruleID = 0;
   countSubproofs(pn);
   letifyResults(pn);
 
@@ -178,18 +180,37 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     out << "}}\";\n";
   }
-  DotPrinter::printInternal(out, pn, ruleID, 0, false);
+
+  std::map<size_t, uint64_t> proofLet;
+  DotPrinter::printInternal(out, pn, proofLet, 0, false);
   out << "}\n";
 }
 
-void DotPrinter::printInternal(std::ostream& out,
-                               const ProofNode* pn,
-                               uint64_t& ruleID,
-                               uint64_t scopeCounter,
-                               bool inPropositionalView)
+uint64_t DotPrinter::printInternal(std::ostream& out,
+                                   const ProofNode* pn,
+                                   std::map<size_t, uint64_t>& pfLet,
+                                   uint64_t scopeCounter,
+                                   bool inPropositionalView)
 {
-  uint64_t currentRuleID = ruleID;
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  uint64_t currentRuleID = d_ruleID;
+
+  // Print DAG option enabled
+  if (options::proofDotDAG())
+  {
+    ProofNodeHashFunction hasher;
+    size_t currentHash = hasher(pn);
+    auto proofIt = pfLet.find(currentHash);
+
+    // If this node has been already counted
+    if (proofIt != pfLet.end())
+    {
+      return proofIt->second;
+    }
+
+    pfLet[currentHash] = currentRuleID;
+  }
+  d_ruleID++;
+
   std::ostringstream currentArguments, resultStr, classes, colors;
 
   out << "\t" << currentRuleID << " [ label = \"{";
@@ -250,12 +271,15 @@ void DotPrinter::printInternal(std::ostream& out,
   out << ", comment = \"{\\\"subProofQty\\\":" << it->second << "}\"";
   out << " ];\n";
 
+  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   for (const std::shared_ptr<ProofNode>& c : children)
   {
-    ++ruleID;
-    out << "\t" << ruleID << " -> " << currentRuleID << ";\n";
-    printInternal(out, c.get(), ruleID, scopeCounter, inPropositionalView);
+    uint64_t childId =
+        printInternal(out, c.get(), pfLet, scopeCounter, inPropositionalView);
+    out << "\t" << childId << " -> " << currentRuleID << ";\n";
   }
+
+  return currentRuleID;
 }
 
 void DotPrinter::ruleArguments(std::ostringstream& currentArguments,

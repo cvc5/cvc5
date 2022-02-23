@@ -70,4 +70,26 @@ std::ostream& operator<<(std::ostream& out, const ProofNode& pn)
   return out;
 }
 
+size_t ProofNodeHashFunction::operator()(const ProofNode* pfn) const
+{
+  uint64_t ret = fnv1a::offsetBasis;
+
+  ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(pfn->getResult()));
+  ret = fnv1a::fnv1a_64(ret, static_cast<size_t>(pfn->getRule()));
+
+  const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  for (const Pf& child : children)
+  {
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(child->getResult()));
+  }
+
+  const std::vector<Node>& args = pfn->getArguments();
+  for (const Node& arg : args)
+  {
+    ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(arg));
+  }
+
+  return static_cast<size_t>(ret);
+}
+
 }  // namespace cvc5

@@ -145,37 +145,36 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                          false,
                          true);
 
-      // update(s, n, t)
+      // x = update(s, n, t)
       // ------------------------
-      // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t)) ||
-      // s = update(s, n, t)
+      // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t))  and x != s ||
+      // x = s
       lem = nm->mkNode(
           OR,
           nm->mkNode(AND,
                      left.eqNode(nm->mkNode(SEQ_NTH, n[0], n[1])).notNode(),
+                     n.eqNode(n[0]).negate(),
                      cond),
           n.eqNode(n[0]));
       d_im.sendInference(
           exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, false, true);
     }
 
-    for (const auto& nthIdxs : d_indexMap)
+    Node rn = d_state.getRepresentative(n);
+    Node rs = d_state.getRepresentative(n[0]);
+    for (const Node& r : {rn, rs})
     {
       // Enumerate n-th terms for sequences that are related to the current
       // update term
-      Node seq = nthIdxs.first;
-      if (!d_state.areEqual(seq, n) && !d_state.areEqual(seq, n[0]))
-      {
-        continue;
-      }
-
-      const std::set<Node>& indexes = nthIdxs.second;
-      Trace("seq-array-core-debug") << "  check nth for " << seq
+      const std::set<Node>& indexes = d_indexMap[r];
+      Trace("seq-array-core-debug") << "  check nth for " << r
                                     << " with indices " << indexes << std::endl;
       Node i = n[1];
       for (Node j : indexes)
       {
-        // nth(update(s, n, t), m)
+        // nth(x, m)
+        // y = update(s, n, t), m)
+        // x = y or x = s
         // ------------------------
         // nth(update(s, n, t)) =
         //   ite(0 <= m < len(s),
@@ -197,6 +196,15 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
 
         std::vector<Node> exp;
         d_im.addToExplanation(termProxy, n, exp);
+        if (d_state.areEqual(r, n))
+        {
+          d_im.addToExplanation(r, n, exp);
+        }
+        else
+        {
+          Assert(d_state.areEqual(r, n[0]));
+          d_im.addToExplanation(r, n[0], exp);
+        }
         sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
       }
     }
@@ -232,10 +240,10 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
   {
     // (seq.nth n[0] n[1])
     Node r = d_state.getRepresentative(n[0]);
-    Trace("seq-update") << "- " << r << ": " << n[1] << " -> " << n
-                        << std::endl;
-    d_writeModel[r][n[1]] = n;
-    d_indexMap[r].insert(n[1]);
+    Node ri = d_state.getRepresentative(n[1]);
+    Trace("seq-update") << "- " << r << ": " << ri << " -> " << n << std::endl;
+    d_writeModel[r][ri] = n;
+    d_indexMap[r].insert(ri);
 
     if (n[0].getKind() == STRING_REV)
     {
