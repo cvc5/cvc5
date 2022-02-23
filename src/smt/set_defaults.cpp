@@ -114,7 +114,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       if (opts.smt.unsatCoresModeWasSetByUser)
       {
-        notifyModifyOption("unsatCoresMode", "full-proof", "enabling proofs");
+        notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
       }
       opts.smt.unsatCores = true;
       opts.smt.unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
@@ -169,12 +169,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
-      opts.smt.unsatCores = false;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      notifyModifyOption(
-          "produceProofs and unsatCores", "false", reasonNoProofs.str());
-      opts.smt.produceProofs = false;
-      opts.smt.checkProofs = false;
+      std::stringstream ss;
+      ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
+      throw OptionException(ss.str());
     }
   }
   if (d_isInternalSubsolver)
@@ -888,6 +885,27 @@ bool SetDefaults::usesSygus(const Options& opts) const
   return false;
 }
 
+bool SetDefaults::usesInputConversion(const Options& opts,
+                                      std::ostream& reason) const
+{
+  if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
+  {
+    reason << "solveBVAsInt";
+    return true;
+  }
+  if (opts.smt.solveIntAsBV > 0)
+  {
+    reason << "solveIntAsBV";
+    return true;
+  }
+  if (opts.smt.solveRealAsInt)
+  {
+    reason << "solveRealAsInt";
+    return true;
+  }
+  return false;
+}
+
 bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
@@ -1155,6 +1173,18 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
+bool SetDefaults::incompatibleWithSygus(Options& opts,
+                                        std::ostream& reason) const
+{
+  // sygus should not be combined with preprocessing passes that convert the
+  // input
+  if (usesInputConversion(opts, reason))
+  {
+    return true;
+  }
+  return false;
+}
+
 bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
                                               std::ostream& reason) const
 {
@@ -1374,6 +1404,14 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // if we are attempting to rewrite everything to SyGuS, use sygus()
   if (usesSygus(opts))
   {
+    std::stringstream reasonNoSygus;
+    if (incompatibleWithSygus(opts, reasonNoSygus))
+    {
+      std::stringstream ss;
+      ss << reasonNoSygus.str() << " not supported in sygus.";
+      throw OptionException(ss.str());
+    }
+    // now, set defaults based on sygus
     setDefaultsSygus(opts);
   }
   // counterexample-guided instantiation for non-sygus

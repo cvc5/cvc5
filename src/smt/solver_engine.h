@@ -332,7 +332,7 @@ class CVC5_EXPORT SolverEngine
    * immediately determined to be inconsistent. Note this formula will
    * be included in the unsat core when applicable.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   Result assertFormula(const Node& formula);
 
@@ -477,7 +477,7 @@ class CVC5_EXPORT SolverEngine
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    *
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
@@ -489,7 +489,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @param n The node to expand
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   Node expandDefinitions(const Node& n);
 
@@ -498,8 +498,7 @@ class CVC5_EXPORT SolverEngine
    * or NOT_ENTAILED query).  Only permitted if the SolverEngine is set to
    * operate interactively and produce-models is on.
    *
-   * @throw ModalException, TypeCheckingException, LogicException,
-   *        UnsafeInterruptException
+   * @throw ModalException, TypeCheckingException, LogicException
    */
   Node getValue(const Node& e) const;
 
@@ -726,7 +725,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Push a user-level context.
-   * throw@ ModalException, LogicException, UnsafeInterruptException
+   * throw@ ModalException, LogicException
    */
   void push();
 
@@ -1047,6 +1046,16 @@ class CVC5_EXPORT SolverEngine
    * Return a reference to options like for `EnvObj`.
    */
   const Options& options() const;
+
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @param src The source of the check, which is printed in the exception if
+   * this check fails.
+   */
+  void ensureWellFormedTerm(const Node& n, const std::string& src) const;
 
   /* Members -------------------------------------------------------------- */
 

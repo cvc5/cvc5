@@ -1595,14 +1595,7 @@ lbool Solver::search(int nof_conflicts)
                  progressEstimate() * 100);
       }
 
-      if (theoryConflict && options::sat_refine_conflicts())
-      {
-        check_type = CHECK_FINAL_FAKE;
-      }
-      else
-      {
-        check_type = CHECK_WITH_THEORY;
-      }
+      check_type = CHECK_WITH_THEORY;
     }
     else
     {
@@ -2165,8 +2158,7 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 inline bool Solver::withinBudget(Resource r) const
 {
   Assert(d_proxy);
-  // spendResource sets async_interrupt or throws UnsafeInterruptException
-  // depending on whether hard-limit is enabled
+  // spendResource may interrupt the solver via a callback.
   d_proxy->spendResource(r);
 
   bool within_budget =

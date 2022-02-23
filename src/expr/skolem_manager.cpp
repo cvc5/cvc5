@@ -56,6 +56,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
     case SkolemFunId::SQRT: return "SQRT";
+    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
+      return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
