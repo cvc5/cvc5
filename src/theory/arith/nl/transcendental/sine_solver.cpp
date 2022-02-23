@@ -297,7 +297,7 @@ void SineSolver::checkMonotonic()
   {
     Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
     Assert(sargval.isConst());
-    Rational sargvalr = sargval.getConst<Rational>();
+    const Rational& sargvalr = sargval.getConst<Rational>();
     Node s = tf_arg_to_term[sarg];
     Node sval = d_data->d_model.computeAbstractModelValue(s);
     Assert(sval.isConst());
