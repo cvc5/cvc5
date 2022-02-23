@@ -457,16 +457,6 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
 {
-  // Cannot print unless produce assertions is enabled. Otherwise, the printing
-  // is misleading, since it does not capture what symbols were provided
-  // as definitions.
-  if (!options().smt.produceAssertions)
-  {
-    warning()
-        << "Assertions not available for dumping (use --produce-assertions)."
-        << std::endl;
-    return;
-  }
   PrintBenchmark pb(&d_env.getPrinter());
   std::vector<Node> assertions;
   // Notice that the following list covers define-fun and define-fun-rec

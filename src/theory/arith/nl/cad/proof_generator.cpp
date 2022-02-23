@@ -225,7 +225,7 @@ std::vector<Node> CADProofGenerator::constructCell(Node var,
       if (ids.second <= roots.size())
       {
         // Interval has upper bound that is not inf
-        res.emplace_back(mkIRP(var, Kind::LT, d_zero, ids.first, poly, vm));
+        res.emplace_back(mkIRP(var, Kind::LT, d_zero, ids.second, poly, vm));
       }
     }
   }

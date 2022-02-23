@@ -958,17 +958,19 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     else if (k == APPLY_SELECTOR)
     {
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      unsigned cindex = DType::cindexOf(op);
-      std::stringstream sss;
-      sss << dt[cindex][index].getSelector();
-      opName << getNameForUserName(sss.str());
-    }
-    else if (k == APPLY_SELECTOR_TOTAL)
-    {
-      ret = maybeMkSkolemFun(op, macroApply);
-      Assert(!ret.isNull());
+      if (k == APPLY_SELECTOR_TOTAL)
+      {
+        ret = maybeMkSkolemFun(op, macroApply);
+      }
+      if (ret.isNull())
+      {
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        unsigned cindex = DType::cindexOf(op);
+        std::stringstream sss;
+        sss << dt[cindex][index].getSelector();
+        opName << getNameForUserName(sss.str());
+      }
     }
     else if (k == SET_SINGLETON || k == BAG_MAKE)
     {
