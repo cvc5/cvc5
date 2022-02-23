@@ -48,10 +48,19 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "partitionCheck"
+  alias      = ["check"]
   category   = "expert"
-  long       = "partition-check=X"
-  type       = "std::string"
-  help       = "select whether partitioning happens at full or standard check"
+  long       = "partition-check=MODE"
+  type       = "CheckMode"
+  default    = "STANDARD"
+  help       = "choose partition check mode"
+  help_mode  = "Partition check modes."
+[[option.mode.STANDARD]]
+  name = "standard"
+  help = "Create partitions at standard checks"
+[[option.mode.FULL]]
+  name = "full"
+  help = "Create partitions at full checks"
 
 [[option]]
   name       = "writePartitionsToFileName"

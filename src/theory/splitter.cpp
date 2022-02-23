@@ -127,15 +127,13 @@ TrustNode Splitter::makePartitions()
     d_output = &d_partitionFileStream;
   }
 
-  options::PartitionMode pmode = options::partitionStrategy();
-
   // This is the revised version of the old splitting strategy.
   // Cubes look like the following:
   // C1 = l1_{1} & .... & l1_{d_conflictSize}
   // C2 = l2_{1} & .... & l2_{d_conflictSize}
   // C3 = l3_{1} & .... & l3_{d_conflictSize}
   // C4 = !C1 & !C2 & !C3
-  if (pmode == options::PartitionMode::REVISED)
+  if (options::partitionStrategy() == options::PartitionMode::REVISED)
   {
     // If we're not at the last cube
     if (d_numPartitionsSoFar < d_numPartitions - 1)
