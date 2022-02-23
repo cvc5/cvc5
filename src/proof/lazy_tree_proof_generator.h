@@ -167,7 +167,7 @@ class LazyTreeProofGenerator : public ProofGenerator
    * generated and then later pruned, for example to produce smaller conflicts.
    * The predicate is given as a Callable f that is called for every child with
    * the id of the child and the child itself.
-   * f should return true if the child should be kept, fals if the child should
+   * f should return false if the child should be kept, true if the child should
    * be removed.
    * @param f a Callable bool(std::size_t, const detail::TreeProofNode&)
    */
@@ -175,20 +175,10 @@ class LazyTreeProofGenerator : public ProofGenerator
   void pruneChildren(F&& f)
   {
     auto& children = getCurrent().d_children;
-    std::size_t cur = 0;
-    std::size_t pos = 0;
-    for (std::size_t size = children.size(); cur < size; ++cur)
-    {
-      if (f(children[pos]))
-      {
-        if (cur != pos)
-        {
-          children[pos] = std::move(children[cur]);
-        }
-        ++pos;
-      }
-    }
-    children.resize(pos);
+
+    auto it =
+        std::remove_if(children.begin(), children.end(), std::forward<F>(f));
+    children.erase(it, children.end());
   }
 
  private:
