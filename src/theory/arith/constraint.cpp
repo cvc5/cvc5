@@ -2263,7 +2263,7 @@ bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
   if(cons->negationHasProof()){
     Debug("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
     cons->impliedByUnate(ant, true);
-    d_raiseConflict.raiseConflict(cons, InferenceId::UNKNOWN);
+    d_raiseConflict.raiseConflict(cons, InferenceId::ARITH_CONF_UNATE_PROP);
     return true;
   }else if(!cons->isTrue()){
     ++d_statistics.d_unatePropagateImplications;
