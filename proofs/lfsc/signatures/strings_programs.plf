@@ -270,7 +270,7 @@
         ; Must handle nested concatenation for word constant. We know there is no nested concatenation within s12, so we don't need to flatten it.
         ; Since s12 may not be a concat term, we must use n-ary intro to ensure it is in n-ary form
         (sc_string_concat (sc_string_nary_intro s12 u) (sc_string_flatten s2 u) u)))
-    (emptystr s))
+    (default (ifequal s (sc_mk_emptystr u) s (fail term))))
 )
 
 ; Helper for collecting adjacent constants. This side condition takes as input
@@ -306,7 +306,7 @@
         ; did not strip a constant prefix
         (match s
           ((apply s1 s2) (apply s1 (sc_string_collect s2 u)))
-          (emptystr s))
+          (default (ifequal s (sc_mk_emptystr u) s (fail term))))
         ; stripped a constant prefix, must eliminate singleton
         (str.++ (sc_string_nary_elim sc1 u) (sc_string_collect sc2 u)))))
 )

@@ -647,7 +647,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Kind k = as[0].getKind();
       if (k == STRING_SUBSTR || k == STRING_INDEXOF)
       {
-        pf << h << as[0] << as[0][0].getType();
+        pf << h << as[0] << d_tproc.convertType(as[0][0].getType());
       }
       else
       {
