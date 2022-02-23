@@ -49,7 +49,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
-      d_rewriter(d_opElim)
+      d_rewriter(d_opElim),
+      d_arithModelCacheSet(false)
 {
   // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
@@ -193,6 +194,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
@@ -370,16 +372,18 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 
 void TheoryArith::updateModelCache(std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }
