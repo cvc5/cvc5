@@ -93,6 +93,25 @@ public:
  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class StringToRegExpTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+
+  /**
+   * Returns true if the argument to STRING_TO_REGEXP is a constant.
+   *
+   * In general, our implementation of isConst is incomplete for regular
+   * expressions, i.e. it is possible to return isConst for more regular
+   * expression terms.
+   *
+   * However, we at least require returning isConst true for STRING_TO_REGEXP
+   * applied to constant strings, as the regular expression enumerator uses
+   * these.
+   */
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+};
+
 class ConstSequenceTypeRule
 {
  public:

@@ -1595,14 +1595,7 @@ lbool Solver::search(int nof_conflicts)
                  progressEstimate() * 100);
       }
 
-      if (theoryConflict && options::sat_refine_conflicts())
-      {
-        check_type = CHECK_FINAL_FAKE;
-      }
-      else
-      {
-        check_type = CHECK_WITH_THEORY;
-      }
+      check_type = CHECK_WITH_THEORY;
     }
     else
     {

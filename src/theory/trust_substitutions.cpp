@@ -212,22 +212,11 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   std::vector<Node> pfChildren;
   if (!cs.isConst())
   {
-    // note we will get more proof reuse if we do not special case AND here.
-    if (cs.getKind() == kind::AND)
-    {
-      for (const Node& csc : cs)
-      {
-        pfChildren.push_back(csc);
-        // connect substitution generator into apply generator
-        d_applyPg->addLazyStep(csc, d_subsPg.get());
-      }
-    }
-    else
-    {
-      pfChildren.push_back(cs);
-      // connect substitution generator into apply generator
-      d_applyPg->addLazyStep(cs, d_subsPg.get());
-    }
+    // note that cs may be an AND node, in which case it specifies multiple
+    // substitutions
+    pfChildren.push_back(cs);
+    // connect substitution generator into apply generator
+    d_applyPg->addLazyStep(cs, d_subsPg.get());
   }
   Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
   // We use fixpoint as the substitution-apply identifier. Notice that it
