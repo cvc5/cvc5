@@ -1931,6 +1931,7 @@ set(regress_1_tests
   regress1/nl/sugar-ident-3.smt2
   regress1/nl/sugar-ident.smt2
   regress1/nl/tan-rewrite2.smt2
+  regress1/nl/transcedental_model_simple.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
   regress1/proj-issue175.smt2
@@ -2425,6 +2426,7 @@ set(regress_1_tests
   regress1/strings/issue6973-dup-lemma-conc.smt2
   regress1/strings/issue7677-test-const-rv.smt2 
   regress1/strings/issue7918-learned-rewrite.smt2
+  regress1/strings/issue8094-witness-model.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2509,6 +2511,7 @@ set(regress_1_tests
   regress1/strings/update-ex1.smt2
   regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
+  regress1/strings/witness-model.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy

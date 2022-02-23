@@ -79,7 +79,7 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
-      if (TheoryModel::isValue(normalized))
+      if (m->isValue(normalized))
       {
         return normalized;
       }
@@ -101,7 +101,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
     // Members of exclusion set must have values, otherwise we are not yet
     // assignable.
     Node er = eset[i];
-    if (TheoryModel::isValue(er))
+    if (tm->isValue(er))
     {
       // already processed
       continue;
@@ -503,7 +503,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // applicable. We check if n is a value here, e.g. a term for which
       // isConst returns true, or a lambda. The latter is required only for
       // higher-order.
-      if (TheoryModel::isValue(n))
+      if (tm->isValue(n))
       {
         Assert(constRep.isNull());
         constRep = n;
@@ -732,7 +732,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             }
             if (!normalized.isNull())
             {
-              Assert(TheoryModel::isValue(normalized));
+              Assert(tm->isValue(normalized));
               typeConstSet.add(tb, normalized);
               assignConstantRep(tm, *i2, normalized);
               Trace("model-builder") << "    Eval: Setting constant rep of "
@@ -771,7 +771,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Trace("model-builder") << "    Normalizing rep (" << rep
                                    << "), normalized to (" << normalized << ")"
                                    << endl;
-            if (TheoryModel::isValue(normalized))
+            if (tm->isValue(normalized))
             {
               changed = true;
               typeConstSet.add(tb, normalized);
@@ -1203,7 +1203,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!TheoryModel::isValue(ri))
+        if (!m->isValue(ri))
         {
           childrenConst = false;
         }
