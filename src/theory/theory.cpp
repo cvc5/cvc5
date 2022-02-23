@@ -196,60 +196,47 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
-        // If one of them is an ITE, it's irelevant, since they will get
-        // replaced out anyhow
-        if (node[0].getKind() == kind::ITE)
+        TNode l = node[0];
+        TNode r = node[1];
+        TypeNode ltype = l.getType();
+        TypeNode rtype = r.getType();
+        // If the types are different, we must assign based on type due
+        // to handling subtypes (limited to arithmetic). Also, if we are
+        // a Boolean equality, we must assign THEORY_BOOL.
+        if (ltype != rtype || ltype.isBoolean())
         {
-          tid = Theory::theoryOf(node[0].getType());
-        }
-        else if (node[1].getKind() == kind::ITE)
-        {
-          tid = Theory::theoryOf(node[1].getType());
+          tid = Theory::theoryOf(ltype);
         }
         else
         {
-          TNode l = node[0];
-          TNode r = node[1];
-          TypeNode ltype = l.getType();
-          TypeNode rtype = r.getType();
-          // If the types are different, we must assign based on type due
-          // to handling subtypes (limited to arithmetic). Also, if we are
-          // a Boolean equality, we must assign THEORY_BOOL.
-          if (ltype != rtype || ltype.isBoolean())
+          // If both sides belong to the same theory the choice is easy
+          TheoryId T1 = Theory::theoryOf(l);
+          TheoryId T2 = Theory::theoryOf(r);
+          if (T1 == T2)
           {
-            tid = Theory::theoryOf(ltype);
+            tid = T1;
           }
           else
           {
-            // If both sides belong to the same theory the choice is easy
-            TheoryId T1 = Theory::theoryOf(l);
-            TheoryId T2 = Theory::theoryOf(r);
-            if (T1 == T2)
+            TheoryId T3 = Theory::theoryOf(ltype);
+            // This is a case of
+            // * x*y = f(z) -> UF
+            // * x = c      -> UF
+            // * f(x) = read(a, y) -> either UF or ARRAY
+            // at least one of the theories has to be parametric, i.e. theory
+            // of the type is different from the theory of the term
+            if (T1 == T3)
+            {
+              tid = T2;
+            }
+            else if (T2 == T3)
             {
               tid = T1;
             }
             else
             {
-              TheoryId T3 = Theory::theoryOf(ltype);
-              // This is a case of
-              // * x*y = f(z) -> UF
-              // * x = c      -> UF
-              // * f(x) = read(a, y) -> either UF or ARRAY
-              // at least one of the theories has to be parametric, i.e. theory
-              // of the type is different from the theory of the term
-              if (T1 == T3)
-              {
-                tid = T2;
-              }
-              else if (T2 == T3)
-              {
-                tid = T1;
-              }
-              else
-              {
-                // If both are parametric, we take the smaller one (arbitrary)
-                tid = T1 < T2 ? T1 : T2;
-              }
+              // If both are parametric, we take the smaller one (arbitrary)
+              tid = T1 < T2 ? T1 : T2;
             }
           }
         }

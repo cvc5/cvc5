@@ -333,7 +333,7 @@ class Theory : protected EnvObj
       TheoryId theoryId,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
-    return node.getNumChildren() == 0 || theoryOf(mode, node) != theoryId;
+    return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
 
 

@@ -221,12 +221,10 @@ bool ProcessAssertions::apply(Assertions& as)
 
     // fmf-fun : assume admissible functions, applying preprocessing reduction
     // to FMF
-    /*
     if (options().quantifiers.fmfFunWellDefined)
     {
       applyPass("fun-def-fmf", as);
     }
-    */
   }
   if (!options().strings.stringLazyPreproc)
   {
