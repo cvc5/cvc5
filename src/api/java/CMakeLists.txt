@@ -19,23 +19,27 @@ set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/jni")
 file(MAKE_DIRECTORY ${JNI_DIR})
 
 # Generate Kind.java
-configure_file(genkinds.py.in genkinds.py)
-
 set(JAVA_KIND_FILE
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind.java"
-)
+  )
+configure_file(genkinds.py.in genkinds.py)
+# Generate NativeCode.java
+set(JAVA_NATIVE_CODE_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/NativeCode.java"
+  )
+configure_file(${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/NativeCode.java.in ${JAVA_NATIVE_CODE_FILE})
 
 add_custom_command(
   OUTPUT
-    ${JAVA_KIND_FILE}
+  ${JAVA_KIND_FILE}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind"
+  "${PYTHON_EXECUTABLE}"
+  "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+  --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+  --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind"
   DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+  "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
 )
 
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
@@ -70,22 +74,23 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Utils.java
   ${JAVA_KIND_FILE}
-)
+  ${JAVA_NATIVE_CODE_FILE}
+  )
 
 # specify generated jni headers
 set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_api_Solver.h
-)
+  )
 
 # generate jni headers
 add_custom_command(
   OUTPUT
-    ${JNI_HEADERS}
+  ${JNI_HEADERS}
   COMMAND
-    # generate jni header files
-    ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR}
+  # generate jni header files
+  ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR}
   DEPENDS
-    ${JAVA_FILES}
+  ${JAVA_FILES}
   COMMENT "Generate jni headers"
   VERBATIM
 )
@@ -139,7 +144,8 @@ add_jar(cvc5jar
   ${JAVA_FILES}
   VERSION ${CVC5_VERSION}
   OUTPUT_NAME cvc5
-)
+  )
+set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
 
@@ -147,7 +153,7 @@ add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
 install(TARGETS cvc5jni
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+  )
 
 install_jar(cvc5jar DESTINATION share/java)
 

@@ -91,7 +91,7 @@ class LinuxAmd64 extends Platform
 
   @Override String[] getLibraries()
   {
-    return new String[] {"libcvc5.so.1", "libcvc5jni.so", "libpoly.so.0.1.9", "libpolyxx.so.0.1.9"};
+    return new String[] {"libcvc5.so.1", "libcvc5jni.so", "libpoly.so.0.1.11", "libpolyxx.so.0.1.11"};
   }
 
   @Override void copyLibraries(String dir, String prefix)
@@ -101,9 +101,9 @@ class LinuxAmd64 extends Platform
       super.copyLibraries(dir, prefix);
       // symbolic links
       Runtime.getRuntime().exec("ln -s " + prefix + "libcvc5.so.1 " + prefix + "libcvc5.so");
-      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.so.0.1.9 " + prefix + "libpoly.so.0");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.so.0.1.11 " + prefix + "libpoly.so.0");
       Runtime.getRuntime().exec(
-          "ln -s " + prefix + "libpolyxx.so.0.1.9 " + prefix + "libpolyxx.so.0");
+          "ln -s " + prefix + "libpolyxx.so.0.1.11 " + prefix + "libpolyxx.so.0");
       Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.so.0 " + prefix + "libpoly.so");
       Runtime.getRuntime().exec("ln -s " + prefix + "libpolyxx.so.0 " + prefix + "libpolyxx.so");
     }
@@ -126,7 +126,7 @@ class MacX86_64 extends Platform
   @Override String[] getLibraries()
   {
     return new String[] {
-        "libcvc5.1.dylib", "libcvc5jni.dylib", "libpoly.0.1.9.dylib", "libpolyxx.0.1.9.dylib"};
+        "libcvc5.1.dylib", "libcvc5jni.dylib", "libpoly.0.1.11.dylib", "libpolyxx.0.1.11.dylib"};
   }
   @Override void copyLibraries(String dir, String prefix)
   {
@@ -135,9 +135,9 @@ class MacX86_64 extends Platform
       super.copyLibraries(dir, prefix);
       // symbolic links
       Runtime.getRuntime().exec("ln -s " + prefix + "libcvc5.1.dylib " + prefix + "libcvc5.so");
-      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.0.1.9.dylib " + prefix + "libpoly.0.dylib");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.0.1.11.dylib " + prefix + "libpoly.0.dylib");
       Runtime.getRuntime().exec(
-          "ln -s " + prefix + "libpolyxx.0.1.9.dylib " + prefix + "libpolyxx.0.dylib");
+          "ln -s " + prefix + "libpolyxx.0.1.11.dylib " + prefix + "libpolyxx.0.dylib");
       Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.0.dylib " + prefix + "libpoly.dylib");
       Runtime.getRuntime().exec("ln -s " + prefix + "libpolyxx.0.dylib " + prefix + "libpolyxx.dylib");
     }
