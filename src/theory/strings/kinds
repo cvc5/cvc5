@@ -141,10 +141,13 @@ typerule REGEXP_REPEAT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_LOOP_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
-typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
+typerule STRING_TO_REGEXP ::cvc5::theory::strings::StringToRegExpTypeRule
 typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
 typerule REGEXP_NONE "SimpleTypeRule<RRegExp>"
 typerule REGEXP_ALLCHAR "SimpleTypeRule<RRegExp>"
+
+# we return isConst for some regular expressions, including all that we enumerate
+construle STRING_TO_REGEXP ::cvc5::theory::strings::StringToRegExpTypeRule
 
 ### operators that apply to both strings and sequences
 
