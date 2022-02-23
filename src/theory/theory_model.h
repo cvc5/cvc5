@@ -422,6 +422,11 @@ class TheoryModel : protected EnvObj
    * a model builder constructs this model.
    */
   virtual void addTermInternal(TNode n);
+  /**
+   * Is base model value?  This is a helper method for isValue, returns true
+   * if n is a base model value.
+   */
+  bool isBaseModelValue(TNode n) const;
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node> d_modelCache;
