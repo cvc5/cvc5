@@ -292,6 +292,27 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
+TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check)
+{
+  if (check)
+  {
+    if (!n[0].getType().isString())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting string term in string to regexp");
+    }
+  }
+  return nodeManager->regExpType();
+}
+
+bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  Assert(n.getKind() == kind::STRING_TO_REGEXP);
+  return n[0].isConst();
+}
+
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
