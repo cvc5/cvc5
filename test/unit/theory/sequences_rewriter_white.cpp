@@ -19,6 +19,7 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/sequence.h"
 #include "test_smt.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
@@ -228,7 +229,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
 
   Node zero = d_nodeManager->mkConstInt(0);
   Node one = d_nodeManager->mkConstInt(1);
+  // Position that is greater than the maximum value that can be represented
+  // with a uint32_t
+  Node largePos = d_nodeManager->mkConstInt(
+      static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
 
+  Node s01 = d_nodeManager->mkConst(Sequence(intType, {zero, one}));
   Node sx = d_nodeManager->mkNode(SEQ_UNIT, x);
   Node sy = d_nodeManager->mkNode(SEQ_UNIT, y);
   Node sz = d_nodeManager->mkNode(SEQ_UNIT, z);
@@ -265,6 +271,14 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
     // x
     Node n = d_nodeManager->mkNode(SEQ_NTH, xyz, one);
     sameNormalForm(n, y);
+  }
+
+  {
+    // Check that there are no errors when trying to rewrite
+    // (seq.nth (seq.++ (seq.unit 0) (seq.unit 1)) n) where n cannot be
+    // represented as a 32-bit integer
+    Node n = d_nodeManager->mkNode(SEQ_NTH, s01, largePos);
+    sameNormalForm(n, n);
   }
 }
 

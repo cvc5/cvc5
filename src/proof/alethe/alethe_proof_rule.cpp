@@ -114,6 +114,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::QNT_SIMPLIFY: return "qnt_simplify";
     case AletheRule::SKO_EX: return "sko_ex";
     case AletheRule::SKO_FORALL: return "sko_forall";
+    case AletheRule::ALL_SIMPLIFY: return "all_simplify";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
     case AletheRule::REORDERING: return "reordering";

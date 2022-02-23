@@ -141,6 +141,8 @@ class ResourceManager
   uint64_t getResourceUsage() const;
   /** Retrieves time used over all calls. */
   uint64_t getTimeUsage() const;
+  /** Retrieves the remaining time until the time limit is reached. */
+  uint64_t getRemainingTime() const;
   /** Retrieves the remaining number of cumulative resources. */
   uint64_t getResourceRemaining() const;
 

@@ -732,8 +732,10 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
   }
   else if (t[0] == t[1])
   {
-    // ((_ iand k) x x) ---> x
-    return RewriteResponse(REWRITE_DONE, t[0]);
+    // ((_ iand k) x x) ---> (mod x 2^k)
+    Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
+    Node ret = nm->mkNode(kind::INTS_MODULUS, t[0],  twok);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   // simplifications involving constants
   for (unsigned i = 0; i < 2; i++)
@@ -805,7 +807,20 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
                               nm->mkNode(kind::SINE, nm->mkConstReal(-rat)));
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
-    }else{
+    }
+    else if ((t[0].getKind() == MULT || t[0].getKind() == NONLINEAR_MULT)
+             && t[0][0].isConst() && t[0][0].getConst<Rational>().sgn() == -1)
+    {
+      // sin(-n*x) ---> -sin(n*x)
+      std::vector<Node> mchildren(t[0].begin(), t[0].end());
+      mchildren[0] = nm->mkConstReal(-t[0][0].getConst<Rational>());
+      Node ret = nm->mkNode(
+          kind::NEG,
+          nm->mkNode(kind::SINE, nm->mkNode(t[0].getKind(), mchildren)));
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    else
+    {
       // get the factor of PI in the argument
       Node pi_factor;
       Node pi;
