@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Splitter for creating partitiongs.
+ * Splitter for creating partitions.
  */
 
 #include "theory/splitter.h"

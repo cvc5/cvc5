@@ -10,6 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
+ * Splitter for creating partitions.
  */
 
 #include "cvc5_private.h"
