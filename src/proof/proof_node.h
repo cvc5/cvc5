@@ -34,6 +34,7 @@ using Pf = std::shared_ptr<ProofNode>;
 struct ProofNodeHashFunction
 {
   inline size_t operator()(std::shared_ptr<ProofNode> pfn) const;
+  size_t operator()(const ProofNode* pfn) const;
 }; /* struct ProofNodeHashFunction */
 
 /** A node in a proof

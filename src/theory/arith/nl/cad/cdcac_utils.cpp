@@ -175,6 +175,15 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   // Simplifies removal of redundancies later on.
   if (intervals.size() < 2) return;
 
+  if (Trace.isOn("cdcac"))
+  {
+    Trace("cdcac") << "Before pruning:" << std::endl;
+    for (const auto& i : intervals)
+    {
+      Trace("cdcac") << "\t[" << i.d_id << "] " << i.d_interval << std::endl;
+    }
+  }
+
   // Sort intervals.
   std::sort(intervals.begin(),
             intervals.end(),
@@ -213,6 +222,14 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
     while (intervals.size() > first + 1)
     {
       intervals.pop_back();
+    }
+  }
+  if (Trace.isOn("cdcac"))
+  {
+    Trace("cdcac") << "After pruning:" << std::endl;
+    for (const auto& i : intervals)
+    {
+      Trace("cdcac") << "\t[" << i.d_id << "] " << i.d_interval << std::endl;
     }
   }
 }
