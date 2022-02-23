@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Splitter for creating partitiongs. 
+ * Splitter for creating partitiongs.
  */
 
 #include "theory/splitter.h"
@@ -20,6 +20,7 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "prop/zero_level_learner.h"
+#include "options/smt_options.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_id.h"
 #include "theory/theory_traits.h"

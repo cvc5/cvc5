@@ -23,7 +23,6 @@
 #include <list>
 #include <sstream>
 
-#include "options/smt_options.h"
 #include "proof/trust_node.h"
 #include "theory/valuation.h"
 
