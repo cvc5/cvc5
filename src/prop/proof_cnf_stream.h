@@ -107,9 +107,6 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   /** Notify that and added clause was inserted at lower level than current. */
   void notifyOptClause(const SatClause& clause, int clLevel);
 
-  /** Return the user context tracked by this class. */
-  context::Context* getContext() { return d_userContext; }
-
  private:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the

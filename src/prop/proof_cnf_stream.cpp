@@ -82,7 +82,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false")
-               << "), level " << d_userContext->getLevel() << "\n";
+               << "), level " << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
   if (pg)
   {
@@ -623,8 +623,9 @@ void ProofCnfStream::notifyOptPropagation(int explLevel)
   //
   // It's also necessary to copy the proof node, so we prevent unintended
   // updates to the saved proof. Not doing this may also lead to open proofs.
+  ProofNodeManager * pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> currPropagationProcPf =
-      d_pnm->clone(d_proof.getProofFor(d_currPropagationProccessed));
+      pnm->clone(d_proof.getProofFor(d_currPropagationProccessed));
   AlwaysAssert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
@@ -642,8 +643,9 @@ void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
   AlwaysAssert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
+  ProofNodeManager * pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> clauseCnfPf =
-      d_pnm->clone(d_proof.getProofFor(clauseNode));
+      pnm->clone(d_proof.getProofFor(clauseNode));
   AlwaysAssert(clauseCnfPf->getRule() != PfRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
 }
