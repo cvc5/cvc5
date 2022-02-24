@@ -103,7 +103,7 @@ private:
    {
      d_scores.setCount(x, PENALTY);
    }
-  }
+ }
 
   /** The size of the focus set. */
   uint32_t d_focusSize;

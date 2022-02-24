@@ -4000,7 +4000,7 @@ void TheoryArithPrivate::presolve(){
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
   if(Debug.isOn("arith::presolve")) {
-    Debug("arith::presolve") << "TheoryArithPrivate::presolve"<< endl;
+    Debug("arith::presolve") << "TheoryArithPrivate::presolve" << endl;
   }
 
   vector<TrustNode> lemmas;

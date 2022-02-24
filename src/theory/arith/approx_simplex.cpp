@@ -2190,7 +2190,8 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   }
 
   Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(rowVar));
-  if(p.size() != 2) {
+  if (p.size() != 2)
+  {
     Debug("glpk::loadVB") << "loadVB()"
                           << " polynomial is not binary: " << p.getNode()
                           << endl;
