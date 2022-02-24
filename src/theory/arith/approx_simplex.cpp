@@ -2132,30 +2132,28 @@ bool ApproxGLPK::attemptMir(int nid, const MirInfo& mir){
 bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp){
   if(ri <= 0) { return true; }
 
-  static int instance = 0;
-  ++instance;
-  Debug("glpk::loadVB") << "loadVB() " << instance << endl;
+  Debug("glpk::loadVB") << "loadVB()" << endl;
 
   ArithVar rowVar = _getArithVar(nid, M, ri);
   ArithVar contVar = _getArithVar(nid, M, j);
   if(rowVar == ARITHVAR_SENTINEL){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " rowVar is ARITHVAR_SENTINEL " << rowVar << endl;
     return true;
   }
   if(contVar == ARITHVAR_SENTINEL){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " contVar is ARITHVAR_SENTINEL " << contVar << endl;        
     return true; }
 
   if(!d_vars.isAuxiliary(rowVar)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " rowVar is not auxilliary " << rowVar << endl;    
     return true;
   }
   // is integer is correct here
   if(d_vars.isInteger(contVar)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " contVar is integer " << contVar << endl;    
     return true;
   }
@@ -2164,33 +2162,33 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   ConstraintP ub = d_vars.getUpperBoundConstraint(rowVar);
 
   if(lb != NullConstraint && ub != NullConstraint){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " lb and ub are both NULL " << lb << " " << ub << endl;    
     return true;
   }
 
   ConstraintP rcon = lb == NullConstraint ? ub : lb;
   if(rcon == NullConstraint) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " rcon is NULL " << rcon << endl;    
     return true;
   }
 
   if(!rcon->getValue().isZero()){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " rcon value is not 0 " << rcon->getValue() << endl;
     return true;
   }
 
   if(!d_vars.hasNode(rowVar)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " does not have node " << rowVar << endl;
     return true;
   }
 
   Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(rowVar));
   if(p.size() != 2) {  
-    Debug("glpk::loadVB") << "loadVB() " << instance << " polynomial is not binary: " << p.getNode() << endl;
+    Debug("glpk::loadVB") << "loadVB()" << " polynomial is not binary: " << p.getNode() << endl;
     return true;
   }
 
@@ -2201,12 +2199,12 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Node nx2 = second.getVarList().getNode();
 
   if(!d_vars.hasArithVar(nx1)) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " does not have a variable for nx1: " << nx1 << endl;
     return true;
   }
   if(!d_vars.hasArithVar(nx2)) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " does not have a variable for nx2 " << nx2 << endl;
     return true;
   }
@@ -2236,7 +2234,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
     << " c2 " << ic << endl;
 
   if(!d_vars.isIntegerInput(iv)){
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " iv is not an integer input variable " << iv << endl;    
     return true;
   }
@@ -2262,7 +2260,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Debug("glpk::loadVB") << d << " " << cc.sgn() << endl;
   bool nowUb = cc.sgn() < 0;
   if(wantUb != nowUb) {
-    Debug("glpk::loadVB") << "loadVB() " << instance
+    Debug("glpk::loadVB") << "loadVB()"
                           << " wantUb is not nowUb " << wantUb << " " << nowUb << endl;    
     
     return true;
@@ -2271,7 +2269,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   Kind rel = wantUb ? kind::LEQ : kind::GEQ;
 
   tmp = VirtualBound(contVar, rel, d, iv, rcon);
-    Debug("glpk::loadVB") << "loadVB() " << instance << " was successful" << endl;    
+    Debug("glpk::loadVB") << "loadVB()" << " was successful" << endl;    
   return false;
 }
 

@@ -137,8 +137,6 @@ private:
     }
   }
 
-  bool debugSOI(WitnessImprovement w, std::ostream& out, int instance) const;
-
   void debugPrintSignal(ArithVar updated) const;
 
   ArithVarVec d_sgnDisagreements;

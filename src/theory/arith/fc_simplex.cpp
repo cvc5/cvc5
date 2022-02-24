@@ -72,11 +72,9 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  static thread_local unsigned int instance = 0;
-  instance = instance + 1;
 
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
-    Debug("arith::findModel") << "fcFindModel("<< instance <<") trivial" << endl;
+    Debug("arith::findModel") << "fcFindModel() trivial" << endl;
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
@@ -89,16 +87,16 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    Debug("arith::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
+    Debug("arith::findModel") << "fcFindModel() early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("arith::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
+    Debug("arith::findModel") << "fcFindModel() fixed itself" << endl;
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
 
-  Debug("arith::findModel") << "fcFindModel(" << instance <<") start non-trivial" << endl;
+  Debug("arith::findModel") << "fcFindModel() start non-trivial" << endl;
 
   exactResult |= d_varOrderPivotLimit < 0;
 
@@ -133,7 +131,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("arith::findModel") << "end findModel() " << instance << " " << result <<  endl;
+  Debug("arith::findModel") << "end findModel() " << result <<  endl;
 
   Assert(d_conflictVariables.empty());
   return result;
@@ -251,11 +249,8 @@ WitnessImprovement FCSimplexDecisionProcedure::focusDownToJust(ArithVar v){
 UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, LinearEqualityModule::UpdatePreferenceFunction upf, LinearEqualityModule::VarPreferenceFunction bpf) {
   UpdateInfo selected;
 
-  static int instance = 0 ;
-  ++instance;
-
   Debug("arith::selectPrimalUpdate")
-    << "selectPrimalUpdate " << instance << endl
+    << "selectPrimalUpdate" << endl
     << basic << " " << d_tableau.basicRowLength(basic)
     << " " << d_linEq.debugBasicAtBoundCount(basic) << endl;
 
@@ -629,8 +624,8 @@ WitnessImprovement FCSimplexDecisionProcedure::selectFocusImproving() {
   return w;
 }
 
-bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w, ostream& out, int instance, uint32_t prevFocusSize, uint32_t prevErrorSize ) const{
-  out << "DLV("<<instance<<") ";
+bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w, ostream& out, uint32_t prevFocusSize, uint32_t prevErrorSize ) const{
+  out << "DLV() ";
   switch(w){
   case ConflictFound:
     out << "found conflict" << endl;
@@ -660,7 +655,6 @@ bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w, ostream& ou
 }
 
 Result::Sat FCSimplexDecisionProcedure::dualLike(){
-  static int instance = 0;
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_fcTimer);
 
@@ -678,8 +672,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
 
 
   while(d_pivotBudget != 0  && d_errorSize > 0 && d_conflictVariables.empty()){
-    ++instance;
-    Debug("dualLike") << "dualLike " << instance << endl;
+    Debug("dualLike") << "dualLike " << endl;
 
     Assert(d_errorSet.noSignals());
 
@@ -737,7 +730,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
     Assert(d_errorSize == d_errorSet.errorSize());
 
     Assert(debugDualLike(
-        w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));
+        w, Debug("dualLike"), prevFocusSize, prevErrorSize));
     Debug("dualLike") << "Focus size " << d_focusSize << " (was " << prevFocusSize << ")" << endl;
     Debug("dualLike") << "Error size " << d_errorSize << " (was " << prevErrorSize << ")" << endl;
   }

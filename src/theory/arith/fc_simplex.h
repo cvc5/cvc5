@@ -163,7 +163,6 @@ private:
   }
 
   bool debugDualLike(WitnessImprovement w, std::ostream& out,
-                     int instance,
                      uint32_t prevFocusSize, uint32_t prevErrorSize) const;
 
   void debugPrintSignal(ArithVar updated) const;
