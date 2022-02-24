@@ -59,7 +59,8 @@ real PyPi.
 ### Setup
 
 Compared to `manylinux2014`, the container comes with `ccache` and some cvc5
-dependencies preinstalled. Additionally, we point `cmake` to `ccache` using the `CMAKE_<LANG>_COMPILER_LAUNCHER` environment variables.
+dependencies preinstalled. Additionally, we set up appropriate symlinks so that
+`ccache` is used with the standard C and C++ compilers (`cc`, `c++`, `gcc`, `g++`).
 
 The idea is to mount a cvc5 checkout into the Docker container at `/home/pycvc5`.
 This way, we don't need to care about cloning cvc5 within Docker and the `ccache` cache is automatically stored persistently outside of the container.
