@@ -307,6 +307,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     region = itr->second;
     Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;
   }
+  if (region == -1)
+  {
+    // the region cannot be assigned, return false without lemma
+    return false;
+  }
   // Figure 3 : conc
   int concavity = regionToConcavity(k, itr->second);
   Trace("nl-ext-tftp-debug") << "  concavity is : " << concavity << std::endl;
