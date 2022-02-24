@@ -869,7 +869,7 @@ EvalResult Evaluator::evalInternal(
 
             default:
             {
-              Trace("evaluator") << "Evaluation of " << currNode[0]
+              Trace("evaluator") << "Evaluation of " << currNode[0].getKind()
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
               evalAsNode[currNode] =

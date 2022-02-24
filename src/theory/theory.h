@@ -326,8 +326,7 @@ class Theory : protected EnvObj
   }
 
   /**
-   * Checks if the node is a leaf node of a theory. Note that this assumes
-   * type-based policy for theoryOf. This only impacts equalities.
+   * Checks if the node is a leaf node of a theory.
    */
   inline static bool isLeafOf(
       TNode node,
