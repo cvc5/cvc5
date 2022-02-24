@@ -519,7 +519,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         }
         else
         {
-          warning() << "Model values in the same equivalence class " << constRep << " " << n << std::endl;
+          warning() << "Model values in the same equivalence class " << constRep
+                    << " " << n << std::endl;
           if (!constRepBaseModelValue && isBaseValue)
           {
             assignConstRep = true;
