@@ -450,13 +450,15 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
                                             const std::set<Node>& termSet)
 {
   Trace("nl-ext") << "TranscendentalSolver::postProcessModel" << std::endl;
-  std::unordered_set<Node> trReps;
+  // map from equivalence classes to a transcendental function application,
+  // if it exists.
+  std::unordered_map<Node, Node> trReps;
   for (const Node& n : termSet)
   {
     if (isTranscendentalKind(n.getKind()))
     {
       Node r = d_astate.getRepresentative(n);
-      trReps.insert(r);
+      trReps[r] = n;
     }
   }
   if (trReps.empty())
@@ -464,24 +466,22 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
     Trace("nl-ext") << "...no transcendental functions" << std::endl;
     return;
   }
-  std::vector<Node> rmFromModel;
+  std::unordered_map<Node, Node>::iterator it;
   for (auto& am : arithModel)
   {
     Node r = d_astate.getRepresentative(am.first);
-    if (trReps.find(r) != trReps.end())
+    it = trReps.find(r);
+    // if it is in the same equivalence class as a trancendental function application, we replace its value in the model with that application
+    if (it != trReps.end())
     {
-      Trace("nl-ext") << "...erase value for " << am.first
-                      << ", since approximate" << std::endl;
-      rmFromModel.push_back(am.first);
+      Trace("nl-ext") << "...abstract value for " << am.first
+                      << " to " << it->second << std::endl;
+      am.second = it->second;
     }
     else
     {
       Trace("nl-ext") << "...keep model value for " << am.first << std::endl;
     }
-  }
-  for (const Node& n : rmFromModel)
-  {
-    arithModel.erase(n);
   }
 }
 
