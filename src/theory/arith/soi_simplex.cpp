@@ -821,7 +821,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   d_conflictVariables.add(d_soiVar);
 
   Debug("arith::SOIConflict")
-      << "SumOfInfeasibilitiesSPD::SOIConflict() done end" << endl;
+      << "SumOfInfeasibilitiesSPD::SOIConflict() end" << endl;
   return ConflictFound;
 }
 
