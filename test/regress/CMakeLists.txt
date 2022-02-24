@@ -2810,8 +2810,6 @@ set(regress_2_tests
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/proj-439-cyclic-str-ipc.smt2
   regress2/strings/proof-fail-083021-delta.smt2
-  regress2/strings/pfnew-slow-2020-04-17.smt2
-  regress2/strings/pfnew-policy_variable.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2
   regress2/strings/repl-repl.smt2
@@ -2970,8 +2968,6 @@ set(regression_disabled_tests
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
-  # benchmark can be "unknown"
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # after disallowing solving for terms with quantifiers
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
@@ -2982,8 +2978,6 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
-  # timeout after changes to ppRewrite
-  regress1/nl/ufnia-factor-open-proof.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option

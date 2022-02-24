@@ -227,12 +227,7 @@ void InferProofCons::convert(InferenceId infer,
         // original conclusion
         if (psb.applyPredTransform(psrc, conc, exps))
         {
-          // we apply the substitution on the purified form to get the
-          // original conclusion
-          if (psb.applyPredTransform(psrc, conc, exps))
-          {
-            useBuffer = true;
-          }
+          useBuffer = true;
         }
       }
       else
