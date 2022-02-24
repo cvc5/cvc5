@@ -133,12 +133,6 @@ private:
   const Rational& focusCoefficient(ArithVar nb) const;
 
   int32_t d_pivotBudget;
-  // enum PivotImprovement {
-  //   ErrorDropped,
-  //   NonDegenerate,
-  //   HeuristicDegenerate,
-  //   BlandsDegenerate
-  // };
 
   WitnessImprovement d_prevWitnessImprovement;
   uint32_t d_witnessImprovementInARow;
@@ -173,8 +167,6 @@ private:
   void debugPrintSignal(ArithVar updated) const;
 
   ArithVarVec d_sgnDisagreements;
-
-  //static PivotImprovement pivotImprovement(const UpdateInfo& selected, bool useBlands = false);
 
   void logPivot(WitnessImprovement w);
 
