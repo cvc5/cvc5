@@ -2329,7 +2329,7 @@ cdef class Solver:
         Requires enabling option
         :ref:`produce-models <lbl-option-produce-models>`
         and setting option
-        :ref:`block-models <lbl-option-block-models>`.
+        :ref:`block-models <lbl-option-block-models>`
         to a mode other than ``none``.
         """
         self.csolver.blockModel()
