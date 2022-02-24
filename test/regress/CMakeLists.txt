@@ -111,7 +111,19 @@ set(regress_0_tests
   regress0/arrays/incorrect9.smtv1.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
+  regress0/arrays/issue4240.smt2
+  regress0/arrays/issue4414-2.smt2
+  regress0/arrays/issue4414.smt2
+  regress0/arrays/issue4546-2.smt2
+  regress0/arrays/issue4546.smt2
+  regress0/arrays/issue4780-3.smt2
+  regress0/arrays/issue4780.smt2
   regress0/arrays/issue4927-unsat-cores.smt2
+  regress0/arrays/issue5720.smt2
+  regress0/arrays/issue5836-2.smt2
+  regress0/arrays/issue5836.smt2
+  regress0/arrays/issue6276-2.smt2
+  regress0/arrays/issue6276.smt2
   regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2

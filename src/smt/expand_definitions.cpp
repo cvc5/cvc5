@@ -89,7 +89,7 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      theory::TheoryId tid = theory::Theory::theoryOf(node);
+      theory::TheoryId tid = d_env.theoryOf(node);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
