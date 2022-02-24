@@ -135,7 +135,6 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   // initialize pi if necessary
   if (needPi && d_pi.isNull())
   {
-    mkPi();
     getCurrentPiBounds();
   }
 
@@ -215,6 +214,7 @@ void TranscendentalState::mkPi()
 
 void TranscendentalState::getCurrentPiBounds()
 {
+  mkPi();
   NodeManager* nm = NodeManager::currentNM();
   Node pi_lem =
       nm->mkNode(Kind::AND,
