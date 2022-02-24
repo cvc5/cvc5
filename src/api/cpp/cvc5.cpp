@@ -57,12 +57,12 @@
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/smt_options.h"
-#include "options/expr_options.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -5446,7 +5446,7 @@ void Solver::ensureWellFormedTerm(const Term& t) const
     {
       std::stringstream se;
       se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
-        << " variable";
+         << " variable";
       throw CVC5ApiException(se.str().c_str());
     }
   }
