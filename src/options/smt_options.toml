@@ -298,7 +298,7 @@ name   = "SMT Layer"
   name = "use"
   help = "use extended rewriter as a preprocessing pass."
 [[option.mode.AGG]]
-  name = "AGG"
+  name = "agg"
   help = "use aggressive extended rewriter as a preprocessing pass."
 
 [[option]]
