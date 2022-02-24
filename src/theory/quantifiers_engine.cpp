@@ -401,7 +401,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       // at LAST_CALL effort.
       if (d_qim.hasSentLemma() || d_qstate.isInConflict())
       {
-        Assert (d_qim.hasSentLemma() || e!=Theory::EFFORT_LAST_CALL);
+        Assert(d_qim.hasSentLemma() || e != Theory::EFFORT_LAST_CALL);
         break;
       }else{
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
