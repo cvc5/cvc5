@@ -265,7 +265,8 @@ void SineSolver::checkMonotonic()
       mpointsBound[i].emplace_back(mpointapprox);
     }
     // bounds are flipped for negative pi
-    if (mpointsBound[0].back().getConst<Rational>() > mpointsBound[1].back().getConst<Rational>())
+    if (mpointsBound[0].back().getConst<Rational>()
+        > mpointsBound[1].back().getConst<Rational>())
     {
       std::swap(mpointsBound[0].back(), mpointsBound[1].back());
     }
@@ -384,7 +385,7 @@ void SineSolver::doTangentLemma(
     TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert (region != -1);
+  Assert(region != -1);
 
   Trace("nl-ext-sine") << c << " in region " << region << std::endl;
   // compute tangent plane
@@ -476,7 +477,7 @@ void SineSolver::doSecantLemmas(TNode e,
                                 unsigned actual_d,
                                 int region)
 {
-  Assert (region != -1);
+  Assert(region != -1);
   d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
                          poly_approx,
                          c,
