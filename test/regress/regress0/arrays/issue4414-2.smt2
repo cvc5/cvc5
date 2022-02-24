@@ -1,6 +1,7 @@
 (set-option :check-models true)
 (set-option :check-unsat-cores true)
 (set-logic QF_ALIA)
+(set-info :status sat)
 (declare-const a Int)
 (declare-const b Int)
 (declare-const c (Array Int Int))

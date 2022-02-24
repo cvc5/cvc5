@@ -1,3 +1,8 @@
+; COMMAND-LINE: -i
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: unsat
 (set-logic QF_AUFBV)
 (declare-const bv_58-0 (_ BitVec 58))
 (check-sat)

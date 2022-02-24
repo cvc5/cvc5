@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
 (declare-fun a () (_ BitVec 32))
 (declare-fun b () (_ BitVec 32))
 (declare-fun c () (_ BitVec 32))
