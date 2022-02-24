@@ -86,11 +86,11 @@ pip install <path to wheel for this Python version>
 python3 -c "import pycvc5; solver = pycvc5.Solver(); print(solver.getIntegerSort())"
 ```
 
-### Test PyPi (in VM)
+### Test PyPi
 
 In addition to the local test described above, you can do a test upload to
 [TestPyPi](https://packaging.python.org/guides/using-testpypi/). To do this from
-within your Docker container run the following after building the wheel:
+run the following after building the wheel:
 ```
 # start the virtualenv for this version (twine was installed here)
 source ./env<Python version>/bin/activate
@@ -107,7 +107,7 @@ python3 -m pip install --index-url https://test.pypi.org/simple/ pycvc5==<cvc5 v
 python3 -c "import pycvc5; solver = pycvc5.Solver(); print(solver.getIntegerSort())"
 ```
 
-### Upload to PyPi (from VM)
+### Upload to PyPi
 
 Once you are certain this wheel file is ready, you can upload it to PyPi. Note,
 you will need a login for PyPi (this is separate from the TestPyPi login). The
@@ -120,5 +120,3 @@ twine upload <wheel file>
 ```
 
 Once the `.whl` has been built, you should be able to upload it from anywhere.
-Although `twine` has already been installed in the Docker container so it may be
-easiest to do it from there.
