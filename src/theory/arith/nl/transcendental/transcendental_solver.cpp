@@ -234,9 +234,9 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
     Kind k = tfs.first;
     if (k == PI)
     {
-      // We do not use Taylor approximation for PI currently.
-      // This is because the convergence is extremely slow, and hence an
-      // initial approximation is superior.
+      // We do not use Taylor approximation for PI.
+      // Instead we refine our bounds for PI during modelBasedRefinement() when
+      // we could not verify the model because of an approximation.
       continue;
     }
 
