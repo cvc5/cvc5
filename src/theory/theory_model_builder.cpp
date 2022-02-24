@@ -510,10 +510,12 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // higher-order.
         if (tm->isValue(n))
         {
-          // in rare cases, it could be that multiple terms in the same
+          // In rare cases, it could be that multiple terms in the same
           // equivalence class are considered values. We prefer the one that is
-          // a "base" model value (e.g. a constant) here. We throw a debug
-          // failure if there are multiple terms that are considered values.
+          // a "base" model value (e.g. a constant) here. We throw a warning
+          // if there are 2 model values in the same equivalence class, and
+          // a debug failure if there are 2 base values in the same equivalence
+          // class.
           bool assignConstRep = false;
           bool isBaseValue = tm->isBaseModelValue(n);
           if (constRep.isNull())
@@ -524,9 +526,14 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           {
             warning() << "Model values in the same equivalence class "
                       << constRep << " " << n << std::endl;
-            if (!constRepBaseModelValue && isBaseValue)
+            if (!constRepBaseModelValue)
             {
-              assignConstRep = true;
+              assignConstRep = isBaseValue;
+            }
+            else if (isBaseValue)
+            {
+              Assert(false) << "Base model values in the same equivalence class "
+                        << constRep << " " << n << std::endl;
             }
           }
           if (assignConstRep)
