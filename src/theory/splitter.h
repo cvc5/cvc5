@@ -88,10 +88,10 @@ class Splitter
   const uint16_t d_numPartitions;
 
   /**
-   * How long to wait in terms of the number of checks until creating the first
-   * partition.
+   * Number of standard or full (depending on partition check mode) checks that
+   * have occured.
    */
-  const uint16_t d_numChecks;
+  uint16_t d_numChecks;
 
   /**
    * The number of partitions that have been created.

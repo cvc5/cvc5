@@ -44,7 +44,7 @@ Splitter::Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine)
   d_output = &std::cout;
   if (d_partitionFile != "")
   {
-    d_partitionFileStream.open(d_partitionFile);
+    d_partitionFileStream.open(d_partitionFile, ios::trunc);
     d_output = &d_partitionFileStream;
     d_partitionFileStream.close();
   }
@@ -146,7 +146,11 @@ TrustNode Splitter::makePartitions()
       // Make sure we have enough literals.
       // Conflict size can be set through options, but the default is log base 2
       // of the requested number of partitions.
-      if (literals.size() < d_conflictSize) return TrustNode::null();
+      if (literals.size() < d_conflictSize)
+      {
+        closeFile();
+        return TrustNode::null();
+      }
 
       literals.resize(d_conflictSize);
       // Make first cube and emit it.
@@ -173,7 +177,7 @@ TrustNode Splitter::makePartitions()
     closeFile();
     return TrustNode::null();
   }
-
+  closeFile();
   return TrustNode::null();
 }
 

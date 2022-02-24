@@ -317,7 +317,8 @@ std::vector<Node> PropEngine::getPropDecisions() const
 {
   std::vector<Node> decisions; 
   std::vector<SatLiteral> miniDecisions = d_satSolver->getDecisions();
-  for (SatLiteral d : miniDecisions) {
+  for (SatLiteral d : miniDecisions)
+  {
     decisions.push_back(d_cnfStream->getNode(d));
   }
   return decisions;
