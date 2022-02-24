@@ -108,6 +108,50 @@ TrustNode Splitter::stopPartitioning()
   return TrustNode::mkTrustLemma(lemma);
 }
 
+
+  // This is the revised version of the old splitting strategy.
+  // Cubes look like the following:
+  // C1 = l1_{1} & .... & l1_{d_conflictSize}
+  // C2 = l2_{1} & .... & l2_{d_conflictSize}
+  // C3 = l3_{1} & .... & l3_{d_conflictSize}
+  // C4 = !C1 & !C2 & !C3
+TrustNode Splitter::makeRevisedPartitions()
+{
+  // If we're not at the last cube
+  if (d_numPartitionsSoFar < d_numPartitions - 1)
+  {
+    std::vector<TNode> literals;
+    collectDecisionLiterals(literals);
+
+    // Make sure we have enough literals.
+    // Conflict size can be set through options, but the default is log base 2
+    // of the requested number of partitions.
+    if (literals.size() < d_conflictSize)
+    {
+      return TrustNode::null();
+    }
+
+    literals.resize(d_conflictSize);
+    // Make first cube and emit it.
+    Node conj = NodeManager::currentNM()->mkAnd(literals);
+    emitCube(conj);
+    // Add to the list of cubes.
+    d_cubes.push_back(conj);
+    return blockPath(conj);
+  }
+
+  // At the last cube
+  else
+  {
+    vector<Node> nots;
+    for (auto c : d_cubes) nots.push_back(c.notNode());
+    Node lemma = NodeManager::currentNM()->mkAnd(nots);
+    // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
+    emitCube(lemma);
+    return stopPartitioning();
+  }
+}
+
 TrustNode Splitter::makePartitions()
 {
   d_numChecks = d_numChecks + 1;
@@ -117,51 +161,11 @@ TrustNode Splitter::makePartitions()
     return TrustNode::null();
   }
 
-  // This is the revised version of the old splitting strategy.
-  // Cubes look like the following:
-  // C1 = l1_{1} & .... & l1_{d_conflictSize}
-  // C2 = l2_{1} & .... & l2_{d_conflictSize}
-  // C3 = l3_{1} & .... & l3_{d_conflictSize}
-  // C4 = !C1 & !C2 & !C3
-  if (options().parallel.partitionStrategy == options::PartitionMode::REVISED)
+  switch (options().parallel.partitionStrategy)
   {
-    // If we're not at the last cube
-    if (d_numPartitionsSoFar < d_numPartitions - 1)
-    {
-      std::vector<TNode> literals;
-      collectDecisionLiterals(literals);
-
-      // Make sure we have enough literals.
-      // Conflict size can be set through options, but the default is log base 2
-      // of the requested number of partitions.
-      if (literals.size() < d_conflictSize)
-      {
-        return TrustNode::null();
-      }
-
-      literals.resize(d_conflictSize);
-      // Make first cube and emit it.
-      Node conj = NodeManager::currentNM()->mkAnd(literals);
-      emitCube(conj);
-      // Add to the list of cubes.
-      d_cubes.push_back(conj);
-      return blockPath(conj);
-    }
-
-    // At the last cube
-    else
-    {
-      vector<Node> nots;
-      for (auto c : d_cubes) nots.push_back(c.notNode());
-      Node lemma = NodeManager::currentNM()->mkAnd(nots);
-      // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
-      emitCube(lemma);
-      return stopPartitioning();
-    }
-
-    return TrustNode::null();
+    case options::PartitionMode::REVISED: return makeRevisedPartitions();
+    default: return TrustNode::null();
   }
-  return TrustNode::null();
 }
 
 }  // namespace theory

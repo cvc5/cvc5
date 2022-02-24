@@ -54,6 +54,12 @@ class Splitter : protected EnvObj
   void emitCube(Node toEmit);
 
   /**
+   * Partition using the "revised" strategy, which emits cubes such as C1, C2,
+   * C3, !C1 & !C2 & !C3
+   */
+  TrustNode makeRevisedPartitions();
+
+  /**
    * Block a path in the search by sending the not of toBlock as a lemma to the
    * SAT solver.
    */
