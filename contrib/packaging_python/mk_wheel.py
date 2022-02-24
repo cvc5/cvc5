@@ -39,7 +39,10 @@ def get_project_src_path():
     name = __file__
     for i in range(3):
         name = os.path.dirname(name)
-    return os.path.abspath(name)
+    name = os.path.abspath(name)
+    if not os.path.isdir(os.path.join(name, 'src')):
+        raise RuntimeError('Finding the project source path failed. We guessed ' + name)
+    return name
 
 
 def get_cvc5_version():
@@ -92,7 +95,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # build the python api
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_api', '-j', '10'])
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_api'])
 
         # copy the library over. we need to consider other users that are not on linux
         # module is a directory called cvc5_python_base_module
