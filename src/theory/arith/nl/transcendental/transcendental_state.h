@@ -20,6 +20,7 @@
 #include "proof/proof_set.h"
 #include "smt/env.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/transcendental/approximate_pi.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
@@ -250,8 +251,8 @@ struct TranscendentalState : protected EnvObj
   /** PI
    *
    * Note that PI is a (symbolic, non-constant) nullary operator. This is
-   * because its value cannot be computed exactly. We constraint PI to
-   * concrete lower and upper bounds stored in d_pi_bound below.
+   * because its value cannot be computed exactly. We constrain PI to
+   * concrete lower and upper bounds approximated by d_pi_approx below.
    */
   Node d_pi;
   /** PI/2 */
@@ -260,8 +261,8 @@ struct TranscendentalState : protected EnvObj
   Node d_pi_neg_2;
   /** -PI */
   Node d_pi_neg;
-  /** the concrete lower and upper bounds for PI */
-  Node d_pi_bound[2];
+  /** refinable approximation for pi */
+  ApproximatePi d_pi_approx;
 };
 
 }  // namespace transcendental

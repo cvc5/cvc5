@@ -433,6 +433,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
           && options().arith.nlExtIncPrecision && d_model.usedApproximate())
       {
         d_trSlv.incrementTaylorDegree();
+        d_trSlv.refinePiApproximation();
         needsRecheck = true;
         // increase precision for PI?
         // Difficult since Taylor series is very slow to converge

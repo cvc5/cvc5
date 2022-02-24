@@ -72,6 +72,8 @@ class TranscendentalSolver : protected EnvObj
   void initLastCall(const std::vector<Node>& xts);
   /** increment taylor degree */
   void incrementTaylorDegree();
+  /** improve the approximation of pi */
+  void refinePiApproximation();
   /** get taylor degree */
   unsigned getTaylorDegree() const;
   /** preprocess assertions check model

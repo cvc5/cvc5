@@ -112,6 +112,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       passertions.push_back(pa);
     }
   }
+  NodeManager* nm = NodeManager::currentNM();
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                      << std::endl;
@@ -125,7 +126,10 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       std::pair<Node, Node> bounds;
       if (tfs.first == Kind::PI)
       {
-        bounds = {d_tstate.d_pi_bound[0], d_tstate.d_pi_bound[1]};
+        bounds = {
+          d_tstate.d_pi_approx.getLowerNode(),
+          d_tstate.d_pi_approx.getUpperNode()
+        };
       }
       else
       {
@@ -173,6 +177,11 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
 }
 
 void TranscendentalSolver::incrementTaylorDegree() { d_taylor_degree++; }
+void TranscendentalSolver::refinePiApproximation() {
+  d_tstate.d_pi_approx.refine();
+  d_tstate.getCurrentPiBounds();
+}
+
 unsigned TranscendentalSolver::getTaylorDegree() const
 {
   return d_taylor_degree;

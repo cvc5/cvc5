@@ -16,6 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__APPROXIMATE_PI_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__APPROXIMATE_PI_H
 
+#include "expr/node_manager.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -45,8 +46,10 @@ class ApproximatePi
 {
  public:
   ApproximatePi();
-  const Rational& getLowerBound() const { return d_lower; }
-  const Rational& getUpperBound() const { return d_upper; }
+  const Rational& getLower() const { return d_lower; }
+  const Rational& getUpper() const { return d_upper; }
+  Node getLowerNode() const { return NodeManager::currentNM()->mkConstReal(d_lower); }
+  Node getUpperNode() const { return NodeManager::currentNM()->mkConstReal(d_upper); }
   void refine();
 
  private:

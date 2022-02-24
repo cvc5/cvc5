@@ -210,9 +210,6 @@ void TranscendentalState::mkPi()
         Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
     d_pi_neg =
         rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
-    // initialize bounds
-    d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
   }
 }
 
@@ -220,14 +217,14 @@ void TranscendentalState::getCurrentPiBounds()
 {
   NodeManager* nm = NodeManager::currentNM();
   Node pi_lem = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
-                           nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
+                           nm->mkNode(Kind::GEQ, d_pi, d_pi_approx.getLowerNode()),
+                           nm->mkNode(Kind::LEQ, d_pi, d_pi_approx.getUpperNode()));
   CDProof* proof = nullptr;
   if (isProofEnabled())
   {
     proof = getProof();
     proof->addStep(
-        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_approx.getLowerNode(), d_pi_approx.getUpperNode()});
   }
   d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }
