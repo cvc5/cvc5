@@ -1200,6 +1200,7 @@ set(options_toml_files
   options/expr_options.toml
   options/fp_options.toml
   options/main_options.toml
+  options/parallel_options.toml
   options/parser_options.toml
   options/printer_options.toml
   options/proof_options.toml

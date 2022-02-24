@@ -19,7 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
-#include "options/smt_options.h"
+#include "options/parallel_options.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "prop/zero_level_learner.h"
@@ -33,41 +33,43 @@ using namespace cvc5::theory;
 namespace cvc5 {
 
 namespace theory {
-Splitter::Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine)
-    : d_numPartitions(options::computePartitions()),
+Splitter::Splitter(Env& env,
+                   TheoryEngine* theoryEngine,
+                   prop::PropEngine* propEngine)
+    : EnvObj(env),
+      d_numPartitions(options().parallel.computePartitions),
       d_numChecks(0),
-      d_numPartitionsSoFar(0),
-      d_partitionFile(options::writePartitionsToFileName())
+      d_numPartitionsSoFar(0)
 {
   d_valuation = std::make_unique<Valuation>(theoryEngine);
   d_propEngine = propEngine;
-  d_output = &std::cout;
-  if (d_partitionFile != "")
+  if (options().parallel.writePartitionsToFileNameWasSetByUser)
   {
-    d_partitionFileStream.open(d_partitionFile, ios::trunc);
-    d_output = &d_partitionFileStream;
-    d_partitionFileStream.close();
-  }
-  if (options::partitionConflictSize() == 0)
-  {
-    d_conflictSize = (unsigned)log2(d_numPartitions);
+    d_fileStream = std::make_unique<std::ofstream>(
+        options().parallel.writePartitionsToFileName);
+    d_output = d_fileStream.get();
   }
   else
   {
-    d_conflictSize = options::partitionConflictSize();
+    d_output = &std::cout;
+  }
+  d_conflictSize = options().parallel.partitionConflictSize;
+  if (!d_conflictSize)
+  {
+    d_conflictSize = (uint64_t)log2(d_numPartitions);
   }
 }
 
 void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
 {
   std::vector<Node> decisionNodes = d_propEngine->getPropDecisions();
-  for (Node n : decisionNodes)
+    // Make sure the literal does not have a boolean term or skolem in it.
+  const std::unordered_set<Kind, kind::KindHashFunction> kinds = {
+      kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE, kind::CONST_BOOLEAN};
+
+  for (const Node& n : decisionNodes)
   {
     Node originalN = SkolemManager::getOriginalForm(n);
-
-    // Make sure the literal does not have a boolean term or skolem in it.
-    std::unordered_set<Kind, kind::KindHashFunction> kinds = {
-        kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE, kind::CONST_BOOLEAN};
 
     // If the literal is the not of some node, do the checks for the child
     // of the not instead of the not itself.
@@ -86,19 +88,11 @@ void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
 
 void Splitter::emitCube(Node toEmit)
 {
-  *d_output << toEmit << "\n";
+  *d_output << toEmit << std::endl;
   ++d_numPartitionsSoFar;
 }
 
-void Splitter::closeFile()
-{
-  if (d_partitionFile != "")
-  {
-    d_partitionFileStream.close();
-  }
-}
-
-TrustNode Splitter::blockPath(Node toBlock)
+TrustNode Splitter::blockPath(TNode toBlock)
 {
   // Now block the path in the search.
   Node lemma = toBlock.notNode();
@@ -118,15 +112,9 @@ TrustNode Splitter::makePartitions()
 {
   d_numChecks = d_numChecks + 1;
 
-  if (d_numChecks < options::numChecks())
+  if (d_numChecks < options().parallel.checksBeforePartitioning)
   {
     return TrustNode::null();
-  }
-
-  if (d_partitionFile != "")
-  {
-    d_partitionFileStream.open(d_partitionFile, std::ios_base::app);
-    d_output = &d_partitionFileStream;
   }
 
   // This is the revised version of the old splitting strategy.
@@ -135,7 +123,7 @@ TrustNode Splitter::makePartitions()
   // C2 = l2_{1} & .... & l2_{d_conflictSize}
   // C3 = l3_{1} & .... & l3_{d_conflictSize}
   // C4 = !C1 & !C2 & !C3
-  if (options::partitionStrategy() == options::PartitionMode::REVISED)
+  if (options().parallel.partitionStrategy == options::PartitionMode::REVISED)
   {
     // If we're not at the last cube
     if (d_numPartitionsSoFar < d_numPartitions - 1)
@@ -148,7 +136,6 @@ TrustNode Splitter::makePartitions()
       // of the requested number of partitions.
       if (literals.size() < d_conflictSize)
       {
-        closeFile();
         return TrustNode::null();
       }
 
@@ -158,7 +145,6 @@ TrustNode Splitter::makePartitions()
       emitCube(conj);
       // Add to the list of cubes.
       d_cubes.push_back(conj);
-      closeFile();
       return blockPath(conj);
     }
 
@@ -170,14 +156,11 @@ TrustNode Splitter::makePartitions()
       Node lemma = NodeManager::currentNM()->mkAnd(nots);
       // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
       emitCube(lemma);
-      closeFile();
       return stopPartitioning();
     }
 
-    closeFile();
     return TrustNode::null();
   }
-  closeFile();
   return TrustNode::null();
 }
 

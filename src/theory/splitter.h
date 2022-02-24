@@ -19,10 +19,11 @@
 #define CVC5__THEORY__SPLITTER_H
 
 #include <fstream>
-#include <vector>
 #include <sstream>
+#include <vector>
 
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
@@ -35,10 +36,11 @@ class PropEngine;
 
 namespace theory {
 
-class Splitter
+class Splitter : protected EnvObj
 {
  public:
-  Splitter(TheoryEngine* theoryEngine, prop::PropEngine* propEngine);
+  // Splitter
+  Splitter(Env& env, TheoryEngine* theoryEngine, prop::PropEngine* propEngine);
 
   /**
    * Make partitions for parallel solving.
@@ -55,12 +57,7 @@ class Splitter
    * Block a path in the search by sending the not of toBlock as a lemma to the
    * SAT solver.
    */
-  TrustNode blockPath(Node toBlock);
-
-  /**
-   * Close the output file if it is specified.
-   */
-  void closeFile();
+  TrustNode blockPath(TNode toBlock);
 
   /**
    * Stop partitioning and return unsat.
@@ -85,28 +82,23 @@ class Splitter
   /**
    * The number of partitions requested through the compute-partitions option.
    */
-  const uint16_t d_numPartitions;
+  const uint64_t d_numPartitions;
 
   /**
    * Number of standard or full (depending on partition check mode) checks that
    * have occured.
    */
-  uint16_t d_numChecks;
+  uint64_t d_numChecks;
 
   /**
    * The number of partitions that have been created.
    */
-  uint16_t d_numPartitionsSoFar;
-
-  /**
-   * The name of the output file to write the partitions.
-   */
-  std::string d_partitionFile;
+  uint64_t d_numPartitionsSoFar;
 
   /**
    * The filestream for writing the partitions.
    */
-  std::ofstream d_partitionFileStream;
+  std::unique_ptr<std::ofstream> d_fileStream;
 
   /**
    * The output stream: either std::cout or the filestream if an output file is
@@ -128,7 +120,7 @@ class Splitter
    * Minimum number of literals required in the list of decisions for cubes to
    * be made.
    */
-  uint16_t d_conflictSize;
+  uint64_t d_conflictSize;
 };
 }  // namespace theory
 }  // namespace cvc5

@@ -22,6 +22,7 @@
 #include "expr/attribute.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
+#include "options/parallel_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -202,9 +203,9 @@ void TheoryEngine::finishInit()
     t->finishInit();
   }
 
-  if (options::computePartitions() > 1)
+  if (options().parallel.computePartitions > 1)
   {
-      d_splitter = make_unique<Splitter>(this, getPropEngine());
+    d_splitter = make_unique<Splitter>(d_env, this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -399,8 +400,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       d_tc->resetRound();
 
-      if (options::computePartitions() > 1
-          && options::partitionCheck() == options::CheckMode::FULL
+      if (options().parallel.computePartitions > 1
+          && options().parallel.partitionCheck == options::CheckMode::FULL
           && d_splitter != nullptr)
       {
         TrustNode tl = d_splitter->makePartitions();
@@ -410,8 +411,8 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
     }
 
-    if (options::computePartitions() > 1
-        && options::partitionCheck() == options::CheckMode::STANDARD
+    if (options().parallel.computePartitions > 1
+        && options().parallel.partitionCheck == options::CheckMode::STANDARD
         && d_splitter != nullptr)
     {
       TrustNode tl = d_splitter->makePartitions();
