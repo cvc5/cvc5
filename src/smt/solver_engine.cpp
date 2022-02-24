@@ -1014,7 +1014,7 @@ Node SolverEngine::getValue(const Node& ex) const
   // Ensure it's a value (constant or const-ish like real algebraic
   // numbers), or a lambda (for uninterpreted functions). This assertion only
   // holds for models that do not have approximate values.
-  if (!TheoryModel::isValue(resultNode))
+  if (!m->isValue(resultNode))
   {
     d_env->warning() << "Could not evaluate " << resultNode
                      << " in getValue." << std::endl;

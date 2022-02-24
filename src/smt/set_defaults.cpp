@@ -515,11 +515,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
   {
-    Theory::setUninterpretedSortOwner(THEORY_ARRAYS);
+    d_env.setUninterpretedSortOwner(THEORY_ARRAYS);
   }
   else
   {
-    Theory::setUninterpretedSortOwner(THEORY_UF);
+    d_env.setUninterpretedSortOwner(THEORY_UF);
   }
 
   if (!opts.smt.simplifyWithCareEnabledWasSetByUser)

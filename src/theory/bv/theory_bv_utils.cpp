@@ -161,7 +161,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
       continue;
     }
 
-    if (theory::Theory::theoryOf(options::TheoryOfMode::THEORY_OF_TERM_BASED, n)
+    if (theory::Theory::theoryOf(n, options::TheoryOfMode::THEORY_OF_TERM_BASED)
         == theory::THEORY_BV)
     {
       Kind k = n.getKind();
