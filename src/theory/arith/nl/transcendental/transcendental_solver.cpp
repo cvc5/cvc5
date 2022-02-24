@@ -469,6 +469,11 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
   std::unordered_map<Node, Node>::iterator it;
   for (auto& am : arithModel)
   {
+    // skip integer variables
+    if (am.first.getType().isInteger())
+    {
+      continue;
+    }
     Node r = d_astate.getRepresentative(am.first);
     it = trReps.find(r);
     // if it is in the same equivalence class as a trancendental function
