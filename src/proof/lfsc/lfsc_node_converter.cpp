@@ -89,6 +89,7 @@ Node LfscNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
+  Assert (k!=MATCH);
   if (k == ASCRIPTION_TYPE)
   {
     // dummy node, return it
@@ -378,12 +379,6 @@ Node LfscNodeConverter::postConvert(Node n)
     Node n1 = nm->mkConstInt(Rational(op.d_loopMinOcc));
     Node n2 = nm->mkConstInt(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
-  }
-  else if (k == MATCH)
-  {
-    // FIXME
-    // currently unsupported
-    return n;
   }
   else if (k == BITVECTOR_BB_TERM)
   {
