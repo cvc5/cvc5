@@ -2347,7 +2347,6 @@ cdef class Solver:
 
         Requires enabling option
         :ref:`produce-models <lbl-option-produce-models>`.
-        'produce-models'.
         """
         cdef vector[c_Term] nts
         for t in terms:
