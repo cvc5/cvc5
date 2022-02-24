@@ -418,7 +418,10 @@ bool SymbolTable::Implementation::bind(const string& name,
     }
   }
   if (levelZero) {
-    d_exprMap.insertAtContextLevelZero(name, obj);
+    if (d_exprMap.count(name)==0)
+    {
+      d_exprMap.insertAtContextLevelZero(name, obj);
+    }
   } else {
     d_exprMap.insert(name, obj);
   }
@@ -445,7 +448,10 @@ void SymbolTable::Implementation::bindType(const string& name,
                                            bool levelZero)
 {
   if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(vector<api::Sort>(), t));
+    if (d_typeMap.count(name)==0)
+    {
+      d_typeMap.insertAtContextLevelZero(name, make_pair(vector<api::Sort>(), t));
+    }
   } else {
     d_typeMap.insert(name, make_pair(vector<api::Sort>(), t));
   }
@@ -467,7 +473,10 @@ void SymbolTable::Implementation::bindType(const string& name,
     Debug("sort") << "], " << t << ")" << endl;
   }
   if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(params, t));
+    if (d_typeMap.count(name)==0)
+    {
+      d_typeMap.insertAtContextLevelZero(name, make_pair(params, t));
+    }
   } else {
     d_typeMap.insert(name, make_pair(params, t));
   }
