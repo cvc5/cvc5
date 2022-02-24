@@ -73,6 +73,14 @@ name   = "SMT Layer"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
+  name       = "modelVarElimUneval"
+  category   = "expert"
+  long       = "model-var-elim-uneval"
+  type       = "bool"
+  default    = "true"
+  help       = "allow variable elimination based on unevaluatable terms to variables"
+
+[[option]]
   name       = "modelCoresMode"
   category   = "regular"
   long       = "model-cores=MODE"

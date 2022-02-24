@@ -23,16 +23,18 @@
 namespace cvc5 {
 namespace prop {
 
-ProofCnfStream::ProofCnfStream(context::UserContext* u,
+ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
-                               SatProofManager* satPM,
-                               ProofNodeManager* pnm)
-    : d_cnfStream(cnfStream),
+                               SatProofManager* satPM)
+    : EnvObj(env),
+      d_cnfStream(cnfStream),
       d_satPM(satPM),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_userContext(u),
-      d_blocked(u),
-      d_optClausesManager(u, &d_proof, d_optClausesPfs)
+      d_proof(env.getProofNodeManager(),
+              nullptr,
+              userContext(),
+              "ProofCnfStream::LazyCDProof"),
+      d_blocked(userContext()),
+      d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
 }
 
@@ -608,12 +610,12 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
 
 void ProofCnfStream::notifyOptPropagation(int explLevel)
 {
-  AlwaysAssert(explLevel < (d_userContext->getLevel() - 1));
+  AlwaysAssert(explLevel < (userContext()->getLevel() - 1));
   AlwaysAssert(!d_currPropagationProccessed.isNull());
   Trace("cnf") << "Need to save curr propagation "
                << d_currPropagationProccessed << "'s proof in level "
                << explLevel + 1 << " despite being currently in level "
-               << d_userContext->getLevel() << "\n";
+               << userContext()->getLevel() << "\n";
   // Save into map the proof of the processed propagation. Note that
   // propagations must be explained eagerly, since their justification depends
   // on the theory engine and may be different if we only get its proof when the
@@ -635,10 +637,10 @@ void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "
-               << d_userContext->getLevel() << "\n";
+               << userContext()->getLevel() << "\n";
   Node clauseNode = getClauseNode(clause);
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
-  AlwaysAssert(clLevel < (d_userContext->getLevel() - 1));
+  AlwaysAssert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
   std::shared_ptr<ProofNode> clauseCnfPf =
       d_pnm->clone(d_proof.getProofFor(clauseNode));
@@ -670,7 +672,7 @@ void ProofCnfStream::ensureLiteral(TNode n)
   // remove top level negation. We don't need to track this because it's a
   // literal.
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // These are not removable
     d_cnfStream.d_removable = false;
