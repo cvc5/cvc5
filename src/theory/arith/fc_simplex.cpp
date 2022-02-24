@@ -254,7 +254,7 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
       << basic << " " << d_tableau.basicRowLength(basic) << " "
       << d_linEq.debugBasicAtBoundCount(basic) << endl;
 
-  static const int s_maxCandidatesAfterImprove = 3;
+  static constexpr int s_maxCandidatesAfterImprove = 3;
   bool isFocus = basic == d_focusErrorVar;
   Assert(isFocus || d_errorSet.inError(basic));
   int basicDir =  isFocus? 1 : d_errorSet.getSgn(basic);

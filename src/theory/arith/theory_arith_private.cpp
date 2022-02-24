@@ -3999,10 +3999,8 @@ void TheoryArithPrivate::presolve(){
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
-  static thread_local unsigned callCount = 0;
   if(Debug.isOn("arith::presolve")) {
-    Debug("arith::presolve") << "TheoryArithPrivate::presolve #" << callCount << endl;
-    callCount = callCount + 1;
+    Debug("arith::presolve") << "TheoryArithPrivate::presolve"<< endl;
   }
 
   vector<TrustNode> lemmas;
