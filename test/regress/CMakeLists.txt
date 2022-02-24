@@ -1907,6 +1907,7 @@ set(regress_1_tests
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/issue7924-sqrt-partial.smt2
+  regress1/nl/issue7948-3-unsound-sin-region.smt2
   regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/issue8118-elim-sin.smt2
@@ -2265,6 +2266,8 @@ set(regress_1_tests
   regress1/sep/wand-simp-sat.smt2
   regress1/sep/wand-simp-sat2.smt2
   regress1/sep/wand-simp-unsat.smt2
+  regress1/seq/issue8148-2-const-mv.smt2
+  regress1/seq/issue8148-const-mv.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
