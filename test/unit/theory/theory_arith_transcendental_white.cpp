@@ -44,7 +44,7 @@ TEST_F(TestTheoryWhiteArithTranscendental, test_approximate_pi)
   }
   // now the approximation is getting more accurate than pi_approx...
   EXPECT_FALSE(approx.getLowerBound() < pi_approx
-              && pi_approx < approx.getUpperBound());
+               && pi_approx < approx.getUpperBound());
 }
 
 }  // namespace test
