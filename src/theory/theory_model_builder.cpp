@@ -458,6 +458,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
     // The assigned represenative and constant representative
     Node rep, constRep;
+    // is constant rep a "base model value" (see TheoryModel::isBaseModelValue)
+    bool constRepBaseModelValue = false;
     // A flag set to true if the current equivalence class is assignable (see
     // assignableEqc).
     bool assignable = false;
@@ -505,10 +507,31 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // higher-order.
       if (tm->isValue(n))
       {
-        Assert(constRep.isNull());
-        constRep = n;
-        Trace("model-builder")
-            << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
+        // in rare cases, it could be that multiple terms in the same
+        // equivalence class are considered values. We prefer the one that is a
+        // "base" model value (e.g. a constant) here. We throw a debug failure
+        // if there are multiple terms that are considered values.
+        bool assignConstRep = false;
+        bool isBaseValue = tm->isBaseModelValue(n);
+        if (constRep.isNull())
+        {
+          assignConstRep = true;
+        }
+        else
+        {
+          warning() << "Model values in the same equivalence class " << constRep << " " << n << std::endl;
+          if (!constRepBaseModelValue && isBaseValue)
+          {
+            assignConstRep = true;
+          }
+        }
+        if (assignConstRep)
+        {
+          constRep = n;
+          Trace("model-builder")
+              << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
+          constRepBaseModelValue = isBaseValue;
+        }
         // if we have a constant representative, nothing else matters
         continue;
       }
