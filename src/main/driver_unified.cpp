@@ -199,9 +199,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       }
       // we don't need to check that terms passed to API methods are well
       // formed, since this should be an invariant of the parser
-      if (!solver->getOptionInfo("wellFormedChecking").setByUser)
+      if (!solver->getOptionInfo("wf-checking").setByUser)
       {
-        solver->setOption("wellFormedChecking", "false");
+        solver->setOption("wf-checking", "false");
       }
 
       ParserBuilder parserBuilder(
