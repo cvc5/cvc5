@@ -500,7 +500,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       addAssignableSubterms(n, tm, assignableCache);
       // model-specific processing of the term
       tm->addTermInternal(n);
-      
+
       // compute whether n is assignable
       if (!isAssignable(n))
       {
@@ -511,9 +511,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         if (tm->isValue(n))
         {
           // in rare cases, it could be that multiple terms in the same
-          // equivalence class are considered values. We prefer the one that is a
-          // "base" model value (e.g. a constant) here. We throw a debug failure
-          // if there are multiple terms that are considered values.
+          // equivalence class are considered values. We prefer the one that is
+          // a "base" model value (e.g. a constant) here. We throw a debug
+          // failure if there are multiple terms that are considered values.
           bool assignConstRep = false;
           bool isBaseValue = tm->isBaseModelValue(n);
           if (constRep.isNull())
@@ -522,8 +522,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           }
           else
           {
-            warning() << "Model values in the same equivalence class " << constRep
-                      << " " << n << std::endl;
+            warning() << "Model values in the same equivalence class "
+                      << constRep << " " << n << std::endl;
             if (!constRepBaseModelValue && isBaseValue)
             {
               assignConstRep = true;
@@ -532,8 +532,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           if (assignConstRep)
           {
             constRep = n;
-            Trace("model-builder")
-                << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
+            Trace("model-builder") << "    ..ConstRep( " << eqc
+                                   << " ) = " << constRep << std::endl;
             constRepBaseModelValue = isBaseValue;
           }
           // if we have a constant representative, nothing else matters
