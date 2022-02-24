@@ -168,8 +168,6 @@ ApproximateStatistics::ApproximateStatistics()
 {
 }
 
-Integer ApproximateSimplex::s_defaultMaxDenom(1<<26);
-
 ApproximateSimplex::ApproximateSimplex(const ArithVariables& v, TreeLog& l,
                                        ApproximateStatistics& s)
   : d_vars(v)
@@ -194,9 +192,6 @@ void ApproximateSimplex::setBranchOnVariableLimit(int bl){
   Assert(bl >= 0);
   d_branchLimit = bl;
 }
-
-const double ApproximateSimplex::SMALL_FIXED_DELTA = .000000001;
-const double ApproximateSimplex::TOLERENCE = 1 + .000000001;
 
 bool ApproximateSimplex::roughlyEqual(double a, double b){
   if (a == 0){
@@ -320,7 +315,7 @@ std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d,
 
 std::optional<Rational> ApproximateSimplex::estimateWithCFE(double d)
 {
-  return estimateWithCFE(d, s_defaultMaxDenom);
+  return estimateWithCFE(d, Integer(s_defaultMaxDenom));
 }
 
 class ApproxNoOp : public ApproximateSimplex {
@@ -579,7 +574,7 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
 {
 
   d_denomGuesses.push_back(Integer(1<<22));
-  d_denomGuesses.push_back(ApproximateSimplex::s_defaultMaxDenom);
+  d_denomGuesses.push_back(Integer(ApproximateSimplex::s_defaultMaxDenom));
   d_denomGuesses.push_back(Integer(1ul<<29));
   d_denomGuesses.push_back(Integer(1ul<<31));
 

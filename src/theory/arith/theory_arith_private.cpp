@@ -1712,7 +1712,6 @@ Node flattenAndSort(Node n){
 void TheoryArithPrivate::outputConflicts(){
   Debug("arith::conflict") << "outputting conflicts" << std::endl;
   Assert(anyConflict());
-  static unsigned int conflicts = 0;
 
   if(!conflictQueueEmpty()){
     Assert(!d_conflicts.empty());
@@ -1737,7 +1736,6 @@ void TheoryArithPrivate::outputConflicts(){
       TrustNode trustedConflict = confConstraint->externalExplainConflict();
       Node conflict = trustedConflict.getNode();
 
-      ++conflicts;
       Debug("arith::conflict")
           << "d_conflicts[" << i << "] " << conflict
           << " has proof: " << hasProof << ", id = " << conf.second << endl;
@@ -1758,9 +1756,7 @@ void TheoryArithPrivate::outputConflicts(){
   }
   if(!d_blackBoxConflict.get().isNull()){
     Node bb = d_blackBoxConflict.get();
-    ++conflicts;
     Debug("arith::conflict") << "black box conflict" << bb
-      //<< "("<<conflicts<<")"
                              << endl;
     if(Debug.isOn("arith::normalize::external")){
       bb = flattenAndSort(bb);
