@@ -2323,6 +2323,7 @@ cdef class Solver:
         SMT-LIB:
 
         .. code-block:: smtlib
+        
             (block-model)
 
         Requires enabling option
