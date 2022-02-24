@@ -500,61 +500,62 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       addAssignableSubterms(n, tm, assignableCache);
       // model-specific processing of the term
       tm->addTermInternal(n);
-
-      // (2) Record constant representative or assign representative, if
-      // applicable. We check if n is a value here, e.g. a term for which
-      // isConst returns true, or a lambda. The latter is required only for
-      // higher-order.
-      if (tm->isValue(n))
+      
+      // compute whether n is assignable
+      if (!isAssignable(n))
       {
-        // in rare cases, it could be that multiple terms in the same
-        // equivalence class are considered values. We prefer the one that is a
-        // "base" model value (e.g. a constant) here. We throw a debug failure
-        // if there are multiple terms that are considered values.
-        bool assignConstRep = false;
-        bool isBaseValue = tm->isBaseModelValue(n);
-        if (constRep.isNull())
+        // (2) Record constant representative or assign representative, if
+        // applicable. We check if n is a value here, e.g. a term for which
+        // isConst returns true, or a lambda. The latter is required only for
+        // higher-order.
+        if (tm->isValue(n))
         {
-          assignConstRep = true;
-        }
-        else
-        {
-          warning() << "Model values in the same equivalence class " << constRep
-                    << " " << n << std::endl;
-          if (!constRepBaseModelValue && isBaseValue)
+          // in rare cases, it could be that multiple terms in the same
+          // equivalence class are considered values. We prefer the one that is a
+          // "base" model value (e.g. a constant) here. We throw a debug failure
+          // if there are multiple terms that are considered values.
+          bool assignConstRep = false;
+          bool isBaseValue = tm->isBaseModelValue(n);
+          if (constRep.isNull())
           {
             assignConstRep = true;
           }
+          else
+          {
+            warning() << "Model values in the same equivalence class " << constRep
+                      << " " << n << std::endl;
+            if (!constRepBaseModelValue && isBaseValue)
+            {
+              assignConstRep = true;
+            }
+          }
+          if (assignConstRep)
+          {
+            constRep = n;
+            Trace("model-builder")
+                << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
+            constRepBaseModelValue = isBaseValue;
+          }
+          // if we have a constant representative, nothing else matters
+          continue;
         }
-        if (assignConstRep)
+
+        // If we don't have a constant rep, check if this is an assigned rep.
+        itm = tm->d_reps.find(n);
+        if (itm != tm->d_reps.end())
         {
-          constRep = n;
+          // Notice that this equivalence class may contain multiple terms that
+          // were specified as being a representative, since e.g. datatypes may
+          // assert representative for two constructor terms that are not in the
+          // care graph and are merged during collectModeInfo due to equality
+          // information from another theory. We overwrite the value of rep in
+          // these cases here.
+          rep = itm->second;
           Trace("model-builder")
-              << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
-          constRepBaseModelValue = isBaseValue;
+              << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
         }
-        // if we have a constant representative, nothing else matters
-        continue;
-      }
 
-      // If we don't have a constant rep, check if this is an assigned rep.
-      itm = tm->d_reps.find(n);
-      if (itm != tm->d_reps.end())
-      {
-        // Notice that this equivalence class may contain multiple terms that
-        // were specified as being a representative, since e.g. datatypes may
-        // assert representative for two constructor terms that are not in the
-        // care graph and are merged during collectModeInfo due to equality
-        // information from another theory. We overwrite the value of rep in
-        // these cases here.
-        rep = itm->second;
-        Trace("model-builder")
-            << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
-      }
-
-      // (3) Finally, process assignable information
-      if (!isAssignable(n))
-      {
+        // (3) Finally, process assignable information
         evaluable = true;
         // expressions that are not assignable should not be given assignment
         // exclusion sets
