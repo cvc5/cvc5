@@ -400,8 +400,6 @@ private:
   //DenseMap<ArithVar> d_rowToArithVar;
   DenseMap<ArithVar> d_colToArithVar;
 
-  int d_instanceID;
-
   bool d_solvedRelaxation;
   bool d_solvedMIP;
 
@@ -579,9 +577,6 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
       d_solvedRelaxation(false),
       d_solvedMIP(false)
 {
-  static int instance = 0;
-  ++instance;
-  d_instanceID = instance;
 
   d_denomGuesses.push_back(Integer(1<<22));
   d_denomGuesses.push_back(ApproximateSimplex::s_defaultMaxDenom);
