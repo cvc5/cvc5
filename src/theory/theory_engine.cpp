@@ -205,7 +205,7 @@ void TheoryEngine::finishInit()
 
   if (options().parallel.computePartitions > 1)
   {
-    d_splitter = make_unique<Splitter>(d_env, this, getPropEngine());
+    d_splitter = std::make_unique<Splitter>(d_env, this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
