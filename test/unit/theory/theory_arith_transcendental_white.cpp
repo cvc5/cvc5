@@ -38,13 +38,11 @@ TEST_F(TestTheoryWhiteArithTranscendental, test_approximate_pi)
   ApproximatePi approx;
   for (uint64_t i = 0; i < 46; ++i)
   {
-    EXPECT_TRUE(approx.getLowerBound() < pi_approx
-                && pi_approx < approx.getUpperBound());
+    EXPECT_TRUE(approx.getLower() < pi_approx && pi_approx < approx.getUpper());
     approx.refine();
   }
   // now the approximation is getting more accurate than pi_approx...
-  EXPECT_FALSE(approx.getLowerBound() < pi_approx
-               && pi_approx < approx.getUpperBound());
+  EXPECT_FALSE(approx.getLower() < pi_approx && pi_approx < approx.getUpper());
 }
 
 }  // namespace test
