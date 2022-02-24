@@ -2698,7 +2698,6 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   int level = context()->getLevel();
   d_lastContextIntegerAttempted = level;
 
-
   static constexpr int32_t mipLimit = 200000;
 
   TreeLog& tl = getTreeLog();
@@ -4516,9 +4515,9 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   uint32_t rowLength = d_tableau.getRowLength(ridx);
 
   bool success = false;
-  
-  Debug("arith::prop")
-    << "propagateCandidateRow attempt " << rowLength << " " <<  hasCount << endl;
+
+  Debug("arith::prop") << "propagateCandidateRow attempt " << rowLength << " "
+                       << hasCount << endl;
 
   if (rowLength >= options().arith.arithPropagateMaxLength
       && Random::getRandom().pickWithProb(

@@ -134,7 +134,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("arith::findModel") << "end findModel() " << result <<  endl;
+  Debug("arith::findModel") << "end findModel() " << result << endl;
 
   return result;
 }

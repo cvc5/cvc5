@@ -86,18 +86,23 @@ public:
  Result::Sat dualLike();
 
 private:
-  static constexpr uint32_t PENALTY = 4;
-  DenseMultiset d_scores;
-  void decreasePenalties(){ d_scores.removeOneOfEverything(); }
-  uint32_t penalty(ArithVar x) const { return d_scores.count(x); }
-  void setPenalty(ArithVar x, WitnessImprovement w){
-    if(improvement(w)){
-      if(d_scores.count(x) > 0){
-        d_scores.removeAll(x);
-      }
-    }else{
-      d_scores.setCount(x, PENALTY);
-    }
+ static constexpr uint32_t PENALTY = 4;
+ DenseMultiset d_scores;
+ void decreasePenalties() { d_scores.removeOneOfEverything(); }
+ uint32_t penalty(ArithVar x) const { return d_scores.count(x); }
+ void setPenalty(ArithVar x, WitnessImprovement w)
+ {
+   if (improvement(w))
+   {
+     if (d_scores.count(x) > 0)
+     {
+       d_scores.removeAll(x);
+     }
+   }
+   else
+   {
+     d_scores.setCount(x, PENALTY);
+   }
   }
 
   /** The size of the focus set. */

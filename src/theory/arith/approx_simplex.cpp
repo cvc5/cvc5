@@ -2143,18 +2143,19 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   }
   if(contVar == ARITHVAR_SENTINEL){
     Debug("glpk::loadVB") << "loadVB()"
-                          << " contVar is ARITHVAR_SENTINEL " << contVar << endl;        
+                          << " contVar is ARITHVAR_SENTINEL " << contVar
+                          << endl;
     return true; }
 
   if(!d_vars.isAuxiliary(rowVar)){
     Debug("glpk::loadVB") << "loadVB()"
-                          << " rowVar is not auxilliary " << rowVar << endl;    
+                          << " rowVar is not auxilliary " << rowVar << endl;
     return true;
   }
   // is integer is correct here
   if(d_vars.isInteger(contVar)){
     Debug("glpk::loadVB") << "loadVB()"
-                          << " contVar is integer " << contVar << endl;    
+                          << " contVar is integer " << contVar << endl;
     return true;
   }
 
@@ -2163,20 +2164,22 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
 
   if(lb != NullConstraint && ub != NullConstraint){
     Debug("glpk::loadVB") << "loadVB()"
-                          << " lb and ub are both NULL " << lb << " " << ub << endl;    
+                          << " lb and ub are both NULL " << lb << " " << ub
+                          << endl;
     return true;
   }
 
   ConstraintP rcon = lb == NullConstraint ? ub : lb;
   if(rcon == NullConstraint) {
     Debug("glpk::loadVB") << "loadVB()"
-                          << " rcon is NULL " << rcon << endl;    
+                          << " rcon is NULL " << rcon << endl;
     return true;
   }
 
   if(!rcon->getValue().isZero()){
     Debug("glpk::loadVB") << "loadVB()"
-                          << " rcon value is not 0 " << rcon->getValue() << endl;
+                          << " rcon value is not 0 " << rcon->getValue()
+                          << endl;
     return true;
   }
 
@@ -2187,8 +2190,10 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   }
 
   Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(rowVar));
-  if(p.size() != 2) {  
-    Debug("glpk::loadVB") << "loadVB()" << " polynomial is not binary: " << p.getNode() << endl;
+  if(p.size() != 2) {
+    Debug("glpk::loadVB") << "loadVB()"
+                          << " polynomial is not binary: " << p.getNode()
+                          << endl;
     return true;
   }
 
@@ -2200,12 +2205,14 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
 
   if(!d_vars.hasArithVar(nx1)) {
     Debug("glpk::loadVB") << "loadVB()"
-                          << " does not have a variable for nx1: " << nx1 << endl;
+                          << " does not have a variable for nx1: " << nx1
+                          << endl;
     return true;
   }
   if(!d_vars.hasArithVar(nx2)) {
     Debug("glpk::loadVB") << "loadVB()"
-                          << " does not have a variable for nx2 " << nx2 << endl;
+                          << " does not have a variable for nx2 " << nx2
+                          << endl;
     return true;
   }
   ArithVar x1 = d_vars.asArithVar(nx1), x2 = d_vars.asArithVar(nx2);
@@ -2235,7 +2242,8 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
 
   if(!d_vars.isIntegerInput(iv)){
     Debug("glpk::loadVB") << "loadVB()"
-                          << " iv is not an integer input variable " << iv << endl;    
+                          << " iv is not an integer input variable " << iv
+                          << endl;
     return true;
   }
   // cc * cv + ic * iv <= 0 or
@@ -2261,15 +2269,17 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   bool nowUb = cc.sgn() < 0;
   if(wantUb != nowUb) {
     Debug("glpk::loadVB") << "loadVB()"
-                          << " wantUb is not nowUb " << wantUb << " " << nowUb << endl;    
-    
+                          << " wantUb is not nowUb " << wantUb << " " << nowUb
+                          << endl;
+
     return true;
   }
 
   Kind rel = wantUb ? kind::LEQ : kind::GEQ;
 
   tmp = VirtualBound(contVar, rel, d, iv, rcon);
-    Debug("glpk::loadVB") << "loadVB()" << " was successful" << endl;    
+  Debug("glpk::loadVB") << "loadVB()"
+                        << " was successful" << endl;
   return false;
 }
 

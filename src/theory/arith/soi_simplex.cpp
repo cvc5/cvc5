@@ -78,7 +78,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  
+
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
     Debug("soi::findModel") << "soiFindModel() trivial" << endl;
     Assert(d_conflictVariables.empty());
@@ -138,7 +138,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("soi::findModel") << "end findModel() " << result <<  endl;
+  Debug("soi::findModel") << "end findModel() " << result << endl;
 
   Assert(d_conflictVariables.empty());
   return result;
@@ -199,9 +199,9 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
   UpdateInfo selected;
 
   Debug("soi::selectPrimalUpdate")
-    << "selectPrimalUpdate " << endl
-    << d_soiVar << " " << d_tableau.basicRowLength(d_soiVar)
-    << " " << d_linEq.debugBasicAtBoundCount(d_soiVar) << endl;
+      << "selectPrimalUpdate " << endl
+      << d_soiVar << " " << d_tableau.basicRowLength(d_soiVar) << " "
+      << d_linEq.debugBasicAtBoundCount(d_soiVar) << endl;
 
   typedef std::vector<Cand> CandVector;
   CandVector candidates;
@@ -820,7 +820,8 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   //reportConflict(conf); do not do this. We need a custom explanations!
   d_conflictVariables.add(d_soiVar);
 
-  Debug("arith::SOIConflict") << "SumOfInfeasibilitiesSPD::SOIConflict() done end" << endl;
+  Debug("arith::SOIConflict")
+      << "SumOfInfeasibilitiesSPD::SOIConflict() done end" << endl;
   return ConflictFound;
 }
 

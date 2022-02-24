@@ -262,7 +262,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
   TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
 
   if(Debug.isOn("arith::tracking::pre")){
-    Debug("arith::tracking")  << "pre update" << endl;
+    Debug("arith::tracking") << "pre update" << endl;
     debugCheckTracking();
   }
 
@@ -280,7 +280,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
   updateTracked(x_j, x_j_value);
 
   if(Debug.isOn("arith::tracking::mid")){
-    Debug("arith::tracking")  << "postupdate prepivot" << endl;
+    Debug("arith::tracking") << "postupdate prepivot" << endl;
     debugCheckTracking();
   }
 
@@ -290,7 +290,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
   d_tableau.pivot(x_i, x_j, d_trackCallback);
 
   if(Debug.isOn("arith::tracking::post")){
-    Debug("arith::tracking")  << "postpivot" << endl;
+    Debug("arith::tracking") << "postpivot" << endl;
     debugCheckTracking();
   }
 

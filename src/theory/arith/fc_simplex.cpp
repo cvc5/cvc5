@@ -131,7 +131,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("arith::findModel") << "end findModel() " << result <<  endl;
+  Debug("arith::findModel") << "end findModel() " << result << endl;
 
   Assert(d_conflictVariables.empty());
   return result;
@@ -250,9 +250,9 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
   UpdateInfo selected;
 
   Debug("arith::selectPrimalUpdate")
-    << "selectPrimalUpdate" << endl
-    << basic << " " << d_tableau.basicRowLength(basic)
-    << " " << d_linEq.debugBasicAtBoundCount(basic) << endl;
+      << "selectPrimalUpdate" << endl
+      << basic << " " << d_tableau.basicRowLength(basic) << " "
+      << d_linEq.debugBasicAtBoundCount(basic) << endl;
 
   static const int s_maxCandidatesAfterImprove = 3;
   bool isFocus = basic == d_focusErrorVar;
@@ -624,7 +624,11 @@ WitnessImprovement FCSimplexDecisionProcedure::selectFocusImproving() {
   return w;
 }
 
-bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w, ostream& out, uint32_t prevFocusSize, uint32_t prevErrorSize ) const{
+bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w,
+                                               ostream& out,
+                                               uint32_t prevFocusSize,
+                                               uint32_t prevErrorSize) const
+{
   out << "DLV() ";
   switch(w){
   case ConflictFound:
@@ -729,8 +733,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
     Assert(d_focusSize == d_errorSet.focusSize());
     Assert(d_errorSize == d_errorSet.errorSize());
 
-    Assert(debugDualLike(
-        w, Debug("dualLike"), prevFocusSize, prevErrorSize));
+    Assert(debugDualLike(w, Debug("dualLike"), prevFocusSize, prevErrorSize));
     Debug("dualLike") << "Focus size " << d_focusSize << " (was " << prevFocusSize << ")" << endl;
     Debug("dualLike") << "Error size " << d_errorSize << " (was " << prevErrorSize << ")" << endl;
   }

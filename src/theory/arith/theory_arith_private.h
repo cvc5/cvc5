@@ -318,7 +318,6 @@ private:
   uint32_t d_tableauResetPeriod;
   static constexpr uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
-
   /** This is only used by simplex at the moment. */
   context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
 
