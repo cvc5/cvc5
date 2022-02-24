@@ -2699,7 +2699,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   d_lastContextIntegerAttempted = level;
 
 
-  static const int32_t mipLimit = 200000;
+  static constexpr int32_t mipLimit = 200000;
 
   TreeLog& tl = getTreeLog();
   ApproximateStatistics& stats = getApproxStats();
@@ -2714,7 +2714,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     if(!d_guessedCoeffs.empty()){
       approx->setOptCoeffs(d_guessedCoeffs);
     }
-    static const int32_t depthForLikelyInfeasible = 10;
+    static constexpr int32_t depthForLikelyInfeasible = 10;
     int maxDepthPass1 = d_likelyIntegerInfeasible
                             ? depthForLikelyInfeasible
                             : options().arith.maxApproxDepth;
@@ -2869,7 +2869,7 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   }
 
   if(d_qflraStatus != Result::UNSAT){
-    static const int64_t pass2Limit = 20;
+    static constexpr int64_t pass2Limit = 20;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
     simplex.setVarOrderPivotLimit(pass2Limit);
     d_qflraStatus = simplex.findModel(false);
@@ -2941,7 +2941,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 
   if(d_qflraStatus == Result::SAT_UNKNOWN && useApprox && safeToCallApprox()){
     // pass2: fancy-final
-    static const int32_t relaxationLimit = 10000;
+    static constexpr int32_t relaxationLimit = 10000;
     Assert(ApproximateSimplex::enabled());
 
     TreeLog& tl = getTreeLog();

@@ -88,7 +88,7 @@ private:
   // - satisfied error set
   Result::Sat sumOfInfeasibilities();
 
-  // static const uint32_t PENALTY = 4;
+  // static constexpr uint32_t PENALTY = 4;
   // DenseMultiset d_scores;
   // void decreasePenalties(){ d_scores.removeOneOfEverything(); }
   // uint32_t penalty(ArithVar x) const { return d_scores.count(x); }
@@ -115,9 +115,9 @@ private:
 
   uint32_t degeneratePivotsInARow() const;
 
-  static const uint32_t s_focusThreshold = 6;
-  static const uint32_t s_maxDegeneratePivotsBeforeBlandsOnLeaving = 100;
-  static const uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
+  static constexpr uint32_t s_focusThreshold = 6;
+  static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnLeaving = 100;
+  static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
 
   DenseMap<uint32_t> d_leavingCountSinceImprovement;
   void increaseLeavingCount(ArithVar x){
