@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp -q
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (set-option :re-elim-agg true)
