@@ -476,6 +476,8 @@ libcvc5_add_sources(
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp
   theory/arith/nl/strategy.h
+  theory/arith/nl/transcendental/approximate_pi.cpp
+  theory/arith/nl/transcendental/approximate_pi.h
   theory/arith/nl/transcendental/exponential_solver.cpp
   theory/arith/nl/transcendental/exponential_solver.h
   theory/arith/nl/transcendental/proof_checker.cpp
