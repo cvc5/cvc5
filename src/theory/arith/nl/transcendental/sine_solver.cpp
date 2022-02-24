@@ -256,13 +256,18 @@ void SineSolver::checkMonotonic()
       Node mpointapprox = point;
       if (j != 2)
       {
-        // bounds are flipped for negative pi
-        TNode tb = d_data->d_pi_bound[j > 2 ? 1 - i : i];
+        // substitute the lower or upper bound of pi
+        TNode tb = d_data->d_pi_bound[i];
         mpointapprox = point.substitute(tpi, tb);
+        mpointapprox = d_data->d_model.computeConcreteModelValue(mpointapprox);
       }
-      mpointsBound[i].emplace_back(
-          d_data->d_model.computeAbstractModelValue(mpointapprox));
-      Assert(mpointsBound[i].back().isConst());
+      Assert(mpointapprox.isConst());
+      mpointsBound[i].emplace_back(mpointapprox);
+    }
+    // bounds are flipped for negative pi
+    if (mpointsBound[0].back().getConst<Rational>() > mpointsBound[1].back().getConst<Rational>())
+    {
+      std::swap(mpointsBound[0].back(), mpointsBound[1].back());
     }
   }
 
