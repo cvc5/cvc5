@@ -125,10 +125,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       std::pair<Node, Node> bounds;
       if (tfs.first == Kind::PI)
       {
-        bounds = {
-          d_tstate.d_pi_approx.getLowerNode(),
-          d_tstate.d_pi_approx.getUpperNode()
-        };
+        bounds = {d_tstate.d_pi_approx.getLowerNode(),
+                  d_tstate.d_pi_approx.getUpperNode()};
       }
       else
       {
@@ -176,7 +174,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
 }
 
 void TranscendentalSolver::incrementTaylorDegree() { d_taylor_degree++; }
-void TranscendentalSolver::refinePiApproximation() {
+void TranscendentalSolver::refinePiApproximation()
+{
   d_tstate.d_pi_approx.refine();
   d_tstate.getCurrentPiBounds();
 }

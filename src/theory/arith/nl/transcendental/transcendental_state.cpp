@@ -216,15 +216,18 @@ void TranscendentalState::mkPi()
 void TranscendentalState::getCurrentPiBounds()
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node pi_lem = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::GEQ, d_pi, d_pi_approx.getLowerNode()),
-                           nm->mkNode(Kind::LEQ, d_pi, d_pi_approx.getUpperNode()));
+  Node pi_lem =
+      nm->mkNode(Kind::AND,
+                 nm->mkNode(Kind::GEQ, d_pi, d_pi_approx.getLowerNode()),
+                 nm->mkNode(Kind::LEQ, d_pi, d_pi_approx.getUpperNode()));
   CDProof* proof = nullptr;
   if (isProofEnabled())
   {
     proof = getProof();
-    proof->addStep(
-        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_approx.getLowerNode(), d_pi_approx.getUpperNode()});
+    proof->addStep(pi_lem,
+                   PfRule::ARITH_TRANS_PI,
+                   {},
+                   {d_pi_approx.getLowerNode(), d_pi_approx.getUpperNode()});
   }
   d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }

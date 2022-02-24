@@ -48,8 +48,14 @@ class ApproximatePi
   ApproximatePi();
   const Rational& getLower() const { return d_lower; }
   const Rational& getUpper() const { return d_upper; }
-  Node getLowerNode() const { return NodeManager::currentNM()->mkConstReal(d_lower); }
-  Node getUpperNode() const { return NodeManager::currentNM()->mkConstReal(d_upper); }
+  Node getLowerNode() const
+  {
+    return NodeManager::currentNM()->mkConstReal(d_lower);
+  }
+  Node getUpperNode() const
+  {
+    return NodeManager::currentNM()->mkConstReal(d_upper);
+  }
   void refine();
 
  private:
