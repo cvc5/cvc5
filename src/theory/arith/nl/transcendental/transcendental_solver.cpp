@@ -112,7 +112,6 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       passertions.push_back(pa);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                      << std::endl;
