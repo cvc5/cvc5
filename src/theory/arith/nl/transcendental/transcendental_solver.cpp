@@ -132,10 +132,10 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       {
         bounds = d_tstate.d_taylor.getTfModelBounds(
             tf, d_taylor_degree, d_tstate.d_model);
-        if (bounds.first != bounds.second)
-        {
-          d_tstate.d_model.setUsedApproximate();
-        }
+      }
+      if (bounds.first != bounds.second)
+      {
+        d_tstate.d_model.setUsedApproximate();
       }
       if (!bounds.first.isNull() && !bounds.second.isNull())
       {
