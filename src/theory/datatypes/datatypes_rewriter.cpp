@@ -153,90 +153,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   else if (kind == MATCH)
   {
     Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
-    // ensure we've type checked
-    TypeNode tin = in.getType();
-    Node h = in[0];
-    std::vector<Node> cases;
-    std::vector<Node> rets;
-    TypeNode t = h.getType();
-    const DType& dt = t.getDType();
-    for (size_t k = 1, nchild = in.getNumChildren(); k < nchild; k++)
-    {
-      Node c = in[k];
-      Node cons;
-      Kind ck = c.getKind();
-      if (ck == MATCH_CASE)
-      {
-        Assert(c[0].getKind() == APPLY_CONSTRUCTOR);
-        cons = c[0].getOperator();
-      }
-      else if (ck == MATCH_BIND_CASE)
-      {
-        if (c[1].getKind() == APPLY_CONSTRUCTOR)
-        {
-          cons = c[1].getOperator();
-        }
-      }
-      else
-      {
-        AlwaysAssert(false);
-      }
-      size_t cindex = 0;
-      // cons is null in the default case
-      if (!cons.isNull())
-      {
-        cindex = utils::indexOf(cons);
-      }
-      Node body;
-      if (ck == MATCH_CASE)
-      {
-        body = c[1];
-      }
-      else if (ck == MATCH_BIND_CASE)
-      {
-        std::vector<Node> vars;
-        std::vector<Node> subs;
-        if (cons.isNull())
-        {
-          Assert(c[1].getKind() == BOUND_VARIABLE);
-          vars.push_back(c[1]);
-          subs.push_back(h);
-        }
-        else
-        {
-          for (size_t i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
-          {
-            vars.push_back(c[0][i]);
-            Node sc =
-                nm->mkNode(APPLY_SELECTOR, dt[cindex][i].getSelector(), h);
-            subs.push_back(sc);
-          }
-        }
-        body =
-            c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      }
-      if (!cons.isNull())
-      {
-        cases.push_back(utils::mkTester(h, cindex, dt));
-      }
-      else
-      {
-        // variables have no constraints
-        cases.push_back(nm->mkConst(true));
-      }
-      rets.push_back(body);
-    }
-    Assert(!cases.empty());
-    // now make the ITE
-    std::reverse(cases.begin(), cases.end());
-    std::reverse(rets.begin(), rets.end());
-    Node ret = rets[0];
-    // notice that due to our type checker, either there is a variable pattern
-    // or all constructors are present in the match.
-    for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
-    {
-      ret = nm->mkNode(ITE, cases[i], rets[i], ret);
-    }
+    Node ret = expandMatch(in);
     Trace("dt-rewrite-match")
         << "Rewrite match: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
@@ -307,6 +224,94 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
 
   return RewriteResponse(REWRITE_DONE, in);
+}
+Node DatatypesRewriter::expandMatch(Node in)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // ensure we've type checked
+  TypeNode tin = in.getType();
+  Node h = in[0];
+  std::vector<Node> cases;
+  std::vector<Node> rets;
+  TypeNode t = h.getType();
+  const DType& dt = t.getDType();
+  for (size_t k = 1, nchild = in.getNumChildren(); k < nchild; k++)
+  {
+    Node c = in[k];
+    Node cons;
+    Kind ck = c.getKind();
+    if (ck == MATCH_CASE)
+    {
+      Assert(c[0].getKind() == APPLY_CONSTRUCTOR);
+      cons = c[0].getOperator();
+    }
+    else if (ck == MATCH_BIND_CASE)
+    {
+      if (c[1].getKind() == APPLY_CONSTRUCTOR)
+      {
+        cons = c[1].getOperator();
+      }
+    }
+    else
+    {
+      AlwaysAssert(false) << "Bad case for match term";
+    }
+    size_t cindex = 0;
+    // cons is null in the default case
+    if (!cons.isNull())
+    {
+      cindex = utils::indexOf(cons);
+    }
+    Node body;
+    if (ck == MATCH_CASE)
+    {
+      body = c[1];
+    }
+    else if (ck == MATCH_BIND_CASE)
+    {
+      std::vector<Node> vars;
+      std::vector<Node> subs;
+      if (cons.isNull())
+      {
+        Assert(c[1].getKind() == BOUND_VARIABLE);
+        vars.push_back(c[1]);
+        subs.push_back(h);
+      }
+      else
+      {
+        for (size_t i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
+        {
+          vars.push_back(c[0][i]);
+          Node sc = nm->mkNode(APPLY_SELECTOR, dt[cindex][i].getSelector(), h);
+          subs.push_back(sc);
+        }
+      }
+      body =
+          c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    }
+    if (!cons.isNull())
+    {
+      cases.push_back(utils::mkTester(h, cindex, dt));
+    }
+    else
+    {
+      // variables have no constraints
+      cases.push_back(nm->mkConst(true));
+    }
+    rets.push_back(body);
+  }
+  Assert(!cases.empty());
+  // now make the ITE
+  std::reverse(cases.begin(), cases.end());
+  std::reverse(rets.begin(), rets.end());
+  Node ret = rets[0];
+  // notice that due to our type checker, either there is a variable pattern
+  // or all constructors are present in the match.
+  for (size_t i = 1, ncases = cases.size(); i < ncases; i++)
+  {
+    ret = nm->mkNode(ITE, cases[i], rets[i], ret);
+  }
+  return ret;
 }
 
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)

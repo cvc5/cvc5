@@ -14,6 +14,7 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
@@ -803,15 +804,115 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-bool TheoryModel::isValue(TNode node)
+struct IsModelValueTag
 {
-  if (node.isConst())
+};
+struct IsModelValueComputedTag
+{
+};
+/** Attribute true for expressions that are quasi-values */
+using IsModelValueAttr = expr::Attribute<IsModelValueTag, bool>;
+using IsModelValueComputedAttr = expr::Attribute<IsModelValueComputedTag, bool>;
+
+bool TheoryModel::isBaseModelValue(TNode n) const
+{
+  if (n.isConst())
   {
     return true;
   }
-  Kind k = node.getKind();
-  return k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-         || k == kind::WITNESS;
+  Kind k = n.getKind();
+  if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+      || k == kind::WITNESS)
+  {
+    // we are a value if we are one of the above kinds
+    return true;
+  }
+  return false;
+}
+
+bool TheoryModel::isValue(TNode n) const
+{
+  IsModelValueAttr imva;
+  IsModelValueComputedAttr imvca;
+  // The list of nodes we are processing, and the current child index of that
+  // node we are inspecting. This vector always specifies a single path in the
+  // original term n. Notice this index accounts for operators, where the
+  // operator of a term is treated as the first child, and subsequently all
+  // other children are shifted up by one.
+  std::vector<std::pair<TNode, size_t>> visit;
+  // the last computed value of whether a node was a value
+  bool currentReturn = false;
+  visit.emplace_back(n, 0);
+  std::pair<TNode, size_t> v;
+  while (!visit.empty())
+  {
+    v = visit.back();
+    TNode cur = v.first;
+    bool finishedComputing = false;
+    // if we just pushed to the stack, do initial checks
+    if (v.second == 0)
+    {
+      if (cur.getAttribute(imvca))
+      {
+        // already cached
+        visit.pop_back();
+        currentReturn = cur.getAttribute(imva);
+        continue;
+      }
+      if (isBaseModelValue(cur))
+      {
+        finishedComputing = true;
+        currentReturn = true;
+      }
+      else if (cur.getNumChildren() == 0 || rewrite(cur) != cur)
+      {
+        finishedComputing = true;
+        currentReturn = false;
+      }
+    }
+    else if (!currentReturn)
+    {
+      // if the last child was not a value, we are not a value
+      finishedComputing = true;
+    }
+    if (!finishedComputing)
+    {
+      bool hasOperator = cur.hasOperator();
+      size_t nextChildIndex = v.second;
+      if (hasOperator && nextChildIndex > 0)
+      {
+        // if have an operator, we shift the child index we are looking at
+        nextChildIndex--;
+      }
+      if (nextChildIndex == cur.getNumChildren())
+      {
+        // finished, we are a value
+        currentReturn = true;
+      }
+      else
+      {
+        visit.back().second++;
+        if (hasOperator && v.second == 0)
+        {
+          // if we have an operator, process it as the first child
+          visit.emplace_back(cur.getOperator(), 0);
+        }
+        else
+        {
+          Assert(nextChildIndex < cur.getNumChildren());
+          // process the next child, which may be shifted from v.second to
+          // account for the operator
+          visit.emplace_back(cur[nextChildIndex], 0);
+        }
+        continue;
+      }
+    }
+    visit.pop_back();
+    cur.setAttribute(imva, currentReturn);
+    cur.setAttribute(imvca, true);
+  }
+  Assert(n.getAttribute(imvca));
+  return currentReturn;
 }
 
 }  // namespace theory

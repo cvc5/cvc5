@@ -726,10 +726,11 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
   if (isProofEnabled())
   {
     d_proof->pruneChildren([&intervals](std::size_t id) {
+      if (id == 0) return false;
       return std::find_if(intervals.begin(),
                           intervals.end(),
                           [id](const CACInterval& i) { return i.d_id == id; })
-             != intervals.end();
+             == intervals.end();
     });
   }
 }
