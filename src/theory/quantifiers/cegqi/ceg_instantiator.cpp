@@ -1399,7 +1399,7 @@ void CegInstantiator::processAssertions() {
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode rtn = r.getType();
-    TheoryId tid = d_env.theoryOf( rtn );
+    TheoryId tid = d_env.theoryOf(rtn);
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
       if (rtn.isRealOrInt())
