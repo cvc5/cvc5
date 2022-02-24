@@ -4516,11 +4516,9 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   uint32_t rowLength = d_tableau.getRowLength(ridx);
 
   bool success = false;
-  static int instance = 0;
-  ++instance;
-
+  
   Debug("arith::prop")
-    << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
+    << "propagateCandidateRow attempt " << rowLength << " " <<  hasCount << endl;
 
   if (rowLength >= options().arith.arithPropagateMaxLength
       && Random::getRandom().pickWithProb(

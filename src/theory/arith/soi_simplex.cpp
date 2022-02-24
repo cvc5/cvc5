@@ -78,11 +78,9 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   Assert(d_sgnDisagreements.empty());
 
   d_pivots = 0;
-  static thread_local unsigned int instance = 0;
-  instance = instance + 1;
-
+  
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
-    Debug("soi::findModel") << "soiFindModel("<< instance <<") trivial" << endl;
+    Debug("soi::findModel") << "soiFindModel() trivial" << endl;
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
@@ -95,17 +93,17 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    Debug("soi::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
+    Debug("soi::findModel") << "fcFindModel() early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("soi::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
+    Debug("soi::findModel") << "fcFindModel() fixed itself" << endl;
     Assert(!d_errorSet.moreSignals());
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
 
-  Debug("soi::findModel") << "fcFindModel(" << instance <<") start non-trivial" << endl;
+  Debug("soi::findModel") << "fcFindModel() start non-trivial" << endl;
 
   exactResult |= d_varOrderPivotLimit < 0;
 
@@ -140,7 +138,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("soi::findModel") << "end findModel() " << instance << " " << result <<  endl;
+  Debug("soi::findModel") << "end findModel() " << result <<  endl;
 
   Assert(d_conflictVariables.empty());
   return result;
