@@ -257,7 +257,8 @@ void SineSolver::checkMonotonic()
       if (j != 2)
       {
         // substitute the lower or upper bound of pi
-        TNode tb = d_data->d_pi_bound[i];
+        Node tb = (i == 0 ? d_data->d_pi_approx.getLowerNode()
+                          : d_data->d_pi_approx.getUpperNode());
         mpointapprox = point.substitute(tpi, tb);
         mpointapprox = d_data->d_model.computeConcreteModelValue(mpointapprox);
       }
