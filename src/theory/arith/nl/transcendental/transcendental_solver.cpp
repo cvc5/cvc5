@@ -471,11 +471,12 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
   {
     Node r = d_astate.getRepresentative(am.first);
     it = trReps.find(r);
-    // if it is in the same equivalence class as a trancendental function application, we replace its value in the model with that application
+    // if it is in the same equivalence class as a trancendental function
+    // application, we replace its value in the model with that application
     if (it != trReps.end())
     {
-      Trace("nl-ext") << "...abstract value for " << am.first
-                      << " to " << it->second << std::endl;
+      Trace("nl-ext") << "...abstract value for " << am.first << " to "
+                      << it->second << std::endl;
       am.second = it->second;
     }
     else
