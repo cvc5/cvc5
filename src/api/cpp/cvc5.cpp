@@ -62,6 +62,7 @@
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/smt_options.h"
+#include "options/expr_options.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -5437,21 +5438,29 @@ bool Solver::isValidInteger(const std::string& s) const
 
 void Solver::ensureWellFormedTerm(const Term& t) const
 {
-  bool wasShadow = false;
-  if (expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
   {
-    std::stringstream se;
-    se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
-       << " variable";
-    throw CVC5ApiException(se.str().c_str());
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+    {
+      std::stringstream se;
+      se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
+        << " variable";
+      throw CVC5ApiException(se.str().c_str());
+    }
   }
 }
 
 void Solver::ensureWellFormedTerms(const std::vector<Term>& ts) const
 {
-  for (const Term& t : ts)
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
   {
-    ensureWellFormedTerm(t);
+    for (const Term& t : ts)
+    {
+      ensureWellFormedTerm(t);
+    }
   }
 }
 
