@@ -133,7 +133,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     return d_ppre.ppRewriteEq(atom);
   }
-  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may

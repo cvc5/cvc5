@@ -419,7 +419,7 @@ void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
       termSet.insert(cur);
     }
     // traverse owned terms, don't go under quantifiers
-    if ((k == kind::NOT || k == kind::EQUAL || Theory::theoryOf(cur) == d_id)
+    if ((k == kind::NOT || k == kind::EQUAL || d_env.theoryOf(cur) == d_id)
         && !cur.isClosure())
     {
       visit.insert(visit.end(), cur.begin(), cur.end());
