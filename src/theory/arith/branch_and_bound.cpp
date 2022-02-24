@@ -66,7 +66,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
     TrustNode teq;
-    if (Theory::theoryOf(eq) == THEORY_ARITH)
+    if (d_env.theoryOf(eq) == THEORY_ARITH)
     {
       teq = d_ppre.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
