@@ -4,9 +4,9 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 (set-logic QF_AUFBV)
-(declare-const bv_58-0 (_ BitVec 58))
+(declare-const bv_58-0 (_ BitVec 4))
 (check-sat)
-(declare-const arr1 (Array (_ BitVec 58) Bool))
+(declare-const arr1 (Array (_ BitVec 4) Bool))
 (check-sat)
 (assert (xor false true false true true true true true true (select arr1 bv_58-0)))
 (check-sat)
