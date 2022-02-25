@@ -486,6 +486,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       return new EmptyCommand();
     }
   }
+  // builtin symbols of the logic are declared at context level zero, hence
+  // we pop the outermost scope and push again below
   popScope();
 
   d_logicSet = true;
