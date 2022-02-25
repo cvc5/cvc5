@@ -163,6 +163,10 @@ class TranscendentalState : protected EnvObj
                       Convexity convexity,
                       unsigned d,
                       unsigned actual_d);
+  /**
+   * Is term t purified? (See d_trPurify below).
+   */
+  bool isPurified(TNode n) const;
 
   Node d_true;
   Node d_false;

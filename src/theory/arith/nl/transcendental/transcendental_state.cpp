@@ -437,6 +437,16 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
   }
 }
 
+bool TranscendentalState::isPurified(TNode n) const
+{
+  NodeMap::const_iterator it = d_trPurify.find(n);
+  if (it!=d_trPurify.end())
+  {
+    return it->second==n;
+  }
+  return false;
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith

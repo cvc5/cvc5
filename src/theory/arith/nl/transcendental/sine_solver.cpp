@@ -111,8 +111,7 @@ void SineSolver::checkInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Assert(d_data->d_trSlaves.find(t) != d_data->d_trSlaves.end());
-
+        Assert(d_data->isPurified(t));
         {
           // sine bounds: -1 <= sin(t) <= 1
           Node lem = nm->mkNode(Kind::AND,
