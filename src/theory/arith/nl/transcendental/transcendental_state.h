@@ -167,6 +167,10 @@ class TranscendentalState : protected EnvObj
    * Is term t purified? (See d_trPurify below).
    */
   bool isPurified(TNode n) const;
+  /**
+   * Add bound for n, and for what (if anything) it purifies
+   */
+  bool addModelBoundForPurifyTerm(TNode n, TNode l, TNode u);
 
   Node d_true;
   Node d_false;

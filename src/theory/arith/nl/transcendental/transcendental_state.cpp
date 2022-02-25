@@ -454,6 +454,35 @@ bool TranscendentalState::isPurified(TNode n) const
   return d_trPurifies.find(n) != d_trPurifies.end();
 }
 
+bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
+{        
+  Assert (d_funcCongClass.find(n)!=d_funcCongClass.end());
+  // for each function in the congruence classe
+  for (const Node& ctf : d_funcCongClass[n])
+  {
+    std::vector<Node> mset{ctf};
+    // if this purifies another term, we set a bound on the term it
+    // purifies as well
+    context::CDHashMap<Node, Node>::const_iterator itp =
+        d_trPurifies.find(ctf);
+    if (itp != d_trPurifies.end() && itp->second != ctf)
+    {
+      mset.push_back(itp->second);
+    }
+    for (const Node& stf : mset)
+    {
+      Trace("nl-ext-cm")
+          << "...bound for " << stf << " : [" << l<< ", "
+          << u << "]" << std::endl;
+      if (!d_model.addBound(stf, l, u))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
