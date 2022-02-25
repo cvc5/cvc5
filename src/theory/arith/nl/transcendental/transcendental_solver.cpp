@@ -144,9 +144,9 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
           std::vector<Node> mset{ctf};
           // if this purifies, we set a bound on the term it purifies as well
           itp = d_tstate.d_trPurifies.find(ctf);
-          if(itp != d_tstate.d_trPurifies.end())
+          if (itp != d_tstate.d_trPurifies.end())
           {
-            mset.push_back( itp->second);
+            mset.push_back(itp->second);
           }
           for (const Node& stf : mset)
           {

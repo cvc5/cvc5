@@ -33,7 +33,11 @@ namespace transcendental {
 TranscendentalState::TranscendentalState(Env& env,
                                          InferenceManager& im,
                                          NlModel& model)
-    : EnvObj(env), d_im(im), d_model(model), d_trPurify(userContext()), d_trPurifies(userContext())
+    : EnvObj(env),
+      d_im(im),
+      d_model(model),
+      d_trPurify(userContext()),
+      d_trPurifies(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -85,7 +89,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     itp = d_trPurify.find(a);
     if (itp != d_trPurify.end())
     {
-      consider = itp->second==a;
+      consider = itp->second == a;
     }
     else
     {

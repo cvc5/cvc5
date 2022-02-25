@@ -16,13 +16,13 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_set.h"
 #include "smt/env.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
-#include "context/cdhashmap.h"
 
 namespace cvc5 {
 class CDProof;
@@ -64,6 +64,7 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
 class TranscendentalState : protected EnvObj
 {
   using NodeMap = context::CDHashMap<Node, Node>;
+
  public:
   TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
 
@@ -83,8 +84,8 @@ class TranscendentalState : protected EnvObj
    *
    * This call may add lemmas to lems based on registering term
    * information (for example to ensure congruence of terms).
-   * It puts terms that need to be treated further as a purified term on their own
-   * (for example purification of sine terms) into needsPurify.
+   * It puts terms that need to be treated further as a purified term on their
+   * own (for example purification of sine terms) into needsPurify.
    */
   void init(const std::vector<Node>& xts, std::vector<Node>& needsPurify);
 
