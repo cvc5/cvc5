@@ -713,7 +713,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       if (childChanged)
       {
         // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
-        // op is one of { NONLINEAR_MULT, MULT, PLUS }.
+        // op is one of { NONLINEAR_MULT, MULT, ADD }.
         Node ret = nm->mkNode(k0, newChildren);
         ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, ret, t[1]);
         return returnRewrite(t, ret, Rewrite::MOD_CHILD_MOD);
@@ -791,7 +791,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
   {
     // ((_ iand k) x x) ---> (mod x 2^k)
     Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
-    Node ret = nm->mkNode(kind::INTS_MODULUS, t[0],  twok);
+    Node ret = nm->mkNode(kind::INTS_MODULUS, t[0], twok);
     return RewriteResponse(REWRITE_AGAIN, ret);
   }
   // simplifications involving constants
@@ -810,7 +810,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
     {
       // ((_ iand k) 111...1 y) ---> (mod y 2^k)
       Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
-      Node ret = nm->mkNode(kind::INTS_MODULUS, t[1-i],  twok);
+      Node ret = nm->mkNode(kind::INTS_MODULUS, t[1 - i], twok);
       return RewriteResponse(REWRITE_AGAIN, ret);
     }
   }
