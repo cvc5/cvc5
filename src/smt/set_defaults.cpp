@@ -1402,7 +1402,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (isSygus(opts))
+  if (usesSygus(opts))
   {
     std::stringstream reasonNoSygus;
     if (incompatibleWithSygus(opts, reasonNoSygus))
