@@ -309,24 +309,6 @@ Node NonlinearExtension::getModelValue(TNode var) const
   return Node::null();
 }
 
-bool NonlinearExtension::assertModel(TheoryModel* tm, TNode var) const
-{
-  if (auto it = d_approximations.find(var); it != d_approximations.end())
-  {
-    const auto& approx = it->second;
-    if (approx.second.isNull())
-    {
-      tm->recordApproximation(var, approx.first);
-    }
-    else
-    {
-      tm->recordApproximation(var, approx.first, approx.second);
-    }
-    return true;
-  }
-  return false;
-}
-
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);

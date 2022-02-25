@@ -116,10 +116,6 @@ class NonlinearExtension : EnvObj
    * arithmetic term or a witness.
    */
   Node getModelValue(TNode var) const;
-  /**
-   * Assert the model for the given variable to the theory model.
-   */
-  bool assertModel(TheoryModel* tm, TNode var) const;
 
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
