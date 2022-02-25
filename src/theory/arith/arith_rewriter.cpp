@@ -48,20 +48,6 @@ namespace arith {
 
 namespace {
 
-template <typename L, typename R>
-bool evaluateRelation(Kind rel, const L& l, const R& r)
-{
-  switch (rel)
-  {
-    case Kind::LT: return l < r;
-    case Kind::LEQ: return l <= r;
-    case Kind::EQUAL: return l == r;
-    case Kind::GEQ: return l >= r;
-    case Kind::GT: return l > r;
-    default: Unreachable(); return false;
-  }
-}
-
 /**
  * Check whether the parent has a child that is a constant zero.
  * If so, return this child. Otherwise, return std::nullopt.
