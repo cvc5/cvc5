@@ -415,7 +415,7 @@ bool SymbolTable::Implementation::bind(const string& name,
     }
   }
     d_exprMap.insert(name, obj);
-  
+
   return true;
 }
 
@@ -434,12 +434,9 @@ api::Term SymbolTable::Implementation::lookup(const string& name) const
   }
 }
 
-void SymbolTable::Implementation::bindType(const string& name,
-                                           api::Sort t)
+void SymbolTable::Implementation::bindType(const string& name, api::Sort t)
 {
-
     d_typeMap.insert(name, make_pair(vector<api::Sort>(), t));
-  
 }
 
 void SymbolTable::Implementation::bindType(const string& name,
@@ -458,7 +455,6 @@ void SymbolTable::Implementation::bindType(const string& name,
   }
 
     d_typeMap.insert(name, make_pair(params, t));
-
 }
 
 bool SymbolTable::Implementation::isBoundType(const string& name) const {
