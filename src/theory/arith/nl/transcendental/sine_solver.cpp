@@ -113,9 +113,11 @@ void SineSolver::doReductions()
         d_data->d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
       }
+      // reduced
       continue;
     }
     valForSym[mva] = tf;
+    bool reduced = false;
     for (size_t i = 0, nmp = mpvs.size(); i < nmp; i++)
     {
       if (mva != mpvs[i])
@@ -131,9 +133,13 @@ void SineSolver::doReductions()
         d_data->d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
       }
+      reduced = true;
       break;
     }
-    nreduced.push_back(tf);
+    if (!reduced)
+    {
+      nreduced.push_back(tf);
+    }
   }
   if (nreduced.size() < it->second.size())
   {
