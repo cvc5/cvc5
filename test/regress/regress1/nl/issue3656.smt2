@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep
+; COMMAND-LINE: --ext-rew-prep=use
 ; EXPECT: sat
 (set-logic QF_NRA)   
 (set-info :status sat)  
