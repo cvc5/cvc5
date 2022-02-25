@@ -89,7 +89,7 @@ python3 -c "import pycvc5; solver = pycvc5.Solver(); print(solver.getIntegerSort
 ### Test PyPi
 
 In addition to the local test described above, you can do a test upload to
-[TestPyPi](https://packaging.python.org/guides/using-testpypi/). To do this from
+[TestPyPi](https://packaging.python.org/guides/using-testpypi/). To do this
 run the following after building the wheel:
 ```
 # start the virtualenv for this version (twine was installed here)
