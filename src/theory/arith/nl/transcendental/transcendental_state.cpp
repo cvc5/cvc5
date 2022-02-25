@@ -223,11 +223,11 @@ void TranscendentalState::getCurrentPiBounds()
 {
   Assert(!d_pi.isNull());
   Node piv = d_model.computeAbstractModelValue(d_pi);
-  // If the current value of PI is not initialized, or not within bounds, add the lemma.
-  // Notice that this preempts the need to explicitly track which lemmas
-  // regarding the bound of PI have been added.
-  if (!piv.isConst() || 
-    piv.getConst<Rational>() < d_pi_bound[0].getConst<Rational>()
+  // If the current value of PI is not initialized, or not within bounds, add
+  // the lemma. Notice that this preempts the need to explicitly track which
+  // lemmas regarding the bound of PI have been added.
+  if (!piv.isConst()
+      || piv.getConst<Rational>() < d_pi_bound[0].getConst<Rational>()
       || piv.getConst<Rational>() > d_pi_bound[1].getConst<Rational>())
   {
     NodeManager* nm = NodeManager::currentNM();
