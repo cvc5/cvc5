@@ -789,6 +789,7 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue7938-tf-model.smt2
   regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
@@ -2125,6 +2126,7 @@ set(regress_1_tests
   regress1/quantifiers/issue6845-nl-lemma-tc.smt2
   regress1/quantifiers/issue7385-sygus-inst-i.smt2
   regress1/quantifiers/issue7537-cegqi-comp-types.smt2
+  regress1/quantifiers/issue8157-duplicate-conflicts.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
