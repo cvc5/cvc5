@@ -1,10 +1,9 @@
-; COMMAND-LINE: --simplification=none --tlimit=100
-; EXPECT-ERROR: cvc5 interrupted by timeout.
-; EXIT: -6
+; COMMAND-LINE: --simplification=none
+; EXPECT: unknown
 (set-logic ALL)
 (declare-fun a () Real)
 (declare-fun b () Real)
 (assert (and (= a 0) (= b (cos a))))
 
-; currently this cannot be solved due to limitations on how arguments to sin are processed
+; currently returns unknown since reductions for sine don't track model values for boundary points, e.g. k = pi/2
 (check-sat)
