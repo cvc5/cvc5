@@ -46,9 +46,6 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteAtom(TNode t);
   static RewriteResponse postRewriteAtom(TNode t);
 
-  static Node makeSubtractionNode(TNode l, TNode r);
-  static Node makeUnaryMinusNode(TNode n);
-
   static RewriteResponse preRewriteTerm(TNode t);
   static RewriteResponse postRewriteTerm(TNode t);
 
@@ -56,8 +53,10 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse rewriteRAN(TNode t);
   static RewriteResponse rewriteVariable(TNode t);
 
-  static RewriteResponse rewriteSub(TNode t);
+  /** rewrite unary minus */
   static RewriteResponse rewriteNeg(TNode t, bool pre);
+  /** rewrite binary minus */
+  static RewriteResponse rewriteSub(TNode t);
   static RewriteResponse rewriteDiv(TNode t, bool pre);
   static RewriteResponse rewriteAbs(TNode t);
   static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
@@ -71,10 +70,14 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteMult(TNode t);
   static RewriteResponse postRewriteMult(TNode t);
 
+  /** postRewrite IAND */
   static RewriteResponse postRewriteIAnd(TNode t);
+  /** postRewrite POW2 */
   static RewriteResponse postRewritePow2(TNode t);
 
+  /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);
+  /** postRewrite transcendental functions */
   static RewriteResponse postRewriteTranscendental(TNode t);
 
   static bool isAtom(TNode n);

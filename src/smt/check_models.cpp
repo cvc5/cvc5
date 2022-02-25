@@ -41,13 +41,6 @@ void CheckModels::checkModel(TheoryModel* m,
   // If this function is running, the user gave --check-model (or equivalent),
   // and if verbose(1) is on, the user gave --verbose (or equivalent).
 
-  // check-model is not guaranteed to succeed if approximate values were used.
-  // Thus, we intentionally abort here.
-  if (m->hasApproximations())
-  {
-    throw RecoverableModalException(
-        "Cannot run check-model on a model with approximate values.");
-  }
   Node sepHeap, sepNeq;
   if (m->getHeapModel(sepHeap, sepNeq))
   {

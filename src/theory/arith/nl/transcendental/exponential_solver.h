@@ -27,7 +27,7 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-struct TranscendentalState;
+class TranscendentalState;
 
 /** Transcendental solver class
  *
