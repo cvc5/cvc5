@@ -59,12 +59,11 @@ SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
   Node one = nm->mkConstReal(Rational(1));
   Node negOne = nm->mkConstReal(Rational(0));
   Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-  Node pi_2 = rewrite(nm->mkNode(
-      Kind::MULT, pi, nm->mkConstReal(Rational(1) / Rational(2))));
-  Node pi_neg_2 = rewrite(nm->mkNode(
-      Kind::MULT, pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-  Node pi_neg =
-        rewrite(nm->mkNode(Kind::MULT, pi, negOne));
+  Node pi_2 = rewrite(
+      nm->mkNode(Kind::MULT, pi, nm->mkConstReal(Rational(1) / Rational(2))));
+  Node pi_neg_2 = rewrite(
+      nm->mkNode(Kind::MULT, pi, nm->mkConstReal(Rational(-1) / Rational(2))));
+  Node pi_neg = rewrite(nm->mkNode(Kind::MULT, pi, negOne));
   d_mpoints.push_back(pi);
   d_mpointsSine.push_back(zero);
   d_mpoints.push_back(pi_2);
@@ -82,8 +81,9 @@ SineSolver::~SineSolver() {}
 void SineSolver::doReductions()
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::map<Kind, std::vector<Node> >::iterator it = d_data->d_funcMap.find(kind::SINE);
-  if (it==d_data->d_funcMap.end())
+  std::map<Kind, std::vector<Node> >::iterator it =
+      d_data->d_funcMap.find(kind::SINE);
+  if (it == d_data->d_funcMap.end())
   {
     return;
   }
@@ -101,10 +101,10 @@ void SineSolver::doReductions()
     Node mv = d_data->d_model.computeAbstractModelValue(tf);
     Node mvaNeg = nm->mkConstReal(-mva.getConst<Rational>());
     itv = valForSym.find(mvaNeg);
-    if (itv!=valForSym.end())
+    if (itv != valForSym.end())
     {
       Node mvs = d_data->d_model.computeAbstractModelValue(itv->second);
-      if (mvs.getConst<Rational>()!=-mv.getConst<Rational>())
+      if (mvs.getConst<Rational>() != -mv.getConst<Rational>())
       {
         Node lem = nm->mkNode(kind::IMPLIES, tf[0].eqNode(nm->mkNode(kind::NEG, itv->second[0]), tf.eqNode(nm->mkNode(kind::NEG, itv->second)));
         d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
@@ -112,23 +112,26 @@ void SineSolver::doReductions()
       continue;
     }
     valForSym[mva] = tf;
-    for (size_t i=0, nmp = mpvs.size(); i<nmp; i++)
+    for (size_t i = 0, nmp = mpvs.size(); i < nmp; i++)
     {
-      if (mva!=mpvs[i])
+      if (mva != mpvs[i])
       {
         continue;
       }
-      if (mv!=d_mpointsSine[mv])
+      if (mv != d_mpointsSine[mv])
       {
         // reduction
-        Node lem = nm->mkNode(kind::IMPLIES, tf[0].eqNode(d_mpoints[i]), tf.eqNode(d_mpointsSine[i]));
-        d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
+        Node lem = nm->mkNode(kind::IMPLIES,
+                              tf[0].eqNode(d_mpoints[i]),
+                              tf.eqNode(d_mpointsSine[i]));
+        d_data->d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
       }
       break;
     }
     nreduced.push_back(tf);
   }
-  if (nreduced.size()<it->second.size())
+  if (nreduced.size() < it->second.size())
   {
     it->second = nreduced;
   }
