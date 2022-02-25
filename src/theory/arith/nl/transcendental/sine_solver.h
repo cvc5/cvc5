@@ -114,7 +114,7 @@ class SineSolver : protected EnvObj
    */
   Node regionToLowerBound(int region) const
   {
-    if (region>=1 && region<=4)
+    if (region >= 1 && region <= 4)
     {
       size_t index = static_cast<size_t>(region);
       return d_mpoints[index];
@@ -132,9 +132,9 @@ class SineSolver : protected EnvObj
    */
   Node regionToUpperBound(int region) const
   {
-    if (region>=1 && region<=4)
+    if (region >= 1 && region <= 4)
     {
-      size_t index = static_cast<size_t>(region-1);
+      size_t index = static_cast<size_t>(region - 1);
       return d_mpoints[index];
     }
     return Node();
