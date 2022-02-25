@@ -57,6 +57,7 @@
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -5435,6 +5436,34 @@ bool Solver::isValidInteger(const std::string& s) const
   return true;
 }
 
+void Solver::ensureWellFormedTerm(const Term& t) const
+{
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
+  {
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+    {
+      std::stringstream se;
+      se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
+         << " variable";
+      throw CVC5ApiException(se.str().c_str());
+    }
+  }
+}
+
+void Solver::ensureWellFormedTerms(const std::vector<Term>& ts) const
+{
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
+  {
+    for (const Term& t : ts)
+    {
+      ensureWellFormedTerm(t);
+    }
+  }
+}
+
 void Solver::resetStatistics()
 {
   if constexpr (configuration::isStatisticsBuild())
@@ -6631,6 +6660,7 @@ Result Solver::checkEntailed(const Term& term) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   return d_slv->checkEntailed(*term.d_node);
   ////////
@@ -6645,6 +6675,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
   return d_slv->checkEntailed(Term::termVectorToNodes(terms));
   ////////
@@ -6659,6 +6690,7 @@ void Solver::assertFormula(const Term& term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, getBooleanSort());
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   d_slv->assertFormula(*term.d_node);
   ////////
@@ -6686,6 +6718,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
+  ensureWellFormedTerm(assumption);
   //////// all checks before this line
   return d_slv->checkSat(*assumption.d_node);
   ////////
@@ -6700,6 +6733,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
+  ensureWellFormedTerms(assumptions);
   //////// all checks before this line
   for (const Term& term : assumptions)
   {
@@ -7286,6 +7320,7 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
       << "Cannot get value of a term of non-well-founded datatype sort.";
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7309,6 +7344,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
         << "Cannot get value of a term of non-well-founded datatype sort.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
 
   std::vector<Term> res;
@@ -7644,6 +7680,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
   d_slv->blockModelValues(Term::termVectorToNodes(terms));
   ////////

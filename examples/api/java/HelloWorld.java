@@ -21,7 +21,7 @@ public class HelloWorld
   {
     try (Solver slv = new Solver())
     {
-      Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
+      Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
 
       System.out.println(helloworld + " is " + slv.checkEntailed(helloworld));
     }

@@ -24,6 +24,7 @@
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
+#include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
@@ -235,6 +236,26 @@ class Env
    */
   bool isFiniteType(TypeNode tn) const;
 
+  /**
+   * Set the owner of the uninterpreted sort.
+   */
+  void setUninterpretedSortOwner(theory::TheoryId theory);
+
+  /**
+   * Get the owner of the uninterpreted sort.
+   */
+  theory::TheoryId getUninterpretedSortOwner() const;
+
+  /**
+   * Return the ID of the theory responsible for the given type.
+   */
+  theory::TheoryId theoryOf(TypeNode typeNode) const;
+
+  /**
+   * Returns the ID of the theory responsible for the given node.
+   */
+  theory::TheoryId theoryOf(TNode node) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -308,6 +329,8 @@ class Env
   const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
+  /** The theory that owns the uninterpreted sort. */
+  theory::TheoryId d_uninterpretedSortOwner;
 }; /* class Env */
 
 }  // namespace cvc5
