@@ -142,9 +142,11 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         for (const Node& ctf : d_tstate.d_funcCongClass[tf])
         {
           std::vector<Node> mset{ctf};
-          // if this purifies another term, we set a bound on the term it purifies as well
-          context::CDHashMap<Node, Node>::const_iterator itp = d_tstate.d_trPurifies.find(ctf);
-          if (itp != d_tstate.d_trPurifies.end() && itp->second!=ctf)
+          // if this purifies another term, we set a bound on the term it
+          // purifies as well
+          context::CDHashMap<Node, Node>::const_iterator itp =
+              d_tstate.d_trPurifies.find(ctf);
+          if (itp != d_tstate.d_trPurifies.end() && itp->second != ctf)
           {
             mset.push_back(itp->second);
           }

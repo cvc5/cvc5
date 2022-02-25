@@ -440,7 +440,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
 
 bool TranscendentalState::isPurified(TNode n) const
 {
-  return d_trPurifies.find(n)!=d_trPurifies.end();
+  return d_trPurifies.find(n) != d_trPurifies.end();
 }
 
 }  // namespace transcendental
