@@ -221,16 +221,16 @@ void TranscendentalState::mkPi()
 
 void TranscendentalState::getCurrentPiBounds()
 {
-  Assert (!d_pi.isNull());
+  Assert(!d_pi.isNull());
   Node piv = d_model.computeAbstractModelValue(d_pi);
-  Assert (piv.isConst());
-  if (piv.getConst<Rational>()<d_pi_bound[0].getConst<Rational>() ||
-      piv.getConst<Rational>()>d_pi_bound[1].getConst<Rational>())
+  Assert(piv.isConst());
+  if (piv.getConst<Rational>() < d_pi_bound[0].getConst<Rational>()
+      || piv.getConst<Rational>() > d_pi_bound[1].getConst<Rational>())
   {
     NodeManager* nm = NodeManager::currentNM();
     Node pi_lem = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
-                            nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
+                             nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
+                             nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
     CDProof* proof = nullptr;
     if (isProofEnabled())
     {
@@ -309,8 +309,8 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
                                            TNode splane,
                                            unsigned actual_d)
 {
-  Assert (lower.isConst() && upper.isConst());
-  Assert (lower.getConst<Rational>() < upper.getConst<Rational>());
+  Assert(lower.isConst() && upper.isConst());
+  Assert(lower.getConst<Rational>() < upper.getConst<Rational>());
   NodeManager* nm = NodeManager::currentNM();
   // With respect to Figure 3, this is slightly different.
   // In particular, we chose b to be the model value of bounds[s],
@@ -337,7 +337,9 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       antec_n,
       nm->mkNode(
           convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
-  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << ", value=" << d_model.computeAbstractModelValue(lem) << std::endl;
+  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << ", value="
+                          << d_model.computeAbstractModelValue(lem)
+                          << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
   CDProof* proof = nullptr;
   if (isProofEnabled())
