@@ -478,7 +478,6 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           Trace("fmc-warn") << "Warning : model for " << op
                             << " has non-constant argument in model " << ri
                             << " (from " << ci << ")" << std::endl;
-          Assert(false);
         }
         entry_children.push_back(ri);
       }
