@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep
+; COMMAND-LINE: --ext-rew-prep=use
 ; EXPECT: sat
 (set-logic QF_BV)
 (declare-fun a () (_ BitVec 4))
