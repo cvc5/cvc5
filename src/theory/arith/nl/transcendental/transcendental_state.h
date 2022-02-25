@@ -17,6 +17,7 @@
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/proof_set.h"
 #include "smt/env.h"
@@ -64,6 +65,7 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
 class TranscendentalState : protected EnvObj
 {
   using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
@@ -198,6 +200,8 @@ class TranscendentalState : protected EnvObj
   NodeMap d_trPurify;
   /** inverse mapping of above */
   NodeMap d_trPurifies;
+  /** The set of purification variables we have introduced */
+  NodeSet d_trPurifyVars;
 
   /** concavity region for transcendental functions
    *

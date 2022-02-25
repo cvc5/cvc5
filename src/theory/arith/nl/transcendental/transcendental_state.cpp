@@ -37,7 +37,8 @@ TranscendentalState::TranscendentalState(Env& env,
       d_im(im),
       d_model(model),
       d_trPurify(userContext()),
-      d_trPurifies(userContext())
+      d_trPurifies(userContext()),
+      d_trPurifyVars(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

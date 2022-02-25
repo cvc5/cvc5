@@ -76,6 +76,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
     d_tstate.d_trPurify[a] = new_a;
     d_tstate.d_trPurify[new_a] = new_a;
     d_tstate.d_trPurifies[new_a] = a;
+    d_tstate.d_trPurifyVars.insert(y);
     switch (k)
     {
       case Kind::SINE: d_sineSlv.doPhaseShift(a, new_a, y); break;
@@ -481,6 +482,13 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
     // skip integer variables
     if (am.first.getType().isInteger())
     {
+      Trace("nl-ext") << "...keep model value for integer " << am.first << std::endl;
+      continue;
+    }
+    // cannot erase values for purification arguments
+    if (d_tstate.d_trPurifyVars.find(am.first)!=d_tstate.d_trPurifyVars.end())
+    {
+      Trace("nl-ext") << "...keep model value for purification variable " << am.first << std::endl;
       continue;
     }
     Node r = d_astate.getRepresentative(am.first);
