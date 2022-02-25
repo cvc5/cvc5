@@ -270,26 +270,11 @@ RewriteResponse ArithRewriter::rewriteRAN(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteVariable(TNode t){
+RewriteResponse ArithRewriter::rewriteVariable(TNode t)
+{
   Assert(t.isVar());
 
   return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::rewriteSub(TNode t)
-{
-  Assert(t.getKind() == kind::SUB);
-  Assert(t.getNumChildren() == 2);
-
-  auto* nm = NodeManager::currentNM();
-
-  if (t[0] == t[1])
-  {
-    return RewriteResponse(REWRITE_DONE,
-                           nm->mkConstRealOrInt(t.getType(), Rational(0)));
-  }
-  return RewriteResponse(REWRITE_AGAIN_FULL,
-                         nm->mkNode(Kind::ADD, t[0], makeUnaryMinusNode(t[1])));
 }
 
 RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
@@ -299,23 +284,37 @@ RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
   if (t[0].isConst())
   {
     Rational neg = -(t[0].getConst<Rational>());
-    NodeManager* nm = NodeManager::currentNM();
-    return RewriteResponse(REWRITE_DONE,
-                           nm->mkConstRealOrInt(t[0].getType(), neg));
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(neg));
   }
-  if (t[0].getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  if (rewriter::isRAN(t[0]))
   {
-    const RealAlgebraicNumber& r =
-        t[0].getOperator().getConst<RealAlgebraicNumber>();
-    NodeManager* nm = NodeManager::currentNM();
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(-r));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::mkConst(-rewriter::getRAN(t[0])));
   }
 
-  Node noUminus = makeUnaryMinusNode(t[0]);
-  if(pre)
+  auto* nm = NodeManager::currentNM();
+  Node noUminus = nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[0]);
+  if (pre)
     return RewriteResponse(REWRITE_DONE, noUminus);
   else
     return RewriteResponse(REWRITE_AGAIN, noUminus);
+}
+
+RewriteResponse ArithRewriter::rewriteSub(TNode t)
+{
+  Assert(t.getKind() == kind::SUB);
+  Assert(t.getNumChildren() == 2);
+
+  if (t[0] == t[1])
+  {
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(0)));
+  }
+  auto* nm = NodeManager::currentNM();
+  return RewriteResponse(
+      REWRITE_AGAIN_FULL,
+      nm->mkNode(Kind::ADD,
+                 t[0],
+                 nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[1])));
 }
 
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
@@ -600,13 +599,6 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 
   return RewriteResponse(REWRITE_DONE,
                          rewriter::mkMultTerm(ran, std::move(leafs)));
-}
-
-Node ArithRewriter::makeUnaryMinusNode(TNode n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Rational qNegOne(-1);
-  return nm->mkNode(kind::MULT, nm->mkConstRealOrInt(n.getType(), qNegOne), n);
 }
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
