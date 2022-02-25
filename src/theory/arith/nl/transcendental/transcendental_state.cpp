@@ -161,7 +161,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   }
 }
 
-NodeSet* TranscendentalState::getSetForMaster(TNode m)
+context::CDHashSet<Node>* TranscendentalState::getSetForMaster(TNode m)
 {
   NodeSetMap::const_iterator it = d_trSlaves.find(m);
   if (it == d_trSlaves.end())

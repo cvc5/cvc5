@@ -163,8 +163,11 @@ class TranscendentalState : protected EnvObj
                       Convexity convexity,
                       unsigned d,
                       unsigned actual_d);
-  /** get set for master */
-  NodeSet* getSetForMaster(TNode m);
+  /**
+   * Get the set of transcendental function applications that the purified
+   * application m is asserted equal to.
+   */
+  context::CDHashSet<Node>* getSetForMaster(TNode m);
 
   Node d_true;
   Node d_false;

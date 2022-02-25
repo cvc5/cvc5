@@ -73,8 +73,9 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
     Node y = sm->mkSkolemFunction(
         SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), a);
     Node new_a = nm->mkNode(k, y);
-    d_tstate.d_trSlaves[new_a].insert(new_a);
-    d_tstate.d_trSlaves[new_a].insert(a);
+    context::CDHashSet<Node>* nmset = d_tstate.getSetForMaster(new_a);
+    nmset->insert(new_a);
+    nmset->insert(a);
     d_tstate.d_trMaster[a] = new_a;
     d_tstate.d_trMaster[new_a] = new_a;
     switch (k)
@@ -143,8 +144,9 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         {
           // each term in congruence classes should be master terms
           Assert(d_tstate.d_trSlaves.find(ctf) != d_tstate.d_trSlaves.end());
+          context::CDHashSet<Node>& mset = *d_tstate.getSetForMaster(ctf);
           // we set the bounds for each slave of tf
-          for (const Node& stf : d_tstate.d_trSlaves[ctf])
+          for (const Node& stf : mset)
           {
             Trace("nl-ext-cm")
                 << "...bound for " << stf << " : [" << bounds.first << ", "
