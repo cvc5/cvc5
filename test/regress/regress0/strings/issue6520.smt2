@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep
+; COMMAND-LINE: --ext-rew-prep=use
 (set-logic QF_SLIA)
 (declare-fun a () String)
 (declare-fun b () String)

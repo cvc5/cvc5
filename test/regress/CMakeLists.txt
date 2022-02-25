@@ -789,6 +789,9 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue7938-tf-model.smt2
+  regress0/nl/nta/issue8147-unc-model.smt2
+  regress0/nl/nta/issue8160-model-purify.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sqrt-simple.smt2
@@ -1007,6 +1010,7 @@ set(regress_0_tests
   regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/issue7353-var-elim-par-dt.smt2
   regress0/quantifiers/issue8001-mem-leak.smt2
+  regress0/quantifiers/issue8159-3-qext-nterm.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1820,6 +1824,7 @@ set(regress_1_tests
   regress1/fmf/issue6744-2-unc-bool-var.smt2
   regress1/fmf/issue6744-3-unc-bool-var.smt2
   regress1/fmf/issue8096-non-const-rep.smt2
+  regress1/fmf/issue8163-nconst-arg.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc.smt2
@@ -1910,6 +1915,7 @@ set(regress_1_tests
   regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/issue8118-elim-sin.smt2
+  regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2123,6 +2129,7 @@ set(regress_1_tests
   regress1/quantifiers/issue6845-nl-lemma-tc.smt2
   regress1/quantifiers/issue7385-sygus-inst-i.smt2
   regress1/quantifiers/issue7537-cegqi-comp-types.smt2
+  regress1/quantifiers/issue8157-duplicate-conflicts.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -2265,6 +2272,8 @@ set(regress_1_tests
   regress1/sep/wand-simp-sat.smt2
   regress1/sep/wand-simp-sat2.smt2
   regress1/sep/wand-simp-unsat.smt2
+  regress1/seq/issue8148-2-const-mv.smt2
+  regress1/seq/issue8148-const-mv.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2

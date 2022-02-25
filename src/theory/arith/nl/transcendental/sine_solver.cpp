@@ -111,15 +111,7 @@ void SineSolver::checkInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Node symn = nm->mkNode(Kind::SINE,
-                               nm->mkNode(Kind::MULT, d_data->d_neg_one, t[0]));
-        symn = rewrite(symn);
-        // Can assume it is its own master since phase is split over 0,
-        // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
-        d_data->d_trMaster[symn] = symn;
-        d_data->d_trSlaves[symn].insert(symn);
-        Assert(d_data->d_trSlaves.find(t) != d_data->d_trSlaves.end());
-
+        Assert(d_data->isPurified(t));
         {
           // sine bounds: -1 <= sin(t) <= 1
           Node lem = nm->mkNode(Kind::AND,

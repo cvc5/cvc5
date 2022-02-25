@@ -292,13 +292,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    if (d_nonlinearExtension != nullptr)
-    {
-      if (d_nonlinearExtension->assertModel(m, p.first))
-      {
-        continue;
-      }
-    }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
     if (m->assertEquality(p.first, p.second, true))
