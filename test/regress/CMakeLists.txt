@@ -1823,6 +1823,7 @@ set(regress_1_tests
   regress1/fmf/issue6744-2-unc-bool-var.smt2
   regress1/fmf/issue6744-3-unc-bool-var.smt2
   regress1/fmf/issue8096-non-const-rep.smt2
+  regress1/fmf/issue8163-nconst-arg.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc.smt2
@@ -1913,6 +1914,7 @@ set(regress_1_tests
   regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/issue8118-elim-sin.smt2
+  regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
