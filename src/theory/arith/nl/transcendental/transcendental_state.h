@@ -254,12 +254,6 @@ struct TranscendentalState : protected EnvObj
    * concrete lower and upper bounds stored in d_pi_bound below.
    */
   Node d_pi;
-  /** PI/2 */
-  Node d_pi_2;
-  /** -PI/2 */
-  Node d_pi_neg_2;
-  /** -PI */
-  Node d_pi_neg;
   /** the concrete lower and upper bounds for PI */
   Node d_pi_bound[2];
 };

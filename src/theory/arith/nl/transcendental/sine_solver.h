@@ -112,16 +112,14 @@ class SineSolver : protected EnvObj
    * is invalid, or there is no lower bound for the
    * region.
    */
-  Node regionToLowerBound(int region)
+  Node regionToLowerBound(int region) const
   {
-    switch (region)
+    if (region>=1 && region<=4)
     {
-      case 1: return d_data->d_pi_2;
-      case 2: return d_data->d_zero;
-      case 3: return d_data->d_pi_neg_2;
-      case 4: return d_data->d_pi_neg;
-      default: return Node();
+      size_t index = static_cast<size_t>(region);
+      return d_mpoints[index];
     }
+    return Node();
   }
 
   /** region to upper bound
@@ -132,19 +130,17 @@ class SineSolver : protected EnvObj
    * is invalid, or there is no upper bound for the
    * region.
    */
-  Node regionToUpperBound(int region)
+  Node regionToUpperBound(int region) const
   {
-    switch (region)
+    if (region>=1 && region<=4)
     {
-      case 1: return d_data->d_pi;
-      case 2: return d_data->d_pi_2;
-      case 3: return d_data->d_zero;
-      case 4: return d_data->d_pi_neg_2;
-      default: return Node();
+      size_t index = static_cast<size_t>(region-1);
+      return d_mpoints[index];
     }
+    return Node();
   }
 
-  int regionToMonotonicityDir(int region)
+  int regionToMonotonicityDir(int region) const
   {
     switch (region)
     {
@@ -155,7 +151,7 @@ class SineSolver : protected EnvObj
       default: return 0;
     }
   }
-  Convexity regionToConvexity(int region)
+  Convexity regionToConvexity(int region) const
   {
     switch (region)
     {

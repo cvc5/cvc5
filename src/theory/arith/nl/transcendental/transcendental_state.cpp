@@ -204,12 +204,6 @@ void TranscendentalState::mkPi()
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-    d_pi_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
-    d_pi_neg_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-    d_pi_neg =
-        rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
     // initialize bounds
     d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
     d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
