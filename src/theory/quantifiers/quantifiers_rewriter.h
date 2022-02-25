@@ -58,7 +58,8 @@ enum RewriteStep
   COMPUTE_COND_SPLIT,
   /**
    * Apply the extended rewriter to quantified formula bodies. This step
-   * must come last.
+   * must come last, since it may invert other steps above, e.g. conditional
+   * splitting.
    */
   COMPUTE_EXT_REWRITE,
   /** Placeholder for end of steps */
