@@ -784,7 +784,7 @@ bool TheoryModel::isBaseModelValue(TNode n) const
   }
   Kind k = n.getKind();
   if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-      || k == kind::WITNESS)
+      || k == kind::WITNESS || k == kind::PI)
   {
     // we are a value if we are one of the above kinds
     return true;
