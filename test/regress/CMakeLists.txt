@@ -789,6 +789,7 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sqrt-simple.smt2
@@ -2265,6 +2266,8 @@ set(regress_1_tests
   regress1/sep/wand-simp-sat.smt2
   regress1/sep/wand-simp-sat2.smt2
   regress1/sep/wand-simp-unsat.smt2
+  regress1/seq/issue8148-2-const-mv.smt2
+  regress1/seq/issue8148-const-mv.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
