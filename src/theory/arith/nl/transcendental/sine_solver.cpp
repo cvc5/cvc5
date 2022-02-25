@@ -57,13 +57,13 @@ SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConstReal(Rational(0));
   Node one = nm->mkConstReal(Rational(1));
-  Node negOne = nm->mkConstReal(Rational(0));
+  Node negOne = nm->mkConstReal(Rational(-1));
   d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   Node pi_2 = rewrite(
       nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
   Node pi_neg_2 = rewrite(
       nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-  Node pi_neg = rewrite(nm->mkNode(Kind::MULT, d_pi, negOne));
+  d_neg_pi = rewrite(nm->mkNode(Kind::MULT, d_pi, negOne));
   d_mpoints.push_back(d_pi);
   d_mpointsSine.push_back(zero);
   d_mpoints.push_back(pi_2);
@@ -72,7 +72,7 @@ SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
   d_mpointsSine.push_back(zero);
   d_mpoints.push_back(pi_neg_2);
   d_mpointsSine.push_back(negOne);
-  d_mpoints.push_back(pi_neg);
+  d_mpoints.push_back(d_neg_pi);
   d_mpointsSine.push_back(zero);
 }
 
@@ -242,10 +242,10 @@ void SineSolver::checkInitialRefine()
               Kind::AND,
               nm->mkNode(
                   Kind::IMPLIES,
-                  nm->mkNode(Kind::GT, t[0], nm->mkNode(kind::NEG, d_pi)),
+                  nm->mkNode(Kind::GT, t[0], d_neg_pi),
                   nm->mkNode(Kind::GT,
                              t,
-                             nm->mkNode(Kind::SUB, nm->mkNode(kind::NEG, d_pi), t[0]))),
+                             nm->mkNode(Kind::SUB, d_neg_pi, t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
                   nm->mkNode(Kind::LT, t[0], d_pi),
