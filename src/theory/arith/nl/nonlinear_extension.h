@@ -111,12 +111,6 @@ class NonlinearExtension : EnvObj
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
 
-  /**
-   * Retrieve the model value for the given variable. It may be either an
-   * arithmetic term or a witness.
-   */
-  Node getModelValue(TNode var) const;
-
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
 
@@ -268,12 +262,6 @@ class NonlinearExtension : EnvObj
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
-
-  /**
-   * The approximations computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, std::pair<Node, Node>> d_approximations;
 }; /* class NonlinearExtension */
 
 }  // namespace nl
