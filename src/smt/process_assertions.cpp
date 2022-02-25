@@ -170,7 +170,7 @@ bool ProcessAssertions::apply(Assertions& as)
 
   bool noConflict = true;
 
-  if (options().smt.extRewPrep)
+  if (options().smt.extRewPrep != options::ExtRewPrepMode::OFF)
   {
     applyPass("ext-rew-pre", as);
   }
