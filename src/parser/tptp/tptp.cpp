@@ -248,7 +248,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   {
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
-    expr = bindVar(p.d_name, t, true);  // must define at level zero
+    expr = bindVar(p.d_name, t);  // must define at level zero
     preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
   }
   return expr;
