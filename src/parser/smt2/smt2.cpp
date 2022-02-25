@@ -486,9 +486,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       return new EmptyCommand();
     }
   }
-  // builtin symbols of the logic are declared at context level zero, hence
-  // we pop the outermost scope and push again below
-  popScope();
 
   d_logicSet = true;
   d_logic = name;
@@ -635,9 +632,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::TABLE_PRODUCT, "table.product");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
-    defineType("String", d_solver->getStringSort());
-    defineType("RegLan", d_solver->getRegExpSort());
-    defineType("Int", d_solver->getIntegerSort());
+    defineType("String", d_solver->getStringSort(), true);
+    defineType("RegLan", d_solver->getRegExpSort(), true);
+    defineType("Int", d_solver->getIntegerSort(), true);
 
     defineVar("re.none", d_solver->mkRegexpNone());
     defineVar("re.allchar", d_solver->mkRegexpAllchar());
@@ -683,8 +680,14 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     addSepOperators();
   }
-  pushScope(true);
-
+  // Builtin symbols of the logic are declared at context level zero above.
+  // All other symbols are cleared by reset-assertions, hence we push an
+  // initial context here.
+  if (!d_symman->getGlobalDeclarations())
+  {
+    pushScope(true);
+  }
+  
   std::string logic = sygus() ? d_logic.getLogicString() : name;
   if (!fromCommand)
   {
