@@ -101,6 +101,7 @@ void SineSolver::doReductions()
     Node mv = d_data->d_model.computeAbstractModelValue(tf);
     Node mvaNeg = nm->mkConstReal(-mva.getConst<Rational>());
     itv = valForSym.find(mvaNeg);
+    bool reduced = false;
     if (itv != valForSym.end())
     {
       Node mvs = d_data->d_model.computeAbstractModelValue(itv->second);
@@ -113,33 +114,39 @@ void SineSolver::doReductions()
         d_data->d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
       }
-      // reduced
-      continue;
+      // we do not consider it reduced currently, since we require setting
+      // approximate bounds for it, alternatively we could carry the negation
+      // of the approximation in the transcendental solver
     }
-    valForSym[mva] = tf;
-    bool reduced = false;
-    for (size_t i = 0, nmp = mpvs.size(); i < nmp; i++)
+    else
     {
-      if (mva != mpvs[i])
+      valForSym[mva] = tf;
+      for (size_t i = 0, nmp = mpvs.size(); i < nmp; i++)
       {
-        continue;
+        if (mva != mpvs[i])
+        {
+          continue;
+        }
+        if (mv != d_mpointsSine[i])
+        {
+          // the argument is a boundary point, we reduce it if not already done so
+          Node lem = nm->mkNode(kind::IMPLIES,
+                                tf[0].eqNode(d_mpoints[i]),
+                                tf.eqNode(d_mpointsSine[i]));
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
+        }
+        else
+        {
+          // remember that the argument is equal to the boundary point
+          d_data->d_model.addSubstitution(tf[0], d_mpoints[i]);
+          // all congruent transcendental functions are exactly equal to its value
+          d_data->addModelBoundForPurifyTerm(
+              tf, d_mpointsSine[i], d_mpointsSine[i]);
+        }
+        reduced = true;
+        break;
       }
-      if (mv != d_mpointsSine[i])
-      {
-        // the argument is a boundary point, we reduce it if not already done so
-        Node lem = nm->mkNode(kind::IMPLIES,
-                              tf[0].eqNode(d_mpoints[i]),
-                              tf.eqNode(d_mpointsSine[i]));
-        d_data->d_im.addPendingLemma(
-            lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
-      }
-      else
-      {
-        d_data->addModelBoundForPurifyTerm(
-            tf, d_mpointsSine[i], d_mpointsSine[i]);
-      }
-      reduced = true;
-      break;
     }
     if (!reduced)
     {
