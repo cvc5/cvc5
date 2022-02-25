@@ -46,7 +46,17 @@ class SineSolver : protected EnvObj
   SineSolver(Env& env, TranscendentalState* tstate);
   ~SineSolver();
 
-  /** do reduction */
+  /** do reductions
+   *
+   * This method determines any applications of sin(x) that can be reasoned
+   * about "precisely", either via symmetry:
+   *   x = -y => sin(x) = -sin(y)
+   * or via boundary points, e.g.:
+   *   x = pi/2 => sin(x) = 1
+   * Each application of sin(x) for which a reduction of the form exists
+   * is removed from the range of d_funcMap in the transcendental state, and
+   * thus will not be considered for other lemma schemas.
+   */
   void doReductions();
   /**
    * Introduces new_a as purified version of a which is also shifted to the main
