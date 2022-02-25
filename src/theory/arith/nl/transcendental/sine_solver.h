@@ -53,7 +53,7 @@ class SineSolver : protected EnvObj
    *   x = -y => sin(x) = -sin(y)
    * or via boundary points, e.g.:
    *   x = pi/2 => sin(x) = 1
-   * Each application of sin(x) for which a reduction of the form exists
+   * Each application of sin(x) for which a reduction of the latter form exists
    * is removed from the range of d_funcMap in the transcendental state, and
    * thus will not be considered for other lemma schemas.
    */
