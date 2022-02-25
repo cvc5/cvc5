@@ -129,7 +129,8 @@ void SineSolver::doReductions()
         }
         if (mv != d_mpointsSine[i])
         {
-          // the argument is a boundary point, we reduce it if not already done so
+          // the argument is a boundary point, we reduce it if not already done
+          // so
           Node lem = nm->mkNode(kind::IMPLIES,
                                 tf[0].eqNode(d_mpoints[i]),
                                 tf.eqNode(d_mpointsSine[i]));
@@ -140,7 +141,8 @@ void SineSolver::doReductions()
         {
           // remember that the argument is equal to the boundary point
           d_data->d_model.addSubstitution(tf[0], d_mpoints[i]);
-          // all congruent transcendental functions are exactly equal to its value
+          // all congruent transcendental functions are exactly equal to its
+          // value
           d_data->addModelBoundForPurifyTerm(
               tf, d_mpointsSine[i], d_mpointsSine[i]);
         }
