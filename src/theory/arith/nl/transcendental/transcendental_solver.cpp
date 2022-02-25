@@ -148,7 +148,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       }
       if (!bounds.first.isNull() && !bounds.second.isNull())
       {
-        success = d_tstate.addModelBoundForPurifyTerm(tf, bounds.first, bounds.second);
+        success = d_tstate.addModelBoundForPurifyTerm(
+            tf, bounds.first, bounds.second);
       }
       else
       {

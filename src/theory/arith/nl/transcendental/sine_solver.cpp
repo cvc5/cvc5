@@ -135,7 +135,8 @@ void SineSolver::doReductions()
       }
       else
       {
-        d_data->addModelBoundForPurifyTerm(tf, d_mpointsSine[i], d_mpointsSine[i]);
+        d_data->addModelBoundForPurifyTerm(
+            tf, d_mpointsSine[i], d_mpointsSine[i]);
       }
       reduced = true;
       break;
