@@ -793,6 +793,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
+  regress0/nl/nta/sin-sym-schema.smt2
   regress0/nl/nta/sqrt-simple.smt2
   regress0/nl/nta/tan-rewrite.smt2
   regress0/nl/pow2-native-0.smt2

@@ -106,7 +106,7 @@ void SineSolver::doReductions()
       Node mvs = d_data->d_model.computeAbstractModelValue(itv->second);
       if (mvs.getConst<Rational>() != -mv.getConst<Rational>())
       {
-        Node lem = nm->mkNode(kind::IMPLIES, tf[0].eqNode(nm->mkNode(kind::NEG, itv->second[0]), tf.eqNode(nm->mkNode(kind::NEG, itv->second)));
+        Node lem = nm->mkNode(kind::IMPLIES, tf[0].eqNode(nm->mkNode(kind::NEG, itv->second[0])), tf.eqNode(nm->mkNode(kind::NEG, itv->second)));
         d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
       }
       continue;
@@ -118,9 +118,9 @@ void SineSolver::doReductions()
       {
         continue;
       }
-      if (mv != d_mpointsSine[mv])
+      if (mv != d_mpointsSine[i])
       {
-        // reduction
+        // the argument is a boundary point, we reduce it if not already done so
         Node lem = nm->mkNode(kind::IMPLIES,
                               tf[0].eqNode(d_mpoints[i]),
                               tf.eqNode(d_mpointsSine[i]));
