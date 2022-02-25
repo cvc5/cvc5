@@ -67,17 +67,15 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   for (const Node& a : needsMaster)
   {
     // should not have processed this already
-    Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
+    Assert(d_tstate.d_trPurify.find(a) == d_tstate.d_trPurify.end());
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
     Node y = sm->mkSkolemFunction(
         SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), a);
     Node new_a = nm->mkNode(k, y);
-    context::CDHashSet<Node>* nmset = d_tstate.getSetForMaster(new_a);
-    nmset->insert(new_a);
-    nmset->insert(a);
-    d_tstate.d_trMaster[a] = new_a;
-    d_tstate.d_trMaster[new_a] = new_a;
+    d_tstate.d_trPurify[a] = new_a;
+    d_tstate.d_trPurify[new_a] = new_a;
+    d_tstate.d_trPurifies[new_a] = a;
     switch (k)
     {
       case Kind::SINE: d_sineSlv.doPhaseShift(a, new_a, y); break;
@@ -91,7 +89,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
   Subs subs;
-  for (const auto& sub : d_tstate.d_trMaster)
+  for (const auto& sub : d_tstate.d_trPurify)
   {
     subs.add(sub.first, sub.second);
   }
@@ -116,6 +114,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                      << std::endl;
+  context::CDHashMap<Node, Node>::const_iterator itp;
   for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
   {
     for (const Node& tf : tfs.second)
@@ -142,10 +141,13 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         // for each function in the congruence classe
         for (const Node& ctf : d_tstate.d_funcCongClass[tf])
         {
-          // each term in congruence classes should be master terms
-          Assert(d_tstate.d_trSlaves.find(ctf) != d_tstate.d_trSlaves.end());
-          context::CDHashSet<Node>& mset = *d_tstate.getSetForMaster(ctf);
-          // we set the bounds for each slave of tf
+          std::vector<Node> mset{ctf};
+          // if this purifies, we set a bound on the term it purifies as well
+          itp = d_tstate.d_trPurifies.find(ctf);
+          if(itp != d_tstate.d_trPurifies.end())
+          {
+            mset.push_back( itp->second);
+          }
           for (const Node& stf : mset)
           {
             Trace("nl-ext-cm")

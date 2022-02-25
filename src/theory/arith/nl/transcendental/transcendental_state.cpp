@@ -33,7 +33,7 @@ namespace transcendental {
 TranscendentalState::TranscendentalState(Env& env,
                                          InferenceManager& im,
                                          NlModel& model)
-    : EnvObj(env), d_im(im), d_model(model), d_trMaster(userContext()), d_trSlaves(userContext())
+    : EnvObj(env), d_im(im), d_model(model), d_trPurify(userContext()), d_trPurifies(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -61,7 +61,7 @@ CDProof* TranscendentalState::getProof()
 }
 
 void TranscendentalState::init(const std::vector<Node>& xts,
-                               std::vector<Node>& needsMaster)
+                               std::vector<Node>& needsPurify)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
@@ -70,6 +70,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
+  NodeMap::const_iterator itp;
   for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
   {
     // Ignore if it is not a transcendental
@@ -80,11 +81,11 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     Node a = xts[i];
     Kind ak = a.getKind();
     bool consider = true;
-    // if we've already computed master for a
-    if (d_trMaster.find(a) != d_trMaster.end())
+    // if we've already assigned a purified term
+    itp = d_trPurify.find(a);
+    if (itp != d_trPurify.end())
     {
-      // a master has at least one slave
-      consider = (d_trSlaves.find(a) != d_trSlaves.end());
+      consider = itp->second==a;
     }
     else
     {
@@ -106,14 +107,13 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
       if (!consider)
       {
-        // wait to assign a master below
-        needsMaster.push_back(a);
+        // must assign a purified term
+        needsPurify.push_back(a);
       }
       else
       {
-        d_trMaster[a] = a;
-        NodeSet * mset = getSetForMaster(a);
-        mset->insert(a);
+        // assume own purified
+        d_trPurify[a] = a;
       }
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
@@ -159,17 +159,6 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
     }
   }
-}
-
-context::CDHashSet<Node>* TranscendentalState::getSetForMaster(TNode m)
-{
-  NodeSetMap::const_iterator it = d_trSlaves.find(m);
-  if (it == d_trSlaves.end())
-  {
-    d_trSlaves[m] = std::make_shared<NodeSet>(userContext());
-    it = d_trSlaves.find(m);
-  }
-  return it->second.get();
 }
 
 void TranscendentalState::ensureCongruence(TNode a,

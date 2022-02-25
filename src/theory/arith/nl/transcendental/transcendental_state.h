@@ -23,7 +23,6 @@
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "context/cdhashmap.h"
-#include "context/cdhashset.h"
 
 namespace cvc5 {
 class CDProof;
@@ -65,8 +64,6 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
 class TranscendentalState : protected EnvObj
 {
   using NodeMap = context::CDHashMap<Node, Node>;
-  using NodeSet = context::CDHashSet<Node>;
-  using NodeSetMap = context::CDHashMap<Node, std::shared_ptr<NodeSet>>;
  public:
   TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
 
@@ -86,10 +83,10 @@ class TranscendentalState : protected EnvObj
    *
    * This call may add lemmas to lems based on registering term
    * information (for example to ensure congruence of terms).
-   * It puts terms that need to be treated further as a master term on their own
-   * (for example purification of sine terms) into needsMaster.
+   * It puts terms that need to be treated further as a purified term on their own
+   * (for example purification of sine terms) into needsPurify.
    */
-  void init(const std::vector<Node>& xts, std::vector<Node>& needsMaster);
+  void init(const std::vector<Node>& xts, std::vector<Node>& needsPurify);
 
   /**
    * Checks for terms that are congruent but disequal to a.
@@ -163,11 +160,6 @@ class TranscendentalState : protected EnvObj
                       Convexity convexity,
                       unsigned d,
                       unsigned actual_d);
-  /**
-   * Get the set of transcendental function applications that the purified
-   * application m is asserted equal to.
-   */
-  context::CDHashSet<Node>* getSetForMaster(TNode m);
 
   Node d_true;
   Node d_false;
@@ -192,18 +184,19 @@ class TranscendentalState : protected EnvObj
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add
    * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
-   * purified we call "master terms".
+   * purified we call "purified terms".
    *
-   * The maps below maintain a master/slave relationship over
-   * transcendental functions (SINE, EXPONENTIAL, PI), where above
-   * f(y) is the master of itself and of f(t).
+   * The maps below maps transcendental function applications (SINE,
+   * EXPONENTIAL, PI) to their purified version, where above
+   * f(y) is the purified version of itself and of f(t).
    *
    * This is used for ensuring that the argument y of SINE we process is on
    * the interval [-pi .. pi], and that exponentials are not applied to
    * arguments that contain transcendental functions.
    */
-  NodeMap d_trMaster;
-  NodeSetMap d_trSlaves;
+  NodeMap d_trPurify;
+  /** inverse mapping of above */
+  NodeMap d_trPurifies;
 
   /** concavity region for transcendental functions
    *
