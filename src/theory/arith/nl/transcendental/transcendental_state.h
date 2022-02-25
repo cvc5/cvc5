@@ -202,7 +202,7 @@ class TranscendentalState : protected EnvObj
    * arguments that contain transcendental functions.
    */
   NodeMap d_trPurify;
-  /** inverse mapping of above */
+  /** inverse mapping of above, which is injective */
   NodeMap d_trPurifies;
   /** The set of purification variables we have introduced */
   NodeSet d_trPurifyVars;
