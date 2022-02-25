@@ -3003,6 +3003,19 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   ASSERT_NO_THROW(slv.simplify(t54));
 }
 
+TEST_F(TestApiBlackSolver, proj_issue440)
+{
+  Solver slv;
+  slv.setLogic("QF_ALL");
+  slv.setOption("global-negate", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s1 = slv.getBooleanSort();
+  Term t9 = slv.mkBoolean(true);
+  Term t109 = slv.mkTerm(Kind::NOT, {t9});
+  // should throw an option exception
+  ASSERT_THROW(slv.checkSatAssuming({t109}), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, proj_issue434)
 {
   Solver slv;
@@ -3039,7 +3052,8 @@ TEST_F(TestApiBlackSolver, proj_issue434)
   Term t1040 = slv.defineFun("_f45", {t1014}, t1039.getSort(), t1039);
   Term t1072 = slv.mkTerm(Kind::APPLY_UF, {t1040, t510});
   Term t1073 = slv.mkTerm(Kind::APPLY_UF, {t73, t1072});
-  ASSERT_NO_THROW(slv.checkSatAssuming({t1073, t510}));
+  // the query has free variables, and should throw an exception
+  ASSERT_THROW(slv.checkSatAssuming({t1073, t510}), CVC5ApiException);
 }
   
 TEST_F(TestApiBlackSolver, proj_issue436)

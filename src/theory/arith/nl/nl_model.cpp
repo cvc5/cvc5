@@ -1015,10 +1015,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(
-    std::map<Node, Node>& arithModel,
-    std::map<Node, std::pair<Node, Node>>& approximations,
-    bool witnessToValue)
+void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
@@ -1031,29 +1028,16 @@ void NlModel::getModelValueRepair(
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node>>& cb :
        d_check_model_bounds)
   {
     Node l = cb.second.first;
     Node u = cb.second.second;
-    Node pred;
     Node v = cb.first;
     if (l != u)
     {
-      pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      Trace("nl-model") << v << " approximated as " << pred << std::endl;
-      Node witness;
-      if (witnessToValue)
-      {
-        // witness is the midpoint
-        witness = nm->mkNode(MULT,
-                             nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
-                             nm->mkNode(ADD, l, u));
-        witness = rewrite(witness);
-        Trace("nl-model") << v << " witness is " << witness << std::endl;
-      }
-      approximations[v] = std::pair<Node, Node>(pred, witness);
+      Trace("nl-model") << v << " is in interval " << l << "..." << u
+                        << std::endl;
     }
     else
     {

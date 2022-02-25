@@ -1,5 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-inference --strings-exp -q
+; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 (set-logic ALL)
 (declare-fun a () String) 
 (declare-fun b () String) 

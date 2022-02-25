@@ -1,4 +1,5 @@
-; COMMAND-LINE:
+; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 (set-logic HO_ALL)
 (set-option :ag-miniscope-quant true)
 (set-option :conjecture-gen true)
