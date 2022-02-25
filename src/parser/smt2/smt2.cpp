@@ -486,6 +486,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       return new EmptyCommand();
     }
   }
+  popScope();
 
   d_logicSet = true;
   d_logic = name;
@@ -680,7 +681,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     addSepOperators();
   }
-
+  pushScope(true);
+  
   std::string logic = sygus() ? d_logic.getLogicString() : name;
   if (!fromCommand)
   {

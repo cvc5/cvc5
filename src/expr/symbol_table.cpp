@@ -526,7 +526,7 @@ size_t SymbolTable::Implementation::lookupArity(const string& name) {
 
 void SymbolTable::Implementation::popScope() {
   // should not pop beyond level one
-  if (d_context.getLevel() == 1)
+  if (d_context.getLevel() == 0)
   {
     throw ScopeException();
   }
