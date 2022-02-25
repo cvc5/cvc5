@@ -119,6 +119,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       {
         // assume own purified
         d_trPurify[a] = a;
+        d_trPurifies[a] = a;
       }
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
@@ -439,12 +440,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
 
 bool TranscendentalState::isPurified(TNode n) const
 {
-  NodeMap::const_iterator it = d_trPurify.find(n);
-  if (it != d_trPurify.end())
-  {
-    return it->second == n;
-  }
-  return false;
+  return d_trPurifies.find(n)!=d_trPurifies.end();
 }
 
 }  // namespace transcendental

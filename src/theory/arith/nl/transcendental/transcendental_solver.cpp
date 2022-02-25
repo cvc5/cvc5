@@ -115,7 +115,6 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm") << "----- Get bounds for transcendental functions..."
                      << std::endl;
-  context::CDHashMap<Node, Node>::const_iterator itp;
   for (std::pair<const Kind, std::vector<Node> >& tfs : d_tstate.d_funcMap)
   {
     for (const Node& tf : tfs.second)
@@ -143,9 +142,9 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         for (const Node& ctf : d_tstate.d_funcCongClass[tf])
         {
           std::vector<Node> mset{ctf};
-          // if this purifies, we set a bound on the term it purifies as well
-          itp = d_tstate.d_trPurifies.find(ctf);
-          if (itp != d_tstate.d_trPurifies.end())
+          // if this purifies another term, we set a bound on the term it purifies as well
+          context::CDHashMap<Node, Node>::const_iterator itp = d_tstate.d_trPurifies.find(ctf);
+          if (itp != d_tstate.d_trPurifies.end() && itp->second!=ctf)
           {
             mset.push_back(itp->second);
           }
