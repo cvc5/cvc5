@@ -183,6 +183,8 @@ class Tptp : public Parser {
 
  private:
   void addArithmeticOperators();
+  /** is declared */
+  api::Term isTptpDeclared(const std::string& name);
 
   // In CNF variable are implicitly binded
   // d_freevar collect them
@@ -194,6 +196,7 @@ class Tptp : public Parser {
   // The set of expression that already have a bridge
   std::unordered_set<api::Term> d_r_converted;
   std::unordered_map<std::string, api::Term> d_distinct_objects;
+  std::unordered_map<std::string, api::Term> d_auxSymbolTable;
 
   std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 
