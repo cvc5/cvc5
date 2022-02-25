@@ -196,6 +196,12 @@ class Tptp : public Parser {
   // The set of expression that already have a bridge
   std::unordered_set<api::Term> d_r_converted;
   std::unordered_map<std::string, api::Term> d_distinct_objects;
+  /**
+   * TPTP automatically declares symbols as they are parsed, this requires
+   * using an auxiliary symbol table for the background symbols that is
+   * independent of the main symbol table which is aware of quantifier
+   * scopes.
+   */
   std::unordered_map<std::string, api::Term> d_auxSymbolTable;
 
   std::vector< pANTLR3_INPUT_STREAM > d_in_created;
