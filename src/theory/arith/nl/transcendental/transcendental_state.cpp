@@ -133,9 +133,12 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     }
   }
   // initialize pi if necessary
-  if (needPi && d_pi.isNull())
+  if (needPi)
   {
-    mkPi();
+    if (d_pi.isNull())
+    {
+      mkPi();
+    }
     getCurrentPiBounds();
   }
 
@@ -299,6 +302,8 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
                                            TNode splane,
                                            unsigned actual_d)
 {
+  Assert (lower.isConst() && upper.isConst());
+  Assert (lower.getConst<Rational>() < upper.getConst<Rational>());
   NodeManager* nm = NodeManager::currentNM();
   // With respect to Figure 3, this is slightly different.
   // In particular, we chose b to be the model value of bounds[s],
@@ -325,7 +330,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       antec_n,
       nm->mkNode(
           convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
-  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
+  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << ", value=" << d_model.computeAbstractModelValue(lem) << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
   CDProof* proof = nullptr;
   if (isProofEnabled())
