@@ -54,9 +54,85 @@ inline Node mkValidPhase(TNode a, TNode pi)
 SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
     : EnvObj(env), d_data(tstate)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  Node zero = nm->mkConstReal(Rational(0));
+  Node one = nm->mkConstReal(Rational(1));
+  Node negOne = nm->mkConstReal(Rational(0));
+  Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+  Node pi_2 = rewrite(nm->mkNode(
+      Kind::MULT, pi, nm->mkConstReal(Rational(1) / Rational(2))));
+  Node pi_neg_2 = rewrite(nm->mkNode(
+      Kind::MULT, pi, nm->mkConstReal(Rational(-1) / Rational(2))));
+  Node pi_neg =
+        rewrite(nm->mkNode(Kind::MULT, pi, negOne));
+  d_mpoints.push_back(pi);
+  d_mpointsSine.push_back(zero);
+  d_mpoints.push_back(pi_2);
+  d_mpointsSine.push_back(one);
+  d_mpoints.push_back(zero);
+  d_mpointsSine.push_back(zero);
+  d_mpoints.push_back(pi_neg_2);
+  d_mpointsSine.push_back(negOne);
+  d_mpoints.push_back(pi_neg);
+  d_mpointsSine.push_back(zero);
 }
 
 SineSolver::~SineSolver() {}
+
+void SineSolver::doReductions()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::map<Kind, std::vector<Node> >::iterator it = d_data->d_funcMap.find(kind::SINE);
+  if (it==d_data->d_funcMap.end())
+  {
+    return;
+  }
+  std::vector<Node> mpvs;
+  for (const Node& m : d_mpoints)
+  {
+    mpvs.push_back(d_data->d_model.computeAbstractModelValue(m));
+  }
+  std::map<Node, Node> valForSym;
+  std::map<Node, Node>::iterator itv;
+  std::vector<Node> nreduced;
+  for (const Node& tf : it->second)
+  {
+    Node mva = d_data->d_model.computeAbstractModelValue(tf[0]);
+    Node mv = d_data->d_model.computeAbstractModelValue(tf);
+    Node mvaNeg = nm->mkConstReal(-mva.getConst<Rational>());
+    itv = valForSym.find(mvaNeg);
+    if (itv!=valForSym.end())
+    {
+      Node mvs = d_data->d_model.computeAbstractModelValue(itv->second);
+      if (mvs.getConst<Rational>()!=-mv.getConst<Rational>())
+      {
+        Node lem = nm->mkNode(kind::IMPLIES, tf[0].eqNode(nm->mkNode(kind::NEG, itv->second[0]), tf.eqNode(nm->mkNode(kind::NEG, itv->second)));
+        d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
+      }
+      continue;
+    }
+    valForSym[mva] = tf;
+    for (size_t i=0, nmp = mpvs.size(); i<nmp; i++)
+    {
+      if (mva!=mpvs[i])
+      {
+        continue;
+      }
+      if (mv!=d_mpointsSine[mv])
+      {
+        // reduction
+        Node lem = nm->mkNode(kind::IMPLIES, tf[0].eqNode(d_mpoints[i]), tf.eqNode(d_mpointsSine[i]));
+        d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
+      }
+      break;
+    }
+    nreduced.push_back(tf);
+  }
+  if (nreduced.size()<it->second.size())
+  {
+    it->second = nreduced;
+  }
+}
 
 void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
 {
@@ -239,18 +315,13 @@ void SineSolver::checkMonotonic()
   sortByNlModel(
       tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
 
-  std::vector<Node> mpoints = {d_data->d_pi,
-                               d_data->d_pi_2,
-                               d_data->d_zero,
-                               d_data->d_pi_neg_2,
-                               d_data->d_pi_neg};
   // Sound lower (index=0), upper (index=1) bounds for the above points. We
   // compute this by plugging in the upper and lower bound of pi.
   std::vector<Node> mpointsBound[2];
   TNode tpi = d_data->d_pi;
   for (size_t j = 0; j < 5; j++)
   {
-    Node point = mpoints[j];
+    Node point = d_mpoints[j];
     for (size_t i = 0; i < 2; i++)
     {
       Node mpointapprox = point;
@@ -287,7 +358,7 @@ void SineSolver::checkMonotonic()
 
     // increment to the proper monotonicity region
     bool increment = true;
-    while (increment && mdir_index < mpoints.size())
+    while (increment && mdir_index < d_mpoints.size())
     {
       increment = false;
       // if we are less than the upper bound of the next point
@@ -303,12 +374,12 @@ void SineSolver::checkMonotonic()
       if (increment)
       {
         tval = Node::null();
-        mono_bounds[1] = mpoints[mdir_index];
+        mono_bounds[1] = d_mpoints[mdir_index];
         mdir_index++;
         monotonic_dir = regionToMonotonicityDir(mdir_index);
-        if (mdir_index < mpoints.size())
+        if (mdir_index < d_mpoints.size())
         {
-          mono_bounds[0] = mpoints[mdir_index];
+          mono_bounds[0] = d_mpoints[mdir_index];
         }
         else
         {

@@ -124,6 +124,10 @@ enum class InferenceId
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
   //-------------------- nonlinear transcendental solver
+  // sine symmetry
+  ARITH_NL_T_SINE_SYMM,
+  // boundary reduction
+  ARITH_NL_T_SINE_BOUNDARY_REDUCE,
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)

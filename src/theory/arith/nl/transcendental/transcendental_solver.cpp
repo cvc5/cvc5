@@ -61,6 +61,13 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   if (d_tstate.d_im.hasUsed()) {
     return;
   }
+  
+  // apply reduction reasoning, e.g. x = pi/2 => sin(x) = 1
+  d_sineSlv.doReductions();
+  
+  if (d_tstate.d_im.hasUsed()) {
+    return;
+  }
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();

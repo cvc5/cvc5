@@ -46,6 +46,8 @@ class SineSolver : protected EnvObj
   SineSolver(Env& env, TranscendentalState* tstate);
   ~SineSolver();
 
+  /** do reduction */
+  void doReductions();
   /**
    * Introduces new_a as purified version of a which is also shifted to the main
    * phase (from -pi to pi). y is the new skolem used for purification.
@@ -171,6 +173,10 @@ class SineSolver : protected EnvObj
   /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
 
+  /** the boundary points */
+  std::vector<Node> d_mpoints;
+  /** the values of sine at the above boundary points */
+  std::vector<Node> d_mpointsSine;
 }; /* class SineSolver */
 
 }  // namespace transcendental
