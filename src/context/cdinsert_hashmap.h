@@ -195,10 +195,8 @@ private:
    * not copied: only the base class information and
    * d_size are needed in restore.
    */
-  CDInsertHashMap(const CDInsertHashMap& l) :
-    ContextObj(l),
-    d_insertMap(NULL),
-    d_size(l.d_size)
+  CDInsertHashMap(const CDInsertHashMap& l)
+      : ContextObj(l), d_insertMap(NULL), d_size(l.d_size)
   {
     Debug("CDInsertHashMap") << "copy ctor: " << this
                     << " from " << &l
@@ -224,12 +222,12 @@ private:
     return data;
   }
 protected:
-  /**
-   * Implementation of mandatory ContextObj method restore:
-   * restore to the previous size taking into account the number
-   * of new pushFront calls have happened since saving.
-   * The d_insertMap is untouched.
-   */
+ /**
+  * Implementation of mandatory ContextObj method restore:
+  * restore to the previous size taking into account the number
+  * of new pushFront calls have happened since saving.
+  * The d_insertMap is untouched.
+  */
  void restore(ContextObj* data) override
  {
    Debug("CDInsertHashMap")
@@ -252,12 +250,11 @@ public:
  /**
    * Main constructor: d_insertMap starts as an empty map, with the size is 0
    */
-  CDInsertHashMap(Context* context) :
-    ContextObj(context),
-    d_insertMap(new IHM()),
-    d_size(0){
-    Assert(d_insertMap->size() == d_size);
-  }
+ CDInsertHashMap(Context* context)
+     : ContextObj(context), d_insertMap(new IHM()), d_size(0)
+ {
+   Assert(d_insertMap->size() == d_size);
+ }
 
   /**
    * Destructor: delete the d_insertMap

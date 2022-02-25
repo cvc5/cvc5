@@ -252,15 +252,15 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-
 api::Term Tptp::isTptpDeclared(const std::string& name)
 {
   if (isDeclared(name))
   {  // already appeared
     return getVariable(name);
   }
-  std::unordered_map<std::string, api::Term>::iterator it = d_auxSymbolTable.find(name);
-  if (it!=d_auxSymbolTable.end())
+  std::unordered_map<std::string, api::Term>::iterator it =
+      d_auxSymbolTable.find(name);
+  if (it != d_auxSymbolTable.end())
   {
     return it->second;
   }
