@@ -22,6 +22,8 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 
 namespace cvc5 {
 class CDProof;
@@ -60,8 +62,12 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  * This includes common lookups and caches as well as generic utilities for
  * secant plane lemmas and taylor approximations.
  */
-struct TranscendentalState : protected EnvObj
+class TranscendentalState : protected EnvObj
 {
+  using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
+  using NodeSetMap = context::CDHashMap<Node, std::shared_ptr<NodeSet>>;
+ public:
   TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
 
   /**
@@ -157,6 +163,8 @@ struct TranscendentalState : protected EnvObj
                       Convexity convexity,
                       unsigned d,
                       unsigned actual_d);
+  /** get set for master */
+  NodeSet* getSetForMaster(TNode m);
 
   Node d_true;
   Node d_false;
@@ -191,8 +199,8 @@ struct TranscendentalState : protected EnvObj
    * the interval [-pi .. pi], and that exponentials are not applied to
    * arguments that contain transcendental functions.
    */
-  std::map<Node, Node> d_trMaster;
-  std::map<Node, std::unordered_set<Node>> d_trSlaves;
+  NodeMap d_trMaster;
+  NodeSetMap d_trSlaves;
 
   /** concavity region for transcendental functions
    *

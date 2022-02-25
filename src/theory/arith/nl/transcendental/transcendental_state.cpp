@@ -33,7 +33,7 @@ namespace transcendental {
 TranscendentalState::TranscendentalState(Env& env,
                                          InferenceManager& im,
                                          NlModel& model)
-    : EnvObj(env), d_im(im), d_model(model)
+    : EnvObj(env), d_im(im), d_model(model), d_trMaster(userContext()), d_trSlaves(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -112,7 +112,8 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       else
       {
         d_trMaster[a] = a;
-        d_trSlaves[a].insert(a);
+        NodeSet * mset = getSetForMaster(a);
+        mset->insert(a);
       }
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
@@ -158,6 +159,17 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
     }
   }
+}
+
+NodeSet* TranscendentalState::getSetForMaster(TNode m)
+{
+  NodeSetMap::const_iterator it = d_trSlaves.find(m);
+  if (it == d_trSlaves.end())
+  {
+    d_trSlaves[m] = std::make_shared<NodeSet>(userContext());
+    it = d_trSlaves.find(m);
+  }
+  return it->second.get();
 }
 
 void TranscendentalState::ensureCongruence(TNode a,
