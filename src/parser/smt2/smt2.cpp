@@ -682,7 +682,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addSepOperators();
   }
   pushScope(true);
-  
+
   std::string logic = sygus() ? d_logic.getLogicString() : name;
   if (!fromCommand)
   {
