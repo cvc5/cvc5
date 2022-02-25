@@ -45,8 +45,6 @@ enum RewriteStep
   COMPUTE_MINISCOPING,
   /** Aggressive miniscoping */
   COMPUTE_AGGRESSIVE_MINISCOPING,
-  /** Apply the extended rewriter to quantified formula bodies */
-  COMPUTE_EXT_REWRITE,
   /**
    * Term processing (e.g. simplifying terms based on ITE lifting,
    * eliminating extended arithmetic symbols).
@@ -58,6 +56,11 @@ enum RewriteStep
   COMPUTE_VAR_ELIMINATION,
   /** Conditional splitting */
   COMPUTE_COND_SPLIT,
+  /**
+   * Apply the extended rewriter to quantified formula bodies. This step
+   * must come last.
+   */
+  COMPUTE_EXT_REWRITE,
   /** Placeholder for end of steps */
   COMPUTE_LAST
 };
