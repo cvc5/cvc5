@@ -486,6 +486,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       return new EmptyCommand();
     }
   }
+  // builtin symbols of the logic are declared at context level zero, hence
+  // we pop the outermost scope and push again below  FIXME: clean this
+  popScope();
 
   d_logicSet = true;
   d_logic = name;
@@ -680,13 +683,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     addSepOperators();
   }
-  // Builtin symbols of the logic are declared at context level zero above.
-  // All other symbols are cleared by reset-assertions, hence we push an
-  // initial context here.
-  if (!d_symman->getGlobalDeclarations())
-  {
-    pushScope(true);
-  }
+
+  pushScope(true);
 
   std::string logic = sygus() ? d_logic.getLogicString() : name;
   if (!fromCommand)
