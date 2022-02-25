@@ -133,9 +133,12 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     }
   }
   // initialize pi if necessary
-  if (needPi && d_pi.isNull())
+  if (needPi)
   {
-    mkPi();
+    if (d_pi.isNull())
+    {
+      mkPi();
+    }
     getCurrentPiBounds();
   }
 
@@ -218,18 +221,28 @@ void TranscendentalState::mkPi()
 
 void TranscendentalState::getCurrentPiBounds()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node pi_lem = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
-                           nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
-  CDProof* proof = nullptr;
-  if (isProofEnabled())
+  Assert(!d_pi.isNull());
+  Node piv = d_model.computeAbstractModelValue(d_pi);
+  // If the current value of PI is not initialized, or not within bounds, add
+  // the lemma. Notice that this preempts the need to explicitly track which
+  // lemmas regarding the bound of PI have been added.
+  if (!piv.isConst()
+      || piv.getConst<Rational>() < d_pi_bound[0].getConst<Rational>()
+      || piv.getConst<Rational>() > d_pi_bound[1].getConst<Rational>())
   {
-    proof = getProof();
-    proof->addStep(
-        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+    NodeManager* nm = NodeManager::currentNM();
+    Node pi_lem = nm->mkNode(Kind::AND,
+                             nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
+                             nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
+    CDProof* proof = nullptr;
+    if (isProofEnabled())
+    {
+      proof = getProof();
+      proof->addStep(
+          pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+    }
+    d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
   }
-  d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
@@ -299,6 +312,8 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
                                            TNode splane,
                                            unsigned actual_d)
 {
+  Assert(lower.isConst() && upper.isConst());
+  Assert(lower.getConst<Rational>() < upper.getConst<Rational>());
   NodeManager* nm = NodeManager::currentNM();
   // With respect to Figure 3, this is slightly different.
   // In particular, we chose b to be the model value of bounds[s],
@@ -325,7 +340,9 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       antec_n,
       nm->mkNode(
           convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
-  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
+  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << ", value="
+                          << d_model.computeAbstractModelValue(lem)
+                          << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
   CDProof* proof = nullptr;
   if (isProofEnabled())
