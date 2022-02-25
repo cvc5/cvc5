@@ -38,7 +38,6 @@
 #include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "util/smt2_quote_string.h"
-#include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
 using namespace std;
@@ -344,10 +343,6 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->assertFormula(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -377,10 +372,6 @@ void PushCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->push();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -408,10 +399,6 @@ void PopCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     solver->pop();
     d_commandStatus = CommandSuccess::instance();
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
   }
   catch (exception& e)
   {
@@ -1509,10 +1496,6 @@ void SimplifyCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->simplify(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1587,10 +1570,6 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
   catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
   }
   catch (exception& e)
   {
@@ -1667,10 +1646,6 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1728,10 +1703,6 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1783,10 +1754,6 @@ void BlockModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1836,10 +1803,6 @@ void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
   catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
   }
   catch (exception& e)
   {

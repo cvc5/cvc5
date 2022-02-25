@@ -342,11 +342,10 @@ void BVSolverBitblast::initSatSolver()
           d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
   }
-  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+  d_cnfStream.reset(new prop::CnfStream(d_env,
+                                        d_satSolver.get(),
                                         d_bbRegistrar.get(),
                                         d_nullContext.get(),
-                                        nullptr,
-                                        d_env.getResourceManager(),
                                         prop::FormulaLitPolicy::INTERNAL,
                                         "theory::bv::BVSolverBitblast"));
 }
