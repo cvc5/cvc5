@@ -169,6 +169,8 @@ class SineSolver : protected EnvObj
   /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
 
+  /** PI */
+  Node d_pi;
   /** the boundary points */
   std::vector<Node> d_mpoints;
   /** the values of sine at the above boundary points */

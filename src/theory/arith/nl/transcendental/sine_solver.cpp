@@ -58,13 +58,13 @@ SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
   Node zero = nm->mkConstReal(Rational(0));
   Node one = nm->mkConstReal(Rational(1));
   Node negOne = nm->mkConstReal(Rational(0));
-  Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+  d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   Node pi_2 = rewrite(
-      nm->mkNode(Kind::MULT, pi, nm->mkConstReal(Rational(1) / Rational(2))));
+      nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
   Node pi_neg_2 = rewrite(
-      nm->mkNode(Kind::MULT, pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-  Node pi_neg = rewrite(nm->mkNode(Kind::MULT, pi, negOne));
-  d_mpoints.push_back(pi);
+      nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
+  Node pi_neg = rewrite(nm->mkNode(Kind::MULT, d_pi, negOne));
+  d_mpoints.push_back(d_pi);
   d_mpointsSine.push_back(zero);
   d_mpoints.push_back(pi_2);
   d_mpointsSine.push_back(one);
@@ -143,22 +143,21 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
   SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
-  Assert(!d_data->d_pi.isNull());
   Node shift = sm->mkDummySkolem("s", nm->integerType(), "number of shifts");
   // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
   // refinement for constant shifts (cvc4-projects #1284)
   Node lem = nm->mkNode(
       Kind::AND,
-      mkValidPhase(y, d_data->d_pi),
+      mkValidPhase(y, d_pi),
       nm->mkNode(Kind::ITE,
-                 mkValidPhase(a[0], d_data->d_pi),
+                 mkValidPhase(a[0], d_pi),
                  a[0].eqNode(y),
                  a[0].eqNode(nm->mkNode(Kind::ADD,
                                         y,
                                         nm->mkNode(Kind::MULT,
                                                    nm->mkConstReal(Rational(2)),
                                                    shift,
-                                                   d_data->d_pi)))),
+                                                   d_pi)))),
       new_a.eqNode(a));
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())
@@ -243,15 +242,15 @@ void SineSolver::checkInitialRefine()
               Kind::AND,
               nm->mkNode(
                   Kind::IMPLIES,
-                  nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
+                  nm->mkNode(Kind::GT, t[0], nm->mkNode(kind::NEG, d_pi)),
                   nm->mkNode(Kind::GT,
                              t,
-                             nm->mkNode(Kind::SUB, d_data->d_pi_neg, t[0]))),
+                             nm->mkNode(Kind::SUB, nm->mkNode(kind::NEG, d_pi), t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
-                  nm->mkNode(Kind::LT, t[0], d_data->d_pi),
+                  nm->mkNode(Kind::LT, t[0], d_pi),
                   nm->mkNode(
-                      Kind::LT, t, nm->mkNode(Kind::SUB, d_data->d_pi, t[0]))));
+                      Kind::LT, t, nm->mkNode(Kind::SUB, d_pi, t[0]))));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -321,7 +320,7 @@ void SineSolver::checkMonotonic()
   // Sound lower (index=0), upper (index=1) bounds for the above points. We
   // compute this by plugging in the upper and lower bound of pi.
   std::vector<Node> mpointsBound[2];
-  TNode tpi = d_data->d_pi;
+  TNode tpi = d_pi;
   for (size_t j = 0; j < 5; j++)
   {
     Node point = d_mpoints[j];
