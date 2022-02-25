@@ -40,7 +40,7 @@ def get_project_src_path():
     for i in range(3):
         name = os.path.dirname(name)
     name = os.path.abspath(name)
-    if not os.path.isdir(os.path.join(name, 'configure.sh')):
+    if not os.path.isfile(os.path.join(name, 'configure.sh')):
         raise RuntimeError('Finding the project source path failed. We guessed ' + name)
     return name
 
