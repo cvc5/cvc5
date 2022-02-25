@@ -1028,7 +1028,6 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node>>& cb :
        d_check_model_bounds)
   {
