@@ -23,7 +23,10 @@
 #include "expr/node.h"
 #include "theory/arith/rewriter/addition.h"
 
-namespace cvc5::theory::arith::rewriter {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace rewriter {
 
 /**
  * Tries to evaluate the given relation. Returns std::nullopt if either left
@@ -84,6 +87,9 @@ Node buildIntegerInequality(Sum&& sum, Kind k);
  */
 Node buildRealInequality(Sum&& sum, Kind k);
 
-}  // namespace cvc5::theory::arith::rewriter
+}  // namespace rewriter
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif
