@@ -197,8 +197,8 @@ class Tptp : public Parser {
   std::unordered_set<api::Term> d_r_converted;
   std::unordered_map<std::string, api::Term> d_distinct_objects;
   /**
-   * TPTP automatically declares symbols as they are parsed inline. This requires
-   * using an auxiliary symbol table for such symbols. This must be
+   * TPTP automatically declares symbols as they are parsed inline. This
+   * requires using an auxiliary symbol table for such symbols. This must be
    * independent of the main symbol table which is aware of quantifier
    * scopes.
    */
