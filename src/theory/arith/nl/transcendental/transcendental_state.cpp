@@ -221,18 +221,25 @@ void TranscendentalState::mkPi()
 
 void TranscendentalState::getCurrentPiBounds()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node pi_lem = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
-                           nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
-  CDProof* proof = nullptr;
-  if (isProofEnabled())
+  Assert (!d_pi.isNull());
+  Node piv = d_model.computeAbstractModelValue(d_pi);
+  Assert (piv.isConst());
+  if (piv.getConst<Rational>()<d_pi_bound[0].getConst<Rational>() ||
+      piv.getConst<Rational>()>d_pi_bound[1].getConst<Rational>())
   {
-    proof = getProof();
-    proof->addStep(
-        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+    NodeManager* nm = NodeManager::currentNM();
+    Node pi_lem = nm->mkNode(Kind::AND,
+                            nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
+                            nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
+    CDProof* proof = nullptr;
+    if (isProofEnabled())
+    {
+      proof = getProof();
+      proof->addStep(
+          pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+    }
+    d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
   }
-  d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
