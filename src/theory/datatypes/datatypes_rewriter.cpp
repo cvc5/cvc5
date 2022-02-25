@@ -838,17 +838,6 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
   return sel;
-  /*
-  Node tester = c.getTester();
-  Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
-  SkolemManager* sm = nm->getSkolemManager();
-  TypeNode tnw = nm->mkFunctionType(ndt, n.getType());
-  Node f = sm->mkSkolemFunction(SkolemFunId::SELECTOR_WRONG, tnw, selector);
-  Node sk = nm->mkNode(kind::APPLY_UF, f, n[0]);
-  Node ret = sel;//nm->mkNode(kind::ITE, tst, sel, sk);
-  Trace("dt-expand") << "Expand def : " << n << " to " << ret << std::endl;
-  return ret;
-  */
 }
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
