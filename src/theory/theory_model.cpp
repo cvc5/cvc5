@@ -80,8 +80,6 @@ void TheoryModel::reset(){
   d_modelCache.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
-  d_approximations.clear();
-  d_approx_list.clear();
   d_reps.clear();
   d_assignExcSet.clear();
   d_aesMaster.clear();
@@ -108,13 +106,6 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
   h = d_sep_heap;
   neq = d_sep_nil_eq;
   return true;
-}
-
-bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
-
-std::vector<std::pair<Node, Node> > TheoryModel::getApproximations() const
-{
-  return d_approx_list;
 }
 
 std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
@@ -276,18 +267,6 @@ Node TheoryModel::getModelValue(TNode n) const
       d_modelCache[n] = ret;
       return ret;
     }
-  }
-  // it might be approximate
-  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
-  if (ita != d_approximations.end())
-  {
-    // If the value of n is approximate based on predicate P(n), we return
-    // witness z. P(z).
-    Node v = nm->mkBoundVar(n.getType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = answer;
-    return answer;
   }
   // must rewrite the term at this point
   ret = rewrite(n);
@@ -588,23 +567,6 @@ bool TheoryModel::hasAssignmentExclusionSets() const
   return !d_assignExcSet.empty();
 }
 
-void TheoryModel::recordApproximation(TNode n, TNode pred)
-{
-  Trace("model-builder-debug")
-      << "Record approximation : " << n << " satisfies the predicate " << pred
-      << std::endl;
-  Assert(d_approximations.find(n) == d_approximations.end());
-  Assert(pred.getType().isBoolean());
-  d_approximations[n] = pred;
-  d_approx_list.push_back(std::pair<Node, Node>(n, pred));
-  // model cache is invalid
-  d_modelCache.clear();
-}
-void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
-{
-  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
-  recordApproximation(n, predDisj);
-}
 bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
