@@ -447,7 +447,6 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
   Assert(t.getKind() == kind::ADD);
   return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
