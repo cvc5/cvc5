@@ -71,10 +71,14 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteMult(TNode t);
   static RewriteResponse postRewriteMult(TNode t);
 
+  /** postRewrite IAND */
   static RewriteResponse postRewriteIAnd(TNode t);
+  /** postRewrite POW2 */
   static RewriteResponse postRewritePow2(TNode t);
 
+  /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);
+  /** postRewrite transcendental functions */
   static RewriteResponse postRewriteTranscendental(TNode t);
 
   static bool isAtom(TNode n);
