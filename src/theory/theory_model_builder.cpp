@@ -1124,11 +1124,6 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-  if (tm->hasApproximations())
-  {
-    // models with approximations may fail the assertions below
-    return;
-  }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   std::map<Node, Node>::iterator itMap;
   // Check that every term evaluates to its representative in the model
