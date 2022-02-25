@@ -321,6 +321,8 @@ void SineSolver::checkMonotonic()
     if (mdir_index > 0
         && sargvalr > mpointsBound[0][mdir_index - 1].getConst<Rational>())
     {
+      // can't take this value into account for monotonicity
+      tval = Node::null();
       d_data->d_tf_region[s] = -1;
       Trace("nl-ext-concavity")
           << "Cannot determine the region of transcendental function " << s
