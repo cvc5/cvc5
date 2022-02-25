@@ -1015,8 +1015,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(
-    std::map<Node, Node>& arithModel)
+void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
@@ -1038,7 +1037,8 @@ void NlModel::getModelValueRepair(
     Node v = cb.first;
     if (l != u)
     {
-      Trace("nl-model") << v << " is in interval " << l << "..." << u << std::endl;
+      Trace("nl-model") << v << " is in interval " << l << "..." << u
+                        << std::endl;
     }
     else
     {

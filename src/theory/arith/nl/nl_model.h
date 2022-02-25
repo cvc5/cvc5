@@ -174,8 +174,7 @@ class NlModel : protected EnvObj
    * The mapping arithModel is updated by this method to map arithmetic terms v
    * to their (exact) value that was computed during checkModel.
    */
-  void getModelValueRepair(
-      std::map<Node, Node>& arithModel);
+  void getModelValueRepair(std::map<Node, Node>& arithModel);
 
  private:
   /** Cache for concrete model values */
