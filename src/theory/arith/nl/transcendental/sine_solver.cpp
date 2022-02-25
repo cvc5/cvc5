@@ -133,6 +133,10 @@ void SineSolver::doReductions()
         d_data->d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
       }
+      else
+      {
+        d_data->d_model.addBound(tf, d_mpointsSine[i], d_mpointsSine[i]);
+      }
       reduced = true;
       break;
     }
