@@ -93,14 +93,13 @@ void SineSolver::doReductions()
     mpvs.push_back(d_data->d_model.computeAbstractModelValue(m));
   }
   std::map<Node, Node> valForSym;
-  std::map<Node, Node>::iterator itv;
   std::vector<Node> nreduced;
   for (const Node& tf : it->second)
   {
     Node mva = d_data->d_model.computeAbstractModelValue(tf[0]);
     Node mv = d_data->d_model.computeAbstractModelValue(tf);
     Node mvaNeg = nm->mkConstReal(-mva.getConst<Rational>());
-    itv = valForSym.find(mvaNeg);
+    std::map<Node, Node>::iterator itv = valForSym.find(mvaNeg);
     bool reduced = false;
     if (itv != valForSym.end())
     {
