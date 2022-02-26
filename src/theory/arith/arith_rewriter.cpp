@@ -459,86 +459,26 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 }
 
 
-RewriteResponse ArithRewriter::preRewritePlus(TNode t){
+RewriteResponse ArithRewriter::preRewritePlus(TNode t)
+{
   Assert(t.getKind() == kind::ADD);
   return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
-RewriteResponse ArithRewriter::postRewritePlus(TNode t){
+RewriteResponse ArithRewriter::postRewritePlus(TNode t)
+{
   Assert(t.getKind() == kind::ADD);
   Assert(t.getNumChildren() > 1);
 
-  {
-    Node flat = expr::algorithm::flatten(t);
-    if (flat != t)
-    {
-      return RewriteResponse(REWRITE_AGAIN, flat);
-    }
-  }
+  std::vector<TNode> children;
+  expr::algorithm::flatten(t, children);
 
-  Rational rational;
-  RealAlgebraicNumber ran;
-  std::vector<Monomial> monomials;
-  std::vector<Polynomial> polynomials;
-
-  for (const auto& child : t)
+  rewriter::Sum sum;
+  for (const auto& child : children)
   {
-    if (child.isConst())
-    {
-      if (child.getConst<Rational>().isZero())
-      {
-        continue;
-      }
-      rational += child.getConst<Rational>();
-    }
-    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      ran += child.getOperator().getConst<RealAlgebraicNumber>();
-    }
-    else if (Monomial::isMember(child))
-    {
-      monomials.emplace_back(Monomial::parseMonomial(child));
-    }
-    else
-    {
-      polynomials.emplace_back(Polynomial::parsePolynomial(child));
-    }
+    rewriter::addToSum(sum, child);
   }
-
-  if(!monomials.empty()){
-    Monomial::sort(monomials);
-    Monomial::combineAdjacentMonomials(monomials);
-    polynomials.emplace_back(Polynomial::mkPolynomial(monomials));
-  }
-  if (!rational.isZero())
-  {
-    polynomials.emplace_back(
-        Polynomial::mkPolynomial(Constant::mkConstant(rational)));
-  }
-
-  Polynomial poly = Polynomial::sumPolynomials(polynomials);
-
-  if (isZero(ran))
-  {
-    return RewriteResponse(REWRITE_DONE, poly.getNode());
-  }
-  if (poly.containsConstant())
-  {
-    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    if (!poly.isConstant())
-    {
-      poly = poly.getTail();
-    }
-  }
-
-  auto* nm = NodeManager::currentNM();
-  if (poly.isConstant())
-  {
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
-  }
-  return RewriteResponse(
-      REWRITE_DONE,
-      nm->mkNode(Kind::ADD, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+  return RewriteResponse(REWRITE_DONE, rewriter::collectSum(sum));
 }
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode node)
