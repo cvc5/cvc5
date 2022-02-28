@@ -49,8 +49,9 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteTerm(TNode t);
   static RewriteResponse postRewriteTerm(TNode t);
 
-  static RewriteResponse rewriteConstant(TNode t);
+  /** rewrite real algebraic numbers */
   static RewriteResponse rewriteRAN(TNode t);
+  /** rewrite variables */
   static RewriteResponse rewriteVariable(TNode t);
 
   /** rewrite unary minus */

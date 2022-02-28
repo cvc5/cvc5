@@ -248,35 +248,6 @@ bool ArithRewriter::isAtom(TNode n) {
       || k == kind::DIVISIBLE;
 }
 
-RewriteResponse ArithRewriter::rewriteConstant(TNode t){
-  Assert(t.isConst());
-  Assert(t.getKind() == CONST_RATIONAL || t.getKind() == CONST_INTEGER);
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::rewriteRAN(TNode t)
-{
-  Assert(t.getKind() == REAL_ALGEBRAIC_NUMBER);
-
-  const RealAlgebraicNumber& r =
-      t.getOperator().getConst<RealAlgebraicNumber>();
-  if (r.isRational())
-  {
-    return RewriteResponse(
-        REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
-  }
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::rewriteVariable(TNode t)
-{
-  Assert(t.isVar());
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
 RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
 {
   Assert(t.getKind() == kind::NEG);
@@ -319,7 +290,7 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
 
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   if(t.isConst()){
-    return rewriteConstant(t);
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
@@ -366,7 +337,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
 
 RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   if(t.isConst()){
-    return rewriteConstant(t);
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
@@ -458,6 +429,23 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
+RewriteResponse ArithRewriter::rewriteRAN(TNode t)
+{
+  Assert(rewriter::isRAN(t));
+  const RealAlgebraicNumber& r = rewriter::getRAN(t);
+  if (r.isRational())
+  {
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(r.toRational()));
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteVariable(TNode t)
+{
+  Assert(t.isVar());
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
