@@ -409,7 +409,8 @@ bool TheoryStrings::collectModelInfoType(
         Assert(!lenValue.isNull() && lenValue.isConst());
         // make the abstract value (witness ((x String)) (= (str.len x)
         // lenValue))
-        Node w = utils::mkAbstractStringValueForLength(eqc, lenValue, d_absModelCounter);
+        Node w = utils::mkAbstractStringValueForLength(
+            eqc, lenValue, d_absModelCounter);
         d_absModelCounter++;
         Trace("strings-model")
             << "-> length out of bounds, assign abstract " << w << std::endl;

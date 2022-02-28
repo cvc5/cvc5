@@ -317,7 +317,7 @@ class TheoryStrings : public Theory {
   StringsFmf d_stringsFmf;
   /** The representation of the strategy */
   Strategy d_strat;
-  /** 
+  /**
    * For model building, a counter on the number of abstract witness terms
    * we have built, so that unique debug names can be assigned.
    */
