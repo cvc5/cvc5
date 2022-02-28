@@ -147,7 +147,8 @@ TrustNode PartitionGenerator::makePartitions(bool isFromFullCheck)
   if ((options().parallel.partitionCheck == options::CheckMode::FULL
        && isFromFullCheck == false)
       || (options().parallel.partitionCheck == options::CheckMode::STANDARD
-          && isFromFullCheck == true))
+          && isFromFullCheck == true)
+      || (options().parallel.computePartitions < 2))
   {
     return TrustNode::null();
   }
