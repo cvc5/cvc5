@@ -875,12 +875,21 @@ void Smt2Printer::toStream(std::ostream& out,
         }
         else if (nck == kind::INST_ATTRIBUTE)
         {
-          // quantifier names are printed
-          if (nc[0].getAttribute(theory::QuantNameAttribute()))
+          // notice that INST_ATTRIBUTES either have an "internal" form,
+          // where the argument is a variable with an internal attribute set
+          // on it, or an "external" form where it is of the form
+          // (INST_ATTRIBUTE "keyword" [nodeValues]). We print the latter
+          // here only.
+          if (nc[0].getKind()==kind::CONST_STRING)
           {
             out << "(! ";
-            annot << ":qid ";
-            toStream(annot, nc[0], toDepth, nullptr);
+            // print out as string to avoid quotes
+            annot << ":" << nc[0].getConst<String>().toString();
+            for (size_t j=1, nchildren = nc.getNumChildren(); j<nchildren; j++)
+            {
+              annot << " ";
+              toStream(annot, nc[j], toDepth, nullptr);
+            }
             annot << ") ";
           }
         }

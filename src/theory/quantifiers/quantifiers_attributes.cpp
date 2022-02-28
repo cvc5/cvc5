@@ -450,9 +450,8 @@ Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
   SkolemManager* sm = nm->getSkolemManager();
   Node v = sm->mkDummySkolem(
       name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
-  QuantNameAttribute qna;
-  v.setAttribute(qna, true);
-  Node ip = nm->mkNode(INST_ATTRIBUTE, v);
+  Node attr = nm->mkConst(String("qid"));
+  Node ip = nm->mkNode(INST_ATTRIBUTE, attr, v);
   Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
   return nm->mkNode(k, bvl, body, ipl);
 }
