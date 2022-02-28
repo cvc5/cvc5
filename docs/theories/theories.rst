@@ -12,7 +12,7 @@ Standardized theories
 
    Theory of arrays <https://smtlib.cs.uiowa.edu/theories-ArraysEx.shtml>
    Theory of bit-vectors <https://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml>
-   Theory of floating-points <https://smtlib.cs.uiowa.edu/theories-FloatingPoint.shtml>
+   Theory of floating-point numbers <https://smtlib.cs.uiowa.edu/theories-FloatingPoint.shtml>
    Theory of integer arithmetic <https://smtlib.cs.uiowa.edu/theories-Ints.shtml>
    Theory of real arithmetic <https://smtlib.cs.uiowa.edu/theories-Reals.shtml>
    Theory of mixed-integer arithmetic <https://smtlib.cs.uiowa.edu/theories-Reals_Ints.shtml>
