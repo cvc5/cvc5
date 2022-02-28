@@ -108,6 +108,12 @@ class SineSolver : protected EnvObj
                       unsigned actual_d,
                       int region);
 
+  /**
+   * Does n of the form sin(x) have an exact model value? This is true if
+   * the model value of x is in the domain of d_mpointsSine.
+   */
+  bool hasExactModelValue(TNode n) const;
+
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,
                                         TNode c,
