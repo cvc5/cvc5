@@ -1145,6 +1145,7 @@ set(regress_0_tests
   regress0/seq/issue5547-small-seq-len-unit.smt2
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
+  regress0/seq/issue8133-block-const-elems.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
   regress0/seq/nth-oob.smt2
