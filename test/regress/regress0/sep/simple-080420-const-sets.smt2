@@ -1,5 +1,6 @@
 ; COMMAND-LINE:
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic QF_ALL)
 (set-option :produce-models true)
 (set-info :status sat)

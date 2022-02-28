@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --incremental --fmf-fun --macros-quant --macros-quant-mode=ground
+; DISABLE-TESTER: model
 (set-logic UFLIA)
 
 (define-fun f ((x Int)) Int x)

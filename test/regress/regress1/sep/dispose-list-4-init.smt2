@@ -1,5 +1,6 @@
 ; COMMAND-LINE:
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic QF_ALL)
 
 (declare-sort Loc 0)

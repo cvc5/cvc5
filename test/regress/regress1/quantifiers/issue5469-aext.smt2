@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst --strings-exp
+; COMMAND-LINE: --sygus-inst --strings-exp -q
 ; EXPECT: sat
 (set-logic NIA)
 (set-option :sygus-inst true)

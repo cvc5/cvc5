@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst
+; COMMAND-LINE: --sygus-inst -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
