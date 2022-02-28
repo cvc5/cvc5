@@ -161,15 +161,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(*response));
   }
 
-  /*if (kind == Kind::EQUAL)
-  {
-    if (left < right)
-    {
-      return RewriteResponse(REWRITE_DONE, right.eqNode(left));
-    }
-    return RewriteResponse(REWRITE_DONE, atom);
-  }*/
-
   bool negate = false;
 
   switch (atom.getKind())
