@@ -511,10 +511,18 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
     db->registerEnumerator(ic, ic, nullptr, ROLE_ENUM_MULTI_SOLUTION);
 
+    std::vector<Node> args = {ic};
+    Node svl = tn.getDType().getSygusVarList();
+    if (!svl.isNull())
+    {
+      args.insert(args.end(), svl.begin(), svl.end());
+    }
+    Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
     // we use a Skolem constant here, instead of an application of an
     // evaluation function, since we are not using the builtin support
-    // for evaluation functions.
-    Node eval = sm->mkDummySkolem("eval", tn.getDType().getSygusType());
+    // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
+    // skolem construction here is deterministic and reproducible.
+    Node eval = sm->mkPurifySkolem("eval", eval);
 
     inst_constants.push_back(ic);
     evals.push_back(eval);
