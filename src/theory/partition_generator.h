@@ -24,6 +24,7 @@
 
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
+#include "theory/theory.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
@@ -49,7 +50,7 @@ class PartitionGenerator : protected EnvObj
    * makePartitions was call from the theory engine at a full check of a
    * standard check.
    */
-  TrustNode makePartitions(bool isFromFullCheck);
+  TrustNode makePartitions(Theory::Effort e);
 
  private:
   /**

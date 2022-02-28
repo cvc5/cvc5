@@ -399,19 +399,11 @@ void TheoryEngine::check(Theory::Effort effort) {
         d_relManager->beginRound();
       }
       d_tc->resetRound();
-
-      if (d_splitter != nullptr)
-      {
-        TrustNode tl = d_splitter->makePartitions(true);
-        if (!tl.isNull()){
-          lemma(tl, LemmaProperty::NONE, THEORY_LAST);
-        }
-      }
     }
 
     if (d_splitter != nullptr)
     {
-      TrustNode tl = d_splitter->makePartitions(false);
+      TrustNode tl = d_splitter->makePartitions(effort);
       if (!tl.isNull()){
         lemma(tl, LemmaProperty::NONE, THEORY_LAST);
       }
