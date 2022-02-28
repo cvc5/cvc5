@@ -113,8 +113,10 @@ set_target_properties(cvc5_python_base
 
 python_extension_module(cvc5_python_base)
 
+# Copy the pythonic API to the right place. It does not come with its own
+# installation routine and consists only of a few files that need to go to
+# the right place.
 find_package(CVC5PythonicAPI)
-
 add_custom_target(
   cvc5_python_api
   COMMAND
