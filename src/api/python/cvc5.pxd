@@ -299,6 +299,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint getAbduct(const Term& conj, Term& output) except +
         bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
         bint getAbductNext(const Term& conj) except +
+        void blockModel() except +
+        void blockModelValues(const vector[Term]& terms) except +
 
     cdef cppclass Grammar:
         Grammar() except +

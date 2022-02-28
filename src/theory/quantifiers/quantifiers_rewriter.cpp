@@ -683,6 +683,12 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
   }
   Trace("cond-var-split-debug")
       << "Conditional var elim split " << body << "?" << std::endl;
+  // we only do this splitting if miniscoping is enabled, as this is
+  // required to eliminate variables in conjuncts below
+  if (!d_opts.quantifiers.miniscopeQuant)
+  {
+    return body;
+  }
 
   if (bk == ITE
       || (bk == EQUAL && body[0].getType().isBoolean()
