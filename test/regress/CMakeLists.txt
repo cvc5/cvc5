@@ -794,6 +794,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8160-model-purify.smt2
   regress0/nl/nta/issue8182-exact-mv-keep.smt2
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
+  regress0/nl/nta/issue8183-tc-pi.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
