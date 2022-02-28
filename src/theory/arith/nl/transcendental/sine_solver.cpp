@@ -65,15 +65,15 @@ SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
       Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
   d_neg_pi = rewrite(nm->mkNode(Kind::MULT, d_pi, negOne));
   d_mpoints.push_back(d_pi);
-  d_mpointsSine.push_back(zero);
+  d_mpointsSine[d_pi] = zero;
   d_mpoints.push_back(pi_2);
-  d_mpointsSine.push_back(one);
+  d_mpointsSine[pi_2] = one;
   d_mpoints.push_back(zero);
-  d_mpointsSine.push_back(zero);
+  d_mpointsSine[zero] = zero;
   d_mpoints.push_back(pi_neg_2);
-  d_mpointsSine.push_back(negOne);
+  d_mpointsSine[pi_neg_2] = negOne;
   d_mpoints.push_back(d_neg_pi);
-  d_mpointsSine.push_back(zero);
+  d_mpointsSine[d_neg_pi] = zero;
 }
 
 SineSolver::~SineSolver() {}
@@ -87,10 +87,11 @@ void SineSolver::doReductions()
   {
     return;
   }
-  std::vector<Node> mpvs;
-  for (const Node& m : d_mpoints)
+  std::map<Node, Node> mpvs;
+  for (std::pair<const Node, Node>& m : d_mpointsSine)
   {
-    mpvs.push_back(d_data->d_model.computeAbstractModelValue(m));
+    Node mv = d_data->d_model.computeAbstractModelValue(m.first);
+    mpvs[mv] = m.first;
   }
   std::map<Node, Node> valForSym;
   std::vector<Node> nreduced;
@@ -120,30 +121,29 @@ void SineSolver::doReductions()
     else
     {
       valForSym[mva] = tf;
-      for (size_t i = 0, nmp = mpvs.size(); i < nmp; i++)
+      itv = mpvs.find(mva);
+      if (itv!=mpvs.end())
       {
-        if (mva != mpvs[i])
-        {
-          continue;
-        }
-        if (mv != d_mpointsSine[i])
+        Assert (d_mpointsSine.find(itv->second)!=d_mpointsSine.end());
+        Node mvs = d_mpointsSine[itv->second];
+        if (mv != mvs)
         {
           // the argument is a boundary point, we reduce it if not already done
           // so
           Node lem = nm->mkNode(kind::IMPLIES,
-                                tf[0].eqNode(d_mpoints[i]),
-                                tf.eqNode(d_mpointsSine[i]));
+                                tf[0].eqNode(itv->second),
+                                tf.eqNode(mvs));
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
         }
         else
         {
           // remember that the argument is equal to the boundary point
-          d_data->d_model.addSubstitution(tf[0], d_mpoints[i]);
+          d_data->d_model.addSubstitution(tf[0], itv->second);
           // all congruent transcendental functions are exactly equal to its
           // value
           d_data->addModelBoundForPurifyTerm(
-              tf, d_mpointsSine[i], d_mpointsSine[i]);
+              tf, mvs, mvs);
         }
         reduced = true;
         break;

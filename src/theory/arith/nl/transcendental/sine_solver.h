@@ -184,8 +184,8 @@ class SineSolver : protected EnvObj
   Node d_neg_pi;
   /** the boundary points */
   std::vector<Node> d_mpoints;
-  /** the values of sine at the above boundary points */
-  std::vector<Node> d_mpointsSine;
+  /** mapping from values c to known points for sin(c) */
+  std::map<Node, Node> d_mpointsSine;
 }; /* class SineSolver */
 
 }  // namespace transcendental
