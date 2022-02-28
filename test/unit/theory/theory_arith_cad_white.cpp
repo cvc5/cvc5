@@ -22,6 +22,10 @@
 #include <vector>
 
 #include "test_smt.h"
+#include "options/options_handler.h"
+#include "options/proof_options.h"
+#include "options/smt_options.h"
+#include "smt/proof_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/lazard_evaluation.h"
 #include "theory/arith/nl/cad/projections.h"
@@ -55,9 +59,24 @@ class TestTheoryWhiteArithCAD : public TestSmt
     nodeManager = d_nodeManager;
   }
 
-  Node dummy(int i) const
+  void TearDown() override
   {
-    return d_nodeManager->mkConst(CONST_RATIONAL, Rational(i));
+    d_dummyCache.clear();
+    TestSmt::TearDown();
+  }
+
+  Node dummy(int i)
+  {
+    auto it = d_dummyCache.find(i);
+    if (it == d_dummyCache.end())
+    {
+      it = d_dummyCache
+               .emplace(i,
+                        d_nodeManager->mkBoundVar("c" + std::to_string(i),
+                                                  d_nodeManager->booleanType()))
+               .first;
+    }
+    return it->second;
   }
 
   Theory::Effort d_level = Theory::EFFORT_FULL;
@@ -65,6 +84,7 @@ class TestTheoryWhiteArithCAD : public TestSmt
   std::unique_ptr<TypeNode> d_intType;
   const Rational d_zero = 0;
   const Rational d_one = 1;
+  std::map<int, Node> d_dummyCache;
 };
 
 poly::AlgebraicNumber get_ran(std::initializer_list<long> init,
@@ -279,6 +299,8 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_2)
   EXPECT_TRUE(!cover.empty());
   auto nodes = cad::collectConstraints(cover);
   std::vector<Node> ref{dummy(1), dummy(2), dummy(3), dummy(4), dummy(5)};
+  std::sort(nodes.begin(), nodes.end());
+  std::sort(ref.begin(), ref.end());
   EXPECT_EQ(nodes, ref);
 }
 
@@ -357,6 +379,49 @@ void test_delta(const std::vector<Node>& a)
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
     std::cout << "UNSAT with MIS: " << lem << std::endl;
   }
+}
+
+TEST_F(TestTheoryWhiteArithCAD, test_cdcac_proof_1)
+{
+  Options opts;
+  // enable proofs
+  opts.smt.proofMode = options::ProofMode::FULL;
+  opts.smt.produceProofs = true;
+  Env env(NodeManager::currentNM(), &opts);
+  opts.handler().setDefaultDagThresh("--dag-thresh", 0);
+  smt::PfManager pfm(env);
+  EXPECT_TRUE(env.isTheoryProofProducing());
+  // register checkers that we need
+  builtin::BuiltinProofRuleChecker btchecker(env);
+  btchecker.registerTo(env.getProofNodeManager()->getChecker());
+  cad::CADProofRuleChecker checker;
+  checker.registerTo(env.getProofNodeManager()->getChecker());
+  // do the coverings problem
+  cad::CDCAC cac(env, {});
+  EXPECT_TRUE(cac.getProof() != nullptr);
+  cac.startNewProof();
+  poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
+  poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
+
+  cac.getConstraints().addConstraint(
+      4 * y - x * x + 4, poly::SignCondition::LT, dummy(1));
+  cac.getConstraints().addConstraint(
+      3 * y - 5 + (x - 2) * (x - 2), poly::SignCondition::GT, dummy(2));
+  cac.getConstraints().addConstraint(
+      4 * y - x - 2, poly::SignCondition::GT, dummy(3));
+  cac.getConstraints().addConstraint(
+      x + 1, poly::SignCondition::GT, dummy(4));
+  cac.getConstraints().addConstraint(
+      x - 2, poly::SignCondition::LT, dummy(5));
+
+  cac.computeVariableOrdering();
+
+  auto cover = cac.getUnsatCover();
+  EXPECT_FALSE(cover.empty());
+  
+  std::vector<Node> mis{dummy(1), dummy(3), dummy(4), dummy(5)};
+  LazyTreeProofGenerator* pg = dynamic_cast<LazyTreeProofGenerator*>(cac.closeProof(mis));
+  EXPECT_TRUE(pg != nullptr);
 }
 
 TEST_F(TestTheoryWhiteArithCAD, test_delta_one)

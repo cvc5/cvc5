@@ -1,8 +1,7 @@
-; EXIT: 1
-; EXPECT: (error "Extended set operators are not supported in default mode, try --sets-ext.")
 (set-logic ALL)
 (set-option :incremental true)
 (set-option :produce-models true)
+(set-info :status sat)
 (declare-fun x () (Set Bool))
 (declare-fun y () (Set Bool))
 (declare-fun z () (Set Bool))
@@ -15,5 +14,3 @@
 (check-sat)
 
 (pop 1)
-
-(get-model)

@@ -33,6 +33,7 @@
 #include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -64,7 +65,8 @@ enum class FormulaLitPolicy : uint32_t
  * each subexpression in the constructed equi-satisfiable formula, then
  * substitute the new literal for the formula, and so on, recursively.
  */
-class CnfStream {
+class CnfStream : protected EnvObj
+{
   friend PropEngine;
   friend ProofCnfStream;
 
@@ -81,22 +83,19 @@ class CnfStream {
    * and sends the generated clauses and to the given SAT solver. This does not
    * take ownership of satSolver, registrar, or context.
    *
+   * @param env reference to the environment
    * @param satSolver the sat solver to use.
    * @param registrar the entity that takes care of preregistration of Nodes.
-   * @param context the context that the CNF should respect.
-   * @param env Reference to the environment of the smt engine. Assertions
-   * will not be dumped if env == nullptr.
-   * @param rm the resource manager of the CNF stream
+   * @param c the context that the CNF should respect.
    * @param flpol policy for literals corresponding to formulas (those that are
    * not-theory literals).
    * @param name string identifier to distinguish between different instances
    * even for non-theory literals.
    */
-  CnfStream(SatSolver* satSolver,
+  CnfStream(Env& env,
+            SatSolver* satSolver,
             Registrar* registrar,
-            context::Context* context,
-            Env* env,
-            ResourceManager* rm,
+            context::Context* c,
             FormulaLitPolicy flpol = FormulaLitPolicy::INTERNAL,
             std::string name = "");
   /**
@@ -211,9 +210,6 @@ class CnfStream {
 
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
-
-  /** Pointer to the env of the smt engine */
-  Env* d_env;
 
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;

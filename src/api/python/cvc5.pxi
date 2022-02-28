@@ -2315,6 +2315,43 @@ cdef class Solver:
         result = self.csolver.getAbductNext(output.cterm)
         return result
 
+    def blockModel(self):
+        """
+        Block the current model. Can be called only if immediately preceded by a
+        SAT or INVALID query.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+            (block-model)
+
+        Requires enabling option
+        :ref:`produce-models <lbl-option-produce-models>`
+        and setting option
+        :ref:`block-models <lbl-option-block-models>`
+        to a mode other than ``none``.
+        """
+        self.csolver.blockModel()
+
+    def blockModelValues(self, terms):
+        """
+        Block the current model values of (at least) the values in terms. Can be
+        called only if immediately preceded by a SAT or NOT_ENTAILED query.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+           (block-model-values ( <terms>+ ))
+
+        Requires enabling option
+        :ref:`produce-models <lbl-option-produce-models>`.
+        """
+        cdef vector[c_Term] nts
+        for t in terms:
+            nts.push_back((<Term?> t).cterm)
+        self.csolver.blockModelValues(nts)
 
 
 cdef class Sort:
