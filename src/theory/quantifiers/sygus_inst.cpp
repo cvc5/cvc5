@@ -522,10 +522,10 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     // evaluation function, since we are not using the builtin support
     // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
     // skolem construction here is deterministic and reproducible.
-    Node eval = sm->mkPurifySkolem("eval", eval);
+    Node k = sm->mkPurifySkolem(eval, "eval");
 
     inst_constants.push_back(ic);
-    evals.push_back(eval);
+    evals.push_back(k);
   }
 
   d_inst_constants.emplace(q, inst_constants);
