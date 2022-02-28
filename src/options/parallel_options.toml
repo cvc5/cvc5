@@ -55,8 +55,10 @@ name   = "Parallel"
   help = "create partitions at full checks"
 
 [[option]]
-  name       = "writePartitionsToFileName"
+  name       = "partitionsOut"
+  alias      = ["partitions-out"]
   category   = "expert"
-  long       = "write-partitions-to=N"
-  type       = "std::string"
-  help       = "file to write partitions to"
+  long       = "write-partitions-to=output"
+  type       = "ManagedOut"
+  includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "set the output channel for writing partitions"

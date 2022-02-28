@@ -43,16 +43,7 @@ Splitter::Splitter(Env& env,
 {
   d_valuation = std::make_unique<Valuation>(theoryEngine);
   d_propEngine = propEngine;
-  if (options().parallel.writePartitionsToFileNameWasSetByUser)
-  {
-    d_fileStream = std::make_unique<std::ofstream>(
-        options().parallel.writePartitionsToFileName);
-    d_output = d_fileStream.get();
-  }
-  else
-  {
-    d_output = &std::cout;
-  }
+
   d_conflictSize = options().parallel.partitionConflictSize;
   if (!d_conflictSize)
   {
@@ -88,7 +79,7 @@ void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
 
 void Splitter::emitCube(Node toEmit)
 {
-  *d_output << toEmit << std::endl;
+  *options().parallel.partitionsOut << toEmit << std::endl;
   ++d_numPartitionsSoFar;
 }
 

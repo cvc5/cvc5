@@ -102,17 +102,6 @@ class Splitter : protected EnvObj
   uint64_t d_numPartitionsSoFar;
 
   /**
-   * The filestream for writing the partitions.
-   */
-  std::unique_ptr<std::ofstream> d_fileStream;
-
-  /**
-   * The output stream: either std::cout or the filestream if an output file is
-   * specified.
-   */
-  std::ostream* d_output;
-
-  /**
    * Lemmas that have been sent to the SAT solver.
    */
   std::vector<Node> d_assertedLemmas;
