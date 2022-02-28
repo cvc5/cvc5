@@ -15,7 +15,7 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
-#include "expr/node_manager_attributes.h"  // for VarNameAt
+#include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
