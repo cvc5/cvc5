@@ -125,6 +125,16 @@ class WitnessTypeRule
         ss << "expected a body of a WITNESS expression to have Boolean type";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
+      if (n.getNumChildren() == 3)
+      {
+        if (n[2].getType(check) != nodeManager->instPatternListType())
+        {
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "third argument of witness is not instantiation "
+              "pattern list");
+        }
+      }
     }
     // The type of a witness function is the type of its bound variable.
     return n[0][0].getType();

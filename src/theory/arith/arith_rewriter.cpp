@@ -225,35 +225,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   }
 }
 
-RewriteResponse ArithRewriter::rewriteConstant(TNode t){
-  Assert(t.isConst());
-  Assert(t.getKind() == CONST_RATIONAL || t.getKind() == CONST_INTEGER);
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::rewriteRAN(TNode t)
-{
-  Assert(t.getKind() == REAL_ALGEBRAIC_NUMBER);
-
-  const RealAlgebraicNumber& r =
-      t.getOperator().getConst<RealAlgebraicNumber>();
-  if (r.isRational())
-  {
-    return RewriteResponse(
-        REWRITE_DONE, NodeManager::currentNM()->mkConstReal(r.toRational()));
-  }
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
-RewriteResponse ArithRewriter::rewriteVariable(TNode t)
-{
-  Assert(t.isVar());
-
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
 RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
 {
   Assert(t.getKind() == kind::NEG);
@@ -296,7 +267,7 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
 
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   if(t.isConst()){
-    return rewriteConstant(t);
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
@@ -343,7 +314,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
 
 RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   if(t.isConst()){
-    return rewriteConstant(t);
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
@@ -435,87 +406,44 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }
 }
 
+RewriteResponse ArithRewriter::rewriteRAN(TNode t)
+{
+  Assert(rewriter::isRAN(t));
+  const RealAlgebraicNumber& r = rewriter::getRAN(t);
+  if (r.isRational())
+  {
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(r.toRational()));
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
 
-RewriteResponse ArithRewriter::preRewritePlus(TNode t){
+RewriteResponse ArithRewriter::rewriteVariable(TNode t)
+{
+  Assert(t.isVar());
+
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::preRewritePlus(TNode t)
+{
   Assert(t.getKind() == kind::ADD);
   return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
 }
 
-RewriteResponse ArithRewriter::postRewritePlus(TNode t){
+RewriteResponse ArithRewriter::postRewritePlus(TNode t)
+{
   Assert(t.getKind() == kind::ADD);
   Assert(t.getNumChildren() > 1);
 
-  {
-    Node flat = expr::algorithm::flatten(t);
-    if (flat != t)
-    {
-      return RewriteResponse(REWRITE_AGAIN, flat);
-    }
-  }
+  std::vector<TNode> children;
+  expr::algorithm::flatten(t, children);
 
-  Rational rational;
-  RealAlgebraicNumber ran;
-  std::vector<Monomial> monomials;
-  std::vector<Polynomial> polynomials;
-
-  for (const auto& child : t)
+  rewriter::Sum sum;
+  for (const auto& child : children)
   {
-    if (child.isConst())
-    {
-      if (child.getConst<Rational>().isZero())
-      {
-        continue;
-      }
-      rational += child.getConst<Rational>();
-    }
-    else if (child.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
-    {
-      ran += child.getOperator().getConst<RealAlgebraicNumber>();
-    }
-    else if (Monomial::isMember(child))
-    {
-      monomials.emplace_back(Monomial::parseMonomial(child));
-    }
-    else
-    {
-      polynomials.emplace_back(Polynomial::parsePolynomial(child));
-    }
+    rewriter::addToSum(sum, child);
   }
-
-  if(!monomials.empty()){
-    Monomial::sort(monomials);
-    Monomial::combineAdjacentMonomials(monomials);
-    polynomials.emplace_back(Polynomial::mkPolynomial(monomials));
-  }
-  if (!rational.isZero())
-  {
-    polynomials.emplace_back(
-        Polynomial::mkPolynomial(Constant::mkConstant(rational)));
-  }
-
-  Polynomial poly = Polynomial::sumPolynomials(polynomials);
-
-  if (isZero(ran))
-  {
-    return RewriteResponse(REWRITE_DONE, poly.getNode());
-  }
-  if (poly.containsConstant())
-  {
-    ran += RealAlgebraicNumber(poly.getHead().getConstant().getValue());
-    if (!poly.isConstant())
-    {
-      poly = poly.getTail();
-    }
-  }
-
-  auto* nm = NodeManager::currentNM();
-  if (poly.isConstant())
-  {
-    return RewriteResponse(REWRITE_DONE, nm->mkRealAlgebraicNumber(ran));
-  }
-  return RewriteResponse(
-      REWRITE_DONE,
-      nm->mkNode(Kind::ADD, nm->mkRealAlgebraicNumber(ran), poly.getNode()));
+  return RewriteResponse(REWRITE_DONE, rewriter::collectSum(sum));
 }
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode node)
