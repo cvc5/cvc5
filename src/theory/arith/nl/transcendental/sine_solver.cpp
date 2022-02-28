@@ -122,17 +122,16 @@ void SineSolver::doReductions()
     {
       valForSym[mva] = tf;
       itv = mpvs.find(mva);
-      if (itv!=mpvs.end())
+      if (itv != mpvs.end())
       {
-        Assert (d_mpointsSine.find(itv->second)!=d_mpointsSine.end());
+        Assert(d_mpointsSine.find(itv->second) != d_mpointsSine.end());
         Node mvs = d_mpointsSine[itv->second];
         if (mv != mvs)
         {
           // the argument is a boundary point, we reduce it if not already done
           // so
-          Node lem = nm->mkNode(kind::IMPLIES,
-                                tf[0].eqNode(itv->second),
-                                tf.eqNode(mvs));
+          Node lem = nm->mkNode(
+              kind::IMPLIES, tf[0].eqNode(itv->second), tf.eqNode(mvs));
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
         }
@@ -142,8 +141,7 @@ void SineSolver::doReductions()
           d_data->d_model.addSubstitution(tf[0], itv->second);
           // all congruent transcendental functions are exactly equal to its
           // value
-          d_data->addModelBoundForPurifyTerm(
-              tf, mvs, mvs);
+          d_data->addModelBoundForPurifyTerm(tf, mvs, mvs);
         }
         reduced = true;
         break;
