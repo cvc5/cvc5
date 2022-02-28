@@ -33,6 +33,9 @@
 
 namespace cvc5 {
 namespace theory {
+
+class Theory;
+
 namespace strings {
 
 class InferenceManager;
@@ -54,6 +57,7 @@ class TermRegistry : protected EnvObj
 
  public:
   TermRegistry(Env& env,
+               Theory& t,
                SolverState& s,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
@@ -229,7 +233,12 @@ class TermRegistry : protected EnvObj
    */
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;
 
+  /** compute relevant terms of the theory of strings */
+  void getRelevantTermSet(std::set<Node>& termSet);
+
  private:
+  /** Reference to theory of strings, for computing relevant terms */
+  Theory& d_theory;
   /** Common constants */
   Node d_zero;
   Node d_one;

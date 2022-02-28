@@ -16,6 +16,8 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_STATE_H
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/proof_set.h"
 #include "smt/env.h"
@@ -60,8 +62,12 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  * This includes common lookups and caches as well as generic utilities for
  * secant plane lemmas and taylor approximations.
  */
-struct TranscendentalState : protected EnvObj
+class TranscendentalState : protected EnvObj
 {
+  using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
+
+ public:
   TranscendentalState(Env& env, InferenceManager& im, NlModel& model);
 
   /**
@@ -80,10 +86,10 @@ struct TranscendentalState : protected EnvObj
    *
    * This call may add lemmas to lems based on registering term
    * information (for example to ensure congruence of terms).
-   * It puts terms that need to be treated further as a master term on their own
-   * (for example purification of sine terms) into needsMaster.
+   * It puts terms that need to be treated further as a purified term on their
+   * own (for example purification of sine terms) into needsPurify.
    */
-  void init(const std::vector<Node>& xts, std::vector<Node>& needsMaster);
+  void init(const std::vector<Node>& xts, std::vector<Node>& needsPurify);
 
   /**
    * Checks for terms that are congruent but disequal to a.
@@ -157,6 +163,10 @@ struct TranscendentalState : protected EnvObj
                       Convexity convexity,
                       unsigned d,
                       unsigned actual_d);
+  /**
+   * Is term t purified? (See d_trPurify below).
+   */
+  bool isPurified(TNode n) const;
 
   Node d_true;
   Node d_false;
@@ -181,18 +191,21 @@ struct TranscendentalState : protected EnvObj
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add
    * t = y ^ f(t) = f(y) where y is a fresh variable. Those that are not
-   * purified we call "master terms".
+   * purified we call "purified terms".
    *
-   * The maps below maintain a master/slave relationship over
-   * transcendental functions (SINE, EXPONENTIAL, PI), where above
-   * f(y) is the master of itself and of f(t).
+   * The maps below maps transcendental function applications (SINE,
+   * EXPONENTIAL, PI) to their purified version, where above
+   * f(y) is the purified version of itself and of f(t).
    *
    * This is used for ensuring that the argument y of SINE we process is on
    * the interval [-pi .. pi], and that exponentials are not applied to
    * arguments that contain transcendental functions.
    */
-  std::map<Node, Node> d_trMaster;
-  std::map<Node, std::unordered_set<Node>> d_trSlaves;
+  NodeMap d_trPurify;
+  /** inverse mapping of above, which is injective */
+  NodeMap d_trPurifies;
+  /** The set of purification variables we have introduced */
+  NodeSet d_trPurifyVars;
 
   /** concavity region for transcendental functions
    *

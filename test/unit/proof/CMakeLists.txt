@@ -1,0 +1,1 @@
+cvc5_add_unit_test_black(lfsc_node_converter_black proof)

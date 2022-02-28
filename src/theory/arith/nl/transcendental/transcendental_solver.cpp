@@ -23,6 +23,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
@@ -38,9 +39,11 @@ namespace nl {
 namespace transcendental {
 
 TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           ArithState& state,
                                            InferenceManager& im,
                                            NlModel& m)
     : EnvObj(env),
+      d_astate(state),
       d_tstate(env, im, m),
       d_expSlv(env, &d_tstate),
       d_sineSlv(env, &d_tstate)
@@ -64,16 +67,18 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   for (const Node& a : needsMaster)
   {
     // should not have processed this already
-    Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
+    Assert(d_tstate.d_trPurify.find(a) == d_tstate.d_trPurify.end());
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-    Node y = sm->mkDummySkolem(
-        "y", nm->realType(), "phase shifted trigonometric arg");
+    Node y = sm->mkSkolemFunction(
+        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), a);
     Node new_a = nm->mkNode(k, y);
-    d_tstate.d_trSlaves[new_a].insert(new_a);
-    d_tstate.d_trSlaves[new_a].insert(a);
-    d_tstate.d_trMaster[a] = new_a;
-    d_tstate.d_trMaster[new_a] = new_a;
+    Assert(d_tstate.d_trPurify.find(new_a) == d_tstate.d_trPurify.end());
+    Assert(d_tstate.d_trPurifies.find(new_a) == d_tstate.d_trPurifies.end());
+    d_tstate.d_trPurify[a] = new_a;
+    d_tstate.d_trPurify[new_a] = new_a;
+    d_tstate.d_trPurifies[new_a] = a;
+    d_tstate.d_trPurifyVars.insert(y);
     switch (k)
     {
       case Kind::SINE: d_sineSlv.doPhaseShift(a, new_a, y); break;
@@ -87,7 +92,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
   Subs subs;
-  for (const auto& sub : d_tstate.d_trMaster)
+  for (const auto& sub : d_tstate.d_trPurify)
   {
     subs.add(sub.first, sub.second);
   }
@@ -138,10 +143,16 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
         // for each function in the congruence classe
         for (const Node& ctf : d_tstate.d_funcCongClass[tf])
         {
-          // each term in congruence classes should be master terms
-          Assert(d_tstate.d_trSlaves.find(ctf) != d_tstate.d_trSlaves.end());
-          // we set the bounds for each slave of tf
-          for (const Node& stf : d_tstate.d_trSlaves[ctf])
+          std::vector<Node> mset{ctf};
+          // if this purifies another term, we set a bound on the term it
+          // purifies as well
+          context::CDHashMap<Node, Node>::const_iterator itp =
+              d_tstate.d_trPurifies.find(ctf);
+          if (itp != d_tstate.d_trPurifies.end() && itp->second != ctf)
+          {
+            mset.push_back(itp->second);
+          }
+          for (const Node& stf : mset)
           {
             Trace("nl-ext-cm")
                 << "...bound for " << stf << " : [" << bounds.first << ", "
@@ -263,8 +274,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  // this should only be run on master applications
-  Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
+  // this should only be run on purified applications
+  Assert(d_tstate.isPurified(tf));
 
   // Figure 3 : c
   Node c = d_tstate.d_model.computeAbstractModelValue(tf[0]);
@@ -303,6 +314,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     region = itr->second;
     Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;
+  }
+  if (region == -1)
+  {
+    // the region cannot be assigned, return false without lemma
+    return false;
   }
   // Figure 3 : conc
   int concavity = regionToConcavity(k, itr->second);
@@ -441,6 +457,60 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
     }
   }
   return 0;
+}
+
+void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
+                                            const std::set<Node>& termSet)
+{
+  Trace("nl-ext") << "TranscendentalSolver::postProcessModel" << std::endl;
+  // map from equivalence classes to a transcendental function application,
+  // if it exists.
+  std::unordered_map<Node, Node> trReps;
+  for (const Node& n : termSet)
+  {
+    if (isTranscendentalKind(n.getKind()))
+    {
+      Node r = d_astate.getRepresentative(n);
+      trReps[r] = n;
+    }
+  }
+  if (trReps.empty())
+  {
+    Trace("nl-ext") << "...no transcendental functions" << std::endl;
+    return;
+  }
+  std::unordered_map<Node, Node>::iterator it;
+  for (auto& am : arithModel)
+  {
+    // skip integer variables
+    if (am.first.getType().isInteger())
+    {
+      Trace("nl-ext") << "...keep model value for integer " << am.first
+                      << std::endl;
+      continue;
+    }
+    // cannot erase values for purification arguments
+    if (d_tstate.d_trPurifyVars.find(am.first) != d_tstate.d_trPurifyVars.end())
+    {
+      Trace("nl-ext") << "...keep model value for purification variable "
+                      << am.first << std::endl;
+      continue;
+    }
+    Node r = d_astate.getRepresentative(am.first);
+    it = trReps.find(r);
+    // if it is in the same equivalence class as a trancendental function
+    // application, we replace its value in the model with that application
+    if (it != trReps.end())
+    {
+      Trace("nl-ext") << "...abstract value for " << am.first << " to "
+                      << it->second << std::endl;
+      am.second = it->second;
+    }
+    else
+    {
+      Trace("nl-ext") << "...keep model value for " << am.first << std::endl;
+    }
+  }
 }
 
 }  // namespace transcendental

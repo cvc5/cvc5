@@ -49,7 +49,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
-      d_rewriter(d_opElim)
+      d_rewriter(d_opElim),
+      d_arithModelCacheSet(false)
 {
   // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
@@ -132,7 +133,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     return d_ppre.ppRewriteEq(atom);
   }
-  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
@@ -193,6 +194,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
@@ -290,13 +292,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    if (d_nonlinearExtension != nullptr)
-    {
-      if (d_nonlinearExtension->assertModel(m, p.first))
-      {
-        continue;
-      }
-    }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
     if (m->assertEquality(p.first, p.second, true))
@@ -370,16 +365,18 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 
 void TheoryArith::updateModelCache(std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }

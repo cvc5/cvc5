@@ -49,7 +49,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(env),
-      d_trSlv(d_env, d_im, d_model),
+      d_trSlv(d_env, d_astate, d_im, d_model),
       d_extState(d_im, d_model, d_env),
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
@@ -276,62 +276,13 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   if (res == Result::Sat::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
-    d_approximations.clear();
-    d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel,
-                                d_approximations,
-                                d_witnesses,
-                                options().smt.modelWitnessValue);
-    for (auto& am : arithModel)
-    {
-      Node val = getModelValue(am.first);
-      if (!val.isNull())
-      {
-        am.second = val;
-      }
-    }
+    d_model.getModelValueRepair(arithModel);
   }
-}
-
-Node NonlinearExtension::getModelValue(TNode var) const
-{
-  if (auto it = d_approximations.find(var); it != d_approximations.end())
-  {
-    if (it->second.second.isNull())
-    {
-      return it->second.first;
-    }
-    return Node::null();
-  }
-  if (auto it = d_witnesses.find(var); it != d_witnesses.end())
-  {
-    return it->second;
-  }
-  return Node::null();
-}
-
-bool NonlinearExtension::assertModel(TheoryModel* tm, TNode var) const
-{
-  if (auto it = d_approximations.find(var); it != d_approximations.end())
-  {
-    const auto& approx = it->second;
-    if (approx.second.isNull())
-    {
-      tm->recordApproximation(var, approx.first);
-    }
-    else
-    {
-      tm->recordApproximation(var, approx.first, approx.second);
-    }
-    return true;
-  }
-  if (auto it = d_witnesses.find(var); it != d_witnesses.end())
-  {
-    tm->recordApproximation(var, it->second);
-    return true;
-  }
-  return false;
+  // must post-process model with transcendental solver, to ensure we don't
+  // assign values for equivalence classes with transcendental function
+  // applications
+  d_trSlv.postProcessModel(arithModel, termSet);
 }
 
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
