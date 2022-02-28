@@ -23,7 +23,6 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "prop/zero_level_learner.h"
-#include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_id.h"
 #include "theory/theory_traits.h"
