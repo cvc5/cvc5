@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --incremental --fmf-fun --macros-quant --macros-quant-mode=ground
 ; DISABLE-TESTER: model
+; DISABLE-TESTER: unsat-core
+; unknowns when testing unsat cores
 (set-logic UFLIA)
 
 (define-fun f ((x Int)) Int x)

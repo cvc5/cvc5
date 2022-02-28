@@ -51,7 +51,7 @@ void CheckModels::checkModel(TheoryModel* m,
   if (options().quantifiers.fmfFunWellDefined)
   {
     warning() <<
-        "Running check-model is not guaranteed to pass when fmf-fun is enabled.";
+        "Running check-model is not guaranteed to pass when fmf-fun is enabled." << std::endl;
   }
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
