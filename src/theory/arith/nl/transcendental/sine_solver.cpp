@@ -595,6 +595,13 @@ std::pair<Node, Node> SineSolver::getSecantBounds(TNode e,
   return bounds;
 }
 
+bool SineSolver::hasExactModelValue(TNode n) const
+{
+  Assert(n.getKind() == SINE);
+  Node mv = d_data->d_model.computeAbstractModelValue(n[0]);
+  return d_mpointsSine.find(mv) != d_mpointsSine.end();
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith

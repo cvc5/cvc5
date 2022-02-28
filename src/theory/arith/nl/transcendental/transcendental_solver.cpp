@@ -457,11 +457,18 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
   std::unordered_map<Node, Node> trReps;
   for (const Node& n : termSet)
   {
-    if (isTranscendentalKind(n.getKind()))
+    Kind k = n.getKind();
+    if (!isTranscendentalKind(n.getKind()))
     {
-      Node r = d_astate.getRepresentative(n);
-      trReps[r] = n;
+      continue;
     }
+    // it might have an exact value, in which case there is nothing to do
+    if (k == SINE && d_sineSlv.hasExactModelValue(n))
+    {
+      continue;
+    }
+    Node r = d_astate.getRepresentative(n);
+    trReps[r] = n;
   }
   if (trReps.empty())
   {

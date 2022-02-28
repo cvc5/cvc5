@@ -858,19 +858,40 @@ void Smt2Printer::toStream(std::ostream& out,
       annot << " ";
       for (const Node& nc : n[2])
       {
-        if (nc.getKind() == kind::INST_PATTERN)
+        Kind nck = nc.getKind();
+        if (nck == kind::INST_PATTERN)
         {
           out << "(! ";
           annot << ":pattern ";
           toStream(annot, nc, toDepth, nullptr);
           annot << ") ";
         }
-        else if (nc.getKind() == kind::INST_NO_PATTERN)
+        else if (nck == kind::INST_NO_PATTERN)
         {
           out << "(! ";
           annot << ":no-pattern ";
           toStream(annot, nc[0], toDepth, nullptr);
           annot << ") ";
+        }
+        else if (nck == kind::INST_ATTRIBUTE)
+        {
+          // notice that INST_ATTRIBUTES either have an "internal" form,
+          // where the argument is a variable with an internal attribute set
+          // on it, or an "external" form where it is of the form
+          // (INST_ATTRIBUTE "keyword" [nodeValues]). We print the latter
+          // here only.
+          if (nc[0].getKind() == kind::CONST_STRING)
+          {
+            out << "(! ";
+            // print out as string to avoid quotes
+            annot << ":" << nc[0].getConst<String>().toString();
+            for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
+            {
+              annot << " ";
+              toStream(annot, nc[j], toDepth, nullptr);
+            }
+            annot << ") ";
+          }
         }
       }
     }
