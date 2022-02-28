@@ -212,7 +212,6 @@ set(regress_0_tests
   regress0/bug383.smt2
   regress0/bug398.smt2
   regress0/bug421.smt2
-  regress0/bug421b.smt2
   regress0/bug480.smt2
   regress0/bug484.smt2
   regress0/bug486.cvc.smt2

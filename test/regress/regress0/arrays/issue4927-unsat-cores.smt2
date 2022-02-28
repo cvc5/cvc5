@@ -1,4 +1,4 @@
-; COMMANDLINE:
+; COMMAND-LINE: --produce-models
 ; EXPECT: unsat
 (set-logic QF_AX)
 (declare-const a (Array Bool Bool))
