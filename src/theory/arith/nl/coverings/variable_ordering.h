@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements variable orderings tailored to CAD.
+ * Implements variable orderings tailored to coverings.
  */
 
 #include "cvc5_private.h"
@@ -31,7 +31,7 @@ namespace arith {
 namespace nl {
 namespace coverings {
 
-/** Variable orderings for real variables in the context of CAD. */
+/** Variable orderings for real variables in the context of coverings. */
 enum class VariableOrderingStrategy
 {
   /** Dummy ordering by variable ID. */

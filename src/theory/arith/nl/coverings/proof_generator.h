@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements the proof generator for CAD.
+ * Implements the proof generator for coverings.
  */
 
 #include "cvc5_private.h"
@@ -42,7 +42,7 @@ struct VariableMapper;
 namespace coverings {
 
 /**
- * This class manages the proof creation during a run of the CAD solver.
+ * This class manages the proof creation during a run of the coverings solver.
  *
  * Though it implements the ProofGenerator interface getProofFor(Node), it only
  * gives a proof for a single node.

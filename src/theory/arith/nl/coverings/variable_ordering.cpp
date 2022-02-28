@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements variable orderings tailored to CAD.
+ * Implements variable orderings tailored to coverings.
  */
 
 #include "theory/arith/nl/coverings/variable_ordering.h"

@@ -242,7 +242,7 @@ class NonlinearExtension : EnvObj
   SplitZeroCheck d_splitZeroSlv;
   /** Solver for tangent plane lemmas. */
   TangentPlaneCheck d_tangentPlaneSlv;
-  /** The CAD-based solver */
+  /** The coverings-based solver */
   CoveringsSolver d_covSlv;
   /** The ICP-based solver */
   icp::ICPSolver d_icpSlv;

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements utilities for CAD projection operators.
+ * Implements utilities for coverings projection operators.
  */
 
 #include "theory/arith/nl/coverings/projections.h"

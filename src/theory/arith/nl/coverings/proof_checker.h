@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * CAD proof checker utility.
+ * Coverings proof checker utility.
  */
 
 #include "cvc5_private.h"
@@ -28,9 +28,9 @@ namespace nl {
 namespace coverings {
 
 /**
- * A checker for CAD proofs
+ * A checker for coverings proofs
  *
- * This proof checker takes care of the two CAD proof rules ARITH_NL_COVERING_DIRECT
+ * This proof checker takes care of the two coverings proof rules ARITH_NL_COVERING_DIRECT
  * and ARITH_NL_COVERING_RECURSIVE. It does not do any actual proof checking yet, but
  * considers them to be trusted rules.
  */

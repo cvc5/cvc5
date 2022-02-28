@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of CAD proof generator.
+ * Implementation of coverings proof generator.
  */
 
 #include "theory/arith/nl/coverings/proof_generator.h"

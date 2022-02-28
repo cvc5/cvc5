@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements a container for CAD constraints.
+ * Implements a container for coverings constraints.
  */
 
 #include "theory/arith/nl/coverings/constraints.h"

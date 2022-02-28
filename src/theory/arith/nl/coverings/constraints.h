@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements a container for CAD constraints.
+ * Implements a container for coverings constraints.
  */
 
 #include "cvc5_private.h"
