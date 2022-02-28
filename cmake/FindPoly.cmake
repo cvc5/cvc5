@@ -56,6 +56,14 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(patchcmd)
   endif()
 
+  # On Windows, CMake's default install action places DLLs into the runtime
+  # path (/bin) after doing the build with 'ExternalProject_Add'
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(BINARY_LIBRARY_DEST "bin")
+  else()
+    set(BINARY_LIBRARY_DEST "lib")
+  endif()
+
   get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
@@ -63,8 +71,8 @@ if(NOT Poly_FOUND_SYSTEM)
   set(POLY_BYPRODUCTS
     <INSTALL_DIR>/lib/libpicpoly.a
     <INSTALL_DIR>/lib/libpicpolyxx.a
-    <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-    <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+    <INSTALL_DIR>/${BINARY_LIBRARY_DEST}/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+    <INSTALL_DIR>/${BINARY_LIBRARY_DEST}/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
   if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(APPEND POLY_BYPRODUCTS
@@ -117,8 +125,8 @@ if(NOT Poly_FOUND_SYSTEM)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   if(BUILD_SHARED_LIBS)
-    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(Poly_LIBRARIES "${DEPS_BASE}/${BINARY_LIBRARY_DEST}/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/${BINARY_LIBRARY_DEST}/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
   else()
     set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
     set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
