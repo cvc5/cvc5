@@ -107,8 +107,8 @@ class SineSolver : protected EnvObj
                       unsigned d,
                       unsigned actual_d,
                       int region);
-  
-  /** 
+
+  /**
    * Does n of the form sin(x) have an exact model value? This is true if
    * the model value of x is in the domain of d_mpointsSine.
    */
