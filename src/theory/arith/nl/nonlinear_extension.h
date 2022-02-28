@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/coverings_solver.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
@@ -243,7 +243,7 @@ class NonlinearExtension : EnvObj
   /** Solver for tangent plane lemmas. */
   TangentPlaneCheck d_tangentPlaneSlv;
   /** The CAD-based solver */
-  CadSolver d_cadSlv;
+  CoveringsSolver d_covSlv;
   /** The ICP-based solver */
   icp::ICPSolver d_icpSlv;
   /** The integer and solver

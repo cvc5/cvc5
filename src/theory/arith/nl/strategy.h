@@ -35,9 +35,9 @@ enum class InferStep
   FLUSH_WAITING_LEMMAS,
 
   /** Initialize the CAD solver */
-  CAD_INIT,
+  COVERINGS_INIT,
   /** A full CAD check */
-  CAD_FULL,
+  COVERINGS_FULL,
 
   /** Initialize the IAND solver */
   IAND_INIT,
