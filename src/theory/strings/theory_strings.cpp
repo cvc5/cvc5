@@ -84,7 +84,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg),
-      d_strat(d_env)
+      d_strat(d_env),
+      d_absModelCounter(0)
 {
   d_termReg.finishInit(&d_im);
 
@@ -408,7 +409,9 @@ bool TheoryStrings::collectModelInfoType(
         Assert(!lenValue.isNull() && lenValue.isConst());
         // make the abstract value (witness ((x String)) (= (str.len x)
         // lenValue))
-        Node w = utils::mkAbstractStringValueForLength(eqc, lenValue);
+        Node w = utils::mkAbstractStringValueForLength(
+            eqc, lenValue, d_absModelCounter);
+        d_absModelCounter++;
         Trace("strings-model")
             << "-> length out of bounds, assign abstract " << w << std::endl;
         if (!m->assertEquality(eqc, w, true))
