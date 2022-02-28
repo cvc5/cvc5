@@ -1,5 +1,5 @@
-; EXPECT: sat
-; COMMAND-LINE: --no-check-models
+; EXPECT: sat -q
+; COMMAND-LINE:
 (set-logic ALL)
 (set-option :solve-bv-as-int bv)
 (declare-const _x8 Real)

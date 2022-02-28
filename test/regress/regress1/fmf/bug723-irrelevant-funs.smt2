@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --fmf-fun-rlv
 ; EXPECT: sat
 (set-logic ALL)
 (define-fun $$isTrue$$ ((b Bool)) Bool b)

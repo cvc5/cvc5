@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

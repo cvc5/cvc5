@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --fmf-fun-rlv -i --no-check-models
+; COMMAND-LINE: --strings-exp --fmf-fun-rlv -i
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat

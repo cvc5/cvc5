@@ -1,5 +1,5 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models 
-; COMMAND-LINE: --bitblast=eager --bv-solver=bitblast-internal --no-check-models 
+; COMMAND-LINE: --bitblast=eager 
+; COMMAND-LINE: --bitblast=eager --bv-solver=bitblast-internal 
 ; EXPECT: sat
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.6)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --nl-ext=full --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --incremental --nl-ext=full --fmf-fun-rlv
 (set-logic UFNIA)
 (set-info :smt-lib-version 2.6)
 

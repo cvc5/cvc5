@@ -1,5 +1,5 @@
 ; SCRUBBER: sed -e 's/(_ real_algebraic_number.*/(_ real_algebraic_number/'
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE:
 ; REQUIRES: poly
 ; EXPECT: sat
 ; EXPECT: ((x (_ real_algebraic_number

@@ -1,5 +1,5 @@
-; COMMAND-LINE: --ee-mode=distributed --no-check-unsat-cores
-; COMMAND-LINE: --ee-mode=central --no-check-unsat-cores
+; COMMAND-LINE: --ee-mode=distributed
+; COMMAND-LINE: --ee-mode=central
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

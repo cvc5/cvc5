@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --check-unsat-cores
+; COMMAND-LINE: --incremental
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (assert false)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --fmf-fun --no-check-models
+; COMMAND-LINE: --incremental --fmf-fun
 (set-logic UFDTLIA)
 (set-option :produce-models true)
 (declare-datatypes ((List 0)) (((Nil) (Cons (Cons$head Int) (Cons$tail List)))))

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sort-inference --no-check-unsat-cores
+; COMMAND-LINE: --sort-inference
 ; EXPECT: unsat
 (set-logic ABV)
 (set-option :sort-inference true)

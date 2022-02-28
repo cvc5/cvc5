@@ -1,5 +1,6 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE:
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic QF_ALL)
 (set-info :status sat)
 (declare-heap (Int Int))

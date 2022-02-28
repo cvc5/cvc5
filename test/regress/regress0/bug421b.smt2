@@ -1,8 +1,8 @@
-; same as bug421.smt2 but adds --check-models on command line:
+; same as bug421.smt2 but adds on command line:
 ; this actually caused the same bug for a different reason, so
 ; we check them both independently in regressions
 ;
-; COMMAND-LINE: --incremental --abstract-values --check-models
+; COMMAND-LINE: --incremental --abstract-values
 ; EXPECT: sat
 ; EXPECT: ((a (as @a_1 (Array Int Int))) (b (as @a_2 (Array Int Int))))
 (set-logic QF_AUFLIA)

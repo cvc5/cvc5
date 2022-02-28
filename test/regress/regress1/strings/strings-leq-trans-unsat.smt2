@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --no-check-unsat-cores
+; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
 (set-logic QF_SLIA)
 (set-info :status unsat)

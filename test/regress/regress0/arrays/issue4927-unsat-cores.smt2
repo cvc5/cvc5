@@ -1,4 +1,4 @@
-; COMMANDLINE: --check-unsat-cores --check-models
+; COMMANDLINE:
 ; EXPECT: unsat
 (set-logic QF_AX)
 (declare-const a (Array Bool Bool))

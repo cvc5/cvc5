@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst --strings-exp --no-check-models
+; COMMAND-LINE: --sygus-inst --strings-exp
 ; EXPECT: sat
 (set-logic NIA)
 (set-option :sygus-inst true)

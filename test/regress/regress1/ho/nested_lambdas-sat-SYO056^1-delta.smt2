@@ -1,4 +1,4 @@
-; COMMAND-LINE:  --finite-model-find --no-check-models
+; COMMAND-LINE:  --finite-model-find
 ; EXPECT: sat
 
 (set-logic HO_ALL)
