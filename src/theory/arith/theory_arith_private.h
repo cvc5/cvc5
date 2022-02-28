@@ -85,7 +85,7 @@ class InferBoundsResult;
 class TheoryArithPrivate : protected EnvObj
 {
  private:
-  static const uint32_t RESET_START = 2;
+  static constexpr uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
 
@@ -316,8 +316,7 @@ private:
   bool d_tableauSizeHasBeenModified;
   double d_tableauResetDensity;
   uint32_t d_tableauResetPeriod;
-  static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;
-
+  static constexpr uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
   /** This is only used by simplex at the moment. */
   context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;

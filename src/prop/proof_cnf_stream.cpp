@@ -23,14 +23,17 @@
 namespace cvc5 {
 namespace prop {
 
-ProofCnfStream::ProofCnfStream(context::UserContext* u,
+ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
-                               SatProofManager* satPM,
-                               ProofNodeManager* pnm)
-    : d_cnfStream(cnfStream),
+                               SatProofManager* satPM)
+    : EnvObj(env),
+      d_cnfStream(cnfStream),
       d_satPM(satPM),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_blocked(u)
+      d_proof(env.getProofNodeManager(),
+              nullptr,
+              userContext(),
+              "ProofCnfStream::LazyCDProof"),
+      d_blocked(userContext())
 {
 }
 
@@ -628,7 +631,7 @@ void ProofCnfStream::ensureLiteral(TNode n)
   // remove top level negation. We don't need to track this because it's a
   // literal.
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // These are not removable
     d_cnfStream.d_removable = false;

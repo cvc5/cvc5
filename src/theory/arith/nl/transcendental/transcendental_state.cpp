@@ -33,7 +33,12 @@ namespace transcendental {
 TranscendentalState::TranscendentalState(Env& env,
                                          InferenceManager& im,
                                          NlModel& model)
-    : EnvObj(env), d_im(im), d_model(model)
+    : EnvObj(env),
+      d_im(im),
+      d_model(model),
+      d_trPurify(userContext()),
+      d_trPurifies(userContext()),
+      d_trPurifyVars(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -61,7 +66,7 @@ CDProof* TranscendentalState::getProof()
 }
 
 void TranscendentalState::init(const std::vector<Node>& xts,
-                               std::vector<Node>& needsMaster)
+                               std::vector<Node>& needsPurify)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
@@ -70,6 +75,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
+  NodeMap::const_iterator itp;
   for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
   {
     // Ignore if it is not a transcendental
@@ -80,11 +86,11 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     Node a = xts[i];
     Kind ak = a.getKind();
     bool consider = true;
-    // if we've already computed master for a
-    if (d_trMaster.find(a) != d_trMaster.end())
+    // if we've already assigned a purified term
+    itp = d_trPurify.find(a);
+    if (itp != d_trPurify.end())
     {
-      // a master has at least one slave
-      consider = (d_trSlaves.find(a) != d_trSlaves.end());
+      consider = itp->second == a;
     }
     else
     {
@@ -106,13 +112,14 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
       if (!consider)
       {
-        // wait to assign a master below
-        needsMaster.push_back(a);
+        // must assign a purified term
+        needsPurify.push_back(a);
       }
       else
       {
-        d_trMaster[a] = a;
-        d_trSlaves[a].insert(a);
+        // assume own purified
+        d_trPurify[a] = a;
+        d_trPurifies[a] = a;
       }
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
@@ -133,9 +140,12 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     }
   }
   // initialize pi if necessary
-  if (needPi && d_pi.isNull())
+  if (needPi)
   {
-    mkPi();
+    if (d_pi.isNull())
+    {
+      mkPi();
+    }
     getCurrentPiBounds();
   }
 
@@ -218,18 +228,28 @@ void TranscendentalState::mkPi()
 
 void TranscendentalState::getCurrentPiBounds()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node pi_lem = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
-                           nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
-  CDProof* proof = nullptr;
-  if (isProofEnabled())
+  Assert(!d_pi.isNull());
+  Node piv = d_model.computeAbstractModelValue(d_pi);
+  // If the current value of PI is not initialized, or not within bounds, add
+  // the lemma. Notice that this preempts the need to explicitly track which
+  // lemmas regarding the bound of PI have been added.
+  if (!piv.isConst()
+      || piv.getConst<Rational>() < d_pi_bound[0].getConst<Rational>()
+      || piv.getConst<Rational>() > d_pi_bound[1].getConst<Rational>())
   {
-    proof = getProof();
-    proof->addStep(
-        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+    NodeManager* nm = NodeManager::currentNM();
+    Node pi_lem = nm->mkNode(Kind::AND,
+                             nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
+                             nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
+    CDProof* proof = nullptr;
+    if (isProofEnabled())
+    {
+      proof = getProof();
+      proof->addStep(
+          pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+    }
+    d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
   }
-  d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
@@ -299,6 +319,8 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
                                            TNode splane,
                                            unsigned actual_d)
 {
+  Assert(lower.isConst() && upper.isConst());
+  Assert(lower.getConst<Rational>() < upper.getConst<Rational>());
   NodeManager* nm = NodeManager::currentNM();
   // With respect to Figure 3, this is slightly different.
   // In particular, we chose b to be the model value of bounds[s],
@@ -325,7 +347,9 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       antec_n,
       nm->mkNode(
           convexity == Convexity::CONVEX ? Kind::LEQ : Kind::GEQ, tf, splane));
-  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
+  Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << ", value="
+                          << d_model.computeAbstractModelValue(lem)
+                          << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
   CDProof* proof = nullptr;
   if (isProofEnabled())
@@ -429,6 +453,11 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
     d_im.addPendingLemma(nlem, true);
   }
+}
+
+bool TranscendentalState::isPurified(TNode n) const
+{
+  return d_trPurifies.find(n) != d_trPurifies.end();
 }
 
 }  // namespace transcendental
