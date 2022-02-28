@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
+#include "expr/node_manager_attributes.h"    // for VarNameAt
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -270,12 +271,14 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           // only set the name if there is a value
           if (q[2][i].getNumChildren() > 1)
           {
+            std::string name;
+            q[2][i][1].getAttribute(expr::VarNameAttr(), name);
             Trace("quant-attr") << "Attribute : quantifier name : "
-                                << q[2][i][1].getConst<String>().toString()
+                                << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
             // enclosing the name in quotes)
-            qa.d_name = nm->mkBoundVar(q[2][i][1].getConst<String>().toString(),
+            qa.d_name = nm->mkBoundVar(name,
                                        nm->booleanType());
           }
           else
