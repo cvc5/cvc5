@@ -82,7 +82,14 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   }
   std::vector<Node> prod;
   prod.emplace_back(mkConst(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  if (monomial.getKind() == Kind::MULT || monomial.getKind() == Kind::NONLINEAR_MULT)
+  {
+    prod.insert(prod.end(), monomial.begin(), monomial.end());
+  }
+  else
+  {
+    prod.emplace_back(monomial);
+  }
   Assert(prod.size() >= 2);
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
 }
