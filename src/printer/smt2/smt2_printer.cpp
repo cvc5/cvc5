@@ -880,12 +880,13 @@ void Smt2Printer::toStream(std::ostream& out,
           // on it, or an "external" form where it is of the form
           // (INST_ATTRIBUTE "keyword" [nodeValues]). We print the latter
           // here only.
-          if (nc[0].getKind()==kind::CONST_STRING)
+          if (nc[0].getKind() == kind::CONST_STRING)
           {
             out << "(! ";
             // print out as string to avoid quotes
             annot << ":" << nc[0].getConst<String>().toString();
-            for (size_t j=1, nchildren = nc.getNumChildren(); j<nchildren; j++)
+            for (size_t j = 1, nchildren = nc.getNumChildren(); j < nchildren;
+                 j++)
             {
               annot << " ";
               toStream(annot, nc[j], toDepth, nullptr);
