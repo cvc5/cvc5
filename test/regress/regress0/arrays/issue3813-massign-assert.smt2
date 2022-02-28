@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE:
+; COMMAND-LINE: --produce-unsat-cores
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun a () (Array Int Bool))
