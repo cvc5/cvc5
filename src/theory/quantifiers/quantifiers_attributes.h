@@ -228,7 +228,9 @@ class QuantAttributes
 };
 
 /**
- * Make a named quantified formula.
+ * Make a named quantified formula. This is a quantified formula that will
+ * print like:
+ *   (<k> <bvl> (! <body> :qid name))
  */
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name);
 }
