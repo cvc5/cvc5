@@ -54,9 +54,109 @@ inline Node mkValidPhase(TNode a, TNode pi)
 SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
     : EnvObj(env), d_data(tstate)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  Node zero = nm->mkConstReal(Rational(0));
+  Node one = nm->mkConstReal(Rational(1));
+  Node negOne = nm->mkConstReal(Rational(-1));
+  d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+  Node pi_2 = rewrite(
+      nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
+  Node pi_neg_2 = rewrite(nm->mkNode(
+      Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
+  d_neg_pi = rewrite(nm->mkNode(Kind::MULT, d_pi, negOne));
+  d_mpoints.push_back(d_pi);
+  d_mpointsSine[d_pi] = zero;
+  d_mpoints.push_back(pi_2);
+  d_mpointsSine[pi_2] = one;
+  d_mpoints.push_back(zero);
+  d_mpointsSine[zero] = zero;
+  d_mpoints.push_back(pi_neg_2);
+  d_mpointsSine[pi_neg_2] = negOne;
+  d_mpoints.push_back(d_neg_pi);
+  d_mpointsSine[d_neg_pi] = zero;
 }
 
 SineSolver::~SineSolver() {}
+
+void SineSolver::doReductions()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::map<Kind, std::vector<Node> >::iterator it =
+      d_data->d_funcMap.find(kind::SINE);
+  if (it == d_data->d_funcMap.end())
+  {
+    return;
+  }
+  std::map<Node, Node> mpvs;
+  for (std::pair<const Node, Node>& m : d_mpointsSine)
+  {
+    Node mv = d_data->d_model.computeAbstractModelValue(m.first);
+    mpvs[mv] = m.first;
+  }
+  std::map<Node, Node> valForSym;
+  std::vector<Node> nreduced;
+  for (const Node& tf : it->second)
+  {
+    Node mva = d_data->d_model.computeAbstractModelValue(tf[0]);
+    Node mv = d_data->d_model.computeAbstractModelValue(tf);
+    Node mvaNeg = nm->mkConstReal(-mva.getConst<Rational>());
+    std::map<Node, Node>::iterator itv = valForSym.find(mvaNeg);
+    bool reduced = false;
+    if (itv != valForSym.end())
+    {
+      Node mvs = d_data->d_model.computeAbstractModelValue(itv->second);
+      if (mvs.getConst<Rational>() != -mv.getConst<Rational>())
+      {
+        Node lem =
+            nm->mkNode(kind::IMPLIES,
+                       tf[0].eqNode(nm->mkNode(kind::NEG, itv->second[0])),
+                       tf.eqNode(nm->mkNode(kind::NEG, itv->second)));
+        d_data->d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
+      }
+      // we do not consider it reduced currently, since we require setting
+      // approximate bounds for it, alternatively we could carry the negation
+      // of the approximation in the transcendental solver
+    }
+    else
+    {
+      valForSym[mva] = tf;
+      itv = mpvs.find(mva);
+      if (itv != mpvs.end())
+      {
+        Assert(d_mpointsSine.find(itv->second) != d_mpointsSine.end());
+        Node mvs = d_mpointsSine[itv->second];
+        if (mv != mvs)
+        {
+          // the argument is a boundary point, we reduce it if not already done
+          // so
+          Node lem = nm->mkNode(
+              kind::IMPLIES, tf[0].eqNode(itv->second), tf.eqNode(mvs));
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
+        }
+        else
+        {
+          // remember that the argument is equal to the boundary point
+          d_data->d_model.addSubstitution(tf[0], itv->second);
+          // all congruent transcendental functions are exactly equal to its
+          // value
+          d_data->addModelBoundForPurifyTerm(tf, mvs, mvs);
+        }
+        reduced = true;
+        break;
+      }
+    }
+    if (!reduced)
+    {
+      nreduced.push_back(tf);
+    }
+  }
+  if (nreduced.size() < it->second.size())
+  {
+    it->second = nreduced;
+  }
+}
 
 void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
 {
@@ -64,22 +164,21 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
   SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
   Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
-  Assert(!d_data->d_pi.isNull());
   Node shift = sm->mkDummySkolem("s", nm->integerType(), "number of shifts");
   // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
   // refinement for constant shifts (cvc4-projects #1284)
   Node lem = nm->mkNode(
       Kind::AND,
-      mkValidPhase(y, d_data->d_pi),
-      nm->mkNode(Kind::ITE,
-                 mkValidPhase(a[0], d_data->d_pi),
-                 a[0].eqNode(y),
-                 a[0].eqNode(nm->mkNode(Kind::ADD,
-                                        y,
-                                        nm->mkNode(Kind::MULT,
-                                                   nm->mkConstReal(Rational(2)),
-                                                   shift,
-                                                   d_data->d_pi)))),
+      mkValidPhase(y, d_pi),
+      nm->mkNode(
+          Kind::ITE,
+          mkValidPhase(a[0], d_pi),
+          a[0].eqNode(y),
+          a[0].eqNode(nm->mkNode(
+              Kind::ADD,
+              y,
+              nm->mkNode(
+                  Kind::MULT, nm->mkConstReal(Rational(2)), shift, d_pi)))),
       new_a.eqNode(a));
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())
@@ -156,15 +255,13 @@ void SineSolver::checkInitialRefine()
               Kind::AND,
               nm->mkNode(
                   Kind::IMPLIES,
-                  nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
-                  nm->mkNode(Kind::GT,
-                             t,
-                             nm->mkNode(Kind::SUB, d_data->d_pi_neg, t[0]))),
+                  nm->mkNode(Kind::GT, t[0], d_neg_pi),
+                  nm->mkNode(
+                      Kind::GT, t, nm->mkNode(Kind::SUB, d_neg_pi, t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
-                  nm->mkNode(Kind::LT, t[0], d_data->d_pi),
-                  nm->mkNode(
-                      Kind::LT, t, nm->mkNode(Kind::SUB, d_data->d_pi, t[0]))));
+                  nm->mkNode(Kind::LT, t[0], d_pi),
+                  nm->mkNode(Kind::LT, t, nm->mkNode(Kind::SUB, d_pi, t[0]))));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -231,18 +328,13 @@ void SineSolver::checkMonotonic()
   sortByNlModel(
       tf_args.begin(), tf_args.end(), &d_data->d_model, true, false, true);
 
-  std::vector<Node> mpoints = {d_data->d_pi,
-                               d_data->d_pi_2,
-                               d_data->d_zero,
-                               d_data->d_pi_neg_2,
-                               d_data->d_pi_neg};
   // Sound lower (index=0), upper (index=1) bounds for the above points. We
   // compute this by plugging in the upper and lower bound of pi.
   std::vector<Node> mpointsBound[2];
-  TNode tpi = d_data->d_pi;
+  TNode tpi = d_pi;
   for (size_t j = 0; j < 5; j++)
   {
-    Node point = mpoints[j];
+    Node point = d_mpoints[j];
     for (size_t i = 0; i < 2; i++)
     {
       Node mpointapprox = point;
@@ -279,7 +371,7 @@ void SineSolver::checkMonotonic()
 
     // increment to the proper monotonicity region
     bool increment = true;
-    while (increment && mdir_index < mpoints.size())
+    while (increment && mdir_index < d_mpoints.size())
     {
       increment = false;
       // if we are less than the upper bound of the next point
@@ -295,12 +387,12 @@ void SineSolver::checkMonotonic()
       if (increment)
       {
         tval = Node::null();
-        mono_bounds[1] = mpoints[mdir_index];
+        mono_bounds[1] = d_mpoints[mdir_index];
         mdir_index++;
         monotonic_dir = regionToMonotonicityDir(mdir_index);
-        if (mdir_index < mpoints.size())
+        if (mdir_index < d_mpoints.size())
         {
-          mono_bounds[0] = mpoints[mdir_index];
+          mono_bounds[0] = d_mpoints[mdir_index];
         }
         else
         {
@@ -313,6 +405,8 @@ void SineSolver::checkMonotonic()
     if (mdir_index > 0
         && sargvalr > mpointsBound[0][mdir_index - 1].getConst<Rational>())
     {
+      // can't take this value into account for monotonicity
+      tval = Node::null();
       d_data->d_tf_region[s] = -1;
       Trace("nl-ext-concavity")
           << "Cannot determine the region of transcendental function " << s

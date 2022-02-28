@@ -214,12 +214,6 @@ void TranscendentalState::mkPi()
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-    d_pi_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
-    d_pi_neg_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-    d_pi_neg =
-        rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
     // initialize bounds
     d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
     d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
@@ -458,6 +452,33 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
 bool TranscendentalState::isPurified(TNode n) const
 {
   return d_trPurifies.find(n) != d_trPurifies.end();
+}
+
+bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
+{
+  Assert(d_funcCongClass.find(n) != d_funcCongClass.end());
+  // for each function in the congruence classe
+  for (const Node& ctf : d_funcCongClass[n])
+  {
+    std::vector<Node> mset{ctf};
+    // if this purifies another term, we set a bound on the term it
+    // purifies as well
+    context::CDHashMap<Node, Node>::const_iterator itp = d_trPurifies.find(ctf);
+    if (itp != d_trPurifies.end() && itp->second != ctf)
+    {
+      mset.push_back(itp->second);
+    }
+    for (const Node& stf : mset)
+    {
+      Trace("nl-ext-cm") << "...bound for " << stf << " : [" << l << ", " << u
+                         << "]" << std::endl;
+      if (!d_model.addBound(stf, l, u))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 }  // namespace transcendental

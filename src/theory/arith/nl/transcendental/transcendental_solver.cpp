@@ -58,6 +58,14 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
   std::vector<Node> needsMaster;
   d_tstate.init(xts, needsMaster);
 
+  if (d_tstate.d_im.hasUsed())
+  {
+    return;
+  }
+
+  // apply reduction reasoning, e.g. x = pi/2 => sin(x) = 1
+  d_sineSlv.doReductions();
+
   if (d_tstate.d_im.hasUsed()) {
     return;
   }
@@ -140,27 +148,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       }
       if (!bounds.first.isNull() && !bounds.second.isNull())
       {
-        // for each function in the congruence classe
-        for (const Node& ctf : d_tstate.d_funcCongClass[tf])
-        {
-          std::vector<Node> mset{ctf};
-          // if this purifies another term, we set a bound on the term it
-          // purifies as well
-          context::CDHashMap<Node, Node>::const_iterator itp =
-              d_tstate.d_trPurifies.find(ctf);
-          if (itp != d_tstate.d_trPurifies.end() && itp->second != ctf)
-          {
-            mset.push_back(itp->second);
-          }
-          for (const Node& stf : mset)
-          {
-            Trace("nl-ext-cm")
-                << "...bound for " << stf << " : [" << bounds.first << ", "
-                << bounds.second << "]" << std::endl;
-            success =
-                d_tstate.d_model.addBound(stf, bounds.first, bounds.second);
-          }
-        }
+        success = d_tstate.addModelBoundForPurifyTerm(
+            tf, bounds.first, bounds.second);
       }
       else
       {

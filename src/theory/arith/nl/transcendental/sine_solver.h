@@ -46,6 +46,18 @@ class SineSolver : protected EnvObj
   SineSolver(Env& env, TranscendentalState* tstate);
   ~SineSolver();
 
+  /** do reductions
+   *
+   * This method determines any applications of sin(x) that can be reasoned
+   * about "precisely", either via symmetry:
+   *   x = -y => sin(x) = -sin(y)
+   * or via boundary points, e.g.:
+   *   x = pi/2 => sin(x) = 1
+   * Each application of sin(x) for which a reduction of the latter form exists
+   * is removed from the range of d_funcMap in the transcendental state, and
+   * thus will not be considered for other lemma schemas.
+   */
+  void doReductions();
   /**
    * Introduces new_a as purified version of a which is also shifted to the main
    * phase (from -pi to pi). y is the new skolem used for purification.
@@ -110,16 +122,14 @@ class SineSolver : protected EnvObj
    * is invalid, or there is no lower bound for the
    * region.
    */
-  Node regionToLowerBound(int region)
+  Node regionToLowerBound(int region) const
   {
-    switch (region)
+    if (region >= 1 && region <= 4)
     {
-      case 1: return d_data->d_pi_2;
-      case 2: return d_data->d_zero;
-      case 3: return d_data->d_pi_neg_2;
-      case 4: return d_data->d_pi_neg;
-      default: return Node();
+      size_t index = static_cast<size_t>(region);
+      return d_mpoints[index];
     }
+    return Node();
   }
 
   /** region to upper bound
@@ -130,19 +140,17 @@ class SineSolver : protected EnvObj
    * is invalid, or there is no upper bound for the
    * region.
    */
-  Node regionToUpperBound(int region)
+  Node regionToUpperBound(int region) const
   {
-    switch (region)
+    if (region >= 1 && region <= 4)
     {
-      case 1: return d_data->d_pi;
-      case 2: return d_data->d_pi_2;
-      case 3: return d_data->d_zero;
-      case 4: return d_data->d_pi_neg_2;
-      default: return Node();
+      size_t index = static_cast<size_t>(region - 1);
+      return d_mpoints[index];
     }
+    return Node();
   }
 
-  int regionToMonotonicityDir(int region)
+  int regionToMonotonicityDir(int region) const
   {
     switch (region)
     {
@@ -153,7 +161,7 @@ class SineSolver : protected EnvObj
       default: return 0;
     }
   }
-  Convexity regionToConvexity(int region)
+  Convexity regionToConvexity(int region) const
   {
     switch (region)
     {
@@ -171,6 +179,13 @@ class SineSolver : protected EnvObj
   /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
 
+  /** PI, -PI */
+  Node d_pi;
+  Node d_neg_pi;
+  /** the boundary points */
+  std::vector<Node> d_mpoints;
+  /** mapping from values c to known points for sin(c) */
+  std::map<Node, Node> d_mpointsSine;
 }; /* class SineSolver */
 
 }  // namespace transcendental
