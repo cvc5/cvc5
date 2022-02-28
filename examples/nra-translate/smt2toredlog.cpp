@@ -115,7 +115,7 @@ void translate_to_redlog_term(const map<Expr, unsigned>& variables, const Expr& 
   } else {
         
     switch (term.getKind()) {
-      case kind::PLUS:
+      case kind::ADD:
         cout << "(";
         first = true;
         for (unsigned i = 0; i < n; ++ i) {

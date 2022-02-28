@@ -100,11 +100,11 @@ Node StringsRewriter::rewriteStrToInt(Node node)
     String s = node[0].getConst<String>();
     if (s.isNumber())
     {
-      ret = nm->mkConst(CONST_RATIONAL, s.toNumber());
+      ret = nm->mkConstInt(s.toNumber());
     }
     else
     {
-      ret = nm->mkConst(CONST_RATIONAL, Rational(-1));
+      ret = nm->mkConstInt(Rational(-1));
     }
     return returnRewrite(node, ret, Rewrite::STOI_EVAL);
   }
@@ -117,7 +117,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
         String t = nc.getConst<String>();
         if (!t.isNumber())
         {
-          Node ret = nm->mkConst(CONST_RATIONAL, Rational(-1));
+          Node ret = nm->mkConstInt(Rational(-1));
           return returnRewrite(node, ret, Rewrite::STOI_CONCAT_NONNUM);
         }
       }
@@ -303,11 +303,11 @@ Node StringsRewriter::rewriteStringToCode(Node n)
     {
       std::vector<unsigned> vec = s.getVec();
       Assert(vec.size() == 1);
-      ret = nm->mkConst(CONST_RATIONAL, Rational(vec[0]));
+      ret = nm->mkConstInt(Rational(vec[0]));
     }
     else
     {
-      ret = nm->mkConst(CONST_RATIONAL, Rational(-1));
+      ret = nm->mkConstInt(Rational(-1));
     }
     return returnRewrite(n, ret, Rewrite::TO_CODE_EVAL);
   }
@@ -320,10 +320,9 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
   NodeManager* nm = NodeManager::currentNM();
   // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
   Node t = nm->mkNode(STRING_TO_CODE, n[0]);
-  Node retNode =
-      nm->mkNode(AND,
-                 nm->mkNode(LEQ, nm->mkConst(CONST_RATIONAL, Rational(48)), t),
-                 nm->mkNode(LEQ, t, nm->mkConst(CONST_RATIONAL, Rational(57))));
+  Node retNode = nm->mkNode(AND,
+                            nm->mkNode(LEQ, nm->mkConstInt(Rational(48)), t),
+                            nm->mkNode(LEQ, t, nm->mkConstInt(Rational(57))));
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
 }
 

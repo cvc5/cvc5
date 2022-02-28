@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
@@ -137,10 +138,7 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(CONST_RATIONAL,
-                          Rational(d_coeff.getConst<Rational>()
-                                   * p.d_coeff.getConst<Rational>()));
+    d_coeff = arith::multConstants(d_coeff, p.d_coeff);
   }
 }
 
@@ -163,12 +161,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    Assert(new_theta.getKind() == CONST_RATIONAL);
-    Assert(pv_prop.d_coeff.getKind() == CONST_RATIONAL);
-    NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(CONST_RATIONAL,
-                            Rational(new_theta.getConst<Rational>()
-                                     * pv_prop.d_coeff.getConst<Rational>()));
+    new_theta = arith::multConstants(new_theta, pv_prop.d_coeff);
   }
   d_theta.push_back(new_theta);
 }
@@ -259,7 +252,7 @@ bool CegInstantiator::isEligible( Node n ) {
 
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
-  if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
+  if (quantifiers::TermUtil::isBoolConnective(k) || k == ADD || k == GEQ
       || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
       || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
@@ -357,7 +350,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       if (dt.isParametric())
       {
         // if parametric, must instantiate the argument types
-        consType = dt[i].getSpecializedConstructorType(tn);
+        consType = dt[i].getInstantiatedConstructorType(tn);
       }
       else
       {
@@ -528,7 +521,7 @@ void CegInstantiator::registerTheoryIds(TypeNode tn,
   if (visited.find(tn) == visited.end())
   {
     visited[tn] = true;
-    TheoryId tid = Theory::theoryOf(tn);
+    TheoryId tid = d_env.theoryOf(tn);
     registerTheoryId(tid);
     if (tn.isDatatype())
     {
@@ -868,7 +861,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   std::unordered_set<Node> lits;
   for (unsigned r = 0; r < 2; r++)
   {
-    TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
+    TheoryId tid = r == 0 ? d_env.theoryOf(pvtn) : THEORY_UF;
     Trace("cegqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
     std::map<TheoryId, std::vector<Node> >::iterator ita =
         d_curr_asserts.find(tid);
@@ -1165,8 +1158,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nn = NodeManager::currentNM()->mkNode(
               MULT,
               subs[i],
-              NodeManager::currentNM()->mkConst(
-                  CONST_RATIONAL,
+              NodeManager::currentNM()->mkConstReal(
                   Rational(1) / prop[i].d_coeff.getConst<Rational>()));
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn = rewrite(nn);
@@ -1214,10 +1206,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
-              c_coeff = rewrite(NodeManager::currentNM()->mkConst(
-                  CONST_RATIONAL,
+              c_coeff = rewrite(NodeManager::currentNM()->mkConstReal(
                   pv_prop.d_coeff.getConst<Rational>()
-                      / msum_coeff[it->first].getConst<Rational>()));
+                  / msum_coeff[it->first].getConst<Rational>()));
             }else{
               c_coeff = pv_prop.d_coeff;
             }
@@ -1234,7 +1225,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             children.push_back( c );
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
+          Node nretc = children.size() == 1
+                           ? children[0]
+                           : NodeManager::currentNM()->mkNode(ADD, children);
           nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
@@ -1281,9 +1274,9 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
+        atom_lhs = nm->mkNode(SUB, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
-        atom_rhs = nm->mkConst(CONST_RATIONAL, Rational(0));
+        atom_rhs = nm->mkConstRealOrInt(atom_lhs.getType(), Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){
@@ -1406,7 +1399,7 @@ void CegInstantiator::processAssertions() {
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode rtn = r.getType();
-    TheoryId tid = Theory::theoryOf( rtn );
+    TheoryId tid = d_env.theoryOf(rtn);
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
       if (rtn.isRealOrInt())

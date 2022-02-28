@@ -45,10 +45,9 @@ namespace {
  */
 inline Node mkValidPhase(TNode a, TNode pi)
 {
+  NodeManager* nm = NodeManager::currentNM();
   return mkBounded(
-      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
-      a,
-      pi);
+      nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi), a, pi);
 }
 }  // namespace
 
@@ -75,13 +74,12 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
       nm->mkNode(Kind::ITE,
                  mkValidPhase(a[0], d_data->d_pi),
                  a[0].eqNode(y),
-                 a[0].eqNode(nm->mkNode(
-                     Kind::PLUS,
-                     y,
-                     nm->mkNode(Kind::MULT,
-                                nm->mkConst(CONST_RATIONAL, Rational(2)),
-                                shift,
-                                d_data->d_pi)))),
+                 a[0].eqNode(nm->mkNode(Kind::ADD,
+                                        y,
+                                        nm->mkNode(Kind::MULT,
+                                                   nm->mkConstReal(Rational(2)),
+                                                   shift,
+                                                   d_data->d_pi)))),
       new_a.eqNode(a));
   CDProof* proof = nullptr;
   if (d_data->isProofEnabled())
@@ -113,15 +111,7 @@ void SineSolver::checkInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Node symn = nm->mkNode(Kind::SINE,
-                               nm->mkNode(Kind::MULT, d_data->d_neg_one, t[0]));
-        symn = rewrite(symn);
-        // Can assume it is its own master since phase is split over 0,
-        // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
-        d_data->d_trMaster[symn] = symn;
-        d_data->d_trSlaves[symn].insert(symn);
-        Assert(d_data->d_trSlaves.find(t) != d_data->d_trSlaves.end());
-
+        Assert(d_data->isPurified(t));
         {
           // sine bounds: -1 <= sin(t) <= 1
           Node lem = nm->mkNode(Kind::AND,
@@ -132,18 +122,6 @@ void SineSolver::checkInitialRefine()
           {
             proof = d_data->getProof();
             proof->addStep(lem, PfRule::ARITH_TRANS_SINE_BOUNDS, {}, {t[0]});
-          }
-          d_data->d_im.addPendingLemma(
-              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
-        }
-        {
-          // sine symmetry: sin(t) - sin(-t) = 0
-          Node lem = nm->mkNode(Kind::PLUS, t, symn).eqNode(d_data->d_zero);
-          CDProof* proof = nullptr;
-          if (d_data->isProofEnabled())
-          {
-            proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
@@ -181,13 +159,12 @@ void SineSolver::checkInitialRefine()
                   nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
                   nm->mkNode(Kind::GT,
                              t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0]))),
+                             nm->mkNode(Kind::SUB, d_data->d_pi_neg, t[0]))),
               nm->mkNode(
                   Kind::IMPLIES,
                   nm->mkNode(Kind::LT, t[0], d_data->d_pi),
-                  nm->mkNode(Kind::LT,
-                             t,
-                             nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))));
+                  nm->mkNode(
+                      Kind::LT, t, nm->mkNode(Kind::SUB, d_data->d_pi, t[0]))));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -259,13 +236,32 @@ void SineSolver::checkMonotonic()
                                d_data->d_zero,
                                d_data->d_pi_neg_2,
                                d_data->d_pi_neg};
-  std::vector<Node> mpoints_vals;
-
-  // get model values for points
-  for (const auto& point : mpoints)
+  // Sound lower (index=0), upper (index=1) bounds for the above points. We
+  // compute this by plugging in the upper and lower bound of pi.
+  std::vector<Node> mpointsBound[2];
+  TNode tpi = d_data->d_pi;
+  for (size_t j = 0; j < 5; j++)
   {
-    mpoints_vals.emplace_back(d_data->d_model.computeAbstractModelValue(point));
-    Assert(mpoints_vals.back().isConst());
+    Node point = mpoints[j];
+    for (size_t i = 0; i < 2; i++)
+    {
+      Node mpointapprox = point;
+      if (j != 2)
+      {
+        // substitute the lower or upper bound of pi
+        TNode tb = d_data->d_pi_bound[i];
+        mpointapprox = point.substitute(tpi, tb);
+        mpointapprox = d_data->d_model.computeConcreteModelValue(mpointapprox);
+      }
+      Assert(mpointapprox.isConst());
+      mpointsBound[i].emplace_back(mpointapprox);
+    }
+    // bounds are flipped for negative pi
+    if (mpointsBound[0].back().getConst<Rational>()
+        > mpointsBound[1].back().getConst<Rational>())
+    {
+      std::swap(mpointsBound[0].back(), mpointsBound[1].back());
+    }
   }
 
   unsigned mdir_index = 0;
@@ -276,6 +272,7 @@ void SineSolver::checkMonotonic()
   {
     Node sargval = d_data->d_model.computeAbstractModelValue(sarg);
     Assert(sargval.isConst());
+    const Rational& sargvalr = sargval.getConst<Rational>();
     Node s = tf_arg_to_term[sarg];
     Node sval = d_data->d_model.computeAbstractModelValue(s);
     Assert(sval.isConst());
@@ -285,14 +282,15 @@ void SineSolver::checkMonotonic()
     while (increment && mdir_index < mpoints.size())
     {
       increment = false;
-      Node pval = mpoints_vals[mdir_index];
-      Assert(pval.isConst());
-      if (sargval.getConst<Rational>() < pval.getConst<Rational>())
+      // if we are less than the upper bound of the next point
+      Node pvalUpper = mpointsBound[1][mdir_index];
+      Assert(pvalUpper.isConst());
+      if (sargvalr < pvalUpper.getConst<Rational>())
       {
         increment = true;
         Trace("nl-ext-tf-mono")
             << "...increment at " << sarg << " since model value is less than "
-            << mpoints[mdir_index] << std::endl;
+            << mpointsBound[1][mdir_index] << std::endl;
       }
       if (increment)
       {
@@ -310,10 +308,24 @@ void SineSolver::checkMonotonic()
         }
       }
     }
-    // store the concavity region
-    d_data->d_tf_region[s] = mdir_index;
-    Trace("nl-ext-concavity")
-        << "Transcendental function " << s << " is in region #" << mdir_index;
+    // must ensure that we are actually less than or equal to the lower bound of
+    // the previous point
+    if (mdir_index > 0
+        && sargvalr > mpointsBound[0][mdir_index - 1].getConst<Rational>())
+    {
+      d_data->d_tf_region[s] = -1;
+      Trace("nl-ext-concavity")
+          << "Cannot determine the region of transcendental function " << s
+          << ", perhaps its value is close to the boundary "
+          << mpointsBound[1][mdir_index - 1];
+    }
+    else
+    {
+      // store the concavity region
+      d_data->d_tf_region[s] = mdir_index;
+      Trace("nl-ext-concavity")
+          << "Transcendental function " << s << " is in region #" << mdir_index;
+    }
     Trace("nl-ext-concavity") << ", arg model value = " << sargval << std::endl;
 
     if (!tval.isNull())
@@ -365,7 +377,9 @@ void SineSolver::doTangentLemma(
     TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Assert(region != -1);
 
+  Trace("nl-ext-sine") << c << " in region " << region << std::endl;
   // compute tangent plane
   // Figure 3: T( x )
   // We use zero slope tangent planes, since the concavity of the Taylor
@@ -385,9 +399,6 @@ void SineSolver::doTangentLemma(
                  e,
                  poly_approx));
 
-  Trace("nl-ext-sine") << "*** Tangent plane lemma (pre-rewrite): " << lem
-                       << std::endl;
-  lem = rewrite(lem);
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
@@ -402,7 +413,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         regionToLowerBound(region),
@@ -413,7 +424,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         c,
@@ -427,7 +438,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         regionToLowerBound(region),
@@ -438,7 +449,7 @@ void SineSolver::doTangentLemma(
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
                        {},
-                       {nm->mkConst(CONST_RATIONAL, Rational(2 * d)),
+                       {nm->mkConstInt(Rational(2 * d)),
                         e[0],
                         c,
                         c,
@@ -458,6 +469,7 @@ void SineSolver::doSecantLemmas(TNode e,
                                 unsigned actual_d,
                                 int region)
 {
+  Assert(region != -1);
   d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
                          poly_approx,
                          c,

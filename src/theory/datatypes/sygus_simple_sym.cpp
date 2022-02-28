@@ -38,13 +38,13 @@ SygusSimpleSymBreak::SygusSimpleSymBreak(quantifiers::TermDbSygus* tds)
  *
  * As a simple example, consider the trie:
  * root:
- *   d_req_kind = PLUS
+ *   d_req_kind = ADD
  *   d_children[0]:
  *     d_req_type = A
  *   d_children[1]:
  *     d_req_type = A
  * This trie is satisfied by sygus types that have a constructor whose builtin
- * kind is PLUS and whose argument types are both A.
+ * kind is ADD and whose argument types are both A.
  */
 class ReqTrie
 {
@@ -200,7 +200,7 @@ bool SygusSimpleSymBreak::considerArgKind(
   Assert(rt.empty());
 
   // construct rt by cases
-  if (pk == NOT || pk == BITVECTOR_NOT || pk == UMINUS || pk == BITVECTOR_NEG)
+  if (pk == NOT || pk == BITVECTOR_NOT || pk == NEG || pk == BITVECTOR_NEG)
   {
     // negation normal form
     if (pk == k)
@@ -242,10 +242,10 @@ bool SygusSimpleSymBreak::considerArgKind(
         {
           //  (not (~ x y)) ----->  (~ (+ y 1) x)
           rt.d_req_kind = k;
-          rt.d_children[0].d_req_kind = PLUS;
+          rt.d_children[0].d_req_kind = ADD;
           rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[0].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+              NodeManager::currentNM()->mkConstInt(Rational(1));
           rt.d_children[1].d_req_type = dt[c].getArgType(0);
         }
         else if (k == LT || k == GEQ)
@@ -253,10 +253,10 @@ bool SygusSimpleSymBreak::considerArgKind(
           //  (not (~ x y)) ----->  (~ y (+ x 1))
           rt.d_req_kind = k;
           rt.d_children[0].d_req_type = dt[c].getArgType(1);
-          rt.d_children[1].d_req_kind = PLUS;
+          rt.d_children[1].d_req_kind = ADD;
           rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
           rt.d_children[1].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+              NodeManager::currentNM()->mkConstInt(Rational(1));
         }
       }
       else if (pk == BITVECTOR_NOT)
@@ -280,19 +280,19 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_req_kind = BITVECTOR_XNOR;
         }
       }
-      else if (pk == UMINUS)
+      else if (pk == NEG)
       {
-        if (k == PLUS)
+        if (k == ADD)
         {
-          rt.d_req_kind = PLUS;
-          reqk = UMINUS;
+          rt.d_req_kind = ADD;
+          reqk = NEG;
         }
       }
       else if (pk == BITVECTOR_NEG)
       {
-        if (k == PLUS)
+        if (k == ADD)
         {
-          rt.d_req_kind = PLUS;
+          rt.d_req_kind = ADD;
           reqk = BITVECTOR_NEG;
         }
       }
@@ -327,25 +327,25 @@ bool SygusSimpleSymBreak::considerArgKind(
       }
     }
   }
-  else if (k == MINUS || k == BITVECTOR_SUB)
+  else if (k == SUB || k == BITVECTOR_SUB)
   {
-    if (pk == EQUAL || pk == MINUS || pk == BITVECTOR_SUB || pk == LEQ
-        || pk == LT || pk == GEQ || pk == GT)
+    if (pk == EQUAL || pk == SUB || pk == BITVECTOR_SUB || pk == LEQ || pk == LT
+        || pk == GEQ || pk == GT)
     {
       int oarg = arg == 0 ? 1 : 0;
       //  (~ x (- y z))  ---->  (~ (+ x z) y)
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
-      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_ADD;
+      rt.d_children[oarg].d_req_kind = k == SUB ? ADD : BITVECTOR_ADD;
       rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
       rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
-    else if (pk == PLUS || pk == BITVECTOR_ADD)
+    else if (pk == ADD || pk == BITVECTOR_ADD)
     {
       //  (+ x (- y z))  -----> (- (+ x y) z)
       //  (+ (- y z) x)  -----> (- (+ x y) z)
-      rt.d_req_kind = pk == PLUS ? MINUS : BITVECTOR_SUB;
+      rt.d_req_kind = pk == ADD ? SUB : BITVECTOR_SUB;
       int oarg = arg == 0 ? 1 : 0;
       rt.d_children[0].d_req_kind = pk;
       rt.d_children[0].d_children[0].d_req_type = pdt[pc].getArgType(oarg);

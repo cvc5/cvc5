@@ -519,7 +519,7 @@ TrustNode Constraint::externalExplainByAssertions() const
 {
   NodeBuilder nb(kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
-  Node exp = safeConstructNary(nb);
+  Node exp = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     std::vector<Node> assumptions;
@@ -533,7 +533,7 @@ TrustNode Constraint::externalExplainByAssertions() const
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
+        getLiteral(), NodeManager::currentNM()->mkAnd(assumptions), pf);
   }
   return TrustNode::mkTrustPropExp(getLiteral(), exp);
 }
@@ -1548,12 +1548,9 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
   Assert(!isInternalAssumption());
   NodeBuilder nb(Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
-  Node n = safeConstructNary(nb);
+  Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
-    // Check that the literal we're explaining via this constraint actually
-    // matches the constraint's canonical literal.
-    Assert(Rewriter::rewrite(lit) == getLiteral());
     std::vector<Node> assumptions;
     if (n.getKind() == Kind::AND)
     {
@@ -1570,7 +1567,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        lit, safeConstructNary(Kind::AND, assumptions), pf);
+        lit, NodeManager::currentNM()->mkAnd(assumptions), pf);
   }
   else
   {
@@ -1586,7 +1583,7 @@ TrustNode Constraint::externalExplainConflict() const
   auto pf1 = externalExplainByAssertions(nb);
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
-  Node n = safeConstructNary(nb);
+  Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     auto pfNot2 = d_database->d_pnm->mkNode(
@@ -1624,7 +1621,7 @@ TrustNode Constraint::externalExplainConflict() const
     }
     auto confPf = d_database->d_pnm->mkScope(bot, lits);
     return d_database->d_pfGen->mkTrustNode(
-        safeConstructNary(Kind::AND, lits), confPf, true);
+        NodeManager::currentNM()->mkAnd(lits), confPf, true);
   }
   else
   {
@@ -1685,7 +1682,7 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
     ConstraintCP v_i = *i;
     v_i->externalExplain(nb, order);
   }
-  return safeConstructNary(nb);
+  return mkAndFromBuilder(nb);
 }
 
 std::shared_ptr<ProofNode> Constraint::externalExplain(
@@ -2266,7 +2263,7 @@ bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
   if(cons->negationHasProof()){
     Debug("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
     cons->impliedByUnate(ant, true);
-    d_raiseConflict.raiseConflict(cons, InferenceId::UNKNOWN);
+    d_raiseConflict.raiseConflict(cons, InferenceId::ARITH_CONF_UNATE_PROP);
     return true;
   }else if(!cons->isTrue()){
     ++d_statistics.d_unatePropagateImplications;

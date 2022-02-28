@@ -41,13 +41,6 @@ void CheckModels::checkModel(TheoryModel* m,
   // If this function is running, the user gave --check-model (or equivalent),
   // and if verbose(1) is on, the user gave --verbose (or equivalent).
 
-  // check-model is not guaranteed to succeed if approximate values were used.
-  // Thus, we intentionally abort here.
-  if (m->hasApproximations())
-  {
-    throw RecoverableModalException(
-        "Cannot run check-model on a model with approximate values.");
-  }
   Node sepHeap, sepNeq;
   if (m->getHeapModel(sepHeap, sepNeq))
   {
@@ -71,7 +64,7 @@ void CheckModels::checkModel(TheoryModel* m,
     // evaluate e.g. divide-by-zero. This is intentional since the evaluation
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
-    Node n = sm.apply(assertion, false);
+    Node n = sm.apply(assertion);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
                << std::endl;
 

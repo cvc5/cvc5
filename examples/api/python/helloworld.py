@@ -14,10 +14,10 @@
 # A very simple example, adapted from helloworld-new.cpp
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!")
     print(helloworld, "is", slv.checkEntailed(helloworld))

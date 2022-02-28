@@ -568,14 +568,11 @@ class SatProofManager
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
   context::CDHashSet<Node> d_assumptions;
-
   /**
    * A placeholder that may be used to store the literal with the final
    * conflict.
    */
   SatLiteral d_conflictLit;
-  /** Gets node equivalent to literal */
-  Node getClauseNode(SatLiteral satLit);
   /** Gets node equivalent to clause.
    *
    * To avoid generating different nodes for the same clause, modulo ordering,

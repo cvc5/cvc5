@@ -43,36 +43,44 @@ class ArithRewriter : public TheoryRewriter
   TrustNode expandDefinition(Node node) override;
 
  private:
-  static Node makeSubtractionNode(TNode l, TNode r);
-  static Node makeUnaryMinusNode(TNode n);
+  static RewriteResponse preRewriteAtom(TNode t);
+  static RewriteResponse postRewriteAtom(TNode t);
 
   static RewriteResponse preRewriteTerm(TNode t);
   static RewriteResponse postRewriteTerm(TNode t);
 
+  /** rewrite real algebraic numbers */
+  static RewriteResponse rewriteRAN(TNode t);
+  /** rewrite variables */
   static RewriteResponse rewriteVariable(TNode t);
-  static RewriteResponse rewriteConstant(TNode t);
-  static RewriteResponse rewriteMinus(TNode t, bool pre);
-  static RewriteResponse rewriteUMinus(TNode t, bool pre);
+
+  /** rewrite unary minus */
+  static RewriteResponse rewriteNeg(TNode t, bool pre);
+  /** rewrite binary minus */
+  static RewriteResponse rewriteSub(TNode t);
+  /** preRewrite addition */
+  static RewriteResponse preRewritePlus(TNode t);
+  /** postRewrite addition */
+  static RewriteResponse postRewritePlus(TNode t);
   static RewriteResponse rewriteDiv(TNode t, bool pre);
+  static RewriteResponse rewriteAbs(TNode t);
   static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
   static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
   /** Entry for applications of to_int and is_int */
   static RewriteResponse rewriteExtIntegerOp(TNode t);
 
-  static RewriteResponse preRewritePlus(TNode t);
-  static RewriteResponse postRewritePlus(TNode t);
-
   static RewriteResponse preRewriteMult(TNode t);
   static RewriteResponse postRewriteMult(TNode t);
 
+  /** postRewrite IAND */
   static RewriteResponse postRewriteIAnd(TNode t);
+  /** postRewrite POW2 */
   static RewriteResponse postRewritePow2(TNode t);
 
+  /** preRewrite transcendental functions */
   static RewriteResponse preRewriteTranscendental(TNode t);
+  /** postRewrite transcendental functions */
   static RewriteResponse postRewriteTranscendental(TNode t);
-
-  static RewriteResponse preRewriteAtom(TNode t);
-  static RewriteResponse postRewriteAtom(TNode t);
 
   static bool isAtom(TNode n);
 

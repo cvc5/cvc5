@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep --ext-rew-prep-agg
+; COMMAND-LINE: --ext-rew-prep=agg
 ; EXPECT: sat
 (set-logic ALL)
 (declare-sort Atom 0)

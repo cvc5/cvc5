@@ -45,7 +45,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "f543721215ec17a724dc86820a0430233931a637")
+  set(Poly_VERSION "1383809f2aa5005ef20110fec84b66959518f697")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
@@ -69,16 +69,16 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(APPEND POLY_BYPRODUCTS
       <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpoly.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpoly.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
       <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpolyxx.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND POLY_BYPRODUCTS
       <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
       <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
     )
   endif()
 
@@ -86,7 +86,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=3fad3b310727fa0fb2fdff5a8857709d12f72e04
+    URL_HASH SHA1=e3da80491b378a4d874073d201406eb011f47c19
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
@@ -122,11 +122,6 @@ if(NOT Poly_FOUND_SYSTEM)
   else()
     set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
     set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
-  endif()
-
-  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
   endif()
 endif()
 

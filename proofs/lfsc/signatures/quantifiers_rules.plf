@@ -43,7 +43,7 @@
                       (! body term
                       (! p (holds bodyi)
                       (! r (^ (sc_substitute body v s) bodyi)
-                        (holds (exists v u body)))))))))
+                        (holds (exists v u body))))))))))
 
 (declare skolem_intro (! u term
                       (! t term

@@ -58,15 +58,15 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub = rewrite(nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb = rewrite(nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
+    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
+    Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
-    Node rawEq = nm->mkNode(EQUAL, var, mkRationalNode(nearest));
+    Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
     Node eq = rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
     TrustNode teq;
-    if (Theory::theoryOf(eq) == THEORY_ARITH)
+    if (d_env.theoryOf(eq) == THEORY_ARITH)
     {
       teq = d_ppre.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
@@ -78,8 +78,8 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
-      Node less = nm->mkNode(LT, var, mkRationalNode(nearest));
-      Node greater = nm->mkNode(GT, var, mkRationalNode(nearest));
+      Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
+      Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
       Debug("integers::pf") << "less: " << less << std::endl;
       Debug("integers::pf") << "greater: " << greater << std::endl;
@@ -119,7 +119,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   }
   else
   {
-    Node ub = rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
+    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {

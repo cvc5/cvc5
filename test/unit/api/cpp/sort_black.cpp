@@ -61,6 +61,24 @@ TEST_F(TestApiBlackSort, operators_comparison)
   ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
 }
 
+TEST_F(TestApiBlackSort, hasGetSymbol)
+{
+  Sort n;
+  Sort b = d_solver.getBooleanSort();
+  Sort s0 = d_solver.mkParamSort("s0");
+  Sort s1 = d_solver.mkParamSort("|s1\\|");
+
+  ASSERT_THROW(n.hasSymbol(), CVC5ApiException);
+  ASSERT_FALSE(b.hasSymbol());
+  ASSERT_TRUE(s0.hasSymbol());
+  ASSERT_TRUE(s1.hasSymbol());
+
+  ASSERT_THROW(n.getSymbol(), CVC5ApiException);
+  ASSERT_THROW(b.getSymbol(), CVC5ApiException);
+  ASSERT_EQ(s0.getSymbol(), "s0");
+  ASSERT_EQ(s1.getSymbol(), "|s1\\|");
+}
+
 TEST_F(TestApiBlackSort, isNull)
 {
   Sort x;
@@ -275,16 +293,6 @@ TEST_F(TestApiBlackSort, isSubsortOf)
   ASSERT_FALSE(
       d_solver.getIntegerSort().isSubsortOf(d_solver.getBooleanSort()));
   ASSERT_NO_THROW(Sort().isSubsortOf(Sort()));
-}
-
-TEST_F(TestApiBlackSort, isComparableTo)
-{
-  ASSERT_TRUE(
-      d_solver.getIntegerSort().isComparableTo(d_solver.getIntegerSort()));
-  ASSERT_TRUE(d_solver.getIntegerSort().isComparableTo(d_solver.getRealSort()));
-  ASSERT_FALSE(
-      d_solver.getIntegerSort().isComparableTo(d_solver.getBooleanSort()));
-  ASSERT_NO_THROW(Sort().isComparableTo(Sort()));
 }
 
 TEST_F(TestApiBlackSort, getDatatype)
@@ -578,21 +586,14 @@ TEST_F(TestApiBlackSort, sortSubtyping)
   Sort realSort = d_solver.getRealSort();
   ASSERT_TRUE(intSort.isSubsortOf(realSort));
   ASSERT_FALSE(realSort.isSubsortOf(intSort));
-  ASSERT_TRUE(intSort.isComparableTo(realSort));
-  ASSERT_TRUE(realSort.isComparableTo(intSort));
 
   Sort arraySortII = d_solver.mkArraySort(intSort, intSort);
   Sort arraySortIR = d_solver.mkArraySort(intSort, realSort);
-  ASSERT_FALSE(arraySortII.isComparableTo(intSort));
-  // we do not support subtyping for arrays
-  ASSERT_FALSE(arraySortII.isComparableTo(arraySortIR));
 
   Sort setSortI = d_solver.mkSetSort(intSort);
   Sort setSortR = d_solver.mkSetSort(realSort);
   // we don't support subtyping for sets
-  ASSERT_FALSE(setSortI.isComparableTo(setSortR));
   ASSERT_FALSE(setSortI.isSubsortOf(setSortR));
-  ASSERT_FALSE(setSortR.isComparableTo(setSortI));
   ASSERT_FALSE(setSortR.isSubsortOf(setSortI));
 }
 
@@ -606,6 +607,11 @@ TEST_F(TestApiBlackSort, sortScopedToString)
   Solver solver2;
   ASSERT_EQ(bvsort8.toString(), "(_ BitVec 8)");
   ASSERT_EQ(uninterp_sort.toString(), name);
+}
+
+TEST_F(TestApiBlackSort, toString)
+{
+  ASSERT_NO_THROW(Sort().toString());
 }
 
 }  // namespace test

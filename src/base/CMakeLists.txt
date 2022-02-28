@@ -48,7 +48,6 @@ file(GLOB_RECURSE source_files
      ${PROJECT_SOURCE_DIR}/src/*.cc
      ${PROJECT_SOURCE_DIR}/src/*.h
      ${PROJECT_SOURCE_DIR}/src/*.g)
-string(REPLACE ";" " " source_files_list "${source_files}")
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h

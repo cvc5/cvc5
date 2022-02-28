@@ -563,6 +563,7 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
 Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
   Trace("sygus-ccore-debug") << "...check-sat " << n << "..." << std::endl;
+  n = rewrite(n);
   Result r = checkWithSubsolver(n, d_vars, mvs, options(), logicInfo());
   Trace("sygus-ccore-debug") << "...got " << r << std::endl;
   return r;
@@ -668,6 +669,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     // try a new core
     std::unique_ptr<SolverEngine> checkSol;
     initializeSubsolver(checkSol, d_env);
+    checkSol->setOption("produce-unsat-cores", "true");
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(d_sc);
@@ -709,6 +711,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
           std::unique_ptr<SolverEngine> checkSc;
           initializeSubsolver(checkSc, d_env);
+          checkSc->setOption("produce-unsat-cores", "true");
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);

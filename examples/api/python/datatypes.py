@@ -16,8 +16,8 @@
 # datatypes-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 def test(slv, consListSort):
     # Now our old "consListSpec" is useless--the relevant information
@@ -34,9 +34,9 @@ def test(slv, consListSort):
     # which is equivalent to consList["cons"].getConstructor().  Note that
     # "nil" is a constructor too
 
-    t = slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("cons"),
+    t = slv.mkTerm(Kind.ApplyConstructor, consList.getConstructorTerm("cons"),
                    slv.mkInteger(0),
-                   slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("nil")))
+                   slv.mkTerm(Kind.ApplyConstructor, consList.getConstructorTerm("nil")))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
@@ -49,7 +49,7 @@ def test(slv, consListSort):
     # consList["cons"]) in order to get the "head" selector symbol
     # to apply.
 
-    t2 = slv.mkTerm(kinds.ApplySelector, consList["cons"].getSelectorTerm("head"), t)
+    t2 = slv.mkTerm(Kind.ApplySelector, consList["cons"].getSelectorTerm("head"), t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -63,16 +63,16 @@ def test(slv, consListSort):
 
     # You can also define a tester term for constructor 'cons': (_ is cons)
     t_is_cons = slv.mkTerm(
-            kinds.ApplyTester, consList["cons"].getTesterTerm(), t)
+            Kind.ApplyTester, consList["cons"].getTesterTerm(), t)
     print("t_is_cons is {}\n\n".format(t_is_cons))
     slv.assertFormula(t_is_cons)
     # Updating t at 'head' with value 1 is defined as follows:
-    t_updated = slv.mkTerm(kinds.ApplyUpdater,
+    t_updated = slv.mkTerm(Kind.ApplyUpdater,
                            consList["cons"]["head"].getUpdaterTerm(),
                            t,
                            slv.mkInteger(1))
     print("t_updated is {}\n\n".format(t_updated))
-    slv.assertFormula(slv.mkTerm(kinds.Distinct, t, t_updated))
+    slv.assertFormula(slv.mkTerm(Kind.Distinct, t, t_updated))
 
     # You can also define parameterized datatypes.
     # This example builds a simple parameterized list of sort T, with one
@@ -93,11 +93,11 @@ def test(slv, consListSort):
     a = slv.mkConst(paramConsIntListSort, "a")
     print("term {} is of sort {}".format(a, a.getSort()))
 
-    head_a = slv.mkTerm(kinds.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)
+    head_a = slv.mkTerm(Kind.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
 
-    assertion = slv.mkTerm(kinds.Gt, head_a, slv.mkInteger(50))
+    assertion = slv.mkTerm(Kind.Gt, head_a, slv.mkInteger(50))
     print("Assert", assertion)
     slv.assertFormula(assertion)
     print("Expect sat.")
@@ -105,7 +105,7 @@ def test(slv, consListSort):
 
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # This example builds a simple "cons list" of integers, with
     # two constructors, "cons" and "nil."

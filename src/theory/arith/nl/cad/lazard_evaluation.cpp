@@ -106,7 +106,15 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state);
 struct LazardEvaluationState
 {
   CoCoA::GlobalManager d_gm;
-  static std::unique_ptr<LazardEvaluationStats> d_stats;
+
+  /**
+   * Statistics about the lazard evaluation.
+   * Although this class is short-lived, there is no need to make the statistics
+   * static or store them persistently: this is handled by the statistics
+   * registry, which recovers statistics from their name.
+   * This member is mutable to allow collecting statistics from const methods.
+   */
+  mutable LazardEvaluationStats d_stats;
 
   /**
    * Maps libpoly variables to indets in J0. Used when constructing the input
@@ -184,14 +192,6 @@ struct LazardEvaluationState
    * value.
    */
   std::vector<std::optional<CoCoA::RingElem>> d_direct;
-
-  LazardEvaluationState()
-  {
-    if (!d_stats)
-    {
-      d_stats = std::make_unique<LazardEvaluationStats>();
-    }
-  }
 
   /**
    * Converts a libpoly integer to a CoCoA::BigInt.
@@ -595,7 +595,7 @@ struct LazardEvaluationState
    */
   std::vector<poly::Polynomial> reduce(const poly::Polynomial& qpoly) const
   {
-    d_stats->d_evaluations++;
+    d_stats.d_evaluations++;
     std::vector<poly::Polynomial> res;
     Trace("cad::lazard") << "Reducing " << qpoly << std::endl;
     auto input = convertQ(qpoly);
@@ -621,7 +621,7 @@ struct LazardEvaluationState
           while (CoCoA::IsZero(hom(q)))
           {
             q = q / (var - indets[0]);
-            d_stats->d_reductions++;
+            d_stats.d_reductions++;
           }
           // substitute x_i -> a_i
           q = hom(q);
@@ -634,7 +634,7 @@ struct LazardEvaluationState
           while (CoCoA::IsDivisible(q, tmp))
           {
             q /= tmp;
-            d_stats->d_reductions++;
+            d_stats.d_reductions++;
           }
         }
         q = d_qhom[i](q);
@@ -682,7 +682,6 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state)
   os << "Done" << std::endl;
   return os;
 }
-std::unique_ptr<LazardEvaluationStats> LazardEvaluationState::d_stats;
 
 LazardEvaluation::LazardEvaluation()
     : d_state(std::make_unique<LazardEvaluationState>())
@@ -747,7 +746,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
     {
       d_state->addKRational(var,
                             CoCoA::RingElem(d_state->d_K.back(), *rational));
-      d_state->d_stats->d_directAssignments++;
+      d_state->d_stats.d_directAssignments++;
       return;
     }
     Trace("cad::lazard") << "Got mipo " << polymipo << std::endl;
@@ -768,13 +767,13 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
           Trace("cad::lazard") << "Using linear factor " << f << " -> " << var
                                << " = " << rat << std::endl;
           d_state->addKRational(var, rat);
-          d_state->d_stats->d_directAssignments++;
+          d_state->d_stats.d_directAssignments++;
         }
         else
         {
           Trace("cad::lazard") << "Using nonlinear factor " << f << std::endl;
           d_state->addK(var, f);
-          d_state->d_stats->d_ranAssignments++;
+          d_state->d_stats.d_ranAssignments++;
         }
         used_factor = true;
         break;
@@ -821,6 +820,30 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
   return {p};
 }
 
+std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
+    const poly::Polynomial& q) const
+{
+  poly::Assignment a;
+  std::vector<poly::Value> roots;
+  // reduce q to a set of reduced polynomials p
+  for (const auto& p : reducePolynomial(q))
+  {
+    // collect all real roots except for -infty, none, +infty
+    Trace("cad::lazard") << "Isolating roots of " << p << std::endl;
+    Assert(poly::is_univariate(p) && poly::is_univariate_over_assignment(p, a));
+    std::vector<poly::Value> proots = poly::isolate_real_roots(p, a);
+    for (const auto& r : proots)
+    {
+      if (poly::is_minus_infinity(r)) continue;
+      if (poly::is_none(r)) continue;
+      if (poly::is_plus_infinity(r)) continue;
+      roots.emplace_back(r);
+    }
+  }
+  std::sort(roots.begin(), roots.end());
+  return roots;
+}
+
 /**
  * Compute the infeasible regions of the given polynomial according to a sign
  * condition. We first reduce the polynomial and isolate the real roots of every
@@ -835,23 +858,7 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
 {
-  poly::Assignment a;
-  std::set<poly::Value> roots;
-  // reduce q to a set of reduced polynomials p
-  for (const auto& p : reducePolynomial(q))
-  {
-    // collect all real roots except for -infty, none, +infty
-    Trace("cad::lazard") << "Isolating roots of " << p << std::endl;
-    Assert(poly::is_univariate(p) && poly::is_univariate_over_assignment(p, a));
-    std::vector<poly::Value> proots = poly::isolate_real_roots(p, a);
-    for (const auto& r : proots)
-    {
-      if (poly::is_minus_infinity(r)) continue;
-      if (poly::is_none(r)) continue;
-      if (poly::is_plus_infinity(r)) continue;
-      roots.insert(r);
-    }
-  }
+  std::vector<poly::Value> roots = isolateRealRoots(q);
 
   // generate all intervals
   // (-infty,root_0), [root_0], (root_0,root_1), ..., [root_m], (root_m,+infty)
@@ -961,6 +968,16 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
     const poly::Polynomial& p) const
 {
   return {p};
+}
+
+std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
+    const poly::Polynomial& q) const
+{
+  WarningOnce()
+      << "CAD::LazardEvaluation is disabled because CoCoA is not available. "
+         "Falling back to regular real root isolation."
+      << std::endl;
+  return poly::isolate_real_roots(q, d_state->d_assignment);
 }
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const

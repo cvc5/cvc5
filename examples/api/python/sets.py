@@ -12,14 +12,14 @@
 # #############################################################################
 #
 # A simple demonstration of the solving capabilities of the cvc5 sets solver
-# through the Python API. This is a direct translation of sets-new.cpp.
+# through the Python API. This is a direct translation of sets.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # Optionally, set the logic. We need at least UF for equality predicate,
     # integers (LIA) and sets (FS).
@@ -39,14 +39,14 @@ if __name__ == "__main__":
     B = slv.mkConst(set_, "B")
     C = slv.mkConst(set_, "C")
 
-    unionAB = slv.mkTerm(kinds.SetUnion, A, B)
-    lhs = slv.mkTerm(kinds.SetInter, unionAB, C)
+    unionAB = slv.mkTerm(Kind.SetUnion, A, B)
+    lhs = slv.mkTerm(Kind.SetInter, unionAB, C)
 
-    intersectionAC = slv.mkTerm(kinds.SetInter, A, C)
-    intersectionBC = slv.mkTerm(kinds.SetInter, B, C)
-    rhs = slv.mkTerm(kinds.SetUnion, intersectionAC, intersectionBC)
+    intersectionAC = slv.mkTerm(Kind.SetInter, A, C)
+    intersectionBC = slv.mkTerm(Kind.SetInter, B, C)
+    rhs = slv.mkTerm(Kind.SetUnion, intersectionAC, intersectionBC)
 
-    theorem = slv.mkTerm(kinds.Equal, lhs, rhs)
+    theorem = slv.mkTerm(Kind.Equal, lhs, rhs)
 
     print("cvc5 reports: {} is {}".format(theorem,
                                           slv.checkEntailed(theorem)))
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     A = slv.mkConst(set_, "A")
     emptyset = slv.mkEmptySet(set_)
 
-    theorem = slv.mkTerm(kinds.SetSubset, emptyset, A)
+    theorem = slv.mkTerm(Kind.SetSubset, emptyset, A)
 
     print("cvc5 reports: {} is {}".format(theorem,
                                           slv.checkEntailed(theorem)))
@@ -67,16 +67,16 @@ if __name__ == "__main__":
     two = slv.mkInteger(2)
     three = slv.mkInteger(3)
 
-    singleton_one = slv.mkTerm(kinds.SetSingleton, one)
-    singleton_two = slv.mkTerm(kinds.SetSingleton, two)
-    singleton_three = slv.mkTerm(kinds.SetSingleton, three)
-    one_two = slv.mkTerm(kinds.SetUnion, singleton_one, singleton_two)
-    two_three = slv.mkTerm(kinds.SetUnion, singleton_two, singleton_three)
-    intersection = slv.mkTerm(kinds.SetInter, one_two, two_three)
+    singleton_one = slv.mkTerm(Kind.SetSingleton, one)
+    singleton_two = slv.mkTerm(Kind.SetSingleton, two)
+    singleton_three = slv.mkTerm(Kind.SetSingleton, three)
+    one_two = slv.mkTerm(Kind.SetUnion, singleton_one, singleton_two)
+    two_three = slv.mkTerm(Kind.SetUnion, singleton_two, singleton_three)
+    intersection = slv.mkTerm(Kind.SetInter, one_two, two_three)
 
     x = slv.mkConst(integer, "x")
 
-    e = slv.mkTerm(kinds.SetMember, x, intersection)
+    e = slv.mkTerm(Kind.SetMember, x, intersection)
 
     result = slv.checkSatAssuming(e)
 

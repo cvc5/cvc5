@@ -42,7 +42,14 @@ namespace cvc5 {
 namespace smt {
 
 SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
-    : EnvObj(env), d_smtSolver(sms), d_sygusConjectureStale(userContext(), true)
+    : EnvObj(env),
+      d_smtSolver(sms),
+      d_sygusVars(userContext()),
+      d_sygusConstraints(userContext()),
+      d_sygusAssumps(userContext()),
+      d_sygusFunSymbols(userContext()),
+      d_sygusConjectureStale(userContext(), true),
+      d_subsolverCd(userContext(), nullptr)
 {
 }
 
@@ -84,7 +91,7 @@ void SygusSolver::declareSynthFun(Node fn,
   }
 
   // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusConjectureStale = true;
 }
 
 void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
@@ -101,7 +108,7 @@ void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
   }
 
   // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusConjectureStale = true;
 }
 
 void SygusSolver::assertSygusInvConstraint(Node inv,
@@ -173,44 +180,50 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConstraints.push_back(constraint);
 
   // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusConjectureStale = true;
 }
 
-Result SygusSolver::checkSynth(Assertions& as)
+Result SygusSolver::checkSynth(Assertions& as, bool isNext)
 {
-  if (options().base.incrementalSolving)
-  {
-    // TODO (project #7)
-    throw ModalException(
-        "Cannot make check-synth commands when incremental solving is enabled");
-  }
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
-  std::vector<Node> query;
+  // if applicable, check if the subsolver is the correct one
+  if (!isNext)
+  {
+    // if we are not using check-synth-next, we always reconstruct the solver.
+    d_sygusConjectureStale = true;
+  }
+  if (usingSygusSubsolver() && d_subsolverCd.get() != d_subsolver.get())
+  {
+    // this can occur if we backtrack to a place where we were using a different
+    // subsolver than the current one. In this case, we should reconstruct
+    // the subsolver.
+    d_sygusConjectureStale = true;
+  }
   if (d_sygusConjectureStale)
   {
     NodeManager* nm = NodeManager::currentNM();
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    Node body = nm->mkAnd(d_sygusConstraints);
+    Node body = nm->mkAnd(listToVector(d_sygusConstraints));
     // note that if there are no constraints, then assumptions are irrelevant
     if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
     {
-      Node bodyAssump = nm->mkAnd(d_sygusAssumps);
+      Node bodyAssump = nm->mkAnd(listToVector(d_sygusAssumps));
       body = nm->mkNode(IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
-      Node boundVars = nm->mkNode(BOUND_VAR_LIST, d_sygusVars);
+      Node boundVars = nm->mkNode(BOUND_VAR_LIST, listToVector(d_sygusVars));
       body = nm->mkNode(EXISTS, boundVars, body);
       Trace("smt") << "...constructed exists " << body << std::endl;
     }
     if (!d_sygusFunSymbols.empty())
     {
-      body =
-          quantifiers::SygusUtils::mkSygusConjecture(d_sygusFunSymbols, body);
+      body = quantifiers::SygusUtils::mkSygusConjecture(
+          listToVector(d_sygusFunSymbols), body);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
 
@@ -218,58 +231,118 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     d_sygusConjectureStale = false;
 
-    // TODO (project #7): if incremental, we should push a context and assert
-    query.push_back(body);
+    d_conj = body;
+
+    // if we are using a subsolver, initialize it now
+    if (usingSygusSubsolver())
+    {
+      // we generate a new solver engine to do the SyGuS query
+      initializeSygusSubsolver(d_subsolver, as);
+
+      // store the pointer (context-dependent)
+      d_subsolverCd = d_subsolver.get();
+
+      // also assert the internal SyGuS conjecture
+      d_subsolver->assertFormula(d_conj);
+    }
   }
-
-  Result r = d_smtSolver.checkSatisfiability(as, query, false);
-
-  // Check that synthesis solutions satisfy the conjecture
-  if (options().smt.checkSynthSol
-      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  else
   {
-    checkSynthSolution(as);
+    Assert(d_subsolver != nullptr);
+  }
+  Result r;
+  if (usingSygusSubsolver())
+  {
+    r = d_subsolver->checkSat();
+  }
+  else
+  {
+    std::vector<Node> query;
+    query.push_back(d_conj);
+    r = d_smtSolver.checkSatisfiability(as, query, false);
+  }
+  // The result returned by the above call is typically "unknown", which may
+  // or may not correspond to a state in which we solved the conjecture
+  // successfully. Instead we call getSynthSolutions below. If this returns
+  // true, then we were successful. In this case, we set the result to "unsat",
+  // since the synthesis conjecture was negated when asserted to the subsolver.
+  //
+  // This behavior is done for 2 reasons:
+  // (1) if we do not negate the synthesis conjecture, the subsolver in some
+  // cases cannot answer "sat", e.g. in the presence of recursive function
+  // definitions. Instead the SyGuS language standard itself indicates that
+  // a correct solution for a conjecture is one where the synthesis conjecture
+  // is *T-valid* (in the presence of defined recursive functions). In other
+  // words, a SyGuS query asks to prove that the conjecture is valid when
+  // witnessed by the given solution.
+  // (2) we do not want the solver to explicitly answer "unsat" by giving an
+  // unsatisfiable set of formulas to the underlying PropEngine, or otherwise
+  // we will not be able to ask for further solutions. This is critical for
+  // incremental solving where multiple solutions are returned for the same
+  // set of constraints. Thus, the internal SyGuS solver will mark unknown
+  // with IncompleteId::QUANTIFIERS_SYGUS_SOLVED. Furthermore, this id may be
+  // overwritten by other means of incompleteness, so we cannot rely on this
+  // identifier being the final reason for unknown.
+  //
+  // Thus, we use getSynthSolutions as means of knowing the conjecture was
+  // solved.
+  std::map<Node, Node> sol_map;
+  if (getSynthSolutions(sol_map))
+  {
+    // if we have solutions, we return "unsat" by convention
+    r = Result(Result::UNSAT);
+    // Check that synthesis solutions satisfy the conjecture
+    if (options().smt.checkSynthSol)
+    {
+      checkSynthSolution(as, sol_map);
+    }
+  }
+  else
+  {
+    // otherwise, we return "unknown"
+    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
   }
   return r;
 }
 
-bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
-  std::map<Node, std::map<Node, Node>> sol_mapn;
+  if (usingSygusSubsolver())
+  {
+    // use the call to get the synth solutions from the subsolver
+    return d_subsolver->getSubsolverSynthSolutions(solMap);
+  }
+  return getSubsolverSynthSolutions(solMap);
+}
+
+bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
+{
+  Trace("smt") << "SygusSolver::getSubsolverSynthSolutions" << std::endl;
+  std::map<Node, std::map<Node, Node>> solMapn;
   // fail if the theory engine does not have synthesis solutions
   QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe == nullptr || !qe->getSynthSolutions(sol_mapn))
+  if (qe == nullptr || !qe->getSynthSolutions(solMapn))
   {
     return false;
   }
-  for (std::pair<const Node, std::map<Node, Node>>& cs : sol_mapn)
+  for (std::pair<const Node, std::map<Node, Node>>& cs : solMapn)
   {
     for (std::pair<const Node, Node>& s : cs.second)
     {
-      sol_map[s.first] = s.second;
+      solMap[s.first] = s.second;
     }
   }
   return true;
 }
 
-void SygusSolver::checkSynthSolution(Assertions& as)
+void SygusSolver::checkSynthSolution(Assertions& as,
+                                     const std::map<Node, Node>& sol_map)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   if (isVerboseOn(1))
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
-  }
-  std::map<Node, std::map<Node, Node>> sol_map;
-  // Get solutions and build auxiliary vectors for substituting
-  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe == nullptr || !qe->getSynthSolutions(sol_map))
-  {
-    InternalError()
-        << "SygusSolver::checkSynthSolution(): No solution to check!";
-    return;
   }
   if (sol_map.empty())
   {
@@ -279,100 +352,39 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   Trace("check-synth-sol") << "Got solution map:\n";
   // the set of synthesis conjectures in our assertions
   std::unordered_set<Node> conjs;
+  conjs.insert(d_conj);
   // For each of the above conjectures, the functions-to-synthesis and their
   // solutions. This is used as a substitution below.
-  std::map<Node, std::vector<Node>> fvarMap;
-  std::map<Node, std::vector<Node>> fsolMap;
-  for (const std::pair<const Node, std::map<Node, Node>>& cmap : sol_map)
+  std::vector<Node> fvars;
+  std::vector<Node> fsols;
+  for (const std::pair<const Node, Node>& pair : sol_map)
   {
-    Trace("check-synth-sol") << "For conjecture " << cmap.first << ":\n";
-    conjs.insert(cmap.first);
-    std::vector<Node>& fvars = fvarMap[cmap.first];
-    std::vector<Node>& fsols = fsolMap[cmap.first];
-    for (const std::pair<const Node, Node>& pair : cmap.second)
-    {
-      Trace("check-synth-sol")
-          << "  " << pair.first << " --> " << pair.second << "\n";
-      fvars.push_back(pair.first);
-      fsols.push_back(pair.second);
-    }
+    Trace("check-synth-sol")
+        << "  " << pair.first << " --> " << pair.second << "\n";
+    fvars.push_back(pair.first);
+    fsols.push_back(pair.second);
   }
+
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
-  const context::CDList<Node>& alist = as.getAssertionList();
-  Assert(options().smt.produceAssertions)
-      << "Expected produce assertions to be true when checking synthesis "
-         "solution";
-  // auxiliary assertions
-  std::vector<Node> auxAssertions;
-  // expand definitions cache
-  std::unordered_map<Node, Node> cache;
-  for (const Node& assertion : alist)
-  {
-    if (isVerboseOn(1))
-    {
-      verbose(1) << "SyGuS::checkSynthSolution: checking assertion "
-                 << assertion << std::endl;
-    }
-    Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
-    // Apply any define-funs from the problem.
-    Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
-    if (isVerboseOn(1))
-    {
-      verbose(1) << "SyGuS::checkSynthSolution: -- expands to " << n
-                 << std::endl;
-    }
-    Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
-    if (conjs.find(n) == conjs.end())
-    {
-      Trace("check-synth-sol") << "It is an auxiliary assertion\n";
-      auxAssertions.push_back(n);
-    }
-    else
-    {
-      Trace("check-synth-sol") << "It is a synthesis conjecture\n";
-    }
-  }
   // check all conjectures
-  for (Node conj : conjs)
+  for (const Node& conj : conjs)
   {
     // Start new SMT engine to check solutions
     std::unique_ptr<SolverEngine> solChecker;
-    initializeSubsolver(solChecker, d_env);
+    initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
-    // get the solution for this conjecture
-    std::vector<Node>& fvars = fvarMap[conj];
-    std::vector<Node>& fsols = fsolMap[conj];
+    Assert(conj.getKind() == FORALL);
+    Node conjBody = conj[1];
+    // we must expand definitions here, since define-fun may contain the
+    // function-to-synthesize, which needs to be substituted.
+    conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
     // Apply solution map to conjecture body
-    Node conjBody;
-    /* Whether property is quantifier free */
-    if (conj[1].getKind() != EXISTS)
-    {
-      conjBody = conj[1].substitute(
-          fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
-    }
-    else
-    {
-      conjBody = conj[1][1].substitute(
-          fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
-
-      /* Skolemize property */
-      std::vector<Node> vars, skos;
-      for (unsigned j = 0, size = conj[1][0].getNumChildren(); j < size; ++j)
-      {
-        vars.push_back(conj[1][0][j]);
-        std::stringstream ss;
-        ss << "sk_" << j;
-        skos.push_back(sm->mkDummySkolem(ss.str(), conj[1][0][j].getType()));
-        Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
-                                 << skos.back() << "\n";
-      }
-      conjBody = conjBody.substitute(
-          vars.begin(), vars.end(), skos.begin(), skos.end());
-    }
+    conjBody = conjBody.substitute(
+        fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
 
     if (isVerboseOn(1))
     {
@@ -382,17 +394,6 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     Trace("check-synth-sol")
         << "Substituted body of assertion to " << conjBody << "\n";
     solChecker->assertFormula(conjBody);
-    // Assert all auxiliary assertions. This may include recursive function
-    // definitions that were added as assertions to the sygus problem.
-    for (Node a : auxAssertions)
-    {
-      // We require rewriting here, e.g. so that define-fun from the original
-      // problem are rewritten to true. If this is not the case, then the
-      // assertions module of the subsolver will complain about assertions
-      // with free variables.
-      Node ar = rewrite(a);
-      solChecker->assertFormula(ar);
-    }
     Result r = solChecker->checkSat();
     if (isVerboseOn(1))
     {
@@ -414,15 +415,47 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
 }
 
-void SygusSolver::setSygusConjectureStale()
+void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
+                                           Assertions& as)
 {
-  if (d_sygusConjectureStale)
+  initializeSubsolver(se, d_env);
+  // carry the ordinary define-fun definitions
+  const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
+  std::unordered_set<Node> processed;
+  for (const Node& def : alistDefs)
   {
-    // already stale
-    return;
+    // only consider define-fun, represented as (= f (lambda ...)).
+    if (def.getKind() == EQUAL)
+    {
+      Assert(def[0].isVar());
+      std::vector<Node> formals;
+      Node dbody = def[1];
+      if (def[1].getKind() == LAMBDA)
+      {
+        formals.insert(formals.end(), def[1][0].begin(), def[1][0].end());
+        dbody = dbody[1];
+      }
+      se->defineFunction(def[0], formals, dbody);
+      processed.insert(def);
+    }
   }
-  d_sygusConjectureStale = true;
-  // TODO (project #7): if incremental, we should pop a context
+  // Also assert auxiliary assertions
+  const context::CDList<Node>& alist = as.getAssertionList();
+  for (size_t i = 0, asize = alist.size(); i < asize; ++i)
+  {
+    Node a = alist[i];
+    // ignore definitions here
+    if (processed.find(a) == processed.end())
+    {
+      se->assertFormula(a);
+    }
+  }
+}
+
+bool SygusSolver::usingSygusSubsolver() const
+{
+  // use SyGuS subsolver if in incremental mode
+  return options().base.incrementalSolving;
 }
 
 void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
@@ -465,6 +498,16 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       }
     }
   }
+}
+
+std::vector<Node> SygusSolver::listToVector(const NodeList& list)
+{
+  std::vector<Node> vec;
+  for (const Node& n : list)
+  {
+    vec.push_back(n);
+  }
+  return vec;
 }
 
 }  // namespace smt

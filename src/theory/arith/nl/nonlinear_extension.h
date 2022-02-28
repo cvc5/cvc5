@@ -111,11 +111,6 @@ class NonlinearExtension : EnvObj
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
 
-  /**
-   * Finalize the given model by adding approximations and witnesses.
-   */
-  void finalizeModel(TheoryModel* tm);
-
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
 
@@ -267,17 +262,6 @@ class NonlinearExtension : EnvObj
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
-
-  /**
-   * The approximations computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, std::pair<Node, Node>> d_approximations;
-  /**
-   * The witnesses computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, Node> d_witnesses;
 }; /* class NonlinearExtension */
 
 }  // namespace nl

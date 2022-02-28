@@ -25,13 +25,20 @@ if(CMAKE_SCRIPT_MODE_FILE)
 else()
   # was run within the overall cmake project
   # add target to update versioninfo.cpp at build time
-  add_custom_target(gen-versioninfo
-    BYPRODUCTS
+  add_custom_command(
+    OUTPUT
       ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
     COMMAND ${CMAKE_COMMAND}
       -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
       -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
-      -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake)
+      -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake
+    DEPENDS
+      ${PROJECT_SOURCE_DIR}/cmake/version-base.cmake
+      ${PROJECT_SOURCE_DIR}/cmake/version.cmake
+  )
+  add_custom_target(gen-versioninfo
+    DEPENDS ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
+  )
 endif()
 
 # include basic version information
@@ -112,8 +119,13 @@ if(GIT_FOUND)
         list(LENGTH VERSION_LIST VERSION_LIST_LENGTH)
       endwhile()
 
-      set(CVC5_VERSION "${GIT_LAST_TAG}-dev")
-      set(CVC5_FULL_VERSION "${GIT_LAST_TAG}-dev.${GIT_COMMITS_SINCE_TAG}.${GIT_COMMIT}")
+      if(CVC5_IS_RELEASE)
+        set(CVC5_VERSION "${CVC5_VERSION}-modified")
+        set(CVC5_FULL_VERSION "${CVC5_FULL_VERSION}-modified")
+      else()
+        set(CVC5_VERSION "${GIT_LAST_TAG}-dev")
+        set(CVC5_FULL_VERSION "${GIT_LAST_TAG}-dev.${GIT_COMMITS_SINCE_TAG}.${GIT_COMMIT}")
+      endif()
       set(CVC5_GIT_INFO "git ${GIT_COMMIT} on branch ${GIT_BRANCH}${GIT_DIRTY_MSG}")
     endif()
   endif()

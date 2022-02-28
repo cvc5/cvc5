@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of sequences.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -39,18 +39,18 @@ if __name__ == "__main__":
     # Empty sequence
     empty = slv.mkEmptySequence(slv.getIntegerSort())
     # Sequence concatenation: x.y.empty
-    concat = slv.mkTerm(kinds.SeqConcat, x, y, empty)
+    concat = slv.mkTerm(Kind.SeqConcat, x, y, empty)
     # Sequence length: |x.y.empty|
-    concat_len = slv.mkTerm(kinds.SeqLength, concat)
+    concat_len = slv.mkTerm(Kind.SeqLength, concat)
     # |x.y.empty| > 1
-    formula1 = slv.mkTerm(kinds.Gt, concat_len, slv.mkInteger(1))
+    formula1 = slv.mkTerm(Kind.Gt, concat_len, slv.mkInteger(1))
     # Sequence unit: seq(1)
-    unit = slv.mkTerm(kinds.SeqUnit, slv.mkInteger(1))
+    unit = slv.mkTerm(Kind.SeqUnit, slv.mkInteger(1))
     # x = seq(1)
-    formula2 = slv.mkTerm(kinds.Equal, x, unit)
+    formula2 = slv.mkTerm(Kind.Equal, x, unit)
 
     # Make a query
-    q = slv.mkTerm(kinds.And, formula1, formula2)
+    q = slv.mkTerm(Kind.And, formula1, formula2)
 
     # Check satisfiability
     result = slv.checkSatAssuming(q)

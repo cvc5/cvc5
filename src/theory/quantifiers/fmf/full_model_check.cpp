@@ -67,8 +67,9 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
     }
     if( c[index].getType().isSort() ){
       //for star: check if all children are defined and have generalizations
-      if( c[index]==st ){     ///options::fmfFmcCoverSimplify()
-        //check if all children exist and are complete
+      if (c[index] == st)
+      {  /// option fmfFmcCoverSimplify
+        // check if all children exist and are complete
         unsigned num_child_def =
             d_child.size() - (d_child.find(st) != d_child.end() ? 1 : 0);
         if (num_child_def == m->getRepSet()->getNumRepresentatives(tn))
@@ -477,7 +478,6 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           Trace("fmc-warn") << "Warning : model for " << op
                             << " has non-constant argument in model " << ri
                             << " (from " << ci << ")" << std::endl;
-          Assert(false);
         }
         entry_children.push_back(ri);
       }
@@ -487,7 +487,6 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           << "Representative of " << v << " is " << nv << std::endl;
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
-        Assert(false);
       }
       Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){

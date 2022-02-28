@@ -185,6 +185,14 @@ enum class PfRule : uint32_t
   // where F' and G' are the result of each side of the equation above. Here,
   // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Annotation
+  // Children: (P1:F)
+  // Arguments: (a1 ... an)
+  // ----------------------------------------
+  // Conclusion: F
+  // The terms a1 ... an can be anything used to annotate the proof node, one
+  // example is where a1 is a theory::InferenceId.
+  ANNOTATION,
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
   // Children: none

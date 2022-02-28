@@ -16,13 +16,13 @@
 # A simple demonstration of catching cvc5 exceptions with the legacy Python API.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 import sys
 
 
 def main():
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     slv.setOption("produce-models", "true")
 

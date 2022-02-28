@@ -55,7 +55,7 @@ class DatatypeTest
     assertDoesNotThrow(() -> nilConstr.getConstructorTerm());
   }
 
-  @Test void mkDatatypeSorts()
+  @Test void mkDatatypeSorts() throws CVC5ApiException
   {
     /* Create two mutual datatypes corresponding to this definition
      * block:
@@ -67,8 +67,8 @@ class DatatypeTest
      */
     // Make unresolved types as placeholders
     Set<Sort> unresTypes = new HashSet<>();
-    Sort unresTree = d_solver.mkUninterpretedSort("tree");
-    Sort unresList = d_solver.mkUninterpretedSort("list");
+    Sort unresTree = d_solver.mkUnresolvedSort("tree", 0);
+    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
     unresTypes.add(unresTree);
     unresTypes.add(unresList);
 
@@ -112,8 +112,8 @@ class DatatypeTest
     DatatypeSelector dtsTreeNodeLeft = dtcTreeNode.getSelector(0);
     assertEquals(dtsTreeNodeLeft.getName(), "left");
     // argument type should have resolved to be recursive
-    assertTrue(dtsTreeNodeLeft.getRangeSort().isDatatype());
-    assertEquals(dtsTreeNodeLeft.getRangeSort(), dtsorts.get(0));
+    assertTrue(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+    assertEquals(dtsTreeNodeLeft.getCodomainSort(), dtsorts.get(0));
 
     // fails due to empty datatype
     List<DatatypeDecl> dtdeclsBad = new ArrayList<>();
@@ -225,7 +225,7 @@ class DatatypeTest
     // get selector
     DatatypeSelector dselTail = dcons.getSelector(1);
     assertEquals(dselTail.getName(), "tail");
-    assertEquals(dselTail.getRangeSort(), dtypeSort);
+    assertEquals(dselTail.getCodomainSort(), dtypeSort);
 
     // possible to construct null datatype declarations if not using solver
     assertThrows(CVC5ApiException.class, () -> d_solver.getNullDatatypeDecl().getName());
@@ -248,6 +248,8 @@ class DatatypeTest
     Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
     assertTrue(pairType.getDatatype().isParametric());
+    Sort[] dparams = pairType.getDatatype().getParameters();
+    assertTrue(dparams[0].equals(t1) && dparams[1].equals(t2));
 
     v.clear();
     v.add(d_solver.getIntegerSort());
@@ -273,23 +275,6 @@ class DatatypeTest
     assertNotEquals(pairIntInt, pairRealInt);
     assertNotEquals(pairIntReal, pairRealInt);
 
-    assertTrue(pairRealReal.isComparableTo(pairRealReal));
-    assertFalse(pairIntReal.isComparableTo(pairRealReal));
-    assertFalse(pairRealInt.isComparableTo(pairRealReal));
-    assertFalse(pairIntInt.isComparableTo(pairRealReal));
-    assertFalse(pairRealReal.isComparableTo(pairRealInt));
-    assertFalse(pairIntReal.isComparableTo(pairRealInt));
-    assertTrue(pairRealInt.isComparableTo(pairRealInt));
-    assertFalse(pairIntInt.isComparableTo(pairRealInt));
-    assertFalse(pairRealReal.isComparableTo(pairIntReal));
-    assertTrue(pairIntReal.isComparableTo(pairIntReal));
-    assertFalse(pairRealInt.isComparableTo(pairIntReal));
-    assertFalse(pairIntInt.isComparableTo(pairIntReal));
-    assertFalse(pairRealReal.isComparableTo(pairIntInt));
-    assertFalse(pairIntReal.isComparableTo(pairIntInt));
-    assertFalse(pairRealInt.isComparableTo(pairIntInt));
-    assertTrue(pairIntInt.isComparableTo(pairIntInt));
-
     assertTrue(pairRealReal.isSubsortOf(pairRealReal));
     assertFalse(pairIntReal.isSubsortOf(pairRealReal));
     assertFalse(pairRealInt.isSubsortOf(pairRealReal));
@@ -308,6 +293,26 @@ class DatatypeTest
     assertTrue(pairIntInt.isSubsortOf(pairIntInt));
   }
 
+  @Test void datatypeIsFinite() throws CVC5ApiException
+  {
+    List<Sort> v = new ArrayList<>();
+    DatatypeDecl dtypedecl = d_solver.mkDatatypeDecl("dt", v);
+    DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+    ctordecl.addSelector("sel", d_solver.getBooleanSort());
+    dtypedecl.addConstructor(ctordecl);
+    Sort dtype = d_solver.mkDatatypeSort(dtypedecl);
+    assertTrue(dtype.getDatatype().isFinite());
+
+    Sort p = d_solver.mkParamSort("p1");
+    v.add(p);
+    DatatypeDecl pdtypedecl = d_solver.mkDatatypeDecl("dt", v);
+    DatatypeConstructorDecl pctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+    pctordecl.addSelector("sel", p);
+    pdtypedecl.addConstructor(pctordecl);
+    Sort pdtype = d_solver.mkDatatypeSort(pdtypedecl);
+    assertThrows(CVC5ApiException.class, () -> pdtype.getDatatype().isFinite());
+  }
+
   @Test void datatypeSimplyRec() throws CVC5ApiException
   {
     /* Create mutual datatypes corresponding to this definition block:
@@ -320,9 +325,9 @@ class DatatypeTest
      */
     // Make unresolved types as placeholders
     Set<Sort> unresTypes = new HashSet<>();
-    Sort unresWList = d_solver.mkUninterpretedSort("wlist");
-    Sort unresList = d_solver.mkUninterpretedSort("list");
-    Sort unresNs = d_solver.mkUninterpretedSort("ns");
+    Sort unresWList = d_solver.mkUnresolvedSort("wlist", 0);
+    Sort unresList = d_solver.mkUnresolvedSort("list", 0);
+    Sort unresNs = d_solver.mkUnresolvedSort("ns", 0);
     unresTypes.add(unresWList);
     unresTypes.add(unresList);
     unresTypes.add(unresNs);
@@ -360,9 +365,6 @@ class DatatypeTest
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(2).getDatatype().isWellFounded());
-    assertFalse(dtsorts.get(0).getDatatype().hasNestedRecursion());
-    assertFalse(dtsorts.get(1).getDatatype().hasNestedRecursion());
-    assertFalse(dtsorts.get(2).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -370,7 +372,7 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresNs2 = d_solver.mkUninterpretedSort("ns2");
+    Sort unresNs2 = d_solver.mkUnresolvedSort("ns2", 0);
     unresTypes.add(unresNs2);
 
     DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
@@ -389,16 +391,15 @@ class DatatypeTest
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     assertTrue(
-        dtsorts.get(0).getDatatype().getConstructor(0).getSelector(0).getRangeSort().isArray());
+        dtsorts.get(0).getDatatype().getConstructor(0).getSelector(0).getCodomainSort().isArray());
     assertEquals(dtsorts.get(0)
                      .getDatatype()
                      .getConstructor(0)
                      .getSelector(0)
-                     .getRangeSort()
+                     .getCodomainSort()
                      .getArrayElementSort(),
         dtsorts.get(0));
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -407,9 +408,9 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresNs3 = d_solver.mkUninterpretedSort("ns3");
+    Sort unresNs3 = d_solver.mkUnresolvedSort("ns3", 0);
     unresTypes.add(unresNs3);
-    Sort unresList3 = d_solver.mkUninterpretedSort("list3");
+    Sort unresList3 = d_solver.mkUnresolvedSort("list3", 0);
     unresTypes.add(unresList3);
 
     DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
@@ -436,8 +437,6 @@ class DatatypeTest
     assertEquals(dtsorts.size(), 2);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
-    assertTrue(dtsorts.get(1).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -446,9 +445,9 @@ class DatatypeTest
      *   END;
      */
     unresTypes.clear();
-    Sort unresNs4 = d_solver.mkUninterpretedSort("ns4");
+    Sort unresNs4 = d_solver.mkUnresolvedSort("ns4", 0);
     unresTypes.add(unresNs4);
-    Sort unresList4 = d_solver.mkUninterpretedSort("list4");
+    Sort unresList4 = d_solver.mkUnresolvedSort("list4", 0);
     unresTypes.add(unresList4);
 
     DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
@@ -475,8 +474,6 @@ class DatatypeTest
     assertEquals(dtsorts.size(), 2);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
     assertTrue(dtsorts.get(1).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
-    assertTrue(dtsorts.get(1).getDatatype().hasNestedRecursion());
 
     /* Create mutual datatypes corresponding to this definition block:
      *   DATATYPE
@@ -513,7 +510,6 @@ class DatatypeTest
     dtsorts = atomic.get();
     assertEquals(dtsorts.size(), 1);
     assertTrue(dtsorts.get(0).getDatatype().isWellFounded());
-    assertTrue(dtsorts.get(0).getDatatype().hasNestedRecursion());
   }
 
   @Test void datatypeSpecializedCons() throws CVC5ApiException
@@ -562,10 +558,12 @@ class DatatypeTest
 
     AtomicReference<Term> atomicTerm = new AtomicReference<>();
     // get the specialized constructor term for list[Int]
-    assertDoesNotThrow(() -> atomicTerm.set(nilc.getSpecializedConstructorTerm(listInt)));
+    assertDoesNotThrow(
+        () -> atomicTerm.set(nilc.getInstantiatedConstructorTerm(listInt)));
     Term testConsTerm = atomicTerm.get();
     assertNotEquals(testConsTerm, nilc.getConstructorTerm());
     // error to get the specialized constructor term for Int
-    assertThrows(CVC5ApiException.class, () -> nilc.getSpecializedConstructorTerm(isort));
+    assertThrows(CVC5ApiException.class,
+        () -> nilc.getInstantiatedConstructorTerm(isort));
   }
 }

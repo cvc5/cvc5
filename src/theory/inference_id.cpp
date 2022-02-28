@@ -39,6 +39,13 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_CONF_SIMPLEX: return "ARITH_CONF_SIMPLEX";
     case InferenceId::ARITH_CONF_SOI_SIMPLEX: return "ARITH_CONF_SOI_SIMPLEX";
     case InferenceId::ARITH_CONF_FACT_QUEUE: return "ARITH_CONF_FACT_QUEUE";
+    case InferenceId::ARITH_CONF_BRANCH_CUT: return "ARITH_CONF_BRANCH_CUT";
+    case InferenceId::ARITH_CONF_REPLAY_ASSERT:
+      return "ARITH_CONF_REPLAY_ASSERT";
+    case InferenceId::ARITH_CONF_REPLAY_LOG: return "ARITH_CONF_REPLAY_LOG";
+    case InferenceId::ARITH_CONF_REPLAY_LOG_REC:
+      return "ARITH_CONF_REPLAY_LOG_REC";
+    case InferenceId::ARITH_CONF_UNATE_PROP: return "ARITH_CONF_UNATE_PROP";
     case InferenceId::ARITH_SPLIT_DEQ: return "ARITH_SPLIT_DEQ";
     case InferenceId::ARITH_TIGHTEN_CEIL: return "ARITH_TIGHTEN_CEIL";
     case InferenceId::ARITH_TIGHTEN_FLOOR: return "ARITH_TIGHTEN_FLOOR";
@@ -107,6 +114,8 @@ const char* toString(InferenceId i)
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
     case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
+    case InferenceId::BAGS_BAG_MAKE_SPLIT: return "BAGS_BAG_MAKE_SPLIT";
+    case InferenceId::BAGS_COUNT_SKOLEM: return "BAGS_COUNT_SKOLEM";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
@@ -118,7 +127,12 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP: return "BAGS_MAP";
+    case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
+    case InferenceId::BAGS_FILTER_UP: return "BAGS_FILTER_UP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
+    case InferenceId::BAGS_CARD: return "BAGS_CARD";
+    case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
+    case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -189,6 +203,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_INST_E_MATCHING_HO";
     case InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN:
       return "QUANTIFIERS_INST_E_MATCHING_VAR_GEN";
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL:
+      return "QUANTIFIERS_INST_E_MATCHING_RELATIONAL";
     case InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT:
       return "QUANTIFIERS_INST_CBQI_CONFLICT";
     case InferenceId::QUANTIFIERS_INST_CBQI_PROP:
@@ -229,12 +245,6 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
-    case InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED:
-      return "QUANTIFIERS_SYGUS_SI_SOLVED";
-    case InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED:
-      return "QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED";
-    case InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED:
-      return "QUANTIFIERS_SYGUS_VERIFY_SOLVED";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB:
@@ -409,9 +419,24 @@ const char* toString(InferenceId i)
       return "STRINGS_ARRAY_UPDATE_UNIT";
     case InferenceId::STRINGS_ARRAY_UPDATE_CONCAT:
       return "STRINGS_ARRAY_UPDATE_CONCAT";
+    case InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE:
+      return "STRINGS_ARRAY_UPDATE_CONCAT_INVERSE";
     case InferenceId::STRINGS_ARRAY_NTH_UNIT: return "STRINGS_ARRAY_NTH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_CONCAT:
       return "STRINGS_ARRAY_NTH_CONCAT";
+    case InferenceId::STRINGS_ARRAY_NTH_EXTRACT:
+      return "STRINGS_ARRAY_NTH_EXTRACT";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE:
+      return "STRINGS_ARRAY_NTH_UPDATE";
+    case InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE:
+      return "STRINGS_ARRAY_NTH_TERM_FROM_UPDATE";
+    case InferenceId::STRINGS_ARRAY_UPDATE_BOUND:
+      return "STRINGS_ARRAY_UPDATE_BOUND";
+    case InferenceId::STRINGS_ARRAY_EQ_SPLIT:
+	  return "STRINGS_ARRAY_EQ_SPLIT";
+    case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
+      return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
+    case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
     case InferenceId::STRINGS_RE_UNFOLD_NEG: return "STRINGS_RE_UNFOLD_NEG";
@@ -470,8 +495,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                           Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

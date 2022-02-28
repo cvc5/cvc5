@@ -88,8 +88,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
    */
   // Make unresolved types as placeholders
   std::set<Sort> unresTypes;
-  Sort unresTree = d_solver.mkUninterpretedSort("tree");
-  Sort unresList = d_solver.mkUninterpretedSort("list");
+  Sort unresTree = d_solver.mkUnresolvedSort("tree");
+  Sort unresList = d_solver.mkUnresolvedSort("list");
   unresTypes.insert(unresTree);
   unresTypes.insert(unresList);
 
@@ -131,8 +131,8 @@ TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
   DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
   ASSERT_EQ(dtsTreeNodeLeft.getName(), "left");
   // argument type should have resolved to be recursive
-  ASSERT_TRUE(dtsTreeNodeLeft.getRangeSort().isDatatype());
-  ASSERT_EQ(dtsTreeNodeLeft.getRangeSort(), dtsorts[0]);
+  ASSERT_TRUE(dtsTreeNodeLeft.getCodomainSort().isDatatype());
+  ASSERT_EQ(dtsTreeNodeLeft.getCodomainSort(), dtsorts[0]);
 
   // fails due to empty datatype
   std::vector<DatatypeDecl> dtdeclsBad;
@@ -231,6 +231,7 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
+  ASSERT_THROW(dt.getParameters(), CVC5ApiException);
   ASSERT_EQ(dt.getName(), std::string("list"));
   ASSERT_NO_THROW(dt.getConstructor("nil"));
   ASSERT_NO_THROW(dt["cons"]);
@@ -246,7 +247,7 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   // get selector
   DatatypeSelector dselTail = dcons[1];
   ASSERT_EQ(dselTail.getName(), std::string("tail"));
-  ASSERT_EQ(dselTail.getRangeSort(), dtypeSort);
+  ASSERT_EQ(dselTail.getCodomainSort(), dtypeSort);
 
   // get selector from datatype
   ASSERT_NO_THROW(dt.getSelector("head"));
@@ -274,6 +275,8 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
   ASSERT_TRUE(pairType.getDatatype().isParametric());
+  std::vector<Sort> dparams = pairType.getDatatype().getParameters();
+  ASSERT_TRUE(dparams[0] == t1 && dparams[1] == t2);
 
   v.clear();
   v.push_back(d_solver.getIntegerSort());
@@ -299,23 +302,6 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
 
-  ASSERT_TRUE(pairRealReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isComparableTo(pairIntInt));
-
   ASSERT_TRUE(pairRealReal.isSubsortOf(pairRealReal));
   ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealReal));
   ASSERT_FALSE(pairRealInt.isSubsortOf(pairRealReal));
@@ -334,6 +320,25 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
 }
 
+TEST_F(TestApiBlackDatatype, isFinite)
+{
+  DatatypeDecl dtypedecl = d_solver.mkDatatypeDecl("dt", {});
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+  ctordecl.addSelector("sel", d_solver.getBooleanSort());
+  dtypedecl.addConstructor(ctordecl);
+  Sort dtype = d_solver.mkDatatypeSort(dtypedecl);
+  ASSERT_TRUE(dtype.getDatatype().isFinite());
+
+  Sort p = d_solver.mkParamSort("p1");
+  DatatypeDecl pdtypedecl = d_solver.mkDatatypeDecl("dt", {p});
+  DatatypeConstructorDecl pctordecl =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  pctordecl.addSelector("sel", p);
+  pdtypedecl.addConstructor(pctordecl);
+  Sort pdtype = d_solver.mkDatatypeSort(pdtypedecl);
+  ASSERT_THROW(pdtype.getDatatype().isFinite(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
 {
   /* Create mutual datatypes corresponding to this definition block:
@@ -346,9 +351,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    */
   // Make unresolved types as placeholders
   std::set<Sort> unresTypes;
-  Sort unresWList = d_solver.mkUninterpretedSort("wlist");
-  Sort unresList = d_solver.mkUninterpretedSort("list");
-  Sort unresNs = d_solver.mkUninterpretedSort("ns");
+  Sort unresWList = d_solver.mkUnresolvedSort("wlist");
+  Sort unresList = d_solver.mkUnresolvedSort("list");
+  Sort unresNs = d_solver.mkUnresolvedSort("ns");
   unresTypes.insert(unresWList);
   unresTypes.insert(unresList);
   unresTypes.insert(unresNs);
@@ -386,9 +391,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[2].getDatatype().isWellFounded());
-  ASSERT_FALSE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_FALSE(dtsorts[1].getDatatype().hasNestedRecursion());
-  ASSERT_FALSE(dtsorts[2].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -396,7 +398,7 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresNs2 = d_solver.mkUninterpretedSort("ns2");
+  Sort unresNs2 = d_solver.mkUnresolvedSort("ns2");
   unresTypes.insert(unresNs2);
 
   DatatypeDecl ns2 = d_solver.mkDatatypeDecl("ns2");
@@ -414,11 +416,11 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   // this is not well-founded due to non-simple recursion
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
-  ASSERT_TRUE(dtsorts[0].getDatatype()[0][0].getRangeSort().isArray());
-  ASSERT_EQ(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort(),
-            dtsorts[0]);
+  ASSERT_TRUE(dtsorts[0].getDatatype()[0][0].getCodomainSort().isArray());
+  ASSERT_EQ(
+      dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort(),
+      dtsorts[0]);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -427,9 +429,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresNs3 = d_solver.mkUninterpretedSort("ns3");
+  Sort unresNs3 = d_solver.mkUnresolvedSort("ns3");
   unresTypes.insert(unresNs3);
-  Sort unresList3 = d_solver.mkUninterpretedSort("list3");
+  Sort unresList3 = d_solver.mkUnresolvedSort("list3");
   unresTypes.insert(unresList3);
 
   DatatypeDecl list3 = d_solver.mkDatatypeDecl("list3");
@@ -455,8 +457,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -465,9 +465,9 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
    *   END;
    */
   unresTypes.clear();
-  Sort unresNs4 = d_solver.mkUninterpretedSort("ns4");
+  Sort unresNs4 = d_solver.mkUnresolvedSort("ns4");
   unresTypes.insert(unresNs4);
-  Sort unresList4 = d_solver.mkUninterpretedSort("list4");
+  Sort unresList4 = d_solver.mkUnresolvedSort("list4");
   unresTypes.insert(unresList4);
 
   DatatypeDecl list4 = d_solver.mkDatatypeDecl("list4");
@@ -493,8 +493,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -530,7 +528,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 }
 
 TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
@@ -576,12 +573,16 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   iargs.push_back(isort);
   Sort listInt = dtsorts[0].instantiate(iargs);
 
+  std::vector<Sort> liparams = listInt.getDatatype().getParameters();
+  // the parameter of the datatype is not instantiated
+  ASSERT_TRUE(liparams.size() == 1 && liparams[0] == x);
+
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
-  ASSERT_NO_THROW(testConsTerm = nilc.getSpecializedConstructorTerm(listInt));
+  ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedConstructorTerm(listInt));
   ASSERT_NE(testConsTerm, nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
-  ASSERT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC5ApiException);
+  ASSERT_THROW(nilc.getInstantiatedConstructorTerm(isort), CVC5ApiException);
 }
 }  // namespace test
 }  // namespace cvc5

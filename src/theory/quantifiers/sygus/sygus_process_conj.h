@@ -25,6 +25,7 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -119,10 +120,10 @@ class SynthConjectureProcessArg
 * It maintains information about each of the function to
 * synthesize's arguments.
 */
-struct SynthConjectureProcessFun
+struct SynthConjectureProcessFun : protected EnvObj
 {
  public:
-  SynthConjectureProcessFun() {}
+  SynthConjectureProcessFun(Env& env);
   ~SynthConjectureProcessFun() {}
   /** initialize this class for function f */
   void init(Node f);
@@ -266,10 +267,10 @@ struct SynthConjectureProcessFun
  * sygus to SynthConjectureProcess::getSymmetryBreakingPredicate(...), which are
  * used for pruning search space based on conjecture-specific analysis.
  */
-class SynthConjectureProcess
+class SynthConjectureProcess : protected EnvObj
 {
  public:
-  SynthConjectureProcess();
+  SynthConjectureProcess(Env& env);
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
    * Returns a formula that is equivalent to q.

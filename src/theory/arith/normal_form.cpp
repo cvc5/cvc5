@@ -598,7 +598,8 @@ Node Polynomial::computeQR(const Polynomial& p, const Integer& div){
   Polynomial p_q = Polynomial::mkPolynomial(q_vec);
   Polynomial p_r = Polynomial::mkPolynomial(r_vec);
 
-  return NodeManager::currentNM()->mkNode(kind::PLUS, p_q.getNode(), p_r.getNode());
+  return NodeManager::currentNM()->mkNode(
+      kind::ADD, p_q.getNode(), p_r.getNode());
 }
 
 
@@ -633,7 +634,9 @@ bool Polynomial::variableMonomialAreStrictlyGreater(const Monomial& m) const{
 bool Polynomial::isMember(TNode n) {
   if(Monomial::isMember(n)){
     return true;
-  }else if(n.getKind() == kind::PLUS){
+  }
+  else if (n.getKind() == kind::ADD)
+  {
     Assert(n.getNumChildren() >= 2);
     Node::iterator currIter = n.begin(), end = n.end();
     Node prev = *currIter;
@@ -655,7 +658,9 @@ bool Polynomial::isMember(TNode n) {
       mprev = mcurr;
     }
     return true;
-  } else {
+  }
+  else
+  {
     return false;
   }
 }
@@ -669,7 +674,7 @@ Node SumPair::computeQR(const SumPair& sp, const Integer& div){
   Integer::floorQR(constant_q, constant_r, constant, div);
 
   Node p_qr = Polynomial::computeQR(sp.getPolynomial(), div);
-  Assert(p_qr.getKind() == kind::PLUS);
+  Assert(p_qr.getKind() == kind::ADD);
   Assert(p_qr.getNumChildren() == 2);
 
   Polynomial p_q = Polynomial::parsePolynomial(p_qr[0]);
@@ -678,7 +683,8 @@ Node SumPair::computeQR(const SumPair& sp, const Integer& div){
   SumPair sp_q(p_q, Constant::mkConstant(constant_q));
   SumPair sp_r(p_r, Constant::mkConstant(constant_r));
 
-  return NodeManager::currentNM()->mkNode(kind::PLUS, sp_q.getNode(), sp_r.getNode());
+  return NodeManager::currentNM()->mkNode(
+      kind::ADD, sp_q.getNode(), sp_r.getNode());
 }
 
 SumPair SumPair::mkSumPair(const Polynomial& p){

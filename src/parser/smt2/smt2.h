@@ -134,12 +134,6 @@ class Smt2 : public Parser
   api::Kind getIndexedOpKind(const std::string& name);
 
   /**
-   * Returns the expression that name should be interpreted as.
-   */
-  api::Term getExpressionForNameAndType(const std::string& name,
-                                        api::Sort t) override;
-
-  /**
    * If we are in a version < 2.6, this updates name to the tester name of cons,
    * e.g. "is-cons".
    */
@@ -296,9 +290,9 @@ class Smt2 : public Parser
   /** Make abstract value
    *
    * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isAbstractValue(name) is true.
+   * name should be such that isUninterpretedSortValue(name) is true.
    */
-  api::Term mkAbstractValue(const std::string& name);
+  api::Term mkUninterpretedSortValue(const std::string& name);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -390,8 +384,8 @@ class Smt2 : public Parser
    * selector expression based on the type of args[0].
    * - If the overall kind of the expression is chainable, we may convert it
    * to a left- or right-associative chain.
-   * - If the overall kind is MINUS and args has size 1, then we return an
-   * application of UMINUS.
+   * - If the overall kind is SUB and args has size 1, then we return an
+   * application of NEG.
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */
@@ -422,7 +416,11 @@ class Smt2 : public Parser
    * @return True if `es` is empty, `e` if `es` consists of a single element
    *         `e`, the conjunction of expressions otherwise.
    */
-  api::Term mkAnd(const std::vector<api::Term>& es);
+  api::Term mkAnd(const std::vector<api::Term>& es) const;
+  /**
+   * Is term t a constant integer?
+   */
+  static bool isConstInt(const api::Term& t);
 }; /* class Smt2 */
 
 }  // namespace parser
