@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann
+#   Makai Mann, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
@@ -10,13 +10,16 @@
 # directory for licensing information.
 # ############################################################################
 #
-# Script for building wheels distribution for cvc5
+# Build script for python wheels for cvc5.
+# It provides two main functions:
+# - get_cvc5_version() uses the version.cmake script to obtain the proper cvc5
+#   version string. It is extracted from the versioninfo.cpp file and passed on
+#   to the setuptools config.
+# - build_extension() builds the cvc5 python api(s) using the cvc5_python_api
+#   target and copying it to wherever setuptools expects it to be.
 #
 # Example usage (from build directory):
-#   python3 ../contrib/package_python_wheel.py bdist_wheel
-# Creates wheel in ./dist
-#
-# The suffix should start with a letter, and end with a number
+#   python3 ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 ##
 
 import os
@@ -36,7 +39,10 @@ def get_project_src_path():
     name = __file__
     for i in range(3):
         name = os.path.dirname(name)
-    return os.path.abspath(name)
+    name = os.path.abspath(name)
+    if not os.path.isfile(os.path.join(name, 'configure.sh')):
+        raise RuntimeError('Finding the project source path failed. We guessed ' + name)
+    return name
 
 
 def get_cvc5_version():
@@ -89,7 +95,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # build the python api
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_api', '-j', '10'])
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5_python_api'])
 
         # copy the library over. we need to consider other users that are not on linux
         # module is a directory called cvc5_python_base_module

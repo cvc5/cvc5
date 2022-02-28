@@ -670,7 +670,7 @@ ITESimplifier::~ITESimplifier()
 
 bool ITESimplifier::leavesAreConst(TNode e)
 {
-  return leavesAreConst(e, theory::Theory::theoryOf(e));
+  return leavesAreConst(e, d_env.theoryOf(e));
 }
 
 void ITESimplifier::clearSimpITECaches()
@@ -1258,7 +1258,7 @@ Node ITESimplifier::attemptConstantRemoval(TNode atom)
 bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
 {
   Assert((e.getKind() == kind::ITE && !e.getType().isBoolean())
-         || theory::Theory::theoryOf(e) != theory::THEORY_BOOL);
+         || d_env.theoryOf(e) != theory::THEORY_BOOL);
   if (e.isConst())
   {
     return true;
@@ -1539,7 +1539,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     // If node has no ITE's or already in the cache we're done, pop from the
     // stack
     if (current.getNumChildren() == 0
-        || (theory::Theory::theoryOf(current) != theory::THEORY_BOOL
+        || (d_env.theoryOf(current) != theory::THEORY_BOOL
             && !containsTermITE(current)))
     {
       d_simpITECache[current] = current;
@@ -1575,7 +1575,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       Node result = builder;
 
       // If this is an atom, we process it
-      if (theory::Theory::theoryOf(result) != theory::THEORY_BOOL
+      if (d_env.theoryOf(result) != theory::THEORY_BOOL
           && result.getType().isBoolean())
       {
         result = simpITEAtom(result);

@@ -157,7 +157,7 @@ class DioSolver : protected EnvObj
    * the maximum input constraints length than 2**MAX_GROWTH_RATE.
    */
   context::CDO<uint32_t> d_maxInputCoefficientLength;
-  static const uint32_t MAX_GROWTH_RATE = 3;
+  static constexpr uint32_t MAX_GROWTH_RATE = 3;
 
   /** Returns true if the element on the trail should be dropped.*/
   bool anyCoefficientExceedsMaximum(TrailIndex j) const;
