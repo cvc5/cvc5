@@ -271,21 +271,23 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         else
         {
           nonClosedValue[n] = v;
-          // otherwise we will block (dis)equality with other variables of its type below
+          // otherwise we will block (dis)equality with other variables of its
+          // type below
           nonClosedEnum[tn].push_back(n);
         }
       }
-      for (const std::pair< const TypeNode, std::vector<Node> >& es : nonClosedEnum)
+      for (const std::pair<const TypeNode, std::vector<Node> >& es :
+           nonClosedEnum)
       {
         size_t nenum = es.second.size();
-        for (size_t i=0; i<nenum; i++)
+        for (size_t i = 0; i < nenum; i++)
         {
           const Node& vi = nonClosedValue[es.second[i]];
-          for (size_t j=(i+1); j<nenum; j++)
+          for (size_t j = (i + 1); j < nenum; j++)
           {
             const Node& vj = nonClosedValue[es.second[j]];
             Node eq = es.second[i].eqNode(es.second[j]);
-            if (vi==vj)
+            if (vi == vj)
             {
               eq = eq.notNode();
             }
