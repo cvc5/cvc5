@@ -227,6 +227,11 @@ class QuantAttributes
   std::map< Node, bool > d_fun_defs;
 };
 
+/**
+ * Make a named quantified formula.
+ */
+Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name);
+
 }
 }
 }  // namespace cvc5
