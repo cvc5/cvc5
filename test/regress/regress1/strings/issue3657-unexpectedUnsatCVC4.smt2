@@ -10,6 +10,7 @@
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
+; DISABLE-TESTER: model
 
 ; note that fmf-fun-rlv is incompatible with check-models
 
