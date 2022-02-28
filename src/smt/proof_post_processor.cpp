@@ -976,7 +976,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
-    TheoryId theoryId = Theory::theoryOf(args[0]);
+    TheoryId theoryId = d_env.theoryOf(args[0]);
     if (args.size() >= 2)
     {
       getMethodId(args[1], idr);

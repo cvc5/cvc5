@@ -75,6 +75,9 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_RES_INFER_BOUNDS:
       return "ARITH_NL_RES_INFER_BOUNDS";
     case InferenceId::ARITH_NL_TANGENT_PLANE: return "ARITH_NL_TANGENT_PLANE";
+    case InferenceId::ARITH_NL_T_SINE_SYMM: return "ARITH_NL_T_SINE_SYMM";
+    case InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE:
+      return "ARITH_NL_T_SINE_BOUNDARY_REDUCE";
     case InferenceId::ARITH_NL_T_PURIFY_ARG: return "ARITH_NL_T_PURIFY_ARG";
     case InferenceId::ARITH_NL_T_INIT_REFINE: return "ARITH_NL_T_INIT_REFINE";
     case InferenceId::ARITH_NL_T_PI_BOUND: return "ARITH_NL_T_PI_BOUND";

@@ -36,9 +36,11 @@ class LfscNodeConverter : public NodeConverter
  public:
   LfscNodeConverter();
   ~LfscNodeConverter() {}
-  /** convert to internal */
+  /** convert at pre-order traversal */
+  Node preConvert(Node n) override;
+  /** convert at post-order traversal */
   Node postConvert(Node n) override;
-  /** convert to internal */
+  /** convert type at post-order traversal */
   TypeNode postConvertType(TypeNode tn) override;
   /**
    * Get the null terminator for kind k and type tn. The type tn can be
@@ -103,6 +105,8 @@ class LfscNodeConverter : public NodeConverter
 
   /** get name for user name */
   static std::string getNameForUserName(const std::string& name);
+  /** get name for the name of node v, where v should be a variable */
+  static std::string getNameForUserNameOf(Node v);
 
  private:
   /** Should we traverse n? */

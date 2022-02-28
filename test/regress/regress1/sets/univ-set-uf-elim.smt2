@@ -1,7 +1,6 @@
-; COMMAND-LINE: --produce-models
-; EXPECT: (error "Extended set operators are not supported in default mode, try --sets-ext.")
-; EXIT: 1
+; EXPECT: sat
 (set-logic ALL)
+(set-info :status sat)
 (declare-fun a () Int)
 (declare-fun f ((Set Bool)) Int)
 (declare-fun s () (Set Bool))
