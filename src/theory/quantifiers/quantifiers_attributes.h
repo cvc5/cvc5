@@ -231,7 +231,6 @@ class QuantAttributes
  * Make a named quantified formula.
  */
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name);
-
 }
 }
 }  // namespace cvc5

@@ -446,8 +446,9 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
-  Node v = sm->mkDummySkolem(name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node v = sm->mkDummySkolem(
+      name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
   QuantNameAttribute qna;
   v.setAttribute(qna, true);
   Node ip = nm->mkNode(INST_ATTRIBUTE, v);
