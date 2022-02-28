@@ -832,7 +832,7 @@ bool TheoryModel::isValue(TNode n) const
         // since nullary operators are represented internal as variables.
         // All other non-constant terms with zero children are not values.
         finishedComputing = true;
-        currentReturn = (cur.getKind()==kind::PI);
+        currentReturn = (cur.getKind() == kind::PI);
       }
       else if (rewrite(cur) != cur)
       {
