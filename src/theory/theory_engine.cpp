@@ -35,12 +35,12 @@
 #include "smt/logic_exception.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/partition_generator.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/shared_solver.h"
-#include "theory/splitter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_id.h"
@@ -205,7 +205,7 @@ void TheoryEngine::finishInit()
 
   if (options().parallel.computePartitions > 1)
   {
-    d_splitter = make_unique<Splitter>(d_env, this, getPropEngine());
+    d_splitter = make_unique<PartitionGenerator>(d_env, this, getPropEngine());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -400,22 +400,18 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       d_tc->resetRound();
 
-      if (options().parallel.computePartitions > 1
-          && options().parallel.partitionCheck == options::CheckMode::FULL
-          && d_splitter != nullptr)
+      if (d_splitter != nullptr)
       {
-        TrustNode tl = d_splitter->makePartitions();
+        TrustNode tl = d_splitter->makePartitions(true);
         if (!tl.isNull()){
           lemma(tl, LemmaProperty::NONE, THEORY_LAST);
         }
       }
     }
 
-    if (options().parallel.computePartitions > 1
-        && options().parallel.partitionCheck == options::CheckMode::STANDARD
-        && d_splitter != nullptr)
+    if (d_splitter != nullptr)
     {
-      TrustNode tl = d_splitter->makePartitions();
+      TrustNode tl = d_splitter->makePartitions(false);
       if (!tl.isNull()){
         lemma(tl, LemmaProperty::NONE, THEORY_LAST);
       }

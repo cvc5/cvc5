@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Splitter for creating partitions.
+ * PartitionGenerator for creating partitions.
  */
 
 #include "cvc5_private.h"
@@ -36,16 +36,20 @@ class PropEngine;
 
 namespace theory {
 
-class Splitter : protected EnvObj
+class PartitionGenerator : protected EnvObj
 {
  public:
-  // Splitter
-  Splitter(Env& env, TheoryEngine* theoryEngine, prop::PropEngine* propEngine);
+  // PartitionGenerator
+  PartitionGenerator(Env& env,
+                     TheoryEngine* theoryEngine,
+                     prop::PropEngine* propEngine);
 
   /**
-   * Make partitions for parallel solving.
+   * Make partitions for parallel solving. isFromFullCheck communicates whether
+   * makePartitions was call from the theory engine at a full check of a
+   * standard check.
    */
-  TrustNode makePartitions();
+  TrustNode makePartitions(bool isFromFullCheck);
 
  private:
   /**
