@@ -791,6 +791,8 @@ set(regress_0_tests
   regress0/nl/nta/exp1-ub.smt2
   regress0/nl/nta/issue7938-tf-model.smt2
   regress0/nl/nta/issue8147-unc-model.smt2
+  regress0/nl/nta/issue8160-model-purify.smt2
+  regress0/nl/nta/proj-issue460-pi-value.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sqrt-simple.smt2
@@ -1009,6 +1011,7 @@ set(regress_0_tests
   regress0/quantifiers/issue6999-deq-elim.smt2
   regress0/quantifiers/issue7353-var-elim-par-dt.smt2
   regress0/quantifiers/issue8001-mem-leak.smt2
+  regress0/quantifiers/issue8159-3-qext-nterm.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1913,6 +1916,7 @@ set(regress_1_tests
   regress1/nl/issue8016-iand-rewrite.smt2 
   regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/issue8118-elim-sin.smt2
+  regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2

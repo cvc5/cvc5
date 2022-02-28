@@ -383,15 +383,6 @@ name   = "SMT Layer"
   name = "none"
   help = "(default) do not print declarations of uninterpreted elements in models."
 
-
-[[option]]
-  name       = "modelWitnessValue"
-  category   = "regular"
-  long       = "model-witness-value"
-  type       = "bool"
-  default    = "false"
-  help       = "in models, use a witness constant for choice functions"
-
 [[option]]
   name       = "foreignTheoryRewrite"
   category   = "regular"
