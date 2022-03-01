@@ -74,6 +74,11 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
     Kind k = a.getKind();
     Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
     Node new_a = d_tstate.getPurifiedForm(a);
+    // Check if the transcental function application is equal to its purified
+    // form, if so, we already processed the lemma. In rare cases, note that
+    // we may require sending a lemma here even if the purified form above had
+    // already been allocated, e.g. in the case that the purification lemma
+    // below was dropped.
     if (d_astate.areEqual(a, new_a))
     {
       // already processed
