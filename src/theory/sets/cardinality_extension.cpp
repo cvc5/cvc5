@@ -623,6 +623,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         if (!dup)
         {
+          Trace("sets-debug") << "card parent: " << eqcc << ", " << cpk << std::endl;
           d_cardParent[n].emplace_back(eqcc, cpk);
         }
       }
@@ -883,7 +884,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    Assert(d_im.hasSent());
+    AlwaysAssert(d_im.hasSent());
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -925,7 +926,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       {
         if (std::find(ffpc.begin(), ffpc.end(), nfeqci) == ffpc.end())
         {
-          ffpc.insert(ffpc.end(), nfeqc.begin(), nfeqc.end());
+          Trace("sets-nf-debug") << "Add to flat form " << nfeqci << " to " << cbase << " in " << p << std::endl;
+          ffpc.push_back(nfeqci);
         }
         else
         {

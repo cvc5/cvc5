@@ -1320,6 +1320,21 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
   {
     case kind::SET_CHOOSE: return expandChooseOperator(node, lems);
     case kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
+    case kind::SET_MINUS:
+    {
+      if (node[0].getKind()==kind::SET_UNIVERSE)
+      {
+        // must purify universe from argument of set minus
+        NodeManager* nm = NodeManager::currentNM();
+        SkolemManager* sm = nm->getSkolemManager();
+        Node sk = sm->mkPurifySkolem(node[0], "univ");
+        Node eq = sk.eqNode(node[0]);
+        lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
+        Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);
+        return TrustNode::mkTrustRewrite(node, ret, nullptr);
+      }
+    }
+    break;
     default: return TrustNode::null();
   }
 }
