@@ -60,9 +60,9 @@ class SineSolver : protected EnvObj
   void doReductions();
   /**
    * Introduces new_a as purified version of a which is also shifted to the main
-   * phase (from -pi to pi). y is the new skolem used for purification.
+   * phase (from -pi to pi). new_a[0] is the new skolem used for purification.
    */
-  void doPhaseShift(TNode a, TNode new_a, TNode y);
+  void doPhaseShift(TNode a, TNode new_a);
 
   /**
    * check initial refine

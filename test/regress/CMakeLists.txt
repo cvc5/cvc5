@@ -64,7 +64,6 @@ set(regress_0_tests
   regress0/arith/issue4525.smt2
   regress0/arith/issue5219-conflict-rewrite.smt2
   regress0/arith/issue5761-ppr.smt2
-  regress0/arith/issue7984-quant-trans.smt2
   regress0/arith/issue8097-iid.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
@@ -791,6 +790,9 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue4693-inc-purify.smt2
+  regress0/nl/nta/issue4693-4-inc-purify-sat.smt2
+  regress0/nl/nta/issue4693-5-inc-purify.smt2
   regress0/nl/nta/issue7938-tf-model.smt2
   regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/issue8160-model-purify.smt2
@@ -2957,6 +2959,8 @@ set(regress_4_tests
 
 set(regression_disabled_tests
   regress0/arith/miplib-opt1217--27.smtv1.smt2
+  # unknown on some builds
+  regress0/arith/issue7984-quant-trans.smt2
   regress0/aufbv/dubreva005ue.smtv1.smt2
   regress0/aufbv/fifo32bc06k08.smtv1.smt2
   regress0/aufbv/fifo32in06k08.smtv1.smt2
