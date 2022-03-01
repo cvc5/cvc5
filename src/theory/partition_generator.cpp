@@ -95,7 +95,9 @@ TrustNode PartitionGenerator::blockPath(TNode toBlock)
 // Send lemma that is the negation of all previously asserted lemmas.
 TrustNode PartitionGenerator::stopPartitioning()
 {
-  Node lemma = NodeManager::currentNM()->mkAnd(d_assertedLemmas).notNode();
+  std::vector<Node> unsat = {NodeManager::currentNM()->mkConst(true),
+                             NodeManager::currentNM()->mkConst(false)};
+  Node lemma = NodeManager::currentNM()->mkAnd(unsat);
   return TrustNode::mkTrustLemma(lemma);
 }
 
