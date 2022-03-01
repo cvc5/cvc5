@@ -221,6 +221,10 @@ bool Configuration::isBuiltWithPoly()
 {
   return IS_POLY_BUILD;
 }
+bool Configuration::isBuiltWithCoCoA()
+{
+  return IS_COCOA_BUILD;
+}
 
 const std::vector<std::string>& Configuration::getDebugTags()
 {
