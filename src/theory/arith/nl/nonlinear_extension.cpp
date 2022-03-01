@@ -301,12 +301,14 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
   Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
+  std::vector<Node> xtsAll;
+  d_extTheory.getTerms(xtsAll);
   // only consider those that are currently relevant based on the current
   // assertions, i.e. those contained in termSet
   std::vector<Node> xts;
-  for (const Node& x : termSet)
+  for (const Node& x : xtsAll)
   {
-    if (d_extTheory.hasFunctionKind(x.getKind()))
+    if (termSet.find(x) != termSet.end())
     {
       xts.push_back(x);
     }
