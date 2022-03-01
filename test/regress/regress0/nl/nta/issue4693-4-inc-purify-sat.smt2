@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i -q
+; COMMAND-LINE: -i -q --no-debug-check-models
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
