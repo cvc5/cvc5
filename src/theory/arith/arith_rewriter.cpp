@@ -383,9 +383,13 @@ RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
   auto* nm = NodeManager::currentNM();
   Node noUminus = nm->mkNode(kind::MULT, rewriter::mkConst(Integer(-1)), t[0]);
   if (pre)
+  {
     return RewriteResponse(REWRITE_DONE, noUminus);
+  }
   else
+  {
     return RewriteResponse(REWRITE_AGAIN, noUminus);
+  }
 }
 
 RewriteResponse ArithRewriter::rewriteSub(TNode t)
