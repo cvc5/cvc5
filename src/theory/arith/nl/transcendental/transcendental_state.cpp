@@ -15,13 +15,13 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::kind;
 
@@ -460,7 +460,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   NodeMap::const_iterator it = d_trPurify.find(n);
-  if (it!=d_trPurify.end())
+  if (it != d_trPurify.end())
   {
     return it->second;
   }
