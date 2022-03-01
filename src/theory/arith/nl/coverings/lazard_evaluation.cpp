@@ -118,22 +118,13 @@ struct LazardEvaluationState
    */
   mutable LazardEvaluationStats d_stats;
 
+  /**
+   * Converter between libpoly and CoCoA.
+   *
+   * d_converter.d_varPC * Maps libpoly variables to indets in J0. Used when
+   * constructing the input polynomial q in the first polynomial ring J0.
+   */
   CoCoAConverter d_converter;
-
-  /**
-   * Maps libpoly variables to indets in J0. Used when constructing the input
-   * polynomial q in the first polynomial ring J0.
-   */
-  std::map<poly::Variable, CoCoA::RingElem> d_varQ;
-  /**
-   * Maps CoCoA indets back to to libpoly variables.
-   * Use when converting CoCoA RingElems to libpoly polynomials, either when
-   * checking whether a factor vanishes or when returning the univariate
-   * elements of the final Gröbner basis. The CoCoA indets are identified by the
-   * pair of the ring id and the indet identifier. Hence, we can put all of them
-   * in one map, no matter which ring they belong to.
-   */
-  std::map<std::pair<long, size_t>, poly::Variable> d_varCoCoA;
 
   /**
    * The minimal polynomials p_i used for constructing d_K.
@@ -289,7 +280,7 @@ struct LazardEvaluationState
    * - add variable x_i to d_variables
    * - extract the variable name
    * - construct R_i = K_i[x_i]
-   * - add new variable to d_converter.d_varCP
+   * - add new variable mapping to d_converter
    */
   void addR(const poly::Variable& var)
   {
@@ -348,8 +339,8 @@ struct LazardEvaluationState
    * - construct all J_i
    * - construct all p homomorphisms (R_i --> J_i)
    * - construct all q homomorphisms (J_i --> J_{i+1})
-   * - fill the mapping d_varQ (libpoly -> J_0)
-   * - fill the mapping d_converter.d_varCP (J_n -> libpoly)
+   * - add the variable mapping d_converter (libpoly -> J_0)
+   * - add the variable mapping d_converter (J_n -> libpoly)
    * - fill d_GBBaseIdeal with p_i mapped to J_0
    */
   void addFreeVariable(const poly::Variable& var)
