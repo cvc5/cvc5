@@ -445,6 +445,7 @@ set(regress_0_tests
   regress0/bv/issue-4130.smt2
   regress0/bv/issue3621.smt2
   regress0/bv/issue5396.smt2
+  regress0/bv/issue8159-1-rewrite-bvneg.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -1144,6 +1145,7 @@ set(regress_0_tests
   regress0/seq/issue5547-small-seq-len-unit.smt2
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
+  regress0/seq/issue8133-block-const-elems.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
   regress0/seq/nth-oob.smt2

@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of CAD proof generator.
+ * Implementation of coverings proof generator.
  */
 
-#include "theory/arith/nl/cad/proof_generator.h"
+#include "theory/arith/nl/coverings/proof_generator.h"
 
 #ifdef CVC5_POLY_IMP
 
@@ -27,7 +27,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 namespace {
 /**
@@ -91,7 +91,7 @@ Node mkIRP(const Node& var,
 
 }  // namespace
 
-CADProofGenerator::CADProofGenerator(context::Context* ctx,
+CoveringsProofGenerator::CoveringsProofGenerator(context::Context* ctx,
                                      ProofNodeManager* pnm)
     : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
 {
@@ -99,34 +99,34 @@ CADProofGenerator::CADProofGenerator(context::Context* ctx,
   d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
-void CADProofGenerator::startNewProof()
+void CoveringsProofGenerator::startNewProof()
 {
   d_current = d_proofs.allocateProof();
 }
-void CADProofGenerator::startRecursive() { d_current->openChild(); }
-void CADProofGenerator::endRecursive(size_t intervalId)
+void CoveringsProofGenerator::startRecursive() { d_current->openChild(); }
+void CoveringsProofGenerator::endRecursive(size_t intervalId)
 {
   d_current->setCurrent(
-      intervalId, PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
+      intervalId, PfRule::ARITH_NL_COVERING_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
-void CADProofGenerator::startScope()
+void CoveringsProofGenerator::startScope()
 {
   d_current->openChild();
   d_current->getCurrent().d_rule = PfRule::SCOPE;
 }
-void CADProofGenerator::endScope(const std::vector<Node>& args)
+void CoveringsProofGenerator::endScope(const std::vector<Node>& args)
 {
   d_current->setCurrent(0, PfRule::SCOPE, {}, args, d_false);
   d_current->closeChild();
 }
 
-ProofGenerator* CADProofGenerator::getProofGenerator() const
+ProofGenerator* CoveringsProofGenerator::getProofGenerator() const
 {
   return d_current;
 }
 
-void CADProofGenerator::addDirect(Node var,
+void CoveringsProofGenerator::addDirect(Node var,
                                   VariableMapper& vm,
                                   const poly::Polynomial& poly,
                                   const poly::Assignment& a,
@@ -141,7 +141,7 @@ void CADProofGenerator::addDirect(Node var,
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
     d_current->setCurrent(intervalId,
-                          PfRule::ARITH_NL_CAD_DIRECT,
+                          PfRule::ARITH_NL_COVERING_DIRECT,
                           {constraint},
                           {d_false},
                           d_false);
@@ -181,7 +181,7 @@ void CADProofGenerator::addDirect(Node var,
   startScope();
   d_current->openChild();
   d_current->setCurrent(intervalId,
-                        PfRule::ARITH_NL_CAD_DIRECT,
+                        PfRule::ARITH_NL_COVERING_DIRECT,
                         {constraint},
                         {d_false},
                         d_false);
@@ -189,7 +189,7 @@ void CADProofGenerator::addDirect(Node var,
   endScope(res);
 }
 
-std::vector<Node> CADProofGenerator::constructCell(Node var,
+std::vector<Node> CoveringsProofGenerator::constructCell(Node var,
                                                    const CACInterval& i,
                                                    const poly::Assignment& a,
                                                    const poly::Value& s,
@@ -233,12 +233,12 @@ std::vector<Node> CADProofGenerator::constructCell(Node var,
   return res;
 }
 
-std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof)
+std::ostream& operator<<(std::ostream& os, const CoveringsProofGenerator& proof)
 {
   return os << *proof.d_current;
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

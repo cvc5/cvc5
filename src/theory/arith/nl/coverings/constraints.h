@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements a container for CAD constraints.
+ * Implements a container for coverings constraints.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
-#define CVC5__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__CONSTRAINTS_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__CONSTRAINTS_H
 
 #ifdef CVC5_POLY_IMP
 
@@ -31,7 +31,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 class Constraints
 {
@@ -82,7 +82,7 @@ class Constraints
   void sortConstraints();
 };
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
