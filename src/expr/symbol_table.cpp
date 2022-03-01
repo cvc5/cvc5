@@ -342,11 +342,9 @@ class SymbolTable::Implementation {
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
   {
-    // use an outermost push, to be able to clear definitions not at level zero
-    d_context.push();
   }
 
-  ~Implementation() { d_context.pop(); }
+  ~Implementation() {}
 
   bool bind(const string& name, api::Term obj, bool doOverload);
   void bindType(const string& name, api::Sort t);
