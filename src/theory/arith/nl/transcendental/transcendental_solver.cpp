@@ -80,7 +80,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
         SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), a);
     Node new_a = nm->mkNode(k, y);
     // should not have processed this already
-    Assert(d_tstate.d_trPurify.find(a) == d_tstate.d_trPurify.end() || d_tstate.d_trPurify[a]==new_a);
+    Assert(d_tstate.d_trPurify.find(a) == d_tstate.d_trPurify.end() || d_tstate.d_trPurify[a].get()==new_a);
     d_tstate.d_trPurify[a] = new_a;
     d_tstate.d_trPurify[new_a] = new_a;
     d_tstate.d_trPurifies[new_a] = a;
