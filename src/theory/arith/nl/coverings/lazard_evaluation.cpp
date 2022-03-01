@@ -1,4 +1,4 @@
-#include "theory/arith/nl/cad/lazard_evaluation.h"
+#include "theory/arith/nl/coverings/lazard_evaluation.h"
 
 #ifdef CVC5_POLY_IMP
 
@@ -13,18 +13,18 @@
 
 #include <optional>
 
-namespace cvc5::theory::arith::nl::cad {
+namespace cvc5::theory::arith::nl::coverings {
 
 struct LazardEvaluationStats
 {
   IntStat d_directAssignments =
-      smtStatisticsRegistry().registerInt("theory::arith::cad::lazard-direct");
+      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-direct");
   IntStat d_ranAssignments =
-      smtStatisticsRegistry().registerInt("theory::arith::cad::lazard-rans");
+      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-rans");
   IntStat d_evaluations =
-      smtStatisticsRegistry().registerInt("theory::arith::cad::lazard-evals");
+      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-evals");
   IntStat d_reductions =
-      smtStatisticsRegistry().registerInt("theory::arith::cad::lazard-reduce");
+      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-reduce");
 };
 
 struct LazardEvaluationState;
@@ -263,7 +263,7 @@ struct LazardEvaluationState
    */
   CoCoA::RingElem pushDownJ(const CoCoA::RingElem& p, size_t i) const
   {
-    Trace("cad::lazard") << "Push " << p << " from " << d_J[i] << " to "
+    Trace("nl-cov::lazard") << "Push " << p << " from " << d_J[i] << " to "
                          << d_J[i - 1] << std::endl;
     Assert(CoCoA::owner(p) == d_J[i]);
     CoCoA::RingElem res(d_J[i - 1]);
@@ -307,7 +307,7 @@ struct LazardEvaluationState
     CoCoA::RingElem res = p;
     for (; i > 0; --i)
     {
-      Trace("cad::lazard") << "Pushing " << p << " from J" << i << " to J"
+      Trace("nl-cov::lazard") << "Pushing " << p << " from J" << i << " to J"
                            << i - 1 << std::endl;
       res = pushDownJ(res, i);
     }
@@ -324,7 +324,7 @@ struct LazardEvaluationState
   void addR(const poly::Variable& var)
   {
     d_variables.emplace_back(var);
-    if (Trace.isOn("cad::lazard"))
+    if (Trace.isOn("nl-cov::lazard"))
     {
       std::string vname = lp_variable_db_get_name(
           poly::Context::get_context().get_variable_db(), var.get_internal());
@@ -334,7 +334,7 @@ struct LazardEvaluationState
     {
       d_R.emplace_back(CoCoA::NewPolyRing(d_K.back(), {CoCoA::NewSymbol()}));
     }
-    Trace("cad::lazard") << "R" << d_R.size() - 1 << " = " << d_R.back()
+    Trace("nl-cov::lazard") << "R" << d_R.size() - 1 << " = " << d_R.back()
                          << std::endl;
     d_varCoCoA.emplace(std::make_pair(CoCoA::RingID(d_R.back()), 0), var);
   }
@@ -349,10 +349,10 @@ struct LazardEvaluationState
   {
     d_direct.emplace_back();
     d_p.emplace_back(p);
-    Trace("cad::lazard") << "p" << d_p.size() - 1 << " = " << d_p.back()
+    Trace("nl-cov::lazard") << "p" << d_p.size() - 1 << " = " << d_p.back()
                          << std::endl;
     d_K.emplace_back(CoCoA::NewQuotientRing(d_R.back(), CoCoA::ideal(p)));
-    Trace("cad::lazard") << "K" << d_K.size() - 1 << " = " << d_K.back()
+    Trace("nl-cov::lazard") << "K" << d_K.size() - 1 << " = " << d_K.back()
                          << std::endl;
   }
 
@@ -366,9 +366,9 @@ struct LazardEvaluationState
   {
     d_direct.emplace_back(r);
     d_p.emplace_back();
-    Trace("cad::lazard") << "x" << d_p.size() - 1 << " = " << r << std::endl;
+    Trace("nl-cov::lazard") << "x" << d_p.size() - 1 << " = " << r << std::endl;
     d_K.emplace_back(d_K.back());
-    Trace("cad::lazard") << "K" << d_K.size() - 1 << " = " << d_K.back()
+    Trace("nl-cov::lazard") << "K" << d_K.size() - 1 << " = " << d_K.back()
                          << std::endl;
   }
 
@@ -384,7 +384,7 @@ struct LazardEvaluationState
    */
   void addFreeVariable(const poly::Variable& var)
   {
-    Trace("cad::lazard") << "Add free variable " << var << std::endl;
+    Trace("nl-cov::lazard") << "Add free variable " << var << std::endl;
     addR(var);
     std::vector<CoCoA::symbol> symbols;
     for (size_t i = 0; i < d_R.size(); ++i)
@@ -394,23 +394,23 @@ struct LazardEvaluationState
     for (size_t i = 0; i < d_R.size(); ++i)
     {
       d_J.emplace_back(CoCoA::NewPolyRing(d_K[i], symbols, CoCoA::lex));
-      Trace("cad::lazard") << "J" << d_J.size() - 1 << " = " << d_J.back()
+      Trace("nl-cov::lazard") << "J" << d_J.size() - 1 << " = " << d_J.back()
                            << std::endl;
       symbols.erase(symbols.begin());
       // R_i --> J_i
       d_phom.emplace_back(
           CoCoA::PolyAlgebraHom(d_R[i], d_J[i], {CoCoA::indet(d_J[i], 0)}));
-      Trace("cad::lazard") << "R" << i << " --> J" << i << ": " << d_phom.back()
+      Trace("nl-cov::lazard") << "R" << i << " --> J" << i << ": " << d_phom.back()
                            << std::endl;
       if (i > 0)
       {
-        Trace("cad::lazard")
+        Trace("nl-cov::lazard")
             << "Constructing J" << i - 1 << " --> J" << i << ": " << std::endl;
-        Trace("cad::lazard") << "Constructing " << d_J[i - 1] << " --> "
+        Trace("nl-cov::lazard") << "Constructing " << d_J[i - 1] << " --> "
                              << d_J[i] << ": " << std::endl;
         if (d_direct[i - 1])
         {
-          Trace("cad::lazard") << "Using " << d_variables[i - 1] << " for "
+          Trace("nl-cov::lazard") << "Using " << d_variables[i - 1] << " for "
                                << CoCoA::indet(d_J[i - 1], 0) << std::endl;
           Assert(CoCoA::CoeffRing(d_J[i]) == CoCoA::owner(*d_direct[i - 1]));
           std::vector<CoCoA::RingElem> indets = {
@@ -449,7 +449,7 @@ struct LazardEvaluationState
           d_qhom.emplace_back(
               CoCoA::PolyRingHom(d_J[i - 1], d_J[i], R2K(K2R), indets));
         }
-        Trace("cad::lazard") << "J" << i - 1 << " --> J" << i << ": "
+        Trace("nl-cov::lazard") << "J" << i - 1 << " --> J" << i << ": "
                              << d_qhom.back() << std::endl;
       }
     }
@@ -467,12 +467,12 @@ struct LazardEvaluationState
     for (size_t i = 0; i < d_p.size(); ++i)
     {
       if (d_direct[i]) continue;
-      Trace("cad::lazard") << "Apply " << d_phom[i] << " to " << d_p[i]
+      Trace("nl-cov::lazard") << "Apply " << d_phom[i] << " to " << d_p[i]
                            << " from " << CoCoA::owner(d_p[i]) << std::endl;
       d_GBBaseIdeal.emplace_back(pushDownJ0(d_phom[i](d_p[i]), i));
     }
 
-    Trace("cad::lazard") << "Finished construction" << std::endl
+    Trace("nl-cov::lazard") << "Finished construction" << std::endl
                          << *this << std::endl;
   }
 
@@ -521,7 +521,7 @@ struct LazardEvaluationState
   poly::Polynomial convertImpl(const CoCoA::RingElem& p,
                                poly::Integer& denominator) const
   {
-    Trace("cad::lazard") << "Converting " << p << std::endl;
+    Trace("nl-cov::lazard") << "Converting " << p << std::endl;
     denominator = poly::Integer(1);
     poly::Polynomial res;
     for (CoCoA::SparsePolyIter i = CoCoA::BeginIter(p); !CoCoA::IsEnded(i); ++i)
@@ -563,7 +563,7 @@ struct LazardEvaluationState
         res += coeff;
       }
     }
-    Trace("cad::lazard") << "-> " << res << std::endl;
+    Trace("nl-cov::lazard") << "-> " << res << std::endl;
     return res;
   }
   /**
@@ -597,20 +597,20 @@ struct LazardEvaluationState
   {
     d_stats.d_evaluations++;
     std::vector<poly::Polynomial> res;
-    Trace("cad::lazard") << "Reducing " << qpoly << std::endl;
+    Trace("nl-cov::lazard") << "Reducing " << qpoly << std::endl;
     auto input = convertQ(qpoly);
     Assert(CoCoA::owner(input) == d_J[0]);
     auto factorization = CoCoA::factor(input);
     for (const auto& f : factorization.myFactors())
     {
-      Trace("cad::lazard") << "-> factor " << f << std::endl;
+      Trace("nl-cov::lazard") << "-> factor " << f << std::endl;
       CoCoA::RingElem q = f;
       for (size_t i = 0; i < d_J.size() - 1; ++i)
       {
-        Trace("cad::lazard") << "i = " << i << std::endl;
+        Trace("nl-cov::lazard") << "i = " << i << std::endl;
         if (d_direct[i])
         {
-          Trace("cad::lazard")
+          Trace("nl-cov::lazard")
               << "Substitute " << d_variables[i] << " = " << *d_direct[i]
               << " into " << q << " from " << CoCoA::owner(q) << std::endl;
           auto indets = CoCoA::indets(d_J[i]);
@@ -625,7 +625,7 @@ struct LazardEvaluationState
           }
           // substitute x_i -> a_i
           q = hom(q);
-          Trace("cad::lazard")
+          Trace("nl-cov::lazard")
               << "-> " << q << " from " << CoCoA::owner(q) << std::endl;
         }
         else
@@ -639,18 +639,18 @@ struct LazardEvaluationState
         }
         q = d_qhom[i](q);
       }
-      Trace("cad::lazard") << "-> reduced to " << q << std::endl;
+      Trace("nl-cov::lazard") << "-> reduced to " << q << std::endl;
       Assert(CoCoA::owner(q) == d_J.back());
       std::vector<CoCoA::RingElem> ideal = d_GBBaseIdeal;
       ideal.emplace_back(pushDownJ0(q, d_J.size() - 1));
-      Trace("cad::lazard") << "-> ideal " << ideal << std::endl;
+      Trace("nl-cov::lazard") << "-> ideal " << ideal << std::endl;
       auto basis = CoCoA::ReducedGBasis(CoCoA::ideal(ideal));
-      Trace("cad::lazard") << "-> basis " << basis << std::endl;
+      Trace("nl-cov::lazard") << "-> basis " << basis << std::endl;
       for (const auto& belem : basis)
       {
-        Trace("cad::lazard") << "-> retrieved " << belem << std::endl;
+        Trace("nl-cov::lazard") << "-> retrieved " << belem << std::endl;
         auto pres = convert(belem);
-        Trace("cad::lazard") << "-> converted " << pres << std::endl;
+        Trace("nl-cov::lazard") << "-> converted " << pres << std::endl;
         // These checks are orthogonal!
         if (poly::is_univariate(pres)
             && poly::is_univariate_over_assignment(pres, d_assignment))
@@ -702,7 +702,7 @@ LazardEvaluation::~LazardEvaluation() {}
  */
 void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
 {
-  Trace("cad::lazard") << "Adding " << var << " -> " << val << std::endl;
+  Trace("nl-cov::lazard") << "Adding " << var << " -> " << val << std::endl;
   try
   {
     d_state->d_assignment.set(var, val);
@@ -720,7 +720,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
       }
       else
       {
-        Trace("cad::lazard") << "\tis proper ran" << std::endl;
+        Trace("nl-cov::lazard") << "\tis proper ran" << std::endl;
         polymipo = poly::get_defining_polynomial(ran);
       }
     }
@@ -749,12 +749,12 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
       d_state->d_stats.d_directAssignments++;
       return;
     }
-    Trace("cad::lazard") << "Got mipo " << polymipo << std::endl;
+    Trace("nl-cov::lazard") << "Got mipo " << polymipo << std::endl;
     auto mipo = d_state->convertMiPo(polymipo, var);
-    Trace("cad::lazard") << "Factoring " << mipo << " from "
+    Trace("nl-cov::lazard") << "Factoring " << mipo << " from "
                          << CoCoA::owner(mipo) << std::endl;
     auto factorization = CoCoA::factor(mipo);
-    Trace("cad::lazard") << "-> " << factorization << std::endl;
+    Trace("nl-cov::lazard") << "-> " << factorization << std::endl;
     bool used_factor = false;
     for (const auto& f : factorization.myFactors())
     {
@@ -764,14 +764,14 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
         if (CoCoA::deg(f) == 1)
         {
           auto rat = -CoCoA::ConstantCoeff(f) / CoCoA::LC(f);
-          Trace("cad::lazard") << "Using linear factor " << f << " -> " << var
+          Trace("nl-cov::lazard") << "Using linear factor " << f << " -> " << var
                                << " = " << rat << std::endl;
           d_state->addKRational(var, rat);
           d_state->d_stats.d_directAssignments++;
         }
         else
         {
-          Trace("cad::lazard") << "Using nonlinear factor " << f << std::endl;
+          Trace("nl-cov::lazard") << "Using nonlinear factor " << f << std::endl;
           d_state->addK(var, f);
           d_state->d_stats.d_ranAssignments++;
         }
@@ -780,7 +780,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
       }
       else
       {
-        Trace("cad::lazard") << "Skipping " << f << std::endl;
+        Trace("nl-cov::lazard") << "Skipping " << f << std::endl;
       }
     }
     Assert(used_factor);
@@ -829,7 +829,7 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
   for (const auto& p : reducePolynomial(q))
   {
     // collect all real roots except for -infty, none, +infty
-    Trace("cad::lazard") << "Isolating roots of " << p << std::endl;
+    Trace("nl-cov::lazard") << "Isolating roots of " << p << std::endl;
     Assert(poly::is_univariate(p) && poly::is_univariate_over_assignment(p, a));
     std::vector<poly::Value> proots = poly::isolate_real_roots(p, a);
     for (const auto& r : proots)
@@ -890,10 +890,10 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
   // clean up assignment
   d_state->d_assignment.unset(d_state->d_variables.back());
 
-  Trace("cad::lazard") << "Shrinking:" << std::endl;
+  Trace("nl-cov::lazard") << "Shrinking:" << std::endl;
   for (const auto& i : res)
   {
-    Trace("cad::lazard") << "-> " << i << std::endl;
+    Trace("nl-cov::lazard") << "-> " << i << std::endl;
   }
   std::vector<poly::Interval> combined;
   if (res.empty())
@@ -919,7 +919,7 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
       continue;
     }
     // combine them into res[i+1], do not copy res[i] over to combined
-    Trace("cad::lazard") << "Combine " << res[i] << " and " << res[i + 1]
+    Trace("nl-cov::lazard") << "Combine " << res[i] << " and " << res[i + 1]
                          << std::endl;
     Assert(poly::get_lower(res[i]) <= poly::get_lower(res[i + 1]));
     res[i + 1].set_lower(poly::get_lower(res[i]), poly::get_lower_open(res[i]));
@@ -927,19 +927,19 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
 
   // always use the last one, it is never dropped
   combined.emplace_back(res.back());
-  Trace("cad::lazard") << "To:" << std::endl;
+  Trace("nl-cov::lazard") << "To:" << std::endl;
   for (const auto& i : combined)
   {
-    Trace("cad::lazard") << "-> " << i << std::endl;
+    Trace("nl-cov::lazard") << "-> " << i << std::endl;
   }
   return combined;
 }
 
-}  // namespace cvc5::theory::arith::nl::cad
+}  // namespace cvc5::theory::arith::nl::coverings
 
 #else
 
-namespace cvc5::theory::arith::nl::cad {
+namespace cvc5::theory::arith::nl::coverings {
 
 /**
  * Do a very simple wrapper around the regular poly::infeasible_regions.
@@ -974,7 +974,7 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
     const poly::Polynomial& q) const
 {
   WarningOnce()
-      << "CAD::LazardEvaluation is disabled because CoCoA is not available. "
+      << "nl-cov::LazardEvaluation is disabled because CoCoA is not available. "
          "Falling back to regular real root isolation."
       << std::endl;
   return poly::isolate_real_roots(q, d_state->d_assignment);
@@ -983,13 +983,13 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
 {
   WarningOnce()
-      << "CAD::LazardEvaluation is disabled because CoCoA is not available. "
+      << "nl-cov::LazardEvaluation is disabled because CoCoA is not available. "
          "Falling back to regular calculation of infeasible regions."
       << std::endl;
   return poly::infeasible_regions(q, d_state->d_assignment, sc);
 }
 
-}  // namespace cvc5::theory::arith::nl::cad
+}  // namespace cvc5::theory::arith::nl::coverings
 
 #endif
 #endif

@@ -75,6 +75,9 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_RES_INFER_BOUNDS:
       return "ARITH_NL_RES_INFER_BOUNDS";
     case InferenceId::ARITH_NL_TANGENT_PLANE: return "ARITH_NL_TANGENT_PLANE";
+    case InferenceId::ARITH_NL_T_SINE_SYMM: return "ARITH_NL_T_SINE_SYMM";
+    case InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE:
+      return "ARITH_NL_T_SINE_BOUNDARY_REDUCE";
     case InferenceId::ARITH_NL_T_PURIFY_ARG: return "ARITH_NL_T_PURIFY_ARG";
     case InferenceId::ARITH_NL_T_INIT_REFINE: return "ARITH_NL_T_INIT_REFINE";
     case InferenceId::ARITH_NL_T_PI_BOUND: return "ARITH_NL_T_PI_BOUND";
@@ -97,9 +100,9 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_MONOTONE_REFINE";
     case InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE:
       return "ARITH_NL_POW2_TRIVIAL_CASE_REFINE";
-    case InferenceId::ARITH_NL_CAD_CONFLICT: return "ARITH_NL_CAD_CONFLICT";
-    case InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL:
-      return "ARITH_NL_CAD_EXCLUDED_INTERVAL";
+    case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";
+    case InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL:
+      return "ARITH_NL_COVERING_EXCLUDED_INTERVAL";
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";

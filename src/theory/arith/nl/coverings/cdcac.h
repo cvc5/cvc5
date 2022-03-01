@@ -16,8 +16,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
-#define CVC5__THEORY__ARITH__NL__CAD__CDCAC_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__CDCAC_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__CDCAC_H
 
 #ifdef CVC5_POLY_IMP
 
@@ -27,11 +27,11 @@
 
 #include "smt/env.h"
 #include "smt/env_obj.h"
-#include "theory/arith/nl/cad/cdcac_utils.h"
-#include "theory/arith/nl/cad/constraints.h"
-#include "theory/arith/nl/cad/lazard_evaluation.h"
-#include "theory/arith/nl/cad/proof_generator.h"
-#include "theory/arith/nl/cad/variable_ordering.h"
+#include "theory/arith/nl/coverings/cdcac_utils.h"
+#include "theory/arith/nl/coverings/constraints.h"
+#include "theory/arith/nl/coverings/lazard_evaluation.h"
+#include "theory/arith/nl/coverings/proof_generator.h"
+#include "theory/arith/nl/coverings/variable_ordering.h"
 
 namespace cvc5 {
 namespace theory {
@@ -40,7 +40,7 @@ namespace nl {
 
 class NlModel;
 
-namespace cad {
+namespace coverings {
 
 /**
  * This class implements Cylindrical Algebraic Coverings as presented in
@@ -159,7 +159,7 @@ class CDCAC : protected EnvObj
   ProofGenerator* closeProof(const std::vector<Node>& assertions);
 
   /** Get the proof generator */
-  CADProofGenerator* getProof() { return d_proof.get(); }
+  CoveringsProofGenerator* getProof() { return d_proof.get(); }
 
  private:
   /** Check whether proofs are enabled */
@@ -229,13 +229,13 @@ class CDCAC : protected EnvObj
   std::vector<poly::Value> d_initialAssignment;
 
   /** The proof generator */
-  std::unique_ptr<CADProofGenerator> d_proof;
+  std::unique_ptr<CoveringsProofGenerator> d_proof;
 
   /** The next interval id */
   size_t d_nextIntervalId = 1;
 };
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
