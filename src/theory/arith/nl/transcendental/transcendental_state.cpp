@@ -91,6 +91,10 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     if (itp != d_trPurify.end())
     {
       consider = itp->second == a;
+      if (std::find(xts.begin(), xts.end(), itp->second)==xts.end())
+      {
+        needsPurify.push_back(a);
+      }
     }
     else
     {
