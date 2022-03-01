@@ -162,6 +162,7 @@ void addToSum(Sum& sum, TNode n, bool negate)
 Node collectSum(const Sum& sum)
 {
   if (sum.empty()) return mkConst(Rational(0));
+  Trace("arith-rewriter") << "Collecting sum " << sum << std::endl;
   // construct the sum as nodes.
   NodeBuilder nb(Kind::ADD);
   for (const auto& s : sum)

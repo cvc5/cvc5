@@ -446,9 +446,7 @@ DeltaRational ErrorSet::computeDiff(ArithVar v) const{
 }
 
 void ErrorSet::debugPrint(std::ostream& out) const {
-  static int instance = 0;
-  ++instance;
-  out << "error set debugprint " << instance << endl;
+  out << "error set debugprint" << endl;
   for(error_iterator i = errorBegin(), i_end = errorEnd();
       i != i_end; ++i){
     ArithVar e = *i;
