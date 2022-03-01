@@ -627,7 +627,8 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
     {
       if (d_state->evaluatesToZero(f))
       {
-        Assert(CoCoA::deg(f) > 0 && CoCoA::NumTerms(f) <= 2);
+        Trace("nl-cov::lazard") << "Found vanishing factor " << f << std::endl;
+        Assert(CoCoA::deg(f) > 0);
         if (CoCoA::deg(f) == 1)
         {
           auto rat = -CoCoA::ConstantCoeff(f) / CoCoA::LC(f);
