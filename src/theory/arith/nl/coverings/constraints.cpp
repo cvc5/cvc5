@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements a container for CAD constraints.
+ * Implements a container for coverings constraints.
  */
 
-#include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/coverings/constraints.h"
 
 #ifdef CVC5_POLY_IMP
 
@@ -26,7 +26,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 void Constraints::addConstraint(const poly::Polynomial& lhs,
                                 poly::SignCondition sc,
@@ -74,7 +74,7 @@ void Constraints::sortConstraints()
   }
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
