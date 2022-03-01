@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i
+; COMMAND-LINE: -i -q
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic QF_NRAT)
