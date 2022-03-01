@@ -1328,6 +1328,7 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
         Node sk = sm->mkPurifySkolem(node[0], "univ");
+        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk << std::endl;
         Node eq = sk.eqNode(node[0]);
         lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
         Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);
@@ -1335,8 +1336,10 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
       }
     }
     break;
-    default: return TrustNode::null();
+    default:
+      break;
   }
+  return TrustNode::null();
 }
 
 TrustNode TheorySetsPrivate::expandChooseOperator(
