@@ -197,6 +197,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       {
         solver->setOption("incremental", "false");
       }
+      // we don't need to check that terms passed to API methods are well
+      // formed, since this should be an invariant of the parser
+      if (!solver->getOptionInfo("wf-checking").setByUser)
+      {
+        solver->setOption("wf-checking", "false");
+      }
 
       ParserBuilder parserBuilder(
           pExecutor->getSolver(), pExecutor->getSymbolManager(), true);
@@ -208,9 +214,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       else
       {
         parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"),
-                                filename,
-                                solver->getOptionInfo("mmap").boolValue()));
+            Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
       bool interrupted = false;

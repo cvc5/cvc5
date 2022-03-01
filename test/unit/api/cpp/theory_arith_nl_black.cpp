@@ -55,8 +55,8 @@ TEST_F(TestTheoryBlackArithNl, cvc5Projects388Min)
     return;
   }
   Solver slv;
-  slv.setOption("nl-cad", "true");
-  slv.setOption("nl-cad-var-elim", "true");
+  slv.setOption("nl-cov", "true");
+  slv.setOption("nl-cov-var-elim", "true");
   slv.setOption("nl-ext", "none");
   slv.setLogic("QF_NIRA");
   Sort s = slv.getRealSort();

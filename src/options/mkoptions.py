@@ -206,7 +206,7 @@ class Option(object):
 
 def generate_holder_fwd_decls(modules):
     """Render forward declaration of holder structs"""
-    return concat_format('  struct Holder{id_cap};', modules)
+    return concat_format('  struct Holder{id_cap}; // include "{header}" if this is an incomplete type', modules)
 
 
 def generate_holder_mem_decls(modules):
