@@ -1,4 +1,5 @@
-; REQUIRES: poly
+; REQUIRES: poly cocoa
+; COMMAND-LINE: --nl-cov-lift=lazard
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-const d Real)
