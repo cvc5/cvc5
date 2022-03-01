@@ -772,8 +772,6 @@ set(regress_0_tests
   regress0/nl/issue3971.smt2
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
-  regress0/nl/issue4693-inc-purify.smt2
-  regress0/nl/issue4693-5-inc-purify.smt2
   regress0/nl/issue5534-no-assertions.smt2
   regress0/nl/issue5726-downpolys.smt2
   regress0/nl/issue5726-sqfactor.smt2
@@ -792,6 +790,8 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue4693-inc-purify.smt2
+  regress0/nl/nta/issue4693-5-inc-purify.smt2
   regress0/nl/nta/issue7938-tf-model.smt2
   regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/issue8160-model-purify.smt2
