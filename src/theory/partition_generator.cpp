@@ -1,4 +1,4 @@
-/*
+/******************************************************************************
  * Top contributors (to current version):
  *   Amalee Wilson, Andrew Wu
  *
@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Splitter for creating partitions.
+ * PartitionGenerator for creating partitions.
  */
 
-#include "theory/splitter.h"
+#include "theory/partition_generator.h"
 
 #include <math.h>
 
@@ -33,9 +33,9 @@ using namespace cvc5::theory;
 namespace cvc5 {
 
 namespace theory {
-Splitter::Splitter(Env& env,
-                   TheoryEngine* theoryEngine,
-                   prop::PropEngine* propEngine)
+PartitionGenerator::PartitionGenerator(Env& env,
+                                       TheoryEngine* theoryEngine,
+                                       prop::PropEngine* propEngine)
     : EnvObj(env),
       d_numPartitions(options().parallel.computePartitions),
       d_numChecks(0),
@@ -43,16 +43,7 @@ Splitter::Splitter(Env& env,
 {
   d_valuation = std::make_unique<Valuation>(theoryEngine);
   d_propEngine = propEngine;
-  if (options().parallel.writePartitionsToFileNameWasSetByUser)
-  {
-    d_fileStream = std::make_unique<std::ofstream>(
-        options().parallel.writePartitionsToFileName);
-    d_output = d_fileStream.get();
-  }
-  else
-  {
-    d_output = &std::cout;
-  }
+
   d_conflictSize = options().parallel.partitionConflictSize;
   if (!d_conflictSize)
   {
@@ -60,10 +51,10 @@ Splitter::Splitter(Env& env,
   }
 }
 
-void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
+void PartitionGenerator::collectDecisionLiterals(std::vector<TNode>& literals)
 {
   std::vector<Node> decisionNodes = d_propEngine->getPropDecisions();
-    // Make sure the literal does not have a boolean term or skolem in it.
+  // Make sure the literal does not have a boolean term or skolem in it.
   const std::unordered_set<Kind, kind::KindHashFunction> kinds = {
       kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE, kind::CONST_BOOLEAN};
 
@@ -86,13 +77,13 @@ void Splitter::collectDecisionLiterals(std::vector<TNode>& literals)
   }
 }
 
-void Splitter::emitCube(Node toEmit)
+void PartitionGenerator::emitCube(Node toEmit)
 {
-  *d_output << toEmit << std::endl;
+  *options().parallel.partitionsOut << toEmit << std::endl;
   ++d_numPartitionsSoFar;
 }
 
-TrustNode Splitter::blockPath(TNode toBlock)
+TrustNode PartitionGenerator::blockPath(TNode toBlock)
 {
   // Now block the path in the search.
   Node lemma = toBlock.notNode();
@@ -102,20 +93,21 @@ TrustNode Splitter::blockPath(TNode toBlock)
 }
 
 // Send lemma that is the negation of all previously asserted lemmas.
-TrustNode Splitter::stopPartitioning()
+TrustNode PartitionGenerator::stopPartitioning()
 {
-  Node lemma = NodeManager::currentNM()->mkAnd(d_assertedLemmas).notNode();
+  std::vector<Node> unsat = {NodeManager::currentNM()->mkConst(true),
+                             NodeManager::currentNM()->mkConst(false)};
+  Node lemma = NodeManager::currentNM()->mkAnd(unsat);
   return TrustNode::mkTrustLemma(lemma);
 }
 
-
-  // This is the revised version of the old splitting strategy.
-  // Cubes look like the following:
-  // C1 = l1_{1} & .... & l1_{d_conflictSize}
-  // C2 = l2_{1} & .... & l2_{d_conflictSize}
-  // C3 = l3_{1} & .... & l3_{d_conflictSize}
-  // C4 = !C1 & !C2 & !C3
-TrustNode Splitter::makeRevisedPartitions()
+// This is the revised version of the old splitting strategy.
+// Cubes look like the following:
+// C1 = l1_{1} & .... & l1_{d_conflictSize}
+// C2 = l2_{1} & .... & l2_{d_conflictSize}
+// C3 = l3_{1} & .... & l3_{d_conflictSize}
+// C4 = !C1 & !C2 & !C3
+TrustNode PartitionGenerator::makeRevisedPartitions()
 {
   // If we're not at the last cube
   if (d_numPartitionsSoFar < d_numPartitions - 1)
@@ -152,8 +144,17 @@ TrustNode Splitter::makeRevisedPartitions()
   }
 }
 
-TrustNode Splitter::makePartitions()
+TrustNode PartitionGenerator::makePartitions(Theory::Effort e)
 {
+  if ((options().parallel.partitionCheck == options::CheckMode::FULL
+       && !Theory::fullEffort(e))
+      || (options().parallel.partitionCheck == options::CheckMode::STANDARD
+          && Theory::fullEffort(e))
+      || (options().parallel.computePartitions < 2))
+  {
+    return TrustNode::null();
+  }
+
   d_numChecks = d_numChecks + 1;
 
   if (d_numChecks < options().parallel.checksBeforePartitioning)

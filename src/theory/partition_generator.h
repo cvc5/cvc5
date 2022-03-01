@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Splitter for creating partitions.
+ * PartitionGenerator for creating partitions.
  */
 
 #include "cvc5_private.h"
@@ -24,6 +24,7 @@
 
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
+#include "theory/theory.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
@@ -36,16 +37,20 @@ class PropEngine;
 
 namespace theory {
 
-class Splitter : protected EnvObj
+class PartitionGenerator : protected EnvObj
 {
  public:
-  // Splitter
-  Splitter(Env& env, TheoryEngine* theoryEngine, prop::PropEngine* propEngine);
+  // PartitionGenerator
+  PartitionGenerator(Env& env,
+                     TheoryEngine* theoryEngine,
+                     prop::PropEngine* propEngine);
 
   /**
-   * Make partitions for parallel solving.
+   * Make partitions for parallel solving. isFromFullCheck communicates whether
+   * makePartitions was call from the theory engine at a full check of a
+   * standard check.
    */
-  TrustNode makePartitions();
+  TrustNode makePartitions(Theory::Effort e);
 
  private:
   /**
@@ -100,17 +105,6 @@ class Splitter : protected EnvObj
    * The number of partitions that have been created.
    */
   uint64_t d_numPartitionsSoFar;
-
-  /**
-   * The filestream for writing the partitions.
-   */
-  std::unique_ptr<std::ofstream> d_fileStream;
-
-  /**
-   * The output stream: either std::cout or the filestream if an output file is
-   * specified.
-   */
-  std::ostream* d_output;
 
   /**
    * Lemmas that have been sent to the SAT solver.

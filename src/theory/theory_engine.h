@@ -30,9 +30,9 @@
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
+#include "theory/partition_generator.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/splitter.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_substitutions.h"
@@ -642,7 +642,7 @@ class TheoryEngine : protected EnvObj
    * The splitter produces partitions when the compute-partitions option is
    * used.
    */
-  std::unique_ptr<cvc5::theory::Splitter> d_splitter;
+  std::unique_ptr<cvc5::theory::PartitionGenerator> d_splitter;
 
 }; /* class TheoryEngine */
 

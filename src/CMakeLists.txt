@@ -1035,8 +1035,8 @@ libcvc5_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
-  theory/splitter.cpp
-  theory/splitter.h
+  theory/partition_generator.cpp
+  theory/partition_generator.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
