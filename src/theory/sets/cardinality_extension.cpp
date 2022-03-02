@@ -55,6 +55,7 @@ void CardinalityExtension::reset()
   d_eqc_to_card_term.clear();
   d_t_card_enabled.clear();
   d_finite_type_elements.clear();
+  d_finite_type_constants_processed = false;
   d_finite_type_slack_elements.clear();
   d_univProxy.clear();
 }
@@ -1101,21 +1102,26 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
   {
     return;
   }
+  Trace("sets-model-finite") << "Collect finite elements" << std::endl;
   for (const Node& set : getOrderedSetsEqClasses())
   {
+    Trace("sets-model-finite") << "eqc: " << set << std::endl;
     if (!d_env.isFiniteType(set.getType()))
     {
+      Trace("sets-model-finite") << "...not finite" << std::endl;
       continue;
     }
     if (!isModelValueBasic(set))
     {
       // only consider leaves in the cardinality graph
+      Trace("sets-model-finite") << "...not basic value" << std::endl;
       continue;
     }
     for (const std::pair<const Node, Node>& pair : d_state.getMembers(set))
     {
       Node member = pair.first;
       Node modelRepresentative = model->getRepresentative(member);
+      Trace("sets-model-finite") << "  member: " << member << std::endl;
       std::vector<Node>& elements = d_finite_type_elements[member.getType()];
       if (std::find(elements.begin(), elements.end(), modelRepresentative)
           == elements.end())
@@ -1125,6 +1131,7 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
     }
   }
   d_finite_type_constants_processed = true;
+  Trace("sets-model-finite") << "End Collect finite elements" << std::endl;
 }
 
 const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(
