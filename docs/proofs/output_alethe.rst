@@ -1,8 +1,8 @@
 Proof format: Alethe
 ====================
 
-Using the flag --proof-format-mode=alethe, cvc5 can output proofs in the Alethe proof format that is described in detail here: https://verit.loria.fr/documentation/alethe-spec.pdf.
+Using the flag :ref:`--proof-format-mode=alethe <lbl-option-proof-format-mode>`, cvc5 can output proofs in the `Alethe proof format <https://verit.loria.fr/documentation/alethe-spec.pdf>`_.
 
-Additonally, the following flags should be used to produce proofs with a minimal number of holes in them and to avoid sharing that is not supported yet: --simplification=none --dag-thres=0 --proof-granularity=dsl-rewrite.
+Additonally, the following flags should be used to produce proofs with a minimal number of holes and no term sharing (which is not supported for Alethe yet): :ref:`--simplification=none <lbl-option-simplification>` :ref:`--dag-thresh=0 <lbl-option-dag-thresh>` :ref:`--proof-granularity=dsl-rewrite <lbl-option-proof-granularity>`.
 
-Currently, the theory of equality with uninterpreted functions, parts of the theory of arithmetic and parts of the theory of quantifiers are supported.
+Currently, only the theory of equality with uninterpreted functions, parts of the theory of arithmetic and parts of the theory of quantifiers are supported.
