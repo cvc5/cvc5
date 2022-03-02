@@ -181,8 +181,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::addToSum(sum, left, negate);
   rewriter::addToSum(sum, right, !negate);
 
-  // Now we have (rsum <kind> 0)
-  if (rewriter::isIntegral(atom))
+  // Now we have (sum <kind> 0)
+  if (rewriter::isIntegral(sum))
   {
     if (kind == Kind::EQUAL)
     {
