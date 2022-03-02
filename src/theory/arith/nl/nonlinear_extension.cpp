@@ -29,6 +29,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace cvc5::kind;
 
