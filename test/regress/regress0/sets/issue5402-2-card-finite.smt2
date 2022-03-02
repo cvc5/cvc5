@@ -1,3 +1,4 @@
+; COMMAND-LINE: -i
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
