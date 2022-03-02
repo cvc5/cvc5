@@ -870,7 +870,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          Assert(false);
+          AlwaysAssert(false);
           return false;
         }
       }
