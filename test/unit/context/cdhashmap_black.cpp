@@ -91,11 +91,11 @@ TEST_F(TestContextBlackCDHashMap, simple_sequence)
       d_context->pop();
     }
 
-    ASSERT_TRUE(elements_are(map, {{3, 4}, {5, 6}, {9, 8}, {23, 317}}));
+    ASSERT_TRUE(elements_are(map, {{3, 4}, {5, 6}, {9, 8}}));
     d_context->pop();
   }
 
-  ASSERT_TRUE(elements_are(map, {{3, 4}, {23, 317}}));
+  ASSERT_TRUE(elements_are(map, {{3, 4}}));
 }
 
 TEST_F(TestContextBlackCDHashMap, simple_sequence_fewer_finds)
