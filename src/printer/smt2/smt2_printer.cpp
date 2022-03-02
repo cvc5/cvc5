@@ -1269,7 +1269,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   return kind::kindToString(k);
 }
 
-std::string smtKindStringOf(const Node& n, Variant v = smt2_6_variant)
+std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v = smt2_6_variant)
 {
   Kind k = n.getKind();
   if (n.getNumChildren()>0 && n[0].getType().isSequence())
