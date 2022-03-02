@@ -86,6 +86,19 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
   d_extTheory.registerTerm(n);
+  // logic exceptions based on the configuration of nl-ext: if we are a
+  // transcendental function, we require nl-ext=full.
+  Kind k = n.getKind();
+  if (isTranscendentalKind(k)
+  {
+    if (options.arith.nlExt != options::NlExtMode::FULL)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+        << " requires nl-ext mode to be full";
+      throw LogicException(ss.str());
+    }
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
