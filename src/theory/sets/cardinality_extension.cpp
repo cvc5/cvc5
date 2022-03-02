@@ -386,10 +386,19 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     {
       continue;
     }
+    // should not have universe as children here, since this is either
+    // rewritten, or eliminated via purification from the first argument of
+    // set minus.
+    Assert(n[0].getKind() != SET_UNIVERSE && n[1].getKind() != SET_UNIVERSE);
     Trace("sets-debug") << "Build cardinality parents for " << n << "..."
                         << std::endl;
     std::vector<Node> sib;
     unsigned true_sib = 0;
+    // Note that we use the rewriter to get the form of the siblings here.
+    // This is required to ensure that the lookups in the equality engine are
+    // accurate. However, it may lead to issues if the rewritten form of a
+    // node leads to unexpected relationships in the graph. To avoid this,
+    // we ensure that universe is not a child of a set in the assertions above.
     if (n.getKind() == SET_INTER)
     {
       d_localBase[n] = n;
@@ -883,7 +892,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    Assert(d_im.hasSent());
+    Assert(d_im.hasSent())
+        << "failed to send a lemma to resolve why Venn regions are different";
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -925,7 +935,9 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       {
         if (std::find(ffpc.begin(), ffpc.end(), nfeqci) == ffpc.end())
         {
-          ffpc.insert(ffpc.end(), nfeqc.begin(), nfeqc.end());
+          Trace("sets-nf-debug") << "Add to flat form " << nfeqci << " to "
+                                 << cbase << " in " << p << std::endl;
+          ffpc.push_back(nfeqci);
         }
         else
         {
