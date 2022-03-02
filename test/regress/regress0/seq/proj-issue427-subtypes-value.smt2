@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; EXPECT: (((seq.unit _x0) (seq.unit 0.0)))
+; EXPECT: (((seq.unit _x0) (seq.unit 0)))
 (set-logic ALL)
 (set-option :global-declarations true)
 (set-option :produce-models true)
