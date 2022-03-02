@@ -1,5 +1,6 @@
-; COMMAND-LINE: --full-saturate-quant -i --no-check-unsat-cores
+; COMMAND-LINE: --full-saturate-quant -i
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic ALL)
 (set-option :pre-skolem-quant true)
 (declare-fun v7 () Bool)

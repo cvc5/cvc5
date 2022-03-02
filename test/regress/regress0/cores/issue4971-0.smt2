@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental -q --check-unsat-cores --cegqi-full
+; COMMAND-LINE: --incremental -q --cegqi-full --produce-unsat-cores
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: (

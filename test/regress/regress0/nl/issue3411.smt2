@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE: -q
 ; EXPECT: sat
 ; REQUIRES: poly
 (set-logic NRA)
