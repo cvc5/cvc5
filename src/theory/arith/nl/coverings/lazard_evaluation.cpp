@@ -842,15 +842,18 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
     }
   }
   // now postprocess roots: sort, remove duplicates and spurious roots.
-  // the reduction to a univariate polynomial that happens within reducePolynomial() may introduce new (spurious) real roots that correspond to complex (non-real) roots in the original input.
-  // we need to remove such spurious roots, i.e., roots where the input polynomial does not actually vanish.
+  // the reduction to a univariate polynomial that happens within
+  // reducePolynomial() may introduce new (spurious) real roots that correspond
+  // to complex (non-real) roots in the original input. we need to remove such
+  // spurious roots, i.e., roots where the input polynomial does not actually
+  // vanish.
   std::sort(roots.begin(), roots.end());
   auto endit = std::unique(roots.begin(), roots.end());
-  endit = std::remove_if(roots.begin(), endit, [this, &q](const auto& v)
-  {
+  endit = std::remove_if(roots.begin(), endit, [this, &q](const auto& v) {
     // evaluate q != 0 over the assignment
     d_state->d_assignment.set(d_state->d_variables.back(), v);
-    bool res = poly::evaluate_constraint(q, d_state->d_assignment, poly::SignCondition::NE);
+    bool res = poly::evaluate_constraint(
+        q, d_state->d_assignment, poly::SignCondition::NE);
     // make sure the assignment is properly reset
     d_state->d_assignment.unset(d_state->d_variables.back());
     return res;
