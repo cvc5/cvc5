@@ -48,7 +48,9 @@ class ArithRewriter : public TheoryRewriter
   /** postRewrite for atoms */
   static RewriteResponse postRewriteAtom(TNode t);
 
+  /** preRewrite for terms */
   static RewriteResponse preRewriteTerm(TNode t);
+  /** postRewrite for terms */
   static RewriteResponse postRewriteTerm(TNode t);
 
   /** rewrite real algebraic numbers */
@@ -64,15 +66,21 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewritePlus(TNode t);
   /** postRewrite addition */
   static RewriteResponse postRewritePlus(TNode t);
-  static RewriteResponse rewriteDiv(TNode t, bool pre);
-  static RewriteResponse rewriteAbs(TNode t);
-  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
-  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
-  /** Entry for applications of to_int and is_int */
-  static RewriteResponse rewriteExtIntegerOp(TNode t);
-
+  /** preRewrite multiplication */
   static RewriteResponse preRewriteMult(TNode t);
+  /** postRewrite multiplication */
   static RewriteResponse postRewriteMult(TNode t);
+
+  /** rewrite division */
+  static RewriteResponse rewriteDiv(TNode t, bool pre);
+  /** rewrite absolute */
+  static RewriteResponse rewriteAbs(TNode t);
+  /** rewrite integer division and modulus */
+  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
+  /** rewrite integer total division and total modulus */
+  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
+  /** rewrite to_int and is_int */
+  static RewriteResponse rewriteExtIntegerOp(TNode t);
 
   /** postRewrite IAND */
   static RewriteResponse postRewriteIAnd(TNode t);

@@ -1,5 +1,6 @@
-; COMMAND-LINE: --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --fmf-fun-rlv
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 (define-fun $$isTrue$$ ((b Bool)) Bool b)
 (define-fun $$isFalse$$ ((b Bool)) Bool (not b))
