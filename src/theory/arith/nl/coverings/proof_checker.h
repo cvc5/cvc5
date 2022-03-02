@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * CAD proof checker utility.
+ * Coverings proof checker utility.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
-#define CVC5__THEORY__ARITH__NL__CAD__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__PROOF_CHECKER_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "proof/proof_checker.h"
@@ -25,20 +25,20 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 /**
- * A checker for CAD proofs
+ * A checker for coverings proofs
  *
- * This proof checker takes care of the two CAD proof rules ARITH_NL_CAD_DIRECT
- * and ARITH_NL_CAD_RECURSIVE. It does not do any actual proof checking yet, but
+ * This proof checker takes care of the two coverings proof rules ARITH_NL_COVERING_DIRECT
+ * and ARITH_NL_COVERING_RECURSIVE. It does not do any actual proof checking yet, but
  * considers them to be trusted rules.
  */
-class CADProofRuleChecker : public ProofRuleChecker
+class CoveringsProofRuleChecker : public ProofRuleChecker
 {
  public:
-  CADProofRuleChecker() {}
-  ~CADProofRuleChecker() {}
+  CoveringsProofRuleChecker() {}
+  ~CoveringsProofRuleChecker() {}
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;
@@ -50,7 +50,7 @@ class CADProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& args) override;
 };
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

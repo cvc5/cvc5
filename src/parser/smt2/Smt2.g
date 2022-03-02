@@ -1802,7 +1802,9 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       api::Term keyword = SOLVER->mkString("qid");
-      api::Term name = SOLVER->mkString(s);
+      // must create a variable whose name is the name of the quantified
+      // formula, not a string.
+      api::Term name = SOLVER->mkConst(SOLVER->getBooleanSort(), s);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]

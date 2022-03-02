@@ -148,10 +148,11 @@ class FloatingPoint
   std::string toString(bool printAsIndexed = false) const;
 
   /**
-   * Get the bitvectors to print, returns bitvectors such that this floating
-   * point should print as (fp s e i).
+   * Get the IEEE bit-vector representation of this floating-point value.
+   * Stores the sign bit in `sign`, the exponent in `exp` and the significand
+   * in `sig`.
    */
-  void getToStringBitvectors(BitVector& s, BitVector& e, BitVector& i) const;
+  void getIEEEBitvectors(BitVector& sign, BitVector& exp, BitVector& sig) const;
 
   /** Return the packed (IEEE-754) representation of this floating-point. */
   BitVector pack(void) const;
