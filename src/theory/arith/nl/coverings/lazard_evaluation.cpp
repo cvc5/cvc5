@@ -760,7 +760,8 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
     {
       if (d_state->evaluatesToZero(f))
       {
-        Assert(CoCoA::deg(f) > 0 && CoCoA::NumTerms(f) <= 2);
+        Trace("nl-cov::lazard") << "Found vanishing factor " << f << std::endl;
+        Assert(CoCoA::deg(f) > 0);
         if (CoCoA::deg(f) == 1)
         {
           auto rat = -CoCoA::ConstantCoeff(f) / CoCoA::LC(f);
@@ -840,7 +841,25 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
       roots.emplace_back(r);
     }
   }
+  // now postprocess roots: sort, remove duplicates and spurious roots.
+  // the reduction to a univariate polynomial that happens within
+  // reducePolynomial() may introduce new (spurious) real roots that correspond
+  // to complex (non-real) roots in the original input. we need to remove such
+  // spurious roots, i.e., roots where the input polynomial does not actually
+  // vanish.
   std::sort(roots.begin(), roots.end());
+  auto endit = std::unique(roots.begin(), roots.end());
+  endit = std::remove_if(roots.begin(), endit, [this, &q](const auto& v) {
+    // evaluate q != 0 over the assignment
+    d_state->d_assignment.set(d_state->d_variables.back(), v);
+    bool res = poly::evaluate_constraint(
+        q, d_state->d_assignment, poly::SignCondition::NE);
+    // make sure the assignment is properly reset
+    d_state->d_assignment.unset(d_state->d_variables.back());
+    return res;
+  });
+  // now actually remove the roots we don't want.
+  roots.erase(endit, roots.end());
   return roots;
 }
 
