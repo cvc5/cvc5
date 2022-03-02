@@ -36,8 +36,7 @@ SeqUnitOp::SeqUnitOp(const TypeNode& elementType)
 {
 }
 
-SeqUnitOp::SeqUnitOp(const SeqUnitOp& op)
-    : d_type(new TypeNode(op.getType()))
+SeqUnitOp::SeqUnitOp(const SeqUnitOp& op) : d_type(new TypeNode(op.getType()))
 {
 }
 

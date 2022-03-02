@@ -5258,8 +5258,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
       TypeNode type = children[0].d_node->getType();
-      res = getNodeManager()->mkSeqUnit(
-          type, *children[0].d_node);
+      res = getNodeManager()->mkSeqUnit(type, *children[0].d_node);
     }
     else
     {
