@@ -99,6 +99,7 @@ class CoCoAConverter
   }
 
  private:
+
   /** Helper class for the conversion of a libpoly polynomial to CoCoA. */
   struct CoCoAPolyConstructor
   {
@@ -109,6 +110,9 @@ class CoCoAConverter
   /** Helper method for the conversion of a CoCoA polynomial to libpoly */
   poly::Polynomial convertImpl(const CoCoA::RingElem& p,
                                poly::Integer& denominator) const;
+
+  /** Some global state that CoCoA needs to be around whenever it is used */
+  CoCoA::GlobalManager d_gm;
 
   /**
    * Maps libpoly variables to indets in CoCoA.

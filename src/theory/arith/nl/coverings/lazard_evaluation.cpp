@@ -107,8 +107,6 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state);
  */
 struct LazardEvaluationState
 {
-  CoCoA::GlobalManager d_gm;
-
   /**
    * Statistics about the lazard evaluation.
    * Although this class is short-lived, there is no need to make the statistics
