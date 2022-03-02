@@ -462,7 +462,7 @@ void FloatingPoint::getIEEEBitvectors(BitVector& sign,
                                       BitVector& exp,
                                       BitVector& sig) const
 {
-  // retrive BV value
+  // retrieve BV value
   BitVector bv(pack());
   uint32_t largestSignificandBit =
       getSize().significandWidth() - 2;  // -1 for -inclusive, -1 for hidden
