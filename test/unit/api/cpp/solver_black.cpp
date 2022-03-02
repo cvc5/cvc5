@@ -3003,6 +3003,43 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   ASSERT_NO_THROW(slv.simplify(t54));
 }
 
+TEST_F(TestApiBlackSolver, proj_issue420)
+{
+  Solver slv;
+  slv.setOption("strings-exp", "true");
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s2 = slv.getRealSort();
+  Sort s3 = slv.mkUninterpretedSort("_u0");
+  DatatypeDecl _dt1 = slv.mkDatatypeDecl("_dt1", {});
+  DatatypeConstructorDecl _cons16 = slv.mkDatatypeConstructorDecl("_cons16");
+  _cons16.addSelector("_sel13", s3);
+  _dt1.addConstructor(_cons16);
+  std::vector<Sort> _s4 = slv.mkDatatypeSorts({_dt1});
+  Sort s4 = _s4[0];
+  Sort s5 = slv.mkSequenceSort(s2);
+  Term t3 = slv.mkConst(s5, "_x18");
+  Term t7 = slv.mkConst(s4, "_x22");
+  Term t13 = slv.mkTerm(Kind::DT_SIZE, {t7});
+  Term t53 = slv.mkTerm(Kind::SEQ_NTH, {t3, t13});
+  ASSERT_NO_THROW(slv.checkSat());
+  ASSERT_NO_THROW(slv.blockModelValues({t53, t7}));
+  ASSERT_NO_THROW(slv.checkSat());
+}
+
+TEST_F(TestApiBlackSolver, proj_issue440)
+{
+  Solver slv;
+  slv.setLogic("QF_ALL");
+  slv.setOption("global-negate", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s1 = slv.getBooleanSort();
+  Term t9 = slv.mkBoolean(true);
+  Term t109 = slv.mkTerm(Kind::NOT, {t9});
+  // should throw an option exception
+  ASSERT_THROW(slv.checkSatAssuming({t109}), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, proj_issue434)
 {
   Solver slv;
@@ -3039,7 +3076,8 @@ TEST_F(TestApiBlackSolver, proj_issue434)
   Term t1040 = slv.defineFun("_f45", {t1014}, t1039.getSort(), t1039);
   Term t1072 = slv.mkTerm(Kind::APPLY_UF, {t1040, t510});
   Term t1073 = slv.mkTerm(Kind::APPLY_UF, {t73, t1072});
-  ASSERT_NO_THROW(slv.checkSatAssuming({t1073, t510}));
+  // the query has free variables, and should throw an exception
+  ASSERT_THROW(slv.checkSatAssuming({t1073, t510}), CVC5ApiException);
 }
   
 TEST_F(TestApiBlackSolver, proj_issue436)

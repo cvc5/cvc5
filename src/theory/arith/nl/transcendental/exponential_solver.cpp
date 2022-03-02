@@ -44,11 +44,11 @@ ExponentialSolver::ExponentialSolver(Env& env, TranscendentalState* tstate)
 
 ExponentialSolver::~ExponentialSolver() {}
 
-void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
+void ExponentialSolver::doPurification(TNode a, TNode new_a)
 {
   NodeManager* nm = NodeManager::currentNM();
   // do both equalities to ensure that new_a becomes a preregistered term
-  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
+  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;

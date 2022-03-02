@@ -14,6 +14,7 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
@@ -79,8 +80,6 @@ void TheoryModel::reset(){
   d_modelCache.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
-  d_approximations.clear();
-  d_approx_list.clear();
   d_reps.clear();
   d_assignExcSet.clear();
   d_aesMaster.clear();
@@ -107,13 +106,6 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
   h = d_sep_heap;
   neq = d_sep_nil_eq;
   return true;
-}
-
-bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
-
-std::vector<std::pair<Node, Node> > TheoryModel::getApproximations() const
-{
-  return d_approx_list;
 }
 
 std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
@@ -275,18 +267,6 @@ Node TheoryModel::getModelValue(TNode n) const
       d_modelCache[n] = ret;
       return ret;
     }
-  }
-  // it might be approximate
-  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
-  if (ita != d_approximations.end())
-  {
-    // If the value of n is approximate based on predicate P(n), we return
-    // witness z. P(z).
-    Node v = nm->mkBoundVar(n.getType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = answer;
-    return answer;
   }
   // must rewrite the term at this point
   ret = rewrite(n);
@@ -587,23 +567,6 @@ bool TheoryModel::hasAssignmentExclusionSets() const
   return !d_assignExcSet.empty();
 }
 
-void TheoryModel::recordApproximation(TNode n, TNode pred)
-{
-  Trace("model-builder-debug")
-      << "Record approximation : " << n << " satisfies the predicate " << pred
-      << std::endl;
-  Assert(d_approximations.find(n) == d_approximations.end());
-  Assert(pred.getType().isBoolean());
-  d_approximations[n] = pred;
-  d_approx_list.push_back(std::pair<Node, Node>(n, pred));
-  // model cache is invalid
-  d_modelCache.clear();
-}
-void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
-{
-  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
-  recordApproximation(n, predDisj);
-}
 bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
@@ -803,15 +766,124 @@ std::string TheoryModel::debugPrintModelEqc() const
   return ss.str();
 }
 
-bool TheoryModel::isValue(TNode node)
+struct IsModelValueTag
 {
-  if (node.isConst())
+};
+struct IsModelValueComputedTag
+{
+};
+/** Attribute true for expressions that are quasi-values */
+using IsModelValueAttr = expr::Attribute<IsModelValueTag, bool>;
+using IsModelValueComputedAttr = expr::Attribute<IsModelValueComputedTag, bool>;
+
+bool TheoryModel::isBaseModelValue(TNode n) const
+{
+  if (n.isConst())
   {
     return true;
   }
-  Kind k = node.getKind();
-  return k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-         || k == kind::WITNESS;
+  Kind k = n.getKind();
+  if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+      || k == kind::WITNESS)
+  {
+    // we are a value if we are one of the above kinds
+    return true;
+  }
+  return false;
+}
+
+bool TheoryModel::isValue(TNode n) const
+{
+  IsModelValueAttr imva;
+  IsModelValueComputedAttr imvca;
+  // The list of nodes we are processing, and the current child index of that
+  // node we are inspecting. This vector always specifies a single path in the
+  // original term n. Notice this index accounts for operators, where the
+  // operator of a term is treated as the first child, and subsequently all
+  // other children are shifted up by one.
+  std::vector<std::pair<TNode, size_t>> visit;
+  // the last computed value of whether a node was a value
+  bool currentReturn = false;
+  visit.emplace_back(n, 0);
+  std::pair<TNode, size_t> v;
+  while (!visit.empty())
+  {
+    v = visit.back();
+    TNode cur = v.first;
+    bool finishedComputing = false;
+    // if we just pushed to the stack, do initial checks
+    if (v.second == 0)
+    {
+      if (cur.getAttribute(imvca))
+      {
+        // already cached
+        visit.pop_back();
+        currentReturn = cur.getAttribute(imva);
+        continue;
+      }
+      if (isBaseModelValue(cur))
+      {
+        finishedComputing = true;
+        currentReturn = true;
+      }
+      else if (cur.getNumChildren() == 0)
+      {
+        // PI is a (non-base) value. We require it as a special case here
+        // since nullary operators are represented internal as variables.
+        // All other non-constant terms with zero children are not values.
+        finishedComputing = true;
+        currentReturn = (cur.getKind() == kind::PI);
+      }
+      else if (rewrite(cur) != cur)
+      {
+        // non-rewritten terms are never model values
+        finishedComputing = true;
+        currentReturn = false;
+      }
+    }
+    else if (!currentReturn)
+    {
+      // if the last child was not a value, we are not a value
+      finishedComputing = true;
+    }
+    if (!finishedComputing)
+    {
+      bool hasOperator = cur.hasOperator();
+      size_t nextChildIndex = v.second;
+      if (hasOperator && nextChildIndex > 0)
+      {
+        // if have an operator, we shift the child index we are looking at
+        nextChildIndex--;
+      }
+      if (nextChildIndex == cur.getNumChildren())
+      {
+        // finished, we are a value
+        currentReturn = true;
+      }
+      else
+      {
+        visit.back().second++;
+        if (hasOperator && v.second == 0)
+        {
+          // if we have an operator, process it as the first child
+          visit.emplace_back(cur.getOperator(), 0);
+        }
+        else
+        {
+          Assert(nextChildIndex < cur.getNumChildren());
+          // process the next child, which may be shifted from v.second to
+          // account for the operator
+          visit.emplace_back(cur[nextChildIndex], 0);
+        }
+        continue;
+      }
+    }
+    visit.pop_back();
+    cur.setAttribute(imva, currentReturn);
+    cur.setAttribute(imvca, true);
+  }
+  Assert(n.getAttribute(imvca));
+  return currentReturn;
 }
 
 }  // namespace theory

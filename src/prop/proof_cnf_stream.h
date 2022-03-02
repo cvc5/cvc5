@@ -27,6 +27,7 @@
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_proof_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace prop {
@@ -42,13 +43,10 @@ class SatProofManager;
  * that getting the proof of a clausified formula will also extend to its
  * registered proof generator.
  */
-class ProofCnfStream : public ProofGenerator
+class ProofCnfStream : protected EnvObj, public ProofGenerator
 {
  public:
-  ProofCnfStream(context::UserContext* u,
-                 CnfStream& cnfStream,
-                 SatProofManager* satPM,
-                 ProofNodeManager* pnm);
+  ProofCnfStream(Env& env, CnfStream& cnfStream, SatProofManager* satPM);
 
   /** Invokes getProofFor of the underlying LazyCDProof */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -166,8 +164,6 @@ class ProofCnfStream : public ProofGenerator
   CnfStream& d_cnfStream;
   /** The proof manager of underlying SAT solver associated with this stream. */
   SatProofManager* d_satPM;
-  /** The proof node manager. */
-  ProofNodeManager* d_pnm;
   /** The user-context-dependent proof object. */
   LazyCDProof d_proof;
   /** An accumulator of steps that may be applied to normalize the clauses
