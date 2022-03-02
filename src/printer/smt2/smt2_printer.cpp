@@ -953,7 +953,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
         Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindString(n.getKind(), d_variant) << ' ';
+        out << " (" << smtKindStringOf(n, d_variant) << ' ';
         parens << ')';
         ++c;
       } else {
@@ -1269,7 +1269,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   return kind::kindToString(k);
 }
 
-std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v = smt2_6_variant)
+std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
 {
   Kind k = n.getKind();
   if (n.getNumChildren()>0 && n[0].getType().isSequence())
