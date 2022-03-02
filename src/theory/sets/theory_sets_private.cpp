@@ -1324,7 +1324,16 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
     {
       if (node[0].getKind()==kind::SET_UNIVERSE)
       {
-        // must purify universe from argument of set minus
+        // Due to complications involving the cardinality graph, we must purify
+        // universe from argument of set minus, so that
+        //   (set.minus set.universe x)
+        // is replaced by 
+        //   (set.minus univ x)
+        // along with the lemma (= univ set.universe), where univ is the
+        // purification skolem for set.universe. We require this purification
+        // since the cardinality graph incorrectly thinks that
+        // rewrite( (set.inter set.universe x) ), which evaluates to x, is
+        // a sibling of (set.minus set.universe x).
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
         Node sk = sm->mkPurifySkolem(node[0], "univ");
