@@ -61,27 +61,6 @@ void getConcat(Node n, std::vector<Node>& c);
 Node mkConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
- * Returns the rewritten form of the string concatenation of n1 and n2.
- */
-Node mkNConcat(Node n1, Node n2);
-
-/**
- * Returns the rewritten form of the string concatenation of n1, n2 and n3.
- */
-Node mkNConcat(Node n1, Node n2, Node n3);
-
-/**
- * Returns the rewritten form of the concatentation from vector c of
- * (string-like) type tn.
- */
-Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
-
-/**
- * Returns the rewritten form of the length of string term t.
- */
-Node mkNLength(Node t);
-
-/**
  * Returns (pre t n), which is (str.substr t 0 n).
  */
 Node mkPrefix(Node t, Node n);
@@ -224,6 +203,13 @@ unsigned getLoopMinOccurrences(TNode node);
  * to the quantified formula.
  */
 Node mkForallInternal(Node bvl, Node body);
+
+/**
+ * Make abstract value for string-like term n whose length is given by len.
+ * This is used for constructing models for strings whose lengths are too large
+ * to represent in memory.
+ */
+Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
 
 }  // namespace utils
 }  // namespace strings

@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
@@ -30,16 +31,20 @@ namespace quantifiers {
 class ExampleEvalCache;
 class SygusStatistics;
 class SygusSampler;
+class TermDbSygus;
 
 /**
  * Base class for callbacks in the fast enumerator. This allows a user to
  * provide custom criteria for whether or not enumerated values should be
  * considered.
  */
-class SygusEnumeratorCallback
+class SygusEnumeratorCallback : protected EnvObj
 {
  public:
-  SygusEnumeratorCallback(Node e, SygusStatistics* s = nullptr);
+  SygusEnumeratorCallback(Env& env,
+                          Node e,
+                          TermDbSygus* tds = nullptr,
+                          SygusStatistics* s = nullptr);
   virtual ~SygusEnumeratorCallback() {}
   /**
    * Add term, return true if the term should be considered in the enumeration.
@@ -74,6 +79,8 @@ class SygusEnumeratorCallback
   Node d_enum;
   /** The type of enum */
   TypeNode d_tn;
+  /** Term database sygus */
+  TermDbSygus* d_tds;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
 };
@@ -81,7 +88,9 @@ class SygusEnumeratorCallback
 class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
 {
  public:
-  SygusEnumeratorCallbackDefault(Node e,
+  SygusEnumeratorCallbackDefault(Env& env,
+                                 Node e,
+                                 TermDbSygus* tds = nullptr,
                                  SygusStatistics* s = nullptr,
                                  ExampleEvalCache* eec = nullptr,
                                  SygusSampler* ssrv = nullptr,

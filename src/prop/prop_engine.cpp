@@ -81,7 +81,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Debug("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
-  ResourceManager* rm = d_env.getResourceManager();
 
   options::DecisionMode dmode = options().decision.decisionMode;
   if (dmode == options::DecisionMode::JUSTIFICATION
@@ -106,11 +105,10 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // theory proxy first
   d_theoryProxy = new TheoryProxy(
       d_env, this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get());
-  d_cnfStream = new CnfStream(d_satSolver,
+  d_cnfStream = new CnfStream(env,
+                              d_satSolver,
                               d_theoryProxy,
                               userContext,
-                              &d_env,
-                              rm,
                               FormulaLitPolicy::TRACK,
                               "prop");
 
@@ -127,10 +125,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   if (satProofs)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext,
+        env,
         *d_cnfStream,
-        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
-        pnm));
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
@@ -175,28 +172,11 @@ TrustNode PropEngine::removeItes(TNode node,
 
 void PropEngine::assertInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap)
+    std::unordered_map<size_t, Node>& skolemMap,
+    const std::vector<Node>& ppl)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  // notify the theory engine of preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(assertions);
-  // Now, notify the theory proxy of the assertions and skolem definitions.
-  // Notice we do this before asserting the formulas to the CNF stream below,
-  // since (preregistration) lemmas may occur during calls to assertInternal.
-  // These lemmas we want to be notified about after the theory proxy has
-  // been notified about all input assertions.
-  std::unordered_map<size_t, Node>::iterator it;
-  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
-  {
-    // is the assertion a skolem definition?
-    it = skolemMap.find(i);
-    Node skolem;
-    if (it != skolemMap.end())
-    {
-      skolem = it->second;
-    }
-    d_theoryProxy->notifyAssertion(assertions[i], skolem, false);
-  }
+  d_theoryProxy->notifyInputFormulas(assertions, skolemMap, ppl);
   for (const Node& node : assertions)
   {
     Debug("prop") << "assertFormula(" << node << ")" << std::endl;
@@ -245,8 +225,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options().smt.unsatCores);
+  // should have a proof generator if the theory engine is proof producing
+  Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -400,7 +380,7 @@ Result PropEngine::checkSat() {
   }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    ResourceManager* rm = d_env.getResourceManager();
+    ResourceManager* rm = resourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
     if (rm->outOfTime())
     {
@@ -418,7 +398,8 @@ Result PropEngine::checkSat() {
   }
 
   Debug("prop") << "PropEngine::checkSat() => " << result << std::endl;
-  if(result == SAT_VALUE_TRUE && d_theoryEngine->isIncomplete()) {
+  if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
+  {
     return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
@@ -689,6 +670,11 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
   return cdp.getProofFor(fnode);
+}
+
+const std::unordered_set<Node>& PropEngine::getLearnedZeroLevelLiterals() const
+{
+  return d_theoryProxy->getLearnedZeroLevelLiterals();
 }
 
 }  // namespace prop

@@ -66,13 +66,13 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   Node l = assertion[0];
   Node r = assertion[1];
 
-  if (r.getKind() != kind::CONST_RATIONAL)
+  if (!r.isConst())
   {
     Debug("pbs::rewrites") << "not rhs constant" << assertion << std::endl;
     return false;
   }
   // don't bother matching on anything other than + on the left hand side
-  if (l.getKind() != kind::PLUS)
+  if (l.getKind() != kind::ADD)
   {
     Debug("pbs::rewrites") << "not plus" << assertion << std::endl;
     return false;
@@ -216,7 +216,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
   Node l = assertion[0];
   Node r = assertion[1];
 
-  if (r.getKind() == kind::CONST_RATIONAL)
+  if (r.isConst())
   {
     const Rational& rc = r.getConst<Rational>();
     if (isIntVar(l))
@@ -233,8 +233,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
     else if (l.getKind() == kind::MULT && l.getNumChildren() == 2)
     {
       Node c = l[0], v = l[1];
-      if (c.getKind() == kind::CONST_RATIONAL
-          && c.getConst<Rational>().isNegativeOne())
+      if (c.isConst() && c.getConst<Rational>().isNegativeOne())
       {
         if (isIntVar(v))
         {
@@ -302,7 +301,8 @@ void PseudoBooleanProcessor::learn(Node assertion)
 Node PseudoBooleanProcessor::mkGeqOne(Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::GEQ, v, mkRationalNode(Rational(1)));
+  return nm->mkNode(
+      kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
 
 void PseudoBooleanProcessor::learn(const std::vector<Node>& assertions)

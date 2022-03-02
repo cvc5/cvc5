@@ -78,8 +78,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               if (!c.isNull())
               {
                 Assert(c.isConst());
-                coeffs.push_back(NodeManager::currentNM()->mkConst(
-                    CONST_RATIONAL,
+                coeffs.push_back(nm->mkConstInt(
                     Rational(c.getConst<Rational>().getDenominator())));
               }
             }
@@ -99,9 +98,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull() ? NodeManager::currentNM()->mkConst(
-                        CONST_RATIONAL, Rational(1))
-                                : cc;
+                c = cc.isNull()
+                        ? NodeManager::currentNM()->mkConstInt(Rational(1))
+                        : cc;
               }
               else
               {
@@ -134,15 +133,10 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             }
             Node sumt =
                 sum.empty()
-                    ? NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                                        Rational(0))
-                    : (sum.size() == 1
-                           ? sum[0]
-                           : NodeManager::currentNM()->mkNode(kind::PLUS, sum));
-            ret = NodeManager::currentNM()->mkNode(
-                ret_lit.getKind(),
-                sumt,
-                NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0)));
+                    ? nm->mkConstInt(Rational(0))
+                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::ADD, sum));
+            ret = nm->mkNode(
+                ret_lit.getKind(), sumt, nm->mkConstInt(Rational(0)));
             if (!ret_pol)
             {
               ret = ret.negate();

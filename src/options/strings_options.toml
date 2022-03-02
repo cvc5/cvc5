@@ -207,3 +207,45 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use regular expressions for eager length conflicts"
+
+[[option]]
+  name       = "stringEagerSolver"
+  category   = "regular"
+  long       = "strings-eager-solver"
+  type       = "bool"
+  default    = "true"
+  help       = "use the eager solver"
+
+[[option]]
+  name       = "stringRegexpInclusion"
+  category   = "regular"
+  long       = "strings-regexp-inclusion"
+  type       = "bool"
+  default    = "true"
+  help       = "use regular expression inclusion"
+
+[[option]]
+  name       = "seqArray"
+  category   = "expert"
+  long       = "seq-array=MODE"
+  type       = "SeqArrayMode"
+  default    = "NONE"
+  help       = "use array-inspired solver for sequence updates in eager or lazy mode"
+  help_mode  = "use array-inspired solver for sequence updates in eager or lazy mode"
+[[option.mode.LAZY]]
+  name = "lazy"
+  help = "use array-inspired solver for sequence updates in lazy mode"
+[[option.mode.EAGER]]
+  name = "eager"
+  help = "use array-inspired solver for sequence updates in eager mode"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use array-inspired solver for sequence updates"
+
+[[option]]
+  name       = "stringsModelMaxLength"
+  category   = "regular"
+  long       = "strings-model-max-len=N"
+  type       = "uint64_t"
+  default    = "65536"
+  help       = "The maximum size of string values in models"

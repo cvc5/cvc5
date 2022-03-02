@@ -202,13 +202,11 @@ bool Parser::isPredicate(const std::string& name) {
 
 api::Term Parser::bindVar(const std::string& name,
                           const api::Sort& type,
-                          bool levelZero,
                           bool doOverload)
 {
-  bool globalDecls = d_symman->getGlobalDeclarations();
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
   api::Term expr = d_solver->mkConst(type, name);
-  defineVar(name, expr, globalDecls || levelZero, doOverload);
+  defineVar(name, expr, doOverload);
   return expr;
 }
 
@@ -234,12 +232,11 @@ std::vector<api::Term> Parser::bindBoundVars(
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                         const api::Sort& type,
-                                        bool levelZero,
                                         bool doOverload)
 {
   std::vector<api::Term> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(bindVar(names[i], type, levelZero, doOverload));
+    vars.push_back(bindVar(names[i], type, doOverload));
   }
   return vars;
 }
@@ -256,11 +253,10 @@ std::vector<api::Term> Parser::bindBoundVars(
 
 void Parser::defineVar(const std::string& name,
                        const api::Term& val,
-                       bool levelZero,
                        bool doOverload)
 {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
-  if (!d_symtab->bind(name, val, levelZero, doOverload))
+  if (!d_symtab->bind(name, val, doOverload))
   {
     std::stringstream ss;
     ss << "Cannot bind " << name << " to symbol of type " << val.getSort();
@@ -272,7 +268,6 @@ void Parser::defineVar(const std::string& name,
 
 void Parser::defineType(const std::string& name,
                         const api::Sort& type,
-                        bool levelZero,
                         bool skipExisting)
 {
   if (skipExisting && isDeclared(name, SYM_SORT))
@@ -280,16 +275,15 @@ void Parser::defineType(const std::string& name,
     Assert(d_symtab->lookupType(name) == type);
     return;
   }
-  d_symtab->bindType(name, type, levelZero);
+  d_symtab->bindType(name, type);
   Assert(isDeclared(name, SYM_SORT));
 }
 
 void Parser::defineType(const std::string& name,
                         const std::vector<api::Sort>& params,
-                        const api::Sort& type,
-                        bool levelZero)
+                        const api::Sort& type)
 {
-  d_symtab->bindType(name, params, type, levelZero);
+  d_symtab->bindType(name, params, type);
   Assert(isDeclared(name, SYM_SORT));
 }
 
@@ -314,9 +308,8 @@ void Parser::defineParameterizedType(const std::string& name,
 api::Sort Parser::mkSort(const std::string& name)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  bool globalDecls = d_symman->getGlobalDeclarations();
   api::Sort type = d_solver->mkUninterpretedSort(name);
-  defineType(name, type, globalDecls);
+  defineType(name, type);
   return type;
 }
 
@@ -324,9 +317,8 @@ api::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  bool globalDecls = d_symman->getGlobalDeclarations();
   api::Sort type = d_solver->mkSortConstructorSort(name, arity);
-  defineType(name, vector<api::Sort>(arity), type, globalDecls);
+  defineType(name, vector<api::Sort>(arity), type);
   return type;
 }
 
@@ -383,7 +375,6 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
         d_solver->mkDatatypeSorts(datatypes, d_unresolved);
 
     Assert(datatypes.size() == types.size());
-    bool globalDecls = d_symman->getGlobalDeclarations();
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
       api::Sort t = types[i];
@@ -396,11 +387,11 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       if (t.isParametricDatatype())
       {
         std::vector<api::Sort> paramTypes = t.getDatatypeParamSorts();
-        defineType(name, paramTypes, t, globalDecls);
+        defineType(name, paramTypes, t);
       }
       else
       {
-        defineType(name, t, globalDecls);
+        defineType(name, t);
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
@@ -414,7 +405,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
           if(!doOverload) {
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
-          defineVar(constructorName, constructor, globalDecls, doOverload);
+          defineVar(constructorName, constructor, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
@@ -428,7 +419,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
           {
             checkDeclaration(testerName, CHECK_UNDECLARED);
           }
-          defineVar(testerName, tester, globalDecls, doOverload);
+          defineVar(testerName, tester, doOverload);
         }
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
@@ -440,7 +431,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector, globalDecls, doOverload);
+            defineVar(selectorName, selector, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");
@@ -583,7 +574,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       // lookup by name
       api::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
-      t = dc.getSpecializedConstructorTerm(s);
+      t = dc.getInstantiatedConstructorTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
@@ -750,18 +741,7 @@ void Parser::pushGetValueScope()
     std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
     for (const api::Term& e : elements)
     {
-      // Uninterpreted constants are abstract values, which by SMT-LIB are
-      // required to be annotated with their type, e.g. (as @uc_Foo_0 Foo).
-      // Thus, the element is not printed simply as its name.
-      std::string en = e.toString();
-      size_t index = en.find("(as ");
-      if (index == 0)
-      {
-        index = en.find(" ", 4);
-        en = en.substr(4, index - 4);
-      }
-      Trace("parser") << "Get value scope : " << en << " -> " << e << std::endl;
-      defineVar(en, e);
+      defineVar(e.getUninterpretedSortValue(), e);
     }
   }
 }

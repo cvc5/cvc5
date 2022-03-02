@@ -46,10 +46,6 @@ class Rewriter {
    * use on the node.
    */
   static Node rewrite(TNode node);
-  /**
-   * !!! Temporary until static access to rewriter is eliminated.
-   */
-  static Node callExtendedRewrite(TNode node, bool aggr = true);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to

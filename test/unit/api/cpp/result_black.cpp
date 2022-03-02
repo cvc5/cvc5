@@ -36,7 +36,7 @@ TEST_F(TestApiBlackResult, isNull)
   ASSERT_FALSE(res_null.isNotEntailed());
   ASSERT_FALSE(res_null.isEntailmentUnknown());
   Sort u_sort = d_solver.mkUninterpretedSort("u");
-  Term x = d_solver.mkVar(u_sort, "x");
+  Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isNull());
@@ -45,7 +45,7 @@ TEST_F(TestApiBlackResult, isNull)
 TEST_F(TestApiBlackResult, eq)
 {
   Sort u_sort = d_solver.mkUninterpretedSort("u");
-  Term x = d_solver.mkVar(u_sort, "x");
+  Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
   cvc5::api::Result res;
   cvc5::api::Result res2 = d_solver.checkSat();
@@ -58,7 +58,7 @@ TEST_F(TestApiBlackResult, eq)
 TEST_F(TestApiBlackResult, isSat)
 {
   Sort u_sort = d_solver.mkUninterpretedSort("u");
-  Term x = d_solver.mkVar(u_sort, "x");
+  Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isSat());
@@ -68,7 +68,7 @@ TEST_F(TestApiBlackResult, isSat)
 TEST_F(TestApiBlackResult, isUnsat)
 {
   Sort u_sort = d_solver.mkUninterpretedSort("u");
-  Term x = d_solver.mkVar(u_sort, "x");
+  Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
@@ -81,7 +81,7 @@ TEST_F(TestApiBlackResult, isSatUnknown)
   d_solver.setOption("incremental", "false");
   d_solver.setOption("solve-int-as-bv", "32");
   Sort int_sort = d_solver.getIntegerSort();
-  Term x = d_solver.mkVar(int_sort, "x");
+  Term x = d_solver.mkConst(int_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
@@ -111,7 +111,7 @@ TEST_F(TestApiBlackResult, isEntailmentUnknown)
   d_solver.setOption("incremental", "false");
   d_solver.setOption("solve-int-as-bv", "32");
   Sort int_sort = d_solver.getIntegerSort();
-  Term x = d_solver.mkVar(int_sort, "x");
+  Term x = d_solver.mkConst(int_sort, "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   cvc5::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
   ASSERT_FALSE(res.isEntailed());

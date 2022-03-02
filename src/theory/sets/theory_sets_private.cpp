@@ -59,7 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 TheorySetsPrivate::~TheorySetsPrivate()
@@ -1289,7 +1289,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     case kind::RELATION_JOIN_IMAGE:
     {
       // these are logic exceptions, not type checking exceptions
-      if (node[1].getKind() != kind::CONST_RATIONAL)
+      if (!node[1].isConst())
       {
         throw LogicException(
             "JoinImage cardinality constraint must be a constant");
@@ -1320,8 +1320,35 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
   {
     case kind::SET_CHOOSE: return expandChooseOperator(node, lems);
     case kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
-    default: return TrustNode::null();
+    case kind::SET_MINUS:
+    {
+      if (node[0].getKind() == kind::SET_UNIVERSE)
+      {
+        // Due to complications involving the cardinality graph, we must purify
+        // universe from argument of set minus, so that
+        //   (set.minus set.universe x)
+        // is replaced by
+        //   (set.minus univ x)
+        // along with the lemma (= univ set.universe), where univ is the
+        // purification skolem for set.universe. We require this purification
+        // since the cardinality graph incorrectly thinks that
+        // rewrite( (set.inter set.universe x) ), which evaluates to x, is
+        // a sibling of (set.minus set.universe x).
+        NodeManager* nm = NodeManager::currentNM();
+        SkolemManager* sm = nm->getSkolemManager();
+        Node sk = sm->mkPurifySkolem(node[0], "univ");
+        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk
+                          << std::endl;
+        Node eq = sk.eqNode(node[0]);
+        lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
+        Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);
+        return TrustNode::mkTrustRewrite(node, ret, nullptr);
+      }
+    }
+    break;
+    default: break;
   }
+  return TrustNode::null();
 }
 
 TrustNode TheorySetsPrivate::expandChooseOperator(

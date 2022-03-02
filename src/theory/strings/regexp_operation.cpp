@@ -37,10 +37,8 @@ RegExpOpr::RegExpOpr(Env& env, SkolemCache* sc)
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_NONE,
                                                      std::vector<Node>{})),
-      d_zero(NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                               ::cvc5::Rational(0))),
-      d_one(NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                              ::cvc5::Rational(1))),
+      d_zero(NodeManager::currentNM()->mkConstInt(Rational(0))),
+      d_one(NodeManager::currentNM()->mkConstInt(Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_ALLCHAR,
                                                std::vector<Node>{})),
       d_sigma_star(
@@ -911,7 +909,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
-  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = nm->mkConstInt(Rational(0));
   Node conc;
   if (k == REGEXP_CONCAT)
   {
@@ -931,7 +929,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
         nm->mkNode(AND, nm->mkNode(GT, b1, zero), nm->mkNode(GEQ, lens, b1));
     // internal
     Node s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
-    Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+    Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(SUB, lens, b1));
     Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[0]).negate();
     Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r).negate();
 
@@ -955,7 +953,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
   Assert(r.getKind() == REGEXP_CONCAT);
-  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = nm->mkConstInt(Rational(0));
   // The following simplification states that
   //    ~( s in R1 ++ R2 ++... ++ Rn )
   // is equivalent to
@@ -986,12 +984,12 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   if (index == 0)
   {
     s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
-    s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+    s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(SUB, lens, b1));
   }
   else
   {
-    s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
-    s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(MINUS, lens, b1));
+    s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(SUB, lens, b1), b1);
+    s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(SUB, lens, b1));
   }
   Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[index]).negate();
   std::vector<Node> nvec;
@@ -1040,7 +1038,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
       }
       else
       {
-        Node ivalue = nm->mkConst(CONST_RATIONAL, Rational(i));
+        Node ivalue = nm->mkConstInt(Rational(i));
         Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT,
                                        s.getType(),
                                        {mem[0], mem[1], ivalue});
@@ -1321,10 +1319,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             rt = itr2->second;
           } else {
             std::map< PairNodes, Node > cache2(cache);
-            cache2[p] = NodeManager::currentNM()->mkNode(
-                kind::REGEXP_RV,
-                NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                                  cvc5::Rational(cnt)));
+            cache2[p] =
+                nm->mkNode(kind::REGEXP_RV, nm->mkConstInt(Rational(cnt)));
             rt = intersectInternal(r1l, r2l, cache2, cnt+1);
             cacheX[ pp ] = rt;
           }

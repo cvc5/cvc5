@@ -131,7 +131,7 @@ class SygusSolver : protected EnvObj
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    */
-  Result checkSynth(Assertions& as);
+  Result checkSynth(Assertions& as, bool isNext);
   /**
    * Get synth solution.
    *
@@ -169,8 +169,13 @@ class SygusSolver : protected EnvObj
    * conjecture in which the functions-to-synthesize have been replaced by the
    * synthesized solutions, which is a quantifier-free formula, is
    * unsatisfiable. If not, then the found solutions are wrong.
+   *
+   * @param as The background assertions, which may include define-fun and
+   * define-fun-rec,
+   * @param sol_map Map from functions-to-synthesize to their solution (of the
+   * same type) for the asserted synthesis conjecture.
    */
-  void checkSynthSolution(Assertions& as);
+  void checkSynthSolution(Assertions& as, const std::map<Node, Node>& solMap);
   /**
    * Expand definitions in sygus datatype tn, which ensures that all
    * sygus constructors that are used to build values of sygus datatype

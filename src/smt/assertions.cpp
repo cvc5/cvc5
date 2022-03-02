@@ -37,12 +37,11 @@ namespace smt {
 Assertions::Assertions(Env& env, AbstractValues& absv)
     : EnvObj(env),
       d_absValues(absv),
-      d_produceAssertions(false),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
-      d_assertions()
+      d_assertions(env)
 {
 }
 
@@ -52,33 +51,15 @@ Assertions::~Assertions()
 
 void Assertions::refresh()
 {
-  if (d_globalDefineFunLemmas != nullptr)
+  // Global definitions are asserted now to ensure they always exist. This is
+  // done at the beginning of preprocessing, to ensure that definitions take
+  // priority over, e.g. solving during preprocessing. See issue #7479.
+  size_t numGlobalDefs = d_globalDefineFunLemmas.size();
+  for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
   {
-    // Global definitions are asserted now to ensure they always exist. This is
-    // done at the beginning of preprocessing, to ensure that definitions take
-    // priority over, e.g. solving during preprocessing. See issue #7479.
-    size_t numGlobalDefs = d_globalDefineFunLemmas->size();
-    for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
-    {
-      addFormula((*d_globalDefineFunLemmas)[i], false, true, false);
-    }
-    d_globalDefineFunLemmasIndex = numGlobalDefs;
+    addFormula(d_globalDefineFunLemmas[i], false, true, false);
   }
-}
-
-void Assertions::finishInit()
-{
-  // [MGD 10/20/2011] keep around in incremental mode, due to a
-  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
-  // first, some user-context-dependent TNodes might still exist
-  // with rc == 0.
-  if (options().smt.produceAssertions || options().base.incrementalSolving)
-  {
-    // In the case of incremental solving, we appear to need these to
-    // ensure the relevant Nodes remain live.
-    d_produceAssertions = true;
-    d_globalDefineFunLemmas.reset(new std::vector<Node>());
-  }
+  d_globalDefineFunLemmasIndex = numGlobalDefs;
 }
 
 void Assertions::clearCurrent()
@@ -157,14 +138,11 @@ void Assertions::addFormula(TNode n,
                             bool isFunDef,
                             bool maybeHasFv)
 {
-  // add to assertion list if it exists
-  if (d_produceAssertions)
+  // add to assertion list
+  d_assertionList.push_back(n);
+  if (isFunDef)
   {
-    d_assertionList.push_back(n);
-    if (isFunDef)
-    {
-      d_assertionListDefs.push_back(n);
-    }
+    d_assertionListDefs.push_back(n);
   }
   if (n.isConst() && n.getConst<bool>())
   {
@@ -221,12 +199,12 @@ void Assertions::addFormula(TNode n,
 void Assertions::addDefineFunDefinition(Node n, bool global)
 {
   n = d_absValues.substituteAbstractValues(n);
-  if (global && d_globalDefineFunLemmas != nullptr)
+  if (global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
     Assert(!language::isLangSygus(options().base.inputLanguage));
-    d_globalDefineFunLemmas->emplace_back(n);
+    d_globalDefineFunLemmas.emplace_back(n);
   }
   else
   {
@@ -251,9 +229,9 @@ void Assertions::ensureBoolean(const Node& n)
   }
 }
 
-void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
-  d_assertions.setProofGenerator(pppg);
+  d_assertions.enableProofs(pppg);
 }
 
 bool Assertions::isProofEnabled() const

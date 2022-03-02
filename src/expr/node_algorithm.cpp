@@ -838,7 +838,7 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
       // equal
       // we compare operators instead of kinds because different terms may have
       // the same kind (both `(id x)` and `(square x)` have kind APPLY_UF)
-      // since many builtin operators like `PLUS` allow arbitrary number of
+      // since many builtin operators like `ADD` allow arbitrary number of
       // arguments, we also need to check if the two subterms have the same
       // number of children
       if (curr.first.getNumChildren() != curr.second.getNumChildren()
@@ -854,6 +854,14 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
     }
   }
   return true;
+}
+
+bool isBooleanConnective(TNode cur)
+{
+  Kind k = cur.getKind();
+  return k == kind::NOT || k == kind::IMPLIES || k == kind::AND || k == kind::OR
+         || (k == kind::ITE && cur.getType().isBoolean()) || k == kind::XOR
+         || (k == kind::EQUAL && cur[0].getType().isBoolean());
 }
 
 }  // namespace expr

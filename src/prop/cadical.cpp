@@ -18,6 +18,7 @@
 #include "prop/cadical.h"
 
 #include "base/check.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
@@ -79,6 +80,27 @@ void CadicalSolver::init()
 }
 
 CadicalSolver::~CadicalSolver() {}
+
+/**
+ * Terminator class that notifies CaDiCaL to terminate when time limit is
+ * reached (used for time limits specified via --tlimit-per).
+ */
+class TimeLimitTerminator : public CaDiCaL::Terminator
+{
+ public:
+  TimeLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr){};
+
+  bool terminate() override { return d_resmgr.outOfTime(); }
+
+ private:
+  ResourceManager& d_resmgr;
+};
+
+void CadicalSolver::setTimeLimit(ResourceManager* resmgr)
+{
+  d_terminator.reset(new TimeLimitTerminator(*resmgr));
+  d_solver->connect_terminator(d_terminator.get());
+}
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {

@@ -94,6 +94,17 @@ class Solver : protected EnvObj
   int getAssertionLevel() const { return assertionLevel; }
 
  protected:
+  /*
+   * Returns true if the solver should add all clauses at the current assertion
+   * level.
+   *
+   * FIXME: This is a workaround. Currently, our resolution proofs do not
+   * handle clauses with a lower-than-assertion-level correctly because the
+   * resolution proofs get removed when popping the context but the SAT solver
+   * keeps using them.
+   */
+  const bool d_assertionLevelOnly;
+
   /** Do we allow incremental solving */
   bool d_enable_incremental;
 

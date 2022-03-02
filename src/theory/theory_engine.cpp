@@ -221,7 +221,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_relManager(nullptr),
       d_inConflict(context(), false),
       d_inSatMode(false),
-      d_hasShutDown(false),
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
@@ -255,7 +254,6 @@ TheoryEngine::TheoryEngine(Env& env)
 }
 
 TheoryEngine::~TheoryEngine() {
-  Assert(d_hasShutDown);
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if(d_theoryTable[theoryId] != NULL) {
@@ -717,20 +715,6 @@ bool TheoryEngine::isRelevant(Node lit) const
   return true;
 }
 
-void TheoryEngine::shutdown() {
-  // Set this first; if a Theory shutdown() throws an exception,
-  // at least the destruction of the TheoryEngine won't confound
-  // matters.
-  d_hasShutDown = true;
-
-  // Shutdown all the theories
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
-      theoryOf(theoryId)->shutdown();
-    }
-  }
-}
-
 theory::Theory::PPAssertStatus TheoryEngine::solve(
     TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
@@ -741,11 +725,12 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
-  if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(atom)) &&
-     Theory::theoryOf(atom) != THEORY_SAT_SOLVER) {
+  theory::TheoryId tid = d_env.theoryOf(atom);
+  if (!d_logicInfo.isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
     stringstream ss;
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
-       << ", which doesn't include " << Theory::theoryOf(atom)
+       << ", which doesn't include " << tid
        << ", but got a preprocessing-time fact for that theory." << endl
        << "The fact:" << endl
        << literal;
@@ -881,7 +866,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
             assertion, originalAssertion, toTheoryIdProp, fromTheoryId))
     {
       // Is it preregistered
-      bool preregistered = d_propEngine->isSatLiteral(assertion) && Theory::theoryOf(assertion) == toTheoryId;
+      bool preregistered = d_propEngine->isSatLiteral(assertion)
+                           && d_env.theoryOf(assertion) == toTheoryId;
       // We assert it
       theoryOf(toTheoryId)->assertFact(assertion, preregistered);
       // Mark that we have more information
@@ -944,7 +930,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
           assertion, originalAssertion, toTheoryIdProp, fromTheoryId))
   {
     // Check if has been pre-registered with the theory
-    bool preregistered = d_propEngine->isSatLiteral(assertion) && Theory::theoryOf(assertion) == toTheoryId;
+    bool preregistered = d_propEngine->isSatLiteral(assertion)
+                         && d_env.theoryOf(assertion) == toTheoryId;
     // Assert away
     theoryOf(toTheoryId)->assertFact(assertion, preregistered);
     d_factsAsserted = true;
@@ -977,7 +964,10 @@ void TheoryEngine::assertFact(TNode literal)
     // to the assert the equality to the interested theories
     if (atom.getKind() == kind::EQUAL) {
       // Assert it to the the owning theory
-      assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
+      assertToTheory(literal,
+                     literal,
+                     /* to */ d_env.theoryOf(atom),
+                     /* from */ THEORY_SAT_SOLVER);
       // Shared terms manager will assert to interested theories directly, as
       // the terms become shared
       assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ THEORY_SAT_SOLVER);
@@ -997,11 +987,17 @@ void TheoryEngine::assertFact(TNode literal)
 
     } else {
       // Not an equality, just assert to the appropriate theory
-      assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
+      assertToTheory(literal,
+                     literal,
+                     /* to */ d_env.theoryOf(atom),
+                     /* from */ THEORY_SAT_SOLVER);
     }
   } else {
     // Assert the fact to the appropriate theory directly
-    assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
+    assertToTheory(literal,
+                   literal,
+                   /* to */ d_env.theoryOf(atom),
+                   /* from */ THEORY_SAT_SOLVER);
   }
 }
 
@@ -1097,14 +1093,20 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_relManager->getDifficultyMap(dmap);
 }
 
+theory::IncompleteId TheoryEngine::getIncompleteId() const
+{
+  return d_incompleteId.get();
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
     // the model value of a constant must be itself
     return var;
   }
-  Assert(d_sharedSolver->isShared(var));
-  return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
+  Assert(d_sharedSolver->isShared(var))
+      << "node " << var << " is not shared" << std::endl;
+  return theoryOf(d_env.theoryOf(var.getType()))->getModelValue(var);
 }
 
 TrustNode TheoryEngine::getExplanation(TNode node)
@@ -1267,7 +1269,8 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 
     // If the theory is asking about a different form, or the form is ok but if will go to a different theory
     // then we must figure it out
-    if (eqNormalized != eq || Theory::theoryOf(eq) != atomsTo) {
+    if (eqNormalized != eq || d_env.theoryOf(eq) != atomsTo)
+    {
       // If you get eqNormalized, send atoms[i] to atomsTo
       d_atomRequests.add(eqNormalized, eq, atomsTo);
     }
@@ -1800,6 +1803,17 @@ bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasFailure = false;
   std::stringstream serror;
+  // If possible, get the list of relevant assertions. Those that are not
+  // relevant will be skipped.
+  std::unordered_set<TNode> relevantAssertions;
+  bool hasRelevantAssertions = false;
+  if (d_relManager != nullptr)
+  {
+    d_relManager->beginRound();
+    relevantAssertions =
+        d_relManager->getRelevantAssertions(hasRelevantAssertions);
+    d_relManager->endRound();
+  }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1808,7 +1822,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
-        if (!isRelevant(assertion))
+        if (hasRelevantAssertions
+            && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
           continue;
@@ -1817,10 +1832,17 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         if (val != d_true)
         {
           std::stringstream ss;
-          ss << " " << theoryId
-             << " has an asserted fact that the model doesn't satisfy." << endl
-             << "The fact: " << assertion << endl
-             << "Model value: " << val << endl;
+          ss << " " << theoryId << " has an asserted fact that";
+          if (val == d_false)
+          {
+            ss << " the model doesn't satisfy." << std::endl;
+          }
+          else
+          {
+            ss << " the model may not satisfy." << std::endl;
+          }
+          ss << "The fact: " << assertion << std::endl
+             << "Model value: " << val << std::endl;
           if (hardFailure)
           {
             if (val == d_false)
@@ -1902,7 +1924,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
     return std::pair<bool, Node>(false, Node::null());
   }else{
     //it is a theory atom
-    theory::TheoryId tid = theory::Theory::theoryOf(mode, atom);
+    theory::TheoryId tid = Theory::theoryOf(atom, mode);
     theory::Theory* th = theoryOf(tid);
 
     Assert(th != NULL);

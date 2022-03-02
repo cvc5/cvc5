@@ -186,42 +186,13 @@ class TheoryModel : protected EnvObj
                                  std::vector<Node>& eset);
   /** have any assignment exclusion sets been created? */
   bool hasAssignmentExclusionSets() const;
-  /** record approximation
-   *
-   * This notifies this model that the value of n was approximated in this
-   * model such that the predicate pred (involving n) holds. For example,
-   * for transcendental functions, we may determine an error bound on the
-   * value of a transcendental function, say c-e <= y <= c+e where
-   * c and e are constants. We call this function with n set to sin( x ) and
-   * pred set to c-e <= sin( x ) <= c+e.
-   *
-   * If recordApproximation is called at least once during the model
-   * construction process, then check-model is not guaranteed to succeed.
-   * However, there are cases where we can establish the input is satisfiable
-   * without constructing an exact model. For example, if x=.77, sin(x)=.7, and
-   * say we have computed c=.7 and e=.01 as an approximation in the above
-   * example, then we may reason that the set of assertions { sin(x)>.6 } is
-   * satisfiable, albiet without establishing an exact (irrational) value for
-   * sin(x).
-   *
-   * This function is simply for bookkeeping, it does not affect the model
-   * construction process.
-   */
-  void recordApproximation(TNode n, TNode pred);
-  /**
-   * Same as above, but with a witness constant. This ensures that the
-   * approximation predicate is of the form (or (= n witness) pred). This
-   * is useful if the user wants to know a possible concrete value in
-   * the range of the predicate.
-   */
-  void recordApproximation(TNode n, TNode pred, Node witness);
   /** set unevaluate/semi-evaluated kind
    *
    * This informs this model how it should interpret applications of terms with
    * kind k in getModelValue. We distinguish four categories of kinds:
    *
    * [1] "Evaluated"
-   * This includes (standard) interpreted symbols like NOT, PLUS, SET_UNION,
+   * This includes (standard) interpreted symbols like NOT, ADD, SET_UNION,
    * etc. These operators can be characterized by the invariant that they are
    * "evaluatable". That is, if they are applied to only constants, the rewriter
    * is guaranteed to rewrite the application to a constant. When getting
@@ -305,10 +276,6 @@ class TheoryModel : protected EnvObj
   bool getHeapModel(Node& h, Node& neq) const;
   //---------------------------- end separation logic
 
-  /** is the list of approximations non-empty? */
-  bool hasApproximations() const;
-  /** get approximations */
-  std::vector<std::pair<Node, Node> > getApproximations() const;
   /** get domain elements for uninterpreted sort t */
   std::vector<Node> getDomainElements(TypeNode t) const;
   /** get the representative set object */
@@ -357,15 +324,23 @@ class TheoryModel : protected EnvObj
    */
   std::string debugPrintModelEqc() const;
 
+  /**
+   * Is the node n a "value"? This is true if n is a "base value", where
+   * a base value is one where isConst() returns true, a constant-like
+   * value (e.g. a real algebraic number) or if n is a lambda or witness
+   * term.
+   *
+   * We also return true for rewritten nodes whose leafs are base values.
+   * For example, (str.++ (witness ((x String)) (= (str.len x) 1000)) "A") is
+   * a value.
+   */
+  bool isValue(TNode node) const;
+
  protected:
   /** Unique name of this model */
   std::string d_name;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
-  /** approximations (see recordApproximation) */
-  std::map<Node, Node> d_approximations;
-  /** list of all approximations */
-  std::vector<std::pair<Node, Node> > d_approx_list;
   /** a set of kinds that are unevaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_unevaluated_kinds;
   /** a set of kinds that are semi-evaluated */
@@ -410,6 +385,12 @@ class TheoryModel : protected EnvObj
    * a model builder constructs this model.
    */
   virtual void addTermInternal(TNode n);
+  /**
+   * Is base model value?  This is a helper method for isValue, returns true
+   * if n is a base model value.
+   */
+  bool isBaseModelValue(TNode n) const;
+
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node> d_modelCache;

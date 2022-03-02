@@ -56,8 +56,7 @@ bool isAssociative(::cvc5::Kind k)
   case kind::AND:
   case kind::OR:
   case kind::MULT:
-  case kind::PLUS:
-    return true;
+  case kind::ADD: return true;
 
   default:
     return false;

@@ -78,15 +78,17 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_DatatypeSelector_getUpdaterTerm(
 
 /*
  * Class:     io_github_cvc5_api_DatatypeSelector
- * Method:    getRangeSort
+ * Method:    getCodomainSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_DatatypeSelector_getRangeSort(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_DatatypeSelector_getCodomainSort(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
-  Sort* retPointer = new Sort(current->getRangeSort());
+  Sort* retPointer = new Sort(current->getCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

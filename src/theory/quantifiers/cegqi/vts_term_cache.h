@@ -127,8 +127,6 @@ class VtsTermCache : protected EnvObj
  private:
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
-  /** constants */
-  Node d_zero;
   /** The virtual term substitution delta */
   Node d_vts_delta;
   /** The virtual term substitution "free delta" */

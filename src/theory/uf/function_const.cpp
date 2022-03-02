@@ -173,9 +173,6 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     {
       Trace("builtin-rewrite-debug2")
           << "  process base : " << curr << std::endl;
-      // curr = Rewriter::rewrite(curr);
-      // Trace("builtin-rewrite-debug2")
-      //     << "  rewriten base : " << curr << std::endl;
       // Complex Boolean return cases, in which
       //  (1) lambda x. (= x v1) v ... becomes
       //      lambda x. (ite (= x v1) true [...])
@@ -192,7 +189,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       // thus requiring the rest of the disjunction to be further processed in
       // the then-branch as the current value.
       bool pol = curr[0].getKind() != kind::NOT;
-      bool inverted = (pol && ck == kind::AND) || (!pol && ck == kind::OR);
+      bool inverted = (pol == (ck == kind::AND));
       index_eq = pol ? curr[0] : curr[0][0];
       // processed : the value that is determined by the first child of curr
       // remainder : the remaining children of curr
@@ -239,7 +236,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
           << "  process base : " << curr << std::endl;
       // Simple Boolean return cases, in which
       //  (1) lambda x. (= x v) becomes lambda x. (ite (= x v) true false)
-      //  (2) lambda x. v becomes lambda x. (ite (= x v) true false)
+      //  (2) lambda x. x becomes lambda x. (ite (= x true) true false)
       // Note the negateg cases of the bodies above are also handled.
       bool pol = ck != kind::NOT;
       index_eq = pol ? curr : curr[0];
@@ -312,7 +309,12 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     {
       Trace("builtin-rewrite-debug2")
           << "  ...could not infer index value." << std::endl;
-      return Node::null();
+      // it could correspond to the default value that does not involve the
+      // current argument, hence we break and take curr as the default value
+      // below. For example, if we are processing lambda xy. (not y) for x,
+      // we have index_eq is (= y true), which does not match for x, hence
+      // (not y) is taken as the default value below.
+      break;
     }
 
     // [4] Recurse to ensure that "curr_val" has been normalized w.r.t. the

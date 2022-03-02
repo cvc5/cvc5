@@ -1,5 +1,4 @@
 ; COMMAND-LINE: -o raw-benchmark
-; EXPECT: (set-option :incremental false)
 ; EXPECT: (set-logic ALL)
 ; EXPECT: (declare-datatypes ((nat 0)) (((succ (pred nat)) (zero))))
 ; EXPECT: (declare-fun x () nat)

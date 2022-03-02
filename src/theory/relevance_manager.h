@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
 #include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
@@ -76,10 +77,14 @@ class TheoryModel;
  */
 class RelevanceManager : protected EnvObj
 {
+  using RlvPair = std::pair<Node, uint32_t>;
+  using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeListMap = context::CDHashMap<Node, std::shared_ptr<NodeList>>;
   using NodeSet = context::CDHashSet<Node>;
-  using NodeUIntMap = context::CDHashMap<Node, uint64_t>;
+  using RlvPairIntMap =
+      context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
 
  public:
   /**
@@ -114,7 +119,13 @@ class RelevanceManager : protected EnvObj
    * with "sat". This means that theories can query this during FULL or
    * LAST_CALL efforts, through the Valuation class.
    */
-  bool isRelevant(Node lit);
+  bool isRelevant(TNode lit);
+  /**
+   * Get the explanation for literal lit is relevant. This returns the
+   * preprocessed assertion that was the reason why the literal was relevant
+   * in the current context. It returns null if the literal is not relevant.
+   */
+  TNode getExplanationForRelevant(TNode lit);
   /**
    * Get the current relevant selection (see above). This computes this set
    * if not already done so. This call is valid during a full effort check in
@@ -130,7 +141,7 @@ class RelevanceManager : protected EnvObj
    */
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
-  void notifyLemma(Node n);
+  void notifyLemma(TNode n);
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m);
   /**
@@ -139,6 +150,16 @@ class RelevanceManager : protected EnvObj
   void getDifficultyMap(std::map<Node, Node>& dmap);
 
  private:
+  /**
+   * Called when an input assertion is added, this populates d_atomMap.
+   */
+  void addInputToAtomsMap(TNode input);
+  /**
+   * Compute relevance for input assertion input. This returns false and
+   * sets d_fullEffortCheckFail to true if we are at full effort and input
+   * fails to be computed.
+   */
+  bool computeRelevanceFor(TNode input);
   /**
    * Add the set of assertions to the formulas known to this class. This
    * method handles optimizations such as breaking apart top-level applications
@@ -155,9 +176,7 @@ class RelevanceManager : protected EnvObj
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
    */
-  int justify(TNode n);
-  /** Is the top symbol of cur a Boolean connective? */
-  bool isBooleanConnective(TNode cur);
+  int32_t justify(TNode n);
   /**
    * Update justify last child. This method is a helper function for justify,
    * which is called at the moment that Boolean connective formula cur
@@ -170,11 +189,18 @@ class RelevanceManager : protected EnvObj
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(TNode cur, std::vector<int>& childrenJustify);
+  bool updateJustifyLastChild(const RlvPair& cur,
+                              std::vector<int32_t>& childrenJustify);
+  /** Return the explanation for why atom is relevant, if it exists */
+  TNode getExplanationForRelevantInternal(TNode atom) const;
+  /** Get the list of assertions that contain atom */
+  NodeList* getInputListFor(TNode atom, bool doMake = true);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
   NodeList d_input;
+  /** Map from atoms to the list of input assertions that are contained in */
+  NodeListMap d_atomMap;
   /**
    * The current relevant selection, SAT-context dependent, includes
    * literals that are definitely relevant in this context.
@@ -182,6 +208,8 @@ class RelevanceManager : protected EnvObj
   NodeSet d_rset;
   /** Are we in a full effort check? */
   bool d_inFullEffortCheck;
+  /** Have we failed to justify a formula in a full effort check? */
+  bool d_fullEffortCheckFail;
   /**
    * Did we succeed in computing the relevant selection? If this is false, there
    * was a syncronization issue between the input formula and the satisfying
@@ -206,12 +234,18 @@ class RelevanceManager : protected EnvObj
    * reason why that literal is currently relevant.
    */
   NodeMap d_rsetExp;
+  /** For computing polarity on terms */
+  PolarityTermContext d_ptctx;
   /**
    * Set of nodes that we have justified (SAT context dependent). This is SAT
    * context dependent to avoid repeated calls to justify for uses of
-   * the relevance manager at standard effort.
+   * the relevance manager at standard effort. Notice that we pair each node
+   * with its polarity. We take into account the polarity of the node when
+   * computing relevance, where a node is only relevant if it is asserted
+   * and either does not have a polarity in the overall formula, or if its
+   * asserted value matches its polarity.
    */
-  NodeUIntMap d_jcache;
+  RlvPairIntMap d_jcache;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };

@@ -15,9 +15,10 @@
 
 #include "theory/bags/bag_solver.h"
 
+#include "expr/emptybag.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/normal_form.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
 #include "theory/uf/equality_engine_iterator.h"
@@ -42,18 +43,16 @@ BagSolver::BagSolver(Env& env,
       d_termReg(tr),
       d_mapCache(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 BagSolver::~BagSolver() {}
 
-void BagSolver::postCheck()
+void BagSolver::checkBasicOperations()
 {
-  d_state.initialize();
-
   checkDisequalBagTerms();
 
   // At this point, all bag and count representatives should be in the solver
@@ -77,7 +76,9 @@ void BagSolver::postCheck()
         case kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case kind::BAG_FILTER: checkFilter(n); break;
         case kind::BAG_MAP: checkMap(n); break;
+        case kind::TABLE_PRODUCT: checkProduct(n); break;
         default: break;
       }
       it++;
@@ -89,7 +90,7 @@ void BagSolver::postCheck()
   {
     for (const Node& e : d_state.getElements(n))
     {
-      checkNonNegativeCountTerms(n, e);
+      checkNonNegativeCountTerms(n, d_state.getRepresentative(e));
     }
   }
 }
@@ -115,7 +116,7 @@ void BagSolver::checkEmpty(const Node& n)
   Assert(n.getKind() == BAG_EMPTY);
   for (const Node& e : d_state.getElements(n))
   {
-    InferInfo i = d_ig.empty(n, e);
+    InferInfo i = d_ig.empty(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -126,7 +127,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.unionDisjoint(n, e);
+    InferInfo i = d_ig.unionDisjoint(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -137,7 +138,7 @@ void BagSolver::checkUnionMax(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.unionMax(n, e);
+    InferInfo i = d_ig.unionMax(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -148,7 +149,7 @@ void BagSolver::checkIntersectionMin(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.intersection(n, e);
+    InferInfo i = d_ig.intersection(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -159,9 +160,42 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.differenceSubtract(n, e);
+    InferInfo i = d_ig.differenceSubtract(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
+}
+
+bool BagSolver::checkBagMake()
+{
+  bool sentLemma = false;
+  for (const Node& bag : d_state.getBags())
+  {
+    TypeNode bagType = bag.getType();
+    NodeManager* nm = NodeManager::currentNM();
+    Node empty = nm->mkConst(EmptyBag(bagType));
+    if (d_state.areEqual(empty, bag) || d_state.areDisequal(empty, bag))
+    {
+      continue;
+    }
+
+    // look for BAG_MAKE terms in the equivalent class
+    eq::EqClassIterator it =
+        eq::EqClassIterator(bag, d_state.getEqualityEngine());
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      if (n.getKind() == BAG_MAKE)
+      {
+        Trace("bags-check") << "splitting on node " << std::endl;
+        InferInfo i = d_ig.bagMake(n);
+        sentLemma |= d_im.lemmaTheoryInference(&i);
+        // it is enough to split only once per equivalent class
+        break;
+      }
+      it++;
+    }
+  }
+  return sentLemma;
 }
 
 void BagSolver::checkBagMake(const Node& n)
@@ -172,7 +206,7 @@ void BagSolver::checkBagMake(const Node& n)
       << " are: " << d_state.getElements(n) << std::endl;
   for (const Node& e : d_state.getElements(n))
   {
-    InferInfo i = d_ig.bagMake(n, e);
+    InferInfo i = d_ig.bagMake(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -188,7 +222,7 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.differenceRemove(n, e);
+    InferInfo i = d_ig.differenceRemove(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -205,7 +239,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.duplicateRemoval(n, e);
+    InferInfo i = d_ig.duplicateRemoval(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -224,8 +258,9 @@ void BagSolver::checkMap(Node n)
   Assert(n.getKind() == BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& y : downwards)
+  for (const Node& z : downwards)
   {
+    Node y = d_state.getRepresentative(z);
     if (d_mapCache.count(n) && d_mapCache[n].get()->contains(y))
     {
       continue;
@@ -244,6 +279,51 @@ void BagSolver::checkMap(Node n)
       d_mapCache.insert(n, set);
     }
     d_mapCache[n].get()->insert(y);
+  }
+}
+
+void BagSolver::checkFilter(Node n)
+{
+  Assert(n.getKind() == BAG_FILTER);
+
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[0]);
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.filterDownwards(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.filterUpwards(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+}
+
+void BagSolver::checkProduct(Node n)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  const set<Node>& elementsA = d_state.getElements(n[0]);
+  const set<Node>& elementsB = d_state.getElements(n[1]);
+  for (const Node& e1 : elementsA)
+  {
+    for (const Node& e2 : elementsB)
+    {
+      InferInfo i = d_ig.productUp(
+          n, d_state.getRepresentative(e1), d_state.getRepresentative(e2));
+      d_im.lemmaTheoryInference(&i);
+    }
+  }
+
+  std::set<Node> elements = d_state.getElements(n);
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.productDown(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
   }
 }
 

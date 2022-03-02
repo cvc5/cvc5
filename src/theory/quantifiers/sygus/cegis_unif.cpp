@@ -480,12 +480,12 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::set<TypeNode> unresolvedTypes;
       unresolvedTypes.insert(u);
       std::vector<TypeNode> cargsEmpty;
-      Node cr = nm->mkConst(CONST_RATIONAL, Rational(1));
+      Node cr = nm->mkConstInt(Rational(1));
       sdt.addConstructor(cr, "1", cargsEmpty);
       std::vector<TypeNode> cargsPlus;
       cargsPlus.push_back(u);
       cargsPlus.push_back(u);
-      sdt.addConstructor(PLUS, cargsPlus);
+      sdt.addConstructor(ADD, cargsPlus);
       sdt.initializeDatatype(nm->integerType(), bvl, false, false);
       std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());
@@ -503,8 +503,8 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     if (pow_two > 0)
     {
       Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
-      Node fair_lemma = nm->mkNode(
-          GEQ, size_ve, nm->mkConst(CONST_RATIONAL, Rational(pow_two - 1)));
+      Node fair_lemma =
+          nm->mkNode(GEQ, size_ve, nm->mkConstInt(Rational(pow_two - 1)));
       fair_lemma = nm->mkNode(OR, newLit, fair_lemma);
       Trace("cegis-unif-enum-lemma")
           << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";

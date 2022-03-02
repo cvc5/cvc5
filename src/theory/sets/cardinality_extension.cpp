@@ -47,7 +47,7 @@ CardinalityExtension::CardinalityExtension(Env& env,
       d_finite_type_constants_processed(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
 void CardinalityExtension::reset()
@@ -55,6 +55,7 @@ void CardinalityExtension::reset()
   d_eqc_to_card_term.clear();
   d_t_card_enabled.clear();
   d_finite_type_elements.clear();
+  d_finite_type_constants_processed = false;
   d_finite_type_slack_elements.clear();
   d_univProxy.clear();
 }
@@ -134,7 +135,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   if (finiteType)
   {
     Node typeCardinality =
-        nm->mkConst(CONST_RATIONAL, Rational(card.getFiniteCardinality()));
+        nm->mkConstInt(Rational(card.getFiniteCardinality()));
     Node cardUniv = nm->mkNode(kind::SET_CARD, proxy);
     Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
 
@@ -386,10 +387,19 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     {
       continue;
     }
+    // should not have universe as children here, since this is either
+    // rewritten, or eliminated via purification from the first argument of
+    // set minus.
+    Assert(n[0].getKind() != SET_UNIVERSE && n[1].getKind() != SET_UNIVERSE);
     Trace("sets-debug") << "Build cardinality parents for " << n << "..."
                         << std::endl;
     std::vector<Node> sib;
     unsigned true_sib = 0;
+    // Note that we use the rewriter to get the form of the siblings here.
+    // This is required to ensure that the lookups in the equality engine are
+    // accurate. However, it may lead to issues if the rewritten form of a
+    // node leads to unexpected relationships in the graph. To avoid this,
+    // we ensure that universe is not a child of a set in the assertions above.
     if (n.getKind() == SET_INTER)
     {
       d_localBase[n] = n;
@@ -883,7 +893,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    Assert(d_im.hasSent());
+    Assert(d_im.hasSent())
+        << "failed to send a lemma to resolve why Venn regions are different";
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -925,7 +936,9 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       {
         if (std::find(ffpc.begin(), ffpc.end(), nfeqci) == ffpc.end())
         {
-          ffpc.insert(ffpc.end(), nfeqc.begin(), nfeqc.end());
+          Trace("sets-nf-debug") << "Add to flat form " << nfeqci << " to "
+                                 << cbase << " in " << p << std::endl;
+          ffpc.push_back(nfeqci);
         }
         else
         {
@@ -980,8 +993,8 @@ void CardinalityExtension::checkMinCard()
     }
     if (!members.empty())
     {
-      Node conc = nm->mkNode(
-          GEQ, cardTerm, nm->mkConst(CONST_RATIONAL, Rational(members.size())));
+      Node conc =
+          nm->mkNode(GEQ, cardTerm, nm->mkConstInt(Rational(members.size())));
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       d_im.assertInference(conc, InferenceId::SETS_CARD_MINIMAL, expn, 1);
     }
@@ -1089,21 +1102,26 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
   {
     return;
   }
+  Trace("sets-model-finite") << "Collect finite elements" << std::endl;
   for (const Node& set : getOrderedSetsEqClasses())
   {
+    Trace("sets-model-finite") << "eqc: " << set << std::endl;
     if (!d_env.isFiniteType(set.getType()))
     {
+      Trace("sets-model-finite") << "...not finite" << std::endl;
       continue;
     }
     if (!isModelValueBasic(set))
     {
       // only consider leaves in the cardinality graph
+      Trace("sets-model-finite") << "...not basic value" << std::endl;
       continue;
     }
     for (const std::pair<const Node, Node>& pair : d_state.getMembers(set))
     {
       Node member = pair.first;
       Node modelRepresentative = model->getRepresentative(member);
+      Trace("sets-model-finite") << "  member: " << member << std::endl;
       std::vector<Node>& elements = d_finite_type_elements[member.getType()];
       if (std::find(elements.begin(), elements.end(), modelRepresentative)
           == elements.end())
@@ -1113,6 +1131,7 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
     }
   }
   d_finite_type_constants_processed = true;
+  Trace("sets-model-finite") << "End Collect finite elements" << std::endl;
 }
 
 const std::vector<Node>& CardinalityExtension::getFiniteTypeMembers(

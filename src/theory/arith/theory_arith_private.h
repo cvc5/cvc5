@@ -85,7 +85,7 @@ class InferBoundsResult;
 class TheoryArithPrivate : protected EnvObj
 {
  private:
-  static const uint32_t RESET_START = 2;
+  static constexpr uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
 
@@ -162,20 +162,26 @@ private:
   //std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int maxRounds = -1, const DeltaRational* threshold = NULL);
 
 private:
-  static bool decomposeTerm(Node term, Rational& m, Node& p, Rational& c);
-  static bool decomposeLiteral(Node lit, Kind& k, int& dir, Rational& lm,  Node& lp, Rational& rm, Node& rp, Rational& dm, Node& dp, DeltaRational& sep);
-  static void setToMin(int sgn, std::pair<Node, DeltaRational>& min, const std::pair<Node, DeltaRational>& e);
+ static bool decomposeTerm(Node t, Rational& m, Node& p, Rational& c);
+ bool decomposeLiteral(Node lit,
+                       Kind& k,
+                       int& dir,
+                       Rational& lm,
+                       Node& lp,
+                       Rational& rm,
+                       Node& rp,
+                       Rational& dm,
+                       Node& dp,
+                       DeltaRational& sep);
+ static void setToMin(int sgn,
+                      std::pair<Node, DeltaRational>& min,
+                      const std::pair<Node, DeltaRational>& e);
 
-  /**
-   * The map between arith variables to nodes.
-   */
-  //ArithVarNodeMap d_arithvarNodeMap;
+ typedef ArithVariables::var_iterator var_iterator;
+ var_iterator var_begin() const { return d_partialModel.var_begin(); }
+ var_iterator var_end() const { return d_partialModel.var_end(); }
 
-  typedef ArithVariables::var_iterator var_iterator;
-  var_iterator var_begin() const { return d_partialModel.var_begin(); }
-  var_iterator var_end() const { return d_partialModel.var_end(); }
-
-  NodeSet d_setupNodes;
+ NodeSet d_setupNodes;
 public:
   bool isSetup(Node n) const {
     return d_setupNodes.find(n) != d_setupNodes.end();
@@ -310,8 +316,7 @@ private:
   bool d_tableauSizeHasBeenModified;
   double d_tableauResetDensity;
   uint32_t d_tableauResetPeriod;
-  static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;
-
+  static constexpr uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
   /** This is only used by simplex at the moment. */
   context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;

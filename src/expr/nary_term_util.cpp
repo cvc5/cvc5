@@ -119,10 +119,10 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND:
     case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConst(CONST_RATIONAL, Rational(0)); break;
+    case ADD: nullTerm = nm->mkConstRealOrInt(tn, Rational(0)); break;
     case MULT:
     case NONLINEAR_MULT:
-      nullTerm = nm->mkConst(CONST_RATIONAL, Rational(1));
+      nullTerm = nm->mkConstRealOrInt(tn, Rational(1));
       break;
     case STRING_CONCAT:
       // handles strings and sequences
@@ -131,6 +131,14 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case REGEXP_CONCAT:
       // the language containing only the empty string
       nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      break;
+    case REGEXP_UNION:
+      // empty language
+      nullTerm = nm->mkNode(REGEXP_NONE);
+      break;
+    case REGEXP_INTER:
+      // universal language
+      nullTerm = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
       break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());

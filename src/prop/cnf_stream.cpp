@@ -35,24 +35,22 @@
 namespace cvc5 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver* satSolver,
+CnfStream::CnfStream(Env& env,
+                     SatSolver* satSolver,
                      Registrar* registrar,
-                     context::Context* context,
-                     Env* env,
-                     ResourceManager* rm,
+                     context::Context* c,
                      FormulaLitPolicy flpol,
                      std::string name)
-    : d_satSolver(satSolver),
-      d_env(env),
-      d_booleanVariables(context),
-      d_notifyFormulas(context),
-      d_nodeToLiteralMap(context),
-      d_literalToNodeMap(context),
+    : EnvObj(env),
+      d_satSolver(satSolver),
+      d_booleanVariables(c),
+      d_notifyFormulas(c),
+      d_nodeToLiteralMap(c),
+      d_literalToNodeMap(c),
       d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
       d_removable(false),
-      d_resourceManager(rm),
       d_stats(name)
 {
 }
@@ -128,7 +126,7 @@ void CnfStream::ensureLiteral(TNode n)
   }
   // remove top level negation
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
@@ -712,7 +710,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  d_resourceManager->spendResource(Resource::CnfStep);
+  resourceManager()->spendResource(Resource::CnfStep);
 
   switch(node.getKind()) {
     case kind::AND: convertAndAssertAnd(node, negated); break;

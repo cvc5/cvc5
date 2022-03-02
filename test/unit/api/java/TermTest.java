@@ -99,7 +99,7 @@ class TermTest
     assertDoesNotThrow(() -> f_x.getKind());
     Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
     assertDoesNotThrow(() -> f_y.getKind());
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_y);
     assertDoesNotThrow(() -> sum.getKind());
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
     assertDoesNotThrow(() -> p_0.getKind());
@@ -148,7 +148,7 @@ class TermTest
     Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
     assertDoesNotThrow(() -> f_y.getSort());
     assertEquals(f_y.getSort(), intSort);
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_y);
     assertDoesNotThrow(() -> sum.getSort());
     assertEquals(sum.getSort(), intSort);
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
@@ -263,7 +263,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> zero.notTerm());
     Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
     assertThrows(CVC5ApiException.class, () -> f_x.notTerm());
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.notTerm());
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
     assertDoesNotThrow(() -> p_0.notTerm());
@@ -308,7 +308,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> f_x.andTerm(p));
     assertThrows(CVC5ApiException.class, () -> f_x.andTerm(zero));
     assertThrows(CVC5ApiException.class, () -> f_x.andTerm(f_x));
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.andTerm(b));
     assertThrows(CVC5ApiException.class, () -> sum.andTerm(x));
     assertThrows(CVC5ApiException.class, () -> sum.andTerm(f));
@@ -374,7 +374,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> f_x.orTerm(p));
     assertThrows(CVC5ApiException.class, () -> f_x.orTerm(zero));
     assertThrows(CVC5ApiException.class, () -> f_x.orTerm(f_x));
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.orTerm(b));
     assertThrows(CVC5ApiException.class, () -> sum.orTerm(x));
     assertThrows(CVC5ApiException.class, () -> sum.orTerm(f));
@@ -440,7 +440,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> f_x.xorTerm(p));
     assertThrows(CVC5ApiException.class, () -> f_x.xorTerm(zero));
     assertThrows(CVC5ApiException.class, () -> f_x.xorTerm(f_x));
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.xorTerm(b));
     assertThrows(CVC5ApiException.class, () -> sum.xorTerm(x));
     assertThrows(CVC5ApiException.class, () -> sum.xorTerm(f));
@@ -506,7 +506,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> f_x.eqTerm(p));
     assertDoesNotThrow(() -> f_x.eqTerm(zero));
     assertDoesNotThrow(() -> f_x.eqTerm(f_x));
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.eqTerm(b));
     assertThrows(CVC5ApiException.class, () -> sum.eqTerm(x));
     assertThrows(CVC5ApiException.class, () -> sum.eqTerm(f));
@@ -572,7 +572,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> f_x.impTerm(p));
     assertThrows(CVC5ApiException.class, () -> f_x.impTerm(zero));
     assertThrows(CVC5ApiException.class, () -> f_x.impTerm(f_x));
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.impTerm(b));
     assertThrows(CVC5ApiException.class, () -> sum.impTerm(x));
     assertThrows(CVC5ApiException.class, () -> sum.impTerm(f));
@@ -632,7 +632,7 @@ class TermTest
     Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
     assertThrows(CVC5ApiException.class, () -> f_x.iteTerm(b, b));
     assertThrows(CVC5ApiException.class, () -> f_x.iteTerm(b, x));
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_x);
+    Term sum = d_solver.mkTerm(ADD, f_x, f_x);
     assertThrows(CVC5ApiException.class, () -> sum.iteTerm(x, x));
     assertThrows(CVC5ApiException.class, () -> sum.iteTerm(b, x));
     Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
@@ -656,8 +656,8 @@ class TermTest
   @Test void termCompare()
   {
     Term t1 = d_solver.mkInteger(1);
-    Term t2 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
-    Term t3 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
+    Term t2 = d_solver.mkTerm(ADD, d_solver.mkInteger(2), d_solver.mkInteger(2));
+    Term t3 = d_solver.mkTerm(ADD, d_solver.mkInteger(2), d_solver.mkInteger(2));
     assertTrue(t2.compareTo(t3) >= 0);
     assertTrue(t2.compareTo(t3) <= 0);
     assertTrue((t1.compareTo(t2) > 0) != (t1.compareTo(t2) < 0));
@@ -668,7 +668,7 @@ class TermTest
   {
     // simple term 2+3
     Term two = d_solver.mkInteger(2);
-    Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkInteger(3));
+    Term t1 = d_solver.mkTerm(ADD, two, d_solver.mkInteger(3));
     assertEquals(t1.getChild(0), two);
     assertEquals(t1.getNumChildren(), 2);
     Term tnull = d_solver.getNullTerm();
@@ -713,6 +713,7 @@ class TermTest
 
     assertTrue(int1.isIntegerValue());
     assertEquals(int1.getIntegerValue().toString(), "-18446744073709551616");
+    assertEquals(int1.getRealOrIntegerValueSign(), -1);
     assertTrue(int2.isIntegerValue());
     assertEquals(int2.getIntegerValue().toString(), "-18446744073709551615");
     assertTrue(int3.isIntegerValue());
@@ -729,10 +730,12 @@ class TermTest
     assertEquals(int6.getIntegerValue().intValue(), 0);
     assertEquals(int6.getIntegerValue().intValue(), 0);
     assertEquals(int6.getIntegerValue().toString(), "0");
+    assertEquals(int6.getRealOrIntegerValueSign(), 0);
     assertTrue(int7.isIntegerValue());
     assertEquals(int7.getIntegerValue().intValue(), 10);
     assertEquals(int7.getIntegerValue().intValue(), 10);
     assertEquals(int7.getIntegerValue().toString(), "10");
+    assertEquals(int7.getRealOrIntegerValueSign(), 1);
     assertTrue(int8.isIntegerValue());
     assertEquals(int8.getIntegerValue().longValue(), 4294967295L);
     assertEquals(int8.getIntegerValue().toString(), "4294967295");
@@ -852,18 +855,19 @@ class TermTest
     assertEquals("f", b7.getBitVectorValue(16));
   }
 
-  @Test void getAbstractValue() throws CVC5ApiException
+  @Test void getUninterpretedSortValue() throws CVC5ApiException
   {
-    Term v1 = d_solver.mkAbstractValue(1);
-    Term v2 = d_solver.mkAbstractValue("15");
-    Term v3 = d_solver.mkAbstractValue("18446744073709551617");
-
-    assertTrue(v1.isAbstractValue());
-    assertTrue(v2.isAbstractValue());
-    assertTrue(v3.isAbstractValue());
-    assertEquals("1", v1.getAbstractValue());
-    assertEquals("15", v2.getAbstractValue());
-    assertEquals("18446744073709551617", v3.getAbstractValue());
+    d_solver.setOption("produce-models", "true");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    d_solver.assertFormula(d_solver.mkTerm(EQUAL, x, y));
+    assertTrue(d_solver.checkSat().isSat());
+    Term vx = d_solver.getValue(x);
+    Term vy = d_solver.getValue(y);
+    assertEquals(vx.isUninterpretedSortValue(), vy.isUninterpretedSortValue());
+    assertDoesNotThrow(() -> vx.getUninterpretedSortValue());
+    assertDoesNotThrow(() -> vy.getUninterpretedSortValue());
   }
 
   @Test void getTuple()
@@ -895,11 +899,11 @@ class TermTest
     assertFalse(fp.isFloatingPointNaN());
     assertEquals(new Triplet<Long, Long, Term>(5L, 11L, bvval), fp.getFloatingPointValue());
 
-    assertTrue(d_solver.mkPosZero(5, 11).isFloatingPointPosZero());
-    assertTrue(d_solver.mkNegZero(5, 11).isFloatingPointNegZero());
-    assertTrue(d_solver.mkPosInf(5, 11).isFloatingPointPosInf());
-    assertTrue(d_solver.mkNegInf(5, 11).isFloatingPointNegInf());
-    assertTrue(d_solver.mkNaN(5, 11).isFloatingPointNaN());
+    assertTrue(d_solver.mkFloatingPointPosZero(5, 11).isFloatingPointPosZero());
+    assertTrue(d_solver.mkFloatingPointNegZero(5, 11).isFloatingPointNegZero());
+    assertTrue(d_solver.mkFloatingPointPosInf(5, 11).isFloatingPointPosInf());
+    assertTrue(d_solver.mkFloatingPointNegInf(5, 11).isFloatingPointNegInf());
+    assertTrue(d_solver.mkFloatingPointNaN(5, 11).isFloatingPointNaN());
   }
 
   @Test void getSet()
@@ -968,26 +972,13 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
   }
 
-  @Test void getUninterpretedConst() throws CVC5ApiException
-  {
-    Sort s = d_solver.mkUninterpretedSort("test");
-    Term t1 = d_solver.mkUninterpretedConst(s, 3);
-    Term t2 = d_solver.mkUninterpretedConst(s, 5);
-
-    assertTrue(t1.isUninterpretedValue());
-    assertTrue(t2.isUninterpretedValue());
-
-    assertEquals(new Pair<Sort, Integer>(s, 3), t1.getUninterpretedValue());
-    assertEquals(new Pair<Sort, Integer>(s, 5), t2.getUninterpretedValue());
-  }
-
   @Test void substitute()
   {
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     Term one = d_solver.mkInteger(1);
     Term ttrue = d_solver.mkTrue();
-    Term xpx = d_solver.mkTerm(PLUS, x, x);
-    Term onepone = d_solver.mkTerm(PLUS, one, one);
+    Term xpx = d_solver.mkTerm(ADD, x, x);
+    Term onepone = d_solver.mkTerm(ADD, one, one);
 
     assertEquals(xpx.substitute(x, one), onepone);
     assertEquals(onepone.substitute(one, x), xpx);
@@ -996,8 +987,8 @@ class TermTest
 
     // simultaneous substitution
     Term y = d_solver.mkConst(d_solver.getIntegerSort(), "y");
-    Term xpy = d_solver.mkTerm(PLUS, x, y);
-    Term xpone = d_solver.mkTerm(PLUS, y, one);
+    Term xpy = d_solver.mkTerm(ADD, x, y);
+    Term xpone = d_solver.mkTerm(ADD, y, one);
     List<Term> es = new ArrayList<>();
     List<Term> rs = new ArrayList<>();
     es.add(x);

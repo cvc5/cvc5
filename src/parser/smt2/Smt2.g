@@ -287,7 +287,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -576,6 +576,12 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       PARSER_STATE->checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
     }
+  | /* check-synth-next */
+    CHECK_SYNTH_NEXT_TOK
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd.reset(new CheckSynthCommand(true));
+    }
   | /* set-feature */
     SET_FEATURE_TOK keyword[name] symbolicExpr[expr]
     {
@@ -775,7 +781,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
                                       "version 2.0");
       }
       api::Term c =
-          PARSER_STATE->bindVar(name, t, false, true);
+          PARSER_STATE->bindVar(name, t, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -941,7 +947,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, false, true);
+            PARSER_STATE->bindVar(name, tt, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -961,7 +967,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1001,6 +1007,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name, e, g));
     }
+  | GET_ABDUCT_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetAbductNextCommand);
+    }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
     }
@@ -1011,6 +1021,10 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     )?
     {
       cmd->reset(new GetInterpolCommand(name, e, g));
+    }
+  | GET_INTERPOL_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetInterpolNextCommand);
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
@@ -1364,7 +1378,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           {
             // lookup constructor by name
             api::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            api::Term scons = dc.getSpecializedConstructorTerm(expr.getSort());
+            api::Term scons = dc.getInstantiatedConstructorTerm(expr.getSort());
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }
@@ -1788,14 +1802,18 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       api::Term keyword = SOLVER->mkString("qid");
-      api::Term name = SOLVER->mkString(s);
+      // must create a variable whose name is the name of the quantified
+      // formula, not a string.
+      api::Term name = SOLVER->mkConst(SOLVER->getBooleanSort(), s);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->preemptCommand(
-          new DefineFunctionCommand(s, expr.getSort(), expr));
+      DefineFunctionCommand* defFunCmd =
+          new DefineFunctionCommand(s, expr.getSort(), expr);
+      defFunCmd->setMuted(true);
+      PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
@@ -2230,7 +2248,9 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
+GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
 GET_INTERPOL_TOK : 'get-interpol';
+GET_INTERPOL_NEXT_TOK : 'get-interpol-next';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
 
@@ -2238,6 +2258,7 @@ DECLARE_POOL : 'declare-pool';
 SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';
 SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
+CHECK_SYNTH_NEXT_TOK : { PARSER_STATE->sygus()}?'check-synth-next';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';

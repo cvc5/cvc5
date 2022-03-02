@@ -102,17 +102,18 @@ class QueryGenerator : public ExprMiner
    * Map from queries to the indices of the points that satisfy them.
    */
   std::map<Node, std::vector<unsigned>> d_qysToPoints;
+  /** Set of all queries generated */
+  std::unordered_set<Node> d_allQueries;
   /**
    * Check query qy, which is satisfied by (at least) sample point spIndex,
    * using a separate copy of the SMT engine. Throws an exception if qy is
    * reported to be unsatisfiable.
    */
-  void checkQuery(Node qy, unsigned spIndex);
+  void checkQuery(Node qy, unsigned spIndex, std::ostream& out);
   /**
-   * Dumps query qy to the a file queryN.smt2 for the current counter N;
-   * spIndex specifies the sample point that satisfies it (for debugging).
+   * Dumps query qy to the a file queryN.smt2 for the current counter N
    */
-  void dumpQuery(Node qy, unsigned spIndex);
+  void dumpQuery(Node qy);
 };
 
 }  // namespace quantifiers

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bv-solver=bitblast --bitblast=eager --check-models
+; COMMAND-LINE: --bv-solver=bitblast --bitblast=eager
 (set-logic QF_BV)
 (set-info :status sat)
 (declare-fun x () (_ BitVec 1))

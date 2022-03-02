@@ -183,10 +183,15 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConjectureStale = true;
 }
 
-Result SygusSolver::checkSynth(Assertions& as)
+Result SygusSolver::checkSynth(Assertions& as, bool isNext)
 {
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
+  if (!isNext)
+  {
+    // if we are not using check-synth-next, we always reconstruct the solver.
+    d_sygusConjectureStale = true;
+  }
   if (usingSygusSubsolver() && d_subsolverCd.get() != d_subsolver.get())
   {
     // this can occur if we backtrack to a place where we were using a different
@@ -194,11 +199,6 @@ Result SygusSolver::checkSynth(Assertions& as)
     // the subsolver.
     d_sygusConjectureStale = true;
   }
-  // TODO (project #7): we currently must always rebuild the synthesis
-  // conjecture + subsolver, since it answers unsat. When the subsolver is
-  // updated to treat "sat" as solution for synthesis conjecture, this line
-  // will be deleted.
-  d_sygusConjectureStale = true;
   if (d_sygusConjectureStale)
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -261,11 +261,46 @@ Result SygusSolver::checkSynth(Assertions& as)
     query.push_back(d_conj);
     r = d_smtSolver.checkSatisfiability(as, query, false);
   }
-  // Check that synthesis solutions satisfy the conjecture
-  if (options().smt.checkSynthSol
-      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  // The result returned by the above call is typically "unknown", which may
+  // or may not correspond to a state in which we solved the conjecture
+  // successfully. Instead we call getSynthSolutions below. If this returns
+  // true, then we were successful. In this case, we set the result to "unsat",
+  // since the synthesis conjecture was negated when asserted to the subsolver.
+  //
+  // This behavior is done for 2 reasons:
+  // (1) if we do not negate the synthesis conjecture, the subsolver in some
+  // cases cannot answer "sat", e.g. in the presence of recursive function
+  // definitions. Instead the SyGuS language standard itself indicates that
+  // a correct solution for a conjecture is one where the synthesis conjecture
+  // is *T-valid* (in the presence of defined recursive functions). In other
+  // words, a SyGuS query asks to prove that the conjecture is valid when
+  // witnessed by the given solution.
+  // (2) we do not want the solver to explicitly answer "unsat" by giving an
+  // unsatisfiable set of formulas to the underlying PropEngine, or otherwise
+  // we will not be able to ask for further solutions. This is critical for
+  // incremental solving where multiple solutions are returned for the same
+  // set of constraints. Thus, the internal SyGuS solver will mark unknown
+  // with IncompleteId::QUANTIFIERS_SYGUS_SOLVED. Furthermore, this id may be
+  // overwritten by other means of incompleteness, so we cannot rely on this
+  // identifier being the final reason for unknown.
+  //
+  // Thus, we use getSynthSolutions as means of knowing the conjecture was
+  // solved.
+  std::map<Node, Node> sol_map;
+  if (getSynthSolutions(sol_map))
   {
-    checkSynthSolution(as);
+    // if we have solutions, we return "unsat" by convention
+    r = Result(Result::UNSAT);
+    // Check that synthesis solutions satisfy the conjecture
+    if (options().smt.checkSynthSol)
+    {
+      checkSynthSolution(as, sol_map);
+    }
+  }
+  else
+  {
+    // otherwise, we return "unknown"
+    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
   }
   return r;
 }
@@ -301,20 +336,13 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return true;
 }
 
-void SygusSolver::checkSynthSolution(Assertions& as)
+void SygusSolver::checkSynthSolution(Assertions& as,
+                                     const std::map<Node, Node>& sol_map)
 {
   if (isVerboseOn(1))
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
-  }
-  std::map<Node, Node> sol_map;
-  // Get solutions and build auxiliary vectors for substituting
-  if (!getSynthSolutions(sol_map))
-  {
-    InternalError()
-        << "SygusSolver::checkSynthSolution(): No solution to check!";
-    return;
   }
   if (sol_map.empty())
   {

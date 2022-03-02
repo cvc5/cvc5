@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-enum=fast
 (set-logic BV)
 
 (define-fun hd05 ((x (_ BitVec 32))) (_ BitVec 32) (bvor x (bvsub x #x00000001)))

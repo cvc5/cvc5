@@ -30,6 +30,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "util/rational.h"
 
 using namespace cvc5::kind;
@@ -39,8 +40,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-InstMatchGenerator::InstMatchGenerator(Trigger* tparent, Node pat)
-    : IMGenerator(tparent)
+InstMatchGenerator::InstMatchGenerator(Env& env, Trigger* tparent, Node pat)
+    : IMGenerator(env, tparent)
 {
   d_cg = nullptr;
   d_needsReset = true;
@@ -184,7 +185,8 @@ void InstMatchGenerator::initialize(Node q,
         }
         else
         {
-          InstMatchGenerator* cimg = getInstMatchGenerator(d_tparent, q, pat);
+          InstMatchGenerator* cimg =
+              getInstMatchGenerator(d_env, d_tparent, q, pat);
           if (cimg)
           {
             d_children.push_back(cimg);
@@ -365,7 +367,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
       if (pat.getKind() == GT)
       {
         t_match =
-            nm->mkNode(MINUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
+            nm->mkNode(SUB, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }else{
         t_match = t;
       }
@@ -374,20 +376,21 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     {
       if (pat.getKind() == EQUAL)
       {
-        if (t.getType().isBoolean())
+        TypeNode tn = t.getType();
+        if (tn.isBoolean())
         {
           t_match = nm->mkConst(!d_qstate.areEqual(nm->mkConst(true), t));
         }
         else
         {
-          Assert(t.getType().isRealOrInt());
-          t_match =
-              nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
+          Assert(tn.isRealOrInt());
+          t_match = nm->mkNode(ADD, t, nm->mkConstRealOrInt(tn, Rational(1)));
         }
       }
       else if (pat.getKind() == GEQ)
       {
-        t_match = nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
+        t_match =
+            nm->mkNode(ADD, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }
       else if (pat.getKind() == GT)
       {
@@ -575,22 +578,23 @@ uint64_t InstMatchGenerator::addInstantiations(Node f)
   return addedLemmas;
 }
 
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(Trigger* tparent,
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(Env& env,
+                                                             Trigger* tparent,
                                                              Node q,
                                                              Node pat)
 {
   std::vector< Node > pats;
   pats.push_back( pat );
   std::map< Node, InstMatchGenerator * > pat_map_init;
-  return mkInstMatchGenerator(tparent, q, pats, pat_map_init);
+  return mkInstMatchGenerator(env, tparent, q, pats, pat_map_init);
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti(
-    Trigger* tparent, Node q, std::vector<Node>& pats)
+    Env& env, Trigger* tparent, Node q, std::vector<Node>& pats)
 {
   Assert(pats.size() > 1);
   InstMatchGeneratorMultiLinear* imgm =
-      new InstMatchGeneratorMultiLinear(tparent, q, pats);
+      new InstMatchGeneratorMultiLinear(env, tparent, q, pats);
   std::vector< InstMatchGenerator* > gens;
   imgm->initialize(q, gens);
   Assert(gens.size() == pats.size());
@@ -602,11 +606,12 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti(
     patsn.push_back( pn );
     pat_map_init[pn] = g;
   }
-  imgm->d_next = mkInstMatchGenerator(tparent, q, patsn, pat_map_init);
+  imgm->d_next = mkInstMatchGenerator(env, tparent, q, patsn, pat_map_init);
   return imgm;
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
+    Env& env,
     Trigger* tparent,
     Node q,
     std::vector<Node>& pats,
@@ -621,7 +626,7 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
     InstMatchGenerator* init;
     std::map< Node, InstMatchGenerator * >::iterator iti = pat_map_init.find( pats[pCounter] );
     if( iti==pat_map_init.end() ){
-      init = getInstMatchGenerator(tparent, q, pats[pCounter]);
+      init = getInstMatchGenerator(env, tparent, q, pats[pCounter]);
     }else{
       init = iti->second;
     }
@@ -644,7 +649,8 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
   return oinit;
 }
 
-InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
+InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Env& env,
+                                                              Trigger* tparent,
                                                               Node q,
                                                               Node n)
 {
@@ -654,7 +660,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
     Trace("var-trigger-debug")
         << "Is " << n << " a variable trigger?" << std::endl;
     Node x;
-    if (options::purifyTriggers())
+    if (env.getOptions().quantifiers.purifyTriggers)
     {
       Node xi = PatternTermSelector::getInversionVariable(n);
       if (!xi.isNull())
@@ -669,8 +675,9 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
     if (!x.isNull())
     {
       Node s = PatternTermSelector::getInversion(n, x);
+      s = env.getRewriter()->rewrite(s);
       VarMatchGeneratorTermSubs* vmg =
-          new VarMatchGeneratorTermSubs(tparent, x, s);
+          new VarMatchGeneratorTermSubs(env, tparent, x, s);
       Trace("var-trigger") << "Term substitution trigger : " << n
                            << ", var = " << x << ", subs = " << s << std::endl;
       return vmg;
@@ -684,9 +691,9 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
   if (TriggerTermInfo::isUsableRelationTrigger(n, hasPol, pol, lit))
   {
     Trace("relational-trigger") << "...yes, for literal " << lit << std::endl;
-    return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
+    return new RelationalMatchGenerator(env, tparent, lit, hasPol, pol);
   }
-  return new InstMatchGenerator(tparent, n);
+  return new InstMatchGenerator(env, tparent, n);
 }
 
 }  // namespace inst

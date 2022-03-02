@@ -1,5 +1,5 @@
-; COMMAND-LINE:  --solve-bv-as-int=bv  --no-check-models
-; COMMAND-LINE:  --bvand-integer-granularity=1 --solve-bv-as-int=sum --full-saturate-quant --cegqi-all  --no-check-models  
+; COMMAND-LINE:  --solve-bv-as-int=bv 
+; COMMAND-LINE:  --bvand-integer-granularity=1 --solve-bv-as-int=sum --full-saturate-quant --cegqi-all 
 ;EXPECT: sat
 (set-logic BV)
 (assert (exists ((c__detect__main__1__i_36_C (_ BitVec 32))) (bvslt ((_ sign_extend 32) c__detect__main__1__i_36_C) (_ bv0 64))))
