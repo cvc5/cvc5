@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i --check-models
+; COMMAND-LINE: -i
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
