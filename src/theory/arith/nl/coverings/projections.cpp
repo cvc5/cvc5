@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements utilities for CAD projection operators.
+ * Implements utilities for coverings projection operators.
  */
 
-#include "theory/arith/nl/cad/projections.h"
+#include "theory/arith/nl/coverings/projections.h"
 
 #ifdef CVC5_POLY_IMP
 
@@ -23,7 +23,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 using namespace poly;
 
@@ -101,7 +101,7 @@ PolyVector projectionMcCallum(const std::vector<Polynomial>& polys)
   return res;
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

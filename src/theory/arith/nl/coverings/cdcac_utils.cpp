@@ -13,19 +13,19 @@
  * Implements utilities for cdcac.
  */
 
-#include "theory/arith/nl/cad/cdcac_utils.h"
+#include "theory/arith/nl/coverings/cdcac_utils.h"
 
 #ifdef CVC5_POLY_IMP
 
 #include <optional>
 
-#include "theory/arith/nl/cad/projections.h"
+#include "theory/arith/nl/coverings/projections.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 using namespace poly;
 
@@ -457,7 +457,7 @@ void makeFinestSquareFreeBasis(CACInterval& lhs, CACInterval& rhs)
   rhs.d_downPolys.reduce();
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
