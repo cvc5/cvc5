@@ -1272,7 +1272,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
 {
   Kind k = n.getKind();
-  if (n.getNumChildren()>0 && n[0].getType().isSequence())
+  if (n.getNumChildren() > 0 && n[0].getType().isSequence())
   {
     // this method parallels api::Term::getKind
     switch (k)

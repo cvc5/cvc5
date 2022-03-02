@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/strings/inference_manager.h"
@@ -26,7 +27,6 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 #include "util/string.h"
-#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::context;
