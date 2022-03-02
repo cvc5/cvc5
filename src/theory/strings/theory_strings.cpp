@@ -84,7 +84,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg),
-      d_strat(d_env)
+      d_strat(d_env),
+      d_absModelCounter(0)
 {
   d_termReg.finishInit(&d_im);
 
@@ -317,7 +318,7 @@ bool TheoryStrings::collectModelInfoType(
   std::vector<Node> len_splits;
   for (size_t i = 0, csize = col.size(); i < csize; i++)
   {
-    Trace("strings-model") << "Checking length for {" << col[i];
+    Trace("strings-model") << "Checking length for { " << col[i];
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     Node len_value;
     if( lts[i].isConst() ) {
@@ -392,6 +393,26 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
+
+        // For sequences constants, also add the elements (expanding elements
+        // as necessary)
+        if (eqc.getType().isSequence())
+        {
+          const std::vector<Node> elems = eqc.getConst<Sequence>().getVec();
+          std::vector<TNode> visit(elems.begin(), elems.end());
+          for (size_t j = 0; j < visit.size(); j++)
+          {
+            Node se = visit[j];
+            Assert(se.isConst());
+            if (se.getType().isSequence())
+            {
+              const std::vector<Node> selems = se.getConst<Sequence>().getVec();
+              visit.insert(visit.end(), selems.begin(), selems.end());
+            }
+            m->getEqualityEngine()->addTerm(se);
+          }
+        }
+
         Trace("strings-model") << "-> constant" << std::endl;
         continue;
       }
@@ -408,7 +429,9 @@ bool TheoryStrings::collectModelInfoType(
         Assert(!lenValue.isNull() && lenValue.isConst());
         // make the abstract value (witness ((x String)) (= (str.len x)
         // lenValue))
-        Node w = utils::mkAbstractStringValueForLength(eqc, lenValue);
+        Node w = utils::mkAbstractStringValueForLength(
+            eqc, lenValue, d_absModelCounter);
+        d_absModelCounter++;
         Trace("strings-model")
             << "-> length out of bounds, assign abstract " << w << std::endl;
         if (!m->assertEquality(eqc, w, true))

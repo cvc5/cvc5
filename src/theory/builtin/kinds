@@ -292,7 +292,7 @@ variable BOUND_VARIABLE "a bound variable (permitted in bindings and the associa
 variable SKOLEM "a Skolem variable (internal only)"
 operator SEXPR 0: "a symbolic expression (any arity)"
 
-operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
+operator WITNESS 2:3 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
     skip \

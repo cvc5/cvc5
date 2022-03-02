@@ -16,8 +16,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__LAZARD_EVALUATION_H
-#define CVC5__THEORY__ARITH__NL__CAD__LAZARD_EVALUATION_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__LAZARD_EVALUATION_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__LAZARD_EVALUATION_H
 
 #ifdef CVC5_POLY_IMP
 
@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace cvc5::theory::arith::nl::cad {
+namespace cvc5::theory::arith::nl::coverings {
 
 struct LazardEvaluationState;
 /**
@@ -111,7 +111,7 @@ class LazardEvaluation
   std::unique_ptr<LazardEvaluationState> d_state;
 };
 
-}  // namespace cvc5::theory::arith::nl::cad
+}  // namespace cvc5::theory::arith::nl::coverings
 
 #endif
 #endif

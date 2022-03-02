@@ -13,13 +13,13 @@
  * Implementation of new non-linear solver.
  */
 
-#include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/coverings_solver.h"
 
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/cad/cdcac.h"
+#include "theory/arith/nl/coverings/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/inference_id.h"
@@ -30,7 +30,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
+CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
     :
       EnvObj(env),
 #ifdef CVC5_POLY_IMP
@@ -54,38 +54,38 @@ CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
 #endif
 }
 
-CadSolver::~CadSolver() {}
+CoveringsSolver::~CoveringsSolver() {}
 
-void CadSolver::initLastCall(const std::vector<Node>& assertions)
+void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
-  if (Trace.isOn("nl-cad"))
+  if (Trace.isOn("nl-cov"))
   {
-    Trace("nl-cad") << "CadSolver::initLastCall" << std::endl;
-    Trace("nl-cad") << "* Assertions: " << std::endl;
+    Trace("nl-cov") << "CoveringsSolver::initLastCall" << std::endl;
+    Trace("nl-cov") << "* Assertions: " << std::endl;
     for (const Node& a : assertions)
     {
-      Trace("nl-cad") << "  " << a << std::endl;
+      Trace("nl-cov") << "  " << a << std::endl;
     }
   }
-  if (options().arith.nlCadVarElim)
+  if (options().arith.nlCovVarElim)
   {
     d_eqsubs.reset();
     std::vector<Node> processed = d_eqsubs.eliminateEqualities(assertions);
     if (d_eqsubs.hasConflict())
     {
         Node lem = NodeManager::currentNM()->mkAnd(d_eqsubs.getConflict()).negate();
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, nullptr);
-        Trace("nl-cad") << "Found conflict: " << lem << std::endl;
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_COVERING_CONFLICT, nullptr);
+        Trace("nl-cov") << "Found conflict: " << lem << std::endl;
         return;
     }
-    if (Trace.isOn("nl-cad"))
+    if (Trace.isOn("nl-cov"))
     {
-      Trace("nl-cad") << "After simplifications" << std::endl;
-      Trace("nl-cad") << "* Assertions: " << std::endl;
+      Trace("nl-cov") << "After simplifications" << std::endl;
+      Trace("nl-cov") << "* Assertions: " << std::endl;
       for (const Node& a : processed)
       {
-        Trace("nl-cad") << "  " << a << std::endl;
+        Trace("nl-cov") << "  " << a << std::endl;
       }
     }
     d_CAC.reset();
@@ -107,18 +107,18 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
   d_CAC.computeVariableOrdering();
   d_CAC.retrieveInitialAssignment(d_model, d_ranVariable);
 #else
-  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
 #endif
 }
 
-void CadSolver::checkFull()
+void CoveringsSolver::checkFull()
 {
 #ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
     d_foundSatisfiability = true;
-    Trace("nl-cad") << "No constraints. Return." << std::endl;
+    Trace("nl-cov") << "No constraints. Return." << std::endl;
     return;
   }
   d_CAC.startNewProof();
@@ -126,40 +126,40 @@ void CadSolver::checkFull()
   if (covering.empty())
   {
     d_foundSatisfiability = true;
-    Trace("nl-cad") << "SAT: " << d_CAC.getModel() << std::endl;
+    Trace("nl-cov") << "SAT: " << d_CAC.getModel() << std::endl;
   }
   else
   {
     d_foundSatisfiability = false;
     auto mis = collectConstraints(covering);
-    Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
+    Trace("nl-cov") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
-    Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
+    Trace("nl-cov") << "UNSAT with MIS: " << mis << std::endl;
     d_eqsubs.postprocessConflict(mis);
-    Trace("nl-cad") << "After postprocessing: " << mis << std::endl;
+    Trace("nl-cov") << "After postprocessing: " << mis << std::endl;
     Node lem = NodeManager::currentNM()->mkAnd(mis).notNode();
     ProofGenerator* proof = d_CAC.closeProof(mis);
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_COVERING_CONFLICT, proof);
   }
 #else
-  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
 #endif
 }
 
-void CadSolver::checkPartial()
+void CoveringsSolver::checkPartial()
 {
 #ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
-    Trace("nl-cad") << "No constraints. Return." << std::endl;
+    Trace("nl-cov") << "No constraints. Return." << std::endl;
     return;
   }
   auto covering = d_CAC.getUnsatCover(true);
   if (covering.empty())
   {
     d_foundSatisfiability = true;
-    Trace("nl-cad") << "SAT: " << d_CAC.getModel() << std::endl;
+    Trace("nl-cov") << "SAT: " << d_CAC.getModel() << std::endl;
   }
   else
   {
@@ -183,22 +183,22 @@ void CadSolver::checkPartial()
       if (!conclusion.isNull())
       {
         Node lemma = nm->mkNode(Kind::IMPLIES, premise, conclusion);
-        Trace("nl-cad") << "Excluding " << first_var << " -> "
+        Trace("nl-cov") << "Excluding " << first_var << " -> "
                         << interval.d_interval << " using " << lemma
                         << std::endl;
         d_im.addPendingLemma(lemma,
-                             InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL);
+                             InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL);
       }
     }
   }
 #else
-  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
 #endif
 }
 
-bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
+bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
   if (!d_foundSatisfiability)
@@ -211,7 +211,7 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node variable = d_CAC.getConstraints().varMapper()(v);
     if (!Theory::isLeafOf(variable, TheoryId::THEORY_ARITH))
     {
-      Trace("nl-cad") << "Not a variable: " << variable << std::endl;
+      Trace("nl-cov") << "Not a variable: " << variable << std::endl;
       foundNonVariable = true;
     }
     Node value = value_to_node(d_CAC.getModel().get(v), variable);
@@ -219,32 +219,32 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   }
   for (const auto& sub : d_eqsubs.getSubstitutions())
   {
-    Trace("nl-cad") << "EqSubs: " << sub.first << " -> " << sub.second
+    Trace("nl-cov") << "EqSubs: " << sub.first << " -> " << sub.second
                     << std::endl;
     addToModel(sub.first, sub.second);
   }
   if (foundNonVariable)
   {
-    Trace("nl-cad")
+    Trace("nl-cov")
         << "Some variable was an extended term, don't clear list of assertions."
         << std::endl;
     return false;
   }
-  Trace("nl-cad") << "Constructed a full assignment, clear list of assertions."
+  Trace("nl-cov") << "Constructed a full assignment, clear list of assertions."
                   << std::endl;
   assertions.clear();
   return true;
 #else
-  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CoveringsSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
   return false;
 #endif
 }
 
-void CadSolver::addToModel(TNode var, TNode value) const
+void CoveringsSolver::addToModel(TNode var, TNode value) const
 {
-  Trace("nl-cad") << "-> " << var << " = " << value << std::endl;
+  Trace("nl-cov") << "-> " << var << " = " << value << std::endl;
   Assert(value.getType().isRealOrInt());
   d_model.addSubstitution(var, value);
 }
