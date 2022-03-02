@@ -196,7 +196,7 @@ private:
    * d_size are needed in restore.
    */
   CDInsertHashMap(const CDInsertHashMap& l)
-      : ContextObj(l), d_insertMap(NULL), d_size(l.d_size)
+      : ContextObj(l), d_insertMap(nullptr), d_size(l.d_size)
   {
     Debug("CDInsertHashMap") << "copy ctor: " << this
                     << " from " << &l
