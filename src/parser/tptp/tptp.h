@@ -183,8 +183,8 @@ class Tptp : public Parser {
 
  private:
   void addArithmeticOperators();
-  /** is declared */
-  api::Term isTptpDeclared(const std::string& name) const;
+  /** is the name declared, if so, return the term for that name */
+  api::Term isTptpDeclared(const std::string& name);
 
   // In CNF variable are implicitly binded
   // d_freevar collect them
