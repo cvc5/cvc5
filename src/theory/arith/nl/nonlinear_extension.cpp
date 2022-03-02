@@ -30,6 +30,8 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 #include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
+#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::kind;
 
@@ -90,13 +92,13 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   // logic exceptions based on the configuration of nl-ext: if we are a
   // transcendental function, we require nl-ext=full.
   Kind k = n.getKind();
-  if (isTranscendentalKind(k)
+  if (isTranscendentalKind(k))
   {
-    if (options.arith.nlExt != options::NlExtMode::FULL)
+    if (options().arith.nlExt != options::NlExtMode::FULL)
     {
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-        << " requires nl-ext mode to be full";
+        << " requires nl-ext mode to be set to value 'full'";
       throw LogicException(ss.str());
     }
   }
