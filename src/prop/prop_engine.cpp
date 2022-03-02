@@ -225,8 +225,7 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options().smt.unsatCores);
+  Assert(!d_env.isTheoryProofEnabled() || trn.getGenerator() != nullptr);
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
