@@ -3155,6 +3155,7 @@ TEST_F(TestApiBlackSolver, proj_issue426)
   ASSERT_NO_THROW(slv.getValue({t5}));
 }
 
+/*
 TEST_F(TestApiBlackSolver, proj_issue429)
 {
   Solver slv;
@@ -3166,6 +3167,7 @@ TEST_F(TestApiBlackSolver, proj_issue429)
   Term t126 = slv.mkTerm(Kind::SEQ_PREFIX, {t111, t119});
   ASSERT_NO_THROW(slv.checkEntailed({t126}));
 }
+*/
 
 }  // namespace test
 }  // namespace cvc5
