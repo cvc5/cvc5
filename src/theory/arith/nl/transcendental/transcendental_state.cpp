@@ -77,15 +77,14 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
   NodeMap::const_iterator itp;
-  for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
+  for (const Node& a : xts)
   {
+    Kind ak = a.getKind();
     // Ignore if it is not a transcendental
-    if (!isTranscendentalKind(xts[i].getKind()))
+    if (!isTranscendentalKind(ak))
     {
       continue;
     }
-    Node a = xts[i];
-    Kind ak = a.getKind();
     bool consider = true;
     // if we've already assigned a purified term
     itp = d_trPurify.find(a);
