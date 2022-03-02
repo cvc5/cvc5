@@ -1,3 +1,7 @@
+; COMMAND-LINE: --sets-ext
+; EXPECT: sat
+(set-logic ALL)
+(set-info :status sat)
 (declare-fun st5 () (Set Int))
 (declare-fun st6 () (Set Int))
 (declare-fun st11 () (Set Int))
