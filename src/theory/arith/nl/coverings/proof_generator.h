@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements the proof generator for CAD.
+ * Implements the proof generator for coverings.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
-#define CVC5__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__PROOF_GENERATOR_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__PROOF_GENERATOR_H
 
 #ifdef CVC5_POLY_IMP
 
@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "proof/lazy_tree_proof_generator.h"
 #include "proof/proof_set.h"
-#include "theory/arith/nl/cad/cdcac_utils.h"
+#include "theory/arith/nl/coverings/cdcac_utils.h"
 
 namespace cvc5 {
 
@@ -39,10 +39,10 @@ namespace nl {
 
 struct VariableMapper;
 
-namespace cad {
+namespace coverings {
 
 /**
- * This class manages the proof creation during a run of the CAD solver.
+ * This class manages the proof creation during a run of the coverings solver.
  *
  * Though it implements the ProofGenerator interface getProofFor(Node), it only
  * gives a proof for a single node.
@@ -50,12 +50,12 @@ namespace cad {
  * It uses a LazyTreeProofGenerator internally to manage the tree-based proof
  * construction.
  */
-class CADProofGenerator
+class CoveringsProofGenerator
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
-                                  const CADProofGenerator& proof);
-  CADProofGenerator(context::Context* ctx, ProofNodeManager* pnm);
+                                  const CoveringsProofGenerator& proof);
+  CoveringsProofGenerator(context::Context* ctx, ProofNodeManager* pnm);
 
   /** Start a new proof in this proof generator */
   void startNewProof();
@@ -147,9 +147,9 @@ class CADProofGenerator
  * Prints the underlying LazyTreeProofGenerator. Please check the documentation
  * of std::ostream& operator<<(std::ostream&, const LazyTreeProofGenerator&)
  */
-std::ostream& operator<<(std::ostream& os, const CADProofGenerator& proof);
+std::ostream& operator<<(std::ostream& os, const CoveringsProofGenerator& proof);
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
