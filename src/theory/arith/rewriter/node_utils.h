@@ -51,15 +51,6 @@ inline bool isAtom(TNode n)
   }
 }
 
-/**
- * Check whether the given node can be rewritten to an integer node. This
- * differs from checking the node type in two major ways: we consider relational
- * operators integral if both children are integral in this sense; rational
- * constants are always integral, as they are rewritten to integers by simple
- * multiplication with their denominator.
- */
-bool isIntegral(TNode n);
-
 /** Check whether the node wraps a real algebraic number. */
 inline bool isRAN(TNode n)
 {
