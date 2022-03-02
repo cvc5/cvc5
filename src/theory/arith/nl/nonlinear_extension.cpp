@@ -20,7 +20,10 @@
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -29,9 +32,6 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
-#include "printer/smt2/smt2_printer.h"
-#include "smt/logic_exception.h"
-#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::kind;
 
@@ -98,7 +98,7 @@ void NonlinearExtension::preRegisterTerm(TNode n)
     {
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
-        << " requires nl-ext mode to be set to value 'full'";
+         << " requires nl-ext mode to be set to value 'full'";
       throw LogicException(ss.str());
     }
   }
