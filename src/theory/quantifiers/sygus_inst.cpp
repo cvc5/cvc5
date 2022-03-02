@@ -490,7 +490,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
   // For each variable x_i of \forall x_i . P[x_i], create a fresh datatype

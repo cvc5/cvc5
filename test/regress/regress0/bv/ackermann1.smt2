@@ -1,6 +1,7 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models 
-; COMMAND-LINE: --bitblast=eager --bv-solver=bitblast-internal --no-check-models 
+; COMMAND-LINE: --bitblast=eager 
+; COMMAND-LINE: --bitblast=eager --bv-solver=bitblast-internal 
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

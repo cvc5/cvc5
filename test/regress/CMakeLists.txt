@@ -211,7 +211,6 @@ set(regress_0_tests
   regress0/bug383.smt2
   regress0/bug398.smt2
   regress0/bug421.smt2
-  regress0/bug421b.smt2
   regress0/bug480.smt2
   regress0/bug484.smt2
   regress0/bug486.cvc.smt2
@@ -1171,6 +1170,7 @@ set(regress_0_tests
   regress0/seq/array/nth-concat.smt2
   regress0/seq/array/update-fallback.smt2
   regress0/seq/array/update-word-eq.smt2
+  regress0/seq/issue6005-no-strings-exp.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
