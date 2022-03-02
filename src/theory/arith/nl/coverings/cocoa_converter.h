@@ -29,7 +29,11 @@
 
 #include "base/output.h"
 
-namespace cvc5::theory::arith::nl::coverings {
+namespace cvc5 {
+namespace theory {
+namespace arith {
+namespace nl {
+namespace coverings {
 
 /**
  * This class implements a generic converter utility between libpoly polynomials
@@ -126,7 +130,11 @@ class CoCoAConverter
   std::map<std::pair<long, size_t>, poly::Variable> d_varCP;
 };
 
-}  // namespace cvc5::theory::arith::nl::coverings
+}  // namespace coverings
+}  // namespace nl
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
 #endif
 #endif
