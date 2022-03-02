@@ -65,6 +65,7 @@ set(regress_0_tests
   regress0/arith/issue5219-conflict-rewrite.smt2
   regress0/arith/issue5761-ppr.smt2
   regress0/arith/issue8097-iid.smt2
+  regress0/arith/issue8159-rewrite-intreal.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
