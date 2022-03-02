@@ -892,7 +892,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    AlwaysAssert(d_im.hasSent());
+    Assert(d_im.hasSent()) << "failed to send a lemma to resolve why Venn regions are different";
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
