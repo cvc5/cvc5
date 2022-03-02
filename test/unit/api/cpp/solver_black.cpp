@@ -3003,6 +3003,30 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   ASSERT_NO_THROW(slv.simplify(t54));
 }
 
+TEST_F(TestApiBlackSolver, proj_issue420)
+{
+  Solver slv;
+  slv.setOption("strings-exp", "true");
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s2 = slv.getRealSort();
+  Sort s3 = slv.mkUninterpretedSort("_u0");
+  DatatypeDecl _dt1 = slv.mkDatatypeDecl("_dt1", {});
+  DatatypeConstructorDecl _cons16 = slv.mkDatatypeConstructorDecl("_cons16");
+  _cons16.addSelector("_sel13", s3);
+  _dt1.addConstructor(_cons16);
+  std::vector<Sort> _s4 = slv.mkDatatypeSorts({_dt1});
+  Sort s4 = _s4[0];
+  Sort s5 = slv.mkSequenceSort(s2);
+  Term t3 = slv.mkConst(s5, "_x18");
+  Term t7 = slv.mkConst(s4, "_x22");
+  Term t13 = slv.mkTerm(Kind::DT_SIZE, {t7});
+  Term t53 = slv.mkTerm(Kind::SEQ_NTH, {t3, t13});
+  ASSERT_NO_THROW(slv.checkSat());
+  ASSERT_NO_THROW(slv.blockModelValues({t53, t7}));
+  ASSERT_NO_THROW(slv.checkSat());
+}
+
 TEST_F(TestApiBlackSolver, proj_issue440)
 {
   Solver slv;

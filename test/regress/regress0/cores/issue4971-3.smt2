@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental -q --check-unsat-cores
+; COMMAND-LINE: --incremental -q --produce-unsat-cores
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat

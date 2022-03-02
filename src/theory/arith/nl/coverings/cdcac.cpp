@@ -14,14 +14,14 @@
  * https://arxiv.org/pdf/2003.05633.pdf.
  */
 
-#include "theory/arith/nl/cad/cdcac.h"
+#include "theory/arith/nl/coverings/cdcac.h"
 
 #ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
-#include "theory/arith/nl/cad/lazard_evaluation.h"
-#include "theory/arith/nl/cad/projections.h"
-#include "theory/arith/nl/cad/variable_ordering.h"
+#include "theory/arith/nl/coverings/lazard_evaluation.h"
+#include "theory/arith/nl/coverings/projections.h"
+#include "theory/arith/nl/coverings/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
@@ -41,7 +41,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
     : EnvObj(env), d_variableOrdering(ordering)
@@ -49,7 +49,7 @@ CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(
-        new CADProofGenerator(userContext(), d_env.getProofNodeManager()));
+        new CoveringsProofGenerator(userContext(), d_env.getProofNodeManager()));
   }
 }
 
@@ -79,7 +79,7 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (options().arith.nlCadLinearModel == options::NlCadLinearModelMode::NONE) return;
+  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE) return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -121,8 +121,8 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
     std::vector<poly::Interval> intervals;
-    if (options().arith.nlCadLifting
-        == options::NlCadLiftingMode::LAZARD)
+    if (options().arith.nlCovLifting
+        == options::nlCovLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
       if (Trace.isOn("cdcac"))
@@ -167,7 +167,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
                                      poly::Value& sample,
                                      std::size_t cur_variable)
 {
-  if (options().arith.nlCadLinearModel != options::NlCadLinearModelMode::NONE
+  if (options().arith.nlCovLinearModel != options::nlCovLinearModelMode::NONE
       && cur_variable < d_initialAssignment.size())
   {
     const poly::Value& suggested = d_initialAssignment[cur_variable];
@@ -175,7 +175,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        if (options().arith.nlCadLinearModel == options::NlCadLinearModelMode::INITIAL)
+        if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::INITIAL)
         {
           d_initialAssignment.clear();
         }
@@ -308,13 +308,13 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
         << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
         << std::endl;
   }
-  switch (options().arith.nlCadProjection)
+  switch (options().arith.nlCovProjection)
   {
-    case options::NlCadProjectionMode::MCCALLUM:
+    case options::nlCovProjectionMode::MCCALLUM:
       return requiredCoefficientsOriginal(p, d_assignment);
-    case options::NlCadProjectionMode::LAZARD:
+    case options::nlCovProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
-    case options::NlCadProjectionMode::LAZARDMOD:
+    case options::nlCovProjectionMode::LAZARDMOD:
       return requiredCoefficientsLazardModified(
           p, d_assignment, d_constraints.varMapper(), d_env.getRewriter());
     default:
@@ -331,7 +331,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
 
   for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {
-    cad::makeFinestSquareFreeBasis(intervals[i], intervals[i + 1]);
+    coverings::makeFinestSquareFreeBasis(intervals[i], intervals[i + 1]);
   }
 
   for (const auto& i : intervals)
@@ -702,7 +702,7 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
 void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 {
   cleanIntervals(intervals);
-  if (options().arith.nlCadPrune)
+  if (options().arith.nlCovPrune)
   {
     if (Trace.isOn("cdcac"))
     {
@@ -738,7 +738,7 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 void CDCAC::prepareRootIsolation(LazardEvaluation& le,
                                  size_t cur_variable) const
 {
-  if (options().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  if (options().arith.nlCovLifting == options::nlCovLiftingMode::LAZARD)
   {
     for (size_t vid = 0; vid < cur_variable; ++vid)
     {
@@ -752,14 +752,14 @@ void CDCAC::prepareRootIsolation(LazardEvaluation& le,
 std::vector<poly::Value> CDCAC::isolateRealRoots(
     LazardEvaluation& le, const poly::Polynomial& p) const
 {
-  if (options().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  if (options().arith.nlCovLifting == options::nlCovLiftingMode::LAZARD)
   {
     return le.isolateRealRoots(p);
   }
   return poly::isolate_real_roots(p, d_assignment);
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

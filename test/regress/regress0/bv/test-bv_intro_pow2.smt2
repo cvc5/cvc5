@@ -1,4 +1,5 @@
-; COMMAND-LINE: --bv-intro-pow2 --no-check-unsat-cores
+; COMMAND-LINE: --bv-intro-pow2
+; DISABLE-TESTER: unsat-core
 (set-info :smt-lib-version 2.6)
 (set-logic QF_BV)
 (set-info :status unsat)

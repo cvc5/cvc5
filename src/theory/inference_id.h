@@ -124,6 +124,10 @@ enum class InferenceId
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
   //-------------------- nonlinear transcendental solver
+  // sine symmetry
+  ARITH_NL_T_SINE_SYMM,
+  // boundary reduction
+  ARITH_NL_T_SINE_BOUNDARY_REDUCE,
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
@@ -154,11 +158,11 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
-  //-------------------- nonlinear cad solver
-  // conflict / infeasible subset obtained from cad
-  ARITH_NL_CAD_CONFLICT,
+  //-------------------- nonlinear coverings solver
+  // conflict / infeasible subset obtained from coverings
+  ARITH_NL_COVERING_CONFLICT,
   // excludes an interval for a single variable
-  ARITH_NL_CAD_EXCLUDED_INTERVAL,
+  ARITH_NL_COVERING_EXCLUDED_INTERVAL,
   //-------------------- nonlinear icp solver
   // conflict obtained from icp
   ARITH_NL_ICP_CONFLICT,
@@ -473,7 +477,6 @@ enum class InferenceId
   SETS_UP_CLOSURE,
   SETS_UP_CLOSURE_2,
   SETS_UP_UNIV,
-  SETS_UNIV_TYPE,
   //-------------------- sets cardinality solver
   // split on emptyset
   SETS_CARD_SPLIT_EMPTY,

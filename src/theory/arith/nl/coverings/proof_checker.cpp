@@ -13,7 +13,7 @@
  * Implementation of CAD proof checker.
  */
 
-#include "theory/arith/nl/cad/proof_checker.h"
+#include "theory/arith/nl/coverings/proof_checker.h"
 
 #include "expr/sequence.h"
 #include "theory/rewriter.h"
@@ -24,30 +24,30 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
-void CADProofRuleChecker::registerTo(ProofChecker* pc)
+void CoveringsProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // trusted rules
-  pc->registerTrustedChecker(PfRule::ARITH_NL_CAD_DIRECT, this, 2);
-  pc->registerTrustedChecker(PfRule::ARITH_NL_CAD_RECURSIVE, this, 2);
+  pc->registerTrustedChecker(PfRule::ARITH_NL_COVERING_DIRECT, this, 2);
+  pc->registerTrustedChecker(PfRule::ARITH_NL_COVERING_RECURSIVE, this, 2);
 }
 
-Node CADProofRuleChecker::checkInternal(PfRule id,
+Node CoveringsProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& children,
                                         const std::vector<Node>& args)
 {
-  Trace("nl-cad-checker") << "Checking " << id << std::endl;
+  Trace("nl-cov-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {
-    Trace("nl-cad-checker") << "\t" << c << std::endl;
+    Trace("nl-cov-checker") << "\t" << c << std::endl;
   }
-  if (id == PfRule::ARITH_NL_CAD_DIRECT)
+  if (id == PfRule::ARITH_NL_COVERING_DIRECT)
   {
     Assert(args.size() == 1);
     return args[0];
   }
-  if (id == PfRule::ARITH_NL_CAD_RECURSIVE)
+  if (id == PfRule::ARITH_NL_COVERING_RECURSIVE)
   {
     Assert(args.size() == 1);
     return args[0];
@@ -55,7 +55,7 @@ Node CADProofRuleChecker::checkInternal(PfRule id,
   return Node::null();
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

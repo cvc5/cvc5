@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/strings/inference_manager.h"
@@ -162,7 +163,7 @@ void TermRegistry::preRegisterTerm(TNode n)
         || k == STRING_UPDATE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(n)
          << " not supported in default mode, try --strings-exp";
       throw LogicException(ss.str());
     }
