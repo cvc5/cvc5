@@ -263,7 +263,7 @@ Node LfscNodeConverter::postConvert(Node n)
   else if (k == CONST_FLOATINGPOINT)
   {
     BitVector s, e, i;
-    n.getConst<FloatingPoint>().getToStringBitvectors(s, e, i);
+    n.getConst<FloatingPoint>().getIEEEBitvectors(s, e, i);
     Node sn = convert(nm->mkConst(s));
     Node en = convert(nm->mkConst(e));
     Node in = convert(nm->mkConst(i));
