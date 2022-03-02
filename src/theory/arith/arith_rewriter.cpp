@@ -118,6 +118,7 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 {
   Assert(rewriter::isAtom(atom));
+  Trace("arith-rewriter") << "postRewriteAtom: " << atom << std::endl;
 
   if (atom.getKind() == kind::IS_INTEGER)
   {
