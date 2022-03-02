@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic QF_ALL)
 (set-info :status sat)
 (declare-const x Real)
