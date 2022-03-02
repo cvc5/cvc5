@@ -770,6 +770,7 @@ set(regress_0_tests
   regress0/nl/issue3971.smt2
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
+  regress0/nl/issue4463-ack-model.smt2
   regress0/nl/issue5534-no-assertions.smt2
   regress0/nl/issue5726-downpolys.smt2
   regress0/nl/issue5726-sqfactor.smt2
@@ -798,6 +799,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8182-exact-mv-keep.smt2
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
   regress0/nl/nta/issue8183-tc-pi.smt2
+  regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
@@ -1167,6 +1169,7 @@ set(regress_0_tests
   regress0/seq/array/nth-concat.smt2
   regress0/seq/array/update-fallback.smt2
   regress0/seq/array/update-word-eq.smt2
+  regress0/seq/issue6005-no-strings-exp.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
