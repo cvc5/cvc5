@@ -1322,12 +1322,12 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
     case kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
     case kind::SET_MINUS:
     {
-      if (node[0].getKind()==kind::SET_UNIVERSE)
+      if (node[0].getKind() == kind::SET_UNIVERSE)
       {
         // Due to complications involving the cardinality graph, we must purify
         // universe from argument of set minus, so that
         //   (set.minus set.universe x)
-        // is replaced by 
+        // is replaced by
         //   (set.minus univ x)
         // along with the lemma (= univ set.universe), where univ is the
         // purification skolem for set.universe. We require this purification
@@ -1337,7 +1337,8 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
         Node sk = sm->mkPurifySkolem(node[0], "univ");
-        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk << std::endl;
+        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk
+                          << std::endl;
         Node eq = sk.eqNode(node[0]);
         lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
         Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);
@@ -1345,8 +1346,7 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
       }
     }
     break;
-    default:
-      break;
+    default: break;
   }
   return TrustNode::null();
 }

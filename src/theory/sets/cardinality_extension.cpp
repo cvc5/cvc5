@@ -389,7 +389,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     // should not have universe as children here, since this is either
     // rewritten, or eliminated via purification from the first argument of
     // set minus.
-    Assert (n[0].getKind()!=SET_UNIVERSE && n[1].getKind()!=SET_UNIVERSE);
+    Assert(n[0].getKind() != SET_UNIVERSE && n[1].getKind() != SET_UNIVERSE);
     Trace("sets-debug") << "Build cardinality parents for " << n << "..."
                         << std::endl;
     std::vector<Node> sib;
@@ -892,7 +892,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    Assert(d_im.hasSent()) << "failed to send a lemma to resolve why Venn regions are different";
+    Assert(d_im.hasSent())
+        << "failed to send a lemma to resolve why Venn regions are different";
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -934,7 +935,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       {
         if (std::find(ffpc.begin(), ffpc.end(), nfeqci) == ffpc.end())
         {
-          Trace("sets-nf-debug") << "Add to flat form " << nfeqci << " to " << cbase << " in " << p << std::endl;
+          Trace("sets-nf-debug") << "Add to flat form " << nfeqci << " to "
+                                 << cbase << " in " << p << std::endl;
           ffpc.push_back(nfeqci);
         }
         else
