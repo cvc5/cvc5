@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements variable orderings tailored to CAD.
+ * Implements variable orderings tailored to coverings.
  */
 
-#include "theory/arith/nl/cad/variable_ordering.h"
+#include "theory/arith/nl/coverings/variable_ordering.h"
 
 #ifdef CVC5_POLY_IMP
 
@@ -23,7 +23,7 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 std::vector<poly_utils::VariableInformation> collectInformation(
     const Constraints::ConstraintVector& polys, bool with_totals)
@@ -127,7 +127,7 @@ std::vector<poly::Variable> VariableOrdering::operator()(
   return {};
 }
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

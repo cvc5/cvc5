@@ -13,16 +13,16 @@
  * CAD-based solver based on https://arxiv.org/pdf/2003.05633.pdf.
  */
 
-#ifndef CVC5__THEORY__ARITH__CAD_SOLVER_H
-#define CVC5__THEORY__ARITH__CAD_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__COVERINGS_SOLVER_H
+#define CVC5__THEORY__ARITH__COVERINGS_SOLVER_H
 
 #include <vector>
 
 #include "context/context.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/nl/cad/cdcac.h"
-#include "theory/arith/nl/cad/proof_checker.h"
+#include "theory/arith/nl/coverings/cdcac.h"
+#include "theory/arith/nl/coverings/proof_checker.h"
 #include "theory/arith/nl/equality_substitution.h"
 
 namespace cvc5 {
@@ -42,11 +42,11 @@ class NlModel;
  * A solver for nonlinear arithmetic that implements the CAD-based method
  * described in https://arxiv.org/pdf/2003.05633.pdf.
  */
-class CadSolver: protected EnvObj
+class CoveringsSolver: protected EnvObj
 {
  public:
-  CadSolver(Env& env, InferenceManager& im, NlModel& model);
-  ~CadSolver();
+  CoveringsSolver(Env& env, InferenceManager& im, NlModel& model);
+  ~CoveringsSolver();
 
   /**
    * This is called at the beginning of last call effort check, where
@@ -97,9 +97,9 @@ class CadSolver: protected EnvObj
   /**
    * The object implementing the actual decision procedure.
    */
-  cad::CDCAC d_CAC;
-  /** The proof checker for cad proofs */
-  cad::CADProofRuleChecker d_proofChecker;
+  coverings::CDCAC d_CAC;
+  /** The proof checker for coverings proofs */
+  coverings::CoveringsProofRuleChecker d_proofChecker;
 #endif
   /**
    * Indicates whether we found satisfiability in the last call to
@@ -114,11 +114,11 @@ class CadSolver: protected EnvObj
   /** Utility to eliminate variables from simple equalities before going into
    * the actual coverings solver */
   EqualitySubstitution d_eqsubs;
-}; /* class CadSolver */
+}; /* class CoveringsSolver */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__ARITH__CAD_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__COVERINGS_SOLVER_H */
