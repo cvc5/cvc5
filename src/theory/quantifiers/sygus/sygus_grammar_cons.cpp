@@ -942,7 +942,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Node x = nm->mkBoundVar(etype);
         Node vars = nm->mkNode(BOUND_VAR_LIST, x);
         Node seqUnit = nm->mkSeqUnit(etype, x);
-        Node lambda = nm->mkNode(LAMBDA,vars, seqUnit);
+        Node lambda = nm->mkNode(LAMBDA, vars, seqUnit);
         sdts[i].addConstructor(lambda, "seq.unit", cargsSeqUnit);
       }
     }

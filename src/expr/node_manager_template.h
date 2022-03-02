@@ -700,7 +700,7 @@ class NodeManager
    * @return a sequence unit constructed from the element n.
    */
   Node mkSeqUnit(const TypeNode& t, const TNode n);
-  
+
   /**
    * Create a singleton set from the given element n.
    * @param t the element type of the returned set.

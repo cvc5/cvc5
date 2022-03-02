@@ -478,7 +478,8 @@ bool TheoryStrings::collectModelInfoType(
           argVal = nfe.d_nf[0][0];
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = rewrite(nm->mkSeqUnit(eqc.getType().getSequenceElementType(), argVal));
+        assignedValue = rewrite(
+            nm->mkSeqUnit(eqc.getType().getSequenceElementType(), argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -765,7 +766,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   TypeNode etn = c.getType().getSequenceElementType();
   for (const Node& snv : snvec)
   {
-    Assert (snv.getType()==etn);
+    Assert(snv.getType() == etn);
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v, "smv");
