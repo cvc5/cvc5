@@ -3113,7 +3113,7 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   slv.checkSat();
   ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
-
+/*
 TEST_F(TestApiBlackSolver, proj_issue423)
 {
   Solver slv;
@@ -3132,7 +3132,7 @@ TEST_F(TestApiBlackSolver, proj_issue423)
   slv.checkSat();
   ASSERT_NO_THROW(slv.blockModelValues({t51, t43}));
 }
-
+*/
 TEST_F(TestApiBlackSolver, proj_issue426)
 {
   Solver slv;
