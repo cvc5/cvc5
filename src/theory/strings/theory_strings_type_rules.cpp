@@ -325,7 +325,25 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check)
 {
-  return nodeManager->mkSequenceType(n[0].getType(check));
+  Assert(n.getKind() == kind::SEQ_UNIT && n.hasOperator()
+         && n.getOperator().getKind() == kind::SEQ_UNIT_OP);
+
+  SeqUnitOp op = n.getOperator().getConst<SeqUnitOp>();
+  TypeNode otype = op.getType();
+  if (check)
+  {
+    TypeNode argType = n[0].getType(check);
+    // the type of the element should be a subtype of the type of the operator
+    // e.g. (seq.unit (SeqUnitOp Real) 1) where 1 is an Int
+    if (!argType.isSubtypeOf(otype))
+    {
+      std::stringstream ss;
+      ss << "The type '" << argType << "' of the element is not a subtype of '"
+         << otype << "' in term : " << n;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return nodeManager->mkSequenceType(otype);
 }
 
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,

@@ -191,6 +191,7 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 ### sequence specific operators
 
 typerule CONST_SEQUENCE ::cvc5::theory::strings::ConstSequenceTypeRule
+typerule SEQ_UNIT_OP   "SimpleTypeRule<RBuiltinOperator>"
 typerule SEQ_UNIT ::cvc5::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::cvc5::theory::strings::SeqNthTypeRule
 typerule SEQ_NTH_TOTAL ::cvc5::theory::strings::SeqNthTypeRule
