@@ -1,5 +1,6 @@
-; COMMAND-LINE: --no-check-unsat-cores
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
+; timeout with unsat cores
 (set-logic QF_AUFLIRA)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

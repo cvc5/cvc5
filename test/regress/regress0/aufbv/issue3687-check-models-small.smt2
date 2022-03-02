@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_AUFBV)
 (declare-fun a () (Array (_ BitVec 2) (_ BitVec 2)))

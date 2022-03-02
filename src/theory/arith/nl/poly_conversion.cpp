@@ -567,7 +567,7 @@ Node excluding_interval_to_lemma(const Node& variable,
       const poly::AlgebraicNumber& alg = as_algebraic_number(lv);
       if (poly::is_rational(alg))
       {
-        Trace("nl-cad") << "Rational point interval: " << interval << std::endl;
+        Trace("nl-cov") << "Rational point interval: " << interval << std::endl;
         return nm->mkNode(
             Kind::DISTINCT,
             variable,
@@ -575,7 +575,7 @@ Node excluding_interval_to_lemma(const Node& variable,
                 CONST_RATIONAL,
                 poly_utils::toRational(poly::to_rational_approximation(alg))));
       }
-      Trace("nl-cad") << "Algebraic point interval: " << interval << std::endl;
+      Trace("nl-cov") << "Algebraic point interval: " << interval << std::endl;
       // p(x) != 0 or x <= lb or ub <= x
       if (allowNonlinearLemma)
       {
@@ -597,7 +597,7 @@ Node excluding_interval_to_lemma(const Node& variable,
     }
     else
     {
-      Trace("nl-cad") << "Rational point interval: " << interval << std::endl;
+      Trace("nl-cov") << "Rational point interval: " << interval << std::endl;
       return nm->mkNode(
           Kind::DISTINCT,
           variable,
@@ -606,17 +606,17 @@ Node excluding_interval_to_lemma(const Node& variable,
   }
   if (li)
   {
-    Trace("nl-cad") << "Only upper bound: " << interval << std::endl;
+    Trace("nl-cov") << "Only upper bound: " << interval << std::endl;
     return upper_bound_as_node(
         variable, uv, poly::get_upper_open(interval), allowNonlinearLemma);
   }
   if (ui)
   {
-    Trace("nl-cad") << "Only lower bound: " << interval << std::endl;
+    Trace("nl-cov") << "Only lower bound: " << interval << std::endl;
     return lower_bound_as_node(
         variable, lv, poly::get_lower_open(interval), allowNonlinearLemma);
   }
-  Trace("nl-cad") << "Proper interval: " << interval << std::endl;
+  Trace("nl-cov") << "Proper interval: " << interval << std::endl;
   Node lb = lower_bound_as_node(
       variable, lv, poly::get_lower_open(interval), allowNonlinearLemma);
   Node ub = upper_bound_as_node(

@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_ABV)
 (declare-fun c () (_ BitVec 32))

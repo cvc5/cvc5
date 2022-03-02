@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun -q
 ; EXPECT: sat
 (set-logic UFNIA)
 (set-info :status sat)

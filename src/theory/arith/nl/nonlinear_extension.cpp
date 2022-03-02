@@ -56,7 +56,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_monomialSlv(d_env, &d_extState),
       d_splitZeroSlv(d_env, &d_extState),
       d_tangentPlaneSlv(d_env, &d_extState),
-      d_cadSlv(d_env, d_im, d_model),
+      d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
@@ -223,9 +223,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
       return false;
     }
   }
-  if (options().arith.nlCad)
+  if (options().arith.nlCov)
   {
-    d_cadSlv.constructModelIfAvailable(passertions);
+    d_covSlv.constructModelIfAvailable(passertions);
   }
 
   Trace("nl-ext-cm") << "-----" << std::endl;
@@ -442,8 +442,8 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     {
       case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
       case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
-      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
-      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::COVERINGS_FULL: d_covSlv.checkFull(); break;
+      case InferStep::COVERINGS_INIT: d_covSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;

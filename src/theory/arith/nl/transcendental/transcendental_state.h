@@ -167,6 +167,12 @@ class TranscendentalState : protected EnvObj
    * Is term t purified? (See d_trPurify below).
    */
   bool isPurified(TNode n) const;
+  /** get the purified form of node n */
+  Node getPurifiedForm(TNode n);
+  /**
+   * Add bound for n, and for what (if anything) it purifies
+   */
+  bool addModelBoundForPurifyTerm(TNode n, TNode l, TNode u);
 
   Node d_true;
   Node d_false;
@@ -267,12 +273,6 @@ class TranscendentalState : protected EnvObj
    * concrete lower and upper bounds stored in d_pi_bound below.
    */
   Node d_pi;
-  /** PI/2 */
-  Node d_pi_2;
-  /** -PI/2 */
-  Node d_pi_neg_2;
-  /** -PI */
-  Node d_pi_neg;
   /** the concrete lower and upper bounds for PI */
   Node d_pi_bound[2];
 };
