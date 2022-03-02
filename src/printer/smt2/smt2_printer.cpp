@@ -1269,6 +1269,35 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   return kind::kindToString(k);
 }
 
+std::string smtKindStringOf(const Node& n, Variant v = smt2_6_variant)
+{
+  Kind k = n.getKind();
+  if (n.getNumChildren()>0 && n[0].getType().isSequence())
+  {
+    // this method parallels api::Term::getKind
+    switch (k)
+    {
+      case STRING_CONCAT: return "seq.concat";
+      case STRING_LENGTH: return "seq.len";
+      case STRING_SUBSTR: return "seq.extract";
+      case STRING_UPDATE: return "seq.update";
+      case STRING_CHARAT: return "seq.at";
+      case STRING_CONTAINS: return "seq.contains";
+      case STRING_INDEXOF: return "seq.indexof";
+      case STRING_REPLACE: return "seq.replace";
+      case STRING_REPLACE_ALL: return "seq.replace_all";
+      case STRING_REV: return "seq.rev";
+      case STRING_PREFIX: return "seq.prefixof";
+      case STRING_SUFFIX: return "seq.suffixof";
+      default:
+        // fall through to conversion below
+        break;
+    }
+  }
+  // by default
+  return smtKindString(k, v);
+}
+
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.

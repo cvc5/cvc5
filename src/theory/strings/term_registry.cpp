@@ -162,7 +162,7 @@ void TermRegistry::preRegisterTerm(TNode n)
         || k == STRING_UPDATE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(n)
          << " not supported in default mode, try --strings-exp";
       throw LogicException(ss.str());
     }
