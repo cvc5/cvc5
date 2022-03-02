@@ -203,27 +203,16 @@ class CDOhash_map : public ContextObj
   CDOhash_map(Context* context,
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
-              const Data& data,
-              bool atLevelZero = false)
+              const Data& data)
       : ContextObj(false, context), d_value(key, data), d_map(NULL)
   {
-    if (atLevelZero)
-    {
-      // "Initializing" map insertion: this entry will never be
-      // removed from the map, it's inserted at level 0 as an
-      // "initializing" element.
-      mutable_data() = data;
-    }
-    else
-    {
-      // Normal map insertion: first makeCurrent(), then set the data
-      // and then, later, the map.  Order is important; we can't
-      // initialize d_map in the constructor init list above, because
-      // we want the restore of d_map to NULL to signal us to remove
-      // the element from the map.
+    // Normal map insertion: first makeCurrent(), then set the data
+    // and then, later, the map.  Order is important; we can't
+    // initialize d_map in the constructor init list above, because
+    // we want the restore of d_map to NULL to signal us to remove
+    // the element from the map.
 
-      set(data);
-    }
+    set(data);
     d_map = map;
 
     CDOhash_map*& first = d_map->d_first;
