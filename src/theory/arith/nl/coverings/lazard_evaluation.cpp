@@ -13,6 +13,8 @@
 
 #include <optional>
 
+#include "theory/arith/nl/coverings/cocoa_converter.h"
+
 namespace cvc5::theory::arith::nl::coverings {
 
 struct LazardEvaluationStats
@@ -105,8 +107,6 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state);
  */
 struct LazardEvaluationState
 {
-  CoCoA::GlobalManager d_gm;
-
   /**
    * Statistics about the lazard evaluation.
    * Although this class is short-lived, there is no need to make the statistics
@@ -117,19 +117,12 @@ struct LazardEvaluationState
   mutable LazardEvaluationStats d_stats;
 
   /**
-   * Maps libpoly variables to indets in J0. Used when constructing the input
-   * polynomial q in the first polynomial ring J0.
+   * Converter between libpoly and CoCoA.
+   *
+   * d_converter.d_varPC * Maps libpoly variables to indets in J0. Used when
+   * constructing the input polynomial q in the first polynomial ring J0.
    */
-  std::map<poly::Variable, CoCoA::RingElem> d_varQ;
-  /**
-   * Maps CoCoA indets back to to libpoly variables.
-   * Use when converting CoCoA RingElems to libpoly polynomials, either when
-   * checking whether a factor vanishes or when returning the univariate
-   * elements of the final Gröbner basis. The CoCoA indets are identified by the
-   * pair of the ring id and the indet identifier. Hence, we can put all of them
-   * in one map, no matter which ring they belong to.
-   */
-  std::map<std::pair<long, size_t>, poly::Variable> d_varCoCoA;
+  CoCoAConverter d_converter;
 
   /**
    * The minimal polynomials p_i used for constructing d_K.
@@ -194,28 +187,6 @@ struct LazardEvaluationState
   std::vector<std::optional<CoCoA::RingElem>> d_direct;
 
   /**
-   * Converts a libpoly integer to a CoCoA::BigInt.
-   */
-  CoCoA::BigInt convert(const poly::Integer& i) const
-  {
-    return CoCoA::BigIntFromMPZ(poly::detail::cast_to_gmp(&i)->get_mpz_t());
-  }
-  /**
-   * Converts a libpoly dyadic rational to a CoCoA::BigRat.
-   */
-  CoCoA::BigRat convert(const poly::DyadicRational& dr) const
-  {
-    return CoCoA::BigRat(convert(poly::numerator(dr)),
-                         convert(poly::denominator(dr)));
-  }
-  /**
-   * Converts a libpoly rational to a CoCoA::BigRat.
-   */
-  CoCoA::BigRat convert(const poly::Rational& r) const
-  {
-    return CoCoA::BigRatFromMPQ(poly::detail::cast_to_gmp(&r)->get_mpq_t());
-  }
-  /**
    * Converts a univariate libpoly polynomial p in variable var to CoCoA. It
    * assumes that p is a minimal polynomial p_i over variable x_i for the
    * highest variable x_i known yet. It thus directly constructs p_i in R_i.
@@ -223,19 +194,7 @@ struct LazardEvaluationState
   CoCoA::RingElem convertMiPo(const poly::UPolynomial& p,
                               const poly::Variable& var) const
   {
-    std::vector<poly::Integer> coeffs = poly::coefficients(p);
-    CoCoA::RingElem res(d_R.back());
-    CoCoA::RingElem v = CoCoA::indet(d_R.back(), 0);
-    CoCoA::RingElem mult(d_R.back(), 1);
-    for (const auto& c : coeffs)
-    {
-      if (!poly::is_zero(c))
-      {
-        res += convert(c) * mult;
-      }
-      mult *= v;
-    }
-    return res;
+    return d_converter(p, var, d_R.back());
   }
 
   /**
@@ -246,7 +205,7 @@ struct LazardEvaluationState
   bool evaluatesToZero(const CoCoA::RingElem& cp) const
   {
     Assert(CoCoA::owner(cp) == d_R.back());
-    poly::Polynomial pp = convert(cp);
+    poly::Polynomial pp = d_converter(cp);
     return poly::evaluate_constraint(pp, d_assignment, poly::SignCondition::EQ);
   }
 
@@ -319,7 +278,7 @@ struct LazardEvaluationState
    * - add variable x_i to d_variables
    * - extract the variable name
    * - construct R_i = K_i[x_i]
-   * - add new variable to d_varCoCoA
+   * - add new variable mapping to d_converter
    */
   void addR(const poly::Variable& var)
   {
@@ -336,7 +295,7 @@ struct LazardEvaluationState
     }
     Trace("nl-cov::lazard") << "R" << d_R.size() - 1 << " = " << d_R.back()
                          << std::endl;
-    d_varCoCoA.emplace(std::make_pair(CoCoA::RingID(d_R.back()), 0), var);
+    d_converter.addVar(std::make_pair(CoCoA::RingID(d_R.back()), 0), var);
   }
 
   /**
@@ -378,8 +337,8 @@ struct LazardEvaluationState
    * - construct all J_i
    * - construct all p homomorphisms (R_i --> J_i)
    * - construct all q homomorphisms (J_i --> J_{i+1})
-   * - fill the mapping d_varQ (libpoly -> J_0)
-   * - fill the mapping d_varCoCoA (J_n -> libpoly)
+   * - add the variable mapping d_converter (libpoly -> J_0)
+   * - add the variable mapping d_converter (J_n -> libpoly)
    * - fill d_GBBaseIdeal with p_i mapped to J_0
    */
   void addFreeVariable(const poly::Variable& var)
@@ -455,11 +414,8 @@ struct LazardEvaluationState
     }
     for (size_t i = 0; i < d_variables.size(); ++i)
     {
-      d_varQ.emplace(d_variables[i], CoCoA::indet(d_J[0], i));
-    }
-    for (size_t i = 0; i < d_variables.size(); ++i)
-    {
-      d_varCoCoA.emplace(std::make_pair(CoCoA::RingID(d_J[0]), i),
+      d_converter.addVar(d_variables[i], CoCoA::indet(d_J[0], i));
+      d_converter.addVar(std::make_pair(CoCoA::RingID(d_J[0]), i),
                          d_variables[i]);
     }
 
@@ -477,103 +433,11 @@ struct LazardEvaluationState
   }
 
   /**
-   * Helper class for conversion from libpoly to CoCoA polynomials.
-   * The lambda can not capture anything, as it needs to be of type
-   * lp_polynomial_traverse_f.
-   */
-  struct CoCoAPolyConstructor
-  {
-    const LazardEvaluationState& d_state;
-    CoCoA::RingElem d_result;
-  };
-
-  /**
    * Convert the polynomial q to CoCoA into J_0.
    */
   CoCoA::RingElem convertQ(const poly::Polynomial& q) const
   {
-    CoCoAPolyConstructor cmd{*this};
-    // Do the actual conversion
-    cmd.d_result = CoCoA::RingElem(d_J[0]);
-    lp_polynomial_traverse_f f = [](const lp_polynomial_context_t* ctx,
-                                    lp_monomial_t* m,
-                                    void* data) {
-      CoCoAPolyConstructor* d = static_cast<CoCoAPolyConstructor*>(data);
-      CoCoA::BigInt coeff = d->d_state.convert(*poly::detail::cast_from(&m->a));
-      CoCoA::RingElem re(d->d_state.d_J[0], coeff);
-      for (size_t i = 0; i < m->n; ++i)
-      {
-        // variable exponent pair
-        CoCoA::RingElem var = d->d_state.d_varQ.at(m->p[i].x);
-        re *= CoCoA::power(var, m->p[i].d);
-      }
-      d->d_result += re;
-    };
-    lp_polynomial_traverse(q.get_internal(), f, &cmd);
-    return cmd.d_result;
-  }
-  /**
-   * Actual (recursive) implementation of converting a CoCoA polynomial to a
-   * libpoly polynomial. As libpoly polynomials only have integer coefficients,
-   * we need to maintain an integer denominator to normalize all terms to the
-   * same denominator.
-   */
-  poly::Polynomial convertImpl(const CoCoA::RingElem& p,
-                               poly::Integer& denominator) const
-  {
-    Trace("nl-cov::lazard") << "Converting " << p << std::endl;
-    denominator = poly::Integer(1);
-    poly::Polynomial res;
-    for (CoCoA::SparsePolyIter i = CoCoA::BeginIter(p); !CoCoA::IsEnded(i); ++i)
-    {
-      poly::Polynomial coeff;
-      poly::Integer denom(1);
-      CoCoA::BigRat numcoeff;
-      if (CoCoA::IsRational(numcoeff, CoCoA::coeff(i)))
-      {
-        poly::Rational rat(mpq_class(CoCoA::mpqref(numcoeff)));
-        denom = poly::denominator(rat);
-        coeff = poly::numerator(rat);
-      }
-      else
-      {
-        coeff = convertImpl(CoCoA::CanonicalRepr(CoCoA::coeff(i)), denom);
-      }
-      if (!CoCoA::IsOne(CoCoA::PP(i)))
-      {
-        std::vector<long> exponents;
-        CoCoA::exponents(exponents, CoCoA::PP(i));
-        for (size_t vid = 0; vid < exponents.size(); ++vid)
-        {
-          if (exponents[vid] == 0) continue;
-          const auto& ring = CoCoA::owner(p);
-          poly::Variable v =
-              d_varCoCoA.at(std::make_pair(CoCoA::RingID(ring), vid));
-          coeff *= poly::Polynomial(poly::Integer(1), v, exponents[vid]);
-        }
-      }
-      if (denom != denominator)
-      {
-        poly::Integer g = gcd(denom, denominator);
-        res = res * (denom / g) + coeff * (denominator / g);
-        denominator *= (denom / g);
-      }
-      else
-      {
-        res += coeff;
-      }
-    }
-    Trace("nl-cov::lazard") << "-> " << res << std::endl;
-    return res;
-  }
-  /**
-   * Actually convert a CoCoA RingElem to a libpoly polynomial.
-   * Requires d_varCoCoA to be filled appropriately.
-   */
-  poly::Polynomial convert(const CoCoA::RingElem& p) const
-  {
-    poly::Integer denom;
-    return convertImpl(p, denom);
+    return d_converter(q, d_J[0]);
   }
 
   /**
@@ -649,7 +513,7 @@ struct LazardEvaluationState
       for (const auto& belem : basis)
       {
         Trace("nl-cov::lazard") << "-> retrieved " << belem << std::endl;
-        auto pres = convert(belem);
+        auto pres = d_converter(belem);
         Trace("nl-cov::lazard") << "-> converted " << pres << std::endl;
         // These checks are orthogonal!
         if (poly::is_univariate(pres)
@@ -716,7 +580,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
       const poly::DyadicInterval& di = poly::get_isolating_interval(ran);
       if (poly::is_point(di))
       {
-        rational = d_state->convert(poly::get_point(di));
+        rational = d_state->d_converter(poly::get_point(di));
       }
       else
       {
@@ -730,15 +594,16 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
              || poly::is_rational(val));
       if (poly::is_dyadic_rational(val))
       {
-        rational = d_state->convert(poly::as_dyadic_rational(val));
+        rational = d_state->d_converter(poly::as_dyadic_rational(val));
       }
       else if (poly::is_integer(val))
       {
-        rational = CoCoA::BigRat(d_state->convert(poly::as_integer(val)), 1);
+        rational =
+            CoCoA::BigRat(d_state->d_converter(poly::as_integer(val)), 1);
       }
       else if (poly::is_rational(val))
       {
-        rational = d_state->convert(poly::as_rational(val));
+        rational = d_state->d_converter(poly::as_rational(val));
       }
     }
 
@@ -760,7 +625,8 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
     {
       if (d_state->evaluatesToZero(f))
       {
-        Assert(CoCoA::deg(f) > 0 && CoCoA::NumTerms(f) <= 2);
+        Trace("nl-cov::lazard") << "Found vanishing factor " << f << std::endl;
+        Assert(CoCoA::deg(f) > 0);
         if (CoCoA::deg(f) == 1)
         {
           auto rat = -CoCoA::ConstantCoeff(f) / CoCoA::LC(f);
@@ -840,7 +706,25 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
       roots.emplace_back(r);
     }
   }
+  // now postprocess roots: sort, remove duplicates and spurious roots.
+  // the reduction to a univariate polynomial that happens within
+  // reducePolynomial() may introduce new (spurious) real roots that correspond
+  // to complex (non-real) roots in the original input. we need to remove such
+  // spurious roots, i.e., roots where the input polynomial does not actually
+  // vanish.
   std::sort(roots.begin(), roots.end());
+  auto endit = std::unique(roots.begin(), roots.end());
+  endit = std::remove_if(roots.begin(), endit, [this, &q](const auto& v) {
+    // evaluate q != 0 over the assignment
+    d_state->d_assignment.set(d_state->d_variables.back(), v);
+    bool res = poly::evaluate_constraint(
+        q, d_state->d_assignment, poly::SignCondition::NE);
+    // make sure the assignment is properly reset
+    d_state->d_assignment.unset(d_state->d_variables.back());
+    return res;
+  });
+  // now actually remove the roots we don't want.
+  roots.erase(endit, roots.end());
   return roots;
 }
 

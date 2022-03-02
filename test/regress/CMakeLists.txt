@@ -211,7 +211,6 @@ set(regress_0_tests
   regress0/bug383.smt2
   regress0/bug398.smt2
   regress0/bug421.smt2
-  regress0/bug421b.smt2
   regress0/bug480.smt2
   regress0/bug484.smt2
   regress0/bug486.cvc.smt2
@@ -771,6 +770,7 @@ set(regress_0_tests
   regress0/nl/issue3971.smt2
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
+  regress0/nl/issue4463-ack-model.smt2
   regress0/nl/issue5534-no-assertions.smt2
   regress0/nl/issue5726-downpolys.smt2
   regress0/nl/issue5726-sqfactor.smt2
@@ -780,6 +780,7 @@ set(regress_0_tests
   regress0/nl/issue6547-ran-model.smt2
   regress0/nl/issue6619-ran-model.smt2
   regress0/nl/issue8135-icp-candidates.smt2
+  regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -789,12 +790,16 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue4693-inc-purify.smt2
+  regress0/nl/nta/issue4693-4-inc-purify-sat.smt2
+  regress0/nl/nta/issue4693-5-inc-purify.smt2
   regress0/nl/nta/issue7938-tf-model.smt2
   regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/issue8160-model-purify.smt2
   regress0/nl/nta/issue8182-exact-mv-keep.smt2
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
   regress0/nl/nta/issue8183-tc-pi.smt2
+  regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
@@ -928,6 +933,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
   regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
   regress0/proofs/proj-issue430-coverings-double-negation.smt2
+  regress0/proofs/proj-issue462-sat-proof-option.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1164,6 +1170,7 @@ set(regress_0_tests
   regress0/seq/array/nth-concat.smt2
   regress0/seq/array/update-fallback.smt2
   regress0/seq/array/update-word-eq.smt2
+  regress0/seq/issue6005-no-strings-exp.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2

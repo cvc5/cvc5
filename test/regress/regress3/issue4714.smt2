@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-models
 ; EXPECT: sat 
 (set-logic UFNIRA)
 (declare-fun c (Int) Int)
