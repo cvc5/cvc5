@@ -26,6 +26,7 @@
 #include "theory/theory.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::context;
