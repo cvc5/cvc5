@@ -15,6 +15,7 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
@@ -72,6 +73,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   d_funcMap.clear();
   d_tf_region.clear();
 
+  Trace("nl-ext-trans-init") << "TranscendentalState::init" << std::endl;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
@@ -110,17 +112,18 @@ void TranscendentalState::init(const std::vector<Node>& xts,
           }
         }
       }
-      if (!consider)
-      {
-        // must assign a purified term
-        needsPurify.push_back(a);
-      }
-      else
+      if (consider)
       {
         // assume own purified
         d_trPurify[a] = a;
         d_trPurifies[a] = a;
       }
+    }
+    Trace("nl-ext-trans-init") << "extf: " << a << ", consider=" << consider << std::endl;
+    if (!consider)
+    {
+      // must assign a purified term
+      needsPurify.push_back(a);
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
     {
@@ -187,6 +190,7 @@ void TranscendentalState::ensureCongruence(TNode a,
     Assert(aa.getNumChildren() == a.getNumChildren());
     Node mvaa = d_model.computeAbstractModelValue(a);
     Node mvaaa = d_model.computeAbstractModelValue(aa);
+    Trace("nl-ext-trans-init") << "...congruent to " << aa << std::endl;
     if (mvaa != mvaaa)
     {
       std::vector<Node> exp;
@@ -197,12 +201,14 @@ void TranscendentalState::ensureCongruence(TNode a,
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       Node cong_lemma = expn.impNode(a.eqNode(aa));
       d_im.addPendingLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
+      Trace("nl-ext-trans-init") << "...needs lemma" << std::endl;
     }
   }
   else
   {
     // new representative of congruence class
     d_funcMap[a.getKind()].push_back(a);
+    Trace("nl-ext-trans-init") << "...new rep" << std::endl;
   }
   // add to congruence class
   d_funcCongClass[aa].push_back(a);
@@ -214,12 +220,6 @@ void TranscendentalState::mkPi()
   if (d_pi.isNull())
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-    d_pi_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
-    d_pi_neg_2 = rewrite(nm->mkNode(
-        Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-    d_pi_neg =
-        rewrite(nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(-1))));
     // initialize bounds
     d_pi_bound[0] = nm->mkConstReal(Rational(103993) / Rational(33102));
     d_pi_bound[1] = nm->mkConstReal(Rational(104348) / Rational(33215));
@@ -458,6 +458,54 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
 bool TranscendentalState::isPurified(TNode n) const
 {
   return d_trPurifies.find(n) != d_trPurifies.end();
+}
+
+Node TranscendentalState::getPurifiedForm(TNode n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  NodeMap::const_iterator it = d_trPurify.find(n);
+  if (it != d_trPurify.end())
+  {
+    return it->second;
+  }
+  Kind k = n.getKind();
+  Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
+  Node y = sm->mkSkolemFunction(
+      SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  Node new_n = nm->mkNode(k, y);
+  d_trPurify[n] = new_n;
+  d_trPurify[new_n] = new_n;
+  d_trPurifies[new_n] = n;
+  d_trPurifyVars.insert(y);
+  return new_n;
+}
+
+bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)
+{
+  Assert(d_funcCongClass.find(n) != d_funcCongClass.end());
+  // for each function in the congruence classe
+  for (const Node& ctf : d_funcCongClass[n])
+  {
+    std::vector<Node> mset{ctf};
+    // if this purifies another term, we set a bound on the term it
+    // purifies as well
+    context::CDHashMap<Node, Node>::const_iterator itp = d_trPurifies.find(ctf);
+    if (itp != d_trPurifies.end() && itp->second != ctf)
+    {
+      mset.push_back(itp->second);
+    }
+    for (const Node& stf : mset)
+    {
+      Trace("nl-ext-cm") << "...bound for " << stf << " : [" << l << ", " << u
+                         << "]" << std::endl;
+      if (!d_model.addBound(stf, l, u))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 }  // namespace transcendental

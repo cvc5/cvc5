@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models --nl-ext-tplanes
+; COMMAND-LINE: --nl-ext-tplanes
 ; REQUIRES: poly
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)

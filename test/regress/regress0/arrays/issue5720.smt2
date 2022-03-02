@@ -1,6 +1,7 @@
 ; COMMAND-LINE: -i
 ; EXPECT: unsat
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic QF_ALIA)
 (set-option :check-unsat-cores true)
 (set-option :fmf-fun true)

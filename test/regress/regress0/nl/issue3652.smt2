@@ -1,4 +1,3 @@
-;COMMAND-LINE: --check-models
 ;REQUIRES: poly
 ;EXPECT: sat
 (set-logic QF_NRA)

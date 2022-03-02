@@ -24,7 +24,6 @@
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
 #include "parser/input.h"
-#include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_input.h"
@@ -127,24 +126,11 @@ pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {
   return d_input;
 }
 
-
-
-AntlrInputStream*
-AntlrInputStream::newFileInputStream(const std::string& name,
-                                     bool useMmap)
+AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name)
 {
-#ifdef _WIN32
-  if(useMmap) {
-    useMmap = false;
-  }
-#endif
-  pANTLR3_INPUT_STREAM input = NULL;
-  if(useMmap) {
-    input = MemoryMappedInputBufferNew(name);
-  } else {
-    input = newAntlr3FileStream(name);
-  }
-  if(input == NULL) {
+  pANTLR3_INPUT_STREAM input = newAntlr3FileStream(name);
+  if (input == nullptr)
+  {
     throw InputStreamException("Couldn't open file: " + name);
   }
   return new AntlrInputStream(name, input, false, NULL, NULL);

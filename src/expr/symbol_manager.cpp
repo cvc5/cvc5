@@ -417,6 +417,7 @@ const std::string& SymbolManager::getLastSynthName() const
 
 void SymbolManager::reset()
 {
+  // reset resets the symbol table even when global declarations are true
   d_symtabAllocated.reset();
   d_implementation->reset();
 }
@@ -424,7 +425,10 @@ void SymbolManager::reset()
 void SymbolManager::resetAssertions()
 {
   d_implementation->resetAssertions();
-  d_symtabAllocated.resetAssertions();
+  if (!d_globalDeclarations)
+  {
+    d_symtabAllocated.resetAssertions();
+  }
 }
 
 }  // namespace cvc5
