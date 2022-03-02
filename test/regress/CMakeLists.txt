@@ -1158,6 +1158,8 @@ set(regress_0_tests
   regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/proj-issue384-subtypes.smt2
+  regress0/seq/proj-issue384-2-subtypes.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/rev.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
