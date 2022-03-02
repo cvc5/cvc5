@@ -46,7 +46,7 @@ bool isAlreadyVisited(Env& env,
                       TNode current,
                       TNode parent)
 {
-  TheoryId currentTheoryId = Theory::theoryOf(current);
+  TheoryId currentTheoryId = env.theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
   {
     // current theory not visited, return false
@@ -61,7 +61,7 @@ bool isAlreadyVisited(Env& env,
 
   // The current theory has already visited it, so now it depends on the parent
   // and the type
-  TheoryId parentTheoryId = Theory::theoryOf(parent);
+  TheoryId parentTheoryId = env.theoryOf(parent);
   if (!TheoryIdSetUtil::setContains(parentTheoryId, visitedTheories))
   {
     // parent theory not visited, return false
@@ -75,7 +75,7 @@ bool isAlreadyVisited(Env& env,
     // current and parent are the same theory, and we are infinite, return true
     return true;
   }
-  TheoryId typeTheoryId = Theory::theoryOf(type);
+  TheoryId typeTheoryId = env.theoryOf(type);
   return TheoryIdSetUtil::setContains(typeTheoryId, visitedTheories);
 }
 
@@ -144,14 +144,14 @@ void PreRegisterVisitor::preRegister(Env& env,
                                      TheoryIdSet preregTheories)
 {
   // Preregister with the current theory, if necessary
-  TheoryId currentTheoryId = Theory::theoryOf(current);
+  TheoryId currentTheoryId = env.theoryOf(current);
   preRegisterWithTheory(
       te, visitedTheories, currentTheoryId, current, parent, preregTheories);
 
   if (current != parent)
   {
     // preregister with parent theory, if necessary
-    TheoryId parentTheoryId = Theory::theoryOf(parent);
+    TheoryId parentTheoryId = env.theoryOf(parent);
     preRegisterWithTheory(
         te, visitedTheories, parentTheoryId, current, parent, preregTheories);
 
@@ -161,7 +161,7 @@ void PreRegisterVisitor::preRegister(Env& env,
     if (currentTheoryId != parentTheoryId || env.isFiniteType(type))
     {
       // preregister with the type's theory, if necessary
-      TheoryId typeTheoryId = Theory::theoryOf(type);
+      TheoryId typeTheoryId = env.theoryOf(type);
       preRegisterWithTheory(
           te, visitedTheories, typeTheoryId, current, parent, preregTheories);
     }
@@ -280,7 +280,7 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
       TheoryIdSetUtil::setUnion(preregTheories, visitedTheories);
 
   // If there is more than two theories and a new one has been added notify the shared terms database
-  TheoryId currentTheoryId = Theory::theoryOf(current);
+  TheoryId currentTheoryId = d_env.theoryOf(current);
   if (TheoryIdSetUtil::setDifference(
           visitedTheories, TheoryIdSetUtil::setInsert(currentTheoryId)))
   {

@@ -47,7 +47,7 @@ class ResultTest
     assertFalse(res_null.isNotEntailed());
     assertFalse(res_null.isEntailmentUnknown());
     Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkVar(u_sort, "x");
+    Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res = d_solver.checkSat();
     assertFalse(res.isNull());
@@ -56,7 +56,7 @@ class ResultTest
   @Test void eq()
   {
     Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkVar(u_sort, "x");
+    Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res;
     Result res2 = d_solver.checkSat();
@@ -69,7 +69,7 @@ class ResultTest
   @Test void isSat()
   {
     Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkVar(u_sort, "x");
+    Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res = d_solver.checkSat();
     assertTrue(res.isSat());
@@ -79,7 +79,7 @@ class ResultTest
   @Test void isUnsat()
   {
     Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkVar(u_sort, "x");
+    Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
     assertTrue(res.isUnsat());
@@ -92,7 +92,7 @@ class ResultTest
     d_solver.setOption("incremental", "false");
     d_solver.setOption("solve-int-as-bv", "32");
     Sort int_sort = d_solver.getIntegerSort();
-    Term x = d_solver.mkVar(int_sort, "x");
+    Term x = d_solver.mkConst(int_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
@@ -122,7 +122,7 @@ class ResultTest
     d_solver.setOption("incremental", "false");
     d_solver.setOption("solve-int-as-bv", "32");
     Sort int_sort = d_solver.getIntegerSort();
-    Term x = d_solver.mkVar(int_sort, "x");
+    Term x = d_solver.mkConst(int_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkEntailed(x.eqTerm(x));
     assertFalse(res.isEntailed());

@@ -71,13 +71,13 @@ struct TreeProofNode
  *
  * Consider the example  x*x<1 and x>2  and the intended proof
  *  (SCOPE
- *    (ARITH_NL_CAD_SPLIT
+ *    (ARITH_NL_COVERING_RECURSIVE
  *      (SCOPE
- *        (ARITH_NL_CAD_DIRECT  (x<=2  and  x>2) ==> false)
+ *        (ARITH_NL_COVERING_DIRECT  (x<=2  and  x>2) ==> false)
  *        :args [x<=2]
  *      )
  *      (SCOPE
- *        (ARITH_NL_CAD_DIRECT  (x>=1  and  x*x<1) ==> false)
+ *        (ARITH_NL_COVERING_DIRECT  (x>=1  and  x*x<1) ==> false)
  *        :args [x>=1]
  *      )
  *    )
@@ -104,7 +104,7 @@ struct TreeProofNode
  *  openChild();
  *  setCurrent(SCOPE, {}, {}, false);
  *  openChild();
- *  setCurrent(CAD_DIRECT, {x>2}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_DIRECT, {x>2}, {}, false);
  *  closeChild();
  *  getCurrent().args = {x<=2};
  *  closeChild();
@@ -112,12 +112,12 @@ struct TreeProofNode
  *  openChild();
  *  setCurrent(SCOPE, {}, {}, false);
  *  openChild();
- *  setCurrent(CAD_DIRECT, {x*x<1}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_DIRECT, {x*x<1}, {}, false);
  *  closeChild();
  *  getCurrent().args = {x>=1};
  *  closeChild();
  *  // Finish split
- *  setCurrent(CAD_SPLIT, {}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_RECURSIVE, {}, {}, false);
  *  closeChild();
  *  closeChild();
  *

@@ -36,7 +36,7 @@ def test_is_null(solver):
     assert not res_null.isNotEntailed()
     assert not res_null.isEntailmentUnknown()
     u_sort = solver.mkUninterpretedSort("u")
-    x = solver.mkVar(u_sort, "x")
+    x = solver.mkConst(u_sort, "x")
     solver.assertFormula(x.eqTerm(x))
     res = solver.checkSat()
     assert not res.isNull()
@@ -44,7 +44,7 @@ def test_is_null(solver):
 
 def test_eq(solver):
     u_sort = solver.mkUninterpretedSort("u")
-    x = solver.mkVar(u_sort, "x")
+    x = solver.mkConst(u_sort, "x")
     solver.assertFormula(x.eqTerm(x))
     res2 = solver.checkSat()
     res3 = solver.checkSat()
@@ -55,7 +55,7 @@ def test_eq(solver):
 
 def test_is_sat(solver):
     u_sort = solver.mkUninterpretedSort("u")
-    x = solver.mkVar(u_sort, "x")
+    x = solver.mkConst(u_sort, "x")
     solver.assertFormula(x.eqTerm(x))
     res = solver.checkSat()
     assert res.isSat()
@@ -64,7 +64,7 @@ def test_is_sat(solver):
 
 def test_is_unsat(solver):
     u_sort = solver.mkUninterpretedSort("u")
-    x = solver.mkVar(u_sort, "x")
+    x = solver.mkConst(u_sort, "x")
     solver.assertFormula(x.eqTerm(x).notTerm())
     res = solver.checkSat()
     assert res.isUnsat()
@@ -76,7 +76,7 @@ def test_is_sat_unknown(solver):
     solver.setOption("incremental", "false")
     solver.setOption("solve-int-as-bv", "32")
     int_sort = solver.getIntegerSort()
-    x = solver.mkVar(int_sort, "x")
+    x = solver.mkConst(int_sort, "x")
     solver.assertFormula(x.eqTerm(x).notTerm())
     res = solver.checkSat()
     assert not res.isSat()
@@ -104,7 +104,7 @@ def test_is_entailment_unknown(solver):
     solver.setOption("incremental", "false")
     solver.setOption("solve-int-as-bv", "32")
     int_sort = solver.getIntegerSort()
-    x = solver.mkVar(int_sort, "x")
+    x = solver.mkConst(int_sort, "x")
     solver.assertFormula(x.eqTerm(x).notTerm())
     res = solver.checkEntailed(x.eqTerm(x))
     assert not res.isEntailed()
