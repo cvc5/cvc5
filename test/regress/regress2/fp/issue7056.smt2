@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs
+; DISABLE-TESTER: proof
 ; DISABLE-TESTER: unsat-core
 ; timeout with unsat cores
 (set-logic ALL)

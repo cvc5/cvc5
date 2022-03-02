@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 ; DISABLE-TESTER: model
 (set-logic ALL)

@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_AUFLIA)
 (declare-const a (Array Int Int))

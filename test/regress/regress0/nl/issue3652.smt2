@@ -1,4 +1,3 @@
-;COMMAND-LINE:
 ;REQUIRES: poly
 ;EXPECT: sat
 (set-logic QF_NRA)

@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; REQUIRES: poly
 (set-logic NRA)
 (set-info :status sat)

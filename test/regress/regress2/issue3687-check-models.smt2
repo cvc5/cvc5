@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_ABV)
 (declare-fun c () (_ BitVec 32))

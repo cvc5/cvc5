@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; REQUIRES: poly
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)

@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; timeout with unsat cores
