@@ -20,6 +20,7 @@
 #include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "util/cardinality.h"
+#include "theory/strings/seq_unit_op.h"
 
 namespace cvc5 {
 namespace theory {
@@ -328,7 +329,7 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::SEQ_UNIT && n.hasOperator()
          && n.getOperator().getKind() == kind::SEQ_UNIT_OP);
 
-  SeqUnitOp op = n.getOperator().getConst<SeqUnitOp>();
+  const SeqUnitOp& op = n.getOperator().getConst<SeqUnitOp>();
   TypeNode otype = op.getType();
   if (check)
   {
