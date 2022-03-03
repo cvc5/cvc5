@@ -31,8 +31,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env) : QueryGenerator(env) {}
-void QueryGeneratorSampleSat::initialize(const std::vector<Node>& vars, SygusSampler* ss)
+QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env) : QueryGenerator(env)
+{
+}
+void QueryGeneratorSampleSat::initialize(const std::vector<Node>& vars,
+                                         SygusSampler* ss)
 {
   Assert(ss != nullptr);
   d_queryCount = 0;
@@ -53,7 +56,8 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
   }
   d_terms.insert(nn);
 
-  Trace("sygus-qgen") << "QueryGeneratorSampleSat::addTerm : " << n << std::endl;
+  Trace("sygus-qgen") << "QueryGeneratorSampleSat::addTerm : " << n
+                      << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
   // TODO : as an optimization, use a shared lazy trie?
@@ -157,7 +161,9 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
   return true;
 }
 
-void QueryGeneratorSampleSat::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
+void QueryGeneratorSampleSat::checkQuery(Node qy,
+                                         unsigned spIndex,
+                                         std::ostream& out)
 {
   if (d_allQueries.find(qy) != d_allQueries.end())
   {

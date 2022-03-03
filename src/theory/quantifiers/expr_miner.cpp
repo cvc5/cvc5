@@ -15,11 +15,12 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include <sstream>
+
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include <sstream>
 
 using namespace std;
 using namespace cvc5::kind;

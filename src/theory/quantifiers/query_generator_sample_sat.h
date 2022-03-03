@@ -21,9 +21,10 @@
 
 #include <map>
 #include <unordered_set>
+
 #include "expr/node.h"
-#include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {

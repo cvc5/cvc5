@@ -26,8 +26,8 @@
 #include "expr/variadic_trie.h"
 #include "options/options.h"
 #include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
 namespace theory {

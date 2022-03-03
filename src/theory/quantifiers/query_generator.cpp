@@ -54,7 +54,7 @@ void QueryGenerator::dumpQuery(Node qy, const Result& r)
       return;
     }
   }
-  
+
   Node kqy = convertToSkolem(qy);
   // Print the query to to queryN.smt2
   std::stringstream fname;

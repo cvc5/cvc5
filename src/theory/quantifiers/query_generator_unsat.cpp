@@ -24,8 +24,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
-    : QueryGenerator(env)
+QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
