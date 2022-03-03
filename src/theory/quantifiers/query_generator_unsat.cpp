@@ -25,7 +25,7 @@ namespace theory {
 namespace quantifiers {
 
 QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
-    : ExprMiner(env), d_queryCount(0)
+    : QueryGenerator(env)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

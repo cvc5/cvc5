@@ -31,20 +31,20 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGenerator::QueryGenerator(Env& env) : ExprMiner(env), d_queryCount(0) {}
-void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
+QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env) : QueryGenerator(env) {}
+void QueryGeneratorSampleSat::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   Assert(ss != nullptr);
   d_queryCount = 0;
   ExprMiner::initialize(vars, ss);
 }
 
-void QueryGenerator::setThreshold(unsigned deqThresh)
+void QueryGeneratorSampleSat::setThreshold(unsigned deqThresh)
 {
   d_deqThresh = deqThresh;
 }
 
-bool QueryGenerator::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
 {
   Node nn = n.getKind() == NOT ? n[0] : n;
   if (d_terms.find(nn) != d_terms.end())
@@ -53,7 +53,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   }
   d_terms.insert(nn);
 
-  Trace("sygus-qgen") << "QueryGenerator::addTerm : " << n << std::endl;
+  Trace("sygus-qgen") << "QueryGeneratorSampleSat::addTerm : " << n << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
   // TODO : as an optimization, use a shared lazy trie?
@@ -157,7 +157,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   return true;
 }
 
-void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
+void QueryGeneratorSampleSat::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
 {
   if (d_allQueries.find(qy) != d_allQueries.end())
   {
@@ -209,19 +209,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex, std::ostream& out)
   d_queryCount++;
 }
 
-void QueryGenerator::dumpQuery(Node qy)
-{
-  Node kqy = convertToSkolem(qy);
-  // Print the query to to queryN.smt2
-  std::stringstream fname;
-  fname << "query" << d_queryCount << ".smt2";
-  std::ofstream fs(fname.str(), std::ofstream::out);
-  smt::PrintBenchmark pb(&d_env.getPrinter());
-  pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {kqy});
-  fs.close();
-}
-
-void QueryGenerator::findQueries(
+void QueryGeneratorSampleSat::findQueries(
     Node n,
     std::vector<Node>& queries,
     std::vector<std::vector<unsigned>>& queriesPtTrue)
