@@ -103,7 +103,7 @@ void LfscPrinter::print(std::ostream& out,
       // SMT-LIB. (cvc5-projects/issues/466) We should disable printing quote
       // escapes in the smt2 printing of LFSC converted terms.
       Node cc = nm->mkBoundVar(cname, stc);
-      // print construct/tester
+      // print constructor/tester
       preamble << "(declare " << cc << " term)" << std::endl;
       for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
       {
