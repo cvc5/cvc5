@@ -37,14 +37,6 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
   d_subOptions.smt.checkModels = true;
 }
 
-void QueryGeneratorUnsat::initialize(const std::vector<Node>& vars,
-                                     SygusSampler* ss)
-{
-  Assert(ss != nullptr);
-  d_queryCount = 0;
-  ExprMiner::initialize(vars, ss);
-}
-
 bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
   d_terms.push_back(n);

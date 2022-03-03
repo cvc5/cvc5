@@ -49,7 +49,7 @@ void QueryGenerator::dumpQuery(Node qy, const Result& r)
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::UNSOLVED)
   {
-    if (r.asSatisfiabilityResult().isSat() != Result::UNKNOWN)
+    if (r.asSatisfiabilityResult().isSat() == Result::SAT || r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       return;
     }

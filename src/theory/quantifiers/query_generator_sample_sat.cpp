@@ -34,13 +34,6 @@ namespace quantifiers {
 QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env) : QueryGenerator(env)
 {
 }
-void QueryGeneratorSampleSat::initialize(const std::vector<Node>& vars,
-                                         SygusSampler* ss)
-{
-  Assert(ss != nullptr);
-  d_queryCount = 0;
-  ExprMiner::initialize(vars, ss);
-}
 
 void QueryGeneratorSampleSat::setThreshold(unsigned deqThresh)
 {
@@ -172,11 +165,6 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
   d_allQueries.insert(qy);
   out << "(query " << qy << ")" << std::endl;
   // external query
-  if (options().quantifiers.sygusQueryGenDumpFiles
-      == options::SygusQueryDumpFilesMode::ALL)
-  {
-    dumpQuery(qy);
-  }
 
   Result r;
   if (options().quantifiers.sygusQueryGenCheck)

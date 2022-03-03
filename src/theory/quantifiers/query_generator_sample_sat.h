@@ -55,9 +55,6 @@ class QueryGeneratorSampleSat : public QueryGenerator
  public:
   QueryGeneratorSampleSat(Env& env);
   ~QueryGeneratorSampleSat() {}
-  /** initialize */
-  void initialize(const std::vector<Node>& vars,
-                  SygusSampler* ss = nullptr) override;
   /**
    * Add term to this module. This may trigger the printing and/or checking of
    * new queries.
