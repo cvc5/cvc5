@@ -331,7 +331,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 #ifdef CVC5_ASSERTIONS
           RewriteResponse r2 =
               d_theoryRewriters[newTheoryId]->postRewrite(newNode);
-          Assert(r2.d_node == newNode) << "Non-idempotent rewriting: " <<< r2.d_node << " != " << newNode;
+          Assert(r2.d_node == newNode) << "Non-idempotent rewriting: " << r2.d_node << " != " << newNode;
 #endif
           rewriteStackTop.d_node = newNode;
           break;
