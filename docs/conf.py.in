@@ -121,7 +121,7 @@ examples_file_patterns = {
                 'urlname': 'examples{}',
         },
         '<z3pycompat>(.*)': {
-                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
+                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
                 'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
                 'urlname': 'cvc5_z3py_compat:{}',
         }
