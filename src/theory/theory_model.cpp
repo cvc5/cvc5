@@ -784,7 +784,7 @@ bool TheoryModel::isBaseModelValue(TNode n) const
   }
   Kind k = n.getKind();
   if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-      || k == kind::WITNESS || k == kind::PI)
+      || k == kind::WITNESS)
   {
     // we are a value if we are one of the above kinds
     return true;
@@ -826,8 +826,17 @@ bool TheoryModel::isValue(TNode n) const
         finishedComputing = true;
         currentReturn = true;
       }
-      else if (cur.getNumChildren() == 0 || rewrite(cur) != cur)
+      else if (cur.getNumChildren() == 0)
       {
+        // PI is a (non-base) value. We require it as a special case here
+        // since nullary operators are represented internal as variables.
+        // All other non-constant terms with zero children are not values.
+        finishedComputing = true;
+        currentReturn = (cur.getKind() == kind::PI);
+      }
+      else if (rewrite(cur) != cur)
+      {
+        // non-rewritten terms are never model values
         finishedComputing = true;
         currentReturn = false;
       }

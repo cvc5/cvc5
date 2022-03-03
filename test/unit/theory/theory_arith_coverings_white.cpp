@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Unit tests for the CAD module for nonlinear arithmetic.
+ * Unit tests for the coverings module for nonlinear arithmetic.
  */
 
 #ifdef CVC5_USE_POLY
@@ -26,10 +26,10 @@
 #include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "smt/proof_manager.h"
-#include "theory/arith/nl/cad/cdcac.h"
-#include "theory/arith/nl/cad/lazard_evaluation.h"
-#include "theory/arith/nl/cad/projections.h"
-#include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/coverings/cdcac.h"
+#include "theory/arith/nl/coverings/lazard_evaluation.h"
+#include "theory/arith/nl/coverings/projections.h"
+#include "theory/arith/nl/coverings_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/theory_arith.h"
@@ -47,7 +47,7 @@ using namespace cvc5::theory::arith;
 using namespace cvc5::theory::arith::nl;
 
 NodeManager* nodeManager;
-class TestTheoryWhiteArithCAD : public TestSmt
+class TestTheoryWhiteArithCoverings : public TestSmt
 {
  protected:
   void SetUp() override
@@ -55,7 +55,6 @@ class TestTheoryWhiteArithCAD : public TestSmt
     TestSmt::SetUp();
     d_realType.reset(new TypeNode(d_nodeManager->realType()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
-    Trace.on("cad-check");
     nodeManager = d_nodeManager;
   }
 
@@ -125,7 +124,7 @@ Node make_int_variable(const std::string& s)
       s, nodeManager->integerType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_univariate_isolation)
+TEST_F(TestTheoryWhiteArithCoverings, test_univariate_isolation)
 {
   poly::UPolynomial poly({-2, 2, 3, -3, -1, 1});
   auto roots = poly::isolate_real_roots(poly);
@@ -137,7 +136,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_univariate_isolation)
   EXPECT_TRUE(roots[3] == get_ran({-2, 0, 1}, 1, 2));
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_multivariate_isolation)
+TEST_F(TestTheoryWhiteArithCoverings, test_multivariate_isolation)
 {
   poly::Variable x("x");
   poly::Variable y("y");
@@ -155,7 +154,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_multivariate_isolation)
   EXPECT_TRUE(roots[0] == get_ran({-8, 0, 1}, 2, 3));
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_univariate_factorization)
+TEST_F(TestTheoryWhiteArithCoverings, test_univariate_factorization)
 {
   poly::UPolynomial poly({-24, 44, -18, -1, 1, -3, 1});
 
@@ -165,7 +164,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_univariate_factorization)
   EXPECT_EQ(factors[1], poly::UPolynomial({-24, -4, -2, -1, 1}));
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_projection)
+TEST_F(TestTheoryWhiteArithCoverings, test_projection)
 {
   // Gereon's thesis, Ex 5.1
   poly::Variable x("x");
@@ -174,7 +173,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_projection)
   poly::Polynomial p = (y + 1) * (y + 1) - x * x * x + 3 * x - 2;
   poly::Polynomial q = (x + 1) * y - 3;
 
-  auto res = cad::projectionMcCallum({p, q});
+  auto res = coverings::projectionMcCallum({p, q});
   std::sort(res.begin(), res.end());
   EXPECT_EQ(res[0], x - 1);
   EXPECT_EQ(res[1], x + 1);
@@ -200,7 +199,7 @@ poly::Polynomial up_to_poly(const poly::UPolynomial& p, poly::Variable var)
   return res;
 }
 
-TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
+TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
 {
   Rewriter* rewriter = d_slvEngine->getRewriter();
   Node a = d_nodeManager->mkVar(*d_realType);
@@ -227,7 +226,7 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
 }
 
 #ifdef CVC5_USE_COCOA
-TEST_F(TestTheoryWhiteArithCAD, lazard_eval)
+TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
 {
   poly::Variable x("x");
   poly::Variable y("y");
@@ -237,7 +236,7 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_eval)
   poly::AlgebraicNumber ay = get_ran({-2, 0, 0, 0, 1}, 1, 2);
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
-  cad::LazardEvaluation lazard;
+  coverings::LazardEvaluation lazard;
   lazard.add(x, ax);
   lazard.add(y, ay);
   lazard.add(z, az);
@@ -249,11 +248,11 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_eval)
 }
 #endif
 
-TEST_F(TestTheoryWhiteArithCAD, test_cdcac_1)
+TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 {
   Options opts;
   Env env(NodeManager::currentNM(), &opts);
-  cad::CDCAC cac(env, {});
+  coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
 
@@ -271,11 +270,11 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_1)
   std::cout << "SAT: " << cac.getModel() << std::endl;
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_cdcac_2)
+TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 {
   Options opts;
   Env env(NodeManager::currentNM(), &opts);
-  cad::CDCAC cac(env, {});
+  coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
 
@@ -297,18 +296,18 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_2)
 
   auto cover = cac.getUnsatCover();
   EXPECT_TRUE(!cover.empty());
-  auto nodes = cad::collectConstraints(cover);
+  auto nodes = coverings::collectConstraints(cover);
   std::vector<Node> ref{dummy(1), dummy(2), dummy(3), dummy(4), dummy(5)};
   std::sort(nodes.begin(), nodes.end());
   std::sort(ref.begin(), ref.end());
   EXPECT_EQ(nodes, ref);
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_cdcac_3)
+TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 {
   Options opts;
   Env env(NodeManager::currentNM(), &opts);
-  cad::CDCAC cac(env, {});
+  coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
   poly::Variable z = cac.getConstraints().varMapper()(make_real_variable("z"));
@@ -327,11 +326,11 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_3)
   std::cout << "SAT: " << cac.getModel() << std::endl;
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_cdcac_4)
+TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 {
   Options opts;
   Env env(NodeManager::currentNM(), &opts);
-  cad::CDCAC cac(env, {});
+  coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
   poly::Variable z = cac.getConstraints().varMapper()(make_real_variable("z"));
@@ -356,7 +355,7 @@ void test_delta(const std::vector<Node>& a)
 {
   Options opts;
   Env env(NodeManager::currentNM(), &opts);
-  cad::CDCAC cac(env, {});
+  coverings::CDCAC cac(env, {});
   cac.reset();
   for (const Node& n : a)
   {
@@ -373,7 +372,7 @@ void test_delta(const std::vector<Node>& a)
   }
   else
   {
-    auto mis = cad::collectConstraints(covering);
+    auto mis = coverings::collectConstraints(covering);
     std::cout << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
@@ -381,7 +380,7 @@ void test_delta(const std::vector<Node>& a)
   }
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_cdcac_proof_1)
+TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 {
   Options opts;
   // enable proofs
@@ -394,10 +393,10 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_proof_1)
   // register checkers that we need
   builtin::BuiltinProofRuleChecker btchecker(env);
   btchecker.registerTo(env.getProofNodeManager()->getChecker());
-  cad::CADProofRuleChecker checker;
+  coverings::CoveringsProofRuleChecker checker;
   checker.registerTo(env.getProofNodeManager()->getChecker());
   // do the coverings problem
-  cad::CDCAC cac(env, {});
+  coverings::CDCAC cac(env, {});
   EXPECT_TRUE(cac.getProof() != nullptr);
   cac.startNewProof();
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
@@ -424,7 +423,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_proof_1)
   EXPECT_TRUE(pg != nullptr);
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_delta_one)
+TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
 {
   std::vector<Node> a;
   Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
@@ -447,7 +446,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_delta_one)
   test_delta(a);
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_delta_two)
+TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
 {
   std::vector<Node> a;
   Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
@@ -470,7 +469,7 @@ TEST_F(TestTheoryWhiteArithCAD, test_delta_two)
   test_delta(a);
 }
 
-TEST_F(TestTheoryWhiteArithCAD, test_ran_conversion)
+TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)
 {
   RealAlgebraicNumber ran(
       std::vector<Rational>({-2, 0, 1}), Rational(1, 3), Rational(7, 3));

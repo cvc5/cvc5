@@ -798,10 +798,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 #ifdef CVC5_USE_POLY
   if (logic == LogicInfo("QF_UFNRA"))
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
+      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -815,10 +815,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
            && logic.areRealsUsed() && !logic.areIntegersUsed())
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
+      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -826,18 +826,18 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 #else
-  if (opts.arith.nlCad)
+  if (opts.arith.nlCov)
   {
-    if (opts.arith.nlCadWasSetByUser)
+    if (opts.arith.nlCovWasSetByUser)
     {
       throw OptionException(
-          "Cannot use --nl-cad without configuring with --poly.");
+          "Cannot use --nl-cov without configuring with --poly.");
     }
     else
     {
-      verbose(1) << "Cannot use --nl-cad without configuring with --poly."
+      verbose(1) << "Cannot use --nl-cov without configuring with --poly."
                  << std::endl;
-      opts.arith.nlCad = false;
+      opts.arith.nlCov = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
   }

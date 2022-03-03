@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
-#define CVC5__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__CDCAC_UTILS_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__CDCAC_UTILS_H
 
 #ifdef CVC5_POLY_IMP
 
@@ -25,13 +25,13 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/nl/cad/projections.h"
+#include "theory/arith/nl/coverings/projections.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
 /**
  * An interval as specified in section 4.1 of
@@ -104,7 +104,7 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible,
  */
 void makeFinestSquareFreeBasis(CACInterval& lhs, CACInterval& rhs);
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

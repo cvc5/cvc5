@@ -10,28 +10,28 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements variable orderings tailored to CAD.
+ * Implements variable orderings tailored to coverings.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
-#define CVC5__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
+#ifndef CVC5__THEORY__ARITH__NL__COVERINGS__VARIABLE_ORDERING_H
+#define CVC5__THEORY__ARITH__NL__COVERINGS__VARIABLE_ORDERING_H
 
 #ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
-#include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/coverings/constraints.h"
 #include "util/poly_util.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 namespace nl {
-namespace cad {
+namespace coverings {
 
-/** Variable orderings for real variables in the context of CAD. */
+/** Variable orderings for real variables in the context of coverings. */
 enum class VariableOrderingStrategy
 {
   /** Dummy ordering by variable ID. */
@@ -60,7 +60,7 @@ class VariableOrdering
 std::vector<poly_utils::VariableInformation> collectInformation(
     const Constraints::ConstraintVector& polys, bool with_totals = false);
 
-}  // namespace cad
+}  // namespace coverings
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

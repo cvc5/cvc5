@@ -24,11 +24,12 @@ endif()
 
 include(ExternalProject)
 
+set(CVC5PythonicAPI_VERSION "57d8c9d67e030a13296a94cf6ad7241f59192574")
 ExternalProject_Add(
   CVC5PythonicAPI
   ${COMMON_EP_CONFIG}
-  GIT_REPOSITORY https://github.com/cvc5/cvc5_z3py_compat.git
-  GIT_TAG main
+  URL https://github.com/cvc5/cvc5_pythonic_api/archive/${CVC5PythonicAPI_VERSION}.zip
+  URL_HASH SHA1=ebf2799dd202819645dab357b20ebd6efc1750bb
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ""

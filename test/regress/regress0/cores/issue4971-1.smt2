@@ -1,5 +1,5 @@
-; COMMAND-LINE: --incremental -q --check-unsat-cores
-; COMMAND-LINE: --incremental -q --check-unsat-cores --unsat-cores-mode=sat-proof
+; COMMAND-LINE: --incremental -q --produce-unsat-cores
+; COMMAND-LINE: --incremental -q --unsat-cores-mode=sat-proof --produce-unsat-cores
 ; EXPECT: sat
 ; EXPECT: sat
 (declare-const i2 Int)

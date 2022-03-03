@@ -1,5 +1,7 @@
-; COMMAND-LINE: --ackermann --no-check-unsat-cores
+; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
+; unsat cores throws error in debug mode
 (set-logic QF_ALIA)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

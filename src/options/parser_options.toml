@@ -9,13 +9,6 @@ name   = "Parser"
   help       = "be less tolerant of non-conforming inputs"
 
 [[option]]
-  name       = "memoryMap"
-  category   = "regular"
-  long       = "mmap"
-  type       = "bool"
-  help       = "memory map file input"
-
-[[option]]
   name       = "semanticChecks"
   long       = "semantic-checks"
   category   = "regular"

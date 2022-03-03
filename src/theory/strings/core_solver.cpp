@@ -2530,7 +2530,8 @@ void CoreSolver::checkNormalFormsDeq()
   NodeManager* nm = NodeManager::currentNM();
   Trace("str-deq") << "Process disequalites..." << std::endl;
   std::vector<Node> relevantDeqs;
-  //for each pair of disequal strings, must determine whether their lengths are equal or disequal
+  // for each pair of disequal strings, must determine whether their lengths
+  // are equal or disequal
   for (const Node& eq : deqs)
   {
     Trace("str-deq") << "- disequality " << eq << std::endl;

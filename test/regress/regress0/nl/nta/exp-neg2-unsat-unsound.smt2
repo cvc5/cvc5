@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext-tf-tplanes --no-check-models
+; COMMAND-LINE: --nl-ext-tf-tplanes -q
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (declare-fun x () Real)
