@@ -9,6 +9,7 @@
     ((Seq t) (seq.empty u))
     (String emptystr)))
 
+; Return true if s is the empty string or sequence.
 (program sc_string_is_empty ((s term)) flag
   (match s
     ((seq.empty s) tt)
