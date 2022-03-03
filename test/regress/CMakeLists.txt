@@ -126,6 +126,7 @@ set(regress_0_tests
   regress0/arrays/issue6276.smt2
   regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
+  regress0/arrays/issue8103-1-weak-equiv-models.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2

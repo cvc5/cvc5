@@ -966,6 +966,11 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
     reason << "global-negate";
     return true;
   }
+  else if (opts.arrays.arraysWeakEquivalence)
+  {
+    reason << "arrays-weak-equiv";
+    return true;
+  }
   return false;
 }
 
