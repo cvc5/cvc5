@@ -330,7 +330,6 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_UP_CLOSURE: return "SETS_UP_CLOSURE";
     case InferenceId::SETS_UP_CLOSURE_2: return "SETS_UP_CLOSURE_2";
     case InferenceId::SETS_UP_UNIV: return "SETS_UP_UNIV";
-    case InferenceId::SETS_UNIV_TYPE: return "SETS_UNIV_TYPE";
     case InferenceId::SETS_CARD_SPLIT_EMPTY: return "SETS_CARD_SPLIT_EMPTY";
     case InferenceId::SETS_CARD_CYCLE: return "SETS_CARD_CYCLE";
     case InferenceId::SETS_CARD_EQUAL: return "SETS_CARD_EQUAL";
