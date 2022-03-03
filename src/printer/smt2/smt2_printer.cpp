@@ -266,10 +266,12 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
+      TypeNode type = n.getType();
+      TypeNode elemType = type.getSequenceElementType();
       if (snvec.empty())
       {
         out << "(as seq.empty ";
-        toStreamType(out, n.getType());
+        toStreamType(out, type);
         out << ")";
       }
       else if (snvec.size() > 1)
@@ -277,13 +279,17 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "(seq.++";
         for (const Node& snvc : snvec)
         {
-          out << " (seq.unit " << snvc << ")";
+          out << " (seq.unit ";
+          toStreamCastToType(out, snvc, toDepth, elemType);
+          out << ")";
         }
         out << ")";
       }
       else
       {
-        out << "(seq.unit " << snvec[0] << ")";
+        out << "(seq.unit ";
+        toStreamCastToType(out, snvec[0], toDepth, elemType);
+        out << ")";
       }
       break;
     }

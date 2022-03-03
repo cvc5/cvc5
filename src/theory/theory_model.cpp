@@ -154,6 +154,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
+  Assert (nn.getType().isSubtypeOf(n.getType()));
   return nn;
 }
 
