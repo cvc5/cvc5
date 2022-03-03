@@ -29,6 +29,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -156,6 +157,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   for (std::pair<const TypeNode, bool> tfp : typesFound)
   {
     TypeNode tn = tfp.first;
+    // we do not allocate variables for non-first class types, e.g. regular
+    // expressions
+    if (!tn.isFirstClass())
+    {
+      continue;
+    }
     // If we are not interested in purely propositional rewrites, we only
     // need to make one Boolean variable if the input has a Boolean variable.
     // This ensures that no type in our grammar has zero constructors. If
@@ -181,6 +188,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
       varCounter++;
       Node v = nm->mkBoundVar(ssv.str(), tn);
+      Trace("srs-input") << "Make variable " << v << " of type " << tn << std::endl;
       tvars[tn].push_back(v);
       allVars.push_back(v);
       allVarTypes.push_back(tn);
@@ -299,7 +307,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     if (ct.getKind() != BOUND_VARIABLE)
     {
       Assert(!ct.isVar());
-      Node op = ct.hasOperator() ? ct.getOperator() : ct;
+      // note that some terms like re.allchar have operators despite having
+      // no children, we should take ct itself in these cases
+      Node op = (ct.getNumChildren()>0 && ct.hasOperator()) ? ct.getOperator() : ct;
       // iterate over the original term
       for (const Node& tc : t)
       {
@@ -341,6 +351,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           argListc.push_back(arg);
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
+          Trace("srs-input-cons") << "Add (nested chain) " << lambdaOp << " " << lambdaOp.getType() << std::endl;
           // ID function is not printed and does not count towards weight
           sdts[i].addConstructor(lambdaOp,
                                  sscs.str(),
@@ -355,12 +366,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argListc.push_back(recType);
         std::stringstream ssc;
         ssc << "C_" << i << "_rec_" << op;
+        Trace("srs-input-cons") << "Add (chain) " << op << " " << op.getType() << std::endl;
         sdts[i].addConstructor(op, ssc.str(), argListc);
       }
       else
       {
         std::stringstream ssc;
         ssc << "C_" << i << "_" << op;
+        Trace("srs-input-cons") << "Add " << op << " " << op.getType() << std::endl;
         sdts[i].addConstructor(op, ssc.str(), argList);
       }
     }
@@ -426,7 +439,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
-    Trace("srs-input") << tlt.getDType() << std::endl;
+    Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt) << std::endl;
   }
   Trace("srs-input") << "...finished." << std::endl;
 
