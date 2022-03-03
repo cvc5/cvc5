@@ -3159,7 +3159,8 @@ TEST_F(TestApiBlackSolver, proj_issue429)
   Solver slv;
   Sort s1 = slv.getRealSort();
   Term t6 = slv.mkConst(s1, "_x5");
-  Term t16 = slv.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
+  Term t16 =
+      slv.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
   Term t111 = slv.mkTerm(Kind::SEQ_UNIT, {t16});
   Term t119 = slv.mkTerm(slv.mkOp(Kind::SEQ_UNIT), {t6});
   Term t126 = slv.mkTerm(Kind::SEQ_PREFIX, {t111, t119});

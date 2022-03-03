@@ -728,7 +728,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   break;
-  
+
   // sets
   case kind::SET_SINGLETON:
   {
