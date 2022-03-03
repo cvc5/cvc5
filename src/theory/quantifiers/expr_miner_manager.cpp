@@ -129,7 +129,7 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
   options::SygusQueryGenMode mode = options().quantifiers.sygusQueryGen;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
-  if (mode == options::SygusQueryGenMode::SAT)
+  if (mode == options::SygusQueryGenMode::SAMPLE_SAT)
   {
     // must also enable rewrite rule synthesis
     if (!d_doRewSynth)

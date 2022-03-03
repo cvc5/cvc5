@@ -1474,9 +1474,9 @@ name   = "Quantifiers"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not generate queries with SyGuS."
-[[option.mode.SAT]]
-  name = "sat"
-  help = "Generate interesting SAT queries, for e.g. soundness testing."
+[[option.mode.SAMPLE_SAT]]
+  name = "sample-sat"
+  help = "Generate interesting SAT queries based on sampling, for e.g. soundness testing."
 [[option.mode.UNSAT]]
   name = "unsat"
   help = "Generate interesting UNSAT queries, for e.g. proof testing."
