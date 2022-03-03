@@ -395,7 +395,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
     if (rewriteStack.size() == 1) {
       Assert(!isEquality || rewriteStackTop.d_node.getKind() == kind::EQUAL
              || rewriteStackTop.d_node.isConst());
-      Assert (rewriteStackTop.getType().isSubtypeOf(node.getType()));
+      Assert (rewriteStackTop.d_node.getType().isSubtypeOf(node.getType()));
       return rewriteStackTop.d_node;
     }
 
