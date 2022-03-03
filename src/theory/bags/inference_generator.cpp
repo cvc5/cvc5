@@ -393,15 +393,14 @@ Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
   return count;
 }
 
-std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
-                                                                   Node e)
+std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
 {
   Assert(n.getKind() == BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
   Assert(e.getType() == n[0].getType().getRangeType());
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN);
 
   Node f = n[0];
   Node A = n[1];
@@ -488,19 +487,19 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
 
   std::map<Node, Node> m;
   m[e] = conclusion;
-  Trace("bags::InferenceGenerator::mapDownwards")
+  Trace("bags::InferenceGenerator::mapDown")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return std::tuple(inferInfo, uf, preImageSize);
 }
 
-InferInfo InferenceGenerator::mapUpwards(
+InferInfo InferenceGenerator::mapUp(
     Node n, Node uf, Node preImageSize, Node y, Node x)
 {
   Assert(n.getKind() == BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP);
   Node f = n[0];
   Node A = n[1];
 

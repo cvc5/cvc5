@@ -265,11 +265,11 @@ void BagSolver::checkMap(Node n)
     {
       continue;
     }
-    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
+    auto [downInference, uf, preImageSize] = d_ig.mapDown(n, y);
     d_im.lemmaTheoryInference(&downInference);
     for (const Node& x : upwards)
     {
-      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
+      InferInfo upInference = d_ig.mapUp(n, uf, preImageSize, y, x);
       d_im.lemmaTheoryInference(&upInference);
     }
     if (!d_mapCache.count(n))
