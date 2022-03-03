@@ -1,5 +1,5 @@
-; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 (declare-heap (Int Int))
 (assert sep.emp)

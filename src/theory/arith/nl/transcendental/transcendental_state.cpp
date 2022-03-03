@@ -73,19 +73,19 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   d_funcMap.clear();
   d_tf_region.clear();
 
+  Trace("nl-ext-trans-init") << "TranscendentalState::init" << std::endl;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
   NodeMap::const_iterator itp;
-  for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
+  for (const Node& a : xts)
   {
+    Kind ak = a.getKind();
     // Ignore if it is not a transcendental
-    if (!isTranscendentalKind(xts[i].getKind()))
+    if (!isTranscendentalKind(ak))
     {
       continue;
     }
-    Node a = xts[i];
-    Kind ak = a.getKind();
     bool consider = true;
     // if we've already assigned a purified term
     itp = d_trPurify.find(a);
@@ -118,6 +118,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
         d_trPurifies[a] = a;
       }
     }
+    Trace("nl-ext-trans-init") << "extf: " << a << ", consider=" << consider << std::endl;
     if (!consider)
     {
       // must assign a purified term
@@ -188,6 +189,7 @@ void TranscendentalState::ensureCongruence(TNode a,
     Assert(aa.getNumChildren() == a.getNumChildren());
     Node mvaa = d_model.computeAbstractModelValue(a);
     Node mvaaa = d_model.computeAbstractModelValue(aa);
+    Trace("nl-ext-trans-init") << "...congruent to " << aa << std::endl;
     if (mvaa != mvaaa)
     {
       std::vector<Node> exp;
@@ -198,12 +200,14 @@ void TranscendentalState::ensureCongruence(TNode a,
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       Node cong_lemma = expn.impNode(a.eqNode(aa));
       d_im.addPendingLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
+      Trace("nl-ext-trans-init") << "...needs lemma" << std::endl;
     }
   }
   else
   {
     // new representative of congruence class
     d_funcMap[a.getKind()].push_back(a);
+    Trace("nl-ext-trans-init") << "...new rep" << std::endl;
   }
   // add to congruence class
   d_funcCongClass[aa].push_back(a);

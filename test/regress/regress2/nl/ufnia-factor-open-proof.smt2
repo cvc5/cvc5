@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-unsat-cores
 (set-logic QF_UFNIA)
 (set-info :status unsat)
 (declare-fun p2 (Int) Int)

@@ -1,4 +1,6 @@
-; COMMAND-LINE: --seq-array=eager --no-check-unsat-cores
+; COMMAND-LINE: --seq-array=eager
+; DISABLE-TESTER: unsat-core
+; timeout with unsat cores
 (set-logic QF_SLIA)
 (set-info :status unsat)
 

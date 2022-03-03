@@ -259,6 +259,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
 
 Node buildIntegerEquality(Sum&& sum)
 {
+  Trace("arith-rewriter") << "building integer inequality from " << sum << std::endl;
   normalizeGCDLCM(sum);
 
   const auto& constant = *sum.begin();
@@ -289,6 +290,7 @@ Node buildIntegerEquality(Sum&& sum)
 
 Node buildRealEquality(Sum&& sum)
 {
+  Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(sum);
   if (isZero(lterm.second))
   {
@@ -304,6 +306,7 @@ Node buildRealEquality(Sum&& sum)
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
 {
+  Trace("arith-rewriter") << "building integer equality from " << sum << std::endl;
   bool negate = normalizeGCDLCM(sum, true);
 
   if (negate)
@@ -329,6 +332,7 @@ Node buildIntegerInequality(Sum&& sum, Kind k)
 
 Node buildRealInequality(Sum&& sum, Kind k)
 {
+  Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(-removeConstant(sum));
   return buildRelation(k, collectSum(sum), rhs);

@@ -1,6 +1,6 @@
-; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=sum --no-check-models
-; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=bv --no-check-models
-; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=iand --no-check-models
+; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=sum
+; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=bv
+; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=iand
 ; EXPECT: sat
 (set-logic BV)
 (declare-fun s () (_ BitVec 4))

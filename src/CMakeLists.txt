@@ -422,6 +422,8 @@ libcvc5_add_sources(
   theory/arith/nl/coverings/cdcac.h
   theory/arith/nl/coverings/cdcac_utils.cpp
   theory/arith/nl/coverings/cdcac_utils.h
+  theory/arith/nl/coverings/cocoa_converter.cpp
+  theory/arith/nl/coverings/cocoa_converter.h
   theory/arith/nl/coverings/constraints.cpp
   theory/arith/nl/coverings/constraints.h
   theory/arith/nl/coverings/lazard_evaluation.cpp
