@@ -3113,26 +3113,6 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   slv.checkSat();
   ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
-/*
-TEST_F(TestApiBlackSolver, proj_issue423)
-{
-  Solver slv;
-  slv.setOption("produce-models", "true");
-  slv.setOption("produce-difficulty", "true");
-  Sort s2 = slv.getRealSort();
-  Sort s3 = slv.mkSequenceSort(s2);
-  Term t2;
-  {
-    t2 = slv.mkEmptySequence(s3);
-  }
-  Term t22 = slv.mkReal("119605652059157009");
-  Term t32 = slv.mkTerm(Kind::SEQ_UNIT, {t22});
-  Term t43 = slv.mkTerm(Kind::SEQ_CONCAT, {t2, t32});
-  Term t51 = slv.mkTerm(Kind::DISTINCT, {t32, t32});
-  slv.checkSat();
-  ASSERT_NO_THROW(slv.blockModelValues({t51, t43}));
-}
-*/
 TEST_F(TestApiBlackSolver, proj_issue426)
 {
   Solver slv;
@@ -3154,20 +3134,6 @@ TEST_F(TestApiBlackSolver, proj_issue426)
   slv.checkSat();
   ASSERT_NO_THROW(slv.getValue({t5}));
 }
-
-/*
-TEST_F(TestApiBlackSolver, proj_issue429)
-{
-  Solver slv;
-  Sort s1 = slv.getRealSort();
-  Term t6 = slv.mkConst(s1, "_x5");
-  Term t16 = slv.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
-  Term t111 = slv.mkTerm(Kind::SEQ_UNIT, {t16});
-  Term t119 = slv.mkTerm(slv.mkOp(Kind::SEQ_UNIT), {t6});
-  Term t126 = slv.mkTerm(Kind::SEQ_PREFIX, {t111, t119});
-  ASSERT_NO_THROW(slv.checkEntailed({t126}));
-}
-*/
 
 }  // namespace test
 }  // namespace cvc5
