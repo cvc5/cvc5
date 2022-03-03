@@ -294,13 +294,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
         || ct.getKind() == BOUND_VARIABLE)
     {
-      Assert(tvars.find(ctt) != tvars.end())
-          << "Unexpected type " << ctt << " for " << ct;
-      for (const Node& v : tvars[ctt])
+      // may or may not have variables for this type
+      if (tvars.find(ctt) != tvars.end())
       {
-        std::stringstream ssc;
-        ssc << "C_" << i << "_" << v;
-        sdts[i].addConstructor(v, ssc.str(), argList);
+        for (const Node& v : tvars[ctt])
+        {
+          std::stringstream ssc;
+          ssc << "C_" << i << "_" << v;
+          sdts[i].addConstructor(v, ssc.str(), argList);
+        }
       }
     }
     // add the constructor for the operator if it is not a variable
