@@ -221,7 +221,15 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     if (!isHol)
     {
       std::stringstream ss;
-      ss << "Partial function applications are only supported with "
+      if (k == kind::HO_APPLY)
+      {
+        ss << "Partial function applications";
+      }
+      else
+      {
+        ss << "Function variables";
+      }
+      ss << " are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }

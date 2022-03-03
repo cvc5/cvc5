@@ -19,7 +19,6 @@ sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
 # path to python api
 sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
-sys.path.insert(0, '${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP')
 
 if("${BUILD_BINDINGS_PYTHON}" == "ON"):
         tags.add('bindings_python')
