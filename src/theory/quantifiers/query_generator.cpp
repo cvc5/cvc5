@@ -41,6 +41,7 @@ void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 void QueryGenerator::dumpQuery(Node qy, const Result& r)
 {
+  d_queryCount++;
   // return if we should not dump the query based on the options
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::NONE)

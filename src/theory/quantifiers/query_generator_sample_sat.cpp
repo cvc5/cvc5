@@ -190,8 +190,6 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     AlwaysAssert(false) << ss.str();
   }
   dumpQuery(qy, r);
-
-  d_queryCount++;
 }
 
 void QueryGeneratorSampleSat::findQueries(
