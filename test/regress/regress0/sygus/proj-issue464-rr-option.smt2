@@ -1,4 +1,4 @@
-; SCRUBBER: grep -v -E '(\(define-fun'
+; SCRUBBER: grep -v -E '\(define-fun'
 ; EXPECT: (error "SyGuS solution filtering requires the grammar to generate Boolean terms only")
 ; EXIT: 1
 (set-logic ALL)
