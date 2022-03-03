@@ -19,12 +19,8 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
 #define CVC5__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
 
-#include <map>
-#include <unordered_set>
 #include "expr/node.h"
 #include "theory/quantifiers/expr_miner.h"
-#include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
 namespace theory {
@@ -32,22 +28,8 @@ namespace quantifiers {
 
 /** QueryGenerator
  *
- * This module is used for finding satisfiable queries that are maximally
- * likely to trigger an unsound response in an SMT solver. These queries are
- * mined from a stream of enumerated expressions. We judge likelihood of
- * triggering unsoundness by the frequency at which the query is satisfied.
- *
- * In detail, given a stream of expressions t_1, ..., t_{n-1}, upon generating
- * term t_n, we consider a query (not) t_n = t_i to be an interesting query
- * if it is satisfied by at most D points, where D is a predefined threshold
- * given by the sygusQueryGenThresh option. If t_n has type Bool, we
- * additionally consider the case where t_n is satisfied (or not satisfied) by
- * fewer than D points.
- *
- * In addition to generating single literal queries, this module also generates
- * conjunctive queries, for instance, by remembering that literals L1 and L2
- * were both satisfied by the same point, and thus L1 ^ L2 is an interesting
- * query as well.
+ * This is the base class for modules that print queries based on sygus
+ * enumeration.
  */
 class QueryGenerator : public ExprMiner
 {
