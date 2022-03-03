@@ -37,6 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 
@@ -2843,7 +2844,7 @@ cdef class Solver:
         result.cterm  = self.csolver.getAbductNext()
         return result
 
-    def blockModel(self):
+    def blockModel(self, mode):
         """
             Block the current model. Can be called only if immediately preceded
             by a SAT or INVALID query.
@@ -2862,8 +2863,10 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
+
+            :param mode: The mode to use for blocking
         """
-        self.csolver.blockModel()
+        self.csolver.blockModel(<c_BlockModelsMode> mode.value)
 
     def blockModelValues(self, terms):
         """
