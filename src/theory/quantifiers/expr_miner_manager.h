@@ -110,7 +110,7 @@ class ExpressionMinerManager : protected EnvObj
   /** query generator */
   std::unique_ptr<QueryGeneratorUnsat> d_qgu;
   /** The query generator we are using */
-  QueryGenerator * d_qg;
+  QueryGenerator* d_qg;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
   /** sygus sampler object */

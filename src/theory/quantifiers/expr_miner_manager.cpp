@@ -121,7 +121,7 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
 
 void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
 {
-  if (d_qg!=nullptr)
+  if (d_qg != nullptr)
   {
     // already enabled
     return;
@@ -193,7 +193,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   }
 
   // a unique term, let's try the query generator
-  if (ret && d_qg!=nullptr)
+  if (ret && d_qg != nullptr)
   {
     d_qg->addTerm(solb, out);
   }
