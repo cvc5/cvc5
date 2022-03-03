@@ -66,6 +66,21 @@ void QueryGenerator::dumpQuery(Node qy, const Result& r)
   fs.close();
 }
 
+QueryGeneratorBasic::QueryGeneratorBasic(Env& env) : QueryGenerator(env)
+{
+}
+
+bool QueryGeneratorBasic::addTerm(Node n, std::ostream& out)
+{
+  Assert(n.getType().isBoolean());
+  out << "(query " << n << ")" << std::endl;
+  std::unique_ptr<SolverEngine> queryChecker;
+  initializeChecker(queryChecker, n);
+  Result r = queryChecker->checkSat();
+  dumpQuery(n, r);
+  return true;
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5

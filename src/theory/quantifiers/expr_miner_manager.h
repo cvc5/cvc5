@@ -106,6 +106,8 @@ class ExpressionMinerManager : protected EnvObj
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** query generator */
+  std::unique_ptr<QueryGeneratorBasic> d_qgb;
+  /** query generator */
   std::unique_ptr<QueryGeneratorSampleSat> d_qgss;
   /** query generator */
   std::unique_ptr<QueryGeneratorUnsat> d_qgu;

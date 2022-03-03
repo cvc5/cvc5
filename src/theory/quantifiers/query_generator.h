@@ -49,6 +49,23 @@ class QueryGenerator : public ExprMiner
   void dumpQuery(Node qy, const Result& r);
 };
 
+/**
+ * QueryGeneratorBasic
+ *
+ * Generates query based on the sygus enumeration only.
+ */
+class QueryGeneratorBasic : public QueryGenerator
+{
+ public:
+  QueryGeneratorBasic(Env& env);
+  ~QueryGeneratorBasic() {}
+  /**
+   * Add term to this module. This may trigger the printing and/or checking of
+   * new queries.
+   */
+  bool addTerm(Node n, std::ostream& out) override;
+};
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5

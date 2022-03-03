@@ -167,30 +167,27 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
   // external query
 
   Result r;
-  if (options().quantifiers.sygusQueryGenCheck)
+  Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+  // make the satisfiability query
+  std::unique_ptr<SolverEngine> queryChecker;
+  initializeChecker(queryChecker, qy);
+  r = queryChecker->checkSat();
+  Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
-    // make the satisfiability query
-    std::unique_ptr<SolverEngine> queryChecker;
-    initializeChecker(queryChecker, qy);
-    r = queryChecker->checkSat();
-    Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    std::stringstream ss;
+    ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy
+        << "!" << std::endl;
+    ss << "This query has a model : " << std::endl;
+    std::vector<Node> pt;
+    d_sampler->getSamplePoint(spIndex, pt);
+    Assert(pt.size() == d_vars.size());
+    for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
-      std::stringstream ss;
-      ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy
-         << "!" << std::endl;
-      ss << "This query has a model : " << std::endl;
-      std::vector<Node> pt;
-      d_sampler->getSamplePoint(spIndex, pt);
-      Assert(pt.size() == d_vars.size());
-      for (unsigned i = 0, size = pt.size(); i < size; i++)
-      {
-        ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
-      }
-      ss << "but cvc5 answered unsat!" << std::endl;
-      AlwaysAssert(false) << ss.str();
+      ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
     }
+    ss << "but cvc5 answered unsat!" << std::endl;
+    AlwaysAssert(false) << ss.str();
   }
   dumpQuery(qy, r);
 

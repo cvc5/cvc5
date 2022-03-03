@@ -151,6 +151,12 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
     d_qgu->initialize(vars, &d_sampler);
     d_qg = d_qgu.get();
   }
+  else if (mode == options::SygusQueryGenMode::BASIC)
+  {
+    d_qgb = std::make_unique<QueryGeneratorBasic>(d_env);
+    d_qgb->initialize(vars, &d_sampler);
+    d_qg = d_qgb.get();
+  }
 }
 
 void ExpressionMinerManager::enableFilterWeakSolutions()
