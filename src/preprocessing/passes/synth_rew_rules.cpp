@@ -24,12 +24,12 @@
 #include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
+#include "printer/smt2/smt2_printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
-#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -188,7 +188,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
       varCounter++;
       Node v = nm->mkBoundVar(ssv.str(), tn);
-      Trace("srs-input") << "Make variable " << v << " of type " << tn << std::endl;
+      Trace("srs-input") << "Make variable " << v << " of type " << tn
+                         << std::endl;
       tvars[tn].push_back(v);
       allVars.push_back(v);
       allVarTypes.push_back(tn);
@@ -311,7 +312,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       Assert(!ct.isVar());
       // note that some terms like re.allchar have operators despite having
       // no children, we should take ct itself in these cases
-      Node op = (ct.getNumChildren()>0 && ct.hasOperator()) ? ct.getOperator() : ct;
+      Node op =
+          (ct.getNumChildren() > 0 && ct.hasOperator()) ? ct.getOperator() : ct;
       // iterate over the original term
       for (const Node& tc : t)
       {
@@ -353,7 +355,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           argListc.push_back(arg);
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
-          Trace("srs-input-cons") << "Add (nested chain) " << lambdaOp << " " << lambdaOp.getType() << std::endl;
+          Trace("srs-input-cons") << "Add (nested chain) " << lambdaOp << " "
+                                  << lambdaOp.getType() << std::endl;
           // ID function is not printed and does not count towards weight
           sdts[i].addConstructor(lambdaOp,
                                  sscs.str(),
@@ -368,14 +371,16 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argListc.push_back(recType);
         std::stringstream ssc;
         ssc << "C_" << i << "_rec_" << op;
-        Trace("srs-input-cons") << "Add (chain) " << op << " " << op.getType() << std::endl;
+        Trace("srs-input-cons")
+            << "Add (chain) " << op << " " << op.getType() << std::endl;
         sdts[i].addConstructor(op, ssc.str(), argListc);
       }
       else
       {
         std::stringstream ssc;
         ssc << "C_" << i << "_" << op;
-        Trace("srs-input-cons") << "Add " << op << " " << op.getType() << std::endl;
+        Trace("srs-input-cons")
+            << "Add " << op << " " << op.getType() << std::endl;
         sdts[i].addConstructor(op, ssc.str(), argList);
       }
     }
@@ -441,7 +446,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
-    Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt) << std::endl;
+    Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt)
+                       << std::endl;
   }
   Trace("srs-input") << "...finished." << std::endl;
 
