@@ -144,7 +144,6 @@ void SineSolver::doReductions()
           d_data->addModelBoundForPurifyTerm(tf, mvs, mvs);
         }
         reduced = true;
-        break;
       }
     }
     if (!reduced)

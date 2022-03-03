@@ -91,28 +91,6 @@ Node TermRegistry::getUnivSet(TypeNode tn)
   }
   NodeManager* nm = NodeManager::currentNM();
   Node n = nm->mkNullaryOperator(tn, SET_UNIVERSE);
-  for (it = d_univset.begin(); it != d_univset.end(); ++it)
-  {
-    Node n1;
-    Node n2;
-    if (tn.isSubtypeOf(it->first))
-    {
-      n1 = n;
-      n2 = it->second;
-    }
-    else if (it->first.isSubtypeOf(tn))
-    {
-      n1 = it->second;
-      n2 = n;
-    }
-    if (!n1.isNull())
-    {
-      Node ulem = nm->mkNode(SET_SUBSET, n1, n2);
-      Trace("sets-lemma") << "Sets::Lemma : " << ulem << " by univ-type"
-                          << std::endl;
-      d_im.lemma(ulem, InferenceId::SETS_UNIV_TYPE);
-    }
-  }
   d_univset[tn] = n;
   return n;
 }
