@@ -21,8 +21,8 @@
 
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
-#include "smt/print_benchmark.h"
 #include "smt/logic_exception.h"
+#include "smt/print_benchmark.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -72,14 +72,13 @@ void QueryGenerator::ensureBoolean(const Node& n) const
   if (!n.getType().isBoolean())
   {
     std::stringstream ss;
-    ss << "SyGuS query generation in the current mode requires the grammar to generate Boolean terms only";
+    ss << "SyGuS query generation in the current mode requires the grammar to "
+          "generate Boolean terms only";
     throw LogicException(ss.str());
   }
 }
 
-QueryGeneratorBasic::QueryGeneratorBasic(Env& env) : QueryGenerator(env)
-{
-}
+QueryGeneratorBasic::QueryGeneratorBasic(Env& env) : QueryGenerator(env) {}
 
 bool QueryGeneratorBasic::addTerm(Node n, std::ostream& out)
 {
