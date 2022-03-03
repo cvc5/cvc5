@@ -1,3 +1,4 @@
+; COMMAND-LINE: --no-produce-proofs
 ; DISABLE-TESTER: proof
 ; DISABLE-TESTER: unsat-core
 ; timeout with unsat cores

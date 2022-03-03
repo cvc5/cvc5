@@ -1,4 +1,4 @@
-; COMMAND-LINE: --full-saturate-quant --multi-trigger-cache
+; COMMAND-LINE: --full-saturate-quant --multi-trigger-cache --no-produce-proofs
 ; EXPECT: unsat
 (set-logic AUFLIRA)
 (set-info :status unsat)
