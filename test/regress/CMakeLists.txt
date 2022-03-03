@@ -1165,6 +1165,7 @@ set(regress_0_tests
   regress0/seq/proj-issue384-2-subtypes.smt2
   regress0/seq/proj-issue427-subtypes-value.smt2
   regress0/seq/quant_len_trigger.smt2
+  regress0/seq/query0-subtype-skel.smt2
   regress0/seq/rev.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
   regress0/seq/array/array1.smt2
