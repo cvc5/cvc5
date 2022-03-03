@@ -57,6 +57,7 @@
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -130,12 +131,12 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
     {HO_APPLY, cvc5::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
-    {PLUS, cvc5::Kind::PLUS},
+    {ADD, cvc5::Kind::ADD},
     {MULT, cvc5::Kind::MULT},
     {IAND, cvc5::Kind::IAND},
     {POW2, cvc5::Kind::POW2},
-    {MINUS, cvc5::Kind::MINUS},
-    {UMINUS, cvc5::Kind::UMINUS},
+    {SUB, cvc5::Kind::SUB},
+    {NEG, cvc5::Kind::NEG},
     {DIVISION, cvc5::Kind::DIVISION},
     {INTS_DIVISION, cvc5::Kind::INTS_DIVISION},
     {INTS_MODULUS, cvc5::Kind::INTS_MODULUS},
@@ -230,13 +231,13 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_LT, cvc5::Kind::FLOATINGPOINT_LT},
     {FLOATINGPOINT_GEQ, cvc5::Kind::FLOATINGPOINT_GEQ},
     {FLOATINGPOINT_GT, cvc5::Kind::FLOATINGPOINT_GT},
-    {FLOATINGPOINT_ISN, cvc5::Kind::FLOATINGPOINT_ISN},
-    {FLOATINGPOINT_ISSN, cvc5::Kind::FLOATINGPOINT_ISSN},
-    {FLOATINGPOINT_ISZ, cvc5::Kind::FLOATINGPOINT_ISZ},
-    {FLOATINGPOINT_ISINF, cvc5::Kind::FLOATINGPOINT_ISINF},
-    {FLOATINGPOINT_ISNAN, cvc5::Kind::FLOATINGPOINT_ISNAN},
-    {FLOATINGPOINT_ISNEG, cvc5::Kind::FLOATINGPOINT_ISNEG},
-    {FLOATINGPOINT_ISPOS, cvc5::Kind::FLOATINGPOINT_ISPOS},
+    {FLOATINGPOINT_IS_NORMAL, cvc5::Kind::FLOATINGPOINT_IS_NORMAL},
+    {FLOATINGPOINT_IS_SUBNORMAL, cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL},
+    {FLOATINGPOINT_IS_ZERO, cvc5::Kind::FLOATINGPOINT_IS_ZERO},
+    {FLOATINGPOINT_IS_INF, cvc5::Kind::FLOATINGPOINT_IS_INF},
+    {FLOATINGPOINT_IS_NAN, cvc5::Kind::FLOATINGPOINT_IS_NAN},
+    {FLOATINGPOINT_IS_NEG, cvc5::Kind::FLOATINGPOINT_IS_NEG},
+    {FLOATINGPOINT_IS_POS, cvc5::Kind::FLOATINGPOINT_IS_POS},
     {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
      cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
     {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
@@ -312,7 +313,9 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET},
     {BAG_TO_SET, cvc5::Kind::BAG_TO_SET},
     {BAG_MAP, cvc5::Kind::BAG_MAP},
+    {BAG_FILTER, cvc5::Kind::BAG_FILTER},
     {BAG_FOLD, cvc5::Kind::BAG_FOLD},
+    {TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
@@ -411,12 +414,12 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
         {cvc5::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
-        {cvc5::Kind::PLUS, PLUS},
+        {cvc5::Kind::ADD, ADD},
         {cvc5::Kind::MULT, MULT},
         {cvc5::Kind::IAND, IAND},
         {cvc5::Kind::POW2, POW2},
-        {cvc5::Kind::MINUS, MINUS},
-        {cvc5::Kind::UMINUS, UMINUS},
+        {cvc5::Kind::SUB, SUB},
+        {cvc5::Kind::NEG, NEG},
         {cvc5::Kind::DIVISION, DIVISION},
         {cvc5::Kind::DIVISION_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::INTS_DIVISION, INTS_DIVISION},
@@ -523,13 +526,13 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::FLOATINGPOINT_LT, FLOATINGPOINT_LT},
         {cvc5::Kind::FLOATINGPOINT_GEQ, FLOATINGPOINT_GEQ},
         {cvc5::Kind::FLOATINGPOINT_GT, FLOATINGPOINT_GT},
-        {cvc5::Kind::FLOATINGPOINT_ISN, FLOATINGPOINT_ISN},
-        {cvc5::Kind::FLOATINGPOINT_ISSN, FLOATINGPOINT_ISSN},
-        {cvc5::Kind::FLOATINGPOINT_ISZ, FLOATINGPOINT_ISZ},
-        {cvc5::Kind::FLOATINGPOINT_ISINF, FLOATINGPOINT_ISINF},
-        {cvc5::Kind::FLOATINGPOINT_ISNAN, FLOATINGPOINT_ISNAN},
-        {cvc5::Kind::FLOATINGPOINT_ISNEG, FLOATINGPOINT_ISNEG},
-        {cvc5::Kind::FLOATINGPOINT_ISPOS, FLOATINGPOINT_ISPOS},
+        {cvc5::Kind::FLOATINGPOINT_IS_NORMAL, FLOATINGPOINT_IS_NORMAL},
+        {cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL, FLOATINGPOINT_IS_SUBNORMAL},
+        {cvc5::Kind::FLOATINGPOINT_IS_ZERO, FLOATINGPOINT_IS_ZERO},
+        {cvc5::Kind::FLOATINGPOINT_IS_INF, FLOATINGPOINT_IS_INF},
+        {cvc5::Kind::FLOATINGPOINT_IS_NAN, FLOATINGPOINT_IS_NAN},
+        {cvc5::Kind::FLOATINGPOINT_IS_NEG, FLOATINGPOINT_IS_NEG},
+        {cvc5::Kind::FLOATINGPOINT_IS_POS, FLOATINGPOINT_IS_POS},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
          FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
@@ -624,7 +627,9 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
         {cvc5::Kind::BAG_MAP, BAG_MAP},
+        {cvc5::Kind::BAG_FILTER, BAG_FILTER},
         {cvc5::Kind::BAG_FOLD, BAG_FOLD},
+        {cvc5::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -5183,8 +5188,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   Node res;
   if (echildren.size() > 2)
   {
-    if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
-        || kind == DIVISION || kind == HO_APPLY || kind == REGEXP_DIFF)
+    if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
+        || kind == HO_APPLY || kind == REGEXP_DIFF)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nodeMgr->mkLeftAssociative(k, echildren);
@@ -5429,6 +5434,34 @@ bool Solver::isValidInteger(const std::string& s) const
   }
 
   return true;
+}
+
+void Solver::ensureWellFormedTerm(const Term& t) const
+{
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
+  {
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+    {
+      std::stringstream se;
+      se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
+         << " variable";
+      throw CVC5ApiException(se.str().c_str());
+    }
+  }
+}
+
+void Solver::ensureWellFormedTerms(const std::vector<Term>& ts) const
+{
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
+  {
+    for (const Term& t : ts)
+    {
+      ensureWellFormedTerm(t);
+    }
+  }
 }
 
 void Solver::resetStatistics()
@@ -6029,7 +6062,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6039,7 +6072,7 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6049,7 +6082,7 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6059,7 +6092,7 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6069,7 +6102,7 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
+Term Solver::mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -6627,6 +6660,7 @@ Result Solver::checkEntailed(const Term& term) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   return d_slv->checkEntailed(*term.d_node);
   ////////
@@ -6641,6 +6675,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
   return d_slv->checkEntailed(Term::termVectorToNodes(terms));
   ////////
@@ -6655,6 +6690,7 @@ void Solver::assertFormula(const Term& term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, getBooleanSort());
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   d_slv->assertFormula(*term.d_node);
   ////////
@@ -6682,6 +6718,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
+  ensureWellFormedTerm(assumption);
   //////// all checks before this line
   return d_slv->checkSat(*assumption.d_node);
   ////////
@@ -6696,6 +6733,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
+  ensureWellFormedTerms(assumptions);
   //////// all checks before this line
   for (const Term& term : assumptions)
   {
@@ -7282,6 +7320,7 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
       << "Cannot get value of a term of non-well-founded datatype sort.";
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7305,6 +7344,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
         << "Cannot get value of a term of non-well-founded datatype sort.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
 
   std::vector<Term> res;
@@ -7640,6 +7680,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
   d_slv->blockModelValues(Term::termVectorToNodes(terms));
   ////////

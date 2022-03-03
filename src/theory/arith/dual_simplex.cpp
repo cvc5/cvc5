@@ -61,12 +61,10 @@ DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Assert(d_conflictVariables.empty());
 
-  static thread_local unsigned int instance = 0;
-  instance = instance + 1;
   d_pivots = 0;
 
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
-    Debug("arith::findModel") << "dualFindModel("<< instance <<") trivial" << endl;
+    Debug("arith::findModel") << "dualFindModel() trivial" << endl;
     return Result::SAT;
   }
 
@@ -77,15 +75,15 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   if(processSignals()){
     d_conflictVariables.purge();
 
-    Debug("arith::findModel") << "dualFindModel("<< instance <<") early conflict" << endl;
+    Debug("arith::findModel") << "dualFindModel() early conflict" << endl;
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("arith::findModel") << "dualFindModel("<< instance <<") fixed itself" << endl;
+    Debug("arith::findModel") << "dualFindModel() fixed itself" << endl;
     Assert(!d_errorSet.moreSignals());
     return Result::SAT;
   }
 
-  Debug("arith::findModel") << "dualFindModel(" << instance <<") start non-trivial" << endl;
+  Debug("arith::findModel") << "dualFindModel() start non-trivial" << endl;
 
   Result::Sat result = Result::SAT_UNKNOWN;
 
@@ -136,7 +134,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   // ensure that the conflict variable is still in the queue.
   d_conflictVariables.purge();
 
-  Debug("arith::findModel") << "end findModel() " << instance << " " << result <<  endl;
+  Debug("arith::findModel") << "end findModel() " << result << endl;
 
   return result;
 }

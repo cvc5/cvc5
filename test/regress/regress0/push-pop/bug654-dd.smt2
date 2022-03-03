@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --incremental --fmf-fun --strings-exp
+; DISABLE-TESTER: model
 (set-logic ALL)
 (declare-datatypes ((List_T_C 0) (T_CustomerType 0)) (
 ((List_T_C$CNil_T_CustomerType) (ListTC (ListTC$head T_CustomerType) (ListTC$tail List_T_C)))

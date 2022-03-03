@@ -66,14 +66,12 @@ class CVC5_EXPORT SymbolTable
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
-   * @param levelZero set if the binding must be done at level 0
    * @param doOverload set if the binding can overload the function name.
    *
    * Returns false if the binding was invalid.
    */
   bool bind(const std::string& name,
             api::Term obj,
-            bool levelZero = false,
             bool doOverload = false);
 
   /**
@@ -85,9 +83,8 @@ class CVC5_EXPORT SymbolTable
    *
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
-   * @param levelZero set if the binding must be done at level 0
    */
-  void bindType(const std::string& name, api::Sort t, bool levelZero = false);
+  void bindType(const std::string& name, api::Sort t);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -99,13 +96,10 @@ class CVC5_EXPORT SymbolTable
    * @param name an identifier
    * @param params the parameters to the type
    * @param t the type to bind to <code>name</code>
-   * @param levelZero true to bind it globally (default is to bind it
-   * locally within the current scope)
    */
   void bindType(const std::string& name,
                 const std::vector<api::Sort>& params,
-                api::Sort t,
-                bool levelZero = false);
+                api::Sort t);
 
   /**
    * Check whether a name is bound to an expression with bind().

@@ -81,7 +81,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Debug("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
-  ResourceManager* rm = d_env.getResourceManager();
 
   options::DecisionMode dmode = options().decision.decisionMode;
   if (dmode == options::DecisionMode::JUSTIFICATION
@@ -106,11 +105,10 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // theory proxy first
   d_theoryProxy = new TheoryProxy(
       d_env, this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get());
-  d_cnfStream = new CnfStream(d_satSolver,
+  d_cnfStream = new CnfStream(env,
+                              d_satSolver,
                               d_theoryProxy,
                               userContext,
-                              &d_env,
-                              rm,
                               FormulaLitPolicy::TRACK,
                               "prop");
 
@@ -127,10 +125,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   if (satProofs)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext,
+        env,
         *d_cnfStream,
-        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
-        pnm));
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
@@ -228,8 +225,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options().smt.unsatCores);
+  // should have a proof generator if the theory engine is proof producing
+  Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -383,7 +380,7 @@ Result PropEngine::checkSat() {
   }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    ResourceManager* rm = d_env.getResourceManager();
+    ResourceManager* rm = resourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
     if (rm->outOfTime())
     {

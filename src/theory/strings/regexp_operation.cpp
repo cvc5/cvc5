@@ -929,7 +929,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
         nm->mkNode(AND, nm->mkNode(GT, b1, zero), nm->mkNode(GEQ, lens, b1));
     // internal
     Node s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
-    Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+    Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(SUB, lens, b1));
     Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[0]).negate();
     Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r).negate();
 
@@ -984,12 +984,12 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   if (index == 0)
   {
     s1 = nm->mkNode(STRING_SUBSTR, s, zero, b1);
-    s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+    s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(SUB, lens, b1));
   }
   else
   {
-    s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
-    s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(MINUS, lens, b1));
+    s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(SUB, lens, b1), b1);
+    s2 = nm->mkNode(STRING_SUBSTR, s, zero, nm->mkNode(SUB, lens, b1));
   }
   Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[index]).negate();
   std::vector<Node> nvec;

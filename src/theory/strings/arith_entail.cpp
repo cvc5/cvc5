@@ -54,7 +54,7 @@ bool ArithEntail::check(Node a, Node b, bool strict)
   {
     return !strict;
   }
-  Node diff = NodeManager::currentNM()->mkNode(kind::MINUS, a, b);
+  Node diff = NodeManager::currentNM()->mkNode(kind::SUB, a, b);
   return check(diff, strict);
 }
 
@@ -76,10 +76,9 @@ bool ArithEntail::check(Node a, bool strict)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
 
-  Node ar =
-      strict ? NodeManager::currentNM()->mkNode(
-          kind::MINUS, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
-             : a;
+  Node ar = strict ? NodeManager::currentNM()->mkNode(
+                kind::SUB, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
+                   : a;
   ar = d_rr->rewrite(ar);
 
   if (ar.getAttribute(StrCheckEntailArithComputedAttr()))
@@ -202,7 +201,7 @@ bool ArithEntail::checkApprox(Node ar)
   // get the current "fixed" sum for the abstraction of ar
   Node aar = aarSum.empty()
                  ? d_zero
-                 : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(PLUS, aarSum));
+                 : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(ADD, aarSum));
   aar = d_rr->rewrite(aar);
   Trace("strings-ent-approx-debug")
       << "...processed fixed sum " << aar << " with " << mApprox.size()
@@ -329,7 +328,7 @@ bool ArithEntail::checkApprox(Node ar)
       Assert(!v.isNull() && !vapprox.isNull());
       Assert(msum.find(v) != msum.end());
       Node mn = ArithMSum::mkCoeffTerm(msum[v], vapprox);
-      aar = nm->mkNode(PLUS, aar, mn);
+      aar = nm->mkNode(ADD, aar, mn);
       // update the msumAar map
       aar = d_rr->rewrite(aar);
       msumAar.clear();
@@ -378,9 +377,9 @@ void ArithEntail::getArithApproximations(Node a,
                                          bool isOverApprox)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // We do not handle PLUS here since this leads to exponential behavior.
+  // We do not handle ADD here since this leads to exponential behavior.
   // Instead, this is managed, e.g. during checkApprox, where
-  // PLUS terms are expanded "on-demand" during the reasoning.
+  // ADD terms are expanded "on-demand" during the reasoning.
   Trace("strings-ent-approx-debug")
       << "Get arith approximations " << a << std::endl;
   Kind ak = a.getKind();
@@ -417,7 +416,7 @@ void ArithEntail::getArithApproximations(Node a,
         {
           // n <= len( x ) implies
           //   len( x ) - n >= len( substr( x, n, m ) )
-          approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
+          approx.push_back(nm->mkNode(SUB, lenx, a[0][1]));
         }
         else
         {
@@ -429,7 +428,7 @@ void ArithEntail::getArithApproximations(Node a,
       {
         // 0 <= n and n+m <= len( x ) implies
         //   m <= len( substr( x, n, m ) )
-        Node npm = nm->mkNode(PLUS, a[0][1], a[0][2]);
+        Node npm = nm->mkNode(ADD, a[0][1], a[0][2]);
         if (check(a[0][1]) && check(lenx, npm))
         {
           approx.push_back(a[0][2]);
@@ -438,7 +437,7 @@ void ArithEntail::getArithApproximations(Node a,
         //   len(x)-n <= len( substr( x, n, m ) )
         if (check(a[0][1]) && check(npm, lenx))
         {
-          approx.push_back(nm->mkNode(MINUS, lenx, a[0][1]));
+          approx.push_back(nm->mkNode(SUB, lenx, a[0][1]));
         }
       }
     }
@@ -460,7 +459,7 @@ void ArithEntail::getArithApproximations(Node a,
         else
         {
           // len( x ) + len( z ) >= len( replace( x, y, z ) )
-          approx.push_back(nm->mkNode(PLUS, lenx, lenz));
+          approx.push_back(nm->mkNode(ADD, lenx, lenz));
         }
       }
       else
@@ -474,7 +473,7 @@ void ArithEntail::getArithApproximations(Node a,
         else
         {
           // len( x ) - len( y ) <= len( replace( x, y, z ) )
-          approx.push_back(nm->mkNode(MINUS, lenx, leny));
+          approx.push_back(nm->mkNode(SUB, lenx, leny));
         }
       }
     }
@@ -496,7 +495,7 @@ void ArithEntail::getArithApproximations(Node a,
             // x >= 0 implies
             //   x+1 >= len( int.to.str( x ) )
             approx.push_back(
-                nm->mkNode(PLUS, nm->mkConstInt(Rational(1)), a[0][0]));
+                nm->mkNode(ADD, nm->mkConstInt(Rational(1)), a[0][0]));
           }
         }
       }
@@ -524,7 +523,7 @@ void ArithEntail::getArithApproximations(Node a,
       {
         // len( x ) >= len( y ) implies
         //   len( x ) - len( y ) >= indexof( x, y, n )
-        approx.push_back(nm->mkNode(MINUS, lenx, leny));
+        approx.push_back(nm->mkNode(SUB, lenx, leny));
       }
       else
       {
@@ -576,8 +575,8 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
     Node curr = toVisit.back();
     toVisit.pop_back();
 
-    if (curr.getKind() == kind::PLUS || curr.getKind() == kind::MULT
-        || curr.getKind() == kind::MINUS || curr.getKind() == kind::EQUAL)
+    if (curr.getKind() == kind::ADD || curr.getKind() == kind::MULT
+        || curr.getKind() == kind::SUB || curr.getKind() == kind::EQUAL)
     {
       for (const auto& currChild : curr)
       {
@@ -660,18 +659,17 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       // (not (>= s t)) --> (>= (t - 1) s)
       Assert(assumption.getKind() == kind::NOT
              && assumption[0].getKind() == kind::GEQ);
-      x = nm->mkNode(
-          kind::MINUS, assumption[0][1], nm->mkConstInt(Rational(1)));
+      x = nm->mkNode(kind::SUB, assumption[0][1], nm->mkConstInt(Rational(1)));
       y = assumption[0][0];
     }
 
     Node s = nm->mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(kind::STRING_LENGTH, s);
     assumption = d_rr->rewrite(
-        nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
+        nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::ADD, y, slen)));
   }
 
-  Node diff = nm->mkNode(kind::MINUS, a, b);
+  Node diff = nm->mkNode(kind::SUB, a, b);
   bool res = false;
   if (assumption.isConst())
   {
@@ -782,7 +780,7 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
       ret = d_zero;
     }
   }
-  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
+  else if (a.getKind() == kind::ADD || a.getKind() == kind::MULT)
   {
     std::vector<Node> children;
     bool success = true;
@@ -918,7 +916,7 @@ bool ArithEntail::checkInternal(Node a)
     // str.len( t ) >= 0
     return true;
   }
-  else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
+  else if (a.getKind() == kind::ADD || a.getKind() == kind::MULT)
   {
     for (unsigned i = 0; i < a.getNumChildren(); i++)
     {
@@ -943,7 +941,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
   NodeManager* nm = NodeManager::currentNM();
 
   // Check if we can show that y1 + ... + yn >= x
-  Node sum = (ys.size() > 1) ? nm->mkNode(PLUS, ys) : ys[0];
+  Node sum = (ys.size() > 1) ? nm->mkNode(ADD, ys) : ys[0];
   if (!check(sum, x))
   {
     return false;
@@ -962,7 +960,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
     std::vector<Node>::iterator pos = ys.erase(ys.begin() + i);
     if (ys.size() > 1)
     {
-      sum = nm->mkNode(PLUS, ys);
+      sum = nm->mkNode(ADD, ys);
     }
     else
     {

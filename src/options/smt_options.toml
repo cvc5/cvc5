@@ -73,6 +73,14 @@ name   = "SMT Layer"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
+  name       = "modelVarElimUneval"
+  category   = "expert"
+  long       = "model-var-elim-uneval"
+  type       = "bool"
+  default    = "true"
+  help       = "allow variable elimination based on unevaluatable terms to variables"
+
+[[option]]
   name       = "modelCoresMode"
   category   = "regular"
   long       = "model-cores=MODE"
@@ -164,15 +172,27 @@ name   = "SMT Layer"
   help = "Do not produce unsat cores."
 [[option.mode.SAT_PROOF]]
   name = "sat-proof"
-  help = "Produce unsat cores from SAT and preprocessing proofs."
-[[option.mode.FULL_PROOF]]
-  name = "full-proof"
-  help = "Produce unsat cores from full proofs."
+  help = "Produce unsat cores from the SAT proof and prepocessing proofs."
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+
+[[option]]
+  name       = "proofMode"
+  category   = "expert"
+  long       = "proof-mode=MODE"
+  type       = "ProofMode"
+  default    = "OFF"
+  help       = "choose proof mode, see --proof-mode=help"
+  help_mode  = "proof modes."
+[[option.mode.OFF]]
+  name = "off"
 [[option.mode.PP_ONLY]]
   name = "pp-only"
+[[option.mode.SAT]]
+  name = "sat-proof"
+[[option.mode.FULL]]
+  name = "full-proof"
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -215,6 +235,9 @@ name   = "SMT Layer"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
   name = "lemma-literal"
+  help = "Difficulty of an assertion is how many lemmas (at full effort) use a literal that the assertion depends on to be satisfied."
+[[option.mode.LEMMA_LITERAL_ALL]]
+  name = "lemma-literal-all"
   help = "Difficulty of an assertion is how many lemmas use a literal that the assertion depends on to be satisfied."
 [[option.mode.MODEL_CHECK]]
   name = "model-check"
@@ -242,7 +265,8 @@ name   = "SMT Layer"
   long       = "produce-assertions"
   type       = "bool"
   alias      = ["interactive-mode"]
-  help       = "keep an assertions list (enables get-assertions command)"
+  default    = "true"
+  help       = "keep an assertions list. Note this option is always enabled."
 
 [[option]]
   name       = "doITESimp"
@@ -262,18 +286,20 @@ name   = "SMT Layer"
 [[option]]
   name       = "extRewPrep"
   category   = "regular"
-  long       = "ext-rew-prep"
-  type       = "bool"
-  default    = "false"
-  help       = "use extended rewriter as a preprocessing pass"
-
-[[option]]
-  name       = "extRewPrepAgg"
-  category   = "regular"
-  long       = "ext-rew-prep-agg"
-  type       = "bool"
-  default    = "false"
-  help       = "use aggressive extended rewriter as a preprocessing pass"
+  long       = "ext-rew-prep=MODE"
+  type       = "ExtRewPrepMode"
+  default    = "OFF"
+  help       = "mode for using extended rewriter as a preprocessing pass, see --ext-rew-prep=help"
+  help_mode  = "extended rewriter preprocessing pass modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "do not use extended rewriter as a preprocessing pass."
+[[option.mode.USE]]
+  name = "use"
+  help = "use extended rewriter as a preprocessing pass."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "use aggressive extended rewriter as a preprocessing pass."
 
 [[option]]
   name       = "simplifyWithCareEnabled"
@@ -356,15 +382,6 @@ name   = "SMT Layer"
 [[option.mode.None]]
   name = "none"
   help = "(default) do not print declarations of uninterpreted elements in models."
-
-
-[[option]]
-  name       = "modelWitnessValue"
-  category   = "regular"
-  long       = "model-witness-value"
-  type       = "bool"
-  default    = "false"
-  help       = "in models, use a witness constant for choice functions"
 
 [[option]]
   name       = "foreignTheoryRewrite"

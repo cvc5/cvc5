@@ -153,7 +153,7 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   /* Optimization objective:
       cost1 + cost2
   */
-  Node cost3 = d_nodeManager->mkNode(kind::PLUS, cost1, cost2);
+  Node cost3 = d_nodeManager->mkNode(kind::ADD, cost1, cost2);
 
   d_optslv->addObjective(cost3, OptimizationObjective::MINIMIZE);
 

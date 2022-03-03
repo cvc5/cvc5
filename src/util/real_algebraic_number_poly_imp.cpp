@@ -61,7 +61,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
   else
   {
     d_value = poly::AlgebraicNumber(
-        poly::UPolynomial({numerator(pr), -denominator(pr)}),
+        poly::UPolynomial({-numerator(pr), denominator(pr)}),
         poly::DyadicInterval(floor(pr), ceil(pr)));
   }
 #endif

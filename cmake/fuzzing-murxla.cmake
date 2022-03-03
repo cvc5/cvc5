@@ -14,21 +14,12 @@
 # Murxla_FOUND - system has Murxla
 ##
 
-if(NOT IS_DIRECTORY "${CMAKE_BINARY_DIR}/murxla")
-  # this is only necessary while the murxla repository is private
-  add_custom_target(fuzz-murxla
-    COMMAND echo "To enable make fuzz-murxla run"
-    COMMAND echo "git clone git@github.com:murxla/murxla.git ${CMAKE_BINARY_DIR}/murxla"
-  )
-  return()
-endif()
-
 include(ExternalProject)
 
-set(Murxla_COMMIT "afc5744766d6aa61ad5b7ea27007666ac7a5aec2")
+set(Murxla_COMMIT "9ba2583")
 
 add_custom_target(install-for-murxla
-  COMMAND ${CMAKE_MAKE_PROGRAM} install DESTDIR=murxla-install
+  COMMAND DESTDIR=murxla-install ${CMAKE_MAKE_PROGRAM} install
   DEPENDS cvc5-bin
 )
 
@@ -36,8 +27,8 @@ ExternalProject_Add(
   Murxla-EP
   EXCLUDE_FROM_ALL ON
   ${COMMON_EP_CONFIG}
-  #URL https://github.com/murxla/murxla/archive/${Murxla_COMMIT}.tar.gz
-  #URL_HASH SHA1=da39a3ee5e6b4b0d3255bfef95601890afd80709
+  URL https://github.com/murxla/murxla/archive/${Murxla_COMMIT}.tar.gz
+  URL_HASH SHA1=176e325344a94250c4f4f6df3a9d2d01d6529a26
   SOURCE_DIR ${CMAKE_BINARY_DIR}/murxla
   CMAKE_ARGS
     -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/
@@ -54,6 +45,8 @@ set(MURXLA_BINARY "deps/bin/murxla")
 add_custom_target(fuzz-murxla
   COMMAND echo ""
   COMMAND echo "Run Murxla as follows:"
-  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 --cvc5"
+  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} -t 1 -d --cvc5"
+  COMMAND echo "Convert traces to SMT-LIB as follows:"
+  COMMAND echo "  LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/ ${MURXLA_BINARY} --smt2 -u \\<filename\\>"
   DEPENDS Murxla-EP
 )
