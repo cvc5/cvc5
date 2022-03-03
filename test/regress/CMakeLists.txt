@@ -65,6 +65,7 @@ set(regress_0_tests
   regress0/arith/issue5219-conflict-rewrite.smt2
   regress0/arith/issue5761-ppr.smt2
   regress0/arith/issue8097-iid.smt2
+  regress0/arith/issue8159-rewrite-intreal.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -799,6 +800,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8182-exact-mv-keep.smt2
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
   regress0/nl/nta/issue8183-tc-pi.smt2
+  regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
   regress0/nl/nta/real-pi.smt2
@@ -1214,6 +1216,10 @@ set(regress_0_tests
   regress0/sets/insert.smt2
   regress0/sets/int-real-univ-unsat.smt2
   regress0/sets/int-real-univ.smt2
+  regress0/sets/issue5400-card-minus-univ.smt2
+  regress0/sets/issue5400-2-card-minus-univ.smt2
+  regress0/sets/issue5402-1-card.smt2
+  regress0/sets/issue5402-2-card-finite.smt2 
   regress0/sets/jan24/deepmeas0.hs.fqout.cvc4.47.smt2
   regress0/sets/jan24/deepmeas0.hs.fqout.small.smt2
   regress0/sets/jan27/ListConcat.hs.fqout.177minimized.smt2

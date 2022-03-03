@@ -54,6 +54,14 @@ using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
 std::ostream& operator<<(std::ostream& os, const Sum& sum);
 
 /**
+ * Check whether the given sum can be rewritten as an integer expression. This
+ * differs from checking the node type in a major way: rational
+ * constants are always integral, as they are rewritten to integers by simple
+ * multiplication with their denominator.
+ */
+bool isIntegral(const Sum& sum);
+
+/**
  * Add the arithmetic term `n` to the given sum. If negate is true, actually add
  * `-n`. If `n` is itself a sum, it automatically flattens it into `sum` (though
  * it should not be a deeply nested sum, as it simply recurses). Otherwise, `n`

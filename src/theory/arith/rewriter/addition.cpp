@@ -139,6 +139,35 @@ Node collectSumWithBase(const Sum& sum,
 }
 }
 
+bool isIntegral(const Sum& sum)
+{
+  std::vector<TNode> queue;
+  for (const auto& s: sum)
+  {
+    queue.emplace_back(s.first);
+  }
+  while (!queue.empty())
+  {
+    TNode cur = queue.back();
+    queue.pop_back();
+
+    if (cur.isConst()) continue;
+    switch (cur.getKind())
+    {
+      case Kind::ADD:
+      case Kind::NEG:
+      case Kind::SUB:
+      case Kind::MULT:
+      case Kind::NONLINEAR_MULT:
+        queue.insert(queue.end(), cur.begin(), cur.end());
+        break;
+      default:
+        if (!cur.getType().isInteger()) return false;
+    }
+  }
+  return true;
+}
+
 void addToSum(Sum& sum, TNode n, bool negate)
 {
   if (n.getKind() == Kind::ADD)
