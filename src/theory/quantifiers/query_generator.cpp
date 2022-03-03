@@ -38,8 +38,23 @@ void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
   ExprMiner::initialize(vars, ss);
 }
 
-void QueryGenerator::dumpQuery(Node qy)
+void QueryGenerator::dumpQuery(Node qy, const Result& r)
 {
+  // return if we should not dump the query based on the options
+  if (options().quantifiers.sygusQueryGenDumpFiles
+      == options::SygusQueryDumpFilesMode::NONE)
+  {
+    return;
+  }
+  if (options().quantifiers.sygusQueryGenDumpFiles
+      == options::SygusQueryDumpFilesMode::UNSOLVED)
+  {
+    if (r.asSatisfiabilityResult().isSat() != Result::UNKNOWN)
+    {
+      return;
+    }
+  }
+  
   Node kqy = convertToSkolem(qy);
   // Print the query to to queryN.smt2
   std::stringstream fname;

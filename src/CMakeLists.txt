@@ -864,6 +864,8 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
+  theory/quantifiers/query_generator_sample_sat.cpp
+  theory/quantifiers/query_generator_sample_sat.h
   theory/quantifiers/query_generator_unsat.cpp
   theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp

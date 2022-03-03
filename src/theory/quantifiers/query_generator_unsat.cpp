@@ -154,6 +154,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
     Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
   }
+  dumpQuery(qy, r);
   return r;
 }
 

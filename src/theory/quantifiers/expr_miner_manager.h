@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/query_generator_sample_sat.h"
 #include "theory/quantifiers/query_generator_unsat.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -108,7 +108,7 @@ class ExpressionMinerManager : protected EnvObj
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** query generator */
-  std::unique_ptr<QueryGenerator> d_qg;
+  std::unique_ptr<QueryGeneratorSampleSat> d_qg;
   /** query generator */
   std::unique_ptr<QueryGeneratorUnsat> d_qgu;
   /** solution filter based on logical strength */

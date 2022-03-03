@@ -139,7 +139,7 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
       enableRewriteRuleSynth();
       d_crd.setSilent(true);
     }
-    d_qg = std::make_unique<QueryGenerator>(d_env);
+    d_qg = std::make_unique<QueryGeneratorSampleSat>(d_env);
     // initialize the query generator
     d_qg->initialize(vars, &d_sampler);
     d_qg->setThreshold(deqThresh);

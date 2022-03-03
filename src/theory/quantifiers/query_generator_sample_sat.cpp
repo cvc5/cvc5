@@ -172,6 +172,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy, unsigned spIndex, std::ostream
     dumpQuery(qy);
   }
 
+  Result r;
   if (options().quantifiers.sygusQueryGenCheck)
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
@@ -196,15 +197,8 @@ void QueryGeneratorSampleSat::checkQuery(Node qy, unsigned spIndex, std::ostream
       ss << "but cvc5 answered unsat!" << std::endl;
       AlwaysAssert(false) << ss.str();
     }
-    if (options().quantifiers.sygusQueryGenDumpFiles
-        == options::SygusQueryDumpFilesMode::UNSOLVED)
-    {
-      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
-      {
-        dumpQuery(qy);
-      }
-    }
   }
+  dumpQuery(qy, r);
 
   d_queryCount++;
 }

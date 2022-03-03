@@ -69,6 +69,8 @@ class QueryGeneratorSampleSat : public QueryGenerator
   void setThreshold(unsigned deqThresh);
 
  private:
+  /** cache of all terms registered to this generator */
+  std::unordered_set<Node> d_terms;
   /** the threshold used by this module for maximum number of sat points */
   unsigned d_deqThresh;
   /**

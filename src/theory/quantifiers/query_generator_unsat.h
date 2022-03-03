@@ -72,6 +72,8 @@ class QueryGeneratorUnsat : public QueryGenerator
   /** Constant nodes */
   Node d_true;
   Node d_false;
+  /** cache of all terms registered to this generator */
+  std::vector<Node> d_terms;
   /** containing the unsat cores */
   VariadicTrie d_cores;
   /** The options for subsolver calls */
