@@ -1331,6 +1331,7 @@ set(regress_0_tests
   regress0/strings/issue5745-eager-pp.smt2
   regress0/strings/issue5767-eager-pp.smt2
   regress0/strings/issue5771-eager-pp.smt2
+  regress0/strings/issue5815-ndet-string-ent.smt2
   regress0/strings/issue5816-re-kind.smt2
   regress0/strings/issue5915-repl-ctn-rewrite.smt2
   regress0/strings/issue6203-3-unfold-trivial-true.smt2
