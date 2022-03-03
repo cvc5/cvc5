@@ -3135,7 +3135,6 @@ TEST_F(TestApiBlackSolver, proj_issue426)
   ASSERT_NO_THROW(slv.getValue({t5}));
 }
 
-/*
 TEST_F(TestApiBlackSolver, proj_issue423)
 {
   Solver slv;
@@ -3154,7 +3153,6 @@ TEST_F(TestApiBlackSolver, proj_issue423)
   slv.checkSat();
   slv.blockModelValues({t51, t43});
 }
-*/
 
 TEST_F(TestApiBlackSolver, proj_issue429)
 {

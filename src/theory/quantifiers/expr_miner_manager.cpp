@@ -17,7 +17,6 @@
 
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
-#include "theory/datatypes/sygus_datatype_utils.h"
 
 namespace cvc5 {
 namespace theory {
@@ -178,7 +177,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   Node solb = sol;
   if (d_use_sygus_type)
   {
-    solb = datatypes::utils::sygusToBuiltin(sol, true);  
+    solb = d_tds->sygusToBuiltin(sol);
   }
 
   // add to the candidate rewrite rule database
