@@ -20,8 +20,8 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
-#include "util/random.h"
 #include "smt/logic_exception.h"
+#include "util/random.h"
 
 using namespace cvc5::kind;
 
