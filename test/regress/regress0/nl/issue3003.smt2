@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext=none --no-check-models
+; COMMAND-LINE: --nl-ext=none
 ; EXPECT: sat
 ; REQUIRES: poly
 (set-logic QF_NRA)

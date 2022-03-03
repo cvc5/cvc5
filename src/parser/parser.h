@@ -390,9 +390,6 @@ public:
 
   /** Create a new cvc5 variable expression of the given type.
    *
-   * It is inserted at context level zero in the symbol table if levelZero is
-   * true, or if we are using global declarations.
-   *
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the
@@ -400,14 +397,10 @@ public:
    */
   api::Term bindVar(const std::string& name,
                     const api::Sort& type,
-                    bool levelZero = false,
                     bool doOverload = false);
 
   /**
    * Create a set of new cvc5 variable expressions of the given type.
-   *
-   * It is inserted at context level zero in the symbol table if levelZero is
-   * true, or if we are using global declarations.
    *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
@@ -416,7 +409,6 @@ public:
    */
   std::vector<api::Term> bindVars(const std::vector<std::string> names,
                                   const api::Sort& type,
-                                  bool levelZero = false,
                                   bool doOverload = false);
 
   /**
@@ -444,7 +436,6 @@ public:
                                        const api::Sort& type);
 
   /** Create a new variable definition (e.g., from a let binding).
-   * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the
@@ -452,7 +443,6 @@ public:
    */
   void defineVar(const std::string& name,
                  const api::Term& val,
-                 bool levelZero = false,
                  bool doOverload = false);
 
   /**
@@ -460,15 +450,12 @@ public:
    *
    * @param name The name of the type
    * @param type The type that should be associated with the name
-   * @param levelZero If true, the type definition is considered global and
-   *                  cannot be removed by popping the user context
    * @param skipExisting If true, the type definition is ignored if the same
    *                     symbol has already been defined. It is assumed that
    *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
                   const api::Sort& type,
-                  bool levelZero = false,
                   bool skipExisting = false);
 
   /**
@@ -477,13 +464,10 @@ public:
    * @param name The name of the type
    * @param params The type parameters
    * @param type The type that should be associated with the name
-   * @param levelZero If true, the type definition is considered global and
-   *                  cannot be removed by poppoing the user context
    */
   void defineType(const std::string& name,
                   const std::vector<api::Sort>& params,
-                  const api::Sort& type,
-                  bool levelZero = false);
+                  const api::Sort& type);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,

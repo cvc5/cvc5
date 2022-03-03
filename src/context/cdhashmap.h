@@ -203,28 +203,16 @@ class CDOhash_map : public ContextObj
   CDOhash_map(Context* context,
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
-              const Data& data,
-              bool atLevelZero = false)
+              const Data& data)
       : ContextObj(false, context), d_value(key, data), d_map(NULL)
   {
-    if (atLevelZero)
-    {
-      // "Initializing" map insertion: this entry will never be
-      // removed from the map, it's inserted at level 0 as an
-      // "initializing" element.  See
-      // CDHashMap<>::insertAtContextLevelZero().
-      mutable_data() = data;
-    }
-    else
-    {
-      // Normal map insertion: first makeCurrent(), then set the data
-      // and then, later, the map.  Order is important; we can't
-      // initialize d_map in the constructor init list above, because
-      // we want the restore of d_map to NULL to signal us to remove
-      // the element from the map.
+    // Normal map insertion: first makeCurrent(), then set the data
+    // and then, later, the map.  Order is important; we can't
+    // initialize d_map in the constructor init list above, because
+    // we want the restore of d_map to NULL to signal us to remove
+    // the element from the map.
 
-      set(data);
-    }
+    set(data);
     d_map = map;
 
     CDOhash_map*& first = d_map->d_first;
@@ -377,39 +365,6 @@ class CDHashMap : public ContextObj
       res.first->second->set(d);
     }
     return res.second;
-  }
-
-  /**
-   * Version of insert() for CDHashMap<> that inserts data value d at
-   * context level zero.  This is a special escape hatch for inserting
-   * "initializing" data into the map.  Imagine something happens at a
-   * deep context level L that causes insertion into a map, such that
-   * the object should have an "initializing" value v1 below context
-   * level L, and a "current" value v2 at context level L.  Then you
-   * can (assuming key k):
-   *
-   *   map.insertAtContextLevelZero(k, v1);
-   *   map.insert(k, v2);
-   *
-   * The justification for this "escape hatch" has to do with
-   * variables and assignments in theories (e.g., in arithmetic).
-   * Let's say you introduce a new variable x at some deep decision
-   * level (thanks to lazy registration, or a splitting lemma, or
-   * whatever).  x might be mapped to something, but for theory
-   * implementation simplicity shouldn't disappear from the map on
-   * backjump; rather, it can take another (legal) value, or a special
-   * value to indicate it needs to be recomputed.
-   *
-   * It is an error (checked via AlwaysAssert()) to
-   * insertAtContextLevelZero() a key that already is in the map.
-   */
-  void insertAtContextLevelZero(const Key& k, const Data& d)
-  {
-    AlwaysAssert(d_map.find(k) == d_map.end());
-
-    Element* obj =
-        new (true) Element(d_context, this, k, d, true /* atLevelZero */);
-    d_map.insert(std::make_pair(k, obj));
   }
 
   // FIXME: no erase(), too much hassle to implement efficiently...

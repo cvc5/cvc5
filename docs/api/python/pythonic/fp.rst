@@ -4,122 +4,122 @@ Floating Point
 Basic FP Term Builders
 -------------------------
 
-.. autofunction:: cvc5_z3py_compat.FP
-.. autofunction:: cvc5_z3py_compat.FPs
-.. autofunction:: cvc5_z3py_compat.FPVal
-.. autofunction:: cvc5_z3py_compat.fpNaN
-.. autofunction:: cvc5_z3py_compat.fpPlusInfinity
-.. autofunction:: cvc5_z3py_compat.fpMinusInfinity
-.. autofunction:: cvc5_z3py_compat.fpInfinity
-.. autofunction:: cvc5_z3py_compat.fpPlusZero
-.. autofunction:: cvc5_z3py_compat.fpMinusZero
-.. autofunction:: cvc5_z3py_compat.fpZero
-.. autofunction:: cvc5_z3py_compat.FPSort
-.. autofunction:: cvc5_z3py_compat.Float16
-.. autofunction:: cvc5_z3py_compat.FloatHalf
-.. autofunction:: cvc5_z3py_compat.Float32
-.. autofunction:: cvc5_z3py_compat.FloatSingle
-.. autofunction:: cvc5_z3py_compat.Float64
-.. autofunction:: cvc5_z3py_compat.FloatDouble
-.. autofunction:: cvc5_z3py_compat.Float128
-.. autofunction:: cvc5_z3py_compat.FloatQuadruple
+.. autofunction:: cvc5.pythonic.FP
+.. autofunction:: cvc5.pythonic.FPs
+.. autofunction:: cvc5.pythonic.FPVal
+.. autofunction:: cvc5.pythonic.fpNaN
+.. autofunction:: cvc5.pythonic.fpPlusInfinity
+.. autofunction:: cvc5.pythonic.fpMinusInfinity
+.. autofunction:: cvc5.pythonic.fpInfinity
+.. autofunction:: cvc5.pythonic.fpPlusZero
+.. autofunction:: cvc5.pythonic.fpMinusZero
+.. autofunction:: cvc5.pythonic.fpZero
+.. autofunction:: cvc5.pythonic.FPSort
+.. autofunction:: cvc5.pythonic.Float16
+.. autofunction:: cvc5.pythonic.FloatHalf
+.. autofunction:: cvc5.pythonic.Float32
+.. autofunction:: cvc5.pythonic.FloatSingle
+.. autofunction:: cvc5.pythonic.Float64
+.. autofunction:: cvc5.pythonic.FloatDouble
+.. autofunction:: cvc5.pythonic.Float128
+.. autofunction:: cvc5.pythonic.FloatQuadruple
 
 FP Operators
 -------------------
 
 See the following operator overloads for building basic floating-point terms:
 
-* ``+``: :py:meth:`cvc5_z3py_compat.FPRef.__add__`
-* ``-``: :py:meth:`cvc5_z3py_compat.FPRef.__sub__`
-* ``*``: :py:meth:`cvc5_z3py_compat.FPRef.__mul__`
-* unary ``-``: :py:meth:`cvc5_z3py_compat.FPRef.__neg__`
-* ``/``: :py:meth:`cvc5_z3py_compat.FPRef.__div__`
-* ``%``: :py:meth:`cvc5_z3py_compat.FPRef.__mod__`
-* ``<=``: :py:meth:`cvc5_z3py_compat.FPRef.__le__`
-* ``<``: :py:meth:`cvc5_z3py_compat.FPRef.__lt__`
-* ``>=``: :py:meth:`cvc5_z3py_compat.FPRef.__ge__`
-* ``>``: :py:meth:`cvc5_z3py_compat.FPRef.__gt__`
+* ``+``: :py:meth:`cvc5.pythonic.FPRef.__add__`
+* ``-``: :py:meth:`cvc5.pythonic.FPRef.__sub__`
+* ``*``: :py:meth:`cvc5.pythonic.FPRef.__mul__`
+* unary ``-``: :py:meth:`cvc5.pythonic.FPRef.__neg__`
+* ``/``: :py:meth:`cvc5.pythonic.FPRef.__div__`
+* ``%``: :py:meth:`cvc5.pythonic.FPRef.__mod__`
+* ``<=``: :py:meth:`cvc5.pythonic.FPRef.__le__`
+* ``<``: :py:meth:`cvc5.pythonic.FPRef.__lt__`
+* ``>=``: :py:meth:`cvc5.pythonic.FPRef.__ge__`
+* ``>``: :py:meth:`cvc5.pythonic.FPRef.__gt__`
 
-.. autofunction:: cvc5_z3py_compat.fpAbs
-.. autofunction:: cvc5_z3py_compat.fpNeg
-.. autofunction:: cvc5_z3py_compat.fpAdd
-.. autofunction:: cvc5_z3py_compat.fpSub
-.. autofunction:: cvc5_z3py_compat.fpMul
-.. autofunction:: cvc5_z3py_compat.fpDiv
-.. autofunction:: cvc5_z3py_compat.fpRem
-.. autofunction:: cvc5_z3py_compat.fpMin
-.. autofunction:: cvc5_z3py_compat.fpMax
-.. autofunction:: cvc5_z3py_compat.fpFMA
-.. autofunction:: cvc5_z3py_compat.fpSqrt
-.. autofunction:: cvc5_z3py_compat.fpRoundToIntegral
-.. autofunction:: cvc5_z3py_compat.fpIsNaN
-.. autofunction:: cvc5_z3py_compat.fpIsInf
-.. autofunction:: cvc5_z3py_compat.fpIsZero
-.. autofunction:: cvc5_z3py_compat.fpIsNormal
-.. autofunction:: cvc5_z3py_compat.fpIsSubnormal
-.. autofunction:: cvc5_z3py_compat.fpIsNegative
-.. autofunction:: cvc5_z3py_compat.fpIsPositive
-.. autofunction:: cvc5_z3py_compat.fpLT
-.. autofunction:: cvc5_z3py_compat.fpLEQ
-.. autofunction:: cvc5_z3py_compat.fpGT
-.. autofunction:: cvc5_z3py_compat.fpGEQ
-.. autofunction:: cvc5_z3py_compat.fpEQ
-.. autofunction:: cvc5_z3py_compat.fpNEQ
-.. autofunction:: cvc5_z3py_compat.fpFP
-.. autofunction:: cvc5_z3py_compat.fpToFP
-.. autofunction:: cvc5_z3py_compat.fpBVToFP
-.. autofunction:: cvc5_z3py_compat.fpFPToFP
-.. autofunction:: cvc5_z3py_compat.fpRealToFP
-.. autofunction:: cvc5_z3py_compat.fpSignedToFP
-.. autofunction:: cvc5_z3py_compat.fpUnsignedToFP
-.. autofunction:: cvc5_z3py_compat.fpToFPUnsigned
-.. autofunction:: cvc5_z3py_compat.fpToSBV
-.. autofunction:: cvc5_z3py_compat.fpToUBV
-.. autofunction:: cvc5_z3py_compat.fpToReal
+.. autofunction:: cvc5.pythonic.fpAbs
+.. autofunction:: cvc5.pythonic.fpNeg
+.. autofunction:: cvc5.pythonic.fpAdd
+.. autofunction:: cvc5.pythonic.fpSub
+.. autofunction:: cvc5.pythonic.fpMul
+.. autofunction:: cvc5.pythonic.fpDiv
+.. autofunction:: cvc5.pythonic.fpRem
+.. autofunction:: cvc5.pythonic.fpMin
+.. autofunction:: cvc5.pythonic.fpMax
+.. autofunction:: cvc5.pythonic.fpFMA
+.. autofunction:: cvc5.pythonic.fpSqrt
+.. autofunction:: cvc5.pythonic.fpRoundToIntegral
+.. autofunction:: cvc5.pythonic.fpIsNaN
+.. autofunction:: cvc5.pythonic.fpIsInf
+.. autofunction:: cvc5.pythonic.fpIsZero
+.. autofunction:: cvc5.pythonic.fpIsNormal
+.. autofunction:: cvc5.pythonic.fpIsSubnormal
+.. autofunction:: cvc5.pythonic.fpIsNegative
+.. autofunction:: cvc5.pythonic.fpIsPositive
+.. autofunction:: cvc5.pythonic.fpLT
+.. autofunction:: cvc5.pythonic.fpLEQ
+.. autofunction:: cvc5.pythonic.fpGT
+.. autofunction:: cvc5.pythonic.fpGEQ
+.. autofunction:: cvc5.pythonic.fpEQ
+.. autofunction:: cvc5.pythonic.fpNEQ
+.. autofunction:: cvc5.pythonic.fpFP
+.. autofunction:: cvc5.pythonic.fpToFP
+.. autofunction:: cvc5.pythonic.fpBVToFP
+.. autofunction:: cvc5.pythonic.fpFPToFP
+.. autofunction:: cvc5.pythonic.fpRealToFP
+.. autofunction:: cvc5.pythonic.fpSignedToFP
+.. autofunction:: cvc5.pythonic.fpUnsignedToFP
+.. autofunction:: cvc5.pythonic.fpToFPUnsigned
+.. autofunction:: cvc5.pythonic.fpToSBV
+.. autofunction:: cvc5.pythonic.fpToUBV
+.. autofunction:: cvc5.pythonic.fpToReal
 
 
 
 Testers
 -------------------
-.. autofunction:: cvc5_z3py_compat.is_fp_sort
-.. autofunction:: cvc5_z3py_compat.is_fp
-.. autofunction:: cvc5_z3py_compat.is_fp_value
-.. autofunction:: cvc5_z3py_compat.is_fprm_sort
-.. autofunction:: cvc5_z3py_compat.is_fprm
-.. autofunction:: cvc5_z3py_compat.is_fprm_value
+.. autofunction:: cvc5.pythonic.is_fp_sort
+.. autofunction:: cvc5.pythonic.is_fp
+.. autofunction:: cvc5.pythonic.is_fp_value
+.. autofunction:: cvc5.pythonic.is_fprm_sort
+.. autofunction:: cvc5.pythonic.is_fprm
+.. autofunction:: cvc5.pythonic.is_fprm_value
 
 
 FP Rounding Modes
 -------------------------
-.. autofunction:: cvc5_z3py_compat.RoundNearestTiesToEven
-.. autofunction:: cvc5_z3py_compat.RNE
-.. autofunction:: cvc5_z3py_compat.RoundNearestTiesToAway
-.. autofunction:: cvc5_z3py_compat.RNA
-.. autofunction:: cvc5_z3py_compat.RoundTowardPositive
-.. autofunction:: cvc5_z3py_compat.RTP
-.. autofunction:: cvc5_z3py_compat.RoundTowardNegative
-.. autofunction:: cvc5_z3py_compat.RTN
-.. autofunction:: cvc5_z3py_compat.RoundTowardZero
-.. autofunction:: cvc5_z3py_compat.RTZ
-.. autofunction:: cvc5_z3py_compat.get_default_rounding_mode
-.. autofunction:: cvc5_z3py_compat.set_default_rounding_mode
-.. autofunction:: cvc5_z3py_compat.get_default_fp_sort
-.. autofunction:: cvc5_z3py_compat.set_default_fp_sort
+.. autofunction:: cvc5.pythonic.RoundNearestTiesToEven
+.. autofunction:: cvc5.pythonic.RNE
+.. autofunction:: cvc5.pythonic.RoundNearestTiesToAway
+.. autofunction:: cvc5.pythonic.RNA
+.. autofunction:: cvc5.pythonic.RoundTowardPositive
+.. autofunction:: cvc5.pythonic.RTP
+.. autofunction:: cvc5.pythonic.RoundTowardNegative
+.. autofunction:: cvc5.pythonic.RTN
+.. autofunction:: cvc5.pythonic.RoundTowardZero
+.. autofunction:: cvc5.pythonic.RTZ
+.. autofunction:: cvc5.pythonic.get_default_rounding_mode
+.. autofunction:: cvc5.pythonic.set_default_rounding_mode
+.. autofunction:: cvc5.pythonic.get_default_fp_sort
+.. autofunction:: cvc5.pythonic.set_default_fp_sort
 
 
 Classes (with overloads)
 ------------------------
 
-.. autoclass:: cvc5_z3py_compat.FPSortRef
+.. autoclass:: cvc5.pythonic.FPSortRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.FPRef
+.. autoclass:: cvc5.pythonic.FPRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.FPNumRef
+.. autoclass:: cvc5.pythonic.FPNumRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.FPRMRef
+.. autoclass:: cvc5.pythonic.FPRMRef
   :members:
   :special-members:
 

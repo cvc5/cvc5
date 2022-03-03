@@ -287,7 +287,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -781,7 +781,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
                                       "version 2.0");
       }
       api::Term c =
-          PARSER_STATE->bindVar(name, t, false, true);
+          PARSER_STATE->bindVar(name, t, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -947,7 +947,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, false, true);
+            PARSER_STATE->bindVar(name, tt, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -967,7 +967,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }

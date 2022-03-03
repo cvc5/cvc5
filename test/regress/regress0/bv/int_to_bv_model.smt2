@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-int-as-bv=9 --check-models
+; COMMAND-LINE: --solve-int-as-bv=9
 ; EXPECT: sat
 (set-logic QF_NIA)
 (declare-const a Int)

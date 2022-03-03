@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rewrite-quant --sygus-inst --no-check-models
+; COMMAND-LINE: --ext-rewrite-quant --sygus-inst -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
