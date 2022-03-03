@@ -25,9 +25,9 @@
 #include "expr/node.h"
 #include "expr/variadic_trie.h"
 #include "options/options.h"
-#include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/quantifiers/query_generator.h"
 
 namespace cvc5 {
 namespace theory {
@@ -40,7 +40,7 @@ namespace quantifiers {
  * enumeration. At a high level, this is based on conjoining predicates that
  * refine models and avoid previously encountered unsat cores.
  */
-class QueryGeneratorUnsat : public ExprMiner
+class QueryGeneratorUnsat : public QueryGenerator
 {
  public:
   QueryGeneratorUnsat(Env& env);
