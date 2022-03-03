@@ -1,5 +1,4 @@
-; COMMAND-LINE: --sygus-rr-synth-input --sygus-abort-size=2
-; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")
+; COMMAND-LINE: --sygus-rr-synth-input --sygus-abort-size=1
 ; SCRUBBER: grep -v -E '(\(define-fun'
 ; EXIT: 1
 (set-logic ALL)
