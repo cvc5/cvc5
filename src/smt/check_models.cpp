@@ -16,6 +16,7 @@
 #include "smt/check_models.h"
 
 #include "base/modal_exception.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/preprocessor.h"
@@ -46,6 +47,12 @@ void CheckModels::checkModel(TheoryModel* m,
   {
     throw RecoverableModalException(
         "Cannot run check-model on a model with a separation logic heap.");
+  }
+  if (options().quantifiers.fmfFunWellDefined)
+  {
+    warning() << "Running check-model is not guaranteed to pass when fmf-fun "
+                 "is enabled."
+              << std::endl;
   }
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();

@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic UFDTLIA)
 (declare-datatypes ((Term 0) (IntList 0)) (
 	(

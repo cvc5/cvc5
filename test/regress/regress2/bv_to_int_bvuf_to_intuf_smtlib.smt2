@@ -1,6 +1,7 @@
-;COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1 --no-check-unsat-cores
-;COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1 --no-check-unsat-cores
-;EXPECT: unsat
+; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
+; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
+; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic QF_UFBV)
 (declare-fun z$n0s32 () (_ BitVec 32))
 (declare-fun dataOut () (_ BitVec 32))

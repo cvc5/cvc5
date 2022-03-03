@@ -5,41 +5,41 @@ Arrays
 Basic Array Term Builders
 -------------------------
 
-.. autofunction:: cvc5_z3py_compat.Array
-.. autofunction:: cvc5_z3py_compat.ConstArray
-.. autofunction:: cvc5_z3py_compat.K
-.. autofunction:: cvc5_z3py_compat.ArraySort
+.. autofunction:: cvc5.pythonic.Array
+.. autofunction:: cvc5.pythonic.ConstArray
+.. autofunction:: cvc5.pythonic.K
+.. autofunction:: cvc5.pythonic.ArraySort
 
 Array Operators
 -------------------
 
-.. autofunction:: cvc5_z3py_compat.Select
-.. autofunction:: cvc5_z3py_compat.Store
-.. autofunction:: cvc5_z3py_compat.Update
+.. autofunction:: cvc5.pythonic.Select
+.. autofunction:: cvc5.pythonic.Store
+.. autofunction:: cvc5.pythonic.Update
 
 See the following operator overloads for building other kinds of array
 terms:
 
-* ``select``: :py:meth:`cvc5_z3py_compat.ArrayRef.__getitem__`
+* ``select``: :py:meth:`cvc5.pythonic.ArrayRef.__getitem__`
 
 
 Testers
 -------------------
-.. autofunction:: cvc5_z3py_compat.is_array_sort
-.. autofunction:: cvc5_z3py_compat.is_array
-.. autofunction:: cvc5_z3py_compat.is_const_array
-.. autofunction:: cvc5_z3py_compat.is_K
-.. autofunction:: cvc5_z3py_compat.is_select
-.. autofunction:: cvc5_z3py_compat.is_store
-.. autofunction:: cvc5_z3py_compat.is_update
+.. autofunction:: cvc5.pythonic.is_array_sort
+.. autofunction:: cvc5.pythonic.is_array
+.. autofunction:: cvc5.pythonic.is_const_array
+.. autofunction:: cvc5.pythonic.is_K
+.. autofunction:: cvc5.pythonic.is_select
+.. autofunction:: cvc5.pythonic.is_store
+.. autofunction:: cvc5.pythonic.is_update
 
 
 Classes (with overloads)
 ------------------------
 
-.. autoclass:: cvc5_z3py_compat.ArraySortRef
+.. autoclass:: cvc5.pythonic.ArraySortRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.ArrayRef
+.. autoclass:: cvc5.pythonic.ArrayRef
   :members:
   :special-members:

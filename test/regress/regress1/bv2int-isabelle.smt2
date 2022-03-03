@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --no-check-unsat-cores
+; COMMAND-LINE: --solve-bv-as-int=sum
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun s$ () (_ BitVec 32))

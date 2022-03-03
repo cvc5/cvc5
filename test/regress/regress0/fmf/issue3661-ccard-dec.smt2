@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --fmf-fun -i
 ; EXPECT: sat
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 (declare-fun a (Int) Bool)
 (declare-fun b (Int) Bool)

@@ -118,6 +118,7 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom)
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
 {
   Assert(rewriter::isAtom(atom));
+  Trace("arith-rewriter") << "postRewriteAtom: " << atom << std::endl;
 
   if (atom.getKind() == kind::IS_INTEGER)
   {
@@ -181,8 +182,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::addToSum(sum, left, negate);
   rewriter::addToSum(sum, right, !negate);
 
-  // Now we have (rsum <kind> 0)
-  if (rewriter::isIntegral(atom))
+  // Now we have (sum <kind> 0)
+  if (rewriter::isIntegral(sum))
   {
     if (kind == Kind::EQUAL)
     {
