@@ -67,13 +67,13 @@ bool InferInfo::isFact() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer :id " << ii.getId() << std::endl;
-  out << ":conclusion " << ii.d_conclusion << std::endl;
+  out << "(infer ;id " << std::endl << ii.getId() << std::endl;
+  out << ";conclusion " << std::endl << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {
-    out << " :premise (" << ii.d_premises << ")" << std::endl;
+    out << " ;premise" << std::endl << ii.d_premises << std::endl;
   }
-  out << ":skolems " << ii.d_skolems << std::endl;
+  out << ";skolems " << ii.d_skolems << std::endl;
   out << ")";
   return out;
 }
