@@ -47,6 +47,8 @@ class QueryGenerator : public ExprMiner
    * Dumps query qy to the a file queryN.smt2 for the current counter N
    */
   void dumpQuery(Node qy, const Result& r);
+  /** ensure that node n added to the generator is Boolean */
+  void ensureBoolean(const Node& n) const;
 };
 
 /**

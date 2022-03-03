@@ -39,9 +39,9 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
 
 bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
-  d_terms.push_back(n);
   Trace("sygus-qgen") << "Add term: " << n << std::endl;
-  Assert(n.getType().isBoolean());
+  ensureBoolean(n);
+  d_terms.push_back(n);
 
   // the loop below conjoins a random subset of predicates we have enumerated
   // so far C1 ^ ... ^ Cn such that no subset of C1 ... Cn is an unsat core
