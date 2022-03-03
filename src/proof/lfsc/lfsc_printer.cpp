@@ -576,22 +576,29 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Assert(res[1].getKind() == CONST_RATIONAL);
       pf << h << h << d_tproc.convert(res[1]) << cs[0];
     }
-    break;
     // strings
-    case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
-    case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
+    break;case PfRule::STRING_LENGTH_POS:
+      pf << as[0] << d_tproc.convertType(as[0].getType()) << h;
+      break;
+    case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << h << cs[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
     case PfRule::CONCAT_EQ:
-      pf << h << h << h << args[0].getConst<bool>() << cs[0];
+      pf << h << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
     case PfRule::CONCAT_UNIFY:
-      pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
+      pf << h << h << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
+         << cs[1];
       break;
     case PfRule::CONCAT_CSPLIT:
-      pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
+      pf << h << h << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
+         << cs[1];
       break;
     case PfRule::CONCAT_CONFLICT:
-      pf << h << h << args[0].getConst<bool>() << cs[0];
+      pf << h << h << args[0].getConst<bool>()
+         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
     case PfRule::RE_UNFOLD_POS:
       if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)
@@ -619,7 +626,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Kind k = as[0].getKind();
       if (k == STRING_SUBSTR || k == STRING_INDEXOF)
       {
-        pf << h << as[0] << as[0][0].getType();
+        pf << h << as[0] << d_tproc.convertType(as[0][0].getType());
       }
       else
       {

@@ -149,10 +149,6 @@ public:
     return super::key_end();
   }
 
-  void insertAtContextLevelZero(const V& v) {
-    return super::insertAtContextLevelZero(v, true);
-  }
-
 }; /* class CDHashSet */
 
 }  // namespace context

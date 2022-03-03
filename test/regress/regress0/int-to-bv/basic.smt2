@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-int-as-bv=5 --no-check-models
+; COMMAND-LINE: --solve-int-as-bv=5
 (set-logic QF_NIA)
 (declare-const x Int)
 (declare-const y Int)

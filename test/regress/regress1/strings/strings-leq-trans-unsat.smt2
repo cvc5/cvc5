@@ -1,5 +1,7 @@
-; COMMAND-LINE: --strings-exp --no-check-unsat-cores
+; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
+; timeout with unsat cores
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun x () String)

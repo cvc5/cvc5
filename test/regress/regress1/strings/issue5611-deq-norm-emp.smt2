@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i --strings-exp --no-check-models
+; COMMAND-LINE: -i --strings-exp -q
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun str7 () String)

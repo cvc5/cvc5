@@ -342,18 +342,15 @@ class SymbolTable::Implementation {
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
   {
-    // use an outermost push, to be able to clear definitions not at level zero
-    d_context.push();
   }
 
-  ~Implementation() { d_context.pop(); }
+  ~Implementation() {}
 
-  bool bind(const string& name, api::Term obj, bool levelZero, bool doOverload);
-  void bindType(const string& name, api::Sort t, bool levelZero = false);
+  bool bind(const string& name, api::Term obj, bool doOverload);
+  void bindType(const string& name, api::Sort t);
   void bindType(const string& name,
                 const vector<api::Sort>& params,
-                api::Sort t,
-                bool levelZero = false);
+                api::Sort t);
   bool isBound(const string& name) const;
   bool isBoundType(const string& name) const;
   api::Term lookup(const string& name) const;
@@ -405,23 +402,18 @@ class SymbolTable::Implementation {
 
 bool SymbolTable::Implementation::bind(const string& name,
                                        api::Term obj,
-                                       bool levelZero,
                                        bool doOverload)
 {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null api::Term");
   Trace("sym-table") << "SymbolTable: bind " << name
-                     << ", levelZero=" << levelZero
                      << ", doOverload=" << doOverload << std::endl;
   if (doOverload) {
     if (!bindWithOverloading(name, obj)) {
       return false;
     }
   }
-  if (levelZero) {
-    d_exprMap.insertAtContextLevelZero(name, obj);
-  } else {
     d_exprMap.insert(name, obj);
-  }
+
   return true;
 }
 
@@ -440,21 +432,14 @@ api::Term SymbolTable::Implementation::lookup(const string& name) const
   }
 }
 
-void SymbolTable::Implementation::bindType(const string& name,
-                                           api::Sort t,
-                                           bool levelZero)
+void SymbolTable::Implementation::bindType(const string& name, api::Sort t)
 {
-  if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(vector<api::Sort>(), t));
-  } else {
     d_typeMap.insert(name, make_pair(vector<api::Sort>(), t));
-  }
 }
 
 void SymbolTable::Implementation::bindType(const string& name,
                                            const vector<api::Sort>& params,
-                                           api::Sort t,
-                                           bool levelZero)
+                                           api::Sort t)
 {
   if (Debug.isOn("sort")) {
     Debug("sort") << "bindType(" << name << ", [";
@@ -466,11 +451,8 @@ void SymbolTable::Implementation::bindType(const string& name,
     }
     Debug("sort") << "], " << t << ")" << endl;
   }
-  if (levelZero) {
-    d_typeMap.insertAtContextLevelZero(name, make_pair(params, t));
-  } else {
+
     d_typeMap.insert(name, make_pair(params, t));
-  }
 }
 
 bool SymbolTable::Implementation::isBoundType(const string& name) const {
@@ -542,7 +524,7 @@ size_t SymbolTable::Implementation::lookupArity(const string& name) {
 
 void SymbolTable::Implementation::popScope() {
   // should not pop beyond level one
-  if (d_context.getLevel() == 1)
+  if (d_context.getLevel() == 0)
   {
     throw ScopeException();
   }
@@ -627,23 +609,21 @@ SymbolTable::SymbolTable() : d_implementation(new SymbolTable::Implementation())
 SymbolTable::~SymbolTable() {}
 bool SymbolTable::bind(const string& name,
                        api::Term obj,
-                       bool levelZero,
                        bool doOverload)
 {
-  return d_implementation->bind(name, obj, levelZero, doOverload);
+  return d_implementation->bind(name, obj, doOverload);
 }
 
-void SymbolTable::bindType(const string& name, api::Sort t, bool levelZero)
+void SymbolTable::bindType(const string& name, api::Sort t)
 {
-  d_implementation->bindType(name, t, levelZero);
+  d_implementation->bindType(name, t);
 }
 
 void SymbolTable::bindType(const string& name,
                            const vector<api::Sort>& params,
-                           api::Sort t,
-                           bool levelZero)
+                           api::Sort t)
 {
-  d_implementation->bindType(name, params, t, levelZero);
+  d_implementation->bindType(name, params, t);
 }
 
 bool SymbolTable::isBound(const string& name) const
