@@ -26,7 +26,6 @@ namespace quantifiers {
 ExpressionMinerManager::ExpressionMinerManager(Env& env)
     : EnvObj(env),
       d_doRewSynth(false),
-      d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_tds(nullptr),
@@ -34,6 +33,7 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
             options().quantifiers.sygusRewSynthCheck,
             options().quantifiers.sygusRewSynthAccel,
             false),
+      d_qg(nullptr),
       d_sols(env),
       d_sampler(env)
 {
@@ -45,7 +45,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
                                         bool unique_type_ids)
 {
   d_doRewSynth = false;
-  d_doQueryGen = false;
+  d_qg = nullptr;
   d_doFilterLogicalStrength = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
@@ -60,7 +60,7 @@ void ExpressionMinerManager::initializeSygus(TermDbSygus* tds,
                                              bool useSygusType)
 {
   d_doRewSynth = false;
-  d_doQueryGen = false;
+  d_qg = nullptr;
   d_doFilterLogicalStrength = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
@@ -121,12 +121,11 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
 
 void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
 {
-  if (d_doQueryGen)
+  if (d_qg!=nullptr)
   {
     // already enabled
     return;
   }
-  d_doQueryGen = true;
   options::SygusQueryGenMode mode = options().quantifiers.sygusQueryGen;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
@@ -139,16 +138,18 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
       enableRewriteRuleSynth();
       d_crd.setSilent(true);
     }
-    d_qg = std::make_unique<QueryGeneratorSampleSat>(d_env);
+    d_qgss = std::make_unique<QueryGeneratorSampleSat>(d_env);
     // initialize the query generator
-    d_qg->initialize(vars, &d_sampler);
-    d_qg->setThreshold(deqThresh);
+    d_qgss->initialize(vars, &d_sampler);
+    d_qgss->setThreshold(deqThresh);
+    d_qg = d_qgss.get();
   }
   else if (mode == options::SygusQueryGenMode::UNSAT)
   {
     d_qgu = std::make_unique<QueryGeneratorUnsat>(d_env);
     // initialize the query generator
     d_qgu->initialize(vars, &d_sampler);
+    d_qg = d_qgu.get();
   }
 }
 
@@ -192,17 +193,9 @@ bool ExpressionMinerManager::addTerm(Node sol,
   }
 
   // a unique term, let's try the query generator
-  if (ret && d_doQueryGen)
+  if (ret && d_qg!=nullptr)
   {
-    options::SygusQueryGenMode mode = options().quantifiers.sygusQueryGen;
-    if (mode == options::SygusQueryGenMode::SAT)
-    {
-      d_qg->addTerm(solb, out);
-    }
-    else if (mode == options::SygusQueryGenMode::UNSAT)
-    {
-      d_qgu->addTerm(solb, out);
-    }
+    d_qg->addTerm(solb, out);
   }
 
   // filter based on logical strength

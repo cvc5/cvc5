@@ -173,7 +173,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     // make the satisfiability query
     std::unique_ptr<SolverEngine> queryChecker;
     initializeChecker(queryChecker, qy);
-    Result r = queryChecker->checkSat();
+    r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {

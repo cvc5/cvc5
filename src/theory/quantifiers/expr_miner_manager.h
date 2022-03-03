@@ -95,8 +95,6 @@ class ExpressionMinerManager : protected EnvObj
   void enableFilterWeakSolutions();
   /** whether we are doing rewrite synthesis */
   bool d_doRewSynth;
-  /** whether we are doing query generation */
-  bool d_doQueryGen;
   /** whether we are filtering solutions based on logical strength */
   bool d_doFilterLogicalStrength;
   /** the sygus function passed to initializeSygus, if any */
@@ -108,9 +106,11 @@ class ExpressionMinerManager : protected EnvObj
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** query generator */
-  std::unique_ptr<QueryGeneratorSampleSat> d_qg;
+  std::unique_ptr<QueryGeneratorSampleSat> d_qgss;
   /** query generator */
   std::unique_ptr<QueryGeneratorUnsat> d_qgu;
+  /** The query generator we are using */
+  QueryGenerator * d_qg;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
   /** sygus sampler object */
