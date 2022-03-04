@@ -65,9 +65,6 @@ class LfscPrinter
   void printType(std::ostream& out, TypeNode n);
 
  private:
-   void ensureTypeDefinitionPrinted(std::ostream& os, TypeNode tn, std::unordered_set<TypeNode>& processed, std::unordered_set<size_t>& tupleArityProcessed);
-  /** print type definition */
-  void printTypeDefinition(std::ostream& os, TypeNode tn, std::unordered_set<TypeNode>& processed, std::unordered_set<size_t>& tupleArityProcessed);
   /**
    * This ensures that the type definition of type tn has been
    * printed, which ensures that all of its component types, and the
