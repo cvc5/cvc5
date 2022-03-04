@@ -1309,6 +1309,7 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
   }
   // Creating this node may refine the ran to the point where isRational returns true
   Node inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran);
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 
   // Keep doing this until it either is rational or we have a fixed point.
   while (true)
