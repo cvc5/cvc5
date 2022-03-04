@@ -262,17 +262,21 @@ Node buildIntegerEquality(Sum&& sum)
   Trace("arith-rewriter") << "building integer equality from " << sum << std::endl;
   normalizeGCDLCM(sum);
 
+  Trace("arith-rewriter::debug") << "\tnormalized to " << sum << std::endl;
+
   const auto& constant = *sum.begin();
   if (constant.first.isConst())
   {
     Assert(constant.second.isRational());
     if (!constant.second.toRational().isIntegral())
     {
+      Trace("arith-rewriter::debug") << "\thas non-integer constant, thus false" << std::endl;
       return mkConst(false);
     }
   }
 
   auto minabscoeff = removeMinAbsCoeff(sum);
+  Trace("arith-rewriter::debug") << "\tremoved min abs coeff " << minabscoeff << ", left with " << sum << std::endl;
   if (sgn(minabscoeff.second) < 0)
   {
     // move minabscoeff goes to the right and switch lhs and rhs
@@ -284,6 +288,8 @@ Node buildIntegerEquality(Sum&& sum)
     for (auto& s : sum) s.second = -s.second;
   }
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
+
+  Trace("arith-rewriter::debug") << "\tbuilding " << left << " = " << sum << std::endl;
 
   return buildRelation(Kind::EQUAL, left, collectSum(sum));
 }
