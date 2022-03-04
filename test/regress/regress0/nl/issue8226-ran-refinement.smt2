@@ -1,3 +1,4 @@
+; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-fun r1 () Real)
