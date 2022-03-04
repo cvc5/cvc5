@@ -1,3 +1,5 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: unsat
 (set-logic ALL)
 (define-fun clamp-int((x Int)) Int (ite (< 5 x) 5 (ite (< x 0) 0 x)))
 (synth-fun f 

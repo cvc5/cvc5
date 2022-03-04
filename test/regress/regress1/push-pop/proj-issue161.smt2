@@ -1,6 +1,7 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: sat
+; DISABLE-TESTER: unsat-core
 (set-logic QF_ALIA)
 (set-option :cegqi true)
 (set-option :repeat-simp true)
