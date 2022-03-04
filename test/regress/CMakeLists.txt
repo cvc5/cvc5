@@ -1233,6 +1233,7 @@ set(regress_0_tests
   regress0/sets/mar2014/smaller.smt2
   regress0/sets/nonvar-univ.smt2
   regress0/sets/pre-proc-univ.smt2
+  regress0/sets/proj-issue177.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
@@ -1673,6 +1674,7 @@ set(regress_1_tests
   regress1/arith/mult.02.smt2
   regress1/arith/pbrewrites-test.smt2
   regress1/arith/problem__003.smt2
+  regress1/arith/proj-issue158.smt2
   regress1/arrayinuf_error.smt2
   regress1/aufbv/bug348.smtv1.smt2
   regress1/aufbv/bug580.smt2
@@ -1864,6 +1866,7 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
+  regress1/get-learned-literals.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.p
@@ -1879,6 +1882,7 @@ set(regress_1_tests
   regress1/ho/issue5741-3.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
+  regress1/ho/proj-issue139-2.smt2
   regress1/ho/soundness_fmf_SYO362^5-delta.p
   regress1/ho/store-ax-min.p
   regress1/hole6.cvc.smt2
@@ -1952,6 +1956,14 @@ set(regress_1_tests
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
   regress1/nl/proj-365-is-int-pi.smt2
+  regress1/nl/proj-issue231.smt2
+  regress1/nl/proj-issue232.smt2
+  regress1/nl/proj-issue251.smt2
+  regress1/nl/proj-issue253.smt2
+  regress1/nl/proj-issue280.smt2
+  regress1/nl/proj-issue282.smt2
+  regress1/nl/proj-issue286.smt2
+  regress1/nl/proj-issue290.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -2053,6 +2065,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_9.smt2
   regress1/push-pop/issue6773-arith-no-check.smt2
   regress1/push-pop/model-unsound-ania.smt2
+  regress1/push-pop/proj-issue161.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2
   regress1/quantifiers/006-cbqi-ite.smt2
@@ -2169,6 +2182,10 @@ set(regress_1_tests
   regress1/quantifiers/parametric-lists.smt2
   regress1/quantifiers/pool-example.smt2
   regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2
+  regress1/quantifiers/proj-issue151-2.smt2
+  regress1/quantifiers/proj-issue155.smt2
+  regress1/quantifiers/proj-issue285.smt2
+  regress1/quantifiers/proj-issue295.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
   regress1/quantifiers/psyco-196.smt2
@@ -2501,6 +2518,7 @@ set(regress_1_tests
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
   regress1/strings/proj254-re-elim-agg.smt2
+  regress1/strings/proj-issue281.smt2
   regress1/strings/proj-issue331.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
@@ -2643,6 +2661,7 @@ set(regress_1_tests
   regress1/sygus/issue4009-qep.smt2
   regress1/sygus/issue4025-no-rlv-cond.smt2
   regress1/sygus/issue4083-var-shadow.smt2
+  regress1/sygus/issue4425-sets-sygus-infer.smt2
   regress1/sygus/issue7925-dt-share-config.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
@@ -2674,9 +2693,12 @@ set(regress_1_tests
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
+  regress1/sygus/proj-issue135.smt2
+  regress1/sygus/proj-issue165.smt2
   regress1/sygus/proj-issue181.smt2
   regress1/sygus/proj-issue183.smt2
   regress1/sygus/proj-issue185.smt2
+  regress1/sygus/proj-issue264.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
@@ -2870,6 +2892,7 @@ set(regress_2_tests
   regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
+  regress2/sygus/proj-issue119.sy
   regress2/sygus/qgu-bools.sy
   regress2/sygus/real-grammar-neg.sy
   regress2/sygus/sets-fun-test.sy

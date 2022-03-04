@@ -672,7 +672,7 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   return cdp.getProofFor(fnode);
 }
 
-const std::unordered_set<Node>& PropEngine::getLearnedZeroLevelLiterals() const
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
 {
   return d_theoryProxy->getLearnedZeroLevelLiterals();
 }
