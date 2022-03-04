@@ -83,8 +83,8 @@ class ArraySolver : protected EnvObj
   const std::map<Node, Node>& getConnectedSequences();
 
  private:
-  /** check terms of given kind */
-  void checkTerms(Kind k);
+  /** check terms of nth or update kind that occur in termSet */
+  void checkTerms(const std::set<Node>& termSet);
   /** check inferences for the given term
    *
    * @param t the term to check

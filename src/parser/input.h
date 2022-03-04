@@ -98,11 +98,9 @@ class CVC5_EXPORT Input
     *
     * @param lang the input language
     * @param filename the input filename
-    * @param useMmap true if the parser should use memory-mapped I/O (default: false)
     */
   static Input* newFileInput(const std::string& lang,
-                             const std::string& filename,
-                             bool useMmap = false);
+                             const std::string& filename);
 
   /** Create an input for the given stream.
    *

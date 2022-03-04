@@ -169,13 +169,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
-      opts.smt.unsatCores = false;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      notifyModifyOption(
-          "produceProofs and unsatCores", "false", reasonNoProofs.str());
-      opts.smt.produceProofs = false;
-      opts.smt.checkProofs = false;
-      opts.smt.proofMode = options::ProofMode::OFF;
+      std::stringstream ss;
+      ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
+      throw OptionException(ss.str());
     }
   }
   if (d_isInternalSubsolver)
@@ -519,11 +515,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
   {
-    Theory::setUninterpretedSortOwner(THEORY_ARRAYS);
+    d_env.setUninterpretedSortOwner(THEORY_ARRAYS);
   }
   else
   {
-    Theory::setUninterpretedSortOwner(THEORY_UF);
+    d_env.setUninterpretedSortOwner(THEORY_UF);
   }
 
   if (!opts.smt.simplifyWithCareEnabledWasSetByUser)
@@ -802,10 +798,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 #ifdef CVC5_USE_POLY
   if (logic == LogicInfo("QF_UFNRA"))
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
+      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -819,10 +815,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
            && logic.areRealsUsed() && !logic.areIntegersUsed())
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
+      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -830,18 +826,18 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 #else
-  if (opts.arith.nlCad)
+  if (opts.arith.nlCov)
   {
-    if (opts.arith.nlCadWasSetByUser)
+    if (opts.arith.nlCovWasSetByUser)
     {
       throw OptionException(
-          "Cannot use --nl-cad without configuring with --poly.");
+          "Cannot use --nl-cov without configuring with --poly.");
     }
     else
     {
-      verbose(1) << "Cannot use --nl-cad without configuring with --poly."
+      verbose(1) << "Cannot use --nl-cov without configuring with --poly."
                  << std::endl;
-      opts.arith.nlCad = false;
+      opts.arith.nlCov = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
   }
@@ -884,6 +880,27 @@ bool SetDefaults::usesSygus(const Options& opts) const
   if (!d_isInternalSubsolver && opts.quantifiers.sygusInst)
   {
     // sygus instantiation uses sygus, but it is not a sygus problem
+    return true;
+  }
+  return false;
+}
+
+bool SetDefaults::usesInputConversion(const Options& opts,
+                                      std::ostream& reason) const
+{
+  if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
+  {
+    reason << "solveBVAsInt";
+    return true;
+  }
+  if (opts.smt.solveIntAsBV > 0)
+  {
+    reason << "solveIntAsBV";
+    return true;
+  }
+  if (opts.smt.solveRealAsInt)
+  {
+    reason << "solveRealAsInt";
     return true;
   }
   return false;
@@ -1156,6 +1173,18 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
+bool SetDefaults::incompatibleWithSygus(Options& opts,
+                                        std::ostream& reason) const
+{
+  // sygus should not be combined with preprocessing passes that convert the
+  // input
+  if (usesInputConversion(opts, reason))
+  {
+    return true;
+  }
+  return false;
+}
+
 bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
                                               std::ostream& reason) const
 {
@@ -1375,6 +1404,14 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // if we are attempting to rewrite everything to SyGuS, use sygus()
   if (usesSygus(opts))
   {
+    std::stringstream reasonNoSygus;
+    if (incompatibleWithSygus(opts, reasonNoSygus))
+    {
+      std::stringstream ss;
+      ss << reasonNoSygus.str() << " not supported in sygus.";
+      throw OptionException(ss.str());
+    }
+    // now, set defaults based on sygus
     setDefaultsSygus(opts);
   }
   // counterexample-guided instantiation for non-sygus

@@ -82,8 +82,10 @@ struct TermComparator
   {
     if (a == b) return false;
 
-    bool aIsMult = a.getKind() == Kind::MULT || a.getKind() == Kind::NONLINEAR_MULT;
-    bool bIsMult = b.getKind() == Kind::MULT || b.getKind() == Kind::NONLINEAR_MULT;
+    bool aIsMult =
+        a.getKind() == Kind::MULT || a.getKind() == Kind::NONLINEAR_MULT;
+    bool bIsMult =
+        b.getKind() == Kind::MULT || b.getKind() == Kind::NONLINEAR_MULT;
     if (aIsMult != bIsMult) return !aIsMult;
 
     if (!aIsMult)

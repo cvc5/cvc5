@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-si=all  --sygus-si-rcons-limit=10000 --sygus-out=status
+; COMMAND-LINE: --sygus-si=all --sygus-out=status
 ; EXPECT: unsat
 
 (set-logic UF)

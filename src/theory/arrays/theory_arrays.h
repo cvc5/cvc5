@@ -445,10 +445,6 @@ class TheoryArrays : public Theory {
   void queueRowLemma(RowLemmaType lem);
   bool dischargeLemmas();
 
-  std::vector<Node> d_decisions;
-  bool d_inCheckModel;
-  int d_topLevel;
-
   /**
    * The decision strategy for the theory of arrays, which calls the
    * getNextDecisionEngineRequest function below.

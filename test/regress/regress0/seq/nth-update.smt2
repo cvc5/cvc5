@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --seq-array=lazy --no-check-models
+; COMMAND-LINE: --strings-exp --seq-array=lazy -q
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (declare-const x (Seq Int))

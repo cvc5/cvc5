@@ -56,7 +56,6 @@ void NlModel::resetCheck()
   d_used_approx = false;
   d_check_model_solved.clear();
   d_check_model_bounds.clear();
-  d_check_model_witnesses.clear();
   d_substitutions.clear();
 }
 
@@ -301,9 +300,6 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
-      << "We tried to add a substitution where we already had a witness term."
-      << std::endl;
   Subs tmp;
   tmp.add(v, s);
   for (auto& sub : d_substitutions.d_subs)
@@ -348,23 +344,6 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     printRationalApprox("nl-ext-cm", u);
     Trace("nl-ext-cm") << std::endl;
   }
-  return true;
-}
-
-bool NlModel::addWitness(TNode v, TNode w)
-{
-  Trace("nl-ext-model") << "* check model witness : " << v << " -> " << w
-                        << std::endl;
-  // should not set a witness for a value that is already set
-  if (d_substitutions.contains(v))
-  {
-    Trace("nl-ext-model") << "...ERROR: setting witness for variable that "
-                             "already has a constant value."
-                          << std::endl;
-    Assert(false);
-    return false;
-  }
-  d_check_model_witnesses.emplace(v, w);
   return true;
 }
 
@@ -886,11 +865,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         else
         {
-          Assert(d_check_model_witnesses.find(vc)
-                 == d_check_model_witnesses.end())
-              << "No variable should be assigned a witness term if we get "
-                 "here. "
-              << vc << " is, though." << std::endl;
           Trace("nl-ext-cms-debug") << std::endl;
           Trace("nl-ext-cms")
               << "  failed due to unknown bound for " << vc << std::endl;
@@ -1041,11 +1015,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(
-    std::map<Node, Node>& arithModel,
-    std::map<Node, std::pair<Node, Node>>& approximations,
-    std::map<Node, Node>& witnesses,
-    bool witnessToValue)
+void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
@@ -1058,29 +1028,16 @@ void NlModel::getModelValueRepair(
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node>>& cb :
        d_check_model_bounds)
   {
     Node l = cb.second.first;
     Node u = cb.second.second;
-    Node pred;
     Node v = cb.first;
     if (l != u)
     {
-      pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      Trace("nl-model") << v << " approximated as " << pred << std::endl;
-      Node witness;
-      if (witnessToValue)
-      {
-        // witness is the midpoint
-        witness = nm->mkNode(MULT,
-                             nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
-                             nm->mkNode(ADD, l, u));
-        witness = rewrite(witness);
-        Trace("nl-model") << v << " witness is " << witness << std::endl;
-      }
-      approximations[v] = std::pair<Node, Node>(pred, witness);
+      Trace("nl-model") << v << " is in interval " << l << "..." << u
+                        << std::endl;
     }
     else
     {
@@ -1088,11 +1045,6 @@ void NlModel::getModelValueRepair(
       arithModel[v] = l;
       Trace("nl-model") << v << " exact approximation is " << l << std::endl;
     }
-  }
-  for (const auto& vw : d_check_model_witnesses)
-  {
-    Trace("nl-model") << vw.first << " witness is " << vw.second << std::endl;
-    witnesses.emplace(vw.first, vw.second);
   }
   // Also record the exact values we used. An exact value can be seen as a
   // special kind approximation of the form (witness x. x = exact_value).
@@ -1144,10 +1096,6 @@ Node NlModel::getValueInternal(TNode n)
 bool NlModel::hasAssignment(Node v) const
 {
   if (d_check_model_bounds.find(v) != d_check_model_bounds.end())
-  {
-    return true;
-  }
-  if (d_check_model_witnesses.find(v) != d_check_model_witnesses.end())
   {
     return true;
   }

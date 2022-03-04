@@ -88,36 +88,16 @@ private:
   // - satisfied error set
   Result::Sat sumOfInfeasibilities();
 
-  // static const uint32_t PENALTY = 4;
-  // DenseMultiset d_scores;
-  // void decreasePenalties(){ d_scores.removeOneOfEverything(); }
-  // uint32_t penalty(ArithVar x) const { return d_scores.count(x); }
-  // void setPenalty(ArithVar x, WitnessImprovement w){
-  //   if(improvement(w)){
-  //     if(d_scores.count(x) > 0){
-  //       d_scores.removeAll(x);
-  //     }
-  //   }else{
-  //     d_scores.setCount(x, PENALTY);
-  //   }
-  // }
-
   int32_t d_pivotBudget;
-  // enum PivotImprovement {
-  //   ErrorDropped,
-  //   NonDegenerate,
-  //   HeuristicDegenerate,
-  //   BlandsDegenerate
-  // };
 
   WitnessImprovement d_prevWitnessImprovement;
   uint32_t d_witnessImprovementInARow;
 
   uint32_t degeneratePivotsInARow() const;
 
-  static const uint32_t s_focusThreshold = 6;
-  static const uint32_t s_maxDegeneratePivotsBeforeBlandsOnLeaving = 100;
-  static const uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
+  static constexpr uint32_t s_focusThreshold = 6;
+  static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnLeaving = 100;
+  static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
 
   DenseMap<uint32_t> d_leavingCountSinceImprovement;
   void increaseLeavingCount(ArithVar x){
@@ -136,8 +116,6 @@ private:
       return &LinearEqualityModule::preferWitness<true>;
     }
   }
-
-  bool debugSOI(WitnessImprovement w, std::ostream& out, int instance) const;
 
   void debugPrintSignal(ArithVar updated) const;
 

@@ -858,19 +858,40 @@ void Smt2Printer::toStream(std::ostream& out,
       annot << " ";
       for (const Node& nc : n[2])
       {
-        if (nc.getKind() == kind::INST_PATTERN)
+        Kind nck = nc.getKind();
+        if (nck == kind::INST_PATTERN)
         {
           out << "(! ";
           annot << ":pattern ";
           toStream(annot, nc, toDepth, nullptr);
           annot << ") ";
         }
-        else if (nc.getKind() == kind::INST_NO_PATTERN)
+        else if (nck == kind::INST_NO_PATTERN)
         {
           out << "(! ";
           annot << ":no-pattern ";
           toStream(annot, nc[0], toDepth, nullptr);
           annot << ") ";
+        }
+        else if (nck == kind::INST_ATTRIBUTE)
+        {
+          // notice that INST_ATTRIBUTES either have an "internal" form,
+          // where the argument is a variable with an internal attribute set
+          // on it, or an "external" form where it is of the form
+          // (INST_ATTRIBUTE "keyword" [nodeValues]). We print the latter
+          // here only.
+          if (nc[0].getKind() == kind::CONST_STRING)
+          {
+            out << "(! ";
+            // print out as string to avoid quotes
+            annot << ":" << nc[0].getConst<String>().toString();
+            for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
+            {
+              annot << " ";
+              toStream(annot, nc[j], toDepth, nullptr);
+            }
+            annot << ") ";
+          }
         }
       }
     }
@@ -932,7 +953,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
         Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindString(n.getKind(), d_variant) << ' ';
+        out << " (" << smtKindStringOf(n, d_variant) << ' ';
         parens << ')';
         ++c;
       } else {
@@ -1246,6 +1267,35 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // output that support for the kind needs to be added here.
   // no SMT way to print these
   return kind::kindToString(k);
+}
+
+std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
+{
+  Kind k = n.getKind();
+  if (n.getNumChildren() > 0 && n[0].getType().isSequence())
+  {
+    // this method parallels api::Term::getKind
+    switch (k)
+    {
+      case kind::STRING_CONCAT: return "seq.concat";
+      case kind::STRING_LENGTH: return "seq.len";
+      case kind::STRING_SUBSTR: return "seq.extract";
+      case kind::STRING_UPDATE: return "seq.update";
+      case kind::STRING_CHARAT: return "seq.at";
+      case kind::STRING_CONTAINS: return "seq.contains";
+      case kind::STRING_INDEXOF: return "seq.indexof";
+      case kind::STRING_REPLACE: return "seq.replace";
+      case kind::STRING_REPLACE_ALL: return "seq.replace_all";
+      case kind::STRING_REV: return "seq.rev";
+      case kind::STRING_PREFIX: return "seq.prefixof";
+      case kind::STRING_SUFFIX: return "seq.suffixof";
+      default:
+        // fall through to conversion below
+        break;
+    }
+  }
+  // by default
+  return smtKindString(k, v);
 }
 
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const

@@ -15,6 +15,7 @@
 
 #include "proof/lfsc/lfsc_node_converter.h"
 
+#include <iomanip>
 #include <sstream>
 
 #include "expr/array_store_all.h"
@@ -26,6 +27,7 @@
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
@@ -66,6 +68,18 @@ LfscNodeConverter::LfscNodeConverter()
       getSymbolInternal(FUNCTION_TYPE, setType, "Bag");
   d_typeKindToNodeCons[SEQUENCE_TYPE] =
       getSymbolInternal(FUNCTION_TYPE, setType, "Seq");
+}
+
+Node LfscNodeConverter::preConvert(Node n)
+{
+  // match is not supported in LFSC syntax, we eliminate it at pre-order
+  // traversal, which avoids type-checking errors during conversion, since e.g.
+  // match case nodes are required but cannot be preserved
+  if (n.getKind() == MATCH)
+  {
+    return theory::datatypes::DatatypesRewriter::expandMatch(n);
+  }
+  return n;
 }
 
 Node LfscNodeConverter::postConvert(Node n)
@@ -142,10 +156,7 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (n.isVar())
   {
-    std::stringstream ss;
-    ss << n;
-    Node nn = mkInternalSymbol(getNameForUserName(ss.str()), tn);
-    return nn;
+    return mkInternalSymbol(getNameForUserNameOf(n), tn);
   }
   else if (k == APPLY_UF)
   {
@@ -604,9 +615,48 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
 
 std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 {
-  std::stringstream ss;
-  ss << "cvc." << name;
-  return ss.str();
+  // For user name X, we do cvc.Y, where Y contains an escaped version of X.
+  // Specifically, since LFSC does not allow these characters in identifier
+  // bodies: "() \t\n\f;", each is replaced with an escape sequence "\xXX"
+  // where XX is the zero-padded hex representation of the code point. "\\" is
+  // also escaped.
+  //
+  // See also: https://github.com/cvc5/LFSC/blob/master/src/lexer.flex#L24
+  //
+  // The "cvc." prefix ensures we do not clash with LFSC definitions.
+  //
+  // The escaping ensures that all names are valid LFSC identifiers.
+  std::string sanitized("cvc.");
+  size_t found = sanitized.size();
+  sanitized += name;
+  // The following sanitizes symbols that are not allowed in LFSC identifiers
+  // here, e.g.
+  //   |a b|
+  // is converted to:
+  //   cvc.a\x20b
+  // where "20" is the hex unicode value of " ".
+  do
+  {
+    found = sanitized.find_first_of("() \t\n\f\\;", found);
+    if (found != std::string::npos)
+    {
+      // Emit hex sequence
+      std::stringstream seq;
+      seq << "\\x" << std::setbase(16) << std::setfill('0') << std::setw(2)
+          << static_cast<size_t>(sanitized[found]);
+      sanitized.replace(found, 1, seq.str());
+      // increment found over the escape
+      found += 3;
+    }
+  } while (found != std::string::npos);
+  return sanitized;
+}
+
+std::string LfscNodeConverter::getNameForUserNameOf(Node v)
+{
+  std::string name;
+  v.getAttribute(expr::VarNameAttr(), name);
+  return getNameForUserName(name);
 }
 
 bool LfscNodeConverter::shouldTraverse(Node n)
@@ -871,11 +921,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         Assert(indices.size() == 1);
         // must convert to user name
-        std::stringstream sss;
-        sss << indices[0];
         TypeNode intType = nm->integerType();
         indices[0] =
-            getSymbolInternal(k, intType, getNameForUserName(sss.str()));
+            getSymbolInternal(k, intType, getNameForUserNameOf(indices[0]));
       }
     }
     else if (op.getType().isFunction())
@@ -918,9 +966,8 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     {
       unsigned index = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      std::stringstream ssc;
-      ssc << dt[index].getConstructor();
-      opName << getNameForUserName(ssc.str());
+      // get its variable name
+      opName << getNameForUserNameOf(dt[index].getConstructor());
     }
     else if (k == APPLY_SELECTOR)
     {

@@ -410,24 +410,26 @@ libcvc5_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
-  theory/arith/nl/cad_solver.cpp
-  theory/arith/nl/cad_solver.h
-  theory/arith/nl/cad/cdcac.cpp
-  theory/arith/nl/cad/cdcac.h
-  theory/arith/nl/cad/cdcac_utils.cpp
-  theory/arith/nl/cad/cdcac_utils.h
-  theory/arith/nl/cad/constraints.cpp
-  theory/arith/nl/cad/constraints.h
-  theory/arith/nl/cad/lazard_evaluation.cpp
-  theory/arith/nl/cad/lazard_evaluation.h
-  theory/arith/nl/cad/projections.cpp
-  theory/arith/nl/cad/projections.h
-  theory/arith/nl/cad/proof_checker.cpp
-  theory/arith/nl/cad/proof_checker.h
-  theory/arith/nl/cad/proof_generator.cpp
-  theory/arith/nl/cad/proof_generator.h
-  theory/arith/nl/cad/variable_ordering.cpp
-  theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/coverings_solver.cpp
+  theory/arith/nl/coverings_solver.h
+  theory/arith/nl/coverings/cdcac.cpp
+  theory/arith/nl/coverings/cdcac.h
+  theory/arith/nl/coverings/cdcac_utils.cpp
+  theory/arith/nl/coverings/cdcac_utils.h
+  theory/arith/nl/coverings/cocoa_converter.cpp
+  theory/arith/nl/coverings/cocoa_converter.h
+  theory/arith/nl/coverings/constraints.cpp
+  theory/arith/nl/coverings/constraints.h
+  theory/arith/nl/coverings/lazard_evaluation.cpp
+  theory/arith/nl/coverings/lazard_evaluation.h
+  theory/arith/nl/coverings/projections.cpp
+  theory/arith/nl/coverings/projections.h
+  theory/arith/nl/coverings/proof_checker.cpp
+  theory/arith/nl/coverings/proof_checker.h
+  theory/arith/nl/coverings/proof_generator.cpp
+  theory/arith/nl/coverings/proof_generator.h
+  theory/arith/nl/coverings/variable_ordering.cpp
+  theory/arith/nl/coverings/variable_ordering.h
   theory/arith/nl/equality_substitution.cpp
   theory/arith/nl/equality_substitution.h
   theory/arith/nl/ext/constraint.cpp
@@ -503,6 +505,8 @@ libcvc5_add_sources(
   theory/arith/rewriter/node_utils.cpp
   theory/arith/rewriter/node_utils.h
   theory/arith/rewriter/ordering.h
+  theory/arith/rewriter/rewrite_atom.cpp
+  theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp
