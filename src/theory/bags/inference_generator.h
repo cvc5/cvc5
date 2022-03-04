@@ -251,7 +251,7 @@ class InferenceGenerator
    * @param e is an element of type E
    * @return an inference that represents the following implication
    * (=>
-   *   (>= (bag.count x A) 1)
+   *   (bag.member x A)
    *   (or
    *     (not (= (f x) y)
    *     (and

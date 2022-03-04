@@ -113,8 +113,9 @@ class BagSolver : protected EnvObj
   /** a cache that stores bags of kind BAG_MAP and those element representatives
    * which we generated their inferences.
    */
-  using BagElementsMap =
-      context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node> > >;
+  using BagElementsMap = context::CDHashMap<
+      Node,
+      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node> > > >;
   BagElementsMap d_mapCache;
 
   /** Commonly used constants */
