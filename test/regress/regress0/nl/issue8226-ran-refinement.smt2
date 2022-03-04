@@ -1,3 +1,4 @@
+;; needs --check-models, as --debug-check-models does not trigger the issue
 ; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_NRA)
