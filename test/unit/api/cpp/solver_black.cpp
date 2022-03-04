@@ -3142,42 +3142,5 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, proj_issue421)
-{
-  Solver slv;
-  slv.setLogic("QF_ALL");
-  Sort s1 = slv.mkBitVectorSort(4);
-  Sort s4 = slv.getRealSort();
-  Sort s5 = slv.mkSequenceSort(s1);
-  Term t8 = slv.mkConst(s5, "_x49");
-  Term t10 = slv.mkConst(s4, "_x51");
-  Term t65 = slv.mkTerm(Kind::SEQ_REV, {t8});
-  Term t69 = slv.mkTerm(Kind::TANGENT, {t10});
-  Term t77 = slv.mkTerm(Kind::LEQ, {t69, t10});
-  Term t128 = slv.mkTerm(Kind::SEQ_PREFIX, {t65, t8});
-  slv.assertFormula({t77});
-  slv.checkEntailed({1, t128});
-}
-
-TEST_F(TestApiBlackSolver, proj_issue361)
-{
-  d_solver.setLogic("HO_ALL");
-  d_solver.setOption("produce-models", "true");
-  Sort s1 = d_solver.getBooleanSort();
-  Term t1 = d_solver.mkConst(s1, "_x0");
-  Term t145 = d_solver.mkTerm(NOT, t1);
-  Term t169 = d_solver.mkTerm(AND, t145, t1);
-  Sort s4 = d_solver.mkFunctionSort({s1, s1, s1}, s1);
-  Sort s6 = d_solver.mkBagSort(s1);
-  Term t189 = d_solver.mkConst(s4, "_x32");
-  Term t200 = d_solver.mkConst(s6, "_x43");
-  Term t250 = d_solver.mkTerm(BAG_COUNT, t145, t200);
-  Term t367 = d_solver.mkTerm(APPLY_UF, {t189, t1, t169, t1});
-  d_solver.checkSatAssuming({t145, t367, t145, t145, t145});
-  Term v = d_solver.getValue(t250);
-  ASSERT_TRUE(
-      d_solver.checkSatAssuming(d_solver.mkTerm(EQUAL, t250, v)).isSat());
-}
-
 }  // namespace test
 }  // namespace cvc5
