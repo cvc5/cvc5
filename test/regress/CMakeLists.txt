@@ -1954,8 +1954,6 @@ set(regress_1_tests
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
   regress1/nl/proj-365-is-int-pi.smt2
-  regress1/nl/proj-issue161.smt2
-  regress1/nl/proj-issue165.smt2
   regress1/nl/proj-issue231.smt2
   regress1/nl/proj-issue232.smt2
   regress1/nl/proj-issue251.smt2
@@ -1964,7 +1962,6 @@ set(regress_1_tests
   regress1/nl/proj-issue282.smt2
   regress1/nl/proj-issue286.smt2
   regress1/nl/proj-issue290.smt2
-  regress1/nl/proj-issue291.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -2066,6 +2063,7 @@ set(regress_1_tests
   regress1/push-pop/fuzz_9.smt2
   regress1/push-pop/issue6773-arith-no-check.smt2
   regress1/push-pop/model-unsound-ania.smt2
+  regress1/push-pop/proj-issue161.smt2
   regress1/push-pop/quant-fun-proc-unmacro.smt2
   regress1/push-pop/quant-fun-proc.smt2
   regress1/quantifiers/006-cbqi-ite.smt2
@@ -2693,6 +2691,7 @@ set(regress_1_tests
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
   regress1/sygus/proj-issue135.smt2
+  regress1/sygus/proj-issue165.smt2
   regress1/sygus/proj-issue181.smt2
   regress1/sygus/proj-issue183.smt2
   regress1/sygus/proj-issue185.smt2

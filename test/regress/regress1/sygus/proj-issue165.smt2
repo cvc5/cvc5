@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic QF_UFNIA)
 (set-info :status sat)
 (set-option :cegqi-all true)

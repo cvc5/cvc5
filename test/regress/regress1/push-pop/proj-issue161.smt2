@@ -1,4 +1,5 @@
 ; EXPECT: sat
+; EXPECT: unsat
 ; EXPECT: sat
 (set-logic QF_ALIA)
 (set-option :cegqi true)
