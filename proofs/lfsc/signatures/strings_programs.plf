@@ -1,11 +1,15 @@
 ; depends: nary_programs.plf theory_def.plf
 
-; Make empty string of the given string-like sort s.
+; This signature is used for both strings and sequences, where we often
+; write "string" in the documentation to refer to a string or sequence.
+
+; Make empty string of the given string-like sort u.
 (program sc_mk_emptystr ((u sort)) term
   (match u
     ((Seq t) (seq.empty u))
     (String emptystr)))
 
+; Return true if s is the empty string or sequence.
 (program sc_string_is_empty ((s term)) flag
   (match s
     ((seq.empty s) tt)
@@ -36,16 +40,17 @@
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
 (program sc_string_tail ((t term)) term (nary_tail f_str.++ t))
 
-; Concatenation str.++ applications t1 and t2.
+; Concatenation str.++ applications t1 and t2. Note this side condition requires
+; taking the sort u of t1 for constructing the empty string.
 (program sc_string_concat ((t1 term) (t2 term) (u sort)) term (nary_concat f_str.++ t1 t2 (sc_mk_emptystr u)))
 
-; Decompose str.++ term t into a head and tail.
+; Decompose str.++ term t of sort u into a head and tail.
 (program sc_string_decompose ((t term) (u sort)) termPair (nary_decompose f_str.++ t (sc_mk_emptystr u)))
 
-; String is prefix, returns tt if s is a prefix of t
+; String is prefix, returns tt if t1 of sort u is a prefix of t2
 (program sc_string_is_prefix ((t1 term) (t2 term) (u sort)) flag (nary_is_prefix f_str.++ t1 t2 (sc_mk_emptystr u)))
 
-; Insert a string into str.++ term t.
+; Insert a string into str.++ term t of sort u.
 (program sc_string_insert ((elem term) (t term) (u sort)) term (nary_insert f_str.++ elem t (sc_mk_emptystr u)))
 
 ; Return reverse of t if rev = tt, return t unchanged otherwise.

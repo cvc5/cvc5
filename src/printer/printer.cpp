@@ -445,6 +445,11 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   printUnknownCommand(out, "get-difficulty");
 }
 
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-learned-literals");
+}
+
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const
 {
   printUnknownCommand(out, "get-assertions");

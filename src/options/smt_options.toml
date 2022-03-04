@@ -117,6 +117,14 @@ name   = "SMT Layer"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
+  name       = "produceLearnedLiterals"
+  category   = "regular"
+  long       = "produce-learned-literals"
+  type       = "bool"
+  default    = "false"
+  help       = "produce learned literals, support get-learned-literals"
+
+[[option]]
   name       = "produceProofs"
   category   = "regular"
   long       = "produce-proofs"

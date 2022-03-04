@@ -1726,6 +1726,11 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   out << "(get-difficulty)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  out << "(get-learned-literals)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                                const std::string& logic) const
 {
