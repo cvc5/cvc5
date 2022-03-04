@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i -q
+; COMMAND-LINE: -i -q --produce-proofs
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic NRA)
