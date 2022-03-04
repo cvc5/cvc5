@@ -4801,7 +4801,6 @@ bool TheoryArithPrivate::decomposeTerm(Node t,
     m *= g;
     poly = poly * Rational(1,g);
     Assert(poly.isIntegral());
-    Assert(poly.leadingCoefficientIsPositive());
   }else{
     Assert(!intVars);
     m = poly.getHead().getConstant().getValue();
