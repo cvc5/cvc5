@@ -3147,5 +3147,42 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue422)
+{
+  Solver slv;
+  slv.setOption("sygus-rr-synth-input", "true");
+  Sort s1 = slv.mkBitVectorSort(36);
+  Sort s2 = slv.getStringSort();
+  Term t1 = slv.mkConst(s2, "_x0");
+  Term t2 = slv.mkConst(s1, "_x1");
+  Term t11;
+  {
+    uint32_t bw = s1.getBitVectorSize();
+    std::string val(bw, '1');
+    val[0] = '0';
+    t11 = slv.mkBitVector(bw, val, 2);
+  }
+  Term t60 = slv.mkTerm(Kind::SET_SINGLETON, {t1});
+  Term t66 = slv.mkTerm(Kind::BITVECTOR_COMP, {t2, t11});
+  Term t92 = slv.mkRegexpAll();
+  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 51), {t66});
+  Term t105 = slv.mkTerm(Kind::BITVECTOR_ADD, {t96, t96});
+  Term t113 = slv.mkTerm(Kind::BITVECTOR_SUB, {t105, t105});
+  Term t137 = slv.mkTerm(Kind::BITVECTOR_XOR, {t113, t105});
+  Term t211 = slv.mkTerm(Kind::BITVECTOR_SLTBV, {t137, t137});
+  Term t212 = slv.mkTerm(Kind::SET_MINUS, {t60, t60});
+  Term t234 = slv.mkTerm(Kind::SET_CHOOSE, {t212});
+  Term t250 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t1, t92, t1});
+  Term t259 = slv.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
+  Term t263 = slv.mkTerm(Kind::STRING_TOLOWER, {t259});
+  Term t272 = slv.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
+  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 71), {t272});
+  Term t288 = slv.mkTerm(Kind::EQUAL, {t263, t1});
+  Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
+  Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
+  slv.assertFormula({t301});
+  slv.push(4);
+}
+
 }  // namespace test
 }  // namespace cvc5
