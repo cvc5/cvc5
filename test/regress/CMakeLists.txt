@@ -76,6 +76,7 @@ set(regress_0_tests
   regress0/arith/mod.01.smt2
   regress0/arith/mult.01.smt2
   regress0/arith/non-normal.smt2
+  regress0/arith/projissue469-int-equality.smt2
   regress0/arr1.smt2
   regress0/arr1.smtv1.smt2
   regress0/arr2.smtv1.smt2
@@ -781,6 +782,7 @@ set(regress_0_tests
   regress0/nl/issue6547-ran-model.smt2
   regress0/nl/issue6619-ran-model.smt2
   regress0/nl/issue8135-icp-candidates.smt2
+  regress0/nl/issue8161-var-elim.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
