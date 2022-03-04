@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --sygus-inference -q
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 (set-logic ALL)
 (declare-fun a () Int)
 (declare-fun d () Int)
