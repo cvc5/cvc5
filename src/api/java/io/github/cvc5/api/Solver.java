@@ -1768,8 +1768,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * @return the list of learned literals
    */
-  public Term[] getLearnedLiterals()
-  {
+  public Term[] getLearnedLiterals() {
     long[] retPointers = getLearnedLiterals(pointer);
     return Utils.getTerms(this, retPointers);
   }

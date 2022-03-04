@@ -1681,8 +1681,8 @@ class SolverTest
     }
   }
 
-  @Test void getLearnedLiterals()
-  {
+  @Test
+  void getLearnedLiterals() {
     d_solver.setOption("produce-learned-literals", "true");
     // cannot ask before a check sat
     assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
@@ -1690,8 +1690,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
   }
 
-  @Test void getLearnedLiterals2()
-  {
+  @Test
+  void getLearnedLiterals2() {
     d_solver.setOption("produce-learned-literals", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
@@ -1699,7 +1699,8 @@ class SolverTest
     Term zero = d_solver.mkInteger(0);
     Term ten = d_solver.mkInteger(10);
     Term f0 = d_solver.mkTerm(GEQ, x, ten);
-    Term f1 = d_solver.mkTerm(OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
+    Term f1 = d_solver.mkTerm(
+        OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
