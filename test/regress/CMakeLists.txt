@@ -1673,6 +1673,7 @@ set(regress_1_tests
   regress1/arith/mult.02.smt2
   regress1/arith/pbrewrites-test.smt2
   regress1/arith/problem__003.smt2
+  regress1/arith/proj-issue158.smt2
   regress1/arrayinuf_error.smt2
   regress1/aufbv/bug348.smtv1.smt2
   regress1/aufbv/bug580.smt2
