@@ -771,6 +771,7 @@ set(regress_0_tests
   regress0/nl/issue3971.smt2
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
+  regress0/nl/issue4334-sat-proof-min.smt2
   regress0/nl/issue4463-ack-model.smt2
   regress0/nl/issue5534-no-assertions.smt2
   regress0/nl/issue5726-downpolys.smt2
@@ -1932,6 +1933,7 @@ set(regress_1_tests
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
   regress1/nl/issue3966-conf-coeff.smt2
+  regress1/nl/issue4334-sat-proof.smt2
   regress1/nl/issue4791-llr.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
   regress1/nl/issue5461-iand-init-refine.smt2
