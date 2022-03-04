@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
 (declare-const x Real)
 (declare-const u Real)
 (declare-const v Real)
