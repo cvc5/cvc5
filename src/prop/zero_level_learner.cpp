@@ -151,8 +151,11 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
 
 std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals() const
 {
-  std::vector<Node> ret(d_levelZeroAssertsLearned.begin(),
-                        d_levelZeroAssertsLearned.end());
+  std::vector<Node> ret;
+  for (const Node& n : d_levelZeroAssertsLearned)
+  {
+    ret.push_back(n);
+  }
   return ret;
 }
 
