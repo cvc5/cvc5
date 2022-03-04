@@ -176,16 +176,12 @@ void TheoryArith::postCheck(Effort level)
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
-    if (d_nonlinearExtension != nullptr)
+    // If we computed lemmas in the last FULL_EFFORT check, send them now.
+    if (d_im.hasPendingLemma())
     {
-      // If we computed lemmas in the last FULL_EFFORT check, send them now.
-      if (d_im.hasPendingLemma())
-      {
-        d_im.doPendingFacts();
-        d_im.doPendingLemmas();
-        d_im.doPendingPhaseRequirements();
-        return;
-      }
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
     }
     return;
   }
