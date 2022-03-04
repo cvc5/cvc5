@@ -1694,6 +1694,8 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
   Term ten = d_solver.mkInteger(10);
   Term f0 = d_solver.mkTerm(GEQ, x, ten);
   Term f1 = d_solver.mkTerm(GEQ, zero, x);
+  d_solver.assertFormula(f0);
+  d_solver.assertFormula(f1);
   d_solver.checkSat();
   std::map<Term, Term> dmap;
   ASSERT_NO_THROW(dmap = d_solver.getDifficulty());
@@ -1703,6 +1705,32 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
     ASSERT_TRUE(t.first == f0 || t.first == f1);
     ASSERT_TRUE(t.second.getKind() == CONST_RATIONAL);
   }
+}
+
+TEST_F(TestApiBlackSolver, getLearnedLiterals)
+{
+  d_solver.setOption("produce-learned-literals", "true");
+  // cannot ask before a check sat
+  ASSERT_THROW(d_solver.getLearnedLiterals(), CVC5ApiException);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getLearnedLiterals());
+}
+
+TEST_F(TestApiBlackSolver, getLearnedLiterals2)
+{
+  d_solver.setOption("produce-learned-literals", "true");
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term zero = d_solver.mkInteger(0);
+  Term ten = d_solver.mkInteger(10);
+  Term f0 = d_solver.mkTerm(GEQ, x, ten);
+  Term f1 = d_solver.mkTerm(
+      OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
+  d_solver.assertFormula(f0);
+  d_solver.assertFormula(f1);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getLearnedLiterals());
 }
 
 TEST_F(TestApiBlackSolver, getValue1)
