@@ -507,8 +507,9 @@ InferInfo InferenceGenerator::mapUp(
   Node xInA = d_nm->mkNode(GEQ, countA, d_one);
   Node notEqual = d_nm->mkNode(EQUAL, d_nm->mkNode(APPLY_UF, f, x), y).negate();
 
-  Node k = d_sm->mkSkolemFunction(
-      SkolemFunId::NONE, d_nm->integerType(), {n, uf, preImageSize, y, x});
+  Node k = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INDEX,
+                                  d_nm->integerType(),
+                                  {n, uf, preImageSize, y, x});
   Node inRange = d_nm->mkNode(
       AND, d_nm->mkNode(GEQ, k, d_one), d_nm->mkNode(LEQ, k, preImageSize));
   Node equal = d_nm->mkNode(EQUAL, d_nm->mkNode(APPLY_UF, uf, k), x);
