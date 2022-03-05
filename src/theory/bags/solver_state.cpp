@@ -135,7 +135,7 @@ std::vector<Node> SolverState::collectBagsAndCountTerms()
   while (!repIt.isFinished())
   {
     Node eqc = (*repIt);
-    Trace("bags-eqc") << "Eqc [ " << eqc << " ] = { ";
+    Trace("bags-eqc") << "(eqc " << eqc << std::endl << "";
 
     if (eqc.getType().isBag())
     {
@@ -173,11 +173,11 @@ std::vector<Node> SolverState::collectBagsAndCountTerms()
       }
       ++it;
     }
-    Trace("bags-eqc") << " } " << std::endl;
+    Trace("bags-eqc") << std::endl << " ) " << std::endl;
     ++repIt;
   }
 
-  Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
+  Trace("bags-eqc") << "(bagRepresentatives " << d_bags << ")" << std::endl;
   return lemmas;
 }
 
@@ -189,7 +189,7 @@ void SolverState::collectDisequalBagTerms()
     Node n = (*it);
     if (n.getKind() == EQUAL && n[0].getType().isBag())
     {
-      Trace("bags-eqc") << "Disequal terms: " << n << std::endl;
+      Trace("bags-eqc") << "(disequalTerms " << n << " )" << std::endl;
       d_deq.insert(n);
     }
     ++it;
