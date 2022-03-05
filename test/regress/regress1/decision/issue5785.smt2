@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --fmf-fun -i --decision=justification
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALRA)
 (set-option :fmf-fun true)
 (declare-fun v2 () Bool)

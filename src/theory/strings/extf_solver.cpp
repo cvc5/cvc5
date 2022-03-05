@@ -294,6 +294,11 @@ void ExtfSolver::checkExtfEval(int effort)
     // value, say in this example that (str.replace x "A" "B") != "B".
     std::vector<Node> exp;
     std::vector<Node> schildren;
+    // seq.unit is parameterized
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
+    {
+      schildren.push_back(n.getOperator());
+    }
     bool schanged = false;
     for (const Node& nc : n)
     {

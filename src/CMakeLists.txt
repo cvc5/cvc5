@@ -416,6 +416,8 @@ libcvc5_add_sources(
   theory/arith/nl/coverings/cdcac.h
   theory/arith/nl/coverings/cdcac_utils.cpp
   theory/arith/nl/coverings/cdcac_utils.h
+  theory/arith/nl/coverings/cocoa_converter.cpp
+  theory/arith/nl/coverings/cocoa_converter.h
   theory/arith/nl/coverings/constraints.cpp
   theory/arith/nl/coverings/constraints.h
   theory/arith/nl/coverings/lazard_evaluation.cpp
@@ -1075,6 +1077,8 @@ libcvc5_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/rewrites.cpp
   theory/strings/rewrites.h
+  theory/strings/seq_unit_op.cpp
+  theory/strings/seq_unit_op.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp

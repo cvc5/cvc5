@@ -13,7 +13,7 @@
  * A class for singleton operator for sets.
  */
 
-#include "singleton_op.h"
+#include "theory/sets/singleton_op.h"
 
 #include <iostream>
 

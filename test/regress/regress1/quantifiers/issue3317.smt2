@@ -1,5 +1,6 @@
-; COMMAND-LINE: --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --fmf-fun-rlv
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-info :smt-lib-version 2.6)
 (set-option :produce-models true)
 (set-logic ALL)

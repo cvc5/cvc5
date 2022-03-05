@@ -1,5 +1,5 @@
-; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic NIA)
 (set-option :strings-exp true)
 (set-info :status sat)
