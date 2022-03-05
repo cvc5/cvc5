@@ -1958,14 +1958,21 @@ set(regress_1_tests
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
   regress1/nl/proj-365-is-int-pi.smt2
+  regress1/nl/proj-issue215.smt2
   regress1/nl/proj-issue231.smt2
   regress1/nl/proj-issue232.smt2
   regress1/nl/proj-issue251.smt2
   regress1/nl/proj-issue253.smt2
+  regress1/nl/proj-issue279.smt2
   regress1/nl/proj-issue280.smt2
   regress1/nl/proj-issue282.smt2
   regress1/nl/proj-issue286.smt2
   regress1/nl/proj-issue290.smt2
+  regress1/nl/proj-issue291.smt2
+  regress1/nl/proj-issue292.smt2
+  regress1/nl/proj-issue294.smt2
+  regress1/nl/proj-issue297.smt2
+  regress1/nl/proj-issue302.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
