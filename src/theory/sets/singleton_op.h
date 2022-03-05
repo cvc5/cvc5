@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__SINGLETON_OP_H
-#define CVC5__SINGLETON_OP_H
+#ifndef CVC5__THEORY__SETS__SINGLETON_OP_H
+#define CVC5__THEORY__SETS__SINGLETON_OP_H
 
 #include <memory>
 
@@ -51,7 +51,7 @@ class SetSingletonOp
 std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op);
 
 /**
- * Hash function for the SingletonHashFunction objects.
+ * Hash function for the SetSingletonOp objects.
  */
 struct SetSingletonOpHashFunction
 {
@@ -60,4 +60,4 @@ struct SetSingletonOpHashFunction
 
 }  // namespace cvc5
 
-#endif /* CVC5__SINGLETON_OP_H */
+#endif /* CVC5__THEORY__SETS__SINGLETON_OP_H */
