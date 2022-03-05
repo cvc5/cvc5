@@ -272,6 +272,14 @@ class CVC5_EXPORT SolverEngine
   Node getSepNilExpr();
 
   /**
+   * Get the list of top-level learned literals that are entailed by the current
+   * set of assertions.
+   *
+   * TODO (wishue #104): implement for different modes
+   */
+  std::vector<Node> getLearnedLiterals();
+
+  /**
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
