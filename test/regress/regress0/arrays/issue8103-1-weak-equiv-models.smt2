@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-models --arrays-weak-equiv
 ; COMMAND-LINE: --produce-models --arrays-weak-equiv
 ; SCRUBBER: grep -o "Cannot use arrays-weak-equiv with model generation"
 ; EXPECT: Cannot use arrays-weak-equiv with model generation
