@@ -42,12 +42,6 @@ HoExtension::HoExtension(Env& env,
       d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  if (d_env.getLogicInfo().isHigherOrder()
-      && !options().uf.ufHoLazyLambdaLiftWasSetByUser)
-  {
-    // If not set by the user, enable lazy lambda lifting option
-    options().uf.ufHoLazyLambdaLift = true;
-  }
 }
 
 TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
@@ -223,7 +217,8 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         Assert(new_f.getType() == f.getType());
         Node eq = new_f.eqNode(f);
         Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
-        lem = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, nvs), seq);
+        lem = nm->mkNode(
+            FORALL, nm->mkNode(BOUND_VAR_LIST, nvs), seq);
       }
       else
       {
