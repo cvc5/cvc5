@@ -355,7 +355,7 @@ bool checkVariablesInternal(TNode n,
           else
           {
             // should not shadow
-            AlwaysAssert(scope.find(cn) == scope.end())
+            Assert(scope.find(cn) == scope.end())
                 << "Shadowed variable " << cn << " in " << cur << "\n";
           }
           scope.insert(cn);
