@@ -30,6 +30,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5;
 using namespace cvc5::theory;
@@ -183,6 +184,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // substitutions to newSubstitutions
     Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
 
+    AlwaysAssert(!expr::hasFreeVar(learnedLiteral));
     TrustNode tlearnedLiteral =
         TrustNode::mkTrustLemma(learnedLiteral, d_llpg.get());
     Theory::PPAssertStatus solveStatus =
@@ -293,8 +295,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     if (!assertionNew.isNull())
     {
       Trace("non-clausal-simplify")

@@ -57,6 +57,7 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
+ * - QElimShadowAttribute TODO
  */
 struct QRewPrenexAttributeId
 {
@@ -70,6 +71,10 @@ struct QRewDtExpandAttributeId
 {
 };
 typedef expr::Attribute<QRewDtExpandAttributeId, Node> QRewDtExpandAttribute;
+struct QElimShadowAttributeId
+{
+};
+typedef expr::Attribute<QElimShadowAttributeId, Node> QElimShadowAttribute;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -505,10 +510,11 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
-Node QuantifiersRewriter::computeProcessTerms(Node body,
-                                              std::vector<Node>& new_vars,
+Node QuantifiersRewriter::computeProcessTerms(
+                                              const Node& q,
+                                              const std::vector<Node>& args,
+                                              Node body,
                                               std::vector<Node>& new_conds,
-                                              Node q,
                                               QAttributes& qa) const
 {
   std::map< Node, Node > cache;
@@ -520,21 +526,22 @@ Node QuantifiersRewriter::computeProcessTerms(Node body,
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2(fbody, cache, new_vars, new_conds);
-      Assert(new_vars.size() == h.getNumChildren());
+      Node r = computeProcessTerms2(fbody, cache, args, new_conds);
+      Assert(args.size() == h.getNumChildren());
       return NodeManager::currentNM()->mkNode(EQUAL, h, r);
     }
     // It can happen that we can't infer the shape of the function definition,
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
     // forall xy. false.
   }
-  return computeProcessTerms2(body, cache, new_vars, new_conds);
+  return computeProcessTerms2(q, args, body, cache, new_conds);
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
+  const Node& q,
+    const std::vector<Node>& args,
     Node body,
     std::map<Node, Node>& cache,
-    std::vector<Node>& new_vars,
     std::vector<Node>& new_conds) const
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -544,12 +551,27 @@ Node QuantifiersRewriter::computeProcessTerms2(
   if( iti!=cache.end() ){
     return iti->second;
   }
+  if (body.isClosure())
+  {
+    std::vector<Node> oldVars;
+    std::vector<Node> newVars;
+    for (const Node& v : body[0])
+    {
+      if (std::find(args.begin(), args.end(), v)!=args.end())
+      {
+        oldVars.push_back(v);
+        Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
+        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, tn);
+        newVars.push_back(
+      }
+    }
+  }
   bool changed = false;
   std::vector<Node> children;
   for (size_t i = 0; i < body.getNumChildren(); i++)
   {
     // do the recursive call on children
-    Node nn = computeProcessTerms2(body[i], cache, new_vars, new_conds);
+    Node nn = computeProcessTerms2(args, body[i], cache, new_conds);
     children.push_back(nn);
     changed = changed || nn != body[i];
   }

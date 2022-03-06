@@ -233,9 +233,10 @@ class QuantifiersRewriter : public TheoryRewriter
                              std::vector<Node>& activeArgs,
                              Node n,
                              Node ipl);
-  Node computeProcessTerms2(Node body,
+  Node computeProcessTerms2(const Node& q,
+                            const std::vector<Node>& args,
+                            Node body,
                             std::map<Node, Node>& cache,
-                            std::vector<Node>& new_vars,
                             std::vector<Node>& new_conds) const;
   static void computeDtTesterIteSplit(
       Node n,
@@ -290,10 +291,10 @@ class QuantifiersRewriter : public TheoryRewriter
    * is equivalent to:
    *   forall X, V. ( C => retBody )
    */
-  Node computeProcessTerms(Node body,
-                           std::vector<Node>& new_vars,
+  Node computeProcessTerms(const Node& q,
+                           const std::vector<Node>& args,
+                           Node body,
                            std::vector<Node>& new_conds,
-                           Node q,
                            QAttributes& qa) const;
   //------------------------------------- end process terms
   //------------------------------------- extended rewrite

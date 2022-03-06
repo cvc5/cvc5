@@ -16,6 +16,8 @@
 #include "theory/trust_substitutions.h"
 
 #include "theory/rewriter.h"
+#include <sstream>
+#include "expr/node_algorithm.h"
 
 namespace cvc5 {
 namespace theory {
@@ -147,10 +149,14 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 
 TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
 {
-  Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
+  Trace("trust-subs") << "TrustSubstitutionMap::applyTrusted " << n
                       << std::endl;
+  std::stringstream ss;
+  d_subs.print(ss);
+  Trace("trust-subs") << "subs is " << ss.str() << std::endl;
   Node ns = d_subs.apply(n, r);
-  Trace("trust-subs") << "...subs " << ns << std::endl;
+  Trace("trust-subs") << "...return " << ns << std::endl;
+  AlwaysAssert (expr::hasFreeVar(n) || !expr::hasFreeVar(ns));
   if (n == ns)
   {
     // no change
