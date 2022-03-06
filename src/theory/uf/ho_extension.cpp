@@ -42,9 +42,10 @@ HoExtension::HoExtension(Env& env,
       d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-  if (d_env.getLogicInfo().isHigherOrder())
+  if (d_env.getLogicInfo().isHigherOrder()
+      && !options().uf.ufHoLazyLambdaLiftWasSetByUser)
   {
-    // always enable lazy lambda lifting with higher order logic
+    // If not set by the user, enable lazy lambda lifting option
     options().uf.ufHoLazyLambdaLift = true;
   }
 }
