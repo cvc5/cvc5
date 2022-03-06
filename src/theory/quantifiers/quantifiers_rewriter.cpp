@@ -517,6 +517,10 @@ Node QuantifiersRewriter::computeProcessTerms(
                                               std::vector<Node>& new_conds,
                                               QAttributes& qa) const
 {
+  if (qa.isStandard())
+  {
+    
+  }
   std::map< Node, Node > cache;
   if( qa.isFunDef() ){
     Node h = QuantAttributes::getFunDefHead( q );
@@ -526,7 +530,7 @@ Node QuantifiersRewriter::computeProcessTerms(
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2(fbody, cache, args, new_conds);
+      Node r = computeProcessTerms2(q, args, fbody, cache, new_conds);
       Assert(args.size() == h.getNumChildren());
       return NodeManager::currentNM()->mkNode(EQUAL, h, r);
     }
@@ -553,27 +557,37 @@ Node QuantifiersRewriter::computeProcessTerms2(
   }
   if (body.isClosure())
   {
+    // ensure no shadowing
     std::vector<Node> oldVars;
     std::vector<Node> newVars;
     for (const Node& v : body[0])
     {
       if (std::find(args.begin(), args.end(), v)!=args.end())
       {
+        Trace("quantifiers-rewrite-unshadow") << "Found shadowed variable " << v << " in " << q << std::endl;
+        BoundVarManager* bvm = nm->getBoundVarManager();
         oldVars.push_back(v);
         Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, tn);
-        newVars.push_back(
+        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+        newVars.push_back(nv);
       }
+    }
+    if (!oldVars.empty())
+    {
+      Assert (oldVars.size()==newVars.size());
+      Node sbody = body.substitute(oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+      cache[body] = sbody;
+      return sbody;
     }
   }
   bool changed = false;
   std::vector<Node> children;
-  for (size_t i = 0; i < body.getNumChildren(); i++)
+  for (const Node& bc : body)
   {
     // do the recursive call on children
-    Node nn = computeProcessTerms2(args, body[i], cache, new_conds);
+    Node nn = computeProcessTerms2(q, args, bc, cache, new_conds);
     children.push_back(nn);
-    changed = changed || nn != body[i];
+    changed = changed || nn != bc;
   }
 
   // make return value
@@ -1944,9 +1958,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return is_std
-           && d_opts.quantifiers.iteLiftQuant
-                  != options::IteLiftQuantMode::NONE;
+    return true;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
@@ -2004,7 +2016,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
     std::vector< Node > new_conds;
-    n = computeProcessTerms( n, args, new_conds, f, qa );
+    n = computeProcessTerms( f, args, n, new_conds, qa );
     if( !new_conds.empty() ){
       new_conds.push_back( n );
       n = NodeManager::currentNM()->mkNode( OR, new_conds );
