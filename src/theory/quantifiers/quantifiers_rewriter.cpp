@@ -515,18 +515,18 @@ Node QuantifiersRewriter::computeProcessTerms(const Node& q,
                                               Node body,
                                               QAttributes& qa) const
 {
-
   options::IteLiftQuantMode iteLiftMode = options::IteLiftQuantMode::NONE;
   if (qa.isStandard())
   {
     iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
-  std::vector< Node > new_conds;
+  std::vector<Node> new_conds;
   std::map<Node, Node> cache;
   Node n = computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
-  if( !new_conds.empty() ){
-    new_conds.push_back( n );
-    n = NodeManager::currentNM()->mkNode( OR, new_conds );
+  if (!new_conds.empty())
+  {
+    new_conds.push_back(n);
+    n = NodeManager::currentNM()->mkNode(OR, new_conds);
   }
   return n;
 }
