@@ -587,7 +587,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
   for (const Node& bc : body)
   {
     // do the recursive call on children
-    Node nn = computeProcessTerms2(q, args, bc, cache, new_conds);
+    Node nn = computeProcessTerms2(q, args, bc, cache, new_conds, iteLiftMode);
     children.push_back(nn);
     changed = changed || nn != bc;
   }
