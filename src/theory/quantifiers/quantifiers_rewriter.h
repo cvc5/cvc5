@@ -20,6 +20,7 @@
 
 #include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
+#include "options/quantifiers_options.h"
 
 namespace cvc5 {
 
@@ -237,7 +238,9 @@ class QuantifiersRewriter : public TheoryRewriter
                             const std::vector<Node>& args,
                             Node body,
                             std::map<Node, Node>& cache,
-                            std::vector<Node>& new_conds) const;
+                            std::vector<Node>& new_conds,
+                            options::IteLiftQuantMode iteLiftMode
+                           ) const;
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,

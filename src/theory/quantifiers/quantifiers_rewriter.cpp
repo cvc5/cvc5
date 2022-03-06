@@ -517,9 +517,10 @@ Node QuantifiersRewriter::computeProcessTerms(
                                               std::vector<Node>& new_conds,
                                               QAttributes& qa) const
 {
+  options::IteLiftQuantMode iteLiftMode = options::IteLiftQuantMode::NONE;
   if (qa.isStandard())
   {
-    
+    iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
   std::map< Node, Node > cache;
   if( qa.isFunDef() ){
@@ -530,7 +531,7 @@ Node QuantifiersRewriter::computeProcessTerms(
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2(q, args, fbody, cache, new_conds);
+      Node r = computeProcessTerms2(q, args, fbody, cache, new_conds, iteLiftMode);
       Assert(args.size() == h.getNumChildren());
       return NodeManager::currentNM()->mkNode(EQUAL, h, r);
     }
@@ -538,7 +539,7 @@ Node QuantifiersRewriter::computeProcessTerms(
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
     // forall xy. false.
   }
-  return computeProcessTerms2(q, args, body, cache, new_conds);
+  return computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
@@ -546,7 +547,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
     const std::vector<Node>& args,
     Node body,
     std::map<Node, Node>& cache,
-    std::vector<Node>& new_conds) const
+    std::vector<Node>& new_conds,
+                            options::IteLiftQuantMode iteLiftMode) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2")
@@ -609,7 +611,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
   if (ret.getKind() == EQUAL
-      && d_opts.quantifiers.iteLiftQuant != options::IteLiftQuantMode::NONE)
+      && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -619,7 +621,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
         if (no.getKind() != ITE)
         {
           bool doRewrite =
-              d_opts.quantifiers.iteLiftQuant == options::IteLiftQuantMode::ALL;
+              (iteLiftMode == options::IteLiftQuantMode::ALL);
           std::vector<Node> childrenIte;
           childrenIte.push_back(ret[i][0]);
           for (size_t j = 1; j <= 2; j++)
