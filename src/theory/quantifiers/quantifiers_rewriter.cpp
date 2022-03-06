@@ -522,23 +522,6 @@ Node QuantifiersRewriter::computeProcessTerms(const Node& q,
     iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
   std::map< Node, Node > cache;
-  if( qa.isFunDef() ){
-    Node h = QuantAttributes::getFunDefHead( q );
-    Assert(!h.isNull());
-    // if it is a function definition, rewrite the body independently
-    Node fbody = QuantAttributes::getFunDefBody( q );
-    Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
-    if (!fbody.isNull())
-    {
-      Node r =
-          computeProcessTerms2(q, args, fbody, cache, new_conds, iteLiftMode);
-      Assert(args.size() == h.getNumChildren());
-      return NodeManager::currentNM()->mkNode(EQUAL, h, r);
-    }
-    // It can happen that we can't infer the shape of the function definition,
-    // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
-    // forall xy. false.
-  }
   return computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
 }
 
