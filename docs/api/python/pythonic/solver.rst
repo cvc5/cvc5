@@ -4,49 +4,49 @@ Solvers & Results
 Simple Solving
 ----------------
 
-.. autofunction:: cvc5_z3py_compat.solve
-.. autofunction:: cvc5_z3py_compat.solve_using
-.. autofunction:: cvc5_z3py_compat.prove
+.. autofunction:: cvc5.pythonic.solve
+.. autofunction:: cvc5.pythonic.solve_using
+.. autofunction:: cvc5.pythonic.prove
 
 
 The Solver Class
 ----------------
 
-.. autofunction:: cvc5_z3py_compat.SolverFor
+.. autofunction:: cvc5.pythonic.SolverFor
 
-.. autofunction:: cvc5_z3py_compat.SimpleSolver
+.. autofunction:: cvc5.pythonic.SimpleSolver
 
-.. autoclass:: cvc5_z3py_compat.Solver
+.. autoclass:: cvc5.pythonic.Solver
   :members:
   :special-members:
 
 Results & Models
 ----------------
-.. data:: cvc5_z3py_compat.unsat
+.. data:: cvc5.pythonic.unsat
 
   An *UNSAT* result.
 
-.. data:: cvc5_z3py_compat.sat
+.. data:: cvc5.pythonic.sat
 
   A *SAT* result.
 
-.. data:: cvc5_z3py_compat.unknown
+.. data:: cvc5.pythonic.unknown
 
   The satisfiability could not be determined.
 
-.. autoclass:: cvc5_z3py_compat.CheckSatResult
+.. autoclass:: cvc5.pythonic.CheckSatResult
   :members:
   :special-members:
 
-.. autoclass:: cvc5_z3py_compat.ModelRef
+.. autoclass:: cvc5.pythonic.ModelRef
   :members:
   :special-members:
 
 Utilities
 --------------
 
-.. autofunction:: cvc5_z3py_compat.evaluate
-.. autofunction:: cvc5_z3py_compat.simplify
-.. autofunction:: cvc5_z3py_compat.substitute
-.. autofunction:: cvc5_z3py_compat.Sum
-.. autofunction:: cvc5_z3py_compat.Product
+.. autofunction:: cvc5.pythonic.evaluate
+.. autofunction:: cvc5.pythonic.simplify
+.. autofunction:: cvc5.pythonic.substitute
+.. autofunction:: cvc5.pythonic.Sum
+.. autofunction:: cvc5.pythonic.Product

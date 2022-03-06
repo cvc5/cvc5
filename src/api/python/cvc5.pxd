@@ -273,6 +273,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
                           Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
+        vector[Term] getLearnedLiterals() except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
         string getOption(string& option) except +
@@ -299,6 +300,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint getAbduct(const Term& conj, Term& output) except +
         bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
         bint getAbductNext(const Term& conj) except +
+        void blockModel() except +
+        void blockModelValues(const vector[Term]& terms) except +
 
     cdef cppclass Grammar:
         Grammar() except +

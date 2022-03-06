@@ -1944,6 +1944,24 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getLearnedLiterals(self):
+        """Get a list of literals that are entailed by the current set of assertions
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-learned-literals )
+
+        :return: the list of literals
+        """
+        lits = []
+        for a in self.csolver.getLearnedLiterals():
+            term = Term(self)
+            term.cterm = a
+            lits.append(term)
+        return lits
+
     def getAssertions(self):
         """Get the list of asserted formulas.
 
@@ -2315,6 +2333,43 @@ cdef class Solver:
         result = self.csolver.getAbductNext(output.cterm)
         return result
 
+    def blockModel(self):
+        """
+        Block the current model. Can be called only if immediately preceded by a
+        SAT or INVALID query.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+            (block-model)
+
+        Requires enabling option
+        :ref:`produce-models <lbl-option-produce-models>`
+        and setting option
+        :ref:`block-models <lbl-option-block-models>`
+        to a mode other than ``none``.
+        """
+        self.csolver.blockModel()
+
+    def blockModelValues(self, terms):
+        """
+        Block the current model values of (at least) the values in terms. Can be
+        called only if immediately preceded by a SAT or NOT_ENTAILED query.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+           (block-model-values ( <terms>+ ))
+
+        Requires enabling option
+        :ref:`produce-models <lbl-option-produce-models>`.
+        """
+        cdef vector[c_Term] nts
+        for t in terms:
+            nts.push_back((<Term?> t).cterm)
+        self.csolver.blockModelValues(nts)
 
 
 cdef class Sort:

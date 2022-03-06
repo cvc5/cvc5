@@ -1585,6 +1585,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(const Solver* slv,
+                                             const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
@@ -4182,6 +4185,14 @@ class CVC5_EXPORT Solver
   std::string getProof() const;
 
   /**
+   * Get learned literals
+   *
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
+   */
+  std::vector<Term> getLearnedLiterals() const;
+
+  /**
    * Get the value of the given term in the current model.
    *
    * SMT-LIB:
@@ -5000,6 +5011,16 @@ class CVC5_EXPORT Solver
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
+
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param t The term to check
+   */
+  void ensureWellFormedTerm(const Term& t) const;
+  /** Vector version of above. */
+  void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
   /** Increment the term stats counter. */
   void increment_term_stats(Kind kind) const;

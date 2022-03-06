@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__ARITH__REWRITER__ADDITION_H
 #define CVC5__THEORY__ARITH__REWRITER__ADDITION_H
 
-#include <map>
 #include <iosfwd>
+#include <map>
 
 #include "expr/node.h"
 #include "theory/arith/rewriter/ordering.h"
@@ -52,6 +52,14 @@ using Sum = std::map<Node, RealAlgebraicNumber, TermComparator>;
  * for debugging.
  */
 std::ostream& operator<<(std::ostream& os, const Sum& sum);
+
+/**
+ * Check whether the given sum can be rewritten as an integer expression. This
+ * differs from checking the node type in a major way: rational
+ * constants are always integral, as they are rewritten to integers by simple
+ * multiplication with their denominator.
+ */
+bool isIntegral(const Sum& sum);
 
 /**
  * Add the arithmetic term `n` to the given sum. If negate is true, actually add

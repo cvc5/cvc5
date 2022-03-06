@@ -255,7 +255,7 @@ class PropEngine : protected EnvObj
 
   /**
    * Informs the ResourceManager that a resource has been spent.  If out of
-   * resources, can throw an UnsafeInterruptException exception.
+   * resources, the solver is interrupted using a callback.
    */
   void spendResource(Resource r);
 
@@ -295,7 +295,7 @@ class PropEngine : protected EnvObj
   std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions */
-  const std::unordered_set<Node>& getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

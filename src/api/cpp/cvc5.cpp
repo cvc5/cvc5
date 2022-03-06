@@ -57,6 +57,7 @@
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -3012,6 +3013,17 @@ std::vector<Node> Term::termVectorToNodes(const std::vector<Term>& terms)
   return res;
 }
 
+std::vector<Term> Term::nodeVectorToTerms(const Solver* slv,
+                                          const std::vector<Node>& nodes)
+{
+  std::vector<Term> res;
+  for (const Node& n : nodes)
+  {
+    res.push_back(Term(slv, n));
+  }
+  return res;
+}
+
 bool Term::isReal32Value() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5252,6 +5264,13 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       res = getNodeManager()->mkBag(
           type, *children[0].d_node, *children[1].d_node);
     }
+    else if (kind == api::SEQ_UNIT)
+    {
+      // the type of the term is the same as the type of the internal node
+      // see Term::getSort()
+      TypeNode type = children[0].d_node->getType();
+      res = getNodeManager()->mkSeqUnit(type, *children[0].d_node);
+    }
     else
     {
       res = d_nodeMgr->mkNode(k, echildren);
@@ -5433,6 +5452,34 @@ bool Solver::isValidInteger(const std::string& s) const
   }
 
   return true;
+}
+
+void Solver::ensureWellFormedTerm(const Term& t) const
+{
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
+  {
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+    {
+      std::stringstream se;
+      se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
+         << " variable";
+      throw CVC5ApiException(se.str().c_str());
+    }
+  }
+}
+
+void Solver::ensureWellFormedTerms(const std::vector<Term>& ts) const
+{
+  // only check if option is set
+  if (d_slv->getOptions().expr.wellFormedChecking)
+  {
+    for (const Term& t : ts)
+    {
+      ensureWellFormedTerm(t);
+    }
+  }
 }
 
 void Solver::resetStatistics()
@@ -6631,6 +6678,7 @@ Result Solver::checkEntailed(const Term& term) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM(term);
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   return d_slv->checkEntailed(*term.d_node);
   ////////
@@ -6645,6 +6693,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
   return d_slv->checkEntailed(Term::termVectorToNodes(terms));
   ////////
@@ -6659,6 +6708,7 @@ void Solver::assertFormula(const Term& term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, getBooleanSort());
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   d_slv->assertFormula(*term.d_node);
   ////////
@@ -6686,6 +6736,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
+  ensureWellFormedTerm(assumption);
   //////// all checks before this line
   return d_slv->checkSat(*assumption.d_node);
   ////////
@@ -6700,6 +6751,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
+  ensureWellFormedTerms(assumptions);
   //////// all checks before this line
   for (const Term& term : assumptions)
   {
@@ -6963,12 +7015,7 @@ std::vector<Term> Solver::getAssertions(void) const
   /* Can not use
    *   return std::vector<Term>(assertions.begin(), assertions.end());
    * here since constructor is private */
-  std::vector<Term> res;
-  for (const Node& e : assertions)
-  {
-    res.push_back(Term(this, e));
-  }
-  return res;
+  return Term::nodeVectorToTerms(this, assertions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7272,6 +7319,24 @@ std::string Solver::getProof(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Term> Solver::getLearnedLiterals(void) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceLearnedLiterals)
+      << "Cannot get learned literals unless enabled (try "
+         "--produce-learned-literals)";
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT
+                             || d_slv->getSmtMode() == SmtMode::SAT
+                             || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
+      << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
+         "response.";
+  //////// all checks before this line
+  std::vector<Node> lits = d_slv->getLearnedLiterals();
+  return Term::nodeVectorToTerms(this, lits);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::getValue(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7286,6 +7351,7 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
       << "Cannot get value of a term of non-well-founded datatype sort.";
+  ensureWellFormedTerm(term);
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7309,6 +7375,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
         << "Cannot get value of a term of non-well-founded datatype sort.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
 
   std::vector<Term> res;
@@ -7644,6 +7711,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
+  ensureWellFormedTerms(terms);
   //////// all checks before this line
   d_slv->blockModelValues(Term::termVectorToNodes(terms));
   ////////

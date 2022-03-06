@@ -1694,6 +1694,8 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
   Term ten = d_solver.mkInteger(10);
   Term f0 = d_solver.mkTerm(GEQ, x, ten);
   Term f1 = d_solver.mkTerm(GEQ, zero, x);
+  d_solver.assertFormula(f0);
+  d_solver.assertFormula(f1);
   d_solver.checkSat();
   std::map<Term, Term> dmap;
   ASSERT_NO_THROW(dmap = d_solver.getDifficulty());
@@ -1703,6 +1705,32 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
     ASSERT_TRUE(t.first == f0 || t.first == f1);
     ASSERT_TRUE(t.second.getKind() == CONST_RATIONAL);
   }
+}
+
+TEST_F(TestApiBlackSolver, getLearnedLiterals)
+{
+  d_solver.setOption("produce-learned-literals", "true");
+  // cannot ask before a check sat
+  ASSERT_THROW(d_solver.getLearnedLiterals(), CVC5ApiException);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getLearnedLiterals());
+}
+
+TEST_F(TestApiBlackSolver, getLearnedLiterals2)
+{
+  d_solver.setOption("produce-learned-literals", "true");
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term zero = d_solver.mkInteger(0);
+  Term ten = d_solver.mkInteger(10);
+  Term f0 = d_solver.mkTerm(GEQ, x, ten);
+  Term f1 = d_solver.mkTerm(
+      OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
+  d_solver.assertFormula(f0);
+  d_solver.assertFormula(f1);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getLearnedLiterals());
 }
 
 TEST_F(TestApiBlackSolver, getValue1)
@@ -3001,6 +3029,188 @@ TEST_F(TestApiBlackSolver, proj_issue414)
   Term t53 = slv.mkTerm(Kind::SUB, {t1, t16});
   Term t54 = slv.mkTerm(Kind::SECANT, {t53});
   ASSERT_NO_THROW(slv.simplify(t54));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue420)
+{
+  Solver slv;
+  slv.setOption("strings-exp", "true");
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s2 = slv.getRealSort();
+  Sort s3 = slv.mkUninterpretedSort("_u0");
+  DatatypeDecl _dt1 = slv.mkDatatypeDecl("_dt1", {});
+  DatatypeConstructorDecl _cons16 = slv.mkDatatypeConstructorDecl("_cons16");
+  _cons16.addSelector("_sel13", s3);
+  _dt1.addConstructor(_cons16);
+  std::vector<Sort> _s4 = slv.mkDatatypeSorts({_dt1});
+  Sort s4 = _s4[0];
+  Sort s5 = slv.mkSequenceSort(s2);
+  Term t3 = slv.mkConst(s5, "_x18");
+  Term t7 = slv.mkConst(s4, "_x22");
+  Term t13 = slv.mkTerm(Kind::DT_SIZE, {t7});
+  Term t53 = slv.mkTerm(Kind::SEQ_NTH, {t3, t13});
+  ASSERT_NO_THROW(slv.checkSat());
+  ASSERT_NO_THROW(slv.blockModelValues({t53, t7}));
+  ASSERT_NO_THROW(slv.checkSat());
+}
+
+TEST_F(TestApiBlackSolver, proj_issue440)
+{
+  Solver slv;
+  slv.setLogic("QF_ALL");
+  slv.setOption("global-negate", "true");
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s1 = slv.getBooleanSort();
+  Term t9 = slv.mkBoolean(true);
+  Term t109 = slv.mkTerm(Kind::NOT, {t9});
+  // should throw an option exception
+  ASSERT_THROW(slv.checkSatAssuming({t109}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, proj_issue434)
+{
+  Solver slv;
+  slv.setOption("dump-difficulty", "true");
+  slv.setOption("debug-check-models", "true");
+  Sort s1 = slv.mkUninterpretedSort("_u0");
+  Sort s2 = slv.mkUninterpretedSort("_u1");
+  Sort s3 = slv.mkUninterpretedSort("_u2");
+  Sort s4 = slv.getBooleanSort();
+  Term t1 = slv.mkConst(s1, "_x3");
+  Term t3 = slv.mkConst(s3, "_x5");
+  Term t15 = slv.mkConst(s1, "_x17");
+  Term t26 = slv.mkBoolean(false);
+  Term t60 = slv.mkVar(s4, "_f29_1");
+  Term t73 = slv.defineFun("_f29", {t60}, t60.getSort(), t60);
+  Term t123 = slv.mkVar(s4, "_f31_0");
+  Term t135 = slv.defineFun("_f31", {t123}, t123.getSort(), t123);
+  Term t506 = slv.mkVar(s1, "_f37_0");
+  Term t507 = slv.mkVar(s4, "_f37_1");
+  Term t510 = slv.mkTerm(Kind::APPLY_UF, {t73, t507});
+  Term t530 = slv.defineFun("_f37", {t507}, t510.getSort(), t510);
+  Term t559 = slv.mkTerm(Kind::DISTINCT, {t15, t1});
+  Term t631 = slv.mkTerm(Kind::XOR, {t559, t26});
+  Term t632 = slv.mkTerm(Kind::APPLY_UF, {t135, t631});
+  Term t715 = slv.mkVar(s4, "_f40_0");
+  Term t721 = slv.mkTerm(Kind::APPLY_UF, {t530, t715});
+  Term t722 = slv.mkTerm(Kind::APPLY_UF, {t530, t721});
+  Term t731 = slv.defineFun("_f40", {t715}, t722.getSort(), t722);
+  Term t1014 = slv.mkVar(s4, "_f45_0");
+  Term t1034 = slv.mkTerm(Kind::DISTINCT, {t510, t510});
+  Term t1035 = slv.mkTerm(Kind::XOR, {t1034, t632});
+  Term t1037 = slv.mkTerm(Kind::APPLY_UF, {t135, t1035});
+  Term t1039 = slv.mkTerm(Kind::APPLY_UF, {t731, t1037});
+  Term t1040 = slv.defineFun("_f45", {t1014}, t1039.getSort(), t1039);
+  Term t1072 = slv.mkTerm(Kind::APPLY_UF, {t1040, t510});
+  Term t1073 = slv.mkTerm(Kind::APPLY_UF, {t73, t1072});
+  // the query has free variables, and should throw an exception
+  ASSERT_THROW(slv.checkSatAssuming({t1073, t510}), CVC5ApiException);
+}
+  
+TEST_F(TestApiBlackSolver, proj_issue436)
+{
+  Solver slv;
+  slv.setOption("produce-abducts", "true");
+  slv.setOption("solve-bv-as-int", "sum");
+  Sort s8 = slv.mkBitVectorSort(68);
+  Term t17 = slv.mkConst(s8, "_x6");
+  Term t23;
+  {
+    uint32_t bw = s8.getBitVectorSize();
+    t23 = slv.mkBitVector(bw, 1);
+  }
+  Term t33 = slv.mkTerm(Kind::BITVECTOR_ULT, {t17, t23});
+  Term abduct;
+  // solve-bv-as-int is incompatible with get-abduct
+  ASSERT_THROW(slv.getAbduct(t33, abduct), CVC5ApiException);
+}
+  
+TEST_F(TestApiBlackSolver, proj_issue431)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-unsat-assumptions", "true");
+  slv.setOption("produce-assertions", "true");
+  Sort s1 = slv.getStringSort();
+  Sort s3 = slv.getIntegerSort();
+  Sort s7 = slv.mkArraySort(s1, s3);
+  Term t3 = slv.mkConst(s1, "_x2");
+  Term t57 = slv.mkVar(s7, "_x38");
+  Term t103 = slv.mkTerm(Kind::SELECT, {t57, t3});
+  slv.checkSat();
+  ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
+}
+TEST_F(TestApiBlackSolver, proj_issue426)
+{
+  Solver slv;
+  slv.setLogic("ALL");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-assertions", "true");
+  Sort s1 = slv.getRealSort();
+  Sort s2 = slv.getRoundingModeSort();
+  Sort s4 = slv.mkSequenceSort(s1);
+  Sort s5 = slv.mkArraySort(s4, s4);
+  Term t4 = slv.mkConst(s1, "_x3");
+  Term t5 = slv.mkReal("9192/832927743");
+  Term t19 = slv.mkConst(s2, "_x42");
+  Term t24 = slv.mkConst(s5, "_x44");
+  Term t37 = slv.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
+  slv.checkSat();
+  slv.blockModelValues({t24, t19, t4, t37});
+  slv.checkSat();
+  ASSERT_NO_THROW(slv.getValue({t5}));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue429)
+{
+  Solver slv;
+  Sort s1 = slv.getRealSort();
+  Term t6 = slv.mkConst(s1, "_x5");
+  Term t16 =
+      slv.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
+  Term t111 = slv.mkTerm(Kind::SEQ_UNIT, {t16});
+  Term t119 = slv.mkTerm(slv.mkOp(Kind::SEQ_UNIT), {t6});
+  Term t126 = slv.mkTerm(Kind::SEQ_PREFIX, {t111, t119});
+  slv.checkEntailed({t126});
+}
+
+TEST_F(TestApiBlackSolver, proj_issue422)
+{
+  Solver slv;
+  slv.setOption("sygus-rr-synth-input", "true");
+  Sort s1 = slv.mkBitVectorSort(36);
+  Sort s2 = slv.getStringSort();
+  Term t1 = slv.mkConst(s2, "_x0");
+  Term t2 = slv.mkConst(s1, "_x1");
+  Term t11;
+  {
+    uint32_t bw = s1.getBitVectorSize();
+    std::string val(bw, '1');
+    val[0] = '0';
+    t11 = slv.mkBitVector(bw, val, 2);
+  }
+  Term t60 = slv.mkTerm(Kind::SET_SINGLETON, {t1});
+  Term t66 = slv.mkTerm(Kind::BITVECTOR_COMP, {t2, t11});
+  Term t92 = slv.mkRegexpAll();
+  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 51), {t66});
+  Term t105 = slv.mkTerm(Kind::BITVECTOR_ADD, {t96, t96});
+  Term t113 = slv.mkTerm(Kind::BITVECTOR_SUB, {t105, t105});
+  Term t137 = slv.mkTerm(Kind::BITVECTOR_XOR, {t113, t105});
+  Term t211 = slv.mkTerm(Kind::BITVECTOR_SLTBV, {t137, t137});
+  Term t212 = slv.mkTerm(Kind::SET_MINUS, {t60, t60});
+  Term t234 = slv.mkTerm(Kind::SET_CHOOSE, {t212});
+  Term t250 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t1, t92, t1});
+  Term t259 = slv.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
+  Term t263 = slv.mkTerm(Kind::STRING_TOLOWER, {t259});
+  Term t272 = slv.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
+  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 71), {t272});
+  Term t288 = slv.mkTerm(Kind::EQUAL, {t263, t1});
+  Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
+  Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
+  slv.assertFormula({t301});
+  slv.push(4);
 }
 
 }  // namespace test

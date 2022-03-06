@@ -1259,6 +1259,27 @@ def test_get_unsat_core3(solver):
     res = solver.checkSat()
     assert res.isUnsat()
 
+def test_learned_literals(solver):
+    solver.setOption("produce-learned-literals", "true")
+    with pytest.raises(RuntimeError):
+        solver.getLearnedLiterals()
+    solver.checkSat()
+    solver.getLearnedLiterals()
+
+def test_learned_literals2(solver):
+    solver.setOption("produce-learned-literals", "true")
+    intSort = solver.getIntegerSort()
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    zero = solver.mkInteger(0)
+    ten = solver.mkInteger(10)
+    f0 = solver.mkTerm(Kind.Geq, x, ten)
+    f1 = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Geq, zero, x), solver.mkTerm(Kind.Geq, y, zero))
+    solver.assertFormula(f0)
+    solver.assertFormula(f1)
+    solver.checkSat()
+    solver.getLearnedLiterals()
+
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")
@@ -1473,6 +1494,81 @@ def test_pop3(solver):
     with pytest.raises(RuntimeError):
         solver.pop(1)
 
+def test_block_model1(solver):
+    solver.setOption("produce-models", "true")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModel()
+
+def test_block_model2(solver):
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModel()
+
+def test_block_model3(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    with pytest.raises(RuntimeError):
+        solver.blockModel()
+
+def test_block_model4(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x");
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    solver.blockModel()
+
+def test_block_model_values1(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x");
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues([])
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues([cvc5.Term(solver)])
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues([cvc5.Solver().mkBoolean(False)])
+
+def test_block_model_values2(solver):
+    solver.setOption("produce-models", "true")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    solver.blockModelValues([x])
+
+def test_block_model_values3(solver):
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues([x])
+
+def test_block_model_values4(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    with pytest.raises(RuntimeError):
+        solver.blockModelValues([x])
+
+def test_block_model_values5(solver):
+    solver.setOption("produce-models", "true")
+    solver.setOption("block-models", "literals")
+    x = solver.mkConst(solver.getBooleanSort(), "x")
+    solver.assertFormula(x.eqTerm(x))
+    solver.checkSat()
+    solver.blockModelValues([x])
 
 def test_set_info(solver):
     with pytest.raises(RuntimeError):
