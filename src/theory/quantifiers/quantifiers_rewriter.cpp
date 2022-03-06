@@ -513,16 +513,22 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
 Node QuantifiersRewriter::computeProcessTerms(const Node& q,
                                               const std::vector<Node>& args,
                                               Node body,
-                                              std::vector<Node>& new_conds,
                                               QAttributes& qa) const
 {
+
   options::IteLiftQuantMode iteLiftMode = options::IteLiftQuantMode::NONE;
   if (qa.isStandard())
   {
     iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
+  std::vector< Node > new_conds;
   std::map<Node, Node> cache;
-  return computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
+  Node n = computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
+  if( !new_conds.empty() ){
+    new_conds.push_back( n );
+    n = NodeManager::currentNM()->mkNode( OR, new_conds );
+  }
+  return n;
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
@@ -2000,12 +2006,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    std::vector< Node > new_conds;
-    n = computeProcessTerms(f, args, n, new_conds, qa);
-    if( !new_conds.empty() ){
-      new_conds.push_back( n );
-      n = NodeManager::currentNM()->mkNode( OR, new_conds );
-    }
+    n = computeProcessTerms(f, args, n, qa);
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
