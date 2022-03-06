@@ -510,8 +510,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
-Node QuantifiersRewriter::computeProcessTerms(
-                                              const Node& q,
+Node QuantifiersRewriter::computeProcessTerms(const Node& q,
                                               const std::vector<Node>& args,
                                               Node body,
                                               std::vector<Node>& new_conds,
@@ -531,7 +530,8 @@ Node QuantifiersRewriter::computeProcessTerms(
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2(q, args, fbody, cache, new_conds, iteLiftMode);
+      Node r =
+          computeProcessTerms2(q, args, fbody, cache, new_conds, iteLiftMode);
       Assert(args.size() == h.getNumChildren());
       return NodeManager::currentNM()->mkNode(EQUAL, h, r);
     }
@@ -543,12 +543,12 @@ Node QuantifiersRewriter::computeProcessTerms(
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
-  const Node& q,
+    const Node& q,
     const std::vector<Node>& args,
     Node body,
     std::map<Node, Node>& cache,
     std::vector<Node>& new_conds,
-                            options::IteLiftQuantMode iteLiftMode) const
+    options::IteLiftQuantMode iteLiftMode) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2")
@@ -564,9 +564,10 @@ Node QuantifiersRewriter::computeProcessTerms2(
     std::vector<Node> newVars;
     for (const Node& v : body[0])
     {
-      if (std::find(args.begin(), args.end(), v)!=args.end())
+      if (std::find(args.begin(), args.end(), v) != args.end())
       {
-        Trace("quantifiers-rewrite-unshadow") << "Found shadowed variable " << v << " in " << q << std::endl;
+        Trace("quantifiers-rewrite-unshadow")
+            << "Found shadowed variable " << v << " in " << q << std::endl;
         BoundVarManager* bvm = nm->getBoundVarManager();
         oldVars.push_back(v);
         Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
@@ -576,8 +577,9 @@ Node QuantifiersRewriter::computeProcessTerms2(
     }
     if (!oldVars.empty())
     {
-      Assert (oldVars.size()==newVars.size());
-      Node sbody = body.substitute(oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+      Assert(oldVars.size() == newVars.size());
+      Node sbody = body.substitute(
+          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
       cache[body] = sbody;
       return sbody;
     }
@@ -610,8 +612,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.getKind() == EQUAL
-      && iteLiftMode != options::IteLiftQuantMode::NONE)
+  if (ret.getKind() == EQUAL && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -620,8 +621,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
         Node no = i == 0 ? ret[1] : ret[0];
         if (no.getKind() != ITE)
         {
-          bool doRewrite =
-              (iteLiftMode == options::IteLiftQuantMode::ALL);
+          bool doRewrite = (iteLiftMode == options::IteLiftQuantMode::ALL);
           std::vector<Node> childrenIte;
           childrenIte.push_back(ret[i][0]);
           for (size_t j = 1; j <= 2; j++)
@@ -2018,7 +2018,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
     std::vector< Node > new_conds;
-    n = computeProcessTerms( f, args, n, new_conds, qa );
+    n = computeProcessTerms(f, args, n, new_conds, qa);
     if( !new_conds.empty() ){
       new_conds.push_back( n );
       n = NodeManager::currentNM()->mkNode( OR, new_conds );

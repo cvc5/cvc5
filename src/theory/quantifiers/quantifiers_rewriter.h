@@ -18,9 +18,9 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
+#include "options/quantifiers_options.h"
 #include "proof/trust_node.h"
 #include "theory/theory_rewriter.h"
-#include "options/quantifiers_options.h"
 
 namespace cvc5 {
 
@@ -239,8 +239,7 @@ class QuantifiersRewriter : public TheoryRewriter
                             Node body,
                             std::map<Node, Node>& cache,
                             std::vector<Node>& new_conds,
-                            options::IteLiftQuantMode iteLiftMode
-                           ) const;
+                            options::IteLiftQuantMode iteLiftMode) const;
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,
