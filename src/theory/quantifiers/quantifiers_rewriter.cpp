@@ -521,7 +521,7 @@ Node QuantifiersRewriter::computeProcessTerms(const Node& q,
   {
     iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
-  std::map< Node, Node > cache;
+  std::map<Node, Node> cache;
   return computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
 }
 
