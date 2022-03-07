@@ -54,17 +54,24 @@ function(setup_code_coverage_fastcov)
       "Resetting code coverage counters to zero."
   )
 
-  add_custom_target(${COVERAGE_NAME}
+  add_custom_target(${COVERAGE_NAME}-json
     COMMAND
       ${FASTCOV_BINARY}
           -d ${COVERAGE_PATH} ${EXCLUDES} -o coverage.json
           -j${FASTCOV_PARALLEL_JOBS} -X
     COMMAND
       ${FASTCOV_BINARY} -C coverage.json --lcov -o coverage.info
+    DEPENDS
+      ${COVERAGE_DEPENDENCIES}
+    COMMENT
+      "Generate code coverage report."
+  )
+
+  add_custom_target(${COVERAGE_NAME}
     COMMAND
       ${GENHTML_BINARY} --demangle-cpp --no-prefix -o coverage coverage.info
     DEPENDS
-      ${COVERAGE_DEPENDENCIES}
+      coverage-json
     COMMENT
       "Generate code coverage report."
   )
