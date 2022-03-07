@@ -1254,6 +1254,27 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   std::map<api::Term, api::Term> d_result;
 };
 
+class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
+{
+ public:
+  GetLearnedLiteralsCommand();
+  const std::vector<api::Term>& getLearnedLiterals() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out) const override;
+
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** the result of the get learned literals call */
+  std::vector<api::Term> d_result;
+};
+
 class CVC5_EXPORT GetAssertionsCommand : public Command
 {
  protected:

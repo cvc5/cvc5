@@ -259,7 +259,11 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
 
 Node buildIntegerEquality(Sum&& sum)
 {
+  Trace("arith-rewriter") << "building integer equality from " << sum
+                          << std::endl;
   normalizeGCDLCM(sum);
+
+  Trace("arith-rewriter::debug") << "\tnormalized to " << sum << std::endl;
 
   const auto& constant = *sum.begin();
   if (constant.first.isConst())
@@ -267,11 +271,15 @@ Node buildIntegerEquality(Sum&& sum)
     Assert(constant.second.isRational());
     if (!constant.second.toRational().isIntegral())
     {
+      Trace("arith-rewriter::debug")
+          << "\thas non-integer constant, thus false" << std::endl;
       return mkConst(false);
     }
   }
 
   auto minabscoeff = removeMinAbsCoeff(sum);
+  Trace("arith-rewriter::debug") << "\tremoved min abs coeff " << minabscoeff
+                                 << ", left with " << sum << std::endl;
   if (sgn(minabscoeff.second) < 0)
   {
     // move minabscoeff goes to the right and switch lhs and rhs
@@ -284,11 +292,15 @@ Node buildIntegerEquality(Sum&& sum)
   }
   Node left = mkMultTerm(minabscoeff.second, minabscoeff.first);
 
+  Trace("arith-rewriter::debug")
+      << "\tbuilding " << left << " = " << sum << std::endl;
+
   return buildRelation(Kind::EQUAL, left, collectSum(sum));
 }
 
 Node buildRealEquality(Sum&& sum)
 {
+  Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(sum);
   if (isZero(lterm.second))
   {
@@ -304,6 +316,8 @@ Node buildRealEquality(Sum&& sum)
 
 Node buildIntegerInequality(Sum&& sum, Kind k)
 {
+  Trace("arith-rewriter") << "building integer inequality from " << sum
+                          << std::endl;
   bool negate = normalizeGCDLCM(sum, true);
 
   if (negate)
@@ -329,6 +343,7 @@ Node buildIntegerInequality(Sum&& sum, Kind k)
 
 Node buildRealInequality(Sum&& sum, Kind k)
 {
+  Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(-removeConstant(sum));
   return buildRelation(k, collectSum(sum), rhs);

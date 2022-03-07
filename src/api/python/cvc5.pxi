@@ -1943,6 +1943,24 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getLearnedLiterals(self):
+        """Get a list of literals that are entailed by the current set of assertions
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-learned-literals )
+
+        :return: the list of literals
+        """
+        lits = []
+        for a in self.csolver.getLearnedLiterals():
+            term = Term(self)
+            term.cterm = a
+            lits.append(term)
+        return lits
+
     def getAssertions(self):
         """Get the list of asserted formulas.
 

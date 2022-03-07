@@ -404,6 +404,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | /* get-difficulty */
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
+  | /* get-learned-literals */
+    GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetLearnedLiteralsCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -2204,6 +2207,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 GET_DIFFICULTY_TOK : 'get-difficulty';
+GET_LEARNED_LITERALS_TOK : { !PARSER_STATE->strictModeEnabled() }? 'get-learned-literals';
 EXIT_TOK : 'exit';
 RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
