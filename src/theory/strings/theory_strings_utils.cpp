@@ -137,6 +137,20 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
   {
     return c[0];
   }
+  TypeNode tnc;
+  for (const Node& cc : c)
+  {
+    TypeNode tncc = cc.getType();
+    if (tnc.isNull())
+    {
+      tnc = tncc;
+      continue;
+    }
+    if (tnc!=tncc)
+    {
+      AlwaysAssert(false) << "Bad type for concat when constructing " << c;
+    }
+  }
   Kind k = tn.isStringLike() ? STRING_CONCAT : REGEXP_CONCAT;
   return NodeManager::currentNM()->mkNode(k, c);
 }
