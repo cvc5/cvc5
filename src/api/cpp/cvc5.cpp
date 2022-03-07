@@ -5264,6 +5264,13 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       res = getNodeManager()->mkBag(
           type, *children[0].d_node, *children[1].d_node);
     }
+    else if (kind == api::SEQ_UNIT)
+    {
+      // the type of the term is the same as the type of the internal node
+      // see Term::getSort()
+      TypeNode type = children[0].d_node->getType();
+      res = getNodeManager()->mkSeqUnit(type, *children[0].d_node);
+    }
     else
     {
       res = d_nodeMgr->mkNode(k, echildren);

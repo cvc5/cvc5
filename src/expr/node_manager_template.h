@@ -693,6 +693,15 @@ class NodeManager
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
+   * Create a sequence unit from the given element n.
+   * @param t the element type of the returned sequence.
+   *          Note that the type of n needs to be a subtype of t.
+   * @param n the single element in the sequence.
+   * @return a sequence unit constructed from the element n.
+   */
+  Node mkSeqUnit(const TypeNode& t, const TNode n);
+
+  /**
    * Create a singleton set from the given element n.
    * @param t the element type of the returned set.
    *          Note that the type of n needs to be a subtype of t.
