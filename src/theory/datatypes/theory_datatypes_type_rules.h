@@ -94,7 +94,8 @@ class DtSizeTypeRule {
 };
 
 /**
- * The datatype bound predicate expects any datatype, a constant integer, and returns the Boolean type.
+ * The datatype bound predicate expects any datatype, a constant integer, and
+ * returns the Boolean type.
  */
 class DtBoundTypeRule {
  public:
@@ -103,9 +104,9 @@ class DtBoundTypeRule {
 
 /**
  * The type rule for sygus evaluation functions. DT_SYGUS_EVAL expects
- * (1) a term of SyGuS datatype type T, whose SyGuS variable list is (x1 ... xn),
- * (2) terms t1 ... tn whose types are the same as x1 ... xn
- * The returned type is the builtin type associated with T.
+ * (1) a term of SyGuS datatype type T, whose SyGuS variable list is (x1 ...
+ * xn), (2) terms t1 ... tn whose types are the same as x1 ... xn The returned
+ * type is the builtin type associated with T.
  */
 class DtSygusEvalTypeRule
 {
@@ -115,9 +116,9 @@ class DtSygusEvalTypeRule
 
 /**
  * The type rule for match. Recall that a match term:
- *   (match l (((cons h t) h) (nil 0))) 
+ *   (match l (((cons h t) h) (nil 0)))
  * is represented by the AST
- *  (MATCH l 
+ *  (MATCH l
  *     (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
  *     (MATCH_CASE nil 0))
  *
@@ -127,7 +128,7 @@ class DtSygusEvalTypeRule
  * - The patterns for the cases are over the same datatype as the head term,
  * - The return types for the cases are comparable,
  * - The patterns specified by the children are exhaustive for T.
- * 
+ *
  * The type rule returns the (least common subtype) of the return types of the
  * cases.
  */
