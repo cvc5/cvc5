@@ -1,5 +1,5 @@
 % states that all reals are not rational (countersatisfiable)
-% Status   : CounterSatisfiable
+% Status   : Satisfiable
 %------------------------------------------------------------------------------
 tff(the,conjecture,(
     ! [X: $real] :
