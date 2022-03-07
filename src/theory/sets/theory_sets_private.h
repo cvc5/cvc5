@@ -180,7 +180,7 @@ class TheorySetsPrivate : protected EnvObj
   /** get the valuation */
   Valuation& getValuation();
   /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
+  bool isEntailed(Node n, bool pol);
 
  private:
   TheorySets& d_external;
