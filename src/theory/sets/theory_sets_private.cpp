@@ -1434,12 +1434,12 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
 void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const
 {
-  Assert (tn.isSet());
+  Assert(tn.isSet());
   if (!tn.getSetElementType().isFirstClass())
   {
     std::stringstream ss;
     ss << "Cannot handle sets of non-first class types, offending set type is "
-        << tn;
+       << tn;
     throw LogicException(ss.str());
   }
 }
