@@ -66,15 +66,15 @@ namespace quantifiers {
 struct QRewPrenexAttributeId
 {
 };
-typedef expr::Attribute<QRewPrenexAttributeId, Node> QRewPrenexAttribute;
+using QRewPrenexAttribute = expr::Attribute<QRewPrenexAttributeId, Node>;
 struct QRewMiniscopeAttributeId
 {
 };
-typedef expr::Attribute<QRewMiniscopeAttributeId, Node> QRewMiniscopeAttribute;
+using QRewMiniscopeAttribute = expr::Attribute<QRewMiniscopeAttributeId, Node>;
 struct QRewDtExpandAttributeId
 {
 };
-typedef expr::Attribute<QRewDtExpandAttributeId, Node> QRewDtExpandAttribute;
+using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
 struct QElimShadowAttributeId
 {
 };
