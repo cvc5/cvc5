@@ -1277,6 +1277,11 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
   Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
+  TypeNode tn = node.getType();
+  if (tn.isSet())
+  {
+    ensureFirstClassSetType(tn);
+  }
   switch (node.getKind())
   {
     case kind::EQUAL:
@@ -1369,6 +1374,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   SkolemManager* sm = nm->getSkolemManager();
   Node A = node[0];
   TypeNode setType = A.getType();
+  ensureFirstClassSetType(setType);
   TypeNode ufType = nm->mkFunctionType(setType, setType.getSetElementType());
   // a Null node is used here to get a unique skolem function per set type
   Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, Node());
@@ -1414,6 +1420,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   }
 
   TypeNode setType = set.getType();
+  ensureFirstClassSetType(setType);
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
   Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
@@ -1423,6 +1430,18 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   d_isSingletonNodes[rewritten] = exists;
 
   return TrustNode::mkTrustRewrite(node, exists, nullptr);
+}
+
+void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const
+{
+  Assert (tn.isSet());
+  if (!tn.getSetElementType().isFirstClass())
+  {
+    std::stringstream ss;
+    ss << "Cannot handle sets of non-first class types, offending set type is "
+        << tn;
+    throw LogicException(ss.str());
+  }
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }
