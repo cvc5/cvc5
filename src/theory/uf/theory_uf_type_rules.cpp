@@ -84,7 +84,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
           n, "cardinality constraint must be positive");
     }
   }
-  return nodeManager->builtinType();
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
@@ -107,7 +107,7 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
           n, "combined cardinality constraint must be positive");
     }
   }
-  return nodeManager->builtinType();
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode CombinedCardinalityConstraintTypeRule::computeType(
