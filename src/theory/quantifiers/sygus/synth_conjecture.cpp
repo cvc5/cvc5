@@ -61,10 +61,10 @@ SynthConjecture::SynthConjecture(Env& env,
       d_hasSolution(false),
       d_computedSolution(false),
       d_runExprMiner(options().quantifiers.sygusRewSynth
-          || options().quantifiers.sygusQueryGen
-                  != options::SygusQueryGenMode::NONE
-          || options().quantifiers.sygusFilterSolMode
-                  != options::SygusFilterSolMode::NONE),
+                     || options().quantifiers.sygusQueryGen
+                            != options::SygusQueryGenMode::NONE
+                     || options().quantifiers.sygusFilterSolMode
+                            != options::SygusFilterSolMode::NONE),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
@@ -741,7 +741,7 @@ ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
   }
   std::map<Node, std::unique_ptr<ExpressionMinerManager>>::iterator its =
       d_exprm.find(e);
-  if (its!=d_exprm.end())
+  if (its != d_exprm.end())
   {
     return its->second.get();
   }
@@ -830,11 +830,11 @@ bool SynthConjecture::runExprMiner()
       continue;
     }
     // run expression mining
-    if (statuses[i]!=0)
+    if (statuses[i] != 0)
     {
       Node e = d_embed_quant[0][i];
-      ExpressionMinerManager * emm = getExprMinerManagerFor(e);
-      Assert (emm!=nullptr);
+      ExpressionMinerManager* emm = getExprMinerManagerFor(e);
+      Assert(emm != nullptr);
       bool rew_print = false;
       bool ret = emm->addTerm(sol, out, rew_print);
       if (rew_print)

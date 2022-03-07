@@ -325,10 +325,10 @@ class SynthConjecture : protected EnvObj
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int8_t>& status);
-  /** 
+  /**
    * Run expression mining on the last synthesis solution. Return true
    * if we should skip it.
-   * 
+   *
    * This method also prints the current synthesis solution to output stream out
    * when sygusStream is enabled, which does not enclose solutions in
    * parentheses. If sygusStream is enabled, this always returns true, as the
