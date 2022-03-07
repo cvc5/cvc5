@@ -3146,6 +3146,40 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   slv.checkSat();
   ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
 }
+TEST_F(TestApiBlackSolver, proj_issue426)
+{
+  Solver slv;
+  slv.setLogic("ALL");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-assertions", "true");
+  Sort s1 = slv.getRealSort();
+  Sort s2 = slv.getRoundingModeSort();
+  Sort s4 = slv.mkSequenceSort(s1);
+  Sort s5 = slv.mkArraySort(s4, s4);
+  Term t4 = slv.mkConst(s1, "_x3");
+  Term t5 = slv.mkReal("9192/832927743");
+  Term t19 = slv.mkConst(s2, "_x42");
+  Term t24 = slv.mkConst(s5, "_x44");
+  Term t37 = slv.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
+  slv.checkSat();
+  slv.blockModelValues({t24, t19, t4, t37});
+  slv.checkSat();
+  ASSERT_NO_THROW(slv.getValue({t5}));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue429)
+{
+  Solver slv;
+  Sort s1 = slv.getRealSort();
+  Term t6 = slv.mkConst(s1, "_x5");
+  Term t16 =
+      slv.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
+  Term t111 = slv.mkTerm(Kind::SEQ_UNIT, {t16});
+  Term t119 = slv.mkTerm(slv.mkOp(Kind::SEQ_UNIT), {t6});
+  Term t126 = slv.mkTerm(Kind::SEQ_PREFIX, {t111, t119});
+  slv.checkEntailed({t126});
+}
 
 TEST_F(TestApiBlackSolver, proj_issue422)
 {

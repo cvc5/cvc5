@@ -1085,6 +1085,8 @@ libcvc5_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/rewrites.cpp
   theory/strings/rewrites.h
+  theory/strings/seq_unit_op.cpp
+  theory/strings/seq_unit_op.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp

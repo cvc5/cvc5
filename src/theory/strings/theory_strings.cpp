@@ -478,7 +478,8 @@ bool TheoryStrings::collectModelInfoType(
           argVal = nfe.d_nf[0][0];
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        assignedValue = rewrite(
+            nm->mkSeqUnit(eqc.getType().getSequenceElementType(), argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -504,6 +505,7 @@ bool TheoryStrings::collectModelInfoType(
       }
       else if (options().strings.seqArray != options::SeqArrayMode::NONE)
       {
+        TypeNode etype = eqc.getType().getSequenceElementType();
         // determine skeleton based on the write model, if it exists
         const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
         Trace("strings-model")
@@ -531,7 +533,7 @@ bool TheoryStrings::collectModelInfoType(
               continue;
             }
             usedWrites.insert(ivalue);
-            Node wsunit = nm->mkNode(SEQ_UNIT, w.second);
+            Node wsunit = nm->mkSeqUnit(etype, w.second);
             writes.emplace_back(ivalue, wsunit);
           }
           // sort based on index value
@@ -761,13 +763,14 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   const Sequence& sn = c.getConst<Sequence>();
   const std::vector<Node>& snvec = sn.getVec();
   std::vector<Node> skChildren;
+  TypeNode etn = c.getType().getSequenceElementType();
   for (const Node& snv : snvec)
   {
-    TypeNode etn = snv.getType();
+    Assert(snv.getType().isSubtypeOf(etn));
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v, "smv");
-    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+    skChildren.push_back(nm->mkSeqUnit(etn, kv));
   }
   return utils::mkConcat(skChildren, c.getType());
 }
@@ -789,7 +792,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     cacheVals.push_back(nm->mkConst(CONST_RATIONAL, Rational(currIndex)));
     Node kv = sm->mkSkolemFunction(
         SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
-    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+    skChildren.push_back(nm->mkSeqUnit(etn, kv));
     cacheVals.pop_back();
   }
   return utils::mkConcat(skChildren, r.getType());

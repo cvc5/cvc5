@@ -3650,7 +3650,9 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   {
     std::vector<Node> seq;
     seq.push_back(node[0]);
-    TypeNode stype = node[0].getType();
+    // important to take the type according to the operator here, not the
+    // type of the argument
+    TypeNode stype = node.getType().getSequenceElementType();
     Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
