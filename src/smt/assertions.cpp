@@ -70,7 +70,6 @@ void Assertions::clearCurrent()
 
 void Assertions::initializeCheckSat(const std::vector<Node>& assumptions)
 {
-  NodeManager* nm = NodeManager::currentNM();
   // reset global negation
   d_globalNegation = false;
   // clear the assumptions
