@@ -63,9 +63,9 @@ struct QuantifierInstPatternTypeRule
 /**
  * A quantifier annotation, which returns the inst pattern type.
  *
- * Furthermore ensures well-formedness of instantiation attributes with two
- * children, which must have a keyword specified as a constant string as the
- * first child.
+ * Furthermore ensures well-formedness of instantiation attributes with more
+ * that one child, which must have a keyword specified as a constant string as
+ * the first child (the remaining children can be arbitrary).
  */
 struct QuantifierAnnotationTypeRule
 {
