@@ -2708,7 +2708,8 @@ TEST_F(TestApiBlackSolver, issue7000)
   Term t72 = d_solver.mkTerm(EQUAL, t37, t59);
   Term t74 = d_solver.mkTerm(GT, t4, t7);
   // throws logic exception since logic is not higher order by default
-  ASSERT_THROW(d_solver.checkSatAssuming({t72, t74, t72, t72}), CVC5ApiException);
+  ASSERT_THROW(d_solver.checkSatAssuming({t72, t74, t72, t72}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, issue5893)
