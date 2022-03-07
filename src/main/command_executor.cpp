@@ -133,8 +133,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_result = res = csa->getResult();
   }
 
-  bool isResultUnsat = res.isUnsat() || res.isEntailed();
-  bool isResultSat = res.isSat() || res.isNotEntailed();
+  bool isResultUnsat = res.isUnsat();
+  bool isResultSat = res.isSat();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
