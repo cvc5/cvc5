@@ -1694,8 +1694,6 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
   Term ten = d_solver.mkInteger(10);
   Term f0 = d_solver.mkTerm(GEQ, x, ten);
   Term f1 = d_solver.mkTerm(GEQ, zero, x);
-  d_solver.assertFormula(f0);
-  d_solver.assertFormula(f1);
   d_solver.checkSat();
   std::map<Term, Term> dmap;
   ASSERT_NO_THROW(dmap = d_solver.getDifficulty());
@@ -1705,32 +1703,6 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
     ASSERT_TRUE(t.first == f0 || t.first == f1);
     ASSERT_TRUE(t.second.getKind() == CONST_RATIONAL);
   }
-}
-
-TEST_F(TestApiBlackSolver, getLearnedLiterals)
-{
-  d_solver.setOption("produce-learned-literals", "true");
-  // cannot ask before a check sat
-  ASSERT_THROW(d_solver.getLearnedLiterals(), CVC5ApiException);
-  d_solver.checkSat();
-  ASSERT_NO_THROW(d_solver.getLearnedLiterals());
-}
-
-TEST_F(TestApiBlackSolver, getLearnedLiterals2)
-{
-  d_solver.setOption("produce-learned-literals", "true");
-  Sort intSort = d_solver.getIntegerSort();
-  Term x = d_solver.mkConst(intSort, "x");
-  Term y = d_solver.mkConst(intSort, "y");
-  Term zero = d_solver.mkInteger(0);
-  Term ten = d_solver.mkInteger(10);
-  Term f0 = d_solver.mkTerm(GEQ, x, ten);
-  Term f1 = d_solver.mkTerm(
-      OR, d_solver.mkTerm(GEQ, zero, x), d_solver.mkTerm(GEQ, y, zero));
-  d_solver.assertFormula(f0);
-  d_solver.assertFormula(f1);
-  d_solver.checkSat();
-  ASSERT_NO_THROW(d_solver.getLearnedLiterals());
 }
 
 TEST_F(TestApiBlackSolver, getValue1)
@@ -3176,41 +3148,27 @@ TEST_F(TestApiBlackSolver, proj_issue429)
   slv.checkEntailed({t126});
 }
 
-TEST_F(TestApiBlackSolver, proj_issue422)
+TEST_F(TestApiBlackSolver, proj_issue387)
 {
-  Solver slv;
-  slv.setOption("sygus-rr-synth-input", "true");
-  Sort s1 = slv.mkBitVectorSort(36);
-  Sort s2 = slv.getStringSort();
-  Term t1 = slv.mkConst(s2, "_x0");
-  Term t2 = slv.mkConst(s1, "_x1");
-  Term t11;
-  {
-    uint32_t bw = s1.getBitVectorSize();
-    std::string val(bw, '1');
-    val[0] = '0';
-    t11 = slv.mkBitVector(bw, val, 2);
-  }
-  Term t60 = slv.mkTerm(Kind::SET_SINGLETON, {t1});
-  Term t66 = slv.mkTerm(Kind::BITVECTOR_COMP, {t2, t11});
-  Term t92 = slv.mkRegexpAll();
-  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 51), {t66});
-  Term t105 = slv.mkTerm(Kind::BITVECTOR_ADD, {t96, t96});
-  Term t113 = slv.mkTerm(Kind::BITVECTOR_SUB, {t105, t105});
-  Term t137 = slv.mkTerm(Kind::BITVECTOR_XOR, {t113, t105});
-  Term t211 = slv.mkTerm(Kind::BITVECTOR_SLTBV, {t137, t137});
-  Term t212 = slv.mkTerm(Kind::SET_MINUS, {t60, t60});
-  Term t234 = slv.mkTerm(Kind::SET_CHOOSE, {t212});
-  Term t250 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t1, t92, t1});
-  Term t259 = slv.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
-  Term t263 = slv.mkTerm(Kind::STRING_TOLOWER, {t259});
-  Term t272 = slv.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
-  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 71), {t272});
-  Term t288 = slv.mkTerm(Kind::EQUAL, {t263, t1});
-  Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
-  Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
-  slv.assertFormula({t301});
-  slv.push(4);
+  Sort s1 = d_solver.getBooleanSort();
+
+  Sort u1 = d_solver.mkSortConstructorSort("_x0", 1);
+  Sort u2 = d_solver.mkSortConstructorSort("_x1", 1);
+  Sort p1 = d_solver.mkParamSort("_x4");
+  Sort p2 = d_solver.mkParamSort("_x27");
+  Sort p3 = d_solver.mkParamSort("_x3");
+
+  DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("_x0", p1);
+  DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("_x18");
+  ctordecl1.addSelector("_x17", u2.instantiate({p1, p1}));
+  dtdecl1.addConstructor(ctordecl1);
+
+  DatatypeDecl dtdecl2 = d_solver.mkDatatypeDecl("_x1", {p2, p3});
+  DatatypeConstructorDecl ctordecl2 = d_solver.mkDatatypeConstructorDecl("_x41");
+  ctordecl2.addSelector("_x40", u1.instantiate({p2}));
+  dtdecl2.addConstructor(ctordecl2);
+
+  ASSERT_THROW(d_solver.mkDatatypeSorts({dtdecl1, dtdecl2}, {u1, u2}), CVC5ApiException);
 }
 
 }  // namespace test
