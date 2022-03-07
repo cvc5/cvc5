@@ -545,56 +545,6 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class QueryCommand                                                         */
-/* -------------------------------------------------------------------------- */
-
-QueryCommand::QueryCommand(const api::Term& t) : d_term(t) {}
-
-api::Term QueryCommand::getTerm() const { return d_term; }
-void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    d_result = solver->checkEntailed(d_term);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-api::Result QueryCommand::getResult() const { return d_result; }
-void QueryCommand::printResult(std::ostream& out) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
-}
-
-Command* QueryCommand::clone() const
-{
-  QueryCommand* c = new QueryCommand(d_term);
-  c->d_result = d_result;
-  return c;
-}
-
-std::string QueryCommand::getCommandName() const { return "query"; }
-
-void QueryCommand::toStream(std::ostream& out,
-                            int toDepth,
-                            size_t dag,
-                            Language language) const
-{
-  Printer::getPrinter(language)->toStreamCmdQuery(out, termToNode(d_term));
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DeclareSygusVarCommand */
 /* -------------------------------------------------------------------------- */
 
@@ -1891,7 +1841,7 @@ bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
   return (res.isSat()
           || (res.isSatUnknown()
               && res.getUnknownExplanation() == api::Result::INCOMPLETE))
-         || res.isUnsat() || res.isEntailed();
+         || res.isUnsat();
 }
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {

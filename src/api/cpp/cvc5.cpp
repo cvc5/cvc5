@@ -1347,6 +1347,15 @@ bool Sort::isSortConstructor() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Sort::isFirstClass() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFirstClass();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5752,7 +5761,7 @@ Sort Solver::mkSortConstructorSort(const std::string& symbol,
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORTS_NOT_FUNCTION_LIKE(sorts);
+  CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
   //////// all checks before this line
   return mkTupleSortHelper(sorts);
   ////////

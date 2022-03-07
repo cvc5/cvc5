@@ -377,28 +377,6 @@ namespace api {
   } while (0)
 
 /**
- * Sort checks for member functions of class Solver.
- * Check if each sort in the given container of sorts is not null, associated
- * with this solver, and not function-like.
- */
-#define CVC5_API_SOLVER_CHECK_SORTS_NOT_FUNCTION_LIKE(sorts)      \
-  do                                                              \
-  {                                                               \
-    size_t i = 0;                                                 \
-    for (const auto& s : sorts)                                   \
-    {                                                             \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sorts", s, sorts, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          this == s.d_solver, "sort", sorts, i)                   \
-          << "a sorts associated with this solver";               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          !s.isFunctionLike(), "sort", sorts, i)                  \
-          << "non-function-like sort";                            \
-      i += 1;                                                     \
-    }                                                             \
-  } while (0)
-
-/**
  * Domain sort check for member functions of class Solver.
  * Check if domain sort is not null, associated with this solver, and a
  * first-class sort.
