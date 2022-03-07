@@ -201,6 +201,8 @@ class SynthConjecture : protected EnvObj
   bool d_hasSolution;
   /** Whether we have computed a solution */
   bool d_computedSolution;
+  /** whether we are running expression mining */
+  bool d_runExprMiner;
   /**
    * The final solution and status, caches getSynthSolutionsInternal, valid
    * if d_computedSolution is true.
@@ -269,6 +271,10 @@ class SynthConjecture : protected EnvObj
    * Get or make enumerator manager for the enumerator e.
    */
   EnumValueManager* getEnumValueManagerFor(Node e);
+  /**
+   * Get or make the expression miner manager for enumerator e.
+   */
+  ExpressionMinerManager* getExprMinerManagerFor(Node e);
   //------------------------end enumerators
 
   /** list of constants for quantified formula
@@ -325,16 +331,12 @@ class SynthConjecture : protected EnvObj
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int8_t>& status);
-  //-------------------------------- sygus stream
-  /**
-   * Prints the current synthesis solution to the output stream indicated by
-   * the Options object, send a lemma blocking the current solution to the
-   * output channel, which we refer to as a "stream exclusion lemma".
-   *
-   * The argument enums is the set of enumerators that comprise the current
-   * solution, and values is their current values.
+  /** 
+   * Run expression mining on the last synthesis solution. Return true
+   * if we should skip it.
    */
-  void printAndContinueStream(const std::vector<Node>& values);
+  void runExprMiner();
+  //-------------------------------- sygus stream
   /** exclude the current solution { enums -> values } */
   void excludeCurrentSolution(const std::vector<Node>& values);
   /**

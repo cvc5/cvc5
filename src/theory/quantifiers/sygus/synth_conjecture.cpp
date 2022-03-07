@@ -60,6 +60,11 @@ SynthConjecture::SynthConjecture(Env& env,
       d_verify(env, d_tds),
       d_hasSolution(false),
       d_computedSolution(false),
+      d_runExprMiner(options().quantifiers.sygusRewSynth
+          || options().quantifiers.sygusQueryGen
+                  != options::SygusQueryGenMode::NONE
+          || options().quantifiers.sygusFilterSolMode
+                  != options::SygusFilterSolMode::NONE),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
@@ -576,10 +581,27 @@ bool SynthConjecture::doCheck()
 
   // now mark that we have a solution
   d_hasSolution = true;
-  if (options().quantifiers.sygusStream)
+  ++(d_stats.d_solutions);
+  // determine if we should filter this solution, e.g. based on expression
+  // mining
+  bool doExclude = false;
+  if (runExprMiner(candidate_values))
+  {
+    // excluded due to expression mining
+    doExclude = true;
+  }
+  else if (options().quantifiers.sygusStream)
   {
     // immediately print the current solution
-    printAndContinueStream(candidate_values);
+    // we have generated a solution, print it
+    // get the current output stream
+    printSynthSolutionInternal(*options().base.out);
+    // we printed, now exclude it below
+    doExclude = true;
+  }
+  if (doExclude)
+  {
+    excludeCurrentSolution(candidate_values);
     // streaming means now we immediately are looking for a new solution
     d_hasSolution = false;
     d_computedSolution = false;
@@ -725,6 +747,27 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   return eman;
 }
 
+ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
+{
+  if (!d_runExprMiner)
+  {
+    return nullptr;
+  }
+  std::map<Node, std::unique_ptr<ExpressionMinerManager>>::iterator its =
+      d_exprm.find(e);
+  if (its!=d_exprm.end())
+  {
+    return its->second.get();
+  }
+  Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
+  d_exprm[e].reset(new ExpressionMinerManager(d_env));
+  ExpressionMinerManager* emm = d_exprm[e].get();
+  emm->initializeSygus(
+      d_tds, d_candidates[i], options().quantifiers.sygusSamples, true);
+  emm->initializeMinersForOptions();
+  return eem;
+}
+
 Node SynthConjecture::getModelValue(Node n)
 {
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
@@ -736,15 +779,6 @@ void SynthConjecture::debugPrint(const char* c)
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
   Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
   Trace(c) << "  * Counterexample skolems : " << d_innerSks << std::endl;
-}
-
-void SynthConjecture::printAndContinueStream(const std::vector<Node>& values)
-{
-  Assert(d_master != nullptr);
-  // we have generated a solution, print it
-  // get the current output stream
-  printSynthSolutionInternal(*options().base.out);
-  excludeCurrentSolution(values);
 }
 
 void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
@@ -797,95 +831,98 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
-    if (!sol.isNull())
+    if (sol.isNull())
     {
-      Node prog = d_embed_quant[0][i];
-      int8_t status = statuses[i];
-      TypeNode tn = prog.getType();
-      const DType& dt = tn.getDType();
-      std::stringstream ss;
-      ss << prog;
-      std::string f(ss.str());
-      f.erase(f.begin());
-      ++(d_stats.d_solutions);
-
-      bool is_unique_term = true;
-
-      if (status != 0
-          && (options().quantifiers.sygusRewSynth
-              || options().quantifiers.sygusQueryGen
-                     != options::SygusQueryGenMode::NONE
-              || options().quantifiers.sygusFilterSolMode
-                     != options::SygusFilterSolMode::NONE))
+      continue;
+    }
+    Node prog = d_embed_quant[0][i];
+    int8_t status = statuses[i];
+    TypeNode tn = prog.getType();
+    const DType& dt = tn.getDType();
+    std::stringstream ss;
+    ss << prog;
+    std::string f(ss.str());
+    f.erase(f.begin());
+    out << "(define-fun " << f << " ";
+    // Only include variables that are truly bound variables of the
+    // function-to-synthesize. This means we exclude variables that encode
+    // external terms. This ensures that --sygus-stream prints
+    // solutions with no arguments on the predicate for responses to
+    // the get-abduct command.
+    // pvs stores the variables that will be printed in the argument list
+    // below.
+    std::vector<Node> pvs;
+    Node vl = dt.getSygusVarList();
+    if (!vl.isNull())
+    {
+      Assert(vl.getKind() == BOUND_VAR_LIST);
+      SygusVarToTermAttribute sta;
+      for (const Node& v : vl)
       {
-        Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
-        std::map<Node, std::unique_ptr<ExpressionMinerManager>>::iterator its =
-            d_exprm.find(prog);
-        if (its == d_exprm.end())
+        if (!v.hasAttribute(sta))
         {
-          d_exprm[prog].reset(new ExpressionMinerManager(d_env));
-          ExpressionMinerManager* emm = d_exprm[prog].get();
-          emm->initializeSygus(
-              d_tds, d_candidates[i], options().quantifiers.sygusSamples, true);
-          emm->initializeMinersForOptions();
-          its = d_exprm.find(prog);
-        }
-        bool rew_print = false;
-        is_unique_term = its->second->addTerm(sol, out, rew_print);
-        if (rew_print)
-        {
-          ++(d_stats.d_candidate_rewrites_print);
-        }
-        if (!is_unique_term)
-        {
-          ++(d_stats.d_filtered_solutions);
+          pvs.push_back(v);
         }
       }
-      if (is_unique_term)
-      {
-        out << "(define-fun " << f << " ";
-        // Only include variables that are truly bound variables of the
-        // function-to-synthesize. This means we exclude variables that encode
-        // external terms. This ensures that --sygus-stream prints
-        // solutions with no arguments on the predicate for responses to
-        // the get-abduct command.
-        // pvs stores the variables that will be printed in the argument list
-        // below.
-        std::vector<Node> pvs;
-        Node vl = dt.getSygusVarList();
-        if (!vl.isNull())
-        {
-          Assert(vl.getKind() == BOUND_VAR_LIST);
-          SygusVarToTermAttribute sta;
-          for (const Node& v : vl)
-          {
-            if (!v.hasAttribute(sta))
-            {
-              pvs.push_back(v);
-            }
-          }
-        }
-        if (pvs.empty())
-        {
-          out << "() ";
-        }
-        else
-        {
-          vl = nm->mkNode(BOUND_VAR_LIST, pvs);
-          out << vl << " ";
-        }
-        out << dt.getSygusType() << " ";
-        if (status == 0)
-        {
-          out << sol;
-        }
-        else
-        {
-          Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
-          out << bsol;
-        }
-        out << ")" << std::endl;
-      }
+    }
+    if (pvs.empty())
+    {
+      out << "() ";
+    }
+    else
+    {
+      vl = nm->mkNode(BOUND_VAR_LIST, pvs);
+      out << vl << " ";
+    }
+    out << dt.getSygusType() << " ";
+    if (status == 0)
+    {
+      out << sol;
+    }
+    else
+    {
+      Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
+      out << bsol;
+    }
+    out << ")" << std::endl;
+  }
+}
+
+bool SynthConjecture::runExprMiner()
+{
+  if (!d_runExprMiner)
+  {
+    return false;
+  }
+  Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
+  Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
+  std::vector<Node> sols;
+  std::vector<int8_t> statuses;
+  if (!getSynthSolutionsInternal(sols, statuses))
+  {
+    return;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  {
+    Node sol = sols[i];
+    if (statuses[i]==0 || sol.isNull())
+    {
+      // failed to reconstruct to syntax, skip
+      continue;
+    }
+    Node e = d_embed_quant[0][i];
+    ExpressionMinerManager * emm = getExprMinerManagerFor(e);
+    bool rew_print = false;
+    bool ret = addTerm(sol, out, rew_print);
+    if (rew_print)
+    {
+      ++(d_stats.d_candidate_rewrites_print);
+    }
+    if (!ret)
+    {
+      ++(d_stats.d_filtered_solutions);
+      return false;
     }
   }
 }
