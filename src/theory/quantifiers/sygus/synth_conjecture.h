@@ -88,12 +88,6 @@ class SynthConjecture : protected EnvObj
    */
   bool doCheck();
   //-------------------------------end for counterexample-guided check/refine
-  /**
-   * Prints the current synthesis solution to output stream out. This is
-   * currently used for printing solutions for sygusStream only. We do not
-   * enclose solutions in parentheses.
-   */
-  void printSynthSolutionInternal(std::ostream& out);
   /** get synth solutions
    *
    * This method returns true if this class has a solution available to the
@@ -334,8 +328,13 @@ class SynthConjecture : protected EnvObj
   /** 
    * Run expression mining on the last synthesis solution. Return true
    * if we should skip it.
+   * 
+   * This method also prints the current synthesis solution to output stream out
+   * when sygusStream is enabled, which does not enclose solutions in
+   * parentheses. If sygusStream is enabled, this always returns true, as the
+   * current solution should be printed and then immediately excluded.
    */
-  void runExprMiner();
+  bool runExprMiner();
   //-------------------------------- sygus stream
   /** exclude the current solution { enums -> values } */
   void excludeCurrentSolution(const std::vector<Node>& values);

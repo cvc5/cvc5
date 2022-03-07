@@ -583,24 +583,10 @@ bool SynthConjecture::doCheck()
   d_hasSolution = true;
   ++(d_stats.d_solutions);
   // determine if we should filter this solution, e.g. based on expression
-  // mining
-  bool doExclude = false;
-  if (runExprMiner(candidate_values))
+  // mining or sygus stream
+  if (runExprMiner())
   {
     // excluded due to expression mining
-    doExclude = true;
-  }
-  else if (options().quantifiers.sygusStream)
-  {
-    // immediately print the current solution
-    // we have generated a solution, print it
-    // get the current output stream
-    printSynthSolutionInternal(*options().base.out);
-    // we printed, now exclude it below
-    doExclude = true;
-  }
-  if (doExclude)
-  {
     excludeCurrentSolution(candidate_values);
     // streaming means now we immediately are looking for a new solution
     d_hasSolution = false;
@@ -817,114 +803,107 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
   }
 }
 
-void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
-{
-  Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
-  Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
-  std::vector<Node> sols;
-  std::vector<int8_t> statuses;
-  if (!getSynthSolutionsInternal(sols, statuses))
-  {
-    return;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
-  {
-    Node sol = sols[i];
-    if (sol.isNull())
-    {
-      continue;
-    }
-    Node prog = d_embed_quant[0][i];
-    int8_t status = statuses[i];
-    TypeNode tn = prog.getType();
-    const DType& dt = tn.getDType();
-    std::stringstream ss;
-    ss << prog;
-    std::string f(ss.str());
-    f.erase(f.begin());
-    out << "(define-fun " << f << " ";
-    // Only include variables that are truly bound variables of the
-    // function-to-synthesize. This means we exclude variables that encode
-    // external terms. This ensures that --sygus-stream prints
-    // solutions with no arguments on the predicate for responses to
-    // the get-abduct command.
-    // pvs stores the variables that will be printed in the argument list
-    // below.
-    std::vector<Node> pvs;
-    Node vl = dt.getSygusVarList();
-    if (!vl.isNull())
-    {
-      Assert(vl.getKind() == BOUND_VAR_LIST);
-      SygusVarToTermAttribute sta;
-      for (const Node& v : vl)
-      {
-        if (!v.hasAttribute(sta))
-        {
-          pvs.push_back(v);
-        }
-      }
-    }
-    if (pvs.empty())
-    {
-      out << "() ";
-    }
-    else
-    {
-      vl = nm->mkNode(BOUND_VAR_LIST, pvs);
-      out << vl << " ";
-    }
-    out << dt.getSygusType() << " ";
-    if (status == 0)
-    {
-      out << sol;
-    }
-    else
-    {
-      Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
-      out << bsol;
-    }
-    out << ")" << std::endl;
-  }
-}
-
 bool SynthConjecture::runExprMiner()
 {
   if (!d_runExprMiner)
   {
     return false;
   }
+  std::stringstream ss;
   Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
   std::vector<int8_t> statuses;
   if (!getSynthSolutionsInternal(sols, statuses))
   {
-    return;
+    return false;
   }
+  // always exclude if sygus stream is enabled
+  bool doExclude = options().quantifiers.sygusStream;
   NodeManager* nm = NodeManager::currentNM();
   for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
-    if (statuses[i]==0 || sol.isNull())
+    if (sol.isNull())
     {
       // failed to reconstruct to syntax, skip
       continue;
     }
-    Node e = d_embed_quant[0][i];
-    ExpressionMinerManager * emm = getExprMinerManagerFor(e);
-    bool rew_print = false;
-    bool ret = addTerm(sol, out, rew_print);
-    if (rew_print)
+    // run expression mining
+    if (statuses[i]!=0)
     {
-      ++(d_stats.d_candidate_rewrites_print);
+      Node e = d_embed_quant[0][i];
+      ExpressionMinerManager * emm = getExprMinerManagerFor(e);
+      Assert (emm!=nullptr);
+      bool rew_print = false;
+      bool ret = emm->addTerm(sol, out, rew_print);
+      if (rew_print)
+      {
+        // count the number of rewrites we printed
+        ++(d_stats.d_candidate_rewrites_print);
+      }
+      if (!ret)
+      {
+        // count the number of filtered solutions
+        ++(d_stats.d_filtered_solutions);
+        doExclude = true;
+        break;
+      }
     }
-    if (!ret)
+    // print to stream
+    if (options().quantifiers.sygusStream)
     {
-      ++(d_stats.d_filtered_solutions);
-      return false;
+      TypeNode tn = e.getType();
+      const DType& dt = tn.getDType();
+      std::stringstream ss;
+      ss << e;
+      std::string f(ss.str());
+      f.erase(f.begin());
+      out << "(define-fun " << f << " ";
+      // Only include variables that are truly bound variables of the
+      // function-to-synthesize. This means we exclude variables that encode
+      // external terms. This ensures that --sygus-stream prints
+      // solutions with no arguments on the predicate for responses to
+      // the get-abduct command.
+      // pvs stores the variables that will be printed in the argument list
+      // below.
+      std::vector<Node> pvs;
+      Node vl = dt.getSygusVarList();
+      if (!vl.isNull())
+      {
+        Assert(vl.getKind() == BOUND_VAR_LIST);
+        SygusVarToTermAttribute sta;
+        for (const Node& v : vl)
+        {
+          if (!v.hasAttribute(sta))
+          {
+            pvs.push_back(v);
+          }
+        }
+      }
+      if (pvs.empty())
+      {
+        out << "() ";
+      }
+      else
+      {
+        vl = nm->mkNode(BOUND_VAR_LIST, pvs);
+        out << vl << " ";
+      }
+      out << dt.getSygusType() << " ";
+      if (status == 0)
+      {
+        out << sol;
+      }
+      else
+      {
+        Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
+        out << bsol;
+      }
+      out << ")" << std::endl;
     }
   }
+  return doExclude;
 }
 
 bool SynthConjecture::getSynthSolutions(
