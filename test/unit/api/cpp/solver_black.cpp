@@ -3225,7 +3225,7 @@ TEST_F(TestApiBlackSolver, proj_issue423)
     t2 = slv.mkEmptySequence(s3);
   }
   Term t22 = slv.mkReal("119605652059157009");
-  ASSERT_TRUE(t22.getType().isReal() && !t22.getType().isInteger());
+  ASSERT_TRUE(t22.getSort().isReal() && !t22.getSort().isInteger());
   Term t32 = slv.mkTerm(Kind::SEQ_UNIT, {t22});
   Term t43 = slv.mkTerm(Kind::SEQ_CONCAT, {t2, t32});
   Term t51 = slv.mkTerm(Kind::DISTINCT, {t32, t32});
