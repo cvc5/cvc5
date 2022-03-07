@@ -749,9 +749,9 @@ ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
   d_exprm[e].reset(new ExpressionMinerManager(d_env));
   ExpressionMinerManager* emm = d_exprm[e].get();
   emm->initializeSygus(
-      d_tds, d_candidates[i], options().quantifiers.sygusSamples, true);
+      d_tds, e, options().quantifiers.sygusSamples, true);
   emm->initializeMinersForOptions();
-  return eem;
+  return emm;
 }
 
 Node SynthConjecture::getModelValue(Node n)
@@ -805,11 +805,10 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
 
 bool SynthConjecture::runExprMiner()
 {
-  if (!d_runExprMiner)
+  if (!d_runExprMiner && !options().quantifiers.sygusStream)
   {
     return false;
   }
-  std::stringstream ss;
   Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
@@ -821,6 +820,7 @@ bool SynthConjecture::runExprMiner()
   // always exclude if sygus stream is enabled
   bool doExclude = options().quantifiers.sygusStream;
   NodeManager* nm = NodeManager::currentNM();
+  std::ostream& out = options().base.out;
   for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
@@ -829,25 +829,30 @@ bool SynthConjecture::runExprMiner()
       // failed to reconstruct to syntax, skip
       continue;
     }
+    Node e = d_embed_quant[0][i];
+    int8_t status = statuses[i];
     // run expression mining
-    if (statuses[i] != 0)
+    if (status != 0)
     {
-      Node e = d_embed_quant[0][i];
       ExpressionMinerManager* emm = getExprMinerManagerFor(e);
-      Assert(emm != nullptr);
-      bool rew_print = false;
-      bool ret = emm->addTerm(sol, out, rew_print);
-      if (rew_print)
+      if (emm != nullptr)
       {
-        // count the number of rewrites we printed
-        ++(d_stats.d_candidate_rewrites_print);
-      }
-      if (!ret)
-      {
-        // count the number of filtered solutions
-        ++(d_stats.d_filtered_solutions);
-        doExclude = true;
-        break;
+        bool rew_print = false;
+        bool ret = emm->addTerm(sol, out, rew_print);
+        if (rew_print)
+        {
+          // count the number of rewrites we printed
+          ++(d_stats.d_candidate_rewrites_print);
+        }
+        if (!ret)
+        {
+          // count the number of filtered solutions
+          ++(d_stats.d_filtered_solutions);
+          // if any term is excluded due to mining, its output is excluded
+          // from sygus stream, and the entire solution is excluded.
+          doExclude = true;
+          continue;
+        }
       }
     }
     // print to stream
