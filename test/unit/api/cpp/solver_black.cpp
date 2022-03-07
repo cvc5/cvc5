@@ -3160,15 +3160,7 @@ TEST_F(TestApiBlackSolver, proj_issue387)
 
   DatatypeDecl dtdecl1 = d_solver.mkDatatypeDecl("_x0", p1);
   DatatypeConstructorDecl ctordecl1 = d_solver.mkDatatypeConstructorDecl("_x18");
-  ctordecl1.addSelector("_x17", u2.instantiate({p1, p1}));
-  dtdecl1.addConstructor(ctordecl1);
-
-  DatatypeDecl dtdecl2 = d_solver.mkDatatypeDecl("_x1", {p2, p3});
-  DatatypeConstructorDecl ctordecl2 = d_solver.mkDatatypeConstructorDecl("_x41");
-  ctordecl2.addSelector("_x40", u1.instantiate({p2}));
-  dtdecl2.addConstructor(ctordecl2);
-
-  ASSERT_THROW(d_solver.mkDatatypeSorts({dtdecl1, dtdecl2}, {u1, u2}), CVC5ApiException);
+  ASSERT_THROW(ctordecl1.addSelector("_x17", u2.instantiate({p1, p1})), CVC5ApiException);
 }
 
 }  // namespace test
