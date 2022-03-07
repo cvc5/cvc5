@@ -690,9 +690,6 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
   {
     return body;
   }
-  {
-    return body;
-  }
 
   if (bk == ITE
       || (bk == EQUAL && body[0].getType().isBoolean()
