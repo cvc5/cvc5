@@ -785,6 +785,7 @@ set(regress_0_tests
   regress0/nl/issue6619-ran-model.smt2
   regress0/nl/issue8135-icp-candidates.smt2
   regress0/nl/issue8161-var-elim.smt2
+  regress0/nl/issue8226-ran-refinement.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2

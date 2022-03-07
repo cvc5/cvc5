@@ -1319,8 +1319,22 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
   {
     return mkConstReal(ran.toRational());
   }
-  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER,
-                mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
+  // Creating this node may refine the ran to the point where isRational returns
+  // true
+  Node inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran);
+
+  // Keep doing this until it either is rational or we have a fixed point.
+  while (true)
+  {
+    const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
+    if (cur.isRational())
+    {
+      return mkConstReal(cur.toRational());
+    }
+    if (cur == ran) break;
+    inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 }
 
 }  // namespace cvc5
