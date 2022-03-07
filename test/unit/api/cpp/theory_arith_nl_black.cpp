@@ -71,6 +71,23 @@ TEST_F(TestTheoryBlackArithNl, cvc5Projects388Min)
   slv.checkSat();
 }
 
+TEST_F(TestTheoryBlackArithNl, proj_issue421)
+{
+  Solver slv;
+  slv.setLogic("QF_ALL");
+  Sort s1 = slv.mkBitVectorSort(4);
+  Sort s4 = slv.getRealSort();
+  Sort s5 = slv.mkSequenceSort(s1);
+  Term t8 = slv.mkConst(s5, "_x49");
+  Term t10 = slv.mkConst(s4, "_x51");
+  Term t65 = slv.mkTerm(Kind::SEQ_REV, {t8});
+  Term t69 = slv.mkTerm(Kind::TANGENT, {t10});
+  Term t77 = slv.mkTerm(Kind::LEQ, {t69, t10});
+  Term t128 = slv.mkTerm(Kind::SEQ_PREFIX, {t65, t8});
+  slv.assertFormula({t77});
+  slv.checkEntailed({1, t128});
+}
+
 TEST_F(TestTheoryBlackArithNl, cvc5Projects455)
 {
   Solver slv;

@@ -32,6 +32,7 @@
 #include "expr/type_properties.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
+#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -1102,6 +1103,17 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   }
 }
 
+Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(SeqUnitOp(t));
+  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
+  return sunit;
+}
+
 Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 {
   Assert(n.getType().isSubtypeOf(t))
@@ -1307,8 +1319,22 @@ Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
   {
     return mkConstReal(ran.toRational());
   }
-  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER,
-                mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran));
+  // Creating this node may refine the ran to the point where isRational returns
+  // true
+  Node inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran);
+
+  // Keep doing this until it either is rational or we have a fixed point.
+  while (true)
+  {
+    const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
+    if (cur.isRational())
+    {
+      return mkConstReal(cur.toRational());
+    }
+    if (cur == ran) break;
+    inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 }
 
 }  // namespace cvc5

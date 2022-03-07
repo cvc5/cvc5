@@ -4246,9 +4246,7 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>` \endverbatim
    * has been set.
    *
    * @param v The term in question
@@ -4268,8 +4266,6 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * \endverbatim
-   *
    * \endverbatim
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
