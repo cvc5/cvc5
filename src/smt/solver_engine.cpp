@@ -762,14 +762,12 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   SolverEngineScope smts(this);
   finishInit();
 
-  Trace("smt") << "SolverEngine::checkSat("
-                << assumptions << ")" << endl;
+  Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // check the satisfiability with the solver object
-  r = d_smtSolver->checkSatisfiability(
-      *d_asserts.get(), assumptions);
+  r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions);
 
-  Trace("smt") << "SolverEngine::checkSat("
-                << assumptions << ") => " << r << endl;
+  Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
+               << endl;
 
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)

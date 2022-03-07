@@ -6025,7 +6025,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(sort.isArray(), sort) << "an array sort";
-  CVC5_API_CHECK(val.getSort()==sort.getArrayElementSort())
+  CVC5_API_CHECK(val.getSort() == sort.getArrayElementSort())
       << "Value does not match element sort";
   //////// all checks before this line
 
@@ -6762,7 +6762,7 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_CHECK(term.getSort()==sort)
+  CVC5_API_CHECK(term.getSort() == sort)
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
