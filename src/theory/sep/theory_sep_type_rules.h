@@ -47,7 +47,7 @@ struct SepPtoTypeRule
 
 /**
  * Separation star is an n-ary Boolean connective. Its type rule ensures all
- * arguments are Boolean and returns the Boolean type.
+ * arguments are Boolean. Returns the Boolean type.
  */
 struct SepStarTypeRule
 {

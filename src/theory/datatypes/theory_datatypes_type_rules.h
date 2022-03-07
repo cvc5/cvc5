@@ -53,7 +53,7 @@ struct DatatypeSelectorTypeRule {
 
 /**
  * A tester is associated with a type (-> T1 Bool). The type rule
- * for testrs ensures that the argument is T1 and returns Bool.
+ * for testers ensures that the argument is T1 and returns Bool.
  * This rule is generalized for parametric datatypes.
  */
 struct DatatypeTesterTypeRule {
@@ -72,7 +72,7 @@ struct DatatypeUpdateTypeRule
 
 /**
  * APPLY_TYPE_ASCRIPTION is a dummy kind to specialize the type of a datatype
- * constructor, e.g. (as nil (List Int)). The type rule returns the ascribed
+ * constructor, e.g., (as nil (List Int)). The type rule returns the ascribed
  * type.
  */
 struct DatatypeAscriptionTypeRule
@@ -105,7 +105,7 @@ class DtBoundTypeRule {
 /**
  * The type rule for sygus evaluation functions. DT_SYGUS_EVAL expects
  * (1) a term of SyGuS datatype type T, whose SyGuS variable list is (x1 ...
- * xn), (2) terms t1 ... tn whose types are the same as x1 ... xn The returned
+ * xn), (2) terms t1 ... tn whose types are the same as x1 ... xn. The returned
  * type is the builtin type associated with T.
  */
 class DtSygusEvalTypeRule
@@ -149,8 +149,8 @@ class MatchCaseTypeRule
 };
 
 /**
- * The type rule for match bind case ensures the first child is bound variable
- * list, the second child is a datatype, and returns the type of the third
+ * The type rule for match bind case ensures the first child is a bound variable
+ * list and the second child is a datatype. Returns the type of the third
  * argument.
  */
 class MatchBindCaseTypeRule

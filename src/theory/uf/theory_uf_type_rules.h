@@ -80,7 +80,7 @@ class CombinedCardinalityConstraintOpTypeRule
 /**
  * Type rule for HO_APPLY terms. Ensures the first argument is a function type
  * (-> T1 ... Tn T), the second argument is T1, and returns (-> T2 ... Tn T) if
- * n>1 or T otherwise.
+ * n > 1 or T otherwise.
  */
 class HoApplyTypeRule
 {
