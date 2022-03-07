@@ -24,7 +24,8 @@ namespace cvc5 {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter()
+TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder)
+    : d_isHigherOrder(isHigherOrder)
 {
 }
 
@@ -58,10 +59,40 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
                           << "\n";
       TNode lambda = node.getOperator();
       Node ret;
-      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-      std::vector<TNode> subs(node.begin(), node.end());
-      ret = lambda[1].substitute(
-          vars.begin(), vars.end(), subs.begin(), subs.end());
+      // build capture-avoiding substitution since in HOL shadowing may have
+      // been introduced
+      if (d_isHigherOrder)
+      {
+        std::vector<Node> vars;
+        std::vector<Node> subs;
+        for (const Node& v : lambda[0])
+        {
+          vars.push_back(v);
+        }
+        for (const Node& s : node)
+        {
+          subs.push_back(s);
+        }
+        if (Trace.isOn("uf-ho-beta"))
+        {
+          Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
+                              << " vars into " << subs.size() << " terms :\n";
+          for (unsigned i = 0, size = subs.size(); i < size; ++i)
+          {
+            Trace("uf-ho-beta")
+                << "uf-ho-beta: .... " << vars[i] << " |-> " << subs[i] << "\n";
+          }
+        }
+        ret = expr::substituteCaptureAvoiding(lambda[1], vars, subs);
+        Trace("uf-ho-beta") << "uf-ho-beta : ..result : " << ret << "\n";
+      }
+      else
+      {
+        std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+        std::vector<TNode> subs(node.begin(), node.end());
+        ret = lambda[1].substitute(
+            vars.begin(), vars.end(), subs.begin(), subs.end());
+      }
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     else if (!canUseAsApplyUfOperator(node.getOperator()))
@@ -91,9 +122,20 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
             << "uf-ho-beta : ....new lambda : " << new_body << "\n";
       }
 
-      TNode arg = node[1];
-      TNode var = node[0][0][0];
-      new_body = new_body.substitute(var, arg);
+      // build capture-avoiding substitution since in HOL shadowing may have
+      // been introduced
+      if (d_isHigherOrder)
+      {
+        Node arg = node[1];
+        Node var = node[0][0][0];
+        new_body = expr::substituteCaptureAvoiding(new_body, var, arg);
+      }
+      else
+      {
+        TNode arg = node[1];
+        TNode var = node[0][0][0];
+        new_body = new_body.substitute(var, arg);
+      }
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
