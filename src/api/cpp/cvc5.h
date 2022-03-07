@@ -225,23 +225,6 @@ class CVC5_EXPORT Result
   bool isSatUnknown() const;
 
   /**
-   * Return true if corresponding query was an entailed checkEntailed() query.
-   */
-  bool isEntailed() const;
-
-  /**
-   * Return true if corresponding query was a checkEntailed() query that is
-   * not entailed.
-   */
-  bool isNotEntailed() const;
-
-  /**
-   * Return true if query was a checkEntailed() query and cvc5 was not able to
-   * determine if it is entailed.
-   */
-  bool isEntailmentUnknown() const;
-
-  /**
    * Operator overloading for equality of two results.
    * @param r the result to compare to for equality
    * @return true if the results are equal
@@ -538,40 +521,6 @@ class CVC5_EXPORT Sort
    * @return true if this is a sort constructor kind
    */
   bool isSortConstructor() const;
-
-  /**
-   * Is this a first-class sort?
-   * First-class sorts are sorts for which:
-   * 1. we handle equalities between terms of that type, and
-   * 2. they are allowed to be parameters of parametric sorts (e.g. index or
-   * element sorts of arrays).
-   *
-   * Examples of sorts that are not first-class include sort constructor sorts
-   * and regular expression sorts.
-   *
-   * @return true if this is a first-class sort
-   */
-  bool isFirstClass() const;
-
-  /**
-   * Is this a function-LIKE sort?
-   *
-   * Anything function-like except arrays (e.g., datatype selectors) is
-   * considered a function here. Function-like terms can not be the argument
-   * or return value for any term that is function-like.
-   * This is mainly to avoid higher order.
-   *
-   * @note Arrays are explicitly not considered function-like here.
-   *
-   * @return true if this is a function-like sort
-   */
-  bool isFunctionLike() const;
-
-  /**
-   * Is this sort a subsort of the given sort?
-   * @return true if this sort is a subsort of s
-   */
-  bool isSubsortOf(const Sort& s) const;
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -3866,21 +3815,6 @@ class CVC5_EXPORT Solver
   Result checkSatAssuming(const std::vector<Term>& assumptions) const;
 
   /**
-   * Check entailment of the given formula w.r.t. the current set of assertions.
-   * @param term the formula to check entailment for
-   * @return the result of the entailment check.
-   */
-  Result checkEntailed(const Term& term) const;
-
-  /**
-   * Check entailment of the given set of given formulas w.r.t. the current
-   * set of assertions.
-   * @param terms the terms to check entailment for
-   * @return the result of the entailmentcheck.
-   */
-  Result checkEntailed(const std::vector<Term>& terms) const;
-
-  /**
    * Create datatype sort.
    *
    * SMT-LIB:
@@ -4035,22 +3969,6 @@ class CVC5_EXPORT Solver
                      const std::vector<std::vector<Term>>& bound_vars,
                      const std::vector<Term>& terms,
                      bool global = false) const;
-
-  /**
-   * Echo a given string to the given output stream.
-   *
-   * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (echo <string>)
-   * \endverbatim
-   *
-   * @param out the output stream
-   * @param str the string to echo
-   */
-  void echo(std::ostream& out, const std::string& str) const;
 
   /**
    * Get the list of asserted formulas.

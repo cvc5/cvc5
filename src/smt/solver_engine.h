@@ -149,7 +149,7 @@ class CVC5_EXPORT SolverEngine
    */
   bool isFullyInited() const;
   /**
-   * Return true if a checkEntailed() or checkSatisfiability() has been made.
+   * Return true if a checkSatisfiability() has been made.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
@@ -163,7 +163,7 @@ class CVC5_EXPORT SolverEngine
    */
   bool isSmtModeSat() const;
   /**
-   * Returns the most recent result of checkSat/checkEntailed or
+   * Returns the most recent result of checkSat or
    * (set-info :status).
    */
   Result getStatusOfLastCommand() const;
@@ -348,17 +348,6 @@ class CVC5_EXPORT SolverEngine
    * Reduce an unsatisfiable core to make it minimal.
    */
   std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
-
-  /**
-   * Check if a given (set of) expression(s) is entailed with respect to the
-   * current set of assertions. We check this by asserting the negation of
-   * the (big AND over the) given (set of) expression(s).
-   * Returns ENTAILED, NOT_ENTAILED, or ENTAILMENT_UNKNOWN result.
-   *
-   * @throw Exception
-   */
-  Result checkEntailed(const Node& assumption);
-  Result checkEntailed(const std::vector<Node>& assumptions);
 
   /**
    * Assert a formula (if provided) to the current context and call
@@ -1020,8 +1009,7 @@ class CVC5_EXPORT SolverEngine
   /*
    * Check satisfiability (used to check satisfiability and entailment).
    */
-  Result checkSatInternal(const std::vector<Node>& assumptions,
-                          bool isEntailmentCheck);
+  Result checkSatInternal(const std::vector<Node>& assumptions);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
