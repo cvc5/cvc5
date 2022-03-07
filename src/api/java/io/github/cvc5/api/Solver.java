@@ -1486,34 +1486,6 @@ public class Solver implements IPointer, AutoCloseable
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
 
   /**
-   * Check entailment of the given formula w.r.t. the current set of assertions.
-   * @param term the formula to check entailment for
-   * @return the result of the entailment check.
-   */
-  public Result checkEntailed(Term term)
-  {
-    long resultPointer = checkEntailed(pointer, term.getPointer());
-    return new Result(this, resultPointer);
-  }
-
-  private native long checkEntailed(long pointer, long termPointer);
-
-  /**
-   * Check entailment of the given set of given formulas w.r.t. the current
-   * set of assertions.
-   * @param terms the terms to check entailment for
-   * @return the result of the entailmentcheck.
-   */
-  public Result checkEntailed(Term[] terms)
-  {
-    long[] pointers = Utils.getPointers(terms);
-    long resultPointer = checkEntailed(pointer, pointers);
-    return new Result(this, resultPointer);
-  }
-
-  private native long checkEntailed(long pointer, long[] termPointers);
-
-  /**
    * Create datatype sort.
    * SMT-LIB:
    * {@code

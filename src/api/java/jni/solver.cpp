@@ -1570,38 +1570,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSatAssuming__J_3J(
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    checkEntailed
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkEntailed__JJ(
-    JNIEnv* env, jobject, jlong pointer, jlong termPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* term = reinterpret_cast<Term*>(termPointer);
-  Result* retPointer = new Result(solver->checkEntailed(*term));
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Solver
- * Method:    checkEntailed
- * Signature: (J[J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkEntailed__J_3J(
-    JNIEnv* env, jobject, jlong pointer, jlongArray jTerms)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Term> terms = getObjectsFromPointers<Term>(env, jTerms);
-  Result* retPointer = new Result(solver->checkEntailed(terms));
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Solver
  * Method:    declareDatatype
  * Signature: (JLjava/lang/String;[J)J
  */

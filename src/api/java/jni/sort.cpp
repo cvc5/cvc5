@@ -482,35 +482,6 @@ Java_io_github_cvc5_api_Sort_isFirstClass(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    isFunctionLike
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isFunctionLike(JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isFunctionLike());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
- * Method:    isSubsortOf
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isSubsortOf(
-    JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
-  return static_cast<jboolean>(current->isSubsortOf(*sort));
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */

@@ -386,36 +386,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isFirstClass(long pointer);
 
   /**
-   * Is this a function-LIKE sort?
-   *
-   * Anything function-like except arrays (e.g., datatype selectors) is
-   * considered a function here. Function-like terms can not be the argument
-   * or return value for any term that is function-like.
-   * This is mainly to avoid higher order.
-   *
-   * @apiNote Arrays are explicitly not considered function-like here.
-   *
-   * @return true if this is a function-like sort
-   */
-  public boolean isFunctionLike()
-  {
-    return isFunctionLike(pointer);
-  }
-
-  private native boolean isFunctionLike(long pointer);
-
-  /**
-   * Is this sort a subsort of the given sort?
-   * @return true if this sort is a subsort of s
-   */
-  public boolean isSubsortOf(Sort s)
-  {
-    return isSubsortOf(pointer, s.getPointer());
-  }
-
-  private native boolean isSubsortOf(long pointer, long sortPointer);
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   public Datatype getDatatype()
