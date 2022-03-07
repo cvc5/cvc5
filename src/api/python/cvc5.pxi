@@ -247,6 +247,9 @@ cdef class DatatypeConstructor:
             :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm()
             <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
             :param retSort: the desired return sort of the constructor
             :return: the constructor operator as a term.
         """
@@ -1206,6 +1209,9 @@ cdef class Solver:
     def mkSepEmp(self):
         """Create a separation logic empty term.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: the separation logic empty term
         """
         cdef Term term = Term(self)
@@ -1214,6 +1220,9 @@ cdef class Solver:
 
     def mkSepNil(self, Sort sort):
         """Create a separation logic nil term.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param sort: the sort of the nil term
         :return: the separation logic nil term
@@ -1953,6 +1962,9 @@ cdef class Solver:
 
             ( get-learned-literals )
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: the list of literals
         """
         lits = []
@@ -2089,6 +2101,9 @@ cdef class Solver:
         using the current model. This method will only return false (for any v)
         if the model-cores option has been set.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param v: The term in question
         :return: true if v is a model core symbol
         """
@@ -2118,6 +2133,9 @@ cdef class Solver:
         datatype sort to the given ones. This method should be invoked exactly
         once, before any separation logic constraints are provided.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param locSort: The location sort of the heap
         :param dataSort: The data sort of the heap
         """
@@ -2131,6 +2149,9 @@ cdef class Solver:
         .. code-block:: smtlib
 
             ( declare-pool <symbol> <sort> ( <term>* ) )
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param symbol: The name of the pool
         :param sort: The sort of the elements of the pool.
@@ -2239,6 +2260,9 @@ cdef class Solver:
 
         - ``bool getInteprolant(Term conj, Term output)``
         - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
@@ -2273,6 +2297,9 @@ cdef class Solver:
         Requires to enable incremental mode, and 
         option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found
         """
@@ -2295,6 +2322,9 @@ cdef class Solver:
 
         - ``bool getAbduct(Term conj, Term output)``
         - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
@@ -2327,6 +2357,10 @@ cdef class Solver:
 
         Requires to enable incremental mode, and 
         option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param output: the term where the result will be stored
         :return: True iff an abduct was found
         """
@@ -2349,6 +2383,9 @@ cdef class Solver:
         and setting option
         :ref:`block-models <lbl-option-block-models>`
         to a mode other than ``none``.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         """
         self.csolver.blockModel()
 
@@ -2365,6 +2402,9 @@ cdef class Solver:
 
         Requires enabling option
         :ref:`produce-models <lbl-option-produce-models>`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         """
         cdef vector[c_Term] nts
         for t in terms:

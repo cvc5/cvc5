@@ -2036,6 +2036,8 @@ class CVC5_EXPORT DatatypeConstructor
    *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
    *       above (nullary) application of nil.
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
@@ -3568,12 +3570,16 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a separation logic empty term.
+   *
+   * @warning This method is experimental and may change in future versions.
    * @return the separation logic empty term
    */
   Term mkSepEmp() const;
 
   /**
    * Create a separation logic nil term.
+   *
+   * @warning This method is experimental and may change in future versions.
    * @param sort the sort of the nil term
    * @return the separation logic nil term
    */
@@ -4179,16 +4185,20 @@ class CVC5_EXPORT Solver
    * :ref:`produce-proofs <lbl-option-produce-proofs>`.
    * \endverbatim
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
   std::string getProof() const;
 
   /**
-   * Get learned literals
+   * Get a list of learned literals that are entailed by the current set of
+   * assertions.
    *
-   * @return a list of literals that were learned at top-level. In other words,
-   * these are literals that are entailed by the current set of assertions.
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @return a list of literals that were learned at top-level.
    */
   std::vector<Term> getLearnedLiterals() const;
 
@@ -4235,14 +4245,16 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
+   * \verbatim embed:rst:leading-asterisk
+   *
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
-   * current model. This method will only return false (for any v) if
-   * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
+   * current model. This method will only return false (for any v) if option
+   * :ref:`model-cores <lbl-option-model-cores>` has been set.
+   *
    * \endverbatim
-   * has been set.
+   *
+   * @warning This method is experimental and may change in future versions.
    *
    * @param v The term in question
    * @return true if v is a model core symbol
@@ -4265,6 +4277,7 @@ class CVC5_EXPORT Solver
    *
    * \endverbatim
    *
+   * @warning This method is experimental and may change in future versions.
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
    * @param vars The list of free constants that should be printed in the
@@ -4353,6 +4366,9 @@ class CVC5_EXPORT Solver
    * When using separation logic, this sets the location sort and the
    * datatype sort to the given ones. This method should be invoked exactly
    * once, before any separation logic constraints are provided.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
@@ -4360,12 +4376,18 @@ class CVC5_EXPORT Solver
 
   /**
    * When using separation logic, obtain the term for the heap.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return The term for the heap
    */
   Term getValueSepHeap() const;
 
   /**
    * When using separation logic, obtain the term for nil.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return The term for nil
    */
   Term getValueSepNil() const;
@@ -4418,6 +4440,8 @@ class CVC5_EXPORT Solver
    * mode different from `none`.
    * \endverbatim
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -4439,6 +4463,8 @@ class CVC5_EXPORT Solver
    * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
    * mode different from `none`.
    * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
@@ -4466,6 +4492,8 @@ class CVC5_EXPORT Solver
    * mode different from `none`.
    * \endverbatim
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj
    *        on the last call to getInterpolant.
@@ -4486,6 +4514,8 @@ class CVC5_EXPORT Solver
    * Requires to enable option
    * :ref:`produce-abducts <lbl-option-produce-abducts>`.
    * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
    * @param output a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
@@ -4509,6 +4539,9 @@ class CVC5_EXPORT Solver
    * Requires to enable option
    * :ref:`produce-abducts <lbl-option-produce-abducts>`.
    * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct @f$C@f$
@@ -4536,6 +4569,8 @@ class CVC5_EXPORT Solver
    * :ref:`produce-abducts <lbl-option-produce-abducts>`.
    * \endverbatim
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
@@ -4561,6 +4596,8 @@ class CVC5_EXPORT Solver
    * :ref:`block-models <lbl-option-block-models>`.
    * to a mode other than ``none``.
    * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   void blockModel() const;
 
@@ -4579,6 +4616,8 @@ class CVC5_EXPORT Solver
    * :ref:`produce-models <lbl-option-produce-models>`.
    * 'produce-models'.
    * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
