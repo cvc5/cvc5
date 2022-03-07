@@ -173,7 +173,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     TypeNode gtn = g.getType();
     AlwaysAssert(gtn.isSubtypeOf(btn))
         << "Sygus datatype " << dt.getName()
-        << " encodes terms that are not of type " << btn << std::endl;
+        << " encodes terms that are not of type " << btn << std::endl
+        << "Due to " << g << " of type " << gtn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
     Kind gk = g.getKind();
     if (gk == ITE)
