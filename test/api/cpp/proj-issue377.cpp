@@ -33,7 +33,7 @@ int main(void)
   Term t35 = slv.mkBitVector(81, "011111011100100100101101001101010001001010011010000111011010001110001111010101100", 2);
   Term t37 = slv.mkTerm(Kind::BITVECTOR_TO_NAT, {t35});
   Term t40 = slv.mkTerm(Kind::PI);
-  Term t43 = slv.mkTerm(Kind::PLUS, {t40, t40});
+  Term t43 = slv.mkTerm(Kind::ADD, {t40, t40});
   Term t45 = slv.mkTerm(slv.mkOp(Kind::IAND, 31), {t37, t5});
   Term t66 = slv.mkTerm(Kind::EQUAL, {t43, t40});
   Term t101 = slv.mkTerm(Kind::LT, {t37, t45});
