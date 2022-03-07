@@ -748,8 +748,7 @@ ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
   Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
   d_exprm[e].reset(new ExpressionMinerManager(d_env));
   ExpressionMinerManager* emm = d_exprm[e].get();
-  emm->initializeSygus(
-      d_tds, e, options().quantifiers.sygusSamples, true);
+  emm->initializeSygus(d_tds, e, options().quantifiers.sygusSamples, true);
   emm->initializeMinersForOptions();
   return emm;
 }
