@@ -31,7 +31,7 @@ namespace quantifiers {
  * argument (if it exists) is an instantiation pattern list. Returns the
  * Boolean type.
  *
- * Furthermore ensures that certain annotations (e.g. for INST_POOL) are well
+ * Furthermore ensures that certain annotations (e.g., for INST_POOL) are well
  * formed. In particular, instantiation pool annotations specify how to
  * instantiate this quantified formula. These must specify n sets, where n
  * is the number of variables of this quantified formula.
@@ -61,7 +61,7 @@ struct QuantifierInstPatternTypeRule
 };
 
 /**
- * A quantifier annotation, which returns the inst pattern type.
+ * A quantifier annotation, which returns the instantiation pattern type.
  *
  * Furthermore ensures well-formedness of instantiation attributes with more
  * that one child, which must have a keyword specified as a constant string as
