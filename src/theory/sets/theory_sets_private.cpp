@@ -1247,7 +1247,10 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
-bool TheorySetsPrivate::isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
+bool TheorySetsPrivate::isEntailed(Node n, bool pol)
+{
+  return d_state.isEntailed(n, pol);
+}
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
