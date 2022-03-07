@@ -78,7 +78,7 @@ typedef expr::Attribute<QRewDtExpandAttributeId, Node> QRewDtExpandAttribute;
 struct QElimShadowAttributeId
 {
 };
-typedef expr::Attribute<QElimShadowAttributeId, Node> QElimShadowAttribute;
+using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
