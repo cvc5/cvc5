@@ -27,7 +27,7 @@ namespace uf {
 
 /**
  * Type rule for applications of uninterpreted functions, which are associated
- * to types (-> T1 ... Tn T). This ensures the arguments of n have type 
+ * to types (-> T1 ... Tn T). This ensures the arguments of n have type
  * T1 ... Tn and returns T.
  */
 class UfTypeRule
@@ -46,8 +46,9 @@ class CardinalityConstraintTypeRule
 };
 
 /**
- * The type rule for cardinality constraint operators, which is indexed by a type and
- * an integer. Ensures that type is an uninterpreted sort and the integer is positive, and returns the builtin type.
+ * The type rule for cardinality constraint operators, which is indexed by a
+ * type and an integer. Ensures that type is an uninterpreted sort and the
+ * integer is positive, and returns the builtin type.
  */
 class CardinalityConstraintOpTypeRule
 {
@@ -56,7 +57,8 @@ class CardinalityConstraintOpTypeRule
 };
 
 /**
- * A combined cardinality constraint specified by its operator, returns the Boolean type.
+ * A combined cardinality constraint specified by its operator, returns the
+ * Boolean type.
  */
 class CombinedCardinalityConstraintTypeRule
 {
@@ -65,8 +67,9 @@ class CombinedCardinalityConstraintTypeRule
 };
 
 /**
- * The type rule for combined cardinality constraint operators, which is indexed by
- * an integer. Ensures that the integer is positive, and returns the builtin type.
+ * The type rule for combined cardinality constraint operators, which is indexed
+ * by an integer. Ensures that the integer is positive, and returns the builtin
+ * type.
  */
 class CombinedCardinalityConstraintOpTypeRule
 {
@@ -76,7 +79,7 @@ class CombinedCardinalityConstraintOpTypeRule
 
 /**
  * Type rule for HO_APPLY terms. Ensures the first argument is a function type
- * (-> T1 ... Tn T), the second argument is T1, and returns (-> T2 ... Tn T) if 
+ * (-> T1 ... Tn T), the second argument is T1, and returns (-> T2 ... Tn T) if
  * n>1 or T otherwise.
  */
 class HoApplyTypeRule
