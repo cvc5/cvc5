@@ -57,7 +57,11 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
- * - QElimShadowAttribute TODO
+ * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
+ * shadowed variable v, which is quantified by a subformula q' of quantified
+ * formula q. Shadowed variables may be introduced when e.g. quantified formulas
+ * appear on the right hand sides of substitutions in preprocessing. They are
+ * eliminated by the rewriter.
  */
 struct QRewPrenexAttributeId
 {
@@ -548,7 +552,9 @@ Node QuantifiersRewriter::computeProcessTerms2(
   }
   if (body.isClosure())
   {
-    // ensure no shadowing
+    // Ensure no shadowing. If this term is a closure quantifying a variable
+    // in args, then we introduce fresh variable(s) and replace this closure
+    // to be over the fresh variables instead.
     std::vector<Node> oldVars;
     std::vector<Node> newVars;
     for (const Node& v : body[0])
