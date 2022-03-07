@@ -804,6 +804,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
 
 bool SynthConjecture::runExprMiner()
 {
+  // if not using expression mining or sygus stream
   if (!d_runExprMiner && !options().quantifiers.sygusStream)
   {
     return false;
