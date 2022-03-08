@@ -2331,9 +2331,10 @@ def test_issue7000(solver):
     t59 = solver.mkConst(s2, "_x51")
     t72 = solver.mkTerm(Kind.Equal, t37, t59)
     t74 = solver.mkTerm(Kind.Gt, t4, t7)
+    query = solver.mkTerm(Kind.And, t72, t74, t72, t72)
     # throws logic exception since logic is not higher order by default
     with pytest.raises(RuntimeError):
-        solver.checkEntailed(t72, t74, t72, t72)
+        solver.checkSatAssuming(query.notTerm())
 
 
 def test_mk_sygus_var(solver):
