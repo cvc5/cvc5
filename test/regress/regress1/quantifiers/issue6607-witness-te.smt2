@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-models
 ; REQUIRES: poly
 (set-logic NRA)
 (set-info :status sat)

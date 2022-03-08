@@ -52,7 +52,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr)
 {
-  bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS);
+  bool trackTopLevelLearned = isOutputOn(OutputTag::LEARNED_LITS)
+                              || options().smt.produceLearnedLiterals;
   if (trackTopLevelLearned)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
@@ -167,7 +168,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Node theoryExplanation = tte.getNode();
   if (d_env.isSatProofProducing())
   {
-    Assert(options().smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF
+    Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
@@ -289,10 +290,13 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-const std::unordered_set<Node>& TheoryProxy::getLearnedZeroLevelLiterals() const
+std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals() const
 {
-  Assert(d_zll != nullptr);
-  return d_zll->getLearnedZeroLevelLiterals();
+  if (d_zll != nullptr)
+  {
+    return d_zll->getLearnedZeroLevelLiterals();
+  }
+  return {};
 }
 
 }  // namespace prop

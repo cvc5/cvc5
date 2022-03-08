@@ -293,8 +293,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     if (!assertionNew.isNull())
     {
       Trace("non-clausal-simplify")

@@ -129,7 +129,7 @@ bool NlExtTheoryCallback::isExtfReduced(
       }
     }
   }
-  return true;
+  return false;
 }
 
 }  // namespace nl

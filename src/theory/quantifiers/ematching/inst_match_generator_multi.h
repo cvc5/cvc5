@@ -40,7 +40,10 @@ class InstMatchGeneratorMulti : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorMulti(Trigger* tparent, Node q, std::vector<Node>& pats);
+  InstMatchGeneratorMulti(Env& env,
+                          Trigger* tparent,
+                          Node q,
+                          std::vector<Node>& pats);
   /** destructor */
   ~InstMatchGeneratorMulti() override;
 

@@ -1,4 +1,5 @@
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :finite-model-find true)

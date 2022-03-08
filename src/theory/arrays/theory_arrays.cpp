@@ -107,7 +107,6 @@ TheoryArrays::TheoryArrays(Env& env,
       d_defValues(context()),
       d_readTableContext(new context::Context()),
       d_arrayMerges(context()),
-      d_inCheckModel(false),
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
 {
@@ -412,11 +411,6 @@ bool TheoryArrays::propagateLit(TNode literal)
     return false;
   }
 
-  // Propagate away
-  if (d_inCheckModel && context()->getLevel() != d_topLevel)
-  {
-    return true;
-  }
   bool ok = d_out->propagate(literal);
   if (!ok) {
     d_state.notifyInConflict();
@@ -2122,12 +2116,6 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  if (d_inCheckModel)
-  {
-    // if in check model, don't send the conflict
-    d_state.notifyInConflict();
-    return;
-  }
   d_im.conflictEqConstantMerge(a, b);
 }
 

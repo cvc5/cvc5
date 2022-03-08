@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --check-unsat-cores
+; COMMAND-LINE: --incremental
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic NRA)

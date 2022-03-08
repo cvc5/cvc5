@@ -109,8 +109,6 @@ class TheoryStrings : public Theory {
   void eqNotifyNewClass(TNode t);
   /** Called just after the merge of two equivalence classes */
   void eqNotifyMerge(TNode t1, TNode t2);
-  /** called a disequality is added */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -161,8 +159,6 @@ class TheoryStrings : public Theory {
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_str.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
@@ -321,6 +317,11 @@ class TheoryStrings : public Theory {
   StringsFmf d_stringsFmf;
   /** The representation of the strategy */
   Strategy d_strat;
+  /**
+   * For model building, a counter on the number of abstract witness terms
+   * we have built, so that unique debug names can be assigned.
+   */
+  size_t d_absModelCounter;
 };/* class TheoryStrings */
 
 }  // namespace strings

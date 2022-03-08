@@ -88,20 +88,21 @@ Trigger::Trigger(Env& env,
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
-      d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
+      d_mg = new InstMatchGeneratorSimple(env, this, q, d_nodes[0]);
       ++(stats.d_triggers);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator(env, this, q, d_nodes[0]);
       ++(stats.d_simple_triggers);
     }
   }else{
     if (options().quantifiers.multiTriggerCache)
     {
-      d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
+      d_mg = new InstMatchGeneratorMulti(env, this, q, d_nodes);
     }
     else
     {
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
+      d_mg =
+          InstMatchGenerator::mkInstMatchGeneratorMulti(env, this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))
     {

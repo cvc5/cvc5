@@ -701,7 +701,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   if (doSymBreak)
   {
     // direct solving for children
-    //   for instance, we may want to insist that the LHS of MINUS is 0
+    //   for instance, we may want to insist that the LHS of SUB is 0
     Trace("sygus-sb-simple-debug") << "  Solve children..." << std::endl;
     std::map<unsigned, unsigned> children_solved;
     for (unsigned j = 0; j < dt_index_nargs; j++)
@@ -747,7 +747,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           {
             // other cases of rewriting x k x -> x'
             Node req_const;
-            if (nk == GT || nk == LT || nk == XOR || nk == MINUS
+            if (nk == GT || nk == LT || nk == XOR || nk == SUB
                 || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
                 || nk == BITVECTOR_UREM)
             {
@@ -1380,7 +1380,7 @@ void SygusExtension::registerSizeTerm(Node e)
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue();
       Node newMt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(nm->mkNode(PLUS, newMt, ds));
+      slem = mt.eqNode(nm->mkNode(ADD, newMt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);

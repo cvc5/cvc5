@@ -19,7 +19,6 @@ sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
 
 # path to python api
 sys.path.insert(0, '${CMAKE_BINARY_DIR}/src/api/python')
-sys.path.insert(0, '${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP')
 
 if("${BUILD_BINDINGS_PYTHON}" == "ON"):
         tags.add('bindings_python')
@@ -30,7 +29,7 @@ if("${BUILD_BINDINGS_JAVA}" == "ON"):
 # -- Project information -----------------------------------------------------
 
 project = 'cvc5'
-copyright = '2021, the authors of cvc5'
+copyright = '2022, the authors of cvc5'
 author = 'The authors of cvc5'
 
 
@@ -122,7 +121,7 @@ examples_file_patterns = {
                 'urlname': 'examples{}',
         },
         '<z3pycompat>(.*)': {
-                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
+                'local': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/CVC5PythonicAPI', '${CMAKE_CURRENT_SOURCE_DIR}') + '{}',
                 'url': 'https://github.com/cvc5/cvc5_z3py_compat/tree/main{}',
                 'urlname': 'cvc5_z3py_compat:{}',
         }

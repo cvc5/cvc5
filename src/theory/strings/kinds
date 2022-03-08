@@ -87,7 +87,15 @@ constant CONST_SEQUENCE \
   "expr/sequence.h" \
   "a sequence of characters"
 
-operator SEQ_UNIT 1 "a sequence of length one"
+constant SEQ_UNIT_OP \
+  class \
+  SeqUnitOp \
+  ::cvc5::SeqUnitOpHashFunction \
+  "theory/strings/seq_unit_op.h" \
+  "operator for sequence units; payload is an instance of the cvc5::SeqUnitOp class"
+parameterized SEQ_UNIT SEQ_UNIT_OP 1  \
+"a sequence of length one. First parameter is a SeqUnitOp. Second is a term"
+
 operator SEQ_NTH 2 "The nth element of a sequence"
 operator SEQ_NTH_TOTAL 2 "The nth element of a sequence (internal, for responses to expand definitions only)"
 
@@ -141,10 +149,13 @@ typerule REGEXP_REPEAT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_LOOP_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
-typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
+typerule STRING_TO_REGEXP ::cvc5::theory::strings::StringToRegExpTypeRule
 typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
 typerule REGEXP_NONE "SimpleTypeRule<RRegExp>"
 typerule REGEXP_ALLCHAR "SimpleTypeRule<RRegExp>"
+
+# we return isConst for some regular expressions, including all that we enumerate
+construle STRING_TO_REGEXP ::cvc5::theory::strings::StringToRegExpTypeRule
 
 ### operators that apply to both strings and sequences
 
@@ -180,6 +191,7 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 ### sequence specific operators
 
 typerule CONST_SEQUENCE ::cvc5::theory::strings::ConstSequenceTypeRule
+typerule SEQ_UNIT_OP   "SimpleTypeRule<RBuiltinOperator>"
 typerule SEQ_UNIT ::cvc5::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::cvc5::theory::strings::SeqNthTypeRule
 typerule SEQ_NTH_TOTAL ::cvc5::theory::strings::SeqNthTypeRule

@@ -16,9 +16,9 @@
 #include "theory/bags/bag_solver.h"
 
 #include "expr/emptybag.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/normal_form.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
 #include "theory/uf/equality_engine_iterator.h"
@@ -76,7 +76,9 @@ void BagSolver::checkBasicOperations()
         case kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case kind::BAG_FILTER: checkFilter(n); break;
         case kind::BAG_MAP: checkMap(n); break;
+        case kind::TABLE_PRODUCT: checkProduct(n); break;
         default: break;
       }
       it++;
@@ -259,24 +261,76 @@ void BagSolver::checkMap(Node n)
   for (const Node& z : downwards)
   {
     Node y = d_state.getRepresentative(z);
-    if (d_mapCache.count(n) && d_mapCache[n].get()->contains(y))
-    {
-      continue;
-    }
-    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
-    d_im.lemmaTheoryInference(&downInference);
-    for (const Node& x : upwards)
-    {
-      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
-      d_im.lemmaTheoryInference(&upInference);
-    }
     if (!d_mapCache.count(n))
     {
-      std::shared_ptr<context::CDHashSet<Node> > set =
-          std::make_shared<context::CDHashSet<Node> >(userContext());
-      d_mapCache.insert(n, set);
+      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
+          std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
+              userContext());
+      d_mapCache[n] = nMap;
     }
-    d_mapCache[n].get()->insert(y);
+    if (!d_mapCache[n].get()->count(y))
+    {
+      auto [downInference, uf, preImageSize] = d_ig.mapDown(n, y);
+      d_im.lemmaTheoryInference(&downInference);
+      std::pair<Node, Node> yPair = std::make_pair(uf, preImageSize);
+      d_mapCache[n].get()->insert(y, yPair);
+    }
+
+    context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
+        d_mapCache[n].get()->find(y);
+
+    auto [uf, preImageSize] = it->second;
+
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUp(n, uf, preImageSize, y, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
+  }
+}
+
+void BagSolver::checkFilter(Node n)
+{
+  Assert(n.getKind() == BAG_FILTER);
+
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[0]);
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.filterDownwards(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.filterUpwards(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
+  }
+}
+
+void BagSolver::checkProduct(Node n)
+{
+  Assert(n.getKind() == TABLE_PRODUCT);
+  const set<Node>& elementsA = d_state.getElements(n[0]);
+  const set<Node>& elementsB = d_state.getElements(n[1]);
+  for (const Node& e1 : elementsA)
+  {
+    for (const Node& e2 : elementsB)
+    {
+      InferInfo i = d_ig.productUp(
+          n, d_state.getRepresentative(e1), d_state.getRepresentative(e2));
+      d_im.lemmaTheoryInference(&i);
+    }
+  }
+
+  std::set<Node> elements = d_state.getElements(n);
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.productDown(n, d_state.getRepresentative(e));
+    d_im.lemmaTheoryInference(&i);
   }
 }
 

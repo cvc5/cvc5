@@ -1,4 +1,5 @@
-; COMMAND-LINE: --incremental --fmf-fun --macros-quant --no-check-models
+; COMMAND-LINE: --incremental --fmf-fun --macros-quant
+; DISABLE-TESTER: model
 (set-logic UFLIA)
 
 

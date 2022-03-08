@@ -19,7 +19,9 @@
 #define CVC5__THEORY__QUANTIFIERS__IM_GENERATOR_H
 
 #include <map>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match.h"
 
@@ -51,69 +53,70 @@ class Trigger;
  * point in which instantiate lemmas are enqueued to be sent on the output
  * channel.
  */
-class IMGenerator {
-public:
- IMGenerator(Trigger* tparent);
- virtual ~IMGenerator() {}
- /** Reset instantiation round.
-  *
-  * Called once at beginning of an instantiation round.
-  */
- virtual void resetInstantiationRound() {}
- /** Reset.
-  *
-  * eqc is the equivalence class to search in (any if eqc=null).
-  * Returns true if this generator can produce instantiations, and false
-  * otherwise. An example of when it returns false is if it can be determined
-  * that no appropriate matchable terms occur based on eqc.
-  */
- virtual bool reset(Node eqc) { return true; }
- /** Get the next match.
-  *
-  * Must call reset( eqc ) before this function. This constructs an
-  * instantiation, which it populates in data structure m,
-  * based on the current context using the implemented matching algorithm.
-  *
-  * q is the quantified formula we are adding instantiations for
-  * m is the InstMatch object we are generating
-  *
-  * Returns a value >0 if an instantiation was successfully generated
-  */
- virtual int getNextMatch(Node q, InstMatch& m) { return 0; }
- /** add instantiations
-  *
-  * This adds all available instantiations for q based on the current context
-  * using the implemented matching algorithm. It typically is implemented as a
-  * fixed point of getNextMatch above.
-  *
-  * It returns the number of instantiations added using calls to
-  * Instantiate::addInstantiation(...).
-  */
- virtual uint64_t addInstantiations(Node q) { return 0; }
- /** get active score
-  *
-  * A heuristic value indicating how active this generator is.
-  */
- virtual int getActiveScore() { return 0; }
+class IMGenerator : protected EnvObj
+{
+ public:
+  IMGenerator(Env& env, Trigger* tparent);
+  virtual ~IMGenerator() {}
+  /** Reset instantiation round.
+   *
+   * Called once at beginning of an instantiation round.
+   */
+  virtual void resetInstantiationRound() {}
+  /** Reset.
+   *
+   * eqc is the equivalence class to search in (any if eqc=null).
+   * Returns true if this generator can produce instantiations, and false
+   * otherwise. An example of when it returns false is if it can be determined
+   * that no appropriate matchable terms occur based on eqc.
+   */
+  virtual bool reset(Node eqc) { return true; }
+  /** Get the next match.
+   *
+   * Must call reset( eqc ) before this function. This constructs an
+   * instantiation, which it populates in data structure m,
+   * based on the current context using the implemented matching algorithm.
+   *
+   * q is the quantified formula we are adding instantiations for
+   * m is the InstMatch object we are generating
+   *
+   * Returns a value >0 if an instantiation was successfully generated
+   */
+  virtual int getNextMatch(Node q, InstMatch& m) { return 0; }
+  /** add instantiations
+   *
+   * This adds all available instantiations for q based on the current context
+   * using the implemented matching algorithm. It typically is implemented as a
+   * fixed point of getNextMatch above.
+   *
+   * It returns the number of instantiations added using calls to
+   * Instantiate::addInstantiation(...).
+   */
+  virtual uint64_t addInstantiations(Node q) { return 0; }
+  /** get active score
+   *
+   * A heuristic value indicating how active this generator is.
+   */
+  virtual int getActiveScore() { return 0; }
 
-protected:
- /** send instantiation
-  *
-  * This method sends instantiation, specified by m, to the parent trigger
-  * object, which will in turn make a call to
-  * Instantiate::addInstantiation(...). This method returns true if a
-  * call to Instantiate::addInstantiation(...) was successfully made,
-  * indicating that an instantiation was enqueued in the quantifier engine's
-  * lemma cache.
-  */
- bool sendInstantiation(InstMatch& m, InferenceId id);
- /** The parent trigger that owns this */
- Trigger* d_tparent;
- /** Reference to the state of the quantifiers engine */
- QuantifiersState& d_qstate;
- /** Reference to the term registry */
- TermRegistry& d_treg;
-};/* class IMGenerator */
+ protected:
+  /** send instantiation
+   *
+   * This method sends instantiation, specified by m, to the parent trigger
+   * object, which will in turn make a call to
+   * Instantiate::addInstantiation(...). This method returns true if a
+   * call to Instantiate::addInstantiation(...) was successfully made,
+   * indicating that an instantiation was enqueued in the quantifier engine's
+   * lemma cache.
+   */
+  bool sendInstantiation(InstMatch& m, InferenceId id);
+  /** The parent trigger that owns this */
+  Trigger* d_tparent;
+  /** Reference to the state of the quantifiers engine */
+  QuantifiersState& d_qstate;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
+}; /* class IMGenerator */
 
 }  // namespace inst
 }

@@ -1,4 +1,5 @@
-; EXPECT: unknown
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic ALL)
 (set-option :check-proofs true)
 (set-option :proof-check eager)

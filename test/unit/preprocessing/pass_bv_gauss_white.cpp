@@ -2409,7 +2409,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
   Node a = d_nodeManager->mkNode(
       kind::AND, d_nodeManager->mkNode(kind::AND, eq1, eq2), eq3);
 
-  AssertionPipeline apipe;
+  AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(a);
   passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");
   std::unordered_map<Node, Node> res;
@@ -2496,7 +2496,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
   Node a = d_nodeManager->mkNode(
       kind::AND, d_nodeManager->mkNode(kind::AND, eq1, eq2), eq3);
 
-  AssertionPipeline apipe;
+  AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(a);
   apipe.push_back(eq4);
   apipe.push_back(eq5);
@@ -2548,7 +2548,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
           d_p),
       d_nine);
 
-  AssertionPipeline apipe;
+  AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(eq1);
   apipe.push_back(eq2);
   passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");

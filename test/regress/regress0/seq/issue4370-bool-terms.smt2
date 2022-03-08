@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --no-check-models
+; COMMAND-LINE: --strings-exp -q
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((a 0)) (((b))))

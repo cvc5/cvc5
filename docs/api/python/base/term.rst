@@ -1,6 +1,6 @@
 Term
 ================
 
-.. autoclass:: pycvc5.Term
+.. autoclass:: cvc5.Term
     :members:
     :undoc-members:

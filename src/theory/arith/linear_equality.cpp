@@ -261,11 +261,8 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
 
-  static int instance = 0;
-
   if(Debug.isOn("arith::tracking::pre")){
-    ++instance;
-    Debug("arith::tracking")  << "pre update #" << instance << endl;
+    Debug("arith::tracking") << "pre update" << endl;
     debugCheckTracking();
   }
 
@@ -283,7 +280,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
   updateTracked(x_j, x_j_value);
 
   if(Debug.isOn("arith::tracking::mid")){
-    Debug("arith::tracking")  << "postupdate prepivot #" << instance << endl;
+    Debug("arith::tracking") << "postupdate prepivot" << endl;
     debugCheckTracking();
   }
 
@@ -293,7 +290,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
   d_tableau.pivot(x_i, x_j, d_trackCallback);
 
   if(Debug.isOn("arith::tracking::post")){
-    Debug("arith::tracking")  << "postpivot #" << instance << endl;
+    Debug("arith::tracking") << "postpivot" << endl;
     debugCheckTracking();
   }
 
@@ -1118,9 +1115,7 @@ UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& 
 
   int focusCoeffSgn = focusCoeff.sgn();
 
-  static int instance = 0;
-  ++instance;
-  Debug("speculativeUpdate") << "speculativeUpdate " << instance << endl;
+  Debug("speculativeUpdate") << "speculativeUpdate" << endl;
   Debug("speculativeUpdate") << "nb " << nb << endl;
   Debug("speculativeUpdate") << "focusCoeff " << focusCoeff << endl;
 

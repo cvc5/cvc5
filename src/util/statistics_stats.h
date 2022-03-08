@@ -73,7 +73,7 @@ class AverageStat
  * an `std::ostream`.
  * New values are added by
  *    HistogramStat<Kind> stat;
- *    stat << Kind::PLUS << Kind::AND;
+ *    stat << Kind::ADD << Kind::AND;
  */
 template <typename Integral>
 class HistogramStat

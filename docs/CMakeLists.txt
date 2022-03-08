@@ -17,6 +17,7 @@ check_python_module(breathe)
 check_python_module(sphinxcontrib.bibtex sphinxcontrib-bibtex)
 check_python_module(sphinx_tabs.tabs sphinx-tabs)
 check_python_module(sphinxcontrib.programoutput sphinxcontrib.programoutput)
+check_python_module(sphinx_rtd_theme sphinx-rtd-theme)
 
 add_subdirectory(api)
 
