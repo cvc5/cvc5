@@ -100,6 +100,11 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TNode vt = v;
       Node vn = n.substitute(at, vt);
       vn = rewrite(vn);
+      // it might be incorrectly applied
+      if (!vn.isConst())
+      {
+        continue;
+      }
       unsigned start = d_node_mv_args_proc[n][vn];
       // get explanation in terms of testers
       std::vector<Node> antec_exp;
@@ -275,7 +280,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+          APPLY_SELECTOR, dt[i].getSelectorInternal(headType, 0), en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -298,7 +303,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       s = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
+          APPLY_SELECTOR, dt[i].getSelectorInternal(headType, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)
