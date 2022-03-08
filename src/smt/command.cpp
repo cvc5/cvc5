@@ -1944,9 +1944,7 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetInterpolCommand::GetInterpolCommand(const std::string& name, api::Term conj)
-    : d_name(name),
-      d_conj(conj),
-      d_sygus_grammar(nullptr)
+    : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
 GetInterpolCommand::GetInterpolCommand(const std::string& name,
@@ -1978,8 +1976,7 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
     }
     else
     {
-      d_result =
-          solver->getInterpolant(d_conj, *d_sygus_grammar);
+      d_result = solver->getInterpolant(d_conj, *d_sygus_grammar);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2103,9 +2100,7 @@ void GetInterpolNextCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetAbductCommand::GetAbductCommand(const std::string& name, api::Term conj)
-    : d_name(name),
-      d_conj(conj),
-      d_sygus_grammar(nullptr)
+    : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
 GetAbductCommand::GetAbductCommand(const std::string& name,

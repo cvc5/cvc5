@@ -639,8 +639,7 @@ class CVC5_EXPORT SolverEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  Node getInterpolant(const Node& conj,
-                      const TypeNode& grammarType);
+  Node getInterpolant(const Node& conj, const TypeNode& grammarType);
 
   /**
    * Get next interpolant. This can only be called immediately after a

@@ -1666,8 +1666,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
       *d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
-Node SolverEngine::getInterpolant(const Node& conj,
-                                  const TypeNode& grammarType)
+Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
   SolverEngineScope smts(this);
   finishInit();
@@ -1678,7 +1677,7 @@ Node SolverEngine::getInterpolant(const Node& conj,
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
-  Assert (success == !interpol.isNull());
+  Assert(success == !interpol.isNull());
   return interpol;
 }
 
@@ -1696,12 +1695,11 @@ Node SolverEngine::getInterpolantNext()
   bool success = d_interpolSolver->getInterpolantNext(interpol);
   // notify the state of whether the get-interpolant-next call was successful
   d_state->notifyGetInterpol(success);
-  Assert (success == !interpol.isNull());
+  Assert(success == !interpol.isNull());
   return interpol;
 }
 
-Node SolverEngine::getAbduct(const Node& conj,
-                             const TypeNode& grammarType)
+Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
   SolverEngineScope smts(this);
   finishInit();
@@ -1711,7 +1709,7 @@ Node SolverEngine::getAbduct(const Node& conj,
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
-  Assert (success == !abd.isNull());
+  Assert(success == !abd.isNull());
   return abd;
 }
 
@@ -1729,7 +1727,7 @@ Node SolverEngine::getAbductNext(Node& abd)
   bool success = d_abductSolver->getAbductNext(abd);
   // notify the state of whether the get-abduct-next call was successful
   d_state->notifyGetAbduct(success);
-  Assert (success == !abd.isNull());
+  Assert(success == !abd.isNull());
   return abd;
 }
 

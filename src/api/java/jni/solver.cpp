@@ -2264,8 +2264,8 @@ Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
  * Method:    getAbductNext
  * Signature: (J)Z
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext
-    (JNIEnv * env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

@@ -2195,8 +2195,7 @@ public class Solver implements IPointer, AutoCloseable
     return getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
   }
 
-  private native Term getInterpolant(
-      long pointer, long conjPointer, long grammarPointer);
+  private native Term getInterpolant(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
@@ -2265,8 +2264,7 @@ public class Solver implements IPointer, AutoCloseable
     return getAbduct(pointer, conj.getPointer(), grammar.getPointer());
   }
 
-  private native Term getAbduct(
-      long pointer, long conjPointer, long grammarPointer);
+  private native Term getAbduct(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -2282,7 +2280,8 @@ public class Solver implements IPointer, AutoCloseable
    *        given in the input by conj in the last call to getAbduct.
    * @return true if it gets C successfully, false otherwise
    */
-  public Term getAbductNext() {
+  public Term getAbductNext()
+  {
     return getAbductNext(pointer);
   }
 
