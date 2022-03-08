@@ -2076,8 +2076,7 @@ def test_get_abduct(solver):
 
     solver.assertFormula(solver.mkTerm(Kind.Gt, x, zero))
     conj = solver.mkTerm(Kind.Gt, y, zero)
-    output = cvc5.Term(solver)
-    assert solver.getAbduct(conj, output)
+    output = solver.getAbduct(conj)
     assert not output.isNull() and output.getSort().isBoolean()
 
     boolean = solver.getBooleanSort()
@@ -2087,7 +2086,7 @@ def test_get_abduct(solver):
     g = solver.mkSygusGrammar([], [start])
     conj2 = solver.mkTerm(Kind.Gt, x, zero)
     g.addRule(start, truen)
-    assert solver.getAbduct(conj2, g, output2)
+    output2 = solver.getAbduct(conj2, g)
     assert output2 == truen
 
 def test_get_abduct2(solver):
@@ -2101,7 +2100,7 @@ def test_get_abduct2(solver):
     conj = solver.mkTerm(Kind.Gt, y, zero)
     output = cvc5.Term(solver)
     with pytest.raises(RuntimeError):
-        solver.getAbduct(conj, output)
+        solver.getAbduct(conj)
 
 def test_get_abduct_next(solver):
     solver.setLogic("QF_LIA")
@@ -2115,10 +2114,8 @@ def test_get_abduct_next(solver):
 
     solver.assertFormula(solver.mkTerm(Kind.Gt, x, zero))
     conj = solver.mkTerm(Kind.Gt, y, zero)
-    output = cvc5.Term(solver)
-    assert solver.getAbduct(conj, output)
-    output2 = cvc5.Term(solver)
-    assert solver.getAbductNext(output2)
+    output = solver.getAbduct(conj)
+    output2 = solver.getAbductNext()
     assert output != output2
 
 
@@ -2140,8 +2137,7 @@ def test_get_interpolant(solver):
             Kind.Or,
             solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Add, y, z), zero),
             solver.mkTerm(Kind.Lt, z, zero))
-    output = cvc5.Term(solver)
-    solver.getInterpolant(conj, output)
+    output = solver.getInterpolant(conj)
     assert output.getSort().isBoolean()
 
 def test_get_interpolant_next(solver):
@@ -2162,10 +2158,8 @@ def test_get_interpolant_next(solver):
             Kind.Or,
             solver.mkTerm(Kind.Gt, solver.mkTerm(Kind.Add, y, z), zero),
             solver.mkTerm(Kind.Lt, z, zero))
-    output = cvc5.Term(solver)
-    solver.getInterpolant(conj, output)
-    output2 = cvc5.Term(solver)
-    solver.getInterpolantNext(output2)
+    output = solver.getInterpolant(conj)
+    output2 = solver.getInterpolantNext()
 
     assert output != output2
 
