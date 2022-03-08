@@ -2156,7 +2156,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   if (options().quantifiers.quantConflictFind && !d_conflict)
   {
-    return (level==Theory::EFFORT_FULL);
+    return (level == Theory::EFFORT_FULL);
   }
   return false;
 }
