@@ -31,11 +31,7 @@ const char* TestUtilWhiteInteger::s_large_val =
     "4547897890548754897897897897890789078907890";
 
 
-TEST_F(TestUtilWhiteInteger, pow) {
-  unsigned long int exp = std::numeric_limits<unsigned long int>::max();
-  Integer ithree(3);
-  Integer three_to_exp = ithree.pow(exp);
-}
+
 
 TEST_F(TestUtilWhiteInteger, hash)
 {
