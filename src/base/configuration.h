@@ -107,6 +107,8 @@ public:
 
   static bool isBuiltWithPoly();
 
+  static bool isBuiltWithCoCoA();
+
   /* Return a sorted array of the debug tags name */
   static const std::vector<std::string>& getDebugTags();
   /* Test if the given argument is a known debug tag name */

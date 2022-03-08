@@ -24,8 +24,11 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-IMGenerator::IMGenerator(Trigger* tparent)
-    : d_tparent(tparent), d_qstate(tparent->d_qstate), d_treg(tparent->d_treg)
+IMGenerator::IMGenerator(Env& env, Trigger* tparent)
+    : EnvObj(env),
+      d_tparent(tparent),
+      d_qstate(tparent->d_qstate),
+      d_treg(tparent->d_treg)
 {
 }
 

@@ -114,8 +114,15 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   {
     // must call rewrite contains directly to avoid infinite loop
     Node ctn = nm->mkNode(STRING_CONTAINS, node[r], node[1 - r]);
+    Node prev = ctn;
     ctn = rewriteContains(ctn);
     Assert(!ctn.isNull());
+    if (ctn != prev && ctn.getKind() == STRING_CONTAINS)
+    {
+      prev = ctn;
+      ctn = rewriteContains(ctn);
+      Assert(!ctn.isNull());
+    }
     if (ctn.isConst())
     {
       if (!ctn.getConst<bool>())
@@ -609,7 +616,7 @@ Node SequencesRewriter::rewriteLength(Node node)
               kind::STRING_LENGTH, tmpNode[i]));
         }
       }
-      Node retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
+      Node retNode = NodeManager::currentNM()->mkNode(kind::ADD, node_vec);
       return returnRewrite(node, retNode, Rewrite::LEN_CONCAT);
     }
   }
@@ -1748,9 +1755,10 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     size_t len = Word::getLength(s);
     if (i.getConst<Rational>().sgn() != -1)
     {
-      size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
-      if (pos < len)
+      Integer posInt = i.getConst<Rational>().getNumerator();
+      if (posInt.fitsUnsignedInt() && posInt < Integer(len))
       {
+        size_t pos = posInt.toUnsignedInt();
         std::vector<Node> elements = s.getConst<Sequence>().getVec();
         const Node& ret = elements[pos];
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
@@ -1765,10 +1773,18 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     }
   }
 
-  if (s.getKind() == SEQ_UNIT && i.isConst() && i.getConst<Rational>().isZero())
+  std::vector<Node> prefix, suffix;
+  utils::getConcat(s, suffix);
+  if ((i.isConst() && i.getConst<Rational>().isZero())
+      || d_stringsEntail.stripSymbolicLength(suffix, prefix, 1, i, true))
   {
-    Node ret = s[0];
-    return returnRewrite(node, ret, Rewrite::SEQ_NTH_UNIT);
+    if (suffix.size() > 0 && suffix[0].getKind() == SEQ_UNIT)
+    {
+      // (seq.nth (seq.++ prefix (seq.unit x) suffix) n) ---> x
+      // if len(prefix) = n
+      Node ret = suffix[0][0];
+      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_SYM);
+    }
   }
 
   return node;
@@ -1962,7 +1978,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       Node tot_len =
           d_arithEntail.rewrite(nm->mkNode(kind::STRING_LENGTH, node[0]));
       Node end_pt =
-          d_arithEntail.rewrite(nm->mkNode(kind::PLUS, node[1], node[2]));
+          d_arithEntail.rewrite(nm->mkNode(kind::ADD, node[1], node[2]));
       if (node[2] != tot_len)
       {
         if (d_arithEntail.check(node[2], tot_len))
@@ -1974,8 +1990,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
         else
         {
           // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
-          curr =
-              d_arithEntail.rewrite(nm->mkNode(kind::MINUS, tot_len, end_pt));
+          curr = d_arithEntail.rewrite(nm->mkNode(kind::SUB, tot_len, end_pt));
         }
       }
     }
@@ -2016,8 +2031,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
 
       // the length of a string from the inner substr subtracts the start point
       // of the outer substr
-      Node len_from_inner = d_arithEntail.rewrite(
-          nm->mkNode(kind::MINUS, node[0][2], start_outer));
+      Node len_from_inner =
+          d_arithEntail.rewrite(nm->mkNode(kind::SUB, node[0][2], start_outer));
       Node len_from_outer = node[2];
       Node new_len;
       // take quantity that is for sure smaller than the other
@@ -2035,7 +2050,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
       if (!new_len.isNull())
       {
-        Node new_start = nm->mkNode(kind::PLUS, start_inner, start_outer);
+        Node new_start = nm->mkNode(kind::ADD, start_inner, start_outer);
         Node ret =
             nm->mkNode(kind::STRING_SUBSTR, node[0][0], new_start, new_len);
         return returnRewrite(node, ret, Rewrite::SS_COMBINE);
@@ -2088,14 +2103,42 @@ Node SequencesRewriter::rewriteUpdate(Node node)
     }
   }
 
+  NodeManager* nm = NodeManager::currentNM();
+  Node zero = nm->mkConstInt(0);
+  Node sLen = nm->mkNode(STRING_LENGTH, s);
+  if (d_arithEntail.check(zero, i, true) || d_arithEntail.check(i, sLen))
+  {
+    // (seq.update s i x) ---> s if x < 0 or x >= len(s)
+    Node ret = s;
+    return returnRewrite(node, ret, Rewrite::UPD_OOB);
+  }
+
+  std::vector<Node> prefix, suffix;
+  utils::getConcat(s, suffix);
+  if ((i.isConst() && i.getConst<Rational>().isZero())
+      || d_stringsEntail.stripSymbolicLength(suffix, prefix, 1, i, true))
+  {
+    Node updateLen = nm->mkNode(STRING_LENGTH, x);
+    std::vector<Node> replaced;
+    if (d_stringsEntail.stripSymbolicLength(
+            suffix, replaced, 1, updateLen, true))
+    {
+      // (seq.update (seq.++ p r s) i x) ---> (seq.++ p x s)
+      // if len(p) = i and len(r) = len(x)
+      prefix.emplace_back(x);
+      prefix.insert(prefix.end(), suffix.begin(), suffix.end());
+      Node ret = utils::mkConcat(prefix, node.getType());
+      return returnRewrite(node, ret, Rewrite::UPD_EVAL_SYM);
+    }
+  }
+
   if (s.getKind() == STRING_REV && d_stringsEntail.checkLengthOne(x))
   {
     // str.update(str.rev(s), n, t) --->
     //   str.rev(str.update(s, len(s) - (n + 1), t))
-    NodeManager* nm = NodeManager::currentNM();
-    Node idx = nm->mkNode(MINUS,
+    Node idx = nm->mkNode(SUB,
                           nm->mkNode(STRING_LENGTH, s),
-                          nm->mkNode(PLUS, i, nm->mkConstInt(Rational(1))));
+                          nm->mkNode(ADD, i, nm->mkConstInt(Rational(1))));
     Node ret = nm->mkNode(STRING_REV, nm->mkNode(STRING_UPDATE, s[0], idx, x));
     return returnRewrite(node, ret, Rewrite::UPD_REV);
   }
@@ -2536,7 +2579,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
 
   Node len0 = nm->mkNode(STRING_LENGTH, node[0]);
   Node len1 = nm->mkNode(STRING_LENGTH, node[1]);
-  Node len0m2 = nm->mkNode(MINUS, len0, node[2]);
+  Node len0m2 = nm->mkNode(SUB, len0, node[2]);
 
   if (node[1].isConst())
   {
@@ -2597,7 +2640,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
           // 2 + str.indexof(str.++(x, "C"), "C", 0)
           Node ret = nm->mkNode(
-              kind::PLUS,
+              kind::ADD,
               nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
               nm->mkNode(kind::STRING_INDEXOF,
                          utils::mkConcat(children0, stype),
@@ -2625,8 +2668,8 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
           Node nn = utils::mkConcat(children0, stype);
           Node ret =
-              nm->mkNode(PLUS,
-                         nm->mkNode(MINUS, node[2], new_len),
+              nm->mkNode(ADD,
+                         nm->mkNode(SUB, node[2], new_len),
                          nm->mkNode(STRING_INDEXOF, nn, node[1], new_len));
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
         }
@@ -2979,12 +3022,12 @@ Node SequencesRewriter::rewriteReplace(Node node)
     // Length of the non-substr components in the second argument
     Node partLen1 =
         nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(children1, stype));
-    Node maxLen1 = nm->mkNode(kind::PLUS, partLen1, lastChild1[2]);
+    Node maxLen1 = nm->mkNode(kind::ADD, partLen1, lastChild1[2]);
 
     Node zero = nm->mkConstInt(Rational(0));
     Node one = nm->mkConstInt(Rational(1));
     Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
-    Node len0_1 = nm->mkNode(kind::PLUS, len0, one);
+    Node len0_1 = nm->mkNode(kind::ADD, len0, one);
     // Check len(t) + j > len(x) + 1
     if (d_arithEntail.check(maxLen1, len0_1, true))
     {
@@ -2992,8 +3035,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
           kind::STRING_SUBSTR,
           lastChild1[0],
           lastChild1[1],
-          nm->mkNode(
-              kind::PLUS, len0, one, nm->mkNode(kind::UMINUS, partLen1))));
+          nm->mkNode(kind::ADD, len0, one, nm->mkNode(kind::NEG, partLen1))));
       Node res = nm->mkNode(kind::STRING_REPLACE,
                             node[0],
                             utils::mkConcat(children1, stype),
@@ -3508,7 +3550,7 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   }
   else
   {
-    val = NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens);
+    val = NodeManager::currentNM()->mkNode(kind::SUB, lent, lens);
   }
 
   // Check if we can turn the prefix/suffix into equalities by showing that the
@@ -3554,7 +3596,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     // sorts do not permit values that the solver can handle (e.g. uninterpreted
     // sorts and arrays).
   }
-  else if (len.getKind() == PLUS)
+  else if (len.getKind() == ADD)
   {
     // x + y -> norm(x) + norm(y)
     NodeBuilder concatBuilder(STRING_CONCAT);
@@ -3608,7 +3650,9 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   {
     std::vector<Node> seq;
     seq.push_back(node[0]);
-    TypeNode stype = node[0].getType();
+    // important to take the type according to the operator here, not the
+    // type of the argument
+    TypeNode stype = node.getType().getSequenceElementType();
     Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }

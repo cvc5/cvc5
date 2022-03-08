@@ -16,6 +16,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
@@ -85,7 +86,7 @@ std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
 void PreprocessingPassContext::printSubstitution(const Node& lhs,
                                                  const Node& rhs) const
 {
-  Node eq = lhs.eqNode(rhs);
+  Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
   output(OutputTag::LEARNED_LITS)
       << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
   output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;

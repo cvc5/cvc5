@@ -693,6 +693,15 @@ class NodeManager
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
+   * Create a sequence unit from the given element n.
+   * @param t the element type of the returned sequence.
+   *          Note that the type of n needs to be a subtype of t.
+   * @param n the single element in the sequence.
+   * @return a sequence unit constructed from the element n.
+   */
+  Node mkSeqUnit(const TypeNode& t, const TNode n);
+
+  /**
    * Create a singleton set from the given element n.
    * @param t the element type of the returned set.
    *          Note that the type of n needs to be a subtype of t.
@@ -1037,10 +1046,10 @@ class NodeManager
   /**
    * A set of operator singletons (w.r.t.  to this NodeManager
    * instance) for operators.  Conceptually, Nodes with kind, say,
-   * PLUS, are APPLYs of a PLUS operator to arguments.  This array
-   * holds the set of operators for these things.  A PLUS operator is
+   * ADD, are APPLYs of a ADD operator to arguments.  This array
+   * holds the set of operators for these things.  A ADD operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<cvc5::Kind>(), you get kind::PLUS back.
+   * plusOperator->getConst<cvc5::Kind>(), you get kind::ADD back.
    */
   Node d_operators[kind::LAST_KIND];
 

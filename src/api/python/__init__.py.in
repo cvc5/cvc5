@@ -1,3 +1,3 @@
 import sys
-from .pycvc5 import *
-__file__ = pycvc5.__file__
+from .cvc5_python_base import *
+__file__ = cvc5_python_base.__file__

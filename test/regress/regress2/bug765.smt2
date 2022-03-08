@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --fmf-fun-rlv --no-check-models
+; COMMAND-LINE: --incremental --fmf-fun-rlv -q
 (set-logic ALL)
 
 (declare-datatypes ((Color 0)) (

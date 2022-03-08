@@ -5,36 +5,36 @@ Sets
 Basic Set Term Builders
 -------------------------
 
-.. autofunction:: cvc5_z3py_compat.SetSort
-.. autofunction:: cvc5_z3py_compat.Set
-.. autofunction:: cvc5_z3py_compat.EmptySet
-.. autofunction:: cvc5_z3py_compat.Singleton
-.. autofunction:: cvc5_z3py_compat.FullSet
+.. autofunction:: cvc5.pythonic.SetSort
+.. autofunction:: cvc5.pythonic.Set
+.. autofunction:: cvc5.pythonic.EmptySet
+.. autofunction:: cvc5.pythonic.Singleton
+.. autofunction:: cvc5.pythonic.FullSet
 
 Set Operators
 -------------------
 
-.. autofunction:: cvc5_z3py_compat.SetUnion
-.. autofunction:: cvc5_z3py_compat.SetIntersect
-.. autofunction:: cvc5_z3py_compat.SetAdd
-.. autofunction:: cvc5_z3py_compat.SetDel
-.. autofunction:: cvc5_z3py_compat.SetComplement
-.. autofunction:: cvc5_z3py_compat.SetDifference
-.. autofunction:: cvc5_z3py_compat.SetMinus
-.. autofunction:: cvc5_z3py_compat.IsMember
-.. autofunction:: cvc5_z3py_compat.IsSubset
+.. autofunction:: cvc5.pythonic.SetUnion
+.. autofunction:: cvc5.pythonic.SetIntersect
+.. autofunction:: cvc5.pythonic.SetAdd
+.. autofunction:: cvc5.pythonic.SetDel
+.. autofunction:: cvc5.pythonic.SetComplement
+.. autofunction:: cvc5.pythonic.SetDifference
+.. autofunction:: cvc5.pythonic.SetMinus
+.. autofunction:: cvc5.pythonic.IsMember
+.. autofunction:: cvc5.pythonic.IsSubset
 
 See the following operator overload for set terms:
 
-* is member: :py:meth:`cvc5_z3py_compat.SetRef.__getitem__`
+* is member: :py:meth:`cvc5.pythonic.SetRef.__getitem__`
 
 
 Classes (with overloads)
 ------------------------
 
-.. autoclass:: cvc5_z3py_compat.SetSortRef
+.. autoclass:: cvc5.pythonic.SetSortRef
   :members:
   :special-members:
-.. autoclass:: cvc5_z3py_compat.SetRef
+.. autoclass:: cvc5.pythonic.SetRef
   :members:
   :special-members:

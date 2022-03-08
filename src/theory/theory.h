@@ -196,11 +196,6 @@ class Theory : protected EnvObj
    */
   virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
 
-  /**
-   * The theory that owns the uninterpreted sort.
-   */
-  static TheoryId s_uninterpretedSortOwner;
-
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
@@ -294,9 +289,9 @@ class Theory : protected EnvObj
   /**
    * Return the ID of the theory responsible for the given type.
    */
-  static inline TheoryId theoryOf(TypeNode typeNode)
+  static inline TheoryId theoryOf(TypeNode typeNode,
+                                  TheoryId usortOwner = theory::THEORY_UF)
   {
-    Trace("theory::internal") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
     if (typeNode.getKind() == kind::TYPE_CONSTANT)
     {
@@ -308,10 +303,7 @@ class Theory : protected EnvObj
     }
     if (id == THEORY_BUILTIN)
     {
-      Trace("theory::internal")
-          << "theoryOf(" << typeNode << ") == " << s_uninterpretedSortOwner
-          << std::endl;
-      return s_uninterpretedSortOwner;
+      return usortOwner;
     }
     return id;
   }
@@ -319,46 +311,29 @@ class Theory : protected EnvObj
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
+  static TheoryId theoryOf(
+      TNode node,
+      options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED,
+      TheoryId usortOwner = theory::THEORY_UF);
 
   /**
-   * Returns the ID of the theory responsible for the given node.
-   */
-  static inline TheoryId theoryOf(TNode node)
-  {
-    return theoryOf(options::theoryOfMode(), node);
-  }
-
-  /**
-   * Set the owner of the uninterpreted sort.
-   */
-  static void setUninterpretedSortOwner(TheoryId theory)
-  {
-    s_uninterpretedSortOwner = theory;
-  }
-
-  /**
-   * Get the owner of the uninterpreted sort.
-   */
-  static TheoryId getUninterpretedSortOwner()
-  {
-    return s_uninterpretedSortOwner;
-  }
-
-  /**
-   * Checks if the node is a leaf node of this theory
+   * Checks if the node is a leaf node of this theory.
    */
   inline bool isLeaf(TNode node) const
   {
-    return node.getNumChildren() == 0 || theoryOf(node) != d_id;
+    return node.getNumChildren() == 0
+           || theoryOf(node, options().theory.theoryOfMode) != d_id;
   }
 
   /**
    * Checks if the node is a leaf node of a theory.
    */
-  inline static bool isLeafOf(TNode node, TheoryId theoryId)
+  inline static bool isLeafOf(
+      TNode node,
+      TheoryId theoryId,
+      options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
-    return node.getNumChildren() == 0 || theoryOf(node) != theoryId;
+    return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
 
   /** Returns true if the assertFact queue is empty*/

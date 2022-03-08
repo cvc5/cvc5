@@ -163,7 +163,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     Trace("sygus-db") << std::endl;
     // We must properly catch type errors in sygus grammars for arguments of
     // builtin operators. The challenge is that we easily ask for expected
-    // argument types of builtin operators e.g. PLUS. Hence we use a call to
+    // argument types of builtin operators e.g. ADD. Hence we use a call to
     // mkGeneric below. This ensures that terms that this constructor encodes
     // are of the type specified in the datatype. This will fail if
     // e.g. bitvector-and is a constructor of an integer grammar. Our (version
@@ -173,7 +173,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     TypeNode gtn = g.getType();
     AlwaysAssert(gtn.isSubtypeOf(btn))
         << "Sygus datatype " << dt.getName()
-        << " encodes terms that are not of type " << btn << std::endl;
+        << " encodes terms that are not of type " << btn << std::endl
+        << "Due to " << g << " of type " << gtn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
     Kind gk = g.getKind();
     if (gk == ITE)

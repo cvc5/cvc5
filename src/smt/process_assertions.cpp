@@ -170,7 +170,7 @@ bool ProcessAssertions::apply(Assertions& as)
 
   bool noConflict = true;
 
-  if (options().smt.extRewPrep)
+  if (options().smt.extRewPrep != options::ExtRewPrepMode::OFF)
   {
     applyPass("ext-rew-pre", as);
   }
@@ -339,6 +339,13 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
   dumpAssertions("assertions::post-everything", as);
   Trace("assertions::post-everything") << std::endl;
+  if (isOutputOn(OutputTag::POST_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::POST_ASSERTS);
+    outPA << ";; post-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; post-asserts end" << std::endl;
+  }
 
   return noConflict;
 }
@@ -441,16 +448,15 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   {
     return;
   }
-  // Cannot print unless produce assertions is enabled. Otherwise, the printing
-  // is misleading, since it does not capture what symbols were provided
-  // as definitions.
-  if (!options().smt.produceAssertions)
-  {
-    warning()
-        << "Assertions not available for dumping (use --produce-assertions)."
-        << std::endl;
-    return;
-  }
+  std::stringstream ss;
+  dumpAssertionsToStream(ss, as);
+  Trace(key) << ";;; " << key << " start" << std::endl;
+  Trace(key) << ss.str();
+  Trace(key) << ";;; " << key << " end " << std::endl;
+}
+
+void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
+{
   PrintBenchmark pb(&d_env.getPrinter());
   std::vector<Node> assertions;
   // Notice that the following list covers define-fun and define-fun-rec
@@ -478,11 +484,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   {
     assertions.push_back(ap[i]);
   }
-  std::stringstream ss;
-  pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
-  Trace(key) << ";;; " << key << " start" << std::endl;
-  Trace(key) << ss.str();
-  Trace(key) << ";;; " << key << " end " << std::endl;
+  pb.printBenchmark(os, logicInfo().getLogicString(), defs, assertions);
 }
 
 PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,

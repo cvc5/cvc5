@@ -240,18 +240,32 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   // if it has a kind, it's a builtin one and this function should not have been
   // called
   Assert(p.d_kind == api::NULL_EXPR);
-  if (isDeclared(p.d_name))
-  {  // already appeared
-    expr = getVariable(p.d_name);
-  }
-  else
+  expr = isTptpDeclared(p.d_name);
+  if (expr.isNull())
   {
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
-    expr = bindVar(p.d_name, t, true);  // must define at level zero
+    expr = bindVar(p.d_name, t);  // must define at level zero
+    d_auxSymbolTable[p.d_name] = expr;
     preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
   }
   return expr;
+}
+
+api::Term Tptp::isTptpDeclared(const std::string& name)
+{
+  if (isDeclared(name))
+  {  // already appeared
+    return getVariable(name);
+  }
+  std::unordered_map<std::string, api::Term>::iterator it =
+      d_auxSymbolTable.find(name);
+  if (it != d_auxSymbolTable.end())
+  {
+    return it->second;
+  }
+  // otherwise null
+  return api::Term();
 }
 
 api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
@@ -281,18 +295,15 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (p.d_kind == api::NULL_EXPR)
   {
     // A non-built-in function application, get the expression
-    api::Term v;
-    if (isDeclared(p.d_name))
-    {  // already appeared
-      v = getVariable(p.d_name);
-    }
-    else
+    api::Term v = isTptpDeclared(p.d_name);
+    if (v.isNull())
     {
       std::vector<api::Sort> sorts(args.size(), d_unsorted);
       api::Sort t =
           p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
-      v = bindVar(p.d_name, t, true);  // must define at level zero
+      v = bindVar(p.d_name, t);  // must define at level zero
+      d_auxSymbolTable[p.d_name] = v;
       preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
     }
     // args might be rationals, in which case we need to create
@@ -337,9 +348,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Unary AND/OR can be replaced with the argument.
       return args[0];
     }
-    if (kind == api::MINUS && args.size() == 1)
+    if (kind == api::SUB && args.size() == 1)
     {
-      return d_solver->mkTerm(api::UMINUS, args[0]);
+      return d_solver->mkTerm(api::NEG, args[0]);
     }
     if (kind == api::TO_REAL)
     {

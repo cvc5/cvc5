@@ -195,7 +195,7 @@ inline Node negateConjunctionAsClause(TNode conjunction){
 inline Node maybeUnaryConvert(NodeBuilder& builder)
 {
   Assert(builder.getKind() == kind::OR || builder.getKind() == kind::AND
-         || builder.getKind() == kind::PLUS || builder.getKind() == kind::MULT);
+         || builder.getKind() == kind::ADD || builder.getKind() == kind::MULT);
   Assert(builder.getNumChildren() >= 1);
   if(builder.getNumChildren() == 1){
     return builder[0];
@@ -227,7 +227,7 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
 {
   switch (k)
   {
-    case kind::PLUS: return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+    case kind::ADD: return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
     case kind::MULT:
     case kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);

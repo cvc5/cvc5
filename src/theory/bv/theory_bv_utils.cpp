@@ -161,7 +161,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
       continue;
     }
 
-    if (theory::Theory::theoryOf(options::TheoryOfMode::THEORY_OF_TERM_BASED, n)
+    if (theory::Theory::theoryOf(n, options::TheoryOfMode::THEORY_OF_TERM_BASED)
         == theory::THEORY_BV)
     {
       Kind k = n.getKind();
@@ -482,7 +482,7 @@ Node eliminateBv2Nat(TNode node)
         nm->mkNode(kind::ITE, cond, nm->mkConstInt(Rational(i)), z));
   }
   // avoid plus with one child
-  return children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
+  return children.size() == 1 ? children[0] : nm->mkNode(kind::ADD, children);
 }
 
 Node eliminateInt2Bv(TNode node)

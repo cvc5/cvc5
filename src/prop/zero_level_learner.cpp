@@ -30,7 +30,11 @@ namespace prop {
 ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
     : EnvObj(env),
       d_propEngine(propEngine),
+      d_levelZeroAsserts(userContext()),
+      d_levelZeroAssertsLearned(userContext()),
       d_nonZeroAssert(context(), false),
+      d_ppnAtoms(userContext()),
+      d_pplAtoms(userContext()),
       d_assertNoLearnCount(0)
 {
 }
@@ -39,7 +43,7 @@ ZeroLevelLearner::~ZeroLevelLearner() {}
 
 void ZeroLevelLearner::getAtoms(TNode a,
                                 std::unordered_set<TNode>& visited,
-                                std::unordered_set<TNode>& ppLits)
+                                NodeSet& ppLits)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -67,7 +71,6 @@ void ZeroLevelLearner::notifyInputFormulas(
     const std::vector<Node>& ppl)
 {
   d_assertNoLearnCount = 0;
-  d_ppnAtoms.clear();
   // Copy the preprocessed assertions and skolem map information directly
   // Also, compute the set of literals in the preprocessed assertions
   std::unordered_set<TNode> visited;
@@ -84,7 +87,8 @@ void ZeroLevelLearner::notifyInputFormulas(
     for (const Node& lit : ppl)
     {
       output(OutputTag::LEARNED_LITS)
-          << "(learned-lit " << lit << " :preprocess)" << std::endl;
+          << "(learned-lit " << SkolemManager::getOriginalForm(lit)
+          << " :preprocess)" << std::endl;
     }
   }
   for (const Node& a : assertions)
@@ -145,10 +149,14 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
   }
 }
 
-const std::unordered_set<Node>& ZeroLevelLearner::getLearnedZeroLevelLiterals()
-    const
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals() const
 {
-  return d_levelZeroAssertsLearned;
+  std::vector<Node> ret;
+  for (const Node& n : d_levelZeroAssertsLearned)
+  {
+    ret.push_back(n);
+  }
+  return ret;
 }
 
 }  // namespace prop

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst --no-check-models
+; COMMAND-LINE: --sygus-inst -q
 ; EXPECT: sat
 (set-logic NIRA)
 (set-info :status sat)

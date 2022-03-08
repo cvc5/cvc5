@@ -42,13 +42,13 @@ TEST_F(TestApiBlackOp, isNull)
 
 TEST_F(TestApiBlackOp, opFromKind)
 {
-  ASSERT_NO_THROW(d_solver.mkOp(PLUS));
+  ASSERT_NO_THROW(d_solver.mkOp(ADD));
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackOp, getNumIndices)
 {
-  Op plus = d_solver.mkOp(PLUS);
+  Op plus = d_solver.mkOp(ADD);
   Op divisible = d_solver.mkOp(DIVISIBLE, 4);
   Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
   Op bitvector_zero_extend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
@@ -94,7 +94,7 @@ TEST_F(TestApiBlackOp, getNumIndices)
 
 TEST_F(TestApiBlackOp, subscriptOperator)
 {
-  Op plus = d_solver.mkOp(PLUS);
+  Op plus = d_solver.mkOp(ADD);
   Op divisible = d_solver.mkOp(DIVISIBLE, 4);
   Op bitvector_repeat = d_solver.mkOp(BITVECTOR_REPEAT, 4);
   Op bitvector_zero_extend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 4);

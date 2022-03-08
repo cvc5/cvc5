@@ -237,13 +237,12 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkBitVector(const string& s, uint32_t base) except +
         Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
         Term mkConstArray(Sort sort, Term val) except +
-        Term mkPosInf(uint32_t exp, uint32_t sig) except +
-        Term mkNegInf(uint32_t exp, uint32_t sig) except +
-        Term mkNaN(uint32_t exp, uint32_t sig) except +
-        Term mkPosZero(uint32_t exp, uint32_t sig) except +
-        Term mkNegZero(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
         Term mkRoundingMode(RoundingMode rm) except +
-        Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
@@ -276,6 +275,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
                           Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
+        vector[Term] getLearnedLiterals() except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
         string getOption(string& option) except +
@@ -308,7 +308,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
         bint getAbductNext(const Term& conj) except +
         void blockModel() except +
-        void blockModelValues(vector[Term]& terms) except +
+        void blockModelValues(const vector[Term]& terms) except +
 
     cdef cppclass Grammar:
         Grammar() except +

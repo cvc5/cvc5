@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "smt/env.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
@@ -119,7 +120,8 @@ Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
   Node qeBody = sk.apply(q[1]);
   qeBody = snqe.apply(qeBody);
   // undo the skolemization
-  qeBody = sk.rapply(qeBody, true);
+  qeBody = sk.rapply(qeBody);
+  qeBody = env.getRewriter()->rewrite(qeBody);
   // reconstruct the body
   std::vector<Node> qargs;
   qargs.push_back(q[0]);
