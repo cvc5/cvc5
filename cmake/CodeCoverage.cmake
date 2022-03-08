@@ -62,7 +62,7 @@ function(setup_code_coverage_fastcov)
     DEPENDS
       ${COVERAGE_DEPENDENCIES}
     COMMENT
-      "Generate code coverage report."
+      "Generate code coverage JSON report."
   )
 
   add_custom_target(${COVERAGE_NAME}
