@@ -1713,7 +1713,7 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   return abd;
 }
 
-Node SolverEngine::getAbductNext(Node& abd)
+Node SolverEngine::getAbductNext()
 {
   SolverEngineScope smts(this);
   finishInit();
