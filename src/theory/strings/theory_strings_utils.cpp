@@ -356,7 +356,7 @@ bool isStringKind(Kind k)
 
 bool isRegExpKind(Kind k)
 {
-  return k == REGEXP_NONE || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
+  return k == REGEXP_NONE || k == REGEXP_ALL || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
          || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
