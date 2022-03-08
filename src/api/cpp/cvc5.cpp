@@ -1618,17 +1618,6 @@ Sort Sort::getSequenceElementSort() const
 
 /* Uninterpreted sort -------------------------------------------------- */
 
-std::string Sort::getUninterpretedSortName() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  //////// all checks before this line
-  return d_type->getName();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 bool Sort::isUninterpretedSortParameterized() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1663,17 +1652,6 @@ std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 }
 
 /* Sort constructor sort ----------------------------------------------- */
-
-std::string Sort::getSortConstructorName() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
-  //////// all checks before this line
-  return d_type->getName();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 
 size_t Sort::getSortConstructorArity() const
 {

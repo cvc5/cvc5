@@ -700,11 +700,6 @@ class CVC5_EXPORT Sort
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the name of a sort constructor sort
-   */
-  std::string getSortConstructorName() const;
-
-  /**
    * @return the arity of a sort constructor sort
    */
   size_t getSortConstructorArity() const;

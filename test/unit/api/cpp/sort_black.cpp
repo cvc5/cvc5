@@ -419,9 +419,9 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
 TEST_F(TestApiBlackSort, getUninterpretedSortName)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
-  ASSERT_NO_THROW(uSort.getUninterpretedSortName());
+  ASSERT_NO_THROW(uSort.getSymbol());
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  ASSERT_THROW(bvSort.getUninterpretedSortName(), CVC5ApiException);
+  ASSERT_THROW(bvSort.getSymbol(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, isUninterpretedSortParameterized)
@@ -449,9 +449,9 @@ TEST_F(TestApiBlackSort, getUninterpretedSortParamSorts)
 TEST_F(TestApiBlackSort, getUninterpretedSortConstructorName)
 {
   Sort sSort = d_solver.mkSortConstructorSort("s", 2);
-  ASSERT_NO_THROW(sSort.getSortConstructorName());
+  ASSERT_NO_THROW(sSort.getSymbol());
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  ASSERT_THROW(bvSort.getSortConstructorName(), CVC5ApiException);
+  ASSERT_THROW(bvSort.getSymbol(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getUninterpretedSortConstructorArity)

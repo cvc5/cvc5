@@ -408,9 +408,9 @@ class SortTest
   @Test void getUninterpretedSortName() throws CVC5ApiException
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
-    assertDoesNotThrow(() -> uSort.getUninterpretedSortName());
+    assertDoesNotThrow(() -> uSort.getSymbol());
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    assertThrows(CVC5ApiException.class, () -> bvSort.getUninterpretedSortName());
+    assertThrows(CVC5ApiException.class, () -> bvSort.getSymbol());
   }
 
   @Test void isUninterpretedSortParameterized() throws CVC5ApiException
@@ -438,9 +438,9 @@ class SortTest
   @Test void getUninterpretedSortConstructorName() throws CVC5ApiException
   {
     Sort sSort = d_solver.mkSortConstructorSort("s", 2);
-    assertDoesNotThrow(() -> sSort.getSortConstructorName());
+    assertDoesNotThrow(() -> sSort.getSymbol());
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    assertThrows(CVC5ApiException.class, () -> bvSort.getSortConstructorName());
+    assertThrows(CVC5ApiException.class, () -> bvSort.getSymbol());
   }
 
   @Test void getUninterpretedSortConstructorArity() throws CVC5ApiException

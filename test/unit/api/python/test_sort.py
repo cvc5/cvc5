@@ -394,10 +394,10 @@ def test_get_sequence_element_sort(solver):
 
 def test_get_uninterpreted_sort_name(solver):
     uSort = solver.mkUninterpretedSort("u")
-    uSort.getUninterpretedSortName()
+    uSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getUninterpretedSortName()
+        bvSort.getSymbol()
 
 
 def test_is_uninterpreted_sort_parameterized(solver):
@@ -424,10 +424,10 @@ def test_get_uninterpreted_sort_paramsorts(solver):
 
 def test_get_uninterpreted_sort_constructor_name(solver):
     sSort = solver.mkSortConstructorSort("s", 2)
-    sSort.getSortConstructorName()
+    sSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getSortConstructorName()
+        bvSort.getSymbol()
 
 
 def test_get_uninterpreted_sort_constructor_arity(solver):
