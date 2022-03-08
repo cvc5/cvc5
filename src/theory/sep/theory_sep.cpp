@@ -672,22 +672,26 @@ void TheorySep::postCheck(Effort level)
   std::map<Node, bool> active_lbl;
   if (options().sep.sepMinimalRefine)
   {
-    for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
+    for (NodeList::const_iterator i = d_spatial_assertions.begin();
+         i != d_spatial_assertions.end();
+         ++i)
+    {
       Node fact = (*i);
       bool polarity = fact.getKind() != NOT;
       TNode atom = polarity ? fact : fact[0];
       TNode satom = atom[0];
       bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
-      if( !use_polarity ){
+      if (!use_polarity)
+      {
         Assert(assert_active.find(fact) != assert_active.end());
-        if( assert_active[fact] ){
+        if (assert_active[fact])
+        {
           Assert(atom.getKind() == SEP_LABEL);
           TNode slbl = atom[1];
           std::map<Node, std::map<int, Node> >& lms = d_label_map[satom];
           if (lms.find(slbl) != lms.end())
           {
-            Trace("sep-process-debug")
-                << "Active lbl : " << slbl << std::endl;
+            Trace("sep-process-debug") << "Active lbl : " << slbl << std::endl;
             active_lbl[slbl] = true;
           }
         }
@@ -697,8 +701,8 @@ void TheorySep::postCheck(Effort level)
 
   // process spatial assertions
   for (NodeList::const_iterator i = d_spatial_assertions.begin();
-        i != d_spatial_assertions.end();
-        ++i)
+       i != d_spatial_assertions.end();
+       ++i)
   {
     Node fact = (*i);
     bool polarity = fact.getKind() != NOT;
@@ -706,9 +710,8 @@ void TheorySep::postCheck(Effort level)
     TNode satom = atom[0];
 
     bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
-    Trace("sep-process-debug")
-        << "  check atom : " << satom << " use polarity " << use_polarity
-        << std::endl;
+    Trace("sep-process-debug") << "  check atom : " << satom << " use polarity "
+                               << use_polarity << std::endl;
     if (use_polarity)
     {
       continue;
@@ -723,7 +726,7 @@ void TheorySep::postCheck(Effort level)
     Assert(atom.getKind() == SEP_LABEL);
     TNode slbl = atom[1];
     Trace("sep-process") << "--> Active negated atom : " << satom
-                          << ", lbl = " << slbl << std::endl;
+                         << ", lbl = " << slbl << std::endl;
     // add refinement lemma
     if (!ContainsKey(d_label_map[satom], slbl))
     {
@@ -737,19 +740,19 @@ void TheorySep::postCheck(Effort level)
     // tn = nm->mkSetType(nm->mkRefType(tn));
     Node o_b_lbl_mval = d_label_model[slbl].getValue(tn);
     Trace("sep-process") << "    Model for " << slbl << " : " << o_b_lbl_mval
-                          << std::endl;
+                         << std::endl;
 
     // get model values
     std::map<int, Node> mvals;
-    for (const std::pair<const int, Node>& sub_element : d_label_map[satom][slbl])
+    for (const std::pair<const int, Node>& sub_element :
+         d_label_map[satom][slbl])
     {
       int sub_index = sub_element.first;
       Node sub_lbl = sub_element.second;
       computeLabelModel(sub_lbl);
       Node lbl_mval = d_label_model[sub_lbl].getValue(tn);
-      Trace("sep-process-debug")
-          << "  child " << sub_index << " : " << sub_lbl
-          << ", mval = " << lbl_mval << std::endl;
+      Trace("sep-process-debug") << "  child " << sub_index << " : " << sub_lbl
+                                 << ", mval = " << lbl_mval << std::endl;
       mvals[sub_index] = lbl_mval;
     }
 
@@ -760,14 +763,8 @@ void TheorySep::postCheck(Effort level)
     // new refinement
     // instantiate the label
     std::map<Node, Node> visited;
-    Node inst = instantiateLabel(satom,
-                                  slbl,
-                                  slbl,
-                                  o_b_lbl_mval,
-                                  visited,
-                                  d_pto_model,
-                                  tn,
-                                  active_lbl);
+    Node inst = instantiateLabel(
+        satom, slbl, slbl, o_b_lbl_mval, visited, d_pto_model, tn, active_lbl);
     Trace("sep-inst-debug") << "    applied inst : " << inst << std::endl;
     if (inst.isNull())
     {
@@ -800,9 +797,9 @@ void TheorySep::postCheck(Effort level)
     {
       rlems.push_back(lem);
       Trace("sep-process") << "-----> refinement lemma (#" << rlems.size()
-                            << ") : " << lem << std::endl;
+                           << ") : " << lem << std::endl;
       Trace("sep-lemma") << "Sep::Lemma : negated star/wand refinement : "
-                          << lem << std::endl;
+                         << lem << std::endl;
       d_im.lemma(lem, InferenceId::SEP_REFINEMENT);
       addedLemma = true;
     }
@@ -810,16 +807,15 @@ void TheorySep::postCheck(Effort level)
     {
       // this typically should not happen, should never happen for complete
       // base theories
-      Trace("sep-process")
-          << "*** repeated refinement lemma : " << lem << std::endl;
-      Trace("sep-warn")
-          << "TheorySep : WARNING : repeated refinement lemma : " << lem
-          << "!!!" << std::endl;
+      Trace("sep-process") << "*** repeated refinement lemma : " << lem
+                           << std::endl;
+      Trace("sep-warn") << "TheorySep : WARNING : repeated refinement lemma : "
+                        << lem << "!!!" << std::endl;
     }
   }
-  Trace("sep-process")
-      << "...finished check of negated assertions, addedLemma=" << addedLemma
-      << ", needAddLemma=" << needAddLemma << std::endl;
+  Trace("sep-process") << "...finished check of negated assertions, addedLemma="
+                       << addedLemma << ", needAddLemma=" << needAddLemma
+                       << std::endl;
 
   if (addedLemma)
   {
@@ -1448,7 +1444,7 @@ Node TheorySep::instantiateLabel(Node n,
 
           Assert(bchildren.size() > 1);
           conj.push_back( NodeManager::currentNM()->mkNode( kind::AND, bchildren ) );
-          return NodeManager::currentNM()->mkOr(conj );
+          return NodeManager::currentNM()->mkOr(conj);
         }else{
           std::vector< Node > wchildren;
           //disjoint constraints
