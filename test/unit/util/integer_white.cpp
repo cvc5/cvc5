@@ -30,9 +30,6 @@ class TestUtilWhiteInteger : public TestInternal
 const char* TestUtilWhiteInteger::s_large_val =
     "4547897890548754897897897897890789078907890";
 
-
-
-
 TEST_F(TestUtilWhiteInteger, hash)
 {
   Integer large(s_large_val);

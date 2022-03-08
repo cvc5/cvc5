@@ -325,7 +325,6 @@ class CVC5_EXPORT Integer
    */
    Integer powHelper(uint32_t exp) const;
 
-
   /**
    * The value of the rational is stored in a C++ GMP integer class.
    * Using this instead of mpz_t allows for easier destruction.

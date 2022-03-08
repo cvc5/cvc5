@@ -350,7 +350,7 @@ Integer Integer::pow(unsigned long int exp) const
   } else {
       // if exp is bigger than max uint32_t, use the following identity:
       // a^(x + 2^32*y) = a^x * (a^(2^32))^y
-    return powHelper(low) * ((Integer(-1)) * (*this)).powHelper(high);
+      return powHelper(low) * ((Integer(static_cast<uint32_t>(-1))) * (*this)).powHelper(high);
   }
 }
 
