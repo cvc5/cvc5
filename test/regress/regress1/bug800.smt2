@@ -25,7 +25,7 @@
 (declare-fun |main::__CPAchecker_TMP_0@3| () Real)
 (declare-fun |__ADDRESS_OF_main::d1| () Real)
 (declare-fun |main::d2@2| () Real)
-(define-fun _7 () Real 0)
+(define-fun _7 () Real 0.0)
 (define-fun _8 () Real |__ADDRESS_OF_main::x1|)
 (define-fun _9 () Real (__BASE_ADDRESS_OF__ _8))
 (define-fun _10 () Bool (= _8 _9))
