@@ -1639,7 +1639,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   Sort boolSort = d_solver.getBooleanSort();
   Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
   Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
-  std::vector<Term> unsat_core;
+  std::vector<Term> uc;
 
   Term x = d_solver.mkConst(uSort, "x");
   Term y = d_solver.mkConst(uSort, "y");
@@ -1659,12 +1659,13 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   d_solver.assertFormula(p_f_y.notTerm());
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 
-  ASSERT_NO_THROW(unsat_core = d_solver.getUnsatCore());
+  ASSERT_NO_THROW(uc = d_solver.getUnsatCore());
+  ASSERT_FALSE(uc.empty());
 
   ASSERT_NO_THROW(d_solver.getProof());
 
   d_solver.resetAssertions();
-  for (const auto& t : unsat_core)
+  for (const auto& t : uc)
   {
     d_solver.assertFormula(t);
   }
@@ -2828,6 +2829,18 @@ TEST_F(TestApiBlackSolver, issue5893)
   Term sel = d_solver.mkTerm(SELECT, arr, idx);
   Term distinct = d_solver.mkTerm(DISTINCT, sel, ten);
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
+}
+
+TEST_F(TestApiBlackSolver, proj_issue308)
+{
+  Solver slv;
+  slv.setOption("check-proofs", "true");
+  Sort s1 = slv.getBooleanSort();
+  Term t1 = slv.mkConst(s1, "_x0");
+  Term t2 = slv.mkTerm(Kind::XOR, t1, t1);
+  slv.checkSatAssuming({t2});
+  auto unsat_core = slv.getUnsatCore();
+  ASSERT_FALSE(unsat_core.empty());
 }
 
 TEST_F(TestApiBlackSolver, proj_issue373)
