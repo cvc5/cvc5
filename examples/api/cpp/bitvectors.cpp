@@ -110,9 +110,10 @@ int main()
 
   Term x_neq_x = slv.mkTerm(EQUAL, x, x).notTerm();
   std::vector<Term> v{new_x_eq_new_x_, x_neq_x};
-  cout << " Check sat assuming: " << v.notTerm() << endl;
+  Term query = slv.mkTerm(AND, v);
+  cout << " Check sat assuming: " << query.notTerm() << endl;
   cout << " Expect SAT. " << endl;
-  cout << " cvc5: " << slv.checkSatAssuming(v.notTerm()) << endl;
+  cout << " cvc5: " << slv.checkSatAssuming(query.notTerm()) << endl;
 
   // Assert that a is odd
   Op extract_op = slv.mkOp(BITVECTOR_EXTRACT, 0, 0);

@@ -110,9 +110,10 @@ public class BitVectors
 
       Term x_neq_x = slv.mkTerm(Kind.EQUAL, x, x).notTerm();
       Term[] v = new Term[] {new_x_eq_new_x_, x_neq_x};
-      System.out.println(" Check sat assuming: " + v.notTerm());
+      Term query = slv.mkTerm(Kind.AND, v);
+      System.out.println(" Check sat assuming: " + query.notTerm());
       System.out.println(" Expect SAT. ");
-      System.out.println(" cvc5: " + slv.checkSatAssuming(v.notTerm()));
+      System.out.println(" cvc5: " + slv.checkSatAssuming(query.notTerm()));
 
       // Assert that a is odd
       Op extract_op = slv.mkOp(Kind.BITVECTOR_EXTRACT, 0, 0);

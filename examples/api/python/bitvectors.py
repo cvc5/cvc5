@@ -107,9 +107,10 @@ if __name__ == "__main__":
 
     x_neq_x = slv.mkTerm(Kind.Equal, x, x).notTerm()
     v = [new_x_eq_new_x_, x_neq_x]
-    print("Check sat assuming: ", v.notTerm())
+    query = slv.mkTerm(Kind.And, v)
+    print("Check sat assuming: ", query.notTerm())
     print("Expect SAT.")
-    print("cvc5:", slv.checkSatAssuming(v.notTerm()))
+    print("cvc5:", slv.checkSatAssuming(query.notTerm()))
 
     # Assert that a is odd
     extract_op = slv.mkOp(Kind.BVExtract, 0, 0)
