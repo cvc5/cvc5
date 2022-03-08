@@ -179,6 +179,9 @@ class TheorySetsPrivate : protected EnvObj
 
   /** get the valuation */
   Valuation& getValuation();
+  /** Is formula n entailed to have polarity pol in the current context? */
+  bool isEntailed(Node n, bool pol);
+
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */
@@ -195,17 +198,14 @@ class TheorySetsPrivate : protected EnvObj
 
   bool isCareArg( Node n, unsigned a );
 
- public:
-  /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-
- private:
-
   /** expand the definition of the choose operator */
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
+  /** ensure that the set type is over first class type, throw logic exception
+   * if not */
+  void ensureFirstClassSetType(TypeNode tn) const;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
