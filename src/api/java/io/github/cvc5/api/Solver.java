@@ -2172,7 +2172,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Term getInterpolant(Term conj)
   {
-    return getInterpolant(pointer, conj.getPointer());
+    long interpolPtr = getInterpolant(pointer, conj.getPointer());
+    return new Term(this, interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -2192,7 +2193,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Term getInterpolant(Term conj, Grammar grammar)
   {
-    return getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
+    long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
+    return new Term(this, interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -2221,7 +2223,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Term getInterpolantNext()
   {
-    return getInterpolantNext(pointer);
+    long interpolPtr = getInterpolantNext(pointer);
+    return new Term(this, interpolPtr);
   }
 
   private native long getInterpolantNext(long pointer);
@@ -2241,7 +2244,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Term getAbduct(Term conj)
   {
-    return getAbduct(pointer, conj.getPointer());
+    long abdPtr = getAbduct(pointer, conj.getPointer());
+    return new Term(this, abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -2261,7 +2265,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Term getAbduct(Term conj, Grammar grammar)
   {
-    return getAbduct(pointer, conj.getPointer(), grammar.getPointer());
+    long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
+    return new Term(this, abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -2282,7 +2287,8 @@ public class Solver implements IPointer, AutoCloseable
    */
   public Term getAbductNext()
   {
-    return getAbductNext(pointer);
+    long abdPtr = getAbductNext(pointer);
+    return new Term(this, abdPtr);
   }
 
   private native long getAbductNext(long pointer);
