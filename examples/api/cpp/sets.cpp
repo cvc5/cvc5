@@ -51,7 +51,7 @@ int main()
 
     Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
 
-    cout << "cvc5 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+    cout << "cvc5 reports: " << theorem << " is " << slv.checkSatAssuming(theorem.notTerm())
          << "." << endl;
   }
 
@@ -62,7 +62,7 @@ int main()
 
     Term theorem = slv.mkTerm(SET_SUBSET, emptyset, A);
 
-    cout << "cvc5 reports: " << theorem << " is " << slv.checkEntailed(theorem)
+    cout << "cvc5 reports: " << theorem << " is " << slv.checkSatAssuming(theorem.notTerm())
          << "." << endl;
   }
 
