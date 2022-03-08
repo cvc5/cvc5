@@ -260,25 +260,24 @@ Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 {
   Assert(isResolved());
-  if (options::dtSharedSelectors())
+  Assert(sel.getType().isSelector());
+  // might be a builtin selector
+  if (sel.hasAttribute(DTypeIndexAttr()))
   {
-    Assert(sel.getType().isSelector());
-    TypeNode domainType = sel.getType().getSelectorDomainType();
-    computeSharedSelectors(domainType);
-    std::map<Node, unsigned>::iterator its =
-        d_sharedSelectorIndex[domainType].find(sel);
-    if (its != d_sharedSelectorIndex[domainType].end())
-    {
-      return (int)its->second;
-    }
-  }
-  else
-  {
-    unsigned sindex = DType::indexOf(sel);
+    size_t sindex = DType::indexOf(sel);
     if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
       return static_cast<int>(sindex);
     }
+  }
+  // otherwise, check shared selector
+  TypeNode domainType = sel.getType().getSelectorDomainType();
+  computeSharedSelectors(domainType);
+  std::map<Node, unsigned>::iterator its =
+      d_sharedSelectorIndex[domainType].find(sel);
+  if (its != d_sharedSelectorIndex[domainType].end())
+  {
+    return (int)its->second;
   }
   return -1;
 }

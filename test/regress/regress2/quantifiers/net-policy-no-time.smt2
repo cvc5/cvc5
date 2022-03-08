@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic UFDTLIRA)
 (set-option :fmf-bound true)
