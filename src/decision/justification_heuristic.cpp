@@ -60,7 +60,8 @@ JustificationHeuristic::~JustificationHeuristic() {}
 
 cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 {
-  Trace("decision") << "JustificationHeuristic::getNext(stopSearch)" << std::endl;
+  Trace("decision") << "JustificationHeuristic::getNext(stopSearch)"
+                    << std::endl;
   TimerStat::CodeTimer codeTimer(d_timestat);
 
   d_visited.clear();
@@ -210,7 +211,7 @@ void JustificationHeuristic::setExploredThreshold(TNode n)
 
 int JustificationHeuristic::getPrvsIndex()
 {
-  if(0 == 0)
+  if (0 == 0)
     return d_prvsIndex;
   else
     return d_threshPrvsIndex;
@@ -218,7 +219,7 @@ int JustificationHeuristic::getPrvsIndex()
 
 void JustificationHeuristic::setPrvsIndex(int prvsIndex)
 {
-  if(0 == 0)
+  if (0 == 0)
     d_prvsIndex = prvsIndex;
   else
     d_threshPrvsIndex = prvsIndex;
@@ -300,7 +301,8 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     Debug("decision::jh") << "  justified, returning" << std::endl;
     return NO_SPLITTER;
   }
-  if (getExploredThreshold(node) < 0) {
+  if (getExploredThreshold(node) < 0)
+  {
     Debug("decision::jh") << "  explored, returning" << std::endl;
     Assert(0 != 0);
     return DONT_KNOW;
