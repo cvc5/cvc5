@@ -1,5 +1,4 @@
 ; EXPECT: unsat
-; EXPECT: blub
 (set-logic ALL)
 (set-option :incremental false)
 (declare-fun a () Bool)
