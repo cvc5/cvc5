@@ -654,16 +654,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Uninterpreted sort -------------------------------------------------- */
 
   /**
-   * @return the name of an uninterpreted sort
-   */
-  public String getUninterpretedSortName()
-  {
-    return getUninterpretedSortName(pointer);
-  }
-
-  private native String getUninterpretedSortName(long pointer);
-
-  /**
    * @return true if an uninterpreted sort is parameterezied
    */
   public boolean isUninterpretedSortParameterized()
@@ -685,16 +675,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long[] getUninterpretedSortParamSorts(long pointer);
 
   /* Sort constructor sort ----------------------------------------------- */
-
-  /**
-   * @return the name of a sort constructor sort
-   */
-  public String getSortConstructorName()
-  {
-    return getSortConstructorName(pointer);
-  }
-
-  private native String getSortConstructorName(long pointer);
 
   /**
    * @return the arity of a sort constructor sort

@@ -2799,12 +2799,6 @@ cdef class Sort:
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
-    def getUninterpretedSortName(self):
-        """
-            :return: the name of an uninterpreted sort
-        """
-        return self.csort.getUninterpretedSortName().decode()
-
     def isUninterpretedSortParameterized(self):
         """
             :return: True if an uninterpreted sort is parameterized
@@ -2821,12 +2815,6 @@ cdef class Sort:
             sort.csort = s
             param_sorts.append(sort)
         return param_sorts
-
-    def getSortConstructorName(self):
-        """
-            :return: the name of a sort constructor sort
-        """
-        return self.csort.getSortConstructorName().decode()
 
     def getSortConstructorArity(self):
         """

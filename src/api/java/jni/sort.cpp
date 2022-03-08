@@ -854,20 +854,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSequenceElementSort(
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    getUninterpretedSortName
- * Signature: (J)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_getUninterpretedSortName(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return env->NewStringUTF(current->getUninterpretedSortName().c_str());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    isUninterpretedSortParameterized
  * Signature: (J)Z
  */
@@ -903,20 +889,6 @@ Java_io_github_cvc5_api_Sort_getUninterpretedSortParamSorts(JNIEnv* env,
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
   return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
- * Method:    getSortConstructorName
- * Signature: (J)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Sort_getSortConstructorName(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return env->NewStringUTF(current->getSortConstructorName().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
