@@ -1949,6 +1949,7 @@ cdef class Solver:
         SMT-LIB:
 
         .. code-block:: smtlib
+        
            (get-proof)
 
         Requires to enable option
