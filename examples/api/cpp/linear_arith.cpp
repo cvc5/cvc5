@@ -63,7 +63,7 @@ int main()
   cout << "Prove that " << diff_leq_two_thirds << " with cvc5." << endl;
   cout << "cvc5 should report UNSAT." << endl;
   cout << "Result from cvc5 is: "
-       << slv.checkSatAssuming(diff_leq_two_thirds.notNode()) << endl;
+       << slv.checkSatAssuming(diff_leq_two_thirds.notTerm()) << endl;
   slv.pop();
 
   cout << endl;
