@@ -133,6 +133,23 @@ name   = "SMT Layer"
   help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
+  name       = "proofMode"
+  category   = "expert"
+  long       = "proof-mode=MODE"
+  type       = "ProofMode"
+  default    = "OFF"
+  help       = "choose proof mode, see --proof-mode=help"
+  help_mode  = "proof modes."
+[[option.mode.OFF]]
+  name = "off"
+[[option.mode.PP_ONLY]]
+  name = "pp-only"
+[[option.mode.SAT]]
+  name = "sat-proof"
+[[option.mode.FULL]]
+  name = "full-proof"
+
+[[option]]
   name       = "checkProofs"
   category   = "regular"
   long       = "check-proofs"
@@ -184,23 +201,6 @@ name   = "SMT Layer"
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
-
-[[option]]
-  name       = "proofMode"
-  category   = "expert"
-  long       = "proof-mode=MODE"
-  type       = "ProofMode"
-  default    = "OFF"
-  help       = "choose proof mode, see --proof-mode=help"
-  help_mode  = "proof modes."
-[[option.mode.OFF]]
-  name = "off"
-[[option.mode.PP_ONLY]]
-  name = "pp-only"
-[[option.mode.SAT]]
-  name = "sat-proof"
-[[option.mode.FULL]]
-  name = "full-proof"
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -347,14 +347,6 @@ name   = "SMT Layer"
   long       = "repeat-simp"
   type       = "bool"
   help       = "make multiple passes with nonclausal simplifier"
-
-[[option]]
-  name       = "zombieHuntThreshold"
-  category   = "regular"
-  long       = "simp-ite-hunt-zombies=N"
-  type       = "uint64_t"
-  default    = "524288"
-  help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
   name       = "sortInference"
