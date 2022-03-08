@@ -710,7 +710,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
       return nm->mkNode(AND, conj);
     }
   }
-  if (!d_opts.quantifiers.condVarSplitQuant)
+  if (d_opts.quantifiers.condVarSplitQuant==options::CondVarSplitQuantMode::OFF)
   {
     return body;
   }
@@ -724,9 +724,10 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     return body;
   }
 
+  bool aggCondSplit = (d_opts.quantifiers.condVarSplitQuant==options::CondVarSplitQuantMode::AGG);
   if (bk == ITE
       || (bk == EQUAL && body[0].getType().isBoolean()
-          && d_opts.quantifiers.condVarSplitQuantAgg))
+          && aggCondSplit))
   {
     Assert(!qa.isFunDef());
     bool do_split = false;
@@ -786,7 +787,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
             // Figure out if we should split
             // Currently we split if the aggressive option is set, or
             // if the top-level OR is binary.
-            if (d_opts.quantifiers.condVarSplitQuantAgg || size == 2)
+            if (aggCondSplit || size == 2)
             {
               do_split = true;
             }
@@ -1961,7 +1962,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
     return (d_opts.quantifiers.iteDtTesterSplitQuant
-            || d_opts.quantifiers.condVarSplitQuant)
+            || d_opts.quantifiers.condVarSplitQuant!=options::CondVarSplitQuantMode::OFF)
            && !is_strict_trigger;
   }
   else if (computeOption == COMPUTE_PRENEX)

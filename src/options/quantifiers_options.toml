@@ -116,7 +116,7 @@ name   = "Quantifiers"
 [[option.mode.ON]]
   name = "on"
   help = "Split quantified formulas that lead to variable eliminations."
-[[option.mode.ALAGGL]]
+[[option.mode.AGG]]
   name = "agg"
   help = "Aggressive split quantified formulas that lead to variable eliminations."
   
