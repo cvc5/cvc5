@@ -252,7 +252,7 @@ std::vector<std::string> parse(api::Solver& solver,
   // To debug options parsing, you may prefer to simply uncomment this
   // and recompile. Debug flags have not been parsed yet so these have
   // not been set.
-  // DebugChannel.on("options");
+  // TraceChannel.on("options");
 
   Trace("options") << "argv == " << argv << std::endl;
 

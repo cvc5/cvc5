@@ -107,7 +107,6 @@ OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
 void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
 {
-  Debug.setStream(me);
   Warning.setStream(me);
   TraceChannel.setStream(me);
 }
@@ -165,7 +164,6 @@ void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
 {
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   } else {
@@ -281,7 +279,6 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
                                         optarg,
                                         Configuration::getTraceTags()));
   }
-  Debug.on(optarg);
   TraceChannel.on(optarg);
 }
 
@@ -296,7 +293,6 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
 
 void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
-  Debug.getStream() << Command::printsuccess(value);
   TraceChannel.getStream() << Command::printsuccess(value);
   Warning.getStream() << Command::printsuccess(value);
   *d_options->base.out << Command::printsuccess(value);
@@ -378,7 +374,6 @@ void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
 void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
   ioutils::setDefaultNodeDepth(depth);
-  ioutils::applyNodeDepth(Debug.getStream(), depth);
   ioutils::applyNodeDepth(TraceChannel.getStream(), depth);
   ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
@@ -386,7 +381,6 @@ void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
 {
   ioutils::setDefaultDagThresh(dag);
-  ioutils::applyDagThresh(Debug.getStream(), dag);
   ioutils::applyDagThresh(TraceChannel.getStream(), dag);
   ioutils::applyDagThresh(Warning.getStream(), dag);
 }

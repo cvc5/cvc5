@@ -190,46 +190,6 @@ class NullC
 
 extern NullC nullStream CVC5_EXPORT;
 
-/** The debug output class */
-class DebugC
-{
-  std::set<std::string> d_tags;
-  std::ostream* d_os;
-
-public:
-  explicit DebugC(std::ostream* os) : d_os(os) {}
-
-  Cvc5ostream operator()(const std::string& tag) const
-  {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return Cvc5ostream(d_os);
-    } else {
-      return Cvc5ostream();
-    }
-  }
-
-  bool on(const std::string& tag)
-  {
-    d_tags.insert(tag);
-    return true;
-  }
-  bool off(const std::string& tag)
-  {
-    d_tags.erase(tag);
-    return false;
-  }
-  bool off()                { d_tags.clear(); return false; }
-
-  bool isOn(const std::string& tag) const
-  {
-    return d_tags.find(tag) != d_tags.end();
-  }
-
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *os; }
-  std::ostream& getStream() const { return *d_os; }
-  std::ostream* getStreamPointer() const { return d_os; }
-}; /* class DebugC */
-
 /** The warning output class */
 class WarningC
 {
@@ -316,8 +276,6 @@ public:
 
 }; /* class TraceC */
 
-/** The debug output singleton */
-extern DebugC DebugChannel CVC5_EXPORT;
 /** The warning output singleton */
 extern WarningC WarningChannel CVC5_EXPORT;
 /** The trace output singleton */
@@ -325,7 +283,6 @@ extern TraceC TraceChannel CVC5_EXPORT;
 
 #ifdef CVC5_MUZZLE
 
-#define Debug ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DebugChannel
 #define Warning \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define WarningOnce \
@@ -335,11 +292,6 @@ extern TraceC TraceChannel CVC5_EXPORT;
 
 #else /* CVC5_MUZZLE */
 
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-#define Debug ::cvc5::DebugChannel
-#else /* CVC5_DEBUG && CVC5_TRACING */
-#define Debug ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DebugChannel
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 #define Warning \
   (!::cvc5::WarningChannel.isOn()) ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define WarningOnce                                         \

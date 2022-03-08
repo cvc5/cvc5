@@ -28,7 +28,6 @@ class TestUtilBlackOutput : public TestInternal
   void SetUp() override
   {
     TestInternal::SetUp();
-    DebugChannel.setStream(&d_debugStream);
     TraceChannel.setStream(&d_traceStream);
     WarningChannel.setStream(&d_warningStream);
 
@@ -53,13 +52,6 @@ class TestUtilBlackOutput : public TestInternal
 
 TEST_F(TestUtilBlackOutput, output)
 {
-  Debug.on("foo");
-  Trace("foo") << "testing1";
-  Debug.off("foo");
-  Trace("foo") << "testing2";
-  Debug.on("foo");
-  Trace("foo") << "testing3";
-
   Warning() << "bad warning!";
 
   TraceChannel.on("foo");
@@ -71,17 +63,10 @@ TEST_F(TestUtilBlackOutput, output)
 
 #ifdef CVC5_MUZZLE
 
-  ASSERT_EQ(d_debugStream.str(), "");
   ASSERT_EQ(d_warningStream.str(), "");
   ASSERT_EQ(d_traceStream.str(), "");
 
 #else /* CVC5_MUZZLE */
-
-#ifdef CVC5_DEBUG
-  ASSERT_EQ(d_debugStream.str(), "testing1testing3");
-#else  /* CVC5_DEBUG */
-  ASSERT_EQ(d_debugStream.str(), "");
-#endif /* CVC5_DEBUG */
 
   ASSERT_EQ(d_warningStream.str(), "bad warning!");
 
@@ -96,15 +81,6 @@ TEST_F(TestUtilBlackOutput, output)
 
 TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
 {
-  Debug.on("foo");
-#ifndef CVC5_DEBUG
-  ASSERT_FALSE(TraceIsOn("foo"));
-  Trace("foo") << failure() << std::endl;
-#else
-  ASSERT_TRUE(TraceIsOn("foo"));
-#endif
-  Debug.off("foo");
-
   TraceChannel.on("foo");
 #ifndef CVC5_TRACING
   ASSERT_FALSE(TraceIsOn("foo"));
@@ -132,15 +108,6 @@ TEST_F(TestUtilBlackOutput, simple_print)
 {
 #ifdef CVC5_MUZZLE
 
-  Debug.off("yo");
-  Trace("yo") << "foobar";
-  ASSERT_EQ(d_debugStream.str(), std::string());
-  d_debugStream.str("");
-  Debug.on("yo");
-  Trace("yo") << "baz foo";
-  ASSERT_EQ(d_debugStream.str(), std::string());
-  d_debugStream.str("");
-
   TraceChannel.off("yo");
   Trace("yo") << "foobar";
   ASSERT_EQ(d_traceStream.str(), std::string());
@@ -155,19 +122,6 @@ TEST_F(TestUtilBlackOutput, simple_print)
   d_warningStream.str("");
 
 #else /* CVC5_MUZZLE */
-
-  Debug.off("yo");
-  Trace("yo") << "foobar";
-  ASSERT_EQ(d_debugStream.str(), std::string());
-  d_debugStream.str("");
-  Debug.on("yo");
-  Trace("yo") << "baz foo";
-#ifdef CVC5_DEBUG
-  ASSERT_EQ(d_debugStream.str(), std::string("baz foo"));
-#else  /* CVC5_DEBUG */
-  ASSERT_EQ(d_debugStream.str(), std::string());
-#endif /* CVC5_DEBUG */
-  d_debugStream.str("");
 
   TraceChannel.off("yo");
   Trace("yo") << "foobar";

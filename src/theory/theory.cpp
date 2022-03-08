@@ -304,8 +304,8 @@ void Theory::printFacts(std::ostream& os) const {
 }
 
 void Theory::debugPrintFacts() const{
-  DebugChannel.getStream() << "Theory::debugPrintFacts()" << endl;
-  printFacts(DebugChannel.getStream());
+  TraceChannel.getStream() << "Theory::debugPrintFacts()" << endl;
+  printFacts(TraceChannel.getStream());
 }
 
 bool Theory::isLegalElimination(TNode x, TNode val)

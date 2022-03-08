@@ -32,8 +32,8 @@ class TestUtilBlackDatatype : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    Debug.on("datatypes");
-    Debug.on("groundterms");
+    TraceChannel.on("datatypes");
+    TraceChannel.on("groundterms");
   }
 };
 

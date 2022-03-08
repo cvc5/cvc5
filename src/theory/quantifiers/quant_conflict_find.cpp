@@ -1206,7 +1206,7 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
     }
   }
   Trace("qcf-qregister-debug")  << "Done make match gen " << n << ", type = ";
-  debugPrintType( "qcf-qregister-debug", d_type, true );
+  debugPrintType( "qcf-qregister-debug", d_type );
   Trace("qcf-qregister-debug") << std::endl;
 
 }
@@ -2044,8 +2044,7 @@ bool MatchGen::doMatching()
   return !d_qn.empty();
 }
 
-void MatchGen::debugPrintType( const char * c, short typ, bool isTrace ) {
-  if( isTrace ){
+void MatchGen::debugPrintType( const char * c, short typ) {
     switch( typ ){
     case typ_invalid: Trace(c) << "invalid";break;
     case typ_ground: Trace(c) << "ground";break;
@@ -2055,17 +2054,6 @@ void MatchGen::debugPrintType( const char * c, short typ, bool isTrace ) {
     case typ_var: Trace(c) << "var";break;
     case typ_bool_var: Trace(c) << "bool_var";break;
     }
-  }else{
-    switch( typ ){
-    case typ_invalid: Debug(c) << "invalid";break;
-    case typ_ground: Debug(c) << "ground";break;
-    case typ_eq: Debug(c) << "eq";break;
-    case typ_pred: Debug(c) << "pred";break;
-    case typ_formula: Debug(c) << "formula";break;
-    case typ_var: Debug(c) << "var";break;
-    case typ_bool_var: Debug(c) << "bool_var";break;
-    }
-  }
 }
 
 void MatchGen::setInvalid() {

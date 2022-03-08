@@ -29,7 +29,6 @@ NullC nullStream;
 const std::string Cvc5ostream::s_tab = "  ";
 const int Cvc5ostream::s_indentIosIndex = std::ios_base::xalloc();
 
-DebugC DebugChannel(&std::cout);
 WarningC WarningChannel(&std::cerr);
 TraceC TraceChannel(&std::cout);
 
