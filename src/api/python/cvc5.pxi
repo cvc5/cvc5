@@ -2252,14 +2252,15 @@ cdef class Solver:
         :param grammar: a grammar for the inteprolant
         :return: True iff an interpolant was found
         """
+        cdef Term result = Term(self)
         if len(args) == 1:
             assert isinstance(args[0], Term)
-            result = self.csolver.getInterpolant(conj.cterm)
+            result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
             assert len(args) == 2
             assert isinstance(args[0], Grammar)
             assert isinstance(args[1], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
 
@@ -2282,7 +2283,8 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found
         """
-        result = self.csolver.getInterpolantNext()
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getInterpolantNext()
         return result
         
     def getAbduct(self, Term conj, *args):
@@ -2307,14 +2309,15 @@ cdef class Solver:
         :param grammar: a grammar for the abduct 
         :return: True iff an abduct was found
         """
+        cdef Term result = Term(self)
         if len(args) == 1:
             assert isinstance(args[0], Term)
-            result = self.csolver.getAbduct(conj.cterm)
+            result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
             assert len(args) == 2
             assert isinstance(args[0], Grammar)
             assert isinstance(args[1], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
+            result.cterm = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
     def getAbductNext(self):
@@ -2335,7 +2338,8 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an abduct was found
         """
-        result = self.csolver.getAbductNext()
+        cdef Term result = Term(self)
+        result.cterm  = self.csolver.getAbductNext()
         return result
 
     def blockModel(self):
