@@ -710,7 +710,8 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
       return nm->mkNode(AND, conj);
     }
   }
-  if (d_opts.quantifiers.condVarSplitQuant==options::CondVarSplitQuantMode::OFF)
+  if (d_opts.quantifiers.condVarSplitQuant
+      == options::CondVarSplitQuantMode::OFF)
   {
     return body;
   }
@@ -724,10 +725,10 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     return body;
   }
 
-  bool aggCondSplit = (d_opts.quantifiers.condVarSplitQuant==options::CondVarSplitQuantMode::AGG);
+  bool aggCondSplit = (d_opts.quantifiers.condVarSplitQuant
+                       == options::CondVarSplitQuantMode::AGG);
   if (bk == ITE
-      || (bk == EQUAL && body[0].getType().isBoolean()
-          && aggCondSplit))
+      || (bk == EQUAL && body[0].getType().isBoolean() && aggCondSplit))
   {
     Assert(!qa.isFunDef());
     bool do_split = false;
@@ -1962,7 +1963,8 @@ bool QuantifiersRewriter::doOperation(Node q,
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
     return (d_opts.quantifiers.iteDtTesterSplitQuant
-            || d_opts.quantifiers.condVarSplitQuant!=options::CondVarSplitQuantMode::OFF)
+            || d_opts.quantifiers.condVarSplitQuant
+                   != options::CondVarSplitQuantMode::OFF)
            && !is_strict_trigger;
   }
   else if (computeOption == COMPUTE_PRENEX)
