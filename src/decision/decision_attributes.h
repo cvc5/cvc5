@@ -18,14 +18,16 @@
 #ifndef CVC5__DECISION__DECISION_ATTRIBUTES_H
 #define CVC5__DECISION__DECISION_ATTRIBUTES_H
 
-#include "options/decision_weight.h"
 #include "expr/attribute.h"
 
 namespace cvc5 {
 namespace decision {
+
+using DecisionWeight = uint64_t;
+
 namespace attr {
-  struct DecisionWeightTag {};
-  }  // namespace attr
+struct DecisionWeightTag {};
+}  // namespace attr
 
 typedef expr::Attribute<attr::DecisionWeightTag, DecisionWeight> DecisionWeightAttr;
 

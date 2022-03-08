@@ -105,19 +105,21 @@ name   = "Quantifiers"
 [[option]]
   name       = "condVarSplitQuant"
   category   = "regular"
-  long       = "cond-var-split-quant"
-  type       = "bool"
-  default    = "true"
+  long       = "cond-var-split-quant=MODE"
+  type       = "CondVarSplitQuantMode"
+  default    = "ON"
   help       = "split quantified formulas that lead to variable eliminations"
-
-[[option]]
-  name       = "condVarSplitQuantAgg"
-  category   = "regular"
-  long       = "cond-var-split-agg-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "aggressive split quantified formulas that lead to variable eliminations"
-
+  help_mode  = "Modes for splitting quantified formulas that lead to variable eliminations."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not split quantified formulas that lead to variable eliminations."
+[[option.mode.ON]]
+  name = "on"
+  help = "Split quantified formulas that lead to variable eliminations."
+[[option.mode.ALAGGL]]
+  name = "agg"
+  help = "Aggressive split quantified formulas that lead to variable eliminations."
+  
 [[option]]
   name       = "iteDtTesterSplitQuant"
   category   = "regular"
@@ -448,14 +450,6 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "2"
   help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
-
-[[option]]
-  name       = "instWhenTcFirst"
-  category   = "regular"
-  long       = "inst-when-tc-first"
-  type       = "bool"
-  default    = "true"
-  help       = "allow theory combination to happen once initially, before quantifier strategies are run"
 
 [[option]]
   name       = "instMaxLevel"

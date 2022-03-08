@@ -31,9 +31,9 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
+#include "decision/decision_attributes.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
-#include "options/decision_weight.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
@@ -148,12 +148,6 @@ private:
  void setExploredThreshold(TNode);
  void setPrvsIndex(int);
  int getPrvsIndex();
- DecisionWeight getWeightPolarized(TNode n, bool polarity);
- DecisionWeight getWeightPolarized(TNode n, prop::SatValue);
- DecisionWeight getWeight(TNode);
- bool compareByWeightFalse(TNode, TNode);
- bool compareByWeightTrue(TNode, TNode);
- TNode getChildByWeight(TNode n, int i, bool polarity);
 
  /* If literal exists corresponding to the node return
     that. Otherwise an UNKNOWN */
