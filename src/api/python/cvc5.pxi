@@ -2229,6 +2229,7 @@ cdef class Solver:
         """
         self.csolver.setOption(option.encode(), value.encode())
 
+
     def getInterpolant(self, Term conj, *args):
         """Get an interpolant.
 
@@ -2243,27 +2244,26 @@ cdef class Solver:
 
         Supports the following variants:
 
-        - ``bool getInteprolant(Term conj, Term output)``
-        - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+        - ``Term getInteprolant(Term conj)``
+        - ``Term getInteprolant(Term conj, Grammar grammar)``
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
         :param grammar: a grammar for the inteprolant
         :return: True iff an interpolant was found
         """
-        result = False
         if len(args) == 1:
             assert isinstance(args[0], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Term ?> args[0]).cterm)
+            result = self.csolver.getInterpolant(conj.cterm)
         else:
             assert len(args) == 2
             assert isinstance(args[0], Grammar)
             assert isinstance(args[1], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
 
-    def getInterpolantNext(self, Term output):
+    def getInterpolantNext(self):
         """
         Get the next interpolant. Can only be called immediately after
         a succesful call to get-interpol or get-interpol-next. 
@@ -2282,7 +2282,7 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found
         """
-        result = self.csolver.getInterpolantNext(output.cterm)
+        result = self.csolver.getInterpolantNext()
         return result
         
     def getAbduct(self, Term conj, *args):
@@ -2299,26 +2299,25 @@ cdef class Solver:
 
         Supports the following variants:
 
-        - ``bool getAbduct(Term conj, Term output)``
-        - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+        - ``Term getAbduct(Term conj)``
+        - ``Term getAbduct(Term conj, Grammar grammar)``
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
         :param grammar: a grammar for the abduct 
         :return: True iff an abduct was found
         """
-        result = False
         if len(args) == 1:
             assert isinstance(args[0], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Term ?> args[0]).cterm)
+            result = self.csolver.getAbduct(conj.cterm)
         else:
             assert len(args) == 2
             assert isinstance(args[0], Grammar)
             assert isinstance(args[1], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
-    def getAbductNext(self, Term output):
+    def getAbductNext(self):
         """
         Get the next abduct. Can only be called immediately after
         a succesful call to get-abduct or get-abduct-next. 
@@ -2336,7 +2335,7 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an abduct was found
         """
-        result = self.csolver.getAbductNext(output.cterm)
+        result = self.csolver.getAbductNext()
         return result
 
     def blockModel(self):
