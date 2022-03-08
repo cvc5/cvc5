@@ -120,7 +120,7 @@ cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 
   // SAT solver can stop...
   stopSearch = true;
-  if (0 == 0) d_decisionEngine->setResult(prop::SAT_VALUE_TRUE);
+  d_decisionEngine->setResult(prop::SAT_VALUE_TRUE);
   return prop::undefSatLiteral;
 }
 
@@ -211,18 +211,12 @@ void JustificationHeuristic::setExploredThreshold(TNode n)
 
 int JustificationHeuristic::getPrvsIndex()
 {
-  if (0 == 0)
-    return d_prvsIndex;
-  else
-    return d_threshPrvsIndex;
+  return d_prvsIndex;
 }
 
 void JustificationHeuristic::setPrvsIndex(int prvsIndex)
 {
-  if (0 == 0)
-    d_prvsIndex = prvsIndex;
-  else
-    d_threshPrvsIndex = prvsIndex;
+  d_prvsIndex = prvsIndex;
 }
 
 SatValue JustificationHeuristic::tryGetSatValue(Node n)
