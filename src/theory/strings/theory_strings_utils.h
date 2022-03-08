@@ -209,7 +209,7 @@ Node mkForallInternal(Node bvl, Node body);
  * This is used for constructing models for strings whose lengths are too large
  * to represent in memory.
  */
-Node mkAbstractStringValueForLength(Node n, Node len);
+Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
 
 }  // namespace utils
 }  // namespace strings

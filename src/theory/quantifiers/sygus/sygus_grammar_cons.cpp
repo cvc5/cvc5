@@ -938,7 +938,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
         std::vector<TypeNode> cargsSeqUnit;
         cargsSeqUnit.push_back(unresElemType);
-        sdts[i].addConstructor(SEQ_UNIT, cargsSeqUnit);
+        // lambda x . (seq.unit (seq_unit_op T) x) where T = x.getType()
+        Node x = nm->mkBoundVar(etype);
+        Node vars = nm->mkNode(BOUND_VAR_LIST, x);
+        Node seqUnit = nm->mkSeqUnit(etype, x);
+        Node lambda = nm->mkNode(LAMBDA, vars, seqUnit);
+        sdts[i].addConstructor(lambda, "seq.unit", cargsSeqUnit);
       }
     }
     else if (types[i].isArray())

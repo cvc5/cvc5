@@ -69,11 +69,8 @@ public:
   /** Create a file input.
    *
    * @param name the path of the file to read
-   * @param useMmap <code>true</code> if the input should use memory-mapped I/O; otherwise, the
-   * input will use the standard ANTLR3 I/O implementation.
    */
-  static AntlrInputStream* newFileInputStream(const std::string& name,
-                                              bool useMmap = false);
+  static AntlrInputStream* newFileInputStream(const std::string& name);
 
   /** Create an input from an istream. */
   static AntlrInputStream* newStreamInputStream(std::istream& input,
