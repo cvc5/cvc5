@@ -3226,7 +3226,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   slv.push(4);
 }
 
-TEST_F(TestApiBlackSolver, foo)
+TEST_F(TestApiBlackSolver, projIssue431)
 {
   Solver slv;
   slv.setOption("produce-abducts", "true");
