@@ -2375,7 +2375,7 @@ cdef class Solver:
         Return a string that contains information about all instantiations made
         by the quantifiers module.
         """
-        self.csolver.getInstantiations()
+        return self.csolver.getInstantiations()
 
 
 cdef class Sort:

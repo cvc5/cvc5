@@ -2323,8 +2323,8 @@ Java_io_github_cvc5_api_Solver_getInstantiations(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::string model = solver->getInstantiations();
-  return env->NewStringUTF(model.c_str());
+  std::string insts = solver->getInstantiations();
+  return env->NewStringUTF(insts.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
