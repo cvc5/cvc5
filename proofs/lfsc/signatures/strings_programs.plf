@@ -1,10 +1,20 @@
 ; depends: nary_programs.plf theory_def.plf
 
-; Make empty string of the given string-like sort s.
-(program sc_mk_emptystr ((s sort)) term
-  (match s
-    ((Seq t) (seq.empty s))
+; This signature is used for both strings and sequences, where we often
+; write "string" in the documentation to refer to a string or sequence.
+
+; Make empty string of the given string-like sort u.
+(program sc_mk_emptystr ((u sort)) term
+  (match u
+    ((Seq t) (seq.empty u))
     (String emptystr)))
+
+; Return true if s is the empty string or sequence.
+(program sc_string_is_empty ((s term)) flag
+  (match s
+    ((seq.empty s) tt)
+    (emptystr tt)
+    (default ff)))
 
 ; Get the term corresponding to the prefix of term s of fixed length n.
 (program sc_skolem_prefix ((s term) (n term)) term 
@@ -30,29 +40,33 @@
 (program sc_string_head ((t term)) term (nary_head f_str.++ t))
 (program sc_string_tail ((t term)) term (nary_tail f_str.++ t))
 
-; Concatenation str.++ applications t1 and t2.
-(program sc_string_concat ((t1 term) (t2 term)) term (nary_concat f_str.++ t1 t2 emptystr))
+; Concatenation str.++ applications t1 and t2. Note this side condition requires
+; taking the sort u of t1 for constructing the empty string.
+(program sc_string_concat ((t1 term) (t2 term) (u sort)) term (nary_concat f_str.++ t1 t2 (sc_mk_emptystr u)))
 
-; Decompose str.++ term t into a head and tail.
-(program sc_string_decompose ((t term)) termPair (nary_decompose f_str.++ t emptystr))
+; Decompose str.++ term t of sort u into a head and tail.
+(program sc_string_decompose ((t term) (u sort)) termPair (nary_decompose f_str.++ t (sc_mk_emptystr u)))
 
-; Insert a string into str.++ term t.
-(program sc_string_insert ((elem term) (t term)) term (nary_insert f_str.++ elem t emptystr))
+; String is prefix, returns tt if t1 of sort u is a prefix of t2
+(program sc_string_is_prefix ((t1 term) (t2 term) (u sort)) flag (nary_is_prefix f_str.++ t1 t2 (sc_mk_emptystr u)))
+
+; Insert a string into str.++ term t of sort u.
+(program sc_string_insert ((elem term) (t term) (u sort)) term (nary_insert f_str.++ elem t (sc_mk_emptystr u)))
 
 ; Return reverse of t if rev = tt, return t unchanged otherwise.
-(program sc_string_rev ((t term) (rev flag)) term (ifequal rev tt (nary_reverse f_str.++ t emptystr) t))
+(program sc_string_rev ((t term) (rev flag) (u sort)) term (ifequal rev tt (nary_reverse f_str.++ t (sc_mk_emptystr u)) t))
 
 ; Convert a str.++ application t into its element, if it is a singleton, return t unchanged otherwise.
-(program sc_string_nary_elim ((t term)) term (nary_elim f_str.++ t emptystr))
+(program sc_string_nary_elim ((t term) (u sort)) term (nary_elim f_str.++ t (sc_mk_emptystr u)))
 
 ; Convert t into a str.++ application, if it is not already in n-ary form.
-(program sc_string_nary_intro ((t term)) term (nary_intro f_str.++ t emptystr))
+(program sc_string_nary_intro ((t term) (u sort)) term (nary_intro f_str.++ t (sc_mk_emptystr u)))
 
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string function in terms of (simpler) functions.
 
 ; Compute the reduction predicate for (str.substr x n m) of sort s.
-(program sc_string_reduction_substr ((x term) (n term) (m term) (s sort)) term
+(program sc_string_reduction_substr ((x term) (n term) (m term) (u sort)) term
   (let k (sc_mk_skolem (str.substr x n m))
   (let npm (a.+ n (a.+ m (int 0)))
   (let k1 (sc_mk_skolem (sc_skolem_prefix x n))
@@ -64,7 +78,7 @@
         (and (a.> m (int 0))
           true)))
     ; if branch
-    (and (= x (str.++ k1 (str.++ k (str.++ k2 (sc_mk_emptystr s)))))
+    (and (= x (str.++ k1 (str.++ k (str.++ k2 (sc_mk_emptystr u)))))
       (and (= (str.len k1) n)
         (and (or (= (str.len k2) (a.- (str.len x) npm))
                 (or (= (str.len k2) (int 0))
@@ -72,12 +86,12 @@
           (and (a.<= (str.len k) m)
             true))))
     ; else branch
-    (= k (sc_mk_emptystr s))
+    (= k (sc_mk_emptystr u))
     )))))
 )
 
 ; Compute the reduction predicate for (str.indexof x y n) of sort s.
-(program sc_string_reduction_indexof ((x term) (y term) (n term) (s sort)) term
+(program sc_string_reduction_indexof ((x term) (y term) (n term) (u sort)) term
   (let k (sc_mk_skolem (str.indexof x y n))
   (let xn (str.substr x n (a.- (str.len x) n))
   (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre xn y))
@@ -89,20 +103,20 @@
           false)))
     (= k (int (~ 1)))
     (ite
-      (= y (sc_mk_emptystr s))
+      (= y (sc_mk_emptystr u))
       (= k n)
-      (and (= xn (str.++ k1 (str.++ y (str.++ k2 (sc_mk_emptystr s)))))
+      (and (= xn (str.++ k1 (str.++ y (str.++ k2 (sc_mk_emptystr u)))))
         (and (not (str.contains
                     (str.++ k1
                       (str.++ (str.substr y (int 0) (a.- (str.len y) (int 1)))
-                        (sc_mk_emptystr s))) y))
+                        (sc_mk_emptystr u))) y))
           (and (= k (a.+ n (a.+ (str.len k1) (int 0))))
             true)))
 )))))))
 
 ; Compute the reduction predicate for term t of sort s. Note that the operators
 ; listed in comments are missing from the signature currently.
-(program sc_string_reduction_pred ((t term) (s sort)) term
+(program sc_string_reduction_pred ((t term) (u sort)) term
   (match t 
     ((apply t1 t2)
       (match t1
@@ -111,8 +125,8 @@
             ; str.contains
             ((apply t111 t112) 
               (match t111
-                (f_str.substr (sc_string_reduction_substr t112 t12 t2 s))
-                (f_str.indexof (sc_string_reduction_indexof t112 t12 t2 s))
+                (f_str.substr (sc_string_reduction_substr t112 t12 t2 u))
+                (f_str.indexof (sc_string_reduction_indexof t112 t12 t2 u))
                 ; str.replace
             ; str.update
             ; str.from_int
@@ -129,20 +143,20 @@
 
 ; Returns the reduction predicate and purification equality for term t
 ; of sort s.
-(program sc_string_reduction ((t term) (s sort)) term
-  (and (sc_string_reduction_pred t s) (and (= t (sc_mk_skolem t)) true))
+(program sc_string_reduction ((t term) (u sort)) term
+  (and (sc_string_reduction_pred t u) (and (= t (sc_mk_skolem t)) true))
 )
 
 ; Compute the eager reduction predicate for (str.contains t r) where s
 ; is the sort of t and r.
 ; This is the formula:
 ;    (ite (str.contains t r) (= t (str.++ sk1 r sk2)) (not (= t r)))
-(program sc_string_eager_reduction_contains ((t term) (r term) (s sort)) term
+(program sc_string_eager_reduction_contains ((t term) (r term) (u sort)) term
   (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre t r))
   (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post t r))
   (ite
     (str.contains t r)
-    (= t (str.++ k1 (str.++ r (str.++ k2 (sc_mk_emptystr s)))))
+    (= t (str.++ k1 (str.++ r (str.++ k2 (sc_mk_emptystr u)))))
     (not (= t r)))
   ))
 )
@@ -172,14 +186,14 @@
 )
 
 ; Compute the eager reduction predicate of term t of sort s.
-(program sc_string_eager_reduction ((t term) (s sort)) term
+(program sc_string_eager_reduction ((t term) (u sort)) term
   (match t 
     ((apply t1 t2)
       (match t1
         (f_str.to_code (sc_string_eager_reduction_to_code t2))
         ((apply t11 t12)
           (match t11
-            (f_str.contains (sc_string_eager_reduction_contains t12 t2 s))
+            (f_str.contains (sc_string_eager_reduction_contains t12 t2 u))
             ((apply t111 t112)
               (match t111
                 (f_str.indexof (sc_string_eager_reduction_indexof t112 t12 t2)))))))))
@@ -213,24 +227,23 @@
 ;   (str.++ x (str.++ y ""))
 ; this returns:
 ;  (and (= x "") (and (= y "") true))
-(program sc_non_empty_concats ((t term)) term
+(program sc_non_empty_concats ((t term) (u sort)) term
   (match t
     ((apply t1 t2)
-      (and (not (= (getarg f_str.++ t1) emptystr)) (sc_non_empty_concats t2)))
-    (emptystr true)))
+      (and (not (= (getarg f_str.++ t1) (sc_mk_emptystr u))) (sc_non_empty_concats t2 u)))
+    (default (ifequal t (sc_mk_emptystr u) true (fail term)))))
 
 ; Get first character or empty string from term t.
 ; If t is of the form (str.++ (char n) ...), return (char n).
 ; If t is of the form emptystr, return emptystr.
 ; Otherwise, this side condition fails
-(program sc_string_first_char_or_empty ((t term)) term
+(program sc_string_first_char_or_empty ((t term) (u sort)) term
   (match t
     ((apply t1 t2)
       (let t12 (getarg f_str.++ t1)
       (match t12
         ((char n) t12))))
-    (emptystr t)))
-
+    (default (ifequal t (sc_mk_emptystr u) t (fail term)))))
 
 ; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
@@ -255,14 +268,14 @@
 ; It does not insist that the nested concatenations are over characters only.
 ; This rule may fail if s is not a str.++ application corresponding to a term
 ; in cvc5 rewritten form.
-(program sc_string_flatten ((s term)) term
+(program sc_string_flatten ((s term) (u sort)) term
   (match s
     ((apply s1 s2)
       (let s12 (getarg f_str.++ s1)
         ; Must handle nested concatenation for word constant. We know there is no nested concatenation within s12, so we don't need to flatten it.
         ; Since s12 may not be a concat term, we must use n-ary intro to ensure it is in n-ary form
-        (sc_string_concat (sc_string_nary_intro s12) (sc_string_flatten s2))))
-    (emptystr s))
+        (sc_string_concat (sc_string_nary_intro s12 u) (sc_string_flatten s2 u) u)))
+    (default (ifequal s (sc_mk_emptystr u) s (fail term))))
 )
 
 ; Helper for collecting adjacent constants. This side condition takes as input
@@ -273,15 +286,15 @@
 ;   (str.++ "A" (str.++ "B" (str.++ x "")))
 ; We return:
 ;   (pair (str.++ "A" (str.++ "B" "")) (str.++ x ""))
-(program sc_string_collect_acc ((s term)) termPair
+(program sc_string_collect_acc ((s term) (u sort)) termPair
   (match s
     ((apply s1 s2)
       (match (getarg f_str.++ s1)
         ((char n)
-          (match (sc_string_collect_acc s2)
+          (match (sc_string_collect_acc s2 u)
             ((pair ssc1 ssc2) (pair (apply s1 ssc1) ssc2))))
-        (default (pair emptystr s))))
-    (emptystr (pair emptystr s)))
+        (default (pair (sc_mk_emptystr u) s))))
+    (default (ifequal s (sc_mk_emptystr u) (pair s s) (fail termPair))))
 )
 
 ; Collect adjacent constants for the prefix of string s. For example:
@@ -291,17 +304,16 @@
 ; This side condition may fail if s is not a str.++ application.
 ; Notice that the collection of constants is done for all word constants in the
 ; term s recursively.
-(program sc_string_collect ((s term)) term
-  (match (sc_string_collect_acc s)
+(program sc_string_collect ((s term) (u sort)) term
+  (match (sc_string_collect_acc s u)
     ((pair sc1 sc2)
-      (match sc1
+      (ifequal sc1 (sc_mk_emptystr u)
         ; did not strip a constant prefix
-        (emptystr 
-          (match s
-            ((apply s1 s2) (apply s1 (sc_string_collect s2)))
-            (emptystr s)))
+        (match s
+          ((apply s1 s2) (apply s1 (sc_string_collect s2 u)))
+          (default (ifequal s (sc_mk_emptystr u) s (fail term))))
         ; stripped a constant prefix, must eliminate singleton
-        (default (str.++ (sc_string_nary_elim sc1) (sc_string_collect sc2))))))
+        (str.++ (sc_string_nary_elim sc1 u) (sc_string_collect sc2 u)))))
 )
 
 ; Strip equal prefix of s and t. This returns the pair corresponding to s and
@@ -311,7 +323,7 @@
 ; This method will return:
 ;   (pair (str.++ y (str.++ z "")) (str.++ w ""))
 ; This side condition may fail if s or t is not a str.++ application.
-(program sc_strip_prefix ((s term) (t term)) termPair
+(program sc_strip_prefix ((s term) (t term) (u sort)) termPair
   (match s
     ((apply s1 s2)
       (let s12 (getarg f_str.++ s1)
@@ -319,10 +331,10 @@
           ((apply t1 t2)
             (let t12 (getarg f_str.++ t1)
               (ifequal s12 t12
-                (sc_strip_prefix s2 t2)
+                (sc_strip_prefix s2 t2 u)
                 (pair s t))))
-          (emptystr (pair s t)))))
-    (emptystr (pair s t)))
+          (default (ifequal t (sc_mk_emptystr u) (pair s t) (fail termPair))))))
+    (default (ifequal s (sc_mk_emptystr u) (pair s t) (fail termPair))))
 )
 
 ; Converts a str.++ application into "flat form" so that we are ready to
@@ -330,9 +342,9 @@
 ; (1) convert s to n-ary form if it is not already a str.++ application,
 ; (2) flatten so that its constant prefix,
 ; (3) (optionally) reverse.
-(program sc_string_to_flat_form ((s term) (rev flag)) term
+(program sc_string_to_flat_form ((s term) (rev flag) (u sort)) term
   ; intro, flatten, reverse
-  (sc_string_rev (sc_string_flatten (sc_string_nary_intro s)) rev))
+  (sc_string_rev (sc_string_flatten (sc_string_nary_intro s u) u) rev u))
 
 ; Converts a term in "flat form" to a term that is in a form that corresponds
 ; to one in cvc5 rewritten form. This is the dual method to
@@ -340,6 +352,6 @@
 ; (1) (optionally) reverse,
 ; (2) collect constants 
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
-(program sc_string_from_flat_form ((s term) (rev flag)) term
+(program sc_string_from_flat_form ((s term) (rev flag) (u sort)) term
   ; reverse, collect, elim
-  (sc_string_nary_elim (sc_string_collect (sc_string_rev s rev))))
+  (sc_string_nary_elim (sc_string_collect (sc_string_rev s rev u) u) u))

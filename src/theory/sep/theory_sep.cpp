@@ -104,8 +104,14 @@ void TheorySep::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(kind::SEP_PTO);
+  d_equalityEngine->addFunctionKind(SEP_PTO);
   // we could but don't do congruence on SEP_STAR here.
+
+  // separation logic predicates are not relevant for model building
+  d_valuation.setIrrelevantKind(SEP_STAR);
+  d_valuation.setIrrelevantKind(SEP_WAND);
+  d_valuation.setIrrelevantKind(SEP_LABEL);
+  d_valuation.setIrrelevantKind(SEP_PTO);
 }
 
 void TheorySep::preRegisterTerm(TNode n)

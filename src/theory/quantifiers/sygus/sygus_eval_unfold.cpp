@@ -37,7 +37,7 @@ SygusEvalUnfold::SygusEvalUnfold(Env& env, TermDbSygus* tds)
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
-  Assert(options::sygusEvalUnfold());
+  Assert(options().quantifiers.sygusEvalUnfold);
   // is this a sygus evaluation function application?
   if (n.getKind() != DT_SYGUS_EVAL)
   {
@@ -141,7 +141,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
         Node expn;
         // should we unfold?
         bool do_unfold = false;
-        if (options::sygusEvalUnfoldBool())
+        if (options().quantifiers.sygusEvalUnfoldBool)
         {
           Node bTermUse = bTerm;
           if (bTerm.getKind() == APPLY_UF)
@@ -177,7 +177,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
         }
         else
         {
-          EvalSygusInvarianceTest esit;
+          EvalSygusInvarianceTest esit(d_env.getRewriter());
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);

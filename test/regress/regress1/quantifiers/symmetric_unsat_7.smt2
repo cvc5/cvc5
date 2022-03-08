@@ -1,5 +1,5 @@
-; COMMAND-LINE: --no-check-unsat-cores
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 
 ; Note we require disabling proofs/unsat cores due to timeouts in nightlies
 

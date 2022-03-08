@@ -40,11 +40,29 @@ class BagSolver : protected EnvObj
   BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BagSolver();
 
-  void postCheck();
+  /**
+   * apply inference rules for basic bag operators:
+   * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
+   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
+   */
+  void checkBasicOperations();
+
+  /**
+   * apply inference rules for BAG_MAKE terms.
+   * For each term (bag x c) that is neither equal nor disequal to the empty
+   * bag, we do a split using the following lemma:
+   * (or
+   *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
+   *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
+   * where (Bag E) is the type of the bag term
+   * @return true if a new lemma was successfully sent.
+   */
+  bool checkBagMake();
 
  private:
   /** apply inference rules for empty bags */
   void checkEmpty(const Node& n);
+
   /**
    * apply inference rules for BAG_MAKE operator.
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
@@ -78,6 +96,10 @@ class BagSolver : protected EnvObj
   void checkDisequalBagTerms();
   /** apply inference rules for map operator */
   void checkMap(Node n);
+  /** apply inference rules for filter operator */
+  void checkFilter(Node n);
+  /** apply inference rules for product operator */
+  void checkProduct(Node n);
 
   /** The solver state object */
   SolverState& d_state;
@@ -88,11 +110,19 @@ class BagSolver : protected EnvObj
   /** Reference to the term registry of theory of bags */
   TermRegistry& d_termReg;
 
-  /** a cache that stores bags of kind BAG_MAP and those element representatives
-   * which we generated their inferences.
+  /**
+   * a map where the keys are nodes of the form (bag.map f A)
+   * where f is a function (-> E T), A a bag of type (Bag E),
+   * and values are maps where keys are elements y's of (bag.map f A)
+   * and values are pairs <uf, preImageSize> such that
+   * uf is an uninterpreted function Int -> E represents the and
+   * preImageSize is the cardinality of the distinct elements in A that are
+   * mapped to each y
+   *
    */
-  using BagElementsMap =
-      context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node> > >;
+  using BagElementsMap = context::CDHashMap<
+      Node,
+      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node> > > >;
   BagElementsMap d_mapCache;
 
   /** Commonly used constants */

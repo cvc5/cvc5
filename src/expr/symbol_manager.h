@@ -160,6 +160,17 @@ class CVC5_EXPORT SymbolManager
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
   bool getGlobalDeclarations() const;
+  /**
+   * Set the last abduct or interpolant to synthesize had the given name. This
+   * is required since e.g. get-abduct-next must know the name of the
+   * abduct-to-synthesize to print its result. For example, the sequence:
+   *   (get-abduct A <conjecture>)
+   *   (get-abduct-next)
+   * The latter command must know the symbol "A".
+   */
+  void setLastSynthName(const std::string& name);
+  /** Get the name of the last abduct or interpolant to synthesize */
+  const std::string& getLastSynthName() const;
 
  private:
   /** The API Solver object. */

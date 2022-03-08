@@ -392,12 +392,18 @@ void QuantifiersEngine::check( Theory::Effort e ){
         //flush all current lemmas
         d_qim.doPending();
       }
-      //if we have added one, stop
-      if (d_qim.hasSentLemma())
+      // If we have added a lemma, stop. We also stop if we are in conflict.
+      // In very rare cases, it may be the case that quantifiers knows there
+      // is a conflict without adding a lemma, e.g. if it sent a duplicate
+      // QUANTIFIERS_TDB_DEQ_CONG lemma, which can occur if it has detected
+      // a quantifier-free conflict during term indexing but the quantifier
+      // free theories haven't caused a backtrack yet. This should never happen
+      // at LAST_CALL effort.
+      if (d_qim.hasSentLemma() || d_qstate.isInConflict())
       {
+        Assert(d_qim.hasSentLemma() || e != Theory::EFFORT_LAST_CALL);
         break;
       }else{
-        Assert(!d_qstate.isInConflict());
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           d_qstate.incrementInstRoundCounters(e);

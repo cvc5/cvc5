@@ -56,7 +56,6 @@ void NlModel::resetCheck()
   d_used_approx = false;
   d_check_model_solved.clear();
   d_check_model_bounds.clear();
-  d_check_model_witnesses.clear();
   d_substitutions.clear();
 }
 
@@ -208,7 +207,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
         if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
-          if (k != MULT && k != PLUS && k != NONLINEAR_MULT
+          if (k != MULT && k != ADD && k != NONLINEAR_MULT
               && !isTranscendentalKind(k))
           {
             // if we have not set an approximate bound for it
@@ -216,7 +215,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             {
               // set its exact model value in the substitution
               Node curv = computeConcreteModelValue(cur);
-              if (TraceIsOn("nl-ext-cm"))
+              if (Trace.isOn("nl-ext-cm"))
               {
                 Trace("nl-ext-cm")
                     << "check-model-bound : exact : " << cur << " = ";
@@ -278,10 +277,14 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
   {
-    Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
-    // this should never happen since substitutions should be applied eagerly
-    Assert(false);
-    return false;
+    Node cur = d_substitutions.getSubs(v);
+    if (cur != s)
+    {
+      Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
+      // this should never happen since substitutions should be applied eagerly
+      Assert(false);
+      return false;
+    }
   }
   // if we previously had an approximate bound, the exact bound should be in its
   // range
@@ -297,9 +300,6 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
-      << "We tried to add a substitution where we already had a witness term."
-      << std::endl;
   Subs tmp;
   tmp.add(v, s);
   for (auto& sub : d_substitutions.d_subs)
@@ -336,7 +336,7 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
   Assert(u.isConst());
   Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
-  if (TraceIsOn("nl-ext-cm"))
+  if (Trace.isOn("nl-ext-cm"))
   {
     Trace("nl-ext-cm") << "check-model-bound : approximate : ";
     printRationalApprox("nl-ext-cm", l);
@@ -344,23 +344,6 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     printRationalApprox("nl-ext-cm", u);
     Trace("nl-ext-cm") << std::endl;
   }
-  return true;
-}
-
-bool NlModel::addWitness(TNode v, TNode w)
-{
-  Trace("nl-ext-model") << "* check model witness : " << v << " -> " << w
-                        << std::endl;
-  // should not set a witness for a value that is already set
-  if (d_substitutions.contains(v))
-  {
-    Trace("nl-ext-model") << "...ERROR: setting witness for variable that "
-                             "already has a constant value."
-                          << std::endl;
-    Assert(false);
-    return false;
-  }
-  d_check_model_witnesses.emplace(v, w);
   return true;
 }
 
@@ -507,7 +490,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
-        if (TraceIsOn("nl-ext-cm"))
+        if (Trace.isOn("nl-ext-cm"))
         {
           Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
           printRationalApprox("nl-ext-cm", uvfv);
@@ -540,7 +523,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     Node val = nm->mkConst(CONST_RATIONAL,
                            -c.getConst<Rational>() / b.getConst<Rational>());
-    if (TraceIsOn("nl-ext-cm"))
+    if (Trace.isOn("nl-ext-cm"))
     {
       Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
       printRationalApprox("nl-ext-cm", val);
@@ -644,7 +627,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   Node invalid_vsum = vs_invalid.empty() ? d_zero
                                          : (vs_invalid.size() == 1
                                                 ? vs_invalid[0]
-                                                : nm->mkNode(PLUS, vs_invalid));
+                                                : nm->mkNode(ADD, vs_invalid));
   // substitution to try
   Subs qsub;
   for (const Node& v : vs)
@@ -667,7 +650,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         if (it != v_b.end())
         {
           b = it->second;
-          t = nm->mkNode(PLUS, t, nm->mkNode(MULT, b, v));
+          t = nm->mkNode(ADD, t, nm->mkNode(MULT, b, v));
         }
         t = rewrite(t);
         Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
@@ -676,7 +659,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
         Node apex = nm->mkNode(
-            DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
+            DIVISION, nm->mkNode(NEG, b), nm->mkNode(MULT, d_two, a));
         apex = rewrite(apex);
         Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex
@@ -828,7 +811,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
       {
         Node vc = vars[i];
         unsigned vcfact = factors[i];
-        if (TraceIsOn("nl-ext-cms-debug"))
+        if (Trace.isOn("nl-ext-cms-debug"))
         {
           Trace("nl-ext-cms-debug") << "-- " << vc;
           if (vcfact > 1)
@@ -882,11 +865,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         else
         {
-          Assert(d_check_model_witnesses.find(vc)
-                 == d_check_model_witnesses.end())
-              << "No variable should be assigned a witness term if we get "
-                 "here. "
-              << vc << " is, though." << std::endl;
           Trace("nl-ext-cms-debug") << std::endl;
           Trace("nl-ext-cms")
               << "  failed due to unknown bound for " << vc << std::endl;
@@ -986,7 +964,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   Node bound;
   if (sum_bound.size() > 1)
   {
-    bound = nm->mkNode(kind::PLUS, sum_bound);
+    bound = nm->mkNode(kind::ADD, sum_bound);
   }
   else if (sum_bound.size() == 1)
   {
@@ -1011,7 +989,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
 
 void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 {
-  if (TraceIsOn(c))
+  if (Trace.isOn(c))
   {
     Trace(c) << "  " << n << " -> ";
     const Node& aval = d_abstractModelCache.at(n);
@@ -1037,11 +1015,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(
-    std::map<Node, Node>& arithModel,
-    std::map<Node, std::pair<Node, Node>>& approximations,
-    std::map<Node, Node>& witnesses,
-    bool witnessToValue)
+void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
@@ -1054,29 +1028,16 @@ void NlModel::getModelValueRepair(
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node>>& cb :
        d_check_model_bounds)
   {
     Node l = cb.second.first;
     Node u = cb.second.second;
-    Node pred;
     Node v = cb.first;
     if (l != u)
     {
-      pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      Trace("nl-model") << v << " approximated as " << pred << std::endl;
-      Node witness;
-      if (witnessToValue)
-      {
-        // witness is the midpoint
-        witness = nm->mkNode(MULT,
-                             nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
-                             nm->mkNode(PLUS, l, u));
-        witness = rewrite(witness);
-        Trace("nl-model") << v << " witness is " << witness << std::endl;
-      }
-      approximations[v] = std::pair<Node, Node>(pred, witness);
+      Trace("nl-model") << v << " is in interval " << l << "..." << u
+                        << std::endl;
     }
     else
     {
@@ -1084,11 +1045,6 @@ void NlModel::getModelValueRepair(
       arithModel[v] = l;
       Trace("nl-model") << v << " exact approximation is " << l << std::endl;
     }
-  }
-  for (const auto& vw : d_check_model_witnesses)
-  {
-    Trace("nl-model") << vw.first << " witness is " << vw.second << std::endl;
-    witnesses.emplace(vw.first, vw.second);
   }
   // Also record the exact values we used. An exact value can be seen as a
   // special kind approximation of the form (witness x. x = exact_value).
@@ -1140,10 +1096,6 @@ Node NlModel::getValueInternal(TNode n)
 bool NlModel::hasAssignment(Node v) const
 {
   if (d_check_model_bounds.find(v) != d_check_model_bounds.end())
-  {
-    return true;
-  }
-  if (d_check_model_witnesses.find(v) != d_check_model_witnesses.end())
   {
     return true;
   }

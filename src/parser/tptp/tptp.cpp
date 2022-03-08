@@ -112,7 +112,7 @@ void Tptp::addTheory(Theory theory) {
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
 bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANTLR3_INPUT_STREAM >& inc ) {
-  Trace("parser") << "Including " << fileName << std::endl;
+  Debug("parser") << "Including " << fileName << std::endl;
   // Create a new input stream and take advantage of built in stream stacking
   // in C target runtime.
   //
@@ -123,7 +123,7 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
 #endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if(in == NULL) {
-    Trace("parser") << "Can't open " << fileName << std::endl;
+    Debug("parser") << "Can't open " << fileName << std::endl;
     return false;
   }
   // Same thing as the predefined PUSHSTREAM(in);
@@ -240,29 +240,43 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   // if it has a kind, it's a builtin one and this function should not have been
   // called
   Assert(p.d_kind == api::NULL_EXPR);
-  if (isDeclared(p.d_name))
-  {  // already appeared
-    expr = getVariable(p.d_name);
-  }
-  else
+  expr = isTptpDeclared(p.d_name);
+  if (expr.isNull())
   {
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
-    expr = bindVar(p.d_name, t, true);  // must define at level zero
+    expr = bindVar(p.d_name, t);  // must define at level zero
+    d_auxSymbolTable[p.d_name] = expr;
     preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
   }
   return expr;
 }
 
+api::Term Tptp::isTptpDeclared(const std::string& name)
+{
+  if (isDeclared(name))
+  {  // already appeared
+    return getVariable(name);
+  }
+  std::unordered_map<std::string, api::Term>::iterator it =
+      d_auxSymbolTable.find(name);
+  if (it != d_auxSymbolTable.end())
+  {
+    return it->second;
+  }
+  // otherwise null
+  return api::Term();
+}
+
 api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
-  if (TraceIsOn("parser"))
+  if (Debug.isOn("parser"))
   {
-    Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
          ++i)
     {
-      Trace("parser") << "++ " << *i << std::endl;
+      Debug("parser") << "++ " << *i << std::endl;
     }
   }
   Assert(!args.empty());
@@ -281,18 +295,15 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (p.d_kind == api::NULL_EXPR)
   {
     // A non-built-in function application, get the expression
-    api::Term v;
-    if (isDeclared(p.d_name))
-    {  // already appeared
-      v = getVariable(p.d_name);
-    }
-    else
+    api::Term v = isTptpDeclared(p.d_name);
+    if (v.isNull())
     {
       std::vector<api::Sort> sorts(args.size(), d_unsorted);
       api::Sort t =
           p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
-      v = bindVar(p.d_name, t, true);  // must define at level zero
+      v = bindVar(p.d_name, t);  // must define at level zero
+      d_auxSymbolTable[p.d_name] = v;
       preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
     }
     // args might be rationals, in which case we need to create
@@ -337,9 +348,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Unary AND/OR can be replaced with the argument.
       return args[0];
     }
-    if (kind == api::MINUS && args.size() == 1)
+    if (kind == api::SUB && args.size() == 1)
     {
-      return d_solver->mkTerm(api::UMINUS, args[0]);
+      return d_solver->mkTerm(api::NEG, args[0]);
     }
     if (kind == api::TO_REAL)
     {
@@ -369,9 +380,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         {
           parseError("Cannot partially apply functions unless THF.");
         }
-        Trace("parser") << "Partial application of " << args[0];
-        Trace("parser") << " : #argTypes = " << arity;
-        Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
+        Debug("parser") << "Partial application of " << args[0];
+        Debug("parser") << " : #argTypes = " << arity;
+        Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
         return d_solver->mkTerm(api::HO_APPLY, args);
       }
@@ -509,7 +520,7 @@ api::Term Tptp::convertStrToUnsorted(std::string str)
 
 api::Term Tptp::mkLambdaWrapper(api::Kind k, api::Sort argType)
 {
-  Trace("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
+  Debug("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
                   << "\n";
   std::vector<api::Term> lvars;
   std::vector<api::Sort> domainTypes = argType.getFunctionDomainSorts();

@@ -22,7 +22,6 @@
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 #include "theory/quantifiers/sygus/sygus_random_enumerator.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_registry.h"
@@ -82,7 +81,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   {
     if (d_tds->isVariableAgnosticEnumerator(e))
     {
-      d_evg.reset(new EnumStreamConcrete(d_tds));
+      d_evg = std::make_unique<EnumStreamConcrete>(d_env, d_tds);
     }
     else
     {
@@ -90,24 +89,19 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       // or basic. The auto mode always prefers the optimized enumerator over
       // the basic one.
       Assert(d_tds->isBasicEnumerator(e));
-      if (options().quantifiers.sygusActiveGenMode
-          == options::SygusActiveGenMode::ENUM_BASIC)
+      if (options().quantifiers.sygusEnumMode == options::SygusEnumMode::RANDOM)
       {
-        d_evg.reset(new EnumValGeneratorBasic(d_tds, e.getType()));
-      }
-      else if (options().quantifiers.sygusActiveGenMode
-               == options::SygusActiveGenMode::RANDOM)
-      {
-        d_evg.reset(new SygusRandomEnumerator(d_tds));
+        d_evg = std::make_unique<SygusRandomEnumerator>(d_env, d_tds);
       }
       else
       {
-        Assert(options().quantifiers.sygusActiveGenMode
-                   == options::SygusActiveGenMode::ENUM
-               || options().quantifiers.sygusActiveGenMode
-                      == options::SygusActiveGenMode::AUTO);
+        Assert(options().quantifiers.sygusEnumMode
+                   == options::SygusEnumMode::FAST
+               || options().quantifiers.sygusEnumMode
+                      == options::SygusEnumMode::AUTO);
         // create the enumerator callback
-        if (options().datatypes.sygusSymBreakDynamic)
+        if (options().datatypes.sygusRewriter
+            != options::SygusRewriterMode::NONE)
         {
           std::ostream* out = nullptr;
           if (options().quantifiers.sygusRewVerify)
@@ -118,17 +112,18 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             // use the default output for the output of sygusRewVerify
             out = options().base.out;
           }
-          d_secd.reset(new SygusEnumeratorCallbackDefault(
-              e, &d_stats, d_eec.get(), d_samplerRrV.get(), out));
+          d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
+              d_env, e, d_tds, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
-        d_evg.reset(
-            new SygusEnumerator(d_tds,
-                                d_secd.get(),
-                                &d_stats,
-                                false,
-                                options().quantifiers.sygusRepairConst));
+        d_evg = std::make_unique<SygusEnumerator>(
+            d_env,
+            d_tds,
+            d_secd.get(),
+            &d_stats,
+            false,
+            options().quantifiers.sygusRepairConst);
       }
     }
     Trace("sygus-active-gen")
@@ -152,7 +147,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   {
     // None currently exist. The next abstract value is the model value for e.
     absE = getModelValue(e);
-    if (TraceIsOn("sygus-active-gen"))
+    if (Trace.isOn("sygus-active-gen"))
     {
       Trace("sygus-active-gen") << "Active-gen: new abstract value : ";
       TermDbSygus::toStreamSygus("sygus-active-gen", e);
@@ -212,7 +207,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                          << lem << std::endl;
-    if (TraceIsOn("sygus-active-gen-debug"))
+    if (Trace.isOn("sygus-active-gen-debug"))
     {
       Trace("sygus-active-gen-debug") << "Active-gen: block ";
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
@@ -231,7 +226,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     {
       d_evActiveGenWaiting = v;
     }
-    if (TraceIsOn("sygus-active-gen"))
+    if (Trace.isOn("sygus-active-gen"))
     {
       Trace("sygus-active-gen") << "Active-gen : " << e << " : ";
       TermDbSygus::toStreamSygus("sygus-active-gen", absE);

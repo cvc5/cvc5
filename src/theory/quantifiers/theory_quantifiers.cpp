@@ -34,7 +34,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
                                      Valuation valuation)
     : Theory(THEORY_QUANTIFIERS, env, out, valuation),
-      d_rewriter(env.getOptions()),
+      d_rewriter(env.getRewriter(), options()),
       d_qstate(env, valuation, logicInfo()),
       d_qreg(env),
       d_treg(env, d_qstate, d_qreg),
@@ -89,18 +89,18 @@ void TheoryQuantifiers::preRegisterTerm(TNode n)
   {
     return;
   }
-  Trace("quantifiers-prereg")
+  Debug("quantifiers-prereg")
       << "TheoryQuantifiers::preRegisterTerm() " << n << std::endl;
   // Preregister the quantified formula.
   // This initializes the modules used for handling n in this user context.
   getQuantifiersEngine()->preRegisterQuantifier(n);
-  Trace("quantifiers-prereg")
+  Debug("quantifiers-prereg")
       << "TheoryQuantifiers::preRegisterTerm() done " << n << std::endl;
 }
 
 
 void TheoryQuantifiers::presolve() {
-  Trace("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
+  Debug("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
   if( getQuantifiersEngine() ){
     getQuantifiersEngine()->presolve();
   }
@@ -141,7 +141,7 @@ bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
     if ((*i).d_assertion.getKind() == NOT)
     {
-      Trace("quantifiers::collectModelInfo")
+      Debug("quantifiers::collectModelInfo")
           << "got quant FALSE: " << (*i).d_assertion[0] << std::endl;
       if (!m->assertPredicate((*i).d_assertion[0], false))
       {
@@ -150,7 +150,7 @@ bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
     }
     else
     {
-      Trace("quantifiers::collectModelInfo")
+      Debug("quantifiers::collectModelInfo")
           << "got quant TRUE : " << *i << std::endl;
       if (!m->assertPredicate(*i, true))
       {

@@ -20,7 +20,10 @@
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -49,14 +52,14 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(env),
-      d_trSlv(d_env, d_im, d_model),
+      d_trSlv(d_env, d_astate, d_im, d_model),
       d_extState(d_im, d_model, d_env),
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
       d_monomialSlv(d_env, &d_extState),
       d_splitZeroSlv(d_env, &d_extState),
       d_tangentPlaneSlv(d_env, &d_extState),
-      d_cadSlv(d_env, d_im, d_model),
+      d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
@@ -86,6 +89,19 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
   d_extTheory.registerTerm(n);
+  // logic exceptions based on the configuration of nl-ext: if we are a
+  // transcendental function, we require nl-ext=full.
+  Kind k = n.getKind();
+  if (isTranscendentalKind(k))
+  {
+    if (options().arith.nlExt != options::NlExtMode::FULL)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " requires nl-ext mode to be set to value 'full'";
+      throw LogicException(ss.str());
+    }
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -223,9 +239,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
       return false;
     }
   }
-  if (options().arith.nlCad)
+  if (options().arith.nlCov)
   {
-    d_cadSlv.constructModelIfAvailable(passertions);
+    d_covSlv.constructModelIfAvailable(passertions);
   }
 
   Trace("nl-ext-cm") << "-----" << std::endl;
@@ -276,35 +292,13 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   if (res == Result::Sat::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
-    d_approximations.clear();
-    d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel,
-                                d_approximations,
-                                d_witnesses,
-                                options().smt.modelWitnessValue);
+    d_model.getModelValueRepair(arithModel);
   }
-}
-
-void NonlinearExtension::finalizeModel(TheoryModel* tm)
-{
-  Trace("nl-ext") << "NonlinearExtension::finalizeModel" << std::endl;
-
-  for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
-  {
-    if (a.second.second.isNull())
-    {
-      tm->recordApproximation(a.first, a.second.first);
-    }
-    else
-    {
-      tm->recordApproximation(a.first, a.second.first, a.second.second);
-    }
-  }
-  for (const auto& vw : d_witnesses)
-  {
-    tm->recordApproximation(vw.first, vw.second);
-  }
+  // must post-process model with transcendental solver, to ensure we don't
+  // assign values for equivalence classes with transcendental function
+  // applications
+  d_trSlv.postProcessModel(arithModel, termSet);
 }
 
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
@@ -336,7 +330,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
     }
   }
 
-  if (TraceIsOn("nl-ext-debug"))
+  if (Trace.isOn("nl-ext-debug"))
   {
     Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
                           << std::endl;
@@ -442,7 +436,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 {
   ++(d_stats.d_checkRuns);
 
-  if (TraceIsOn("nl-strategy"))
+  if (Trace.isOn("nl-strategy"))
   {
     for (const auto& a : assertions)
     {
@@ -464,8 +458,8 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     {
       case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
       case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
-      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
-      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::COVERINGS_FULL: d_covSlv.checkFull(); break;
+      case InferStep::COVERINGS_INIT: d_covSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;

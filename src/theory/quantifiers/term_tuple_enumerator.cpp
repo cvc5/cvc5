@@ -269,7 +269,7 @@ bool TermTupleEnumeratorBase::hasNext()
 
 void TermTupleEnumeratorBase::failureReason(const std::vector<bool>& mask)
 {
-  if (TraceIsOn("inst-alg"))
+  if (Trace.isOn("inst-alg"))
   {
     traceMaskedVector("inst-alg", "failureReason", mask, d_termIndex);
   }

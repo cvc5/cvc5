@@ -168,7 +168,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, options::outputLanguage());
+    options::ioutils::applyOutputLang(ss, options().base.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
@@ -399,7 +399,7 @@ void TermDb::computeUfTerms( TNode f ) {
           }
         }
         Node lem = nm->mkOr(lits);
-        if (TraceIsOn("term-db-lemma"))
+        if (Trace.isOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                  << n << "!!!!" << std::endl;
@@ -419,7 +419,7 @@ void TermDb::computeUfTerms( TNode f ) {
       nonCongruentCount++;
       d_op_nonred_count[f]++;
     }
-    if (TraceIsOn("tdb"))
+    if (Trace.isOn("tdb"))
     {
       Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount
                    << " / ";

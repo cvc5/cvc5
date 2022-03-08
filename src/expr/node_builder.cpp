@@ -418,11 +418,11 @@ expr::NodeValue* NodeBuilder::constructNV()
     nv->d_id = d_nm->next_id++;  // FIXME multithreading
     nv->d_rc = 0;
     setUsed();
-    if (TraceIsOn("gc"))
+    if (Debug.isOn("gc"))
     {
-      Trace("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
-      nv->printAst(Trace("gc"));
-      Trace("gc") << std::endl;
+      Debug("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
+      nv->printAst(Debug("gc"));
+      Debug("gc") << std::endl;
     }
     return nv;
   }
@@ -509,12 +509,12 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      if (TraceIsOn("gc"))
+      if (Debug.isOn("gc"))
       {
-        Trace("gc") << "creating node value " << nv << " [" << nv->d_id
+        Debug("gc") << "creating node value " << nv << " [" << nv->d_id
                     << "]: ";
-        nv->printAst(Trace("gc"));
-        Trace("gc") << std::endl;
+        nv->printAst(Debug("gc"));
+        Debug("gc") << std::endl;
       }
       return nv;
     }
@@ -564,7 +564,7 @@ expr::NodeValue* NodeBuilder::constructNV()
 
       // poolNv = nv;
       d_nm->poolInsert(nv);
-      Trace("gc") << "creating node value " << nv << " [" << nv->d_id
+      Debug("gc") << "creating node value " << nv << " [" << nv->d_id
                   << "]: " << *nv << "\n";
       return nv;
     }

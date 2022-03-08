@@ -64,14 +64,14 @@ public class DatatypeSelector extends AbstractPointer
 
   private native long getUpdaterTerm(long pointer);
 
-  /** @return the range sort of this selector. */
-  public Sort getRangeSort()
+  /** @return the codomain sort of this selector. */
+  public Sort getCodomainSort()
   {
-    long sortPointer = getRangeSort(pointer);
+    long sortPointer = getCodomainSort(pointer);
     return new Sort(solver, sortPointer);
   }
 
-  private native long getRangeSort(long pointer);
+  private native long getCodomainSort(long pointer);
 
   /**
    * @return true if this DatatypeSelector is a null object

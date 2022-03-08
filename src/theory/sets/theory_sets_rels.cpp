@@ -15,13 +15,17 @@
 
 #include "theory/sets/theory_sets_rels.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
 #include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
+using namespace cvc5::theory::datatypes;
 
 namespace cvc5 {
 namespace theory {
@@ -268,7 +272,7 @@ void TheorySetsRels::check(Theory::Effort level)
           std::vector<TypeNode> tupleTypes = erType.getTupleTypes();
           for (unsigned i = 0, tlen = erType.getTupleLength(); i < tlen; i++)
           {
-            Node element = RelsUtils::nthElementOfTuple(eqc_node, i);
+            Node element = TupleUtils::nthElementOfTuple(eqc_node, i);
             if (!element.isConst())
             {
               makeSharedTerm(element, tupleTypes[i]);
@@ -306,7 +310,7 @@ void TheorySetsRels::check(Theory::Effort level)
     unsigned int min_card = join_image_term[1].getConst<Rational>().getNumerator().getUnsignedInt();
 
     while( mem_rep_it != (*rel_mem_it).second.end() ) {
-      Node fst_mem_rep = RelsUtils::nthElementOfTuple( *mem_rep_it, 0 );
+      Node fst_mem_rep = TupleUtils::nthElementOfTuple( *mem_rep_it, 0 );
 
       if( hasChecked.find( fst_mem_rep ) != hasChecked.end() ) {
         ++mem_rep_it;
@@ -333,12 +337,14 @@ void TheorySetsRels::check(Theory::Effort level)
       std::vector< Node >::iterator mem_rep_exp_it_snd = (*rel_mem_exp_it).second.begin();
 
       while( mem_rep_exp_it_snd != (*rel_mem_exp_it).second.end() ) {
-        Node fst_element_snd_mem = RelsUtils::nthElementOfTuple( (*mem_rep_exp_it_snd)[0], 0 );
+        Node fst_element_snd_mem =
+            TupleUtils::nthElementOfTuple( (*mem_rep_exp_it_snd)[0], 0 );
 
         if( areEqual( fst_mem_rep,  fst_element_snd_mem ) ) {
           bool notExist = true;
           std::vector< Node >::iterator existing_mem_it = existing_members.begin();
-          Node snd_element_snd_mem = RelsUtils::nthElementOfTuple( (*mem_rep_exp_it_snd)[0], 1 );
+          Node snd_element_snd_mem =
+              TupleUtils::nthElementOfTuple( (*mem_rep_exp_it_snd)[0], 1 );
 
           while( existing_mem_it != existing_members.end() ) {
             if( areEqual( (*existing_mem_it), snd_element_snd_mem ) ) {
@@ -410,7 +416,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reason = exp;
     Node conclusion = d_trueNode;
     std::vector< Node > distinct_skolems;
-    Node fst_mem_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
+    Node fst_mem_element = TupleUtils::nthElementOfTuple( exp[0], 0 );
 
     if( exp[1] != join_image_term ) {
       reason =
@@ -451,8 +457,8 @@ void TheorySetsRels::check(Theory::Effort level)
       d_rel_nodes.insert( iden_term );
     }
     Node reason = exp;
-    Node fst_mem = RelsUtils::nthElementOfTuple( exp[0], 0 );
-    Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
+    Node fst_mem = TupleUtils::nthElementOfTuple( exp[0], 0 );
+    Node snd_mem = TupleUtils::nthElementOfTuple( exp[0], 1 );
     const DType& dt = iden_term[0].getType().getSetElementType().getDType();
     Node fact = nm->mkNode(
         SET_MEMBER,
@@ -489,7 +495,7 @@ void TheorySetsRels::check(Theory::Effort level)
 
     while( mem_rep_exp_it != (*rel_mem_exp_it).second.end() ) {
       Node reason = *mem_rep_exp_it;
-      Node fst_exp_mem = RelsUtils::nthElementOfTuple( (*mem_rep_exp_it)[0], 0 );
+      Node fst_exp_mem = TupleUtils::nthElementOfTuple( (*mem_rep_exp_it)[0], 0 );
       Node new_mem = RelsUtils::constructPair( iden_term, fst_exp_mem, fst_exp_mem );
 
       if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
@@ -548,8 +554,8 @@ void TheorySetsRels::check(Theory::Effort level)
 
     // add mem_rep to d_tcrRep_tcGraph
     TC_IT tc_it = d_tcr_tcGraph.find( tc_rel );
-    Node mem_rep_fst = getRepresentative( RelsUtils::nthElementOfTuple( mem_rep, 0 ) );
-    Node mem_rep_snd = getRepresentative( RelsUtils::nthElementOfTuple( mem_rep, 1 ) );
+    Node mem_rep_fst = getRepresentative(TupleUtils::nthElementOfTuple( mem_rep, 0 ) );
+    Node mem_rep_snd = getRepresentative(TupleUtils::nthElementOfTuple( mem_rep, 1 ) );
     Node mem_rep_tup = RelsUtils::constructPair( tc_rel, mem_rep_fst, mem_rep_snd );
 
     if( tc_it != d_tcr_tcGraph.end() ) {
@@ -580,8 +586,8 @@ void TheorySetsRels::check(Theory::Effort level)
       exp_map[mem_rep_tup] = exp;
       d_tcr_tcGraph_exps[tc_rel] = exp_map;
     }
-    Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
-    Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
+    Node fst_element = TupleUtils::nthElementOfTuple( exp[0], 0 );
+    Node snd_element = TupleUtils::nthElementOfTuple( exp[0], 1 );
     Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
                                               exp[0],
                                               tc_rel[0],
@@ -631,8 +637,8 @@ void TheorySetsRels::check(Theory::Effort level)
     if( tc_it != d_rRep_tcGraph.end() ) {
       bool isReachable = false;
       std::unordered_set<Node> seen;
-      isTCReachable( getRepresentative( RelsUtils::nthElementOfTuple(mem_rep, 0) ),
-                     getRepresentative( RelsUtils::nthElementOfTuple(mem_rep, 1) ), seen, tc_it->second, isReachable );
+      isTCReachable( getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0) ),
+                     getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1) ), seen, tc_it->second, isReachable );
       return isReachable;
     }
     return false;
@@ -680,8 +686,8 @@ void TheorySetsRels::check(Theory::Effort level)
 
     for (size_t i = 0, msize = members.size(); i < msize; i++)
     {
-      Node fst_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 0 ));
-      Node snd_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 1 ));
+      Node fst_element_rep = getRepresentative(TupleUtils::nthElementOfTuple( members[i], 0 ));
+      Node snd_element_rep = getRepresentative(TupleUtils::nthElementOfTuple( members[i], 1 ));
       Node tuple_rep = RelsUtils::constructPair( rel_rep, fst_element_rep, snd_element_rep );
       std::map<Node, std::unordered_set<Node> >::iterator rel_tc_graph_it =
           rel_tc_graph.find(fst_element_rep);
@@ -743,12 +749,15 @@ void TheorySetsRels::check(Theory::Effort level)
       std::unordered_set<Node>& seen)
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node tc_mem = RelsUtils::constructPair( tc_rel, RelsUtils::nthElementOfTuple((reasons.front())[0], 0), RelsUtils::nthElementOfTuple((reasons.back())[0], 1) );
+    Node tc_mem = RelsUtils::constructPair( tc_rel,
+        TupleUtils::nthElementOfTuple((reasons.front())[0], 0),
+        TupleUtils::nthElementOfTuple((reasons.back())[0], 1) );
     std::vector< Node > all_reasons( reasons );
 
     for( unsigned int i = 0 ; i < reasons.size()-1; i++ ) {
-      Node fst_element_end = RelsUtils::nthElementOfTuple( reasons[i][0], 1 );
-      Node snd_element_begin = RelsUtils::nthElementOfTuple( reasons[i+1][0], 0 );
+      Node fst_element_end = TupleUtils::nthElementOfTuple( reasons[i][0], 1 );
+      Node snd_element_begin =
+          TupleUtils::nthElementOfTuple( reasons[i+1][0], 0 );
       if( fst_element_end != snd_element_begin ) {
         all_reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, fst_element_end, snd_element_begin) );
       }
@@ -823,12 +832,12 @@ void TheorySetsRels::check(Theory::Effort level)
 
     unsigned int i = 0;
     for(; i < s1_len; ++i) {
-      r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
+      r1_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     const DType& dt2 = pt_rel[1].getType().getSetElementType().getDType();
     r2_element.push_back(dt2[0].getConstructor());
     for(; i < tup_len; ++i) {
-      r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
+      r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     Node reason   = exp;
     Node mem1     = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, r1_element);
@@ -885,14 +894,14 @@ void TheorySetsRels::check(Theory::Effort level)
     unsigned int i = 0;
     r1_element.push_back(dt1[0].getConstructor());
     for(; i < s1_len-1; ++i) {
-      r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
+      r1_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     r1_element.push_back(shared_x);
     const DType& dt2 = join_rel[1].getType().getSetElementType().getDType();
     r2_element.push_back(dt2[0].getConstructor());
     r2_element.push_back(shared_x);
     for(; i < tup_len; ++i) {
-      r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
+      r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     Node mem1 = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, r1_element);
     Node mem2 = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, r2_element);
@@ -966,7 +975,7 @@ void TheorySetsRels::check(Theory::Effort level)
     }
 
     Node reason = exp;
-    Node reversed_mem = RelsUtils::reverseTuple( exp[0] );
+    Node reversed_mem = TupleUtils::reverseTuple( exp[0] );
 
     if( tp_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tp_rel, exp[1]));
@@ -1063,7 +1072,7 @@ void TheorySetsRels::check(Theory::Effort level)
               kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
         sendInfer(
-            nm->mkNode(SET_MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
+            nm->mkNode(SET_MEMBER, TupleUtils::reverseTuple(exps[i][0]), rel),
             InferenceId::SETS_RELS_TRANSPOSE_REV,
             reason);
       }
@@ -1108,9 +1117,8 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector<Node> reasons;
         if (rk == kind::RELATION_JOIN)
         {
-          Node r1_rmost =
-              RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
-          Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
+          Node r1_rmost = TupleUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
+          Node r2_lmost = TupleUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
           // Since we require notification r1_rmost and r2_lmost are equal,
           // they must be shared terms of theory of sets. Hence, we make the
           // following calls to makeSharedTerm to ensure this is the case.
@@ -1140,14 +1148,18 @@ void TheorySetsRels::check(Theory::Effort level)
           unsigned int l = 1;
 
           for( ; k < r1_tuple_len - 1; ++k ) {
-            tuple_elements.push_back( RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], k ) );
+            tuple_elements.push_back(
+                TupleUtils::nthElementOfTuple( r1_rep_exps[i][0], k ) );
           }
           if(isProduct) {
-            tuple_elements.push_back( RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], k ) );
-            tuple_elements.push_back( RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 ) );
+            tuple_elements.push_back(
+                TupleUtils::nthElementOfTuple( r1_rep_exps[i][0], k ) );
+            tuple_elements.push_back(
+                TupleUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 ) );
           }
           for( ; l < r2_tuple_len; ++l ) {
-            tuple_elements.push_back( RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], l ) );
+            tuple_elements.push_back(
+                TupleUtils::nthElementOfTuple( r2_rep_exps[j][0], l ) );
           }
 
           Node composed_tuple =
@@ -1216,8 +1228,8 @@ void TheorySetsRels::check(Theory::Effort level)
       size_t tlen = atn.getTupleLength();
       for (size_t i = 0; i < tlen; i++)
       {
-        if (!areEqual(RelsUtils::nthElementOfTuple(a, i),
-                      RelsUtils::nthElementOfTuple(b, i)))
+        if (!areEqual(TupleUtils::nthElementOfTuple(a, i),
+                      TupleUtils::nthElementOfTuple(b, i)))
         {
           return false;
         }
@@ -1278,7 +1290,7 @@ void TheorySetsRels::check(Theory::Effort level)
   void TheorySetsRels::computeTupleReps( Node n ) {
     if( d_tuple_reps.find( n ) == d_tuple_reps.end() ){
       for( unsigned i = 0; i < n.getType().getTupleLength(); i++ ){
-        d_tuple_reps[n].push_back( getRepresentative( RelsUtils::nthElementOfTuple(n, i) ) );
+        d_tuple_reps[n].push_back( getRepresentative(TupleUtils::nthElementOfTuple(n, i) ) );
       }
     }
   }
@@ -1295,7 +1307,7 @@ void TheorySetsRels::check(Theory::Effort level)
       std::vector<TypeNode> tupleTypes = n[0].getType().getTupleTypes();
       for (unsigned int i = 0; i < n[0].getType().getTupleLength(); i++)
       {
-        Node element = RelsUtils::nthElementOfTuple(n[0], i);
+        Node element = TupleUtils::nthElementOfTuple(n[0], i);
         makeSharedTerm(element, tupleTypes[i]);
         tuple_elements.push_back(element);
       }

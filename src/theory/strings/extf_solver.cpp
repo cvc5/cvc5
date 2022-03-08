@@ -16,6 +16,7 @@
 #include "theory/strings/extf_solver.h"
 
 #include "options/strings_options.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -157,10 +158,28 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // asserted (pol=0).
     return false;
   }
-  else if (effort != 2)
+  else
   {
-    // all other operators reduce at level 2
-    return false;
+    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    {
+      if (k == SEQ_NTH)
+      {
+        // don't need to reduce seq.nth when sequence update solver is used
+        return false;
+      }
+      else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+               && d_termReg.isHandledUpdate(n))
+      {
+        // don't need to reduce certain seq.update
+        // don't need to reduce certain seq.extract with length 1
+        return false;
+      }
+    }
+    if (effort != 2)
+    {
+      // all other operators reduce at level 2
+      return false;
+    }
   }
   Node c_n = pol == -1 ? n.negate() : n;
   Trace("strings-process-debug")
@@ -275,6 +294,11 @@ void ExtfSolver::checkExtfEval(int effort)
     // value, say in this example that (str.replace x "A" "B") != "B".
     std::vector<Node> exp;
     std::vector<Node> schildren;
+    // seq.unit is parameterized
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
+    {
+      schildren.push_back(n.getOperator());
+    }
     bool schanged = false;
     for (const Node& nc : n)
     {
@@ -373,15 +397,7 @@ void ExtfSolver::checkExtfEval(int effort)
             {
               if (n.getType().isBoolean())
               {
-                if (d_state.areEqual(n, nrc == d_true ? d_false : d_true))
-                {
-                  einfo.d_exp.push_back(nrc == d_true ? n.negate() : n);
-                  conc = d_false;
-                }
-                else
-                {
-                  conc = nrc == d_true ? n : n.negate();
-                }
+                conc = nrc == d_true ? n : n.negate();
               }
               else
               {

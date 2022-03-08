@@ -32,11 +32,12 @@
 #include "expr/type_properties.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
-#include "theory/type_enumerator.h"
-#include "util/abstract_value.h"
+#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
+#include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
+#include "util/uninterpreted_sort_value.h"
 
 // clang-format off
 ${metakind_includes}
@@ -60,12 +61,12 @@ struct ScopedBool {
   ScopedBool(bool& value) :
     d_value(value) {
 
-    Trace("gc") << ">> setting ScopedBool\n";
+    Debug("gc") << ">> setting ScopedBool\n";
     d_value = true;
   }
 
   ~ScopedBool() {
-    Trace("gc") << "<< clearing ScopedBool\n";
+    Debug("gc") << "<< clearing ScopedBool\n";
     d_value = false;
   }
 };
@@ -80,11 +81,11 @@ struct NVReclaim {
   NVReclaim(NodeValue*& deletionField) :
     d_deletionField(deletionField) {
 
-    Trace("gc") << ">> setting NVRECLAIM field\n";
+    Debug("gc") << ">> setting NVRECLAIM field\n";
   }
 
   ~NVReclaim() {
-    Trace("gc") << "<< clearing NVRECLAIM field\n";
+    Debug("gc") << "<< clearing NVRECLAIM field\n";
     d_deletionField = NULL;
   }
 };
@@ -268,7 +269,7 @@ NodeManager::~NodeManager()
       NodeValue* greatest_maxed_out = order.back();
       order.pop_back();
       Assert(greatest_maxed_out->HasMaximizedReferenceCount());
-      Trace("gc") << "Force zombify " << greatest_maxed_out << std::endl;
+      Debug("gc") << "Force zombify " << greatest_maxed_out << std::endl;
       greatest_maxed_out->d_rc = 0;
       markForDeletion(greatest_maxed_out);
     }
@@ -283,18 +284,18 @@ NodeManager::~NodeManager()
     poolRemove(&expr::NodeValue::null());
   }
 
-  if (TraceIsOn("gc:leaks"))
+  if (Debug.isOn("gc:leaks"))
   {
-    Trace("gc:leaks") << "still in pool:" << endl;
+    Debug("gc:leaks") << "still in pool:" << endl;
     for (NodeValuePool::const_iterator i = d_nodeValuePool.begin(),
                                        iend = d_nodeValuePool.end();
          i != iend;
          ++i)
     {
-      Trace("gc:leaks") << "  " << *i << " id=" << (*i)->d_id
+      Debug("gc:leaks") << "  " << *i << " id=" << (*i)->d_id
                         << " rc=" << (*i)->d_rc << " " << **i << endl;
     }
-    Trace("gc:leaks") << ":end:" << endl;
+    Debug("gc:leaks") << ":end:" << endl;
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
@@ -315,7 +316,7 @@ void NodeManager::reclaimZombies()
   // FIXME multithreading
   Assert(!d_attrManager->inGarbageCollection());
 
-  Trace("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
+  Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
   Assert(!d_inReclaimZombies)
@@ -366,12 +367,12 @@ void NodeManager::reclaimZombies()
     // collect ONLY IF still zero
     if (nv->d_rc == 0)
     {
-      if (TraceIsOn("gc"))
+      if (Debug.isOn("gc"))
       {
-        Trace("gc") << "deleting node value " << nv << " [" << nv->d_id
+        Debug("gc") << "deleting node value " << nv << " [" << nv->d_id
                     << "]: ";
-        nv->printAst(Trace("gc"));
-        Trace("gc") << endl;
+        nv->printAst(Debug("gc"));
+        Debug("gc") << endl;
       }
 
       // remove from the pool
@@ -440,6 +441,8 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
     {
       NodeValue* current = stack.back().second;
       const bool visited_children = stack.back().first;
+      Debug("gc") << "Topological sort " << current << " " << visited_children
+                  << std::endl;
       if (visited_children)
       {
         if (root_set.find(current) != root_set.end())
@@ -473,6 +476,10 @@ TypeNode NodeManager::getType(TNode n, bool check)
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
+
+  Debug("getType") << this << " getting type for " << &n << " " << n
+                   << ", check=" << check << ", needsCheck = " << needsCheck
+                   << ", hasType = " << hasType << endl;
 
 #ifdef CVC5_DEBUG
   // already did type check eagerly upon creation in node builder
@@ -529,6 +536,8 @@ TypeNode NodeManager::getType(TNode n, bool check)
   /* The check should have happened, if we asked for it. */
   Assert(!check || getAttribute(n, TypeCheckedAttr()));
 
+  Debug("getType") << "type of " << &n << " " << n << " is " << typeNode
+                   << endl;
   return typeNode;
 }
 
@@ -536,7 +545,7 @@ TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
   CheckArgument(
       !elementType.isNull(), elementType, "unexpected NULL element type");
-  Trace("bags") << "making bags type " << elementType << std::endl;
+  Debug("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
@@ -755,7 +764,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
-      Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
+      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
   }
@@ -791,7 +800,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
-      Trace("tuprec-debug") << "Return type : " << d_data << std::endl;
+      Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
   }
@@ -835,16 +844,16 @@ TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
 {
   std::vector<TypeNode> ts;
-  Trace("tuprec-debug") << "Make tuple type : ";
+  Debug("tuprec-debug") << "Make tuple type : ";
   for (unsigned i = 0; i < types.size(); ++i)
   {
     CheckArgument(!types[i].isFunctionLike(),
                   types,
                   "cannot put function-like types in tuples");
     ts.push_back(types[i]);
-    Trace("tuprec-debug") << types[i] << " ";
+    Debug("tuprec-debug") << types[i] << " ";
   }
-  Trace("tuprec-debug") << std::endl;
+  Debug("tuprec-debug") << std::endl;
   return d_tt_cache.getTupleType(this, ts);
 }
 
@@ -1094,6 +1103,17 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   }
 }
 
+Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(SeqUnitOp(t));
+  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
+  return sunit;
+}
+
 Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 {
   Assert(n.getType().isSubtypeOf(t))
@@ -1116,11 +1136,9 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
   return bag;
 }
 
-Node NodeManager::mkAbstractValue(const TypeNode& type)
+Node NodeManager::mkUninterpretedSortValue(const TypeNode& type)
 {
-  Node n = mkConst(AbstractValue(++d_abstractValueCount));
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
+  Node n = mkConst(UninterpretedSortValue(type, ++d_abstractValueCount));
   return n;
 }
 
@@ -1195,6 +1213,13 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   new (&nv->d_children) T(val);
 
   poolInsert(nv);
+  if (Debug.isOn("gc"))
+  {
+    Debug("gc") << "creating node value " << nv << " [" << nv->d_id << "]: ";
+    nv->printAst(Debug("gc"));
+    Debug("gc") << std::endl;
+  }
+
   return NodeClass(nv);
 }
 
@@ -1286,6 +1311,30 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
     return mkConstReal(r);
   }
   return mkConstInt(r);
+}
+
+Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
+{
+  if (ran.isRational())
+  {
+    return mkConstReal(ran.toRational());
+  }
+  // Creating this node may refine the ran to the point where isRational returns
+  // true
+  Node inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran);
+
+  // Keep doing this until it either is rational or we have a fixed point.
+  while (true)
+  {
+    const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
+    if (cur.isRational())
+    {
+      return mkConstReal(cur.toRational());
+    }
+    if (cur == ran) break;
+    inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 }
 
 }  // namespace cvc5

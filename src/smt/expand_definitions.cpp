@@ -34,7 +34,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(Env& env) : d_env(env), d_tpg(nullptr) {}
+ExpandDefs::ExpandDefs(Env& env) : EnvObj(env), d_tpg(nullptr) {}
 
 ExpandDefs::~ExpandDefs() {}
 
@@ -89,7 +89,7 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      theory::TheoryId tid = theory::Theory::theoryOf(node);
+      theory::TheoryId tid = d_env.theoryOf(node);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
@@ -164,11 +164,13 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
   return TrustNode::mkTrustRewrite(orig, res, tpg);
 }
 
-void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
+void ExpandDefs::enableProofs()
 {
+  // initialize if not done already
   if (d_tpg == nullptr)
   {
-    d_tpg.reset(new TConvProofGenerator(pnm,
+    Assert(d_env.getProofNodeManager() != nullptr);
+    d_tpg.reset(new TConvProofGenerator(d_env.getProofNodeManager(),
                                         d_env.getUserContext(),
                                         TConvPolicy::FIXPOINT,
                                         TConvCachePolicy::NEVER,

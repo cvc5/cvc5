@@ -72,7 +72,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     return false;
   }
   // don't bother matching on anything other than + on the left hand side
-  if (l.getKind() != kind::PLUS)
+  if (l.getKind() != kind::ADD)
   {
     Trace("pbs::rewrites") << "not plus" << assertion << std::endl;
     return false;
@@ -301,7 +301,8 @@ void PseudoBooleanProcessor::learn(Node assertion)
 Node PseudoBooleanProcessor::mkGeqOne(Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::GEQ, v, mkRationalNode(Rational(1)));
+  return nm->mkNode(
+      kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
 
 void PseudoBooleanProcessor::learn(const std::vector<Node>& assertions)

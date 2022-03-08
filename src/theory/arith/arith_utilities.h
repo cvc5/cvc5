@@ -195,7 +195,7 @@ inline Node negateConjunctionAsClause(TNode conjunction){
 inline Node maybeUnaryConvert(NodeBuilder& builder)
 {
   Assert(builder.getKind() == kind::OR || builder.getKind() == kind::AND
-         || builder.getKind() == kind::PLUS || builder.getKind() == kind::MULT);
+         || builder.getKind() == kind::ADD || builder.getKind() == kind::MULT);
   Assert(builder.getNumChildren() >= 1);
   if(builder.getNumChildren() == 1){
     return builder[0];
@@ -223,24 +223,23 @@ inline Node flattenAnd(Node n){
 }
 
 // Returns an node that is the identity of a select few kinds.
-inline Node getIdentity(Kind k){
-  switch(k){
-  case kind::AND:
-    return mkBoolNode(true);
-  case kind::PLUS:
-    return mkRationalNode(0);
-  case kind::MULT:
-  case kind::NONLINEAR_MULT:
-    return mkRationalNode(1);
-  default: Unreachable(); return Node::null();  // silence warning
+inline Node getIdentityType(const TypeNode& tn, Kind k)
+{
+  switch (k)
+  {
+    case kind::ADD: return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+    case kind::MULT:
+    case kind::NONLINEAR_MULT:
+      return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
+    default: Unreachable(); return Node::null();  // silence warning
   }
 }
 
-inline Node safeConstructNary(NodeBuilder& nb)
+inline Node mkAndFromBuilder(NodeBuilder& nb)
 {
+  Assert(nb.getKind() == kind::AND);
   switch (nb.getNumChildren()) {
-    case 0:
-      return getIdentity(nb.getKind());
+    case 0: return mkBoolNode(true);
     case 1:
       return nb[0];
     default:
@@ -248,14 +247,15 @@ inline Node safeConstructNary(NodeBuilder& nb)
   }
 }
 
-inline Node safeConstructNary(Kind k, const std::vector<Node>& children) {
-  switch (children.size()) {
-    case 0:
-      return getIdentity(k);
-    case 1:
-      return children[0];
-    default:
-      return NodeManager::currentNM()->mkNode(k, children);
+inline Node safeConstructNaryType(const TypeNode& tn,
+                                  Kind k,
+                                  const std::vector<Node>& children)
+{
+  switch (children.size())
+  {
+    case 0: return getIdentityType(tn, k);
+    case 1: return children[0];
+    default: return NodeManager::currentNM()->mkNode(k, children);
   }
 }
 
@@ -277,7 +277,7 @@ inline Node mkInRange(Node term, Node start, Node end) {
 // when n is 0 or not. Useful for division by 0 logic.
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
-  Node zero = mkRationalNode(0);
+  Node zero = NodeManager::currentNM()->mkConstRealOrInt(n.getType(), 0);
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
@@ -331,6 +331,12 @@ Rational greatestIntLessThan(const Rational&);
 
 /** Negates a node in arithmetic proof normal form. */
 Node negateProofLiteral(TNode n);
+
+/**
+ * Return the result of multiplying constant integer or real nodes c1 and c2.
+ * The returned type is real if either have type real.
+ */
+Node multConstants(const Node& c1, const Node& c2);
 
 }  // namespace arith
 }  // namespace theory

@@ -40,7 +40,7 @@ void QuantifiersRegistry::registerQuantifier(Node q)
   }
   Assert(q.getKind() == kind::FORALL);
   NodeManager* nm = NodeManager::currentNM();
-  Trace("quantifiers-engine")
+  Debug("quantifiers-engine")
       << "Instantiation constants for " << q << " : " << std::endl;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
@@ -49,7 +49,7 @@ void QuantifiersRegistry::registerQuantifier(Node q)
     Node ic = nm->mkInstConstant(q[0][i].getType());
     d_inst_constants_map[ic] = q;
     d_inst_constants[q].push_back(ic);
-    Trace("quantifiers-engine") << "  " << ic << std::endl;
+    Debug("quantifiers-engine") << "  " << ic << std::endl;
     // set the var number attribute
     InstVarNumAttribute ivna;
     ic.setAttribute(ivna, i);

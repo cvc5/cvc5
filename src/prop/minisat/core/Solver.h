@@ -94,6 +94,17 @@ class Solver : protected EnvObj
   int getAssertionLevel() const { return assertionLevel; }
 
  protected:
+  /*
+   * Returns true if the solver should add all clauses at the current assertion
+   * level.
+   *
+   * FIXME: This is a workaround. Currently, our resolution proofs do not
+   * handle clauses with a lower-than-assertion-level correctly because the
+   * resolution proofs get removed when popping the context but the SAT solver
+   * keeps using them.
+   */
+  const bool d_assertionLevelOnly;
+
   /** Do we allow incremental solving */
   bool d_enable_incremental;
 
@@ -575,7 +586,7 @@ inline bool Solver::isPropagatedBy(Var x, const Clause& c) const
 
 inline bool Solver::isDecision(Var x) const
 {
-  Trace("minisat") << "var " << x << " is a decision iff "
+  Debug("minisat") << "var " << x << " is a decision iff "
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;

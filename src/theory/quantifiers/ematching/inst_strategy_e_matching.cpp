@@ -280,14 +280,14 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       // sort based on # occurrences (this will cause Trigger to select rarer
       // symbols)
       std::sort(patTerms.begin(), patTerms.end(), sqfs);
-      if (TraceIsOn("relevant-trigger"))
+      if (Debug.isOn("relevant-trigger"))
       {
-        Trace("relevant-trigger") << "Terms based on relevance: " << std::endl;
+        Debug("relevant-trigger") << "Terms based on relevance: " << std::endl;
         for (const Node& p : patTerms)
         {
-          Trace("relevant-trigger")
+          Debug("relevant-trigger")
               << "   " << p << " from " << d_pat_to_mpat[p] << " (";
-          Trace("relevant-trigger") << d_quant_rel->getNumQuantifiersForSymbol(
+          Debug("relevant-trigger") << d_quant_rel->getNumQuantifiersForSymbol(
                                            d_pat_to_mpat[p].getOperator())
                                     << ")" << std::endl;
         }
@@ -421,7 +421,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       sortTriggers st;
       std::sort(patTermsF.begin(), patTermsF.end(), st);
     }
-    if (TraceIsOn("auto-gen-trigger-debug"))
+    if (Trace.isOn("auto-gen-trigger-debug"))
     {
       Trace("auto-gen-trigger-debug")
           << "Collected pat terms for " << bd
@@ -587,7 +587,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   }
   // tinfo not used below this point
   d_made_multi_trigger[f] = false;
-  if (TraceIsOn("auto-gen-trigger"))
+  if (Trace.isOn("auto-gen-trigger"))
   {
     Trace("auto-gen-trigger")
         << "Single trigger pool for " << f << " : " << std::endl;

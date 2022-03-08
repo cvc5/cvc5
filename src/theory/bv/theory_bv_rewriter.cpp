@@ -263,30 +263,39 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
     }
   }
 
-  
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<ExtractConstant>, 
+  resultNode = LinearRewriteStrategy<
+      // We could have an extract over extract
       RewriteRule<ExtractExtract>,
-      // We could get another extract over extract
+      // The extract may cover the whole bit-vector
       RewriteRule<ExtractWhole>,
-      // At this point only Extract-Whole could apply
-      RewriteRule<ExtractMultLeadingBit>
-      >::apply(node);
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+      // Rewrite extracts over wide multiplications
+      RewriteRule<ExtractMultLeadingBit>,
+      // Perform constant folding last to maximize chances that it applies
+      RewriteRule<ExtractConstant>>::apply(node);
+
+  // There are terms that can be rewritten by repeatedly alternating between
+  // ExtractExtract and ExtractConcat, so we have to be conservative here and
+  // return REWRITE_AGAIN if the node changed.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<
-      RewriteRule<ConcatFlatten>,
       // Flatten the top level concatenations
-      RewriteRule<ConcatExtractMerge>,
+      RewriteRule<ConcatFlatten>,
       // Merge the adjacent extracts on non-constants
-      RewriteRule<ConcatConstantMerge>,
+      RewriteRule<ConcatExtractMerge>,
+      // Remove extracts that have no effect
+      ApplyRuleToChildren<kind::BITVECTOR_CONCAT, ExtractWhole>,
       // Merge the adjacent extracts on constants
-      ApplyRuleToChildren<kind::BITVECTOR_CONCAT, ExtractWhole>>::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode);
+      RewriteRule<ConcatConstantMerge>>::apply(node);
+
+  // Applying ExtractWhole to the children may result in concat nodes that can
+  // be flattened by this method.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
@@ -477,7 +486,11 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
     }
   }
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  // There are cases where we need to rewrite the resulting term again. For
+  // example, if we rewrite (bvneg (bvneg (bvneg #b0))) to (bvneg #b0) then we
+  // have to rewrite again.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite){

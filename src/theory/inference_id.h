@@ -66,6 +66,16 @@ enum class InferenceId
   ARITH_CONF_SOI_SIMPLEX,
   // conflict when getting constraint from fact queue
   ARITH_CONF_FACT_QUEUE,
+  // conflict in tryBranchCut
+  ARITH_CONF_BRANCH_CUT,
+  // conflict in replayAssert
+  ARITH_CONF_REPLAY_ASSERT,
+  // conflict in replayLog
+  ARITH_CONF_REPLAY_LOG,
+  // conflict in replayLogRec
+  ARITH_CONF_REPLAY_LOG_REC,
+  // conflict from handleUnateProp
+  ARITH_CONF_UNATE_PROP,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
   // tighten integer inequalities to ceiling
@@ -114,6 +124,10 @@ enum class InferenceId
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
   //-------------------- nonlinear transcendental solver
+  // sine symmetry
+  ARITH_NL_T_SINE_SYMM,
+  // boundary reduction
+  ARITH_NL_T_SINE_BOUNDARY_REDUCE,
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
@@ -144,11 +158,11 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
-  //-------------------- nonlinear cad solver
-  // conflict / infeasible subset obtained from cad
-  ARITH_NL_CAD_CONFLICT,
+  //-------------------- nonlinear coverings solver
+  // conflict / infeasible subset obtained from coverings
+  ARITH_NL_COVERING_CONFLICT,
   // excludes an interval for a single variable
-  ARITH_NL_CAD_EXCLUDED_INTERVAL,
+  ARITH_NL_COVERING_EXCLUDED_INTERVAL,
   //-------------------- nonlinear icp solver
   // conflict obtained from icp
   ARITH_NL_ICP_CONFLICT,
@@ -170,6 +184,8 @@ enum class InferenceId
   // ---------------------------------- bags theory
   BAGS_NON_NEGATIVE_COUNT,
   BAGS_BAG_MAKE,
+  BAGS_BAG_MAKE_SPLIT,
+  BAGS_COUNT_SKOLEM,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
@@ -179,9 +195,14 @@ enum class InferenceId
   BAGS_DIFFERENCE_SUBTRACT,
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
-  BAGS_MAP,
+  BAGS_MAP_DOWN,
+  BAGS_MAP_UP,
+  BAGS_FILTER_DOWN,
+  BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
+  TABLES_PRODUCT_UP,
+  TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -287,6 +308,8 @@ enum class InferenceId
   QUANTIFIERS_INST_E_MATCHING_HO,
   // E-matching based on variable triggers
   QUANTIFIERS_INST_E_MATCHING_VAR_GEN,
+  // E-matching based on relational triggers
+  QUANTIFIERS_INST_E_MATCHING_RELATIONAL,
   // conflicting instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation
@@ -455,7 +478,6 @@ enum class InferenceId
   SETS_UP_CLOSURE,
   SETS_UP_CLOSURE_2,
   SETS_UP_UNIV,
-  SETS_UNIV_TYPE,
   //-------------------- sets cardinality solver
   // split on emptyset
   SETS_CARD_SPLIT_EMPTY,
@@ -684,6 +706,8 @@ enum class InferenceId
   STRINGS_ARRAY_UPDATE_UNIT,
   // update over conatenation
   STRINGS_ARRAY_UPDATE_CONCAT,
+  // update over conatenation, inverse
+  STRINGS_ARRAY_UPDATE_CONCAT_INVERSE,
   // nth over unit
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation
@@ -692,6 +716,14 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_EXTRACT,
   // nth over update
   STRINGS_ARRAY_NTH_UPDATE,
+  // reasoning about the nth term from update term
+  STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
+  // reasoning about whether an update changes a term or not
+  STRINGS_ARRAY_UPDATE_BOUND,
+  // splitting about equality of sequences
+  STRINGS_ARRAY_EQ_SPLIT,
+  // nth over update when updated with an unit term
+  STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
   // nth over reverse
   STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver

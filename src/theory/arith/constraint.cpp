@@ -267,7 +267,7 @@ ConstraintP ValueCollection::getDisequality() const {
 
 
 void ValueCollection::push_into(std::vector<ConstraintP>& vec) const {
-  Trace("arith::constraint") << "push_into " << *this << endl;
+  Debug("arith::constraint") << "push_into " << *this << endl;
   if(hasEquality()){
     vec.push_back(d_equality);
   }
@@ -436,12 +436,12 @@ Constraint::~Constraint() {
 
   if(initialized()){
     ValueCollection& vc =  d_variablePosition->second;
-    Trace("arith::constraint") << "removing" << vc << endl;
+    Debug("arith::constraint") << "removing" << vc << endl;
 
     vc.remove(getType());
 
     if(vc.empty()){
-      Trace("arith::constraint") << "erasing" << vc << endl;
+      Debug("arith::constraint") << "erasing" << vc << endl;
       SortedConstraintMap& perVariable = d_database->getVariableSCM(getVariable());
       perVariable.erase(d_variablePosition);
     }
@@ -463,7 +463,7 @@ const ValueCollection& Constraint::getValueCollection() const{
 
 
 ConstraintP Constraint::getCeiling() {
-  Trace("getCeiling") << "Constraint_::getCeiling on " << *this << endl;
+  Debug("getCeiling") << "Constraint_::getCeiling on " << *this << endl;
   Assert(getValue().getInfinitesimalPart().sgn() > 0);
 
   const DeltaRational ceiling(getValue().ceiling());
@@ -488,11 +488,11 @@ void Constraint::setAssertedToTheTheory(TNode witness, bool nowInConflict) {
   Assert(negationHasProof() == nowInConflict);
   d_database->pushAssertionOrderWatch(this, witness);
 
-  if(TraceIsOn("constraint::conflictCommit") && nowInConflict ){
-    Trace("constraint::conflictCommit") << "inConflict@setAssertedToTheTheory";
-    Trace("constraint::conflictCommit") << "\t" << this << std::endl;
-    Trace("constraint::conflictCommit") << "\t" << getNegation() << std::endl;
-    Trace("constraint::conflictCommit") << "\t" << getNegation()->externalExplainByAssertions() << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && nowInConflict ){
+    Debug("constraint::conflictCommit") << "inConflict@setAssertedToTheTheory";
+    Debug("constraint::conflictCommit") << "\t" << this << std::endl;
+    Debug("constraint::conflictCommit") << "\t" << getNegation() << std::endl;
+    Debug("constraint::conflictCommit") << "\t" << getNegation()->externalExplainByAssertions() << std::endl;
 
   }
 }
@@ -519,7 +519,7 @@ TrustNode Constraint::externalExplainByAssertions() const
 {
   NodeBuilder nb(kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
-  Node exp = safeConstructNary(nb);
+  Node exp = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     std::vector<Node> assumptions;
@@ -533,7 +533,7 @@ TrustNode Constraint::externalExplainByAssertions() const
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
+        getLiteral(), NodeManager::currentNM()->mkAnd(assumptions), pf);
   }
   return TrustNode::mkTrustPropExp(getLiteral(), exp);
 }
@@ -552,10 +552,10 @@ bool Constraint::hasFarkasProof() const {
 
 bool Constraint::hasSimpleFarkasProof() const
 {
-  Trace("constraints::hsfp") << "hasSimpleFarkasProof " << this << std::endl;
+  Debug("constraints::hsfp") << "hasSimpleFarkasProof " << this << std::endl;
   if (!hasFarkasProof())
   {
-    Trace("constraints::hsfp") << "There is no simple Farkas proof because "
+    Debug("constraints::hsfp") << "There is no simple Farkas proof because "
                                   "there is no farkas proof."
                                << std::endl;
     return false;
@@ -573,12 +573,12 @@ bool Constraint::hasSimpleFarkasProof() const
     }
 
     // ... otherwise, we do not have a simple Farkas proof.
-    if (TraceIsOn("constraints::hsfp"))
+    if (Debug.isOn("constraints::hsfp"))
     {
-      Trace("constraints::hsfp") << "There is no simple Farkas proof b/c there "
+      Debug("constraints::hsfp") << "There is no simple Farkas proof b/c there "
                                     "is an antecdent w/ rule ";
-      a->getConstraintRule().print(Trace("constraints::hsfp"), d_produceProofs);
-      Trace("constraints::hsfp") << std::endl;
+      a->getConstraintRule().print(Debug("constraints::hsfp"), d_produceProofs);
+      Debug("constraints::hsfp") << std::endl;
     }
 
     return false;
@@ -666,15 +666,15 @@ bool Constraint::sanityChecking(Node n) const {
 
   const ArithVariables& avariables = d_database->getArithVariables();
 
-  Trace("Constraint::sanityChecking") << cmp.getNode() << endl;
-  Trace("Constraint::sanityChecking") << k << endl;
-  Trace("Constraint::sanityChecking") << pleft.getNode() << endl;
-  Trace("Constraint::sanityChecking") << left << endl;
-  Trace("Constraint::sanityChecking") << right << endl;
-  Trace("Constraint::sanityChecking") << getValue() << endl;
-  Trace("Constraint::sanityChecking") << avariables.hasArithVar(left) << endl;
-  Trace("Constraint::sanityChecking") << avariables.asArithVar(left) << endl;
-  Trace("Constraint::sanityChecking") << getVariable() << endl;
+  Debug("Constraint::sanityChecking") << cmp.getNode() << endl;
+  Debug("Constraint::sanityChecking") << k << endl;
+  Debug("Constraint::sanityChecking") << pleft.getNode() << endl;
+  Debug("Constraint::sanityChecking") << left << endl;
+  Debug("Constraint::sanityChecking") << right << endl;
+  Debug("Constraint::sanityChecking") << getValue() << endl;
+  Debug("Constraint::sanityChecking") << avariables.hasArithVar(left) << endl;
+  Debug("Constraint::sanityChecking") << avariables.asArithVar(left) << endl;
+  Debug("Constraint::sanityChecking") << getVariable() << endl;
 
 
   if(avariables.hasArithVar(left) &&
@@ -794,7 +794,7 @@ bool Constraint::wellFormedFarkasProof() const {
     } else {
       lhs = Node::null();
     }
-    Trace("constraints::wffp") << "running sum: " << lhs << " <= " << rhs << endl;
+    Debug("constraints::wffp") << "running sum: " << lhs << " <= " << rhs << endl;
 
     switch( antecedent->getType() ){
     case LowerBound:
@@ -853,7 +853,7 @@ bool Constraint::wellFormedFarkasProof() const {
   default:
     return false;
   }
-  Trace("constraints::wffp") << "final sum: " << lhs << " <= " << rhs << endl;
+  Debug("constraints::wffp") << "final sum: " << lhs << " <= " << rhs << endl;
   // 0 = lhs <= rhs < 0
   return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
          && rhs.sgn() < 0;
@@ -1069,7 +1069,7 @@ void ConstraintDatabase::addVariable(ArithVar v){
 
     d_reclaimable.remove(v);
   }else{
-    Trace("arith::constraint") << "about to fail" << v << " " << d_varDatabases.size() << endl;
+    Debug("arith::constraint") << "about to fail" << v << " " << d_varDatabases.size() << endl;
     Assert(v == d_varDatabases.size());
     d_varDatabases.push_back(new PerVariableDatabase(v));
   }
@@ -1174,8 +1174,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
   ConstraintP posC =
       new Constraint(v, posType, posDR, options().smt.produceProofs);
 
-  Trace("arith::constraint") << "addliteral( literal ->" << literal << ")" << endl;
-  Trace("arith::constraint") << "addliteral( posC ->" << posC << ")" << endl;
+  Debug("arith::constraint") << "addliteral( literal ->" << literal << ")" << endl;
+  Debug("arith::constraint") << "addliteral( posC ->" << posC << ")" << endl;
 
   SortedConstraintMap& scm = getVariableSCM(posC->getVariable());
   pair<SortedConstraintMapIterator, bool> insertAttempt;
@@ -1189,8 +1189,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
     //This is the situation where the ConstraintP exists, but
     //the literal has not been  associated with it.
     ConstraintP hit = posI->second.getConstraintOfType(posC->getType());
-    Trace("arith::constraint") << "hit " << hit << endl;
-    Trace("arith::constraint") << "posC " << posC << endl;
+    Debug("arith::constraint") << "hit " << hit << endl;
+    Debug("arith::constraint") << "posC " << posC << endl;
 
     delete posC;
 
@@ -1216,9 +1216,9 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
       pair<SortedConstraintMapIterator, bool> negInsertAttempt;
       negInsertAttempt = scm.insert(make_pair(negC->getValue(), ValueCollection()));
 
-      Trace("nf::tmp") << "sdhjfgdhjkldfgljkhdfg" << endl;
-      Trace("nf::tmp") << negC << endl;
-      Trace("nf::tmp") << negC->getValue() << endl;
+      Debug("nf::tmp") << "sdhjfgdhjkldfgljkhdfg" << endl;
+      Debug("nf::tmp") << negC << endl;
+      Debug("nf::tmp") << negC->getValue() << endl;
 
       //This should always succeed as the DeltaRational for the negation is unique!
       Assert(negInsertAttempt.second);
@@ -1250,7 +1250,7 @@ ConstraintP ConstraintDatabase::lookup(TNode literal) const{
 }
 
 void Constraint::setAssumption(bool nowInConflict){
-  Trace("constraints::pf") << "setAssumption(" << this << ")" << std::endl;
+  Debug("constraints::pf") << "setAssumption(" << this << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(hasLiteral());
@@ -1259,8 +1259,8 @@ void Constraint::setAssumption(bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, AssumeAP));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict@setAssumption " << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict@setAssumption " << this << std::endl;
   }
 }
 
@@ -1293,7 +1293,7 @@ void Constraint::propagate(){
  *  1*(x <= a) + (-1)*(x > b) => (0 <= a-b)
  */
 void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
-  Trace("constraints::pf") << "impliedByUnate(" << this << ", " << *imp << ")" << std::endl;
+  Debug("constraints::pf") << "impliedByUnate(" << this << ", " << *imp << ")" << std::endl;
   Assert(!hasProof());
   Assert(imp->hasProof());
   Assert(negationHasProof() == nowInConflict);
@@ -1323,19 +1323,19 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
 
-  if(TraceIsOn("constraints::wffp") && !wellFormedFarkasProof()){
-    getConstraintRule().print(Trace("constraints::wffp"), d_produceProofs);
+  if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
+    getConstraintRule().print(Debug("constraints::wffp"), d_produceProofs);
   }
   Assert(wellFormedFarkasProof());
 }
 
 void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInConflict){
-  Trace("constraints::pf") << "impliedByTrichotomy(" << this << ", " << *a << ", ";
-  Trace("constraints::pf") << *b << ")" << std::endl;
+  Debug("constraints::pf") << "impliedByTrichotomy(" << this << ", " << *a << ", ";
+  Debug("constraints::pf") << *b << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
@@ -1349,8 +1349,8 @@ void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInC
   d_database->pushConstraintRule(ConstraintRule(this, TrichotomyAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict@impliedByTrichotomy " << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict@impliedByTrichotomy " << this << std::endl;
   }
 }
 
@@ -1364,11 +1364,11 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
 }
 
 void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
-  Trace("constraints::pf") << "impliedByIntTighten(" << this << ", " << *a << ")" << std::endl;
+  Debug("constraints::pf") << "impliedByIntTighten(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
-  Trace("pf::arith") << "impliedByIntTighten(" << this << ", " << a << ")"
+  Debug("pf::arith") << "impliedByIntTighten(" << this << ", " << a << ")"
                      << std::endl;
 
   d_database->d_antecedents.push_back(NullConstraint);
@@ -1378,16 +1378,16 @@ void Constraint::impliedByIntTighten(ConstraintCP a, bool nowInConflict){
 
   Assert(inConflict() == nowInConflict);
   if(inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict impliedByIntTighten" << this << std::endl;
+    Debug("constraint::conflictCommit") << "inConflict impliedByIntTighten" << this << std::endl;
   }
 }
 
 void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
-  Trace("constraints::pf") << "impliedByIntHole(" << this << ", " << *a << ")" << std::endl;
+  Debug("constraints::pf") << "impliedByIntHole(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
-  Trace("pf::arith") << "impliedByIntHole(" << this << ", " << a << ")"
+  Debug("pf::arith") << "impliedByIntHole(" << this << ", " << a << ")"
                      << std::endl;
 
   d_database->d_antecedents.push_back(NullConstraint);
@@ -1396,20 +1396,20 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, IntHoleAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict impliedByIntHole" << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict impliedByIntHole" << this << std::endl;
   }
 }
 
 void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
-  Trace("constraints::pf") << "impliedByIntHole(" << this;
-  if (TraceIsOn("constraints::pf")) {
+  Debug("constraints::pf") << "impliedByIntHole(" << this;
+  if (Debug.isOn("constraints::pf")) {
     for (const ConstraintCP& p : b)
     {
-      Trace("constraints::pf") << ", " << p;
+      Debug("constraints::pf") << ", " << p;
     }
   }
-  Trace("constraints::pf") << ")" << std::endl;
+  Debug("constraints::pf") << ")" << std::endl;
 
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
@@ -1425,8 +1425,8 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, IntHoleAP, antecedentEnd));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict@impliedByIntHole[vec] " << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict@impliedByIntHole[vec] " << this << std::endl;
   }
 }
 
@@ -1439,15 +1439,15 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   coeff.back() corresponds to the current constraint.
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
-  Trace("constraints::pf") << "impliedByFarkas(" << this;
-  if (TraceIsOn("constraints::pf")) {
+  Debug("constraints::pf") << "impliedByFarkas(" << this;
+  if (Debug.isOn("constraints::pf")) {
     for (const ConstraintCP& p : a)
     {
-      Trace("constraints::pf") << ", " << p;
+      Debug("constraints::pf") << ", " << p;
     }
   }
-  Trace("constraints::pf") << ", <coeffs>";
-  Trace("constraints::pf") << ")" << std::endl;
+  Debug("constraints::pf") << ", <coeffs>";
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
@@ -1478,19 +1478,19 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict@impliedByFarkas " << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict@impliedByFarkas " << this << std::endl;
   }
-  if(TraceIsOn("constraints::wffp") && !wellFormedFarkasProof()){
-    getConstraintRule().print(Trace("constraints::wffp"), d_produceProofs);
+  if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
+    getConstraintRule().print(Debug("constraints::wffp"), d_produceProofs);
   }
   Assert(wellFormedFarkasProof());
 }
 
 
 void Constraint::setInternalAssumption(bool nowInConflict){
-  Trace("constraints::pf") << "setInternalAssumption(" << this;
-  Trace("constraints::pf") << ")" << std::endl;
+  Debug("constraints::pf") << "setInternalAssumption(" << this;
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(!assertedToTheTheory());
@@ -1498,15 +1498,15 @@ void Constraint::setInternalAssumption(bool nowInConflict){
   d_database->pushConstraintRule(ConstraintRule(this, InternalAssumeAP));
 
   Assert(inConflict() == nowInConflict);
-  if(TraceIsOn("constraint::conflictCommit") && inConflict()){
-    Trace("constraint::conflictCommit") << "inConflict@setInternalAssumption " << this << std::endl;
+  if(Debug.isOn("constraint::conflictCommit") && inConflict()){
+    Debug("constraint::conflictCommit") << "inConflict@setInternalAssumption " << this << std::endl;
   }
 }
 
 
 void Constraint::setEqualityEngineProof(){
-  Trace("constraints::pf") << "setEqualityEngineProof(" << this;
-  Trace("constraints::pf") << ")" << std::endl;
+  Debug("constraints::pf") << "setEqualityEngineProof(" << this;
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(truthIsUnknown());
   Assert(hasLiteral());
   d_database->pushConstraintRule(ConstraintRule(this, EqualityEngineAP));
@@ -1548,7 +1548,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
   Assert(!isInternalAssumption());
   NodeBuilder nb(Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
-  Node n = safeConstructNary(nb);
+  Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     std::vector<Node> assumptions;
@@ -1567,7 +1567,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        lit, safeConstructNary(Kind::AND, assumptions), pf);
+        lit, NodeManager::currentNM()->mkAnd(assumptions), pf);
   }
   else
   {
@@ -1577,13 +1577,13 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
 
 TrustNode Constraint::externalExplainConflict() const
 {
-  Trace("pf::arith::explain") << this << std::endl;
+  Debug("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
   NodeBuilder nb(kind::AND);
   auto pf1 = externalExplainByAssertions(nb);
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
-  Node n = safeConstructNary(nb);
+  Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
   {
     auto pfNot2 = d_database->d_pnm->mkNode(
@@ -1597,12 +1597,12 @@ TrustNode Constraint::externalExplainConflict() const
     {
       lits.push_back(n);
     }
-    if (TraceIsOn("arith::pf::externalExplainConflict"))
+    if (Debug.isOn("arith::pf::externalExplainConflict"))
     {
-      Trace("arith::pf::externalExplainConflict") << "Lits:" << std::endl;
+      Debug("arith::pf::externalExplainConflict") << "Lits:" << std::endl;
       for (const auto& l : lits)
       {
-        Trace("arith::pf::externalExplainConflict") << "  : " << l << std::endl;
+        Debug("arith::pf::externalExplainConflict") << "  : " << l << std::endl;
       }
     }
     std::vector<Node> contraLits = {getProofLiteral(),
@@ -1611,17 +1611,17 @@ TrustNode Constraint::externalExplainConflict() const
         not2.getKind() == Kind::NOT
             ? d_database->d_pnm->mkNode(PfRule::CONTRA, {pf2, pfNot2}, {})
             : d_database->d_pnm->mkNode(PfRule::CONTRA, {pfNot2, pf2}, {});
-    if (TraceIsOn("arith::pf::tree"))
+    if (Debug.isOn("arith::pf::tree"))
     {
-      Trace("arith::pf::tree") << *this << std::endl;
-      Trace("arith::pf::tree") << *getNegation() << std::endl;
-      Trace("arith::pf::tree") << "\n\nTree:\n";
-      printProofTree(Trace("arith::pf::tree"));
-      getNegation()->printProofTree(Trace("arith::pf::tree"));
+      Debug("arith::pf::tree") << *this << std::endl;
+      Debug("arith::pf::tree") << *getNegation() << std::endl;
+      Debug("arith::pf::tree") << "\n\nTree:\n";
+      printProofTree(Debug("arith::pf::tree"));
+      getNegation()->printProofTree(Debug("arith::pf::tree"));
     }
     auto confPf = d_database->d_pnm->mkScope(bot, lits);
     return d_database->d_pfGen->mkTrustNode(
-        safeConstructNary(Kind::AND, lits), confPf, true);
+        NodeManager::currentNM()->mkAnd(lits), confPf, true);
   }
   else
   {
@@ -1682,18 +1682,18 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
     ConstraintCP v_i = *i;
     v_i->externalExplain(nb, order);
   }
-  return safeConstructNary(nb);
+  return mkAndFromBuilder(nb);
 }
 
 std::shared_ptr<ProofNode> Constraint::externalExplain(
     NodeBuilder& nb, AssertionOrder order) const
 {
-  if (TraceIsOn("pf::arith::explain"))
+  if (Debug.isOn("pf::arith::explain"))
   {
-    this->printProofTree(Trace("arith::pf::tree"));
-    Trace("pf::arith::explain") << "Explaining: " << this << " with rule ";
-    getConstraintRule().print(Trace("pf::arith::explain"), d_produceProofs);
-    Trace("pf::arith::explain") << std::endl;
+    this->printProofTree(Debug("arith::pf::tree"));
+    Debug("pf::arith::explain") << "Explaining: " << this << " with rule ";
+    getConstraintRule().print(Debug("pf::arith::explain"), d_produceProofs);
+    Debug("pf::arith::explain") << std::endl;
   }
   Assert(hasProof());
   Assert(!isAssumption() || assertedToTheTheory());
@@ -1704,7 +1704,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
   if (assertedBefore(order))
   {
-    Trace("pf::arith::explain") << "  already asserted" << std::endl;
+    Debug("pf::arith::explain") << "  already asserted" << std::endl;
     nb << getWitness();
     if (d_database->isProofEnabled())
     {
@@ -1720,7 +1720,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
   }
   else if (hasEqualityEngineProof())
   {
-    Trace("pf::arith::explain") << "  going to ee:" << std::endl;
+    Debug("pf::arith::explain") << "  going to ee:" << std::endl;
     TrustNode exp = d_database->eeExplain(this);
     if (d_database->isProofEnabled())
     {
@@ -1743,7 +1743,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       pf = pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {hypotheses}, {getProofLiteral()});
     }
-    Trace("pf::arith::explain")
+    Debug("pf::arith::explain")
         << "    explanation: " << exp.getNode() << std::endl;
     if (exp.getNode().getKind() == Kind::AND)
     {
@@ -1756,7 +1756,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
   }
   else
   {
-    Trace("pf::arith::explain") << "  recursion!" << std::endl;
+    Debug("pf::arith::explain") << "  recursion!" << std::endl;
     Assert(!isAssumption());
     AntecedentId p = getEndAntecedent();
     ConstraintCP antecedent = d_database->d_antecedents[p];
@@ -1764,7 +1764,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
     while (antecedent != NullConstraint)
     {
-      Trace("pf::arith::explain") << "Explain " << antecedent << std::endl;
+      Debug("pf::arith::explain") << "Explain " << antecedent << std::endl;
       auto pn = antecedent->externalExplain(nb, order);
       if (d_database->isProofEnabled())
       {
@@ -1973,18 +1973,18 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
 
       if(i == i_end){
         --i;
-        Trace("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
+        Debug("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
       }else if( (i->first) > r){
         if(i == i_begin){
           return NullConstraint;
         }else{
           --i;
-          Trace("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
+          Debug("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
         }
       }
 
       do{
-        Trace("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
+        Debug("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
         Assert(r >= i->first);
         const ValueCollection& vc = i->second;
 
@@ -2029,7 +2029,7 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext, context::Cont
 
 
 void Constraint::setLiteral(Node n) {
-  Trace("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
+  Debug("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
   Assert(Comparison::isNormalAtom(n));
   Assert(!hasLiteral());
   Assert(sanityChecking(n));
@@ -2261,13 +2261,13 @@ void ConstraintDatabase::outputUnateInequalityLemmas(
 
 bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
   if(cons->negationHasProof()){
-    Trace("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
+    Debug("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
     cons->impliedByUnate(ant, true);
-    d_raiseConflict.raiseConflict(cons, InferenceId::UNKNOWN);
+    d_raiseConflict.raiseConflict(cons, InferenceId::ARITH_CONF_UNATE_PROP);
     return true;
   }else if(!cons->isTrue()){
     ++d_statistics.d_unatePropagateImplications;
-    Trace("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
+    Debug("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
     cons->impliedByUnate(ant, false);
     cons->tryToPropagate();
     return false;
@@ -2277,7 +2277,7 @@ bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
 }
 
 void ConstraintDatabase::unatePropLowerBound(ConstraintP curr, ConstraintP prev){
-  Trace("arith::unate") << "unatePropLowerBound " << curr << " " << prev << endl;
+  Debug("arith::unate") << "unatePropLowerBound " << curr << " " << prev << endl;
   Assert(curr != prev);
   Assert(curr != NullConstraint);
   bool hasPrev = ! (prev == NullConstraint);
@@ -2319,7 +2319,7 @@ void ConstraintDatabase::unatePropLowerBound(ConstraintP curr, ConstraintP prev)
 }
 
 void ConstraintDatabase::unatePropUpperBound(ConstraintP curr, ConstraintP prev){
-  Trace("arith::unate") << "unatePropUpperBound " << curr << " " << prev << endl;
+  Debug("arith::unate") << "unatePropUpperBound " << curr << " " << prev << endl;
   Assert(curr != prev);
   Assert(curr != NullConstraint);
   bool hasPrev = ! (prev == NullConstraint);
@@ -2354,7 +2354,7 @@ void ConstraintDatabase::unatePropUpperBound(ConstraintP curr, ConstraintP prev)
 }
 
 void ConstraintDatabase::unatePropEquality(ConstraintP curr, ConstraintP prevLB, ConstraintP prevUB){
-  Trace("arith::unate") << "unatePropEquality " << curr << " " << prevLB << " " << prevUB << endl;
+  Debug("arith::unate") << "unatePropEquality " << curr << " " << prevLB << " " << prevUB << endl;
   Assert(curr != prevLB);
   Assert(curr != prevUB);
   Assert(curr != NullConstraint);
@@ -2448,7 +2448,7 @@ std::pair<int, int> Constraint::unateFarkasSigns(ConstraintCP ca, ConstraintCP c
   Assert(a_sgn != 0);
   Assert(b_sgn != 0);
 
-  Trace("arith::unateFarkasSigns") << "Constraint::unateFarkasSigns("<<a <<", " << b << ") -> "
+  Debug("arith::unateFarkasSigns") << "Constraint::unateFarkasSigns("<<a <<", " << b << ") -> "
                                    << "("<<a_sgn<<", "<< b_sgn <<")"<< endl;
   return make_pair(a_sgn, b_sgn);
 }

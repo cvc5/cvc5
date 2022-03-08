@@ -72,7 +72,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   double clSet = 0;
-  if (TraceIsOn("pool-engine"))
+  if (Trace.isOn("pool-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
@@ -111,7 +111,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       break;
     }
   }
-  if (TraceIsOn("pool-engine"))
+  if (Trace.isOn("pool-engine"))
   {
     Trace("pool-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
@@ -129,7 +129,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = true;
-  ttec.d_increaseSum = options().quantifiers.fullSaturateSum;
+  ttec.d_increaseSum = options().quantifiers.enumInstSum;
   TermPools* tp = d_treg.getTermPools();
   std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
       mkTermTupleEnumeratorPool(q, &ttec, tp, p));

@@ -679,7 +679,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         }
         cond_vals[resb] = true;
         results.push_back(resb);
-        if (TraceIsOn("sygus-sui-enum"))
+        if (Trace.isOn("sygus-sui-enum"))
         {
           if (resb.isNull())
           {
@@ -839,7 +839,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
                   && datatypes::utils::getSygusTermSize(vcc)
                          < d_sol_term_size)))
       {
-        if (TraceIsOn("sygus-pbe"))
+        if (Trace.isOn("sygus-pbe"))
         {
           Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = ";
           TermDbSygus::toStreamSygus("sygus-pbe", vcc);
@@ -935,7 +935,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     // if the enumerator is in a conditional context, then we are stricter
     // about when to exclude
     bool isConditional = d_use_str_contains_eexc_conditional[e];
-    if (TraceIsOn("sygus-sui-cterm-debug"))
+    if (Trace.isOn("sygus-sui-cterm-debug"))
     {
       Trace("sygus-sui-enum") << std::endl;
     }
@@ -974,7 +974,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     if (!cmp_indices.empty())
     {
       // we check invariance with respect to a negative contains test
-      NegContainsSygusInvarianceTest ncset;
+      NegContainsSygusInvarianceTest ncset(d_env.getRewriter());
       if (isConditional)
       {
         ncset.setUniversal();
@@ -1019,7 +1019,7 @@ Node SygusUnifIo::constructSol(
   Assert(d_candidate == f);
   UnifContextIo& x = d_context;
   TypeNode etn = e.getType();
-  if (TraceIsOn("sygus-sui-dt-debug"))
+  if (Trace.isOn("sygus-sui-dt-debug"))
   {
     indent("sygus-sui-dt-debug", ind);
     Trace("sygus-sui-dt-debug") << "ConstructPBE: (" << e << ", " << nrole
@@ -1185,7 +1185,7 @@ Node SygusUnifIo::constructSol(
         {
           ret_dt = *intersection.begin();
         }
-        if (TraceIsOn("sygus-sui-dt"))
+        if (Trace.isOn("sygus-sui-dt"))
         {
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
@@ -1213,7 +1213,7 @@ Node SygusUnifIo::constructSol(
       // make the value of the examples
       std::vector<Node> ex_vals;
       x.getCurrentStrings(this, d_examples_out, ex_vals);
-      if (TraceIsOn("sygus-sui-dt-debug"))
+      if (Trace.isOn("sygus-sui-dt-debug"))
       {
         indent("sygus-sui-dt-debug", ind);
         Trace("sygus-sui-dt-debug") << "current strings : " << std::endl;
@@ -1408,7 +1408,7 @@ Node SygusUnifIo::constructSol(
               possible_cond.find(0);
           if (itpc != possible_cond.end())
           {
-            if (TraceIsOn("sygus-sui-dt-debug"))
+            if (Trace.isOn("sygus-sui-dt-debug"))
             {
               indent("sygus-sui-dt-debug", ind + 1);
               Trace("sygus-sui-dt-debug")
@@ -1535,7 +1535,7 @@ Node SygusUnifIo::constructSol(
     }
   }
   Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
-  if (TraceIsOn("sygus-sui-dt"))
+  if (Trace.isOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned ";
@@ -1551,7 +1551,7 @@ Node SygusUnifIo::constructSol(
       {
         if (x.d_vals[i].getConst<bool>())
         {
-          if (TraceIsOn("sygus-sui-cache"))
+          if (Trace.isOn("sygus-sui-cache"))
           {
             indent("sygus-sui-cache", ind);
             Trace("sygus-sui-cache") << "Cache solution (#" << i << ") : ";

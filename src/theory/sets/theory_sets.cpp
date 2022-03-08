@@ -93,6 +93,9 @@ void TheorySets::finishInit()
 
   // finish initialization internally
   d_internal->finishInit();
+
+  // memberships are not relevant for model building
+  d_valuation.setIrrelevantKind(SET_MEMBER);
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }

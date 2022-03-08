@@ -218,7 +218,7 @@ bool SimpSolver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 void SimpSolver::removeClause(CRef cr)
 {
     const Clause& c = ca[cr];
-    Trace("minisat") << "SimpSolver::removeClause(" << c << ")" << std::endl;
+    Debug("minisat") << "SimpSolver::removeClause(" << c << ")" << std::endl;
 
     if (use_simplification)
         for (int i = 0; i < c.size(); i++){

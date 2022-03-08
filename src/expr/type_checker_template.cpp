@@ -47,7 +47,7 @@ ${typerules}
       // clang-format on
 
     default:
-      Trace("getType") << "FAILURE" << std::endl;
+      Debug("getType") << "FAILURE" << std::endl;
       Unhandled() << " " << n.getKind();
   }
 

@@ -12,14 +12,14 @@
 # #############################################################################
 #
 # A simple demonstration of the solving capabilities of the cvc5 sets solver
-# through the Python API. This is a direct translation of sets-new.cpp.
+# through the Python API. This is a direct translation of sets.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # Optionally, set the logic. We need at least UF for equality predicate,
     # integers (LIA) and sets (FS).

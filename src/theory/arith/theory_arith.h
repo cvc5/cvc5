@@ -91,8 +91,6 @@ class TheoryArith : public Theory {
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  void shutdown() override {}
-
   void presolve() override;
   void notifyRestart() override;
   PPAssertStatus ppAssert(TrustNode tin,
@@ -182,6 +180,8 @@ class TheoryArith : public Theory {
    * used to augment the TheoryModel.
    */
   std::map<Node, Node> d_arithModelCache;
+  /** Is the above map computed? */
+  bool d_arithModelCacheSet;
 
 };/* class TheoryArith */
 

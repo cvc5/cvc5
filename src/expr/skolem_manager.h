@@ -38,6 +38,12 @@ enum class SkolemFunId
   MOD_BY_ZERO,
   /** an uninterpreted function f s.t. f(x) = sqrt(x) */
   SQRT,
+  /**
+   * Argument used to purify trancendental function app f(x).
+   * For sin(x), this is a variable that is assumed to be in phase with x that
+   * is between -pi and pi
+   */
+  TRANSCENDENTAL_PURIFY_ARG,
   /** a wrongly applied selector */
   SELECTOR_WRONG,
   /** a shared selector */
@@ -141,6 +147,12 @@ enum class SkolemFunId
    * where uf: Int -> E is a skolem function, and E is the type of elements of A
    */
   BAGS_MAP_PREIMAGE,
+  /**
+   * A skolem variable for the index that is unique per terms
+   * (map f A), y, preImageSize, y, e which might be an element in A.
+   * (see the documentation for BAGS_MAP_PREIMAGE)
+   */
+  BAGS_MAP_PREIMAGE_INDEX,
   /** An uninterpreted function for bag.map operator:
    * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_MAP_PREIMAGE},
    * then the multiplicity of an element y in a bag (map f A) is sum(n),
@@ -217,9 +229,14 @@ class SkolemManager
    */
   enum SkolemFlags
   {
-    SKOLEM_DEFAULT = 0,    /**< default behavior */
-    SKOLEM_EXACT_NAME = 1, /**< do not make the name unique by adding the id */
-    SKOLEM_BOOL_TERM_VAR = 2 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+    /** default behavior */
+    SKOLEM_DEFAULT = 0,
+    /** do not make the name unique by adding the id */
+    SKOLEM_EXACT_NAME = 1,
+    /** vars requiring kind BOOLEAN_TERM_VARIABLE */
+    SKOLEM_BOOL_TERM_VAR = 2,
+    /** a skolem that stands for an abstract value (used for printing) */
+    SKOLEM_ABSTRACT_VALUE = 4,
   };
   /**
    * This makes a skolem of same type as bound variable v, (say its type is T),
@@ -404,6 +421,10 @@ class SkolemManager
    * the proof generator that was provided in a call to mkSkolem above.
    */
   ProofGenerator* getProofGenerator(Node q) const;
+
+  /** Returns true if n is a skolem that stands for an abstract value */
+  bool isAbstractValue(TNode n) const;
+
   /**
    * Convert to witness form, which gets the witness form of a skolem k.
    * Notice this method is *not* recursive, instead, it is a simple attribute
@@ -440,6 +461,7 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
+
   /** Get or make skolem attribute for term w, which may be a witness term */
   Node mkSkolemInternal(Node w,
                         const std::string& prefix,

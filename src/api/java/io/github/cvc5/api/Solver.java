@@ -254,6 +254,8 @@ public class Solver implements IPointer, AutoCloseable
    * datatype sort constructed for the datatype declaration it is associated
    * with.
    *
+   * @apiNote Create unresolved sorts with Solver::mkUnresolvedSort().
+   *
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @param unresolvedSorts the set of unresolved sorts
@@ -417,6 +419,39 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long mkUninterpretedSort(long pointer, String symbol);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes.
+   *
+   * @param symbol the symbol of the sort
+   * @param arity the number of sort parameters of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = mkUnresolvedSort(pointer, symbol, arity);
+    return new Sort(this, sortPointer);
+  }
+
+  private native long mkUnresolvedSort(long pointer, String symbol, int arity);
+
+  /**
+   * Create an unresolved sort.
+   *
+   * This is for creating yet unresolved sort placeholders for mutually
+   * recursive datatypes without sort parameters.
+   *
+   * @param symbol the symbol of the sort
+   * @return the unresolved sort
+   */
+  public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
+  {
+    return mkUnresolvedSort(symbol, 0);
+  }
 
   /**
    * Create a sort constructor sort.
@@ -1074,45 +1109,45 @@ public class Solver implements IPointer, AutoCloseable
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkPosInf(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkPosInf(pointer, exp, sig);
+    long termPointer = mkFloatingPointPosInf(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkPosInf(long pointer, int exp, int sig);
+  private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
   /**
    * Create a negative infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNegInf(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkNegInf(pointer, exp, sig);
+    long termPointer = mkFloatingPointNegInf(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkNegInf(long pointer, int exp, int sig);
+  private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
   /**
    * Create a not-a-number (NaN) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNaN(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkNaN(pointer, exp, sig);
+    long termPointer = mkFloatingPointNaN(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkNaN(long pointer, int exp, int sig);
+  private native long mkFloatingPointNaN(long pointer, int exp, int sig);
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
@@ -1120,15 +1155,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkPosZero(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkPosZero(pointer, exp, sig);
+    long termPointer = mkFloatingPointPosZero(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkPosZero(long pointer, int exp, int sig);
+  private native long mkFloatingPointPosZero(long pointer, int exp, int sig);
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
@@ -1136,15 +1171,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNegZero(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkNegZero(pointer, exp, sig);
+    long termPointer = mkFloatingPointNegZero(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkNegZero(long pointer, int exp, int sig);
+  private native long mkFloatingPointNegZero(long pointer, int exp, int sig);
 
   /**
    * Create a roundingmode constant.
@@ -1157,45 +1192,6 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long mkRoundingMode(long pointer, int rm);
-
-  /**
-   * Create uninterpreted constant.
-   * @param sort Sort of the constant
-   * @param index Index of the constant
-   */
-  public Term mkUninterpretedConst(Sort sort, int index) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(index, "index");
-    long termPointer = mkUninterpretedConst(pointer, sort.getPointer(), index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkUninterpretedConst(long pointer, long sortPointer, int index);
-
-  /**
-   * Create an abstract value constant.
-   * @param index Index of the abstract value
-   */
-  public Term mkAbstractValue(String index)
-  {
-    long termPointer = mkAbstractValue(pointer, index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkAbstractValue(long pointer, String index);
-
-  /**
-   * Create an abstract value constant.
-   * @param index Index of the abstract value
-   */
-  public Term mkAbstractValue(long index) throws CVC5ApiException
-  {
-    Utils.validateUnsigned(index, "index");
-    long termPointer = mkAbstractValue(pointer, index);
-    return new Term(this, termPointer);
-  }
-
-  private native long mkAbstractValue(long pointer, long index);
 
   /**
    * Create a floating-point constant.
@@ -1765,6 +1761,21 @@ public class Solver implements IPointer, AutoCloseable
   // TODO: void echo(std::ostream& out, String  str)
 
   /**
+   * Get a list of literals that are entailed by the current set of assertions
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals )
+   * }
+   * @return the list of learned literals
+   */
+  public Term[] getLearnedLiterals() {
+    long[] retPointers = getLearnedLiterals(pointer);
+    return Utils.getTerms(this, retPointers);
+  }
+
+  private native long[] getLearnedLiterals(long pointer);
+
+  /**
    * Get the list of asserted formulas.
    * SMT-LIB:
    * {@code
@@ -1854,9 +1865,14 @@ public class Solver implements IPointer, AutoCloseable
    * Get the unsatisfiable core.
    * SMT-LIB:
    * {@code
-   * ( get-unsat-core )
+   * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   * @apiNote In contrast to SMT-LIB, the API does not distinguish between
+   *          named and unnamed assertions when producing an unsatisfiable
+   *          core. Additionally, the API allows this option to be called after
+   *          a check with assumptions. A subset of those assumptions may be
+   *          included in the unsatisfiable core returned by this method.
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -2148,7 +2164,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-interpol <conj> )
    * }
-   * Requires to enable option 'produce-interpols'.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
@@ -2167,7 +2183,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-interpol <conj> <g> )
    * }
-   * Requires to enable option 'produce-interpols'.
+   * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
@@ -2181,6 +2197,35 @@ public class Solver implements IPointer, AutoCloseable
 
   private native boolean getInterpolant(
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
+
+  /**
+   * Get the next interpolant. Can only be called immediately after a successful
+   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * syntactically different interpolant wrt the last returned interpolant if
+   * successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol-next)
+   *
+   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * set to a mode different from 'none'.
+   * \endverbatim
+   *
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid,
+   *        where A is the current set of assertions and B is given in the input
+   *        by conj on the last call to getInterpolant.
+   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   */
+  public boolean getInterpolantNext(Term output)
+  {
+    return getInterpolantNext(pointer, output.getPointer());
+  }
+
+  private native boolean getInterpolantNext(long pointer, long outputPointer);
 
   /**
    * Get an abduct.
@@ -2224,6 +2269,26 @@ public class Solver implements IPointer, AutoCloseable
       long pointer, long conjPointer, long grammarPointer, long outputPointer);
 
   /**
+   * Get the next abduct. Can only be called immediately after a successful
+   * call to get-abduct or get-abduct-next. Is guaranteed to produce a
+   * syntactically different abduct wrt the last returned abduct if successful.
+   * SMT-LIB:
+   * {@code
+   * ( get-abduct-next )
+   * }
+   * Requires enabling incremental mode and option 'produce-abducts'
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj in the last call to getAbduct.
+   * @return true if it gets C successfully, false otherwise
+   */
+  public boolean getAbductNext(Term output) {
+    return getAbductNext(pointer, output.getPointer());
+  }
+
+  private native boolean getAbductNext(long pointer, long outputPointer);
+
+  /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    * SMT-LIB:
@@ -2247,8 +2312,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( block-model-values ( <terms>+ ) )
    * }
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
+   * Requires enabling 'produce-models' option.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2559,7 +2623,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the synthesis conjecture.
+   * @return the result of the check, which is unsat if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
    */
   public Result checkSynth()
   {
@@ -2568,6 +2633,26 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long checkSynth(long pointer);
+
+  /**
+   * Try to find a next solution for the synthesis conjecture corresponding to
+   * the current list of functions-to-synthesize, universal variables and
+   * constraints. Must be called immediately after a successful call to
+   * check-synth or check-synth-next. Requires incremental mode.
+   * SyGuS v2:
+   * {@code
+   *   ( check-synth-next )
+   * }
+   * @return the result of the check, which is UNSAT if the check succeeded,
+   * in which case solutions are available via getSynthSolutions.
+   */
+  public Result checkSynthNext()
+  {
+    long resultPointer = checkSynthNext(pointer);
+    return new Result(this, resultPointer);
+  }
+
+  private native long checkSynthNext(long pointer);
 
   /**
    * Get the synthesis solution of the given term. This method should be called

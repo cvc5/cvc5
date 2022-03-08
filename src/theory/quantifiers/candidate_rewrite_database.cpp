@@ -231,7 +231,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // we count this as printed, despite not literally printing it
         rew_print = true;
         // debugging information
-        if (TraceIsOn("sygus-rr-debug"))
+        if (Trace.isOn("sygus-rr-debug"))
         {
           Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
                                   << std::endl;

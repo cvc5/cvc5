@@ -363,7 +363,7 @@ bool DType::isRecursiveSingleton(TypeNode t) const
     if (computeCardinalityRecSingleton(t, processing, d_cardUAssume[t]))
     {
       d_cardRecSingleton[t] = 1;
-      if (TraceIsOn("dt-card"))
+      if (Trace.isOn("dt-card"))
       {
         Trace("dt-card") << "DType " << getName()
                          << " is recursive singleton, dependent upon "
@@ -712,7 +712,7 @@ bool DType::hasNestedRecursion() const
   std::unordered_set<TypeNode> types;
   std::map<TypeNode, bool> processed;
   getAlienSubfieldTypes(types, processed, false);
-  if (TraceIsOn("datatypes-init"))
+  if (Trace.isOn("datatypes-init"))
   {
     Trace("datatypes-init") << "Alien subfield types: " << std::endl;
     for (const TypeNode& t : types)

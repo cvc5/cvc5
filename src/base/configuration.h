@@ -12,6 +12,10 @@
  *
  * Interface to a public class that provides compile-time information
  * about the cvc5 library.
+ *
+ * Eventually, the configuration methods will all be migrated to the
+ * cvc5::configuration namespace below. This is cleaner and avoids a gcc/10.1.0
+ * bug. See https://github.com/cvc5/cvc5/pull/7898 for details.
  */
 
 #include "cvc5_public.h"
@@ -25,6 +29,17 @@
 #include "cvc5_export.h"
 
 namespace cvc5 {
+
+namespace configuration {
+  static constexpr bool isStatisticsBuild()
+  {
+#ifdef CVC5_STATISTICS_ON
+    return true;
+#else
+    return false;
+#endif
+  }
+}  // namespace configuration
 
 /**
  * Represents the (static) configuration of cvc5.
@@ -47,15 +62,6 @@ public:
   static std::string getName();
 
   static bool isDebugBuild();
-
-  static constexpr bool isStatisticsBuild()
-  {
-#ifdef CVC5_STATISTICS_ON
-    return true;
-#else
-    return false;
-#endif
-  }
 
   static bool isTracingBuild();
 
@@ -100,6 +106,8 @@ public:
   static bool isBuiltWithEditline();
 
   static bool isBuiltWithPoly();
+
+  static bool isBuiltWithCoCoA();
 
   /* Return a sorted array of the debug tags name */
   static const std::vector<std::string>& getDebugTags();

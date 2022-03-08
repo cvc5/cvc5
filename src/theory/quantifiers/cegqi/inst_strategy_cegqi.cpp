@@ -66,7 +66,7 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
   if (options().quantifiers.cegqiBv)
   {
     // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new BvInverter);
+    d_bv_invert.reset(new BvInverter(env.getRewriter()));
   }
   if (options().quantifiers.cegqiNestedQE)
   {
@@ -110,7 +110,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
-      Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
+      Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
@@ -200,12 +200,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       if (fm->isQuantifierActive(q))
       {
         d_active_quant[q] = true;
-        Trace("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
+        Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
         if (d_qstate.getValuation().hasSatValue(cel, value))
         {
-          Trace("cegqi-debug") << "...CE Literal has value " << value << std::endl;
+          Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
             if (d_qstate.getValuation().isDecision(cel))
             {
@@ -218,7 +218,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
             }
           }
         }else{
-          Trace("cegqi-debug") << "...CE Literal does not have value " << std::endl;
+          Debug("cegqi-debug") << "...CE Literal does not have value " << std::endl;
         }
       }
     }
@@ -260,7 +260,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   {
     Assert(!d_qstate.isInConflict());
     double clSet = 0;
-    if( TraceIsOn("cegqi-engine") ){
+    if( Trace.isOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
@@ -283,7 +283,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         break;
       }
     }
-    if( TraceIsOn("cegqi-engine") ){
+    if( Trace.isOn("cegqi-engine") ){
       if (d_qim.numPendingLemmas() > lastWaiting)
       {
         Trace("cegqi-engine")

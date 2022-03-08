@@ -220,20 +220,6 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_isWellFounded(
 
 /*
  * Class:     io_github_cvc5_api_Datatype
- * Method:    hasNestedRecursion
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_hasNestedRecursion(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Datatype* current = (Datatype*)pointer;
-  return (jboolean)current->hasNestedRecursion();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Datatype
  * Method:    isNull
  * Signature: (J)Z
  */

@@ -27,6 +27,7 @@
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
@@ -48,7 +49,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
       d_originalOptions(opts),
-      d_resourceManager()
+      d_resourceManager(),
+      d_uninterpretedSortOwner(theory::THEORY_UF)
 {
   if (opts != nullptr)
   {
@@ -93,19 +95,13 @@ ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 bool Env::isSatProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (!d_options.smt.unsatCores
-             || (d_options.smt.unsatCoresMode
-                     != options::UnsatCoresMode::ASSUMPTIONS
-                 && d_options.smt.unsatCoresMode
-                        != options::UnsatCoresMode::PP_ONLY));
+         && d_options.smt.proofMode != options::ProofMode::PP_ONLY;
 }
 
 bool Env::isTheoryProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && (!d_options.smt.unsatCores
-             || d_options.smt.unsatCoresMode
-                    == options::UnsatCoresMode::FULL_PROOF);
+         && d_options.smt.proofMode == options::ProofMode::FULL;
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
@@ -237,6 +233,27 @@ bool Env::isFiniteType(TypeNode tn) const
 {
   return isCardinalityClassFinite(tn.getCardinalityClass(),
                                   d_options.quantifiers.finiteModelFind);
+}
+
+void Env::setUninterpretedSortOwner(theory::TheoryId theory)
+{
+  d_uninterpretedSortOwner = theory;
+}
+
+theory::TheoryId Env::getUninterpretedSortOwner() const
+{
+  return d_uninterpretedSortOwner;
+}
+
+theory::TheoryId Env::theoryOf(TypeNode typeNode) const
+{
+  return theory::Theory::theoryOf(typeNode, d_uninterpretedSortOwner);
+}
+
+theory::TheoryId Env::theoryOf(TNode node) const
+{
+  return theory::Theory::theoryOf(
+      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
 }
 
 }  // namespace cvc5

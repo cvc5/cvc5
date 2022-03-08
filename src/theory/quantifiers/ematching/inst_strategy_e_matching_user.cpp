@@ -122,7 +122,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
   std::vector<Trigger*>& ug = d_user_gen[q];
   for (Trigger* t : ug)
   {
-    if (TraceIsOn("process-trigger"))
+    if (Trace.isOn("process-trigger"))
     {
       Trace("process-trigger") << "  Process (user) ";
       t->debugPrint("process-trigger");

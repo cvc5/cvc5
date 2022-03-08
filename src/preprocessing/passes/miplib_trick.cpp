@@ -561,7 +561,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Node sum;
           if (pos.getKind() == kind::AND)
           {
-            NodeBuilder sumb(kind::PLUS);
+            NodeBuilder sumb(kind::ADD);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
               sumb << nm->mkNode(

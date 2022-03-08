@@ -98,9 +98,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull() ? NodeManager::currentNM()->mkConst(
-                        CONST_RATIONAL, Rational(1))
-                                : cc;
+                c = cc.isNull()
+                        ? NodeManager::currentNM()->mkConstInt(Rational(1))
+                        : cc;
               }
               else
               {
@@ -134,7 +134,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             Node sumt =
                 sum.empty()
                     ? nm->mkConstInt(Rational(0))
-                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::PLUS, sum));
+                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::ADD, sum));
             ret = nm->mkNode(
                 ret_lit.getKind(), sumt, nm->mkConstInt(Rational(0)));
             if (!ret_pol)

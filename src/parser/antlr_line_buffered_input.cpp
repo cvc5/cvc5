@@ -268,7 +268,7 @@ static void bufferedInputConsume(pANTLR3_INT_STREAM is) {
       input->charPositionInLine = 0;
       input->currentLine = line_buffered_input->line_buffer->getPtr(
           input->line, input->charPositionInLine);
-      Trace("pipe") << "-- newline!" << std::endl;
+      Debug("pipe") << "-- newline!" << std::endl;
     }
 
     input->nextChar = line_buffered_input->line_buffer->getPtr(

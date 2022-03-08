@@ -165,7 +165,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     return false;
   }
-  if (TraceIsOn("sygus-rr-filter"))
+  if (Trace.isOn("sygus-rr-filter"))
   {
     std::stringstream ss;
     ss << "(redundant-rewrite ";
@@ -231,7 +231,7 @@ bool CandidateRewriteFilter::notify(Node s,
   n = d_drewrite->toExternal(n);
   Assert(!n.isNull());
   std::map<Node, std::unordered_set<Node> >::iterator it = d_pairs.find(n);
-  if (TraceIsOn("crf-match"))
+  if (Trace.isOn("crf-match"))
   {
     Trace("crf-match") << "  " << s << " matches " << n
                        << " under:" << std::endl;

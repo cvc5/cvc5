@@ -1,5 +1,6 @@
-; COMMAND-LINE: --sort-inference --no-check-unsat-cores
+; COMMAND-LINE: --sort-inference
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic ABV)
 (set-option :sort-inference true)
 (set-info :status unsat)

@@ -188,6 +188,11 @@ uint64_t ResourceManager::getResourceUsage() const
 
 uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
+uint64_t ResourceManager::getRemainingTime() const
+{
+  return d_options.base.perCallMillisecondLimit - d_perCallTimer.elapsed();
+}
+
 uint64_t ResourceManager::getResourceRemaining() const
 {
   if (d_options.base.cumulativeResourceLimit <= d_cumulativeResourceUsed)

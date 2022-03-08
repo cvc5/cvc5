@@ -144,7 +144,6 @@ class TheorySep : public Theory {
  public:
 
   void presolve() override;
-  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER

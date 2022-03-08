@@ -46,6 +46,21 @@ class InferenceGenerator
    *   (>= (bag.count e A) 0)
    */
   InferInfo nonNegativeCount(Node n, Node e);
+  /**
+   * @param n a node of integer type that equals to a card term
+   * @return an inference that represents the following implication
+   * (>= n 0)
+   */
+  InferInfo nonNegativeCardinality(Node n);
+
+  /**
+   * @param n is (bag x c) of type (Bag E)
+   * @return an inference that represents the following lemma:
+   * (or
+   *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
+   *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
+   */
+  InferInfo bagMake(Node n);
 
   /**
    * @param n is (bag x c) of type (Bag E)
@@ -162,6 +177,38 @@ class InferenceGenerator
    */
   InferInfo duplicateRemoval(Node n, Node e);
   /**
+   * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
+   * @param n is (as bag.empty (Bag E))
+   * @return an inference that represents the following implication
+   * (=> (= A (as bag.empty (Bag E)))
+   *     (= (bag.card A) 0))
+   */
+  InferInfo cardEmpty(const std::pair<Node, Node>& pair, Node n);
+  /**
+   * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
+   * @param n is a node of the form (bag x c) of type (Bag E)
+   * @return an inference that represents the following implication
+   * (=>
+   *     (and (= A (bag x c)) (>= 0 c))
+   *     (= (bag.card A) c))
+   */
+  InferInfo cardBagMake(const std::pair<Node, Node>& pair, Node n);
+  /**
+   * @param premise a boolean node explains why parent equals the disjoint union
+   * of its children
+   * @param parent a bag term
+   * @param children (child_1, ... child_n) nonempty set of bag terms
+   * @return an inference that represents the following implication
+   * (=> premise
+   *     (and
+   *       (= parent (bag.union_disjoint child_1 ... child_n))
+   *       (= (bag.card parent) (+ (bag.card child_1) ... (bag.card child_n)))))
+   */
+  InferInfo cardUnionDisjoint(Node premise,
+                              Node parent,
+                              const std::set<Node>& children);
+
+  /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param e is a node of Type E
@@ -192,7 +239,7 @@ class InferenceGenerator
    * preimage of e,
    * and skolem is a fresh variable equals (bag.map f A))
    */
-  std::tuple<InferInfo, Node, Node> mapDownwards(Node n, Node e);
+  std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
@@ -204,7 +251,7 @@ class InferenceGenerator
    * @param e is an element of type E
    * @return an inference that represents the following implication
    * (=>
-   *   (>= (bag.count x A) 1)
+   *   (bag.member x A)
    *   (or
    *     (not (= (f x) y)
    *     (and
@@ -213,7 +260,58 @@ class InferenceGenerator
    *       (= (uf skolem) x)))))
    * where skolem is a fresh variable
    */
-  InferInfo mapUpwards(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp(Node n, Node uf, Node preImageSize, Node y, Node x);
+
+  /**
+   * @param n is (bag.filter p A) where p is a function (-> E Bool),
+   * A a bag of type (Bag E)
+   * @param e is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (bag.member e skolem)
+   *   (and
+   *     (p e)
+   *     (= (bag.count e skolem) (bag.count e A)))
+   * where skolem is a variable equals (bag.filter p A)
+   */
+  InferInfo filterDownwards(Node n, Node e);
+
+  /**
+   * @param n is (bag.filter p A) where p is a function (-> E Bool),
+   * A a bag of type (Bag E)
+   * @param e is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (bag.member e A)
+   *   (or
+   *     (and (p e) (= (bag.count e skolem) (bag.count A)))
+   *     (and (not (p e)) (= (bag.count e skolem) 0)))
+   * where skolem is a variable equals (bag.filter p A)
+   */
+  InferInfo filterUpwards(Node n, Node e);
+
+  /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
+   * @return  an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productUp(Node n, Node e1, Node e2);
+
+  /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productDown(Node n, Node e);
 
   /**
    * @param element of type T

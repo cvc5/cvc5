@@ -81,7 +81,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       TNode atom = pol ? l : l[0];
       Kind ak = atom.getKind();
       Assert(ak != LT && ak != GT && ak != LEQ);
-      if ((ak == EQUAL && pol) || ak == GEQ)
+      if ((ak == EQUAL && pol && atom[0].getType().isRealOrInt()) || ak == GEQ)
       {
         // provide as < if negated >=
         Node atomu;
