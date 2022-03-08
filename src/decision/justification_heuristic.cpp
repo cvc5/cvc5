@@ -377,8 +377,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     }
     else {
       Assert(d_decisionEngine->hasSatLiteral(node));
-      if(d_curThreshold != 0 && 0 >= d_curThreshold)
-        return DONT_KNOW;
+      if (d_curThreshold != 0 && 0 >= d_curThreshold) return DONT_KNOW;
       SatVariable v =
         d_decisionEngine->getSatLiteral(node).getSatVariable();
       d_curDecision = SatLiteral(v, /* negated = */ desiredVal != SAT_VALUE_TRUE );

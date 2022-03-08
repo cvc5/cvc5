@@ -26,7 +26,9 @@ namespace decision {
 using DecisionWeight = uint64_t;
 
 namespace attr {
-struct DecisionWeightTag {};
+struct DecisionWeightTag
+{
+};
 }  // namespace attr
 
 typedef expr::Attribute<attr::DecisionWeightTag, DecisionWeight> DecisionWeightAttr;
