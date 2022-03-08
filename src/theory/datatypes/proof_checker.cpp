@@ -82,7 +82,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = args[0];
-    if (t.getKind() != kind::APPLY_SELECTOR_TOTAL
+    if (t.getKind() != kind::APPLY_SELECTOR
         || t[0].getKind() != kind::APPLY_CONSTRUCTOR)
     {
       return Node::null();
