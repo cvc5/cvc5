@@ -574,13 +574,6 @@ class CVC5_EXPORT Sort
   bool isSubsortOf(const Sort& s) const;
 
   /**
-   * Is this sort comparable to the given sort (i.e., do they share
-   * a common ancestor in the subsort tree)?
-   * @return true if this sort is comparable to s
-   */
-  bool isComparableTo(const Sort& s) const;
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -596,6 +589,13 @@ class CVC5_EXPORT Sort
    * Substitution of Sorts.
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point.
+   *
+   * For example,
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
@@ -603,6 +603,11 @@ class CVC5_EXPORT Sort
    * Simultaneous substitution of Sorts.
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point. In the case that
+   * sorts contains duplicates, the replacement earliest in the vector takes
+   * priority.
    */
   Sort substitute(const std::vector<Sort>& sorts,
                   const std::vector<Sort>& replacements) const;
@@ -1137,13 +1142,23 @@ class CVC5_EXPORT Term
   Sort getSort() const;
 
   /**
-   * @return the result of replacing 'term' by 'replacement' in this term
+   * @return the result of replacing 'term' by 'replacement' in this term.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point.
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point. In the case that
+   * terms contains duplicates, the replacement earliest in the vector takes
+   * priority. For example, calling substitute on f(x,y) with
+   *   terms = { x, z }, replacements = { g(z), w }
+   * results in the term f(g(z),y).
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
@@ -1473,12 +1488,12 @@ class CVC5_EXPORT Term
   /**
    * @return true if the term is an abstract value.
    */
-  bool isAbstractValue() const;
+  bool isUninterpretedSortValue() const;
   /**
-   * Asserts isAbstractValue().
-   * @return the representation of an abstract value as a string.
+   * Asserts isUninterpretedSortValue().
+   * @return the representation of an uninterpreted sort value as a string.
    */
-  std::string getAbstractValue() const;
+  std::string getUninterpretedSortValue() const;
 
   /**
    * @return true if the term is a tuple value.
@@ -1529,12 +1544,16 @@ class CVC5_EXPORT Term
    * A term is a set value if it is considered to be a (canonical) constant set
    * value.  A canonical set value is one whose AST is:
    *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
    *     (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * \endverbatim
    *
-   * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
-   * also @ref Term::operator>(const Term&) const).
+   * where @f$c_1 ... c_n@f$ are values ordered by id such that
+   * @f$c_1 > ... > c_n@f$ (see @ref Term::operator>(const Term&) const).
    *
-   * @note A universe set term `(kind SET_UNIVERSE)` is not considered to be
+   * @note A universe set term (kind `SET_UNIVERSE`) is not considered to be
    *       a set value.
    */
   bool isSetValue() const;
@@ -1557,19 +1576,6 @@ class CVC5_EXPORT Term
    */
   std::vector<Term> getSequenceValue() const;
 
-  /**
-   * @return true if the term is a value from an uninterpreted sort.
-   */
-  bool isUninterpretedValue() const;
-  /**
-  bool @return() const;
-   * Asserts isUninterpretedValue().
-   * @return the representation of an uninterpreted value as a pair of its
-  sort and its
-   * index.
-   */
-  std::pair<Sort, int32_t> getUninterpretedValue() const;
-
  protected:
   /**
    * The associated solver object.
@@ -1579,6 +1585,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(const Solver* slv,
+                                             const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
@@ -2312,17 +2321,6 @@ class CVC5_EXPORT Datatype
   bool isWellFounded() const;
 
   /**
-   * Does this datatype have nested recursion? This method returns false if a
-   * value of this datatype includes a subterm of its type that is nested
-   * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with codomain type (Set T)
-   * has nested recursion.
-   *
-   * @return true if this datatype has nested recursion
-   */
-  bool hasNestedRecursion() const;
-
-  /**
    * @return true if this Datatype is a null object
    */
   bool isNull() const;
@@ -2798,13 +2796,14 @@ class CVC5_EXPORT DriverOptions
  * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
- * - VoidInfo if the option holds no value (or the value has no native type)
- * - ValueInfo<T> if the option is of type bool or std::string, holds the
+ * - `VoidInfo` if the option holds no value (or the value has no native type)
+ * - `ValueInfo<T>` if the option is of type `bool` or `std::string`, holds the
  *   current value and the default value.
- * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
+ * - `NumberInfo<T>` if the option is of type `int64_t`, `uint64_t` or `double`, holds
  *   the current and default value, as well as the minimum and maximum.
- * - ModeInfo if the option is a mode option, holds the current and default
+ * - `ModeInfo` if the option is a mode option, holds the current and default
  *   values, as well as a list of valid modes.
+ *
  * Additionally, this class provides convenience functions to obtain the
  * current value of an option in a type-safe manner using boolValue(),
  * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
@@ -3652,7 +3651,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative infinity floating-point constant.
@@ -3660,7 +3659,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a not-a-number (NaN) floating-point constant.
@@ -3668,7 +3667,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNaN(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
@@ -3676,7 +3675,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
@@ -3684,34 +3683,13 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a roundingmode constant.
    * @param rm the floating point rounding mode this constant represents
    */
   Term mkRoundingMode(RoundingMode rm) const;
-
-  /**
-   * Create uninterpreted constant.
-   * @param sort Sort of the constant
-   * @param index Index of the constant
-   */
-  Term mkUninterpretedConst(const Sort& sort, int32_t index) const;
-
-  /**
-   * Create an abstract value constant.
-   * The given index needs to be a positive integer in base 10.
-   * @param index Index of the abstract value
-   */
-  Term mkAbstractValue(const std::string& index) const;
-
-  /**
-   * Create an abstract value constant.
-   * The given index needs to be positive.
-   * @param index Index of the abstract value
-   */
-  Term mkAbstractValue(uint64_t index) const;
 
   /**
    * Create a floating-point constant.
@@ -4171,6 +4149,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   *
+   * .. note::
+   *   In contrast to SMT-LIB, the API does not distinguish between named and
+   *   unnamed assertions when producing an unsatisfiable core. Additionally,
+   *   the API allows this option to be called after a check with assumptions.
+   *   A subset of those assumptions may be included in the unsatisfiable core
+   *   returned by this method.
    * \endverbatim
    *
    * @return a set of terms representing the unsatisfiable core
@@ -4205,6 +4190,14 @@ class CVC5_EXPORT Solver
    * proof-format-mode.
    */
   std::string getProof() const;
+
+  /**
+   * Get learned literals
+   *
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
+   */
+  std::vector<Term> getLearnedLiterals() const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4253,9 +4246,7 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>` \endverbatim
    * has been set.
    *
    * @param v The term in question
@@ -4275,8 +4266,6 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * \endverbatim
-   *
    * \endverbatim
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
@@ -4427,8 +4416,9 @@ class CVC5_EXPORT Solver
    *
    *     (get-interpol <conj>)
    *
-   * Requires to enable option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * Requires option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
    *
    * @param conj the conjecture term
@@ -4448,8 +4438,9 @@ class CVC5_EXPORT Solver
    *
    *     (get-interpol <conj> <grammar>)
    *
-   * Requires to enable option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>`.
+   * Requires option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
    * \endverbatim
    *
    * @param conj the conjecture term
@@ -4459,6 +4450,31 @@ class CVC5_EXPORT Solver
    * @return true if it gets I successfully, false otherwise.
    */
   bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
+
+  /**
+   * Get the next interpolant. Can only be called immediately after a successful
+   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * syntactically different interpolant wrt the last returned interpolant if
+   * successful.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-interpol-next)
+   *
+   * Requires to enable incremental mode, and option
+   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
+   * mode different from `none`.
+   * \endverbatim
+   *
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj
+   *        on the last call to getInterpolant.
+   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   */
+  bool getInterpolantNext(Term& output) const;
 
   /**
    * Get an abduct.
@@ -4564,9 +4580,7 @@ class CVC5_EXPORT Solver
    *
    * Requires enabling option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models' and setting option
-   * :ref:`block-models <lbl-option-block-models>`.
-   * to a mode other than ``none``.
+   * 'produce-models'.
    * \endverbatim
    */
   void blockModelValues(const std::vector<Term>& terms) const;
@@ -5000,6 +5014,16 @@ class CVC5_EXPORT Solver
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
+
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param t The term to check
+   */
+  void ensureWellFormedTerm(const Term& t) const;
+  /** Vector version of above. */
+  void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
   /** Increment the term stats counter. */
   void increment_term_stats(Kind kind) const;

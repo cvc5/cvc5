@@ -1058,6 +1058,35 @@ class CVC5_EXPORT GetInterpolCommand : public Command
   api::Term d_result;
 }; /* class GetInterpolCommand */
 
+/** The command (get-interpol-next) */
+class CVC5_EXPORT GetInterpolNextCommand : public Command
+{
+ public:
+  GetInterpolNextCommand();
+  /**
+   * Get the result of the query, which is the solution to the interpolation
+   * query.
+   */
+  api::Term getResult() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out) const override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** The name of the interpolation predicate */
+  std::string d_name;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  api::Term d_result;
+};
+
 /** The command (get-abduct s B (G)?)
  *
  * This command asks for an abduct from the current set of assertions and
@@ -1134,7 +1163,7 @@ class CVC5_EXPORT GetAbductNextCommand : public Command
   bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
-}; /* class GetAbductCommand */
+};
 
 class CVC5_EXPORT GetQuantifierEliminationCommand : public Command
 {
@@ -1223,6 +1252,27 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   SymbolManager* d_sm;
   /** the result of the get difficulty call */
   std::map<api::Term, api::Term> d_result;
+};
+
+class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
+{
+ public:
+  GetLearnedLiteralsCommand();
+  const std::vector<api::Term>& getLearnedLiterals() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out) const override;
+
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** the result of the get learned literals call */
+  std::vector<api::Term> d_result;
 };
 
 class CVC5_EXPORT GetAssertionsCommand : public Command

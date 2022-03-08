@@ -221,7 +221,15 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     if (!isHol)
     {
       std::stringstream ss;
-      ss << "Partial function applications are only supported with "
+      if (k == kind::HO_APPLY)
+      {
+        ss << "Partial function applications";
+      }
+      else
+      {
+        ss << "Function variables";
+      }
+      ss << " are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
@@ -294,17 +302,17 @@ void TheoryUF::preRegisterTerm(TNode node)
   case kind::COMBINED_CARDINALITY_CONSTRAINT:
     //do nothing
     break;
-  case kind::UNINTERPRETED_CONSTANT:
+  case kind::UNINTERPRETED_SORT_VALUE:
   {
-    // Uninterpreted constants should only appear in models, and should
-    // never appear in constraints. They are unallowed to ever appear in
-    // constraints since the cardinality of an uninterpreted sort may have
-    // an upper bound, e.g. if (forall ((x U) (y U)) (= x y)) holds, then
-    // @uc_U_2 is a ill-formed term, as its existence cannot be assumed.
-    // The parser prevents the user from ever constructing uninterpreted
-    // constants. However, they may be exported via models to API users.
-    // It is thus possible that these uninterpreted constants are asserted
-    // back in constraints, hence this check is necessary.
+    // Uninterpreted sort values should only appear in models, and should never
+    // appear in constraints. They are unallowed to ever appear in constraints
+    // since the cardinality of an uninterpreted sort may have an upper bound,
+    // e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2 is a
+    // ill-formed term, as its existence cannot be assumed.  The parser
+    // prevents the user from ever constructing uninterpreted sort values.
+    // However, they may be exported via models to API users. It is thus
+    // possible that these uninterpreted sort values are asserted back in
+    // constraints, hence this check is necessary.
     throw LogicException(
         "An uninterpreted constant was preregistered to the UF theory.");
   }

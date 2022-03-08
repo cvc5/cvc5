@@ -261,7 +261,6 @@ class TheoryArrays : public Theory {
 
 
   void presolve() override;
-  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
@@ -445,10 +444,6 @@ class TheoryArrays : public Theory {
   void propagateRowLemma(RowLemmaType lem);
   void queueRowLemma(RowLemmaType lem);
   bool dischargeLemmas();
-
-  std::vector<Node> d_decisions;
-  bool d_inCheckModel;
-  int d_topLevel;
 
   /**
    * The decision strategy for the theory of arrays, which calls the

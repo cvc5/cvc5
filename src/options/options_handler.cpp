@@ -428,7 +428,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   std::cout << std::endl;
 
   print_config_cond("debug code", Configuration::isDebugBuild());
-  print_config_cond("statistics", Configuration::isStatisticsBuild());
+  print_config_cond("statistics", configuration::isStatisticsBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());
   print_config_cond("muzzled", Configuration::isMuzzledBuild());
   print_config_cond("assertions", Configuration::isAssertionBuild());
@@ -447,6 +447,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
+  print_config_cond("cocoa", Configuration::isBuiltWithCoCoA());
   print_config_cond("editline", Configuration::isBuiltWithEditline());
 }
 

@@ -94,7 +94,7 @@
 #     upper bound, leave the colon after LB, but omit UB.  For example,
 #     an N-ary operator might be defined as:
 #
-#         operator PLUS 2: "addition on two or more arguments"
+#         operator ADD 2: "addition on two or more arguments"
 #
 #   parameterized K1 K2 #children ["comment"]
 #
@@ -265,24 +265,14 @@ well-founded SORT_TYPE \
     "::cvc5::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
-constant UNINTERPRETED_CONSTANT \
+constant UNINTERPRETED_SORT_VALUE \
     class \
-    UninterpretedConstant \
-    ::cvc5::UninterpretedConstantHashFunction \
-    "expr/uninterpreted_constant.h" \
-    "the kind of expressions representing uninterpreted constants; payload is an instance of the cvc5::UninterpretedConstant class (used in models)"
-typerule UNINTERPRETED_CONSTANT ::cvc5::theory::builtin::UninterpretedConstantTypeRule
-enumerator SORT_TYPE \
-    ::cvc5::theory::builtin::UninterpretedSortEnumerator \
-    "theory/builtin/type_enumerator.h"
-
-constant ABSTRACT_VALUE \
-    class \
-    AbstractValue \
-    ::cvc5::AbstractValueHashFunction \
-    "util/abstract_value.h" \
-    "the kind of expressions representing abstract values (other than uninterpreted sort constants); payload is an instance of the cvc5::AbstractValue class (used in models)"
-typerule ABSTRACT_VALUE ::cvc5::theory::builtin::AbstractValueTypeRule
+    UninterpretedSortValue \
+    ::cvc5::UninterpretedSortValueHashFunction \
+    "util/uninterpreted_sort_value.h" \
+    "the kind of expressions representing uninterpreted sort values; payload is an instance of the cvc5::AbstractValue class (used in models)"
+typerule UNINTERPRETED_SORT_VALUE ::cvc5::theory::builtin::UninterpretedSortValueTypeRule
+enumerator SORT_TYPE ::cvc5::theory::builtin::UninterpretedSortEnumerator "theory/builtin/type_enumerator.h"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -302,7 +292,7 @@ variable BOUND_VARIABLE "a bound variable (permitted in bindings and the associa
 variable SKOLEM "a Skolem variable (internal only)"
 operator SEXPR 0: "a symbolic expression (any arity)"
 
-operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
+operator WITNESS 2:3 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
     skip \

@@ -20,7 +20,10 @@ runs:
       shell: bash
       run: |
         make -j${{ env.num_proc }} build-tests
-        ctest -j${{ env.num_proc }} --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
+        if ! ctest -j${{ env.num_proc }} --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
+        then
+          ctest --output-on-failure --rerun-failed
+        fi
       env:
         CVC5_REGRESSION_ARGS: --no-early-exit
         RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
@@ -39,8 +42,8 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.check-python-bindings }}" != "true" ]]; then exit 0; fi
-        export PYTHONPATH="$PYTHONPATH:$(dirname $(find ${{ inputs.build-dir }}/install/ -name "pycvc5" -type d))"
-        python3 -c "import pycvc5"
+        export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install -name 'cvc5_python_base*')))"
+        python3 -c "import cvc5"
 
     - name: Check Examples
       shell: bash

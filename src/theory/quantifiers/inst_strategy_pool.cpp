@@ -129,7 +129,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = true;
-  ttec.d_increaseSum = options().quantifiers.fullSaturateSum;
+  ttec.d_increaseSum = options().quantifiers.enumInstSum;
   TermPools* tp = d_treg.getTermPools();
   std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
       mkTermTupleEnumeratorPool(q, &ttec, tp, p));

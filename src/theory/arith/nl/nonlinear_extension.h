@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/coverings_solver.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
@@ -110,11 +110,6 @@ class NonlinearExtension : EnvObj
    */
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
-
-  /**
-   * Finalize the given model by adding approximations and witnesses.
-   */
-  void finalizeModel(TheoryModel* tm);
 
   /** Does this class need a call to check(...) at last call effort? */
   bool hasNlTerms() const { return d_hasNlTerms; }
@@ -247,8 +242,8 @@ class NonlinearExtension : EnvObj
   SplitZeroCheck d_splitZeroSlv;
   /** Solver for tangent plane lemmas. */
   TangentPlaneCheck d_tangentPlaneSlv;
-  /** The CAD-based solver */
-  CadSolver d_cadSlv;
+  /** The coverings-based solver */
+  CoveringsSolver d_covSlv;
   /** The ICP-based solver */
   icp::ICPSolver d_icpSlv;
   /** The integer and solver
@@ -267,17 +262,6 @@ class NonlinearExtension : EnvObj
 
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
-
-  /**
-   * The approximations computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, std::pair<Node, Node>> d_approximations;
-  /**
-   * The witnesses computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, Node> d_witnesses;
 }; /* class NonlinearExtension */
 
 }  // namespace nl

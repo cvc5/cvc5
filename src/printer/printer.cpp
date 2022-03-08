@@ -405,6 +405,11 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
   printUnknownCommand(out, "get-interpol");
 }
 
+void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-interpol-next");
+}
+
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
                                    const std::string& name,
                                    Node conj,
@@ -438,6 +443,11 @@ void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   printUnknownCommand(out, "get-difficulty");
+}
+
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-learned-literals");
 }
 
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const

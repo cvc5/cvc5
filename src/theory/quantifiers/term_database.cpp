@@ -168,7 +168,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, options::outputLanguage());
+    options::ioutils::applyOutputLang(ss, options().base.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn

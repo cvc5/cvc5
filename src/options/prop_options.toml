@@ -56,14 +56,6 @@ name   = "SAT Layer"
   help       = "sets the restart interval increase factor for the sat solver (F=3.0 by default)"
 
 [[option]]
-  name       = "sat_refine_conflicts"
-  category   = "regular"
-  long       = "refine-conflicts"
-  type       = "bool"
-  default    = "false"
-  help       = "refine theory conflict clauses (default false)"
-
-[[option]]
   name       = "minisatUseElim"
   category   = "regular"
   long       = "minisat-elimination"

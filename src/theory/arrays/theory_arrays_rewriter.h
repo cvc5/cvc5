@@ -68,7 +68,6 @@ class TheoryArraysRewriter : public TheoryRewriter
   TrustNode expandDefinition(Node node) override;
 
   static inline void init() {}
-  static inline void shutdown() {}
 
  private:
   /**

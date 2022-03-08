@@ -26,6 +26,7 @@ handle nested '#if 0' pairs.
 
 import argparse
 import os
+import re
 import sys
 
 # get access to cvc5/src/api/parsekinds.py
@@ -83,6 +84,14 @@ def gen_pxi(parser : KindsParser, filename):
             doc = parser.kinds_doc.get(name, '')
             f.write(KINDS_ATTR_TEMPLATE.format(name=name, kind=kind, doc=doc))
 
+comment_repls = {
+    '`Solver::([a-zA-Z]+)\(([^)]*)\)[^`]*`': ':py:meth:`pycvc5.Solver.\\1`',
+}
+def reformat_comment(comment):
+    for pat,repl in comment_repls.items():
+        comment = re.sub(pat, repl, comment)
+    return comment
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Read a kinds header file and generate a '
                          'corresponding pxd file, with simplified kind names.')
@@ -99,6 +108,9 @@ if __name__ == "__main__":
 
     kp = KindsParser()
     kp.parse(kinds_header)
+
+    for name in kp.kinds_doc:
+        kp.kinds_doc[name] = reformat_comment(kp.kinds_doc[name])
 
     gen_pxd(kp, kinds_file_prefix + ".pxd")
     gen_pxi(kp, kinds_file_prefix + ".pxi")

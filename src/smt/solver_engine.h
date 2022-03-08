@@ -272,6 +272,14 @@ class CVC5_EXPORT SolverEngine
   Node getSepNilExpr();
 
   /**
+   * Get the list of top-level learned literals that are entailed by the current
+   * set of assertions.
+   *
+   * TODO (wishue #104): implement for different modes
+   */
+  std::vector<Node> getLearnedLiterals();
+
+  /**
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
@@ -332,7 +340,7 @@ class CVC5_EXPORT SolverEngine
    * immediately determined to be inconsistent. Note this formula will
    * be included in the unsat core when applicable.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   Result assertFormula(const Node& formula);
 
@@ -477,7 +485,7 @@ class CVC5_EXPORT SolverEngine
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    *
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
@@ -489,7 +497,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @param n The node to expand
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   Node expandDefinitions(const Node& n);
 
@@ -498,8 +506,7 @@ class CVC5_EXPORT SolverEngine
    * or NOT_ENTAILED query).  Only permitted if the SolverEngine is set to
    * operate interactively and produce-models is on.
    *
-   * @throw ModalException, TypeCheckingException, LogicException,
-   *        UnsafeInterruptException
+   * @throw ModalException, TypeCheckingException, LogicException
    */
   Node getValue(const Node& e) const;
 
@@ -617,13 +624,8 @@ class CVC5_EXPORT SolverEngine
    * extended command get-qe-disjunct, which can be used
    * for incrementally computing the result of a
    * quantifier elimination.
-   *
-   * The argument strict is whether to output
-   * warnings, such as when an unexpected logic is used.
-   *
-   * throw@ Exception
    */
-  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
@@ -637,12 +639,18 @@ class CVC5_EXPORT SolverEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Node& conj,
-                   const TypeNode& grammarType,
-                   Node& interpol);
+  bool getInterpolant(const Node& conj,
+                      const TypeNode& grammarType,
+                      Node& interpol);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Node& conj, Node& interpol);
+  /**
+   * Get next interpolant. This can only be called immediately after a
+   * successful call to getInterpolant or getInterpolantNext.
+   *
+   * Returns true if an interpolant was found, and sets interpol to the
+   * interpolant.
+   */
+  bool getInterpolantNext(Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -725,7 +733,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Push a user-level context.
-   * throw@ ModalException, LogicException, UnsafeInterruptException
+   * throw@ ModalException, LogicException
    */
   void push();
 
@@ -903,6 +911,9 @@ class CVC5_EXPORT SolverEngine
    */
   UnsatCore getUnsatCoreInternal();
 
+  /** Internal version of assertFormula */
+  Result assertFormulaInternal(const Node& formula);
+
   /**
    * Check that a generated proof checks. This method is the same as printProof,
    * but does not print the proof. Like that method, it should be called
@@ -1046,6 +1057,19 @@ class CVC5_EXPORT SolverEngine
    * Return a reference to options like for `EnvObj`.
    */
   const Options& options() const;
+
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @param src The source of the check, which is printed in the exception if
+   * this check fails.
+   */
+  void ensureWellFormedTerm(const Node& n, const std::string& src) const;
+  /** Vector version of above. */
+  void ensureWellFormedTerms(const std::vector<Node>& ns,
+                             const std::string& src) const;
 
   /* Members -------------------------------------------------------------- */
 

@@ -398,11 +398,11 @@ TEST_F(TestNodeBlackNode, getKind)
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->realType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->realType());
 
-  n = d_nodeManager->mkNode(PLUS, x, y);
-  ASSERT_EQ(PLUS, n.getKind());
+  n = d_nodeManager->mkNode(ADD, x, y);
+  ASSERT_EQ(ADD, n.getKind());
 
-  n = d_nodeManager->mkNode(UMINUS, x);
-  ASSERT_EQ(UMINUS, n.getKind());
+  n = d_nodeManager->mkNode(NEG, x);
+  ASSERT_EQ(NEG, n.getKind());
 }
 
 TEST_F(TestNodeBlackNode, getOperator)
@@ -512,19 +512,19 @@ TEST_F(TestNodeBlackNode, kinded_iterator)
   Node x = d_skolemManager->mkDummySkolem("x", integerType);
   Node y = d_skolemManager->mkDummySkolem("y", integerType);
   Node z = d_skolemManager->mkDummySkolem("z", integerType);
-  Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
-  Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
+  Node plus_x_y_z = d_nodeManager->mkNode(kind::ADD, x, y, z);
+  Node x_minus_y = d_nodeManager->mkNode(kind::SUB, x, y);
 
   {  // iterator
-    Node::kinded_iterator i = plus_x_y_z.begin(PLUS);
+    Node::kinded_iterator i = plus_x_y_z.begin(ADD);
     ASSERT_EQ(*i++, x);
     ASSERT_EQ(*i++, y);
     ASSERT_EQ(*i++, z);
-    ASSERT_TRUE(i == plus_x_y_z.end(PLUS));
+    ASSERT_TRUE(i == plus_x_y_z.end(ADD));
 
-    i = x.begin(PLUS);
+    i = x.begin(ADD);
     ASSERT_EQ(*i++, x);
-    ASSERT_TRUE(i == x.end(PLUS));
+    ASSERT_TRUE(i == x.end(ADD));
   }
 }
 
@@ -659,7 +659,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add = d_nodeManager->mkNode(kind::ADD, skolems);
   std::vector<Node> children;
   for (Node child : add)
   {
@@ -673,7 +673,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add = d_nodeManager->mkNode(kind::ADD, skolems);
   std::vector<TNode> children;
   for (TNode child : add)
   {
@@ -687,7 +687,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add_node = d_nodeManager->mkNode(kind::ADD, skolems);
   TNode add_tnode = add_node;
   std::vector<Node> children;
   for (Node child : add_tnode)
@@ -702,7 +702,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_tnode)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add_node = d_nodeManager->mkNode(kind::ADD, skolems);
   TNode add_tnode = add_node;
   std::vector<TNode> children;
   for (TNode child : add_tnode)

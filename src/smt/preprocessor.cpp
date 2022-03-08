@@ -44,16 +44,10 @@ Preprocessor::Preprocessor(Env& env,
       d_exDefs(env),
       d_processor(env, stats)
 {
+
 }
 
-Preprocessor::~Preprocessor()
-{
-  if (d_propagator.getNeedsFinish())
-  {
-    d_propagator.finish();
-    d_propagator.setNeedsFinish(false);
-  }
-}
+Preprocessor::~Preprocessor() {}
 
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
@@ -103,6 +97,15 @@ bool Preprocessor::process(Assertions& as)
 void Preprocessor::clearLearnedLiterals()
 {
   d_propagator.getLearnedLiterals().clear();
+}
+
+std::vector<Node> Preprocessor::getLearnedLiterals() const
+{
+  if (d_ppContext == nullptr)
+  {
+    return {};
+  }
+  return d_ppContext->getLearnedLiterals();
 }
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }

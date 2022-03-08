@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q --check-unsat-cores --check-models
+; COMMAND-LINE: -q
 (set-info :status sat)
 (declare-fun a () (Array (_ BitVec 32) (_ BitVec 32)))
 (declare-fun b () (Array (_ BitVec 32) (_ BitVec 32)))

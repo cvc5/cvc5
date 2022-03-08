@@ -302,23 +302,6 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
 
-  ASSERT_TRUE(pairRealReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isComparableTo(pairIntInt));
-
   ASSERT_TRUE(pairRealReal.isSubsortOf(pairRealReal));
   ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealReal));
   ASSERT_FALSE(pairRealInt.isSubsortOf(pairRealReal));
@@ -335,6 +318,25 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_FALSE(pairIntReal.isSubsortOf(pairIntInt));
   ASSERT_FALSE(pairRealInt.isSubsortOf(pairIntInt));
   ASSERT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
+}
+
+TEST_F(TestApiBlackDatatype, isFinite)
+{
+  DatatypeDecl dtypedecl = d_solver.mkDatatypeDecl("dt", {});
+  DatatypeConstructorDecl ctordecl = d_solver.mkDatatypeConstructorDecl("cons");
+  ctordecl.addSelector("sel", d_solver.getBooleanSort());
+  dtypedecl.addConstructor(ctordecl);
+  Sort dtype = d_solver.mkDatatypeSort(dtypedecl);
+  ASSERT_TRUE(dtype.getDatatype().isFinite());
+
+  Sort p = d_solver.mkParamSort("p1");
+  DatatypeDecl pdtypedecl = d_solver.mkDatatypeDecl("dt", {p});
+  DatatypeConstructorDecl pctordecl =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  pctordecl.addSelector("sel", p);
+  pdtypedecl.addConstructor(pctordecl);
+  Sort pdtype = d_solver.mkDatatypeSort(pdtypedecl);
+  ASSERT_THROW(pdtype.getDatatype().isFinite(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
@@ -389,9 +391,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[2].getDatatype().isWellFounded());
-  ASSERT_FALSE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_FALSE(dtsorts[1].getDatatype().hasNestedRecursion());
-  ASSERT_FALSE(dtsorts[2].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -422,7 +421,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
       dtsorts[0].getDatatype()[0][0].getCodomainSort().getArrayElementSort(),
       dtsorts[0]);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -459,8 +457,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -497,8 +493,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_EQ(dtsorts.size(), 2);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
   ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -534,7 +528,6 @@ TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
   ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 }
 
 TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)

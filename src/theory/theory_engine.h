@@ -39,7 +39,6 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
 
@@ -204,12 +203,6 @@ class TheoryEngine : protected EnvObj
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
-  /**
-   * This is called at shutdown time by the SolverEngine, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between PropEngine and Theory.
-   */
-  void shutdown();
 
   /**
    * Solve the given literal with a theory that owns it. The proof of tliteral
@@ -320,7 +313,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* theoryOf(TNode node) const
   {
-    return d_theoryTable[theory::Theory::theoryOf(node)];
+    return d_theoryTable[d_env.theoryOf(node)];
   }
 
   /**
@@ -567,12 +560,6 @@ class TheoryEngine : protected EnvObj
    * standard, version 2.6.
    */
   bool d_inSatMode;
-
-  /**
-   * Debugging flag to ensure that shutdown() is called before the
-   * destructor.
-   */
-  bool d_hasShutDown;
 
   /**
    * True if a theory has notified us of incompleteness (at this

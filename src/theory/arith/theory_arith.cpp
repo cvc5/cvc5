@@ -19,6 +19,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
 #include "theory/arith/infer_bounds.h"
@@ -48,7 +49,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
-      d_rewriter(d_opElim)
+      d_rewriter(d_opElim),
+      d_arithModelCacheSet(false)
 {
   // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
@@ -131,7 +133,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     return d_ppre.ppRewriteEq(atom);
   }
-  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
@@ -175,7 +177,6 @@ void TheoryArith::postCheck(Effort level)
         d_im.doPendingPhaseRequirements();
         return;
       }
-      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }
@@ -193,6 +194,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
@@ -327,19 +329,21 @@ void TheoryArith::presolve(){
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  if (a == b)
+  {
+    return EQUALITY_TRUE_IN_MODEL;
+  }
   if (d_arithModelCache.empty())
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node aval =
-      rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  Node bval =
-      rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  if (aval == bval)
+  Node diff = d_env.getNodeManager()->mkNode(Kind::SUB, a, b);
+  std::optional<bool> isZero = isExpressionZero(d_env, diff, d_arithModelCache);
+  if (isZero)
   {
-    return EQUALITY_TRUE_IN_MODEL;
+    return *isZero ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
   }
-  return EQUALITY_FALSE_IN_MODEL;
+  return EQUALITY_UNKNOWN;
 }
 
 Node TheoryArith::getModelValue(TNode var) {
@@ -361,16 +365,18 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 
 void TheoryArith::updateModelCache(std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }

@@ -12,15 +12,15 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Kind
-from pycvc5 import Sort, Term
+import cvc5
+from cvc5 import Kind
+from cvc5 import Sort, Term
 from fractions import Fraction
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_eq(solver):
@@ -77,7 +77,7 @@ def test_get_kind(solver):
     f_x.getKind()
     f_y = solver.mkTerm(Kind.ApplyUf, f, y)
     f_y.getKind()
-    sum = solver.mkTerm(Kind.Plus, f_x, f_y)
+    sum = solver.mkTerm(Kind.Add, f_x, f_y)
     sum.getKind()
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
     p_0.getKind()
@@ -126,7 +126,7 @@ def test_get_sort(solver):
     f_y = solver.mkTerm(Kind.ApplyUf, f, y)
     f_y.getSort()
     assert f_y.getSort() == intSort
-    sum = solver.mkTerm(Kind.Plus, f_x, f_y)
+    sum = solver.mkTerm(Kind.Add, f_x, f_y)
     sum.getSort()
     assert sum.getSort() == intSort
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
@@ -258,7 +258,7 @@ def test_not_term(solver):
     f_x = solver.mkTerm(Kind.ApplyUf, f, x)
     with pytest.raises(RuntimeError):
         f_x.notTerm()
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.notTerm()
     p_0 = solver.mkTerm(Kind.ApplyUf, p, zero)
@@ -325,7 +325,7 @@ def test_and_term(solver):
         f_x.andTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.andTerm(f_x)
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.andTerm(b)
     with pytest.raises(RuntimeError):
@@ -431,7 +431,7 @@ def test_or_term(solver):
         f_x.orTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.orTerm(f_x)
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.orTerm(b)
     with pytest.raises(RuntimeError):
@@ -537,7 +537,7 @@ def test_xor_term(solver):
         f_x.xorTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.xorTerm(f_x)
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.xorTerm(b)
     with pytest.raises(RuntimeError):
@@ -637,7 +637,7 @@ def test_eq_term(solver):
         f_x.eqTerm(p)
     f_x.eqTerm(zero)
     f_x.eqTerm(f_x)
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.eqTerm(b)
     with pytest.raises(RuntimeError):
@@ -740,7 +740,7 @@ def test_imp_term(solver):
         f_x.impTerm(zero)
     with pytest.raises(RuntimeError):
         f_x.impTerm(f_x)
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.impTerm(b)
     with pytest.raises(RuntimeError):
@@ -832,7 +832,7 @@ def test_ite_term(solver):
         f_x.iteTerm(b, b)
     with pytest.raises(RuntimeError):
         f_x.iteTerm(b, x)
-    sum = solver.mkTerm(Kind.Plus, f_x, f_x)
+    sum = solver.mkTerm(Kind.Add, f_x, f_x)
     with pytest.raises(RuntimeError):
         sum.iteTerm(x, x)
     with pytest.raises(RuntimeError):
@@ -860,8 +860,8 @@ def test_substitute(solver):
     x = solver.mkConst(solver.getIntegerSort(), "x")
     one = solver.mkInteger(1)
     ttrue = solver.mkTrue()
-    xpx = solver.mkTerm(Kind.Plus, x, x)
-    onepone = solver.mkTerm(Kind.Plus, one, one)
+    xpx = solver.mkTerm(Kind.Add, x, x)
+    onepone = solver.mkTerm(Kind.Add, one, one)
 
     assert xpx.substitute(x, one) == onepone
     assert onepone.substitute(one, x) == xpx
@@ -871,8 +871,8 @@ def test_substitute(solver):
 
     # simultaneous substitution
     y = solver.mkConst(solver.getIntegerSort(), "y")
-    xpy = solver.mkTerm(Kind.Plus, x, y)
-    xpone = solver.mkTerm(Kind.Plus, y, one)
+    xpy = solver.mkTerm(Kind.Add, x, y)
+    xpone = solver.mkTerm(Kind.Add, y, one)
     es = []
     rs = []
     es.append(x)
@@ -917,8 +917,8 @@ def test_substitute(solver):
 
 def test_term_compare(solver):
     t1 = solver.mkInteger(1)
-    t2 = solver.mkTerm(Kind.Plus, solver.mkInteger(2), solver.mkInteger(2))
-    t3 = solver.mkTerm(Kind.Plus, solver.mkInteger(2), solver.mkInteger(2))
+    t2 = solver.mkTerm(Kind.Add, solver.mkInteger(2), solver.mkInteger(2))
+    t3 = solver.mkTerm(Kind.Add, solver.mkInteger(2), solver.mkInteger(2))
     assert t2 >= t3
     assert t2 <= t3
     assert (t1 > t2) != (t1 < t2)
@@ -928,7 +928,7 @@ def test_term_compare(solver):
 def test_term_children(solver):
     # simple term 2+3
     two = solver.mkInteger(2)
-    t1 = solver.mkTerm(Kind.Plus, two, solver.mkInteger(3))
+    t1 = solver.mkTerm(Kind.Add, two, solver.mkInteger(3))
     assert t1[0] == two
     assert t1.getNumChildren() == 2
     tnull = Term(solver)
@@ -958,17 +958,18 @@ def test_get_const_array_base(solver):
     assert one == constarr.getConstArrayBase()
 
 
-def test_get_abstract_value(solver):
-    v1 = solver.mkAbstractValue(1)
-    v2 = solver.mkAbstractValue("15")
-    v3 = solver.mkAbstractValue("18446744073709551617")
-
-    assert v1.isAbstractValue()
-    assert v2.isAbstractValue()
-    assert v3.isAbstractValue()
-    assert "1" == v1.getAbstractValue()
-    assert "15" == v2.getAbstractValue()
-    assert "18446744073709551617" == v3.getAbstractValue()
+def test_get_uninterpreted_sort_value(solver):
+    solver.setOption("produce-models", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, y))
+    assert solver.checkSat().isSat()
+    vx = solver.getValue(x)
+    vy = solver.getValue(y)
+    assert vx.isUninterpretedSortValue()
+    assert vy.isUninterpretedSortValue()
+    assert vx.getUninterpretedSortValue() == vy.getUninterpretedSortValue()
 
 
 def test_get_tuple(solver):
@@ -1045,18 +1046,6 @@ def test_get_sequence(solver):
     assert [i1, i1, i2] == s5.getSequenceValue()
 
 
-def test_get_uninterpreted_const(solver):
-    s = solver.mkUninterpretedSort("test")
-    t1 = solver.mkUninterpretedConst(s, 3)
-    t2 = solver.mkUninterpretedConst(s, 5)
-
-    assert t1.isUninterpretedValue()
-    assert t2.isUninterpretedValue()
-
-    assert (s, 3) == t1.getUninterpretedValue()
-    assert (s, 5) == t2.getUninterpretedValue()
-
-
 def test_get_floating_point(solver):
     bvval = solver.mkBitVector(16, "0000110000000011", 2)
     fp = solver.mkFloatingPoint(5, 11, bvval)
@@ -1069,11 +1058,11 @@ def test_get_floating_point(solver):
     assert not fp.isFloatingPointNaN()
     assert (5, 11, bvval) == fp.getFloatingPointValue()
 
-    assert solver.mkPosZero(5, 11).isFloatingPointPosZero()
-    assert solver.mkNegZero(5, 11).isFloatingPointNegZero()
-    assert solver.mkPosInf(5, 11).isFloatingPointPosInf()
-    assert solver.mkNegInf(5, 11).isFloatingPointNegInf()
-    assert solver.mkNaN(5, 11).isFloatingPointNaN()
+    assert solver.mkFloatingPointPosZero(5, 11).isFloatingPointPosZero()
+    assert solver.mkFloatingPointNegZero(5, 11).isFloatingPointNegZero()
+    assert solver.mkFloatingPointPosInf(5, 11).isFloatingPointPosInf()
+    assert solver.mkFloatingPointNegInf(5, 11).isFloatingPointNegInf()
+    assert solver.mkFloatingPointNaN(5, 11).isFloatingPointNaN()
 
 
 def test_is_integer(solver):
@@ -1284,5 +1273,5 @@ def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
     assert str(x) == "x"
-    solver2 = pycvc5.Solver()
+    solver2 = cvc5.Solver()
     assert str(x) == "x"

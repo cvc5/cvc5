@@ -200,6 +200,9 @@ class Printer
                                       Node conj,
                                       TypeNode sygusType) const;
 
+  /** Print get-interpol-next command */
+  virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
+
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
                                     const std::string& name,
@@ -222,6 +225,9 @@ class Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-learned-literals command */
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;

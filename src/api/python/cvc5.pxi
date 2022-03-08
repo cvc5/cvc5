@@ -1,4 +1,4 @@
-from collections import defaultdict, Set
+from collections import defaultdict
 from fractions import Fraction
 from functools import wraps
 import sys
@@ -155,8 +155,7 @@ cdef class Datatype:
 
     def getParameters(self):
         """
-            :return: the parameters of this datatype, if it is parametric. An
-            exception is thrown if this datatype is not parametric.
+            :return: the parameters of this datatype, if it is parametric. An exception is thrown if this datatype is not parametric.
         """
         param_sorts = []
         for s in self.cd.getParameters():
@@ -188,10 +187,6 @@ cdef class Datatype:
     def isWellFounded(self):
         """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
-
-    def hasNestedRecursion(self):
-        """:return: True if this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
-        return self.cd.hasNestedRecursion()
 
     def isNull(self):
         """:return: True if this Datatype is a null object."""
@@ -832,7 +827,7 @@ cdef class Solver:
         if unresolvedSorts == None:
             unresolvedSorts = set([])
         else:
-            assert isinstance(unresolvedSorts, Set)
+            assert isinstance(unresolvedSorts, set)
 
         sorts = []
         cdef vector[c_DatatypeDecl] decls
@@ -1329,7 +1324,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkConstArray(sort.csort, val.cterm)
         return term
 
-    def mkPosInf(self, int exp, int sig):
+    def mkFloatingPointPosInf(self, int exp, int sig):
         """Create a positive infinity floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1337,10 +1332,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkPosInf(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointPosInf(exp, sig)
         return term
 
-    def mkNegInf(self, int exp, int sig):
+    def mkFloatingPointNegInf(self, int exp, int sig):
         """Create a negative infinity floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1348,10 +1343,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkNegInf(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointNegInf(exp, sig)
         return term
 
-    def mkNaN(self, int exp, int sig):
+    def mkFloatingPointNaN(self, int exp, int sig):
         """Create a not-a-number (NaN) floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1359,10 +1354,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkNaN(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointNaN(exp, sig)
         return term
 
-    def mkPosZero(self, int exp, int sig):
+    def mkFloatingPointPosZero(self, int exp, int sig):
         """Create a positive zero (+0.0) floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1370,10 +1365,10 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkPosZero(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointPosZero(exp, sig)
         return term
 
-    def mkNegZero(self, int exp, int sig):
+    def mkFloatingPointNegZero(self, int exp, int sig):
         """Create a negative zero (+0.0) floating-point constant.
 
         :param exp: Number of bits in the exponent
@@ -1381,7 +1376,7 @@ cdef class Solver:
         :return: the floating-point constant
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkNegZero(exp, sig)
+        term.cterm = self.csolver.mkFloatingPointNegZero(exp, sig)
         return term
 
     def mkRoundingMode(self, RoundingMode rm):
@@ -1391,32 +1386,6 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.crm)
-        return term
-
-    def mkUninterpretedConst(self, Sort sort, int index):
-        """Create uninterpreted constant.
-
-        :param sort: Sort of the constant
-        :param index: Index of the constant
-        """
-        cdef Term term = Term(self)
-        term.cterm = self.csolver.mkUninterpretedConst(sort.csort, index)
-        return term
-
-    def mkAbstractValue(self, index):
-        """
-        Create an abstract value constant.
-        The given index needs to be positive.
-
-        :param index: Index of the abstract value
-        """
-        cdef Term term = Term(self)
-        try:
-            term.cterm = self.csolver.mkAbstractValue(str(index).encode())
-        except:
-            raise ValueError(
-                "mkAbstractValue expects a str representing a number"
-                " or an int, but got{}".format(index))
         return term
 
     def mkFloatingPoint(self, int exp, int sig, Term val):
@@ -1708,7 +1677,7 @@ cdef class Solver:
             ( check-synth )
 
         :return: the result of the check, which is unsat if the check succeeded,
-        in which case solutions are available via getSynthSolutions.
+                 in which case solutions are available via getSynthSolutions.
         """
         cdef Result r = Result()
         r.cr = self.csolver.checkSynthNext()
@@ -1974,6 +1943,24 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getLearnedLiterals(self):
+        """Get a list of literals that are entailed by the current set of assertions
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-learned-literals )
+
+        :return: the list of literals
+        """
+        lits = []
+        for a in self.csolver.getLearnedLiterals():
+            term = Term(self)
+            term.cterm = a
+            lits.append(term)
+        return lits
+
     def getAssertions(self):
         """Get the list of asserted formulas.
 
@@ -2048,9 +2035,16 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-unsat-core )
+          (get-unsat-core)
 
         Requires to enable option :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+
+        .. note::
+          In contrast to SMT-LIB, the API does not distinguish between named and
+          unnamed assertions when producing an unsatisfiable core. Additionally,
+          the API allows this option to be called after a check with assumptions.
+          A subset of those assumptions may be included in the unsatisfiable core
+          returned by this method.
 
         :return: a set of terms representing the unsatisfiable core
         """
@@ -2234,6 +2228,154 @@ cdef class Solver:
         :param value: the option value
         """
         self.csolver.setOption(option.encode(), value.encode())
+
+    def getInterpolant(self, Term conj, *args):
+        """Get an interpolant.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-interpol <conj> )
+            ( get-interpol <conj> <grammar> )
+
+        Requires option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+
+        Supports the following variants:
+
+        - ``bool getInteprolant(Term conj, Term output)``
+        - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+        
+        :param conj: the conjecture term
+        :param output: the term where the result will be stored
+        :param grammar: a grammar for the inteprolant
+        :return: True iff an interpolant was found
+        """
+        result = False
+        if len(args) == 1:
+            assert isinstance(args[0], Term)
+            result = self.csolver.getInterpolant(conj.cterm, (<Term ?> args[0]).cterm)
+        else:
+            assert len(args) == 2
+            assert isinstance(args[0], Grammar)
+            assert isinstance(args[1], Term)
+            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+        return result
+
+
+    def getInterpolantNext(self, Term output):
+        """
+        Get the next interpolant. Can only be called immediately after
+        a succesful call to get-interpol or get-interpol-next. 
+        Is guaranteed to produce a syntactically different interpolant wrt the
+        last returned interpolant if successful.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-interpol-next )
+
+        Requires to enable incremental mode, and 
+        option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+
+        :param output: the term where the result will be stored
+        :return: True iff an interpolant was found
+        """
+        result = self.csolver.getInterpolantNext(output.cterm)
+        return result
+        
+    def getAbduct(self, Term conj, *args):
+        """Get an abduct.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-abduct <conj> )
+            ( get-abduct <conj> <grammar> )
+
+        Requires to enable option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+
+        Supports the following variants:
+
+        - ``bool getAbduct(Term conj, Term output)``
+        - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+        
+        :param conj: the conjecture term
+        :param output: the term where the result will be stored
+        :param grammar: a grammar for the abduct 
+        :return: True iff an abduct was found
+        """
+        result = False
+        if len(args) == 1:
+            assert isinstance(args[0], Term)
+            result = self.csolver.getAbduct(conj.cterm, (<Term ?> args[0]).cterm)
+        else:
+            assert len(args) == 2
+            assert isinstance(args[0], Grammar)
+            assert isinstance(args[1], Term)
+            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+        return result
+
+    def getAbductNext(self, Term output):
+        """
+        Get the next abduct. Can only be called immediately after
+        a succesful call to get-abduct or get-abduct-next. 
+        Is guaranteed to produce a syntactically different abduct wrt the 
+        last returned abduct if successful.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-abduct-next )
+
+        Requires to enable incremental mode, and 
+        option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+        :param output: the term where the result will be stored
+        :return: True iff an abduct was found
+        """
+        result = self.csolver.getAbductNext(output.cterm)
+        return result
+
+    def blockModel(self):
+        """
+        Block the current model. Can be called only if immediately preceded by a
+        SAT or INVALID query.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+            (block-model)
+
+        Requires enabling option
+        :ref:`produce-models <lbl-option-produce-models>`
+        and setting option
+        :ref:`block-models <lbl-option-block-models>`
+        to a mode other than ``none``.
+        """
+        self.csolver.blockModel()
+
+    def blockModelValues(self, terms):
+        """
+        Block the current model values of (at least) the values in terms. Can be
+        called only if immediately preceded by a SAT or NOT_ENTAILED query.
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+           (block-model-values ( <terms>+ ))
+
+        Requires enabling option
+        :ref:`produce-models <lbl-option-produce-models>`.
+        """
+        cdef vector[c_Term] nts
+        for t in terms:
+            nts.push_back((<Term?> t).cterm)
+        self.csolver.blockModelValues(nts)
 
 
 cdef class Sort:
@@ -2522,15 +2664,6 @@ cdef class Sort:
         """
         return self.csort.isSubsortOf(sort.csort)
 
-    def isComparableTo(self, Sort sort):
-        """
-            Is this sort comparable to the given sort
-            (i.e., do they share a common ancestor in the subsort tree)?
-
-            :return: True if this sort is comparable to s
-        """
-        return self.csort.isComparableTo(sort.csort)
-
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort
@@ -2555,10 +2688,19 @@ cdef class Sort:
 
     def substitute(self, sort_or_list_1, sort_or_list_2):
         """
-            Substitution of Sorts.
+        Substitution of Sorts.
 
-	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-            :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+
+        Note that this replacement is applied during a pre-order traversal and
+        only once to the sort. It is not run until fix point. In the case that
+        sort_or_list_1 contains duplicates, the replacement earliest in the list
+        takes priority.
+
+        For example,
+        ``(Array A B) .substitute([A, C], [(Array C D), (Array A B)])`` will
+        return ``(Array (Array C D) B)``.
         """
 
         # The resulting sort after substitution
@@ -2869,11 +3011,11 @@ cdef class Term:
         return self.cterm.getId()
 
     def getKind(self):
-        """:return: the :py:class:`pycvc5.Kind` of this term."""
+        """:return: the :py:class:`cvc5.Kind` of this term."""
         return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
-        """:return: the :py:class:`pycvc5.Sort` of this term."""
+        """:return: the :py:class:`cvc5.Sort` of this term."""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
         return sort
@@ -2881,7 +3023,18 @@ cdef class Term:
     def substitute(self, term_or_list_1, term_or_list_2):
         """
 	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
-	"""
+	   
+        Note that this replacement is applied during a pre-order traversal and
+        only once to the term. It is not run until fix point. In the case that
+        terms contains duplicates, the replacement earliest in the list takes
+        priority. For example, calling substitute on ``f(x,y)`` with
+
+        .. code:: python
+
+            term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
+        
+        results in the term ``f(g(z),y)``.
+	    """
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -2919,7 +3072,7 @@ cdef class Term:
         """
         .. note:: This is safe to call when :py:meth:`hasOp()` returns True.
 
-        :return: the :py:class:`pycvc5.Op` used to create this Term.
+        :return: the :py:class:`cvc5.Op` used to create this Term.
         """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -3069,7 +3222,8 @@ cdef class Term:
         or otherwise an exception is thrown.
         
         :return: 0 if this term is zero, -1 if this term is a negative real or
-        integer value, 1 if this term is a positive real or integer value.
+                 integer value, 1 if this term is a positive real or integer
+                 value.
         """
         return self.cterm.getRealOrIntegerValueSign()
 
@@ -3084,18 +3238,6 @@ cdef class Term:
 	   :return: the integer term as a native python integer.
 	"""
         return int(self.cterm.getIntegerValue().decode())
-
-    def isAbstractValue(self):
-        """:return: True iff this term is an abstract value."""
-        return self.cterm.isAbstractValue()
-
-    def getAbstractValue(self):
-        """
-	   Asserts :py:meth:`isAbstractValue()`.
-
-	   :return: the representation of an abstract value as a string.
-	"""
-        return self.cterm.getAbstractValue().decode()
 
     def isFloatingPointPosZero(self):
         """:return: True iff the term is the floating-point value for positive zero."""
@@ -3188,21 +3330,17 @@ cdef class Term:
             elems.append(term)
         return elems
 
-    def isUninterpretedValue(self):
+    def isUninterpretedSortValue(self):
         """:return: True iff this term is a value from an uninterpreted sort."""
-        return self.cterm.isUninterpretedValue()
+        return self.cterm.isUninterpretedSortValue()
 
-    def getUninterpretedValue(self):
+    def getUninterpretedSortValue(self):
         """
-	   Asserts :py:meth:`isUninterpretedValue()`.
+	   Asserts :py:meth:`isUninterpretedSortValue()`.
 
 	   :return: the representation of an uninterpreted value as a pair of its sort and its index.
 	"""
-        cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
-        cdef Sort sort = Sort(self.solver)
-        sort.csort = p.first
-        i = p.second
-        return (sort, i)
+        return self.cterm.getUninterpretedSortValue()
 
     def isTupleValue(self):
         """:return: True iff this term is a tuple value."""

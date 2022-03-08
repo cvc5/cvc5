@@ -38,7 +38,6 @@
 #include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "util/smt2_quote_string.h"
-#include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
 using namespace std;
@@ -344,10 +343,6 @@ void AssertCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->assertFormula(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -377,10 +372,6 @@ void PushCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->push();
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -408,10 +399,6 @@ void PopCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     solver->pop();
     d_commandStatus = CommandSuccess::instance();
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
   }
   catch (exception& e)
   {
@@ -1509,10 +1496,6 @@ void SimplifyCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->simplify(d_term);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1587,10 +1570,6 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
   catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
   }
   catch (exception& e)
   {
@@ -1667,10 +1646,6 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1728,10 +1703,6 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1783,10 +1754,6 @@ void BlockModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
   }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
@@ -1836,10 +1803,6 @@ void BlockModelValuesCommand::invoke(api::Solver* solver, SymbolManager* sm)
   catch (api::CVC5ApiRecoverableException& e)
   {
     d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
   }
   catch (exception& e)
   {
@@ -2007,6 +1970,9 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    // we must remember the name of the interpolant, in case get-interpol-next
+    // is called later.
+    sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
       d_resultStatus = solver->getInterpolant(d_conj, d_result);
@@ -2067,6 +2033,72 @@ void GetInterpolCommand::toStream(std::ostream& out,
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpol(
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetInterpolNextCommand */
+/* -------------------------------------------------------------------------- */
+
+GetInterpolNextCommand::GetInterpolNextCommand() : d_resultStatus(false) {}
+
+api::Term GetInterpolNextCommand::getResult() const { return d_result; }
+
+void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    // Get the name of the interpolant from the symbol manager
+    d_name = sm->getLastSynthName();
+    d_resultStatus = solver->getInterpolantNext(d_result);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetInterpolNextCommand::printResult(std::ostream& out) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out);
+  }
+  else
+  {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetInterpolNextCommand::clone() const
+{
+  GetInterpolNextCommand* c = new GetInterpolNextCommand;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetInterpolNextCommand::getCommandName() const
+{
+  return "get-interpol-next";
+}
+
+void GetInterpolNextCommand::toStream(std::ostream& out,
+                                      int toDepth,
+                                      size_t dag,
+                                      Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetInterpolNext(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2515,6 +2547,72 @@ void GetDifficultyCommand::toStream(std::ostream& out,
                                     Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetLearnedLiteralsCommand */
+/* -------------------------------------------------------------------------- */
+
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand() {}
+void GetLearnedLiteralsCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_result = solver->getLearnedLiterals();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetLearnedLiteralsCommand::printResult(std::ostream& out) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out);
+  }
+  else
+  {
+    out << "(" << std::endl;
+    for (const api::Term& lit : d_result)
+    {
+      out << lit << std::endl;
+    }
+    out << ")" << std::endl;
+  }
+}
+
+const std::vector<api::Term>& GetLearnedLiteralsCommand::getLearnedLiterals()
+    const
+{
+  return d_result;
+}
+
+Command* GetLearnedLiteralsCommand::clone() const
+{
+  GetLearnedLiteralsCommand* c = new GetLearnedLiteralsCommand;
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetLearnedLiteralsCommand::getCommandName() const
+{
+  return "get-learned-literals";
+}
+
+void GetLearnedLiteralsCommand::toStream(std::ostream& out,
+                                         int toDepth,
+                                         size_t dag,
+                                         Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetLearnedLiterals(out);
 }
 
 /* -------------------------------------------------------------------------- */

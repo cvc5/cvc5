@@ -14,7 +14,6 @@
 ##
 
 set(LIBCONTEXT_SOURCES
-  cddense_set.h
   cdhashmap.h
   cdhashmap_forward.h
   cdhashset.h

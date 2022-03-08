@@ -15,7 +15,7 @@
 (declare-fun _substvar_3545_ () Bool)
 (declare-fun _substvar_3627_ () Bool) 
 (set-option :ext-rewrite-quant true)
-(set-option :ext-rew-prep true)
+(set-option :ext-rew-prep use)
 (declare-const v0 Bool)
 (declare-const i2 Int)
 (declare-const i3 Int) 

@@ -32,11 +32,12 @@
 #include "expr/type_properties.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
-#include "theory/type_enumerator.h"
-#include "util/abstract_value.h"
+#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
+#include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
+#include "util/uninterpreted_sort_value.h"
 
 // clang-format off
 ${metakind_includes}
@@ -1102,6 +1103,17 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   }
 }
 
+Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
+{
+  Assert(n.getType().isSubtypeOf(t))
+      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
+      << "' of node '" << n << "' is not a subtype of '" << t << "'."
+      << std::endl;
+  Node op = mkConst(SeqUnitOp(t));
+  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
+  return sunit;
+}
+
 Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 {
   Assert(n.getType().isSubtypeOf(t))
@@ -1124,11 +1136,9 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
   return bag;
 }
 
-Node NodeManager::mkAbstractValue(const TypeNode& type)
+Node NodeManager::mkUninterpretedSortValue(const TypeNode& type)
 {
-  Node n = mkConst(AbstractValue(++d_abstractValueCount));
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
+  Node n = mkConst(UninterpretedSortValue(type, ++d_abstractValueCount));
   return n;
 }
 
@@ -1301,6 +1311,30 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
     return mkConstReal(r);
   }
   return mkConstInt(r);
+}
+
+Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)
+{
+  if (ran.isRational())
+  {
+    return mkConstReal(ran.toRational());
+  }
+  // Creating this node may refine the ran to the point where isRational returns
+  // true
+  Node inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, ran);
+
+  // Keep doing this until it either is rational or we have a fixed point.
+  while (true)
+  {
+    const RealAlgebraicNumber& cur = inner.getConst<RealAlgebraicNumber>();
+    if (cur.isRational())
+    {
+      return mkConstReal(cur.toRational());
+    }
+    if (cur == ran) break;
+    inner = mkConst(Kind::REAL_ALGEBRAIC_NUMBER_OP, cur);
+  }
+  return mkNode(Kind::REAL_ALGEBRAIC_NUMBER, inner);
 }
 
 }  // namespace cvc5

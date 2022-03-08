@@ -1,0 +1,34 @@
+; COMMAND-LINE: --sygus-out=status --sygus-si=all
+; EXPECT: unsat
+
+; This regression ensures that we are not too aggressive in filtering
+; enumerated shapes in the pool.
+
+(set-logic SLIA)
+
+(synth-fun f ((x String) (y String)) String
+  ((Start String) (StartInt Int) (StartBool Bool) (ConstString String))
+  ((Start String (ConstString x y
+                  (str.++ Start Start)
+                  (str.substr Start StartInt StartInt)
+                  (str.replace_all Start Start Start)
+                  (str.from_code StartInt)
+                  (str.from_int StartInt)
+                  (ite StartBool Start Start)))
+   (StartInt Int (0 1 (str.len Start)
+                  (str.indexof Start Start StartInt)
+                  (str.to_code Start)
+                  (str.to_int Start)))
+   (StartBool Bool ((and StartBool StartBool)
+                    (str.<= Start Start)
+                    (str.is_digit Start)
+                    (not StartBool)
+                    (<= StartInt StartInt)))
+   (ConstString String ("" "0" "1" "a" "b" (Constant String)))))
+
+(declare-var x String)
+(declare-var y String)
+
+(constraint (= (f x y) (str.at y (str.indexof y "a" (str.len x)))))
+
+(check-synth)

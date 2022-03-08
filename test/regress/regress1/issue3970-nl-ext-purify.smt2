@@ -1,5 +1,7 @@
 ; COMMAND-LINE: -q
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 (set-logic QF_UFNRA)
 (set-option :nl-ext-purify true)
 (set-option :sygus-inference true)
