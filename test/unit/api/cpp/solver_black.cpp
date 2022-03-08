@@ -3243,7 +3243,9 @@ TEST_F(TestApiBlackSolver, foo)
   Sort s14 = slv.mkDatatypeSorts({_dt46})[0];
   Term t31 = slv.mkConst(s7, "_x100");
   Term t47 = slv.mkConst(s14, "_x112");
-  Term sel = t47.getSort().getDatatype().getConstructor("_cons64").getSelectorTerm("_sel62");
+  Term sel =
+      t47.getSort().getDatatype().getConstructor("_cons64").getSelectorTerm(
+          "_sel62");
   Term t274 = slv.mkTerm(APPLY_SELECTOR, sel, t47);
   Term t488 = slv.mkTerm(Kind::APPLY_UF, {t31, t274});
   slv.assertFormula({t488});
