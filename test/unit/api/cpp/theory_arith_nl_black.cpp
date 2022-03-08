@@ -85,8 +85,7 @@ TEST_F(TestTheoryBlackArithNl, proj_issue421)
   Term t77 = slv.mkTerm(Kind::LEQ, {t69, t10});
   Term t128 = slv.mkTerm(Kind::SEQ_PREFIX, {t65, t8});
   slv.assertFormula({t77});
-  Term query = slv.mkTerm(Kind::AND, {1, t128});
-  slv.checkSatAssuming(query.notTerm());
+  slv.checkSatAssuming(t128.notTerm());
 }
 
 TEST_F(TestTheoryBlackArithNl, cvc5Projects455)
