@@ -40,7 +40,7 @@
 (define-fun _19 () Real |__ADDRESS_OF_main::d1|)
 (define-fun _20 () Real (__BASE_ADDRESS_OF__ _19))
 (define-fun _21 () Bool (= _19 _20))
-(define-fun _22 () Real 1)
+(define-fun _22 () Real 1.0)
 (define-fun _23 () Real |main::d1@2|)
 (define-fun _24 () Bool (= _23 _22))
 (define-fun _25 () Bool (and _21 _24))
