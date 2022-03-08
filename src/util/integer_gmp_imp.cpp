@@ -341,6 +341,21 @@ bool Integer::isNegativeOne() const
 
 Integer Integer::pow(unsigned long int exp) const
 {
+  // check if exp is within the uint32_t range
+  uint32_t low = static_cast<uint32_t>(exp); 
+  uint32_t high = static_cast<uint32_t>(exp << 32);
+  if (low == exp) {
+    // if it is, safely call the gmp pow function
+    return powHelper(exp);
+  } else {
+      // if exp is bigger than max uint32_t, use the following identity:
+      // a^(x + 2^32*y) = a^x * (a^(2^32))^y
+    return powHelper(low) * ((Integer(-1)) * (*this)).powHelper(high);
+  }
+}
+
+Integer Integer::powHelper(uint32_t exp) const
+{
   mpz_class result;
   mpz_pow_ui(result.get_mpz_t(), d_value.get_mpz_t(), exp);
   return Integer(result);
