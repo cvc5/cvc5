@@ -50,7 +50,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteConstructor(in);
   }
-  else if (kind == kind::APPLY_SELECTOR_TOTAL || kind == kind::APPLY_SELECTOR)
+  else if (kind == kind::APPLY_SELECTOR)
   {
     return rewriteSelector(in);
   }
@@ -422,25 +422,6 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }
-    }
-    else if (k == kind::APPLY_SELECTOR_TOTAL)
-    {
-      // evaluates to the first ground value of type tn.
-      NodeManager* nm = NodeManager::currentNM();
-      Node gt = nm->mkGroundValue(tn);
-      Assert(!gt.isNull());
-      if (tn.isDatatype() && !tn.isInstantiatedDatatype())
-      {
-        gt = NodeManager::currentNM()->mkNode(
-            kind::APPLY_TYPE_ASCRIPTION,
-            NodeManager::currentNM()->mkConst(AscriptionType(tn)),
-            gt);
-      }
-      Trace("datatypes-rewrite")
-          << "DatatypesRewriter::postRewrite: "
-          << "Rewrite trivial selector " << in
-          << " to distinguished ground term " << gt << std::endl;
-      return RewriteResponse(REWRITE_DONE, gt);
     }
   }
   return RewriteResponse(REWRITE_DONE, in);
