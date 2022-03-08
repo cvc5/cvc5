@@ -284,6 +284,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getValue(const vector[Term]& terms) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
+        string getModel(const vector[Sort]& sorts,
+                        const vector[Term]& consts) except +
         void declareSepHeap(Sort locSort, Sort dataSort) except +
         Term getValueSepHeap() except +
         Term getValueSepNil() except +
