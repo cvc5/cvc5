@@ -155,8 +155,7 @@ cdef class Datatype:
 
     def getParameters(self):
         """
-            :return: the parameters of this datatype, if it is parametric. An
-            exception is thrown if this datatype is not parametric.
+            :return: the parameters of this datatype, if it is parametric. An exception is thrown if this datatype is not parametric.
         """
         param_sorts = []
         for s in self.cd.getParameters():
@@ -1678,7 +1677,7 @@ cdef class Solver:
             ( check-synth )
 
         :return: the result of the check, which is unsat if the check succeeded,
-        in which case solutions are available via getSynthSolutions.
+                 in which case solutions are available via getSynthSolutions.
         """
         cdef Result r = Result()
         r.cr = self.csolver.checkSynthNext()
@@ -1944,6 +1943,24 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getLearnedLiterals(self):
+        """Get a list of literals that are entailed by the current set of assertions
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+
+            ( get-learned-literals )
+
+        :return: the list of literals
+        """
+        lits = []
+        for a in self.csolver.getLearnedLiterals():
+            term = Term(self)
+            term.cterm = a
+            lits.append(term)
+        return lits
+
     def getAssertions(self):
         """Get the list of asserted formulas.
 
@@ -2018,9 +2035,16 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-unsat-core )
+          (get-unsat-core)
 
         Requires to enable option :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+
+        .. note::
+          In contrast to SMT-LIB, the API does not distinguish between named and
+          unnamed assertions when producing an unsatisfiable core. Additionally,
+          the API allows this option to be called after a check with assumptions.
+          A subset of those assumptions may be included in the unsatisfiable core
+          returned by this method.
 
         :return: a set of terms representing the unsatisfiable core
         """
@@ -2664,10 +2688,10 @@ cdef class Sort:
 
     def substitute(self, sort_or_list_1, sort_or_list_2):
         """
-            Substitution of Sorts.
+        Substitution of Sorts.
 
-	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-            :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
 
         Note that this replacement is applied during a pre-order traversal and
         only once to the sort. It is not run until fix point. In the case that
@@ -2675,8 +2699,8 @@ cdef class Sort:
         takes priority.
 
         For example,
-        (Array A B) .substitute([A, C], [(Array C D), (Array A B)]) will
-        return (Array (Array C D) B).
+        ``(Array A B) .substitute([A, C], [(Array C D), (Array A B)])`` will
+        return ``(Array (Array C D) B)``.
         """
 
         # The resulting sort after substitution
@@ -3000,13 +3024,17 @@ cdef class Term:
         """
 	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
 	   
-      Note that this replacement is applied during a pre-order traversal and
-      only once to the term. It is not run until fix point. In the case that
-      terms contains duplicates, the replacement earliest in the list takes
-      priority. For example, calling substitute on f(x,y) with
-        term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
-      results in the term f(g(z),y).
-	"""
+        Note that this replacement is applied during a pre-order traversal and
+        only once to the term. It is not run until fix point. In the case that
+        terms contains duplicates, the replacement earliest in the list takes
+        priority. For example, calling substitute on ``f(x,y)`` with
+
+        .. code:: python
+
+            term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
+        
+        results in the term ``f(g(z),y)``.
+	    """
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -3194,7 +3222,8 @@ cdef class Term:
         or otherwise an exception is thrown.
         
         :return: 0 if this term is zero, -1 if this term is a negative real or
-        integer value, 1 if this term is a positive real or integer value.
+                 integer value, 1 if this term is a positive real or integer
+                 value.
         """
         return self.cterm.getRealOrIntegerValueSign()
 

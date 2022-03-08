@@ -1585,6 +1585,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(const Solver* slv,
+                                             const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
@@ -4146,6 +4149,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   *
+   * .. note::
+   *   In contrast to SMT-LIB, the API does not distinguish between named and
+   *   unnamed assertions when producing an unsatisfiable core. Additionally,
+   *   the API allows this option to be called after a check with assumptions.
+   *   A subset of those assumptions may be included in the unsatisfiable core
+   *   returned by this method.
    * \endverbatim
    *
    * @return a set of terms representing the unsatisfiable core
@@ -4180,6 +4190,14 @@ class CVC5_EXPORT Solver
    * proof-format-mode.
    */
   std::string getProof() const;
+
+  /**
+   * Get learned literals
+   *
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
+   */
+  std::vector<Term> getLearnedLiterals() const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4228,9 +4246,7 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>` \endverbatim
    * has been set.
    *
    * @param v The term in question
@@ -4250,8 +4266,6 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * \endverbatim
-   *
    * \endverbatim
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
