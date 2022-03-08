@@ -717,8 +717,9 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
   Trace("cond-var-split-debug")
       << "Conditional var elim split " << body << "?" << std::endl;
   // we only do this splitting if miniscoping is enabled, as this is
-  // required to eliminate variables in conjuncts below
-  if (!d_opts.quantifiers.miniscopeQuant)
+  // required to eliminate variables in conjuncts below. We also never
+  // miniscope non-standard quantifiers, so this is also guarded here.
+  if (!d_opts.quantifiers.miniscopeQuant || !qa.isStandard())
   {
     return body;
   }
