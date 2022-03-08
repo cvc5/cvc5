@@ -54,11 +54,11 @@ class TestUtilBlackOutput : public TestInternal
 TEST_F(TestUtilBlackOutput, output)
 {
   Debug.on("foo");
-  Debug("foo") << "testing1";
+  Trace("foo") << "testing1";
   Debug.off("foo");
-  Debug("foo") << "testing2";
+  Trace("foo") << "testing2";
   Debug.on("foo");
-  Debug("foo") << "testing3";
+  Trace("foo") << "testing3";
 
   Warning() << "bad warning!";
 
@@ -98,10 +98,10 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
 {
   Debug.on("foo");
 #ifndef CVC5_DEBUG
-  ASSERT_FALSE(Debug.isOn("foo"));
-  Debug("foo") << failure() << std::endl;
+  ASSERT_FALSE(TraceIsOn("foo"));
+  Trace("foo") << failure() << std::endl;
 #else
-  ASSERT_TRUE(Debug.isOn("foo"));
+  ASSERT_TRUE(TraceIsOn("foo"));
 #endif
   Debug.off("foo");
 
@@ -115,12 +115,12 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   TraceChannel.off("foo");
 
 #ifdef CVC5_MUZZLE
-  ASSERT_FALSE(Debug.isOn("foo"));
+  ASSERT_FALSE(TraceIsOn("foo"));
   ASSERT_FALSE(TraceIsOn("foo"));
   ASSERT_FALSE(Warning.isOn());
 
   cout << "debug" << std::endl;
-  Debug("foo") << failure() << std::endl;
+  Trace("foo") << failure() << std::endl;
   cout << "trace" << std::endl;
   Trace("foo") << failure() << std::endl;
   cout << "warning" << std::endl;
@@ -133,11 +133,11 @@ TEST_F(TestUtilBlackOutput, simple_print)
 #ifdef CVC5_MUZZLE
 
   Debug.off("yo");
-  Debug("yo") << "foobar";
+  Trace("yo") << "foobar";
   ASSERT_EQ(d_debugStream.str(), std::string());
   d_debugStream.str("");
   Debug.on("yo");
-  Debug("yo") << "baz foo";
+  Trace("yo") << "baz foo";
   ASSERT_EQ(d_debugStream.str(), std::string());
   d_debugStream.str("");
 
@@ -157,11 +157,11 @@ TEST_F(TestUtilBlackOutput, simple_print)
 #else /* CVC5_MUZZLE */
 
   Debug.off("yo");
-  Debug("yo") << "foobar";
+  Trace("yo") << "foobar";
   ASSERT_EQ(d_debugStream.str(), std::string());
   d_debugStream.str("");
   Debug.on("yo");
-  Debug("yo") << "baz foo";
+  Trace("yo") << "baz foo";
 #ifdef CVC5_DEBUG
   ASSERT_EQ(d_debugStream.str(), std::string("baz foo"));
 #else  /* CVC5_DEBUG */

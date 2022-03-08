@@ -895,7 +895,7 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
                                          const std::vector<Node>& args,
                                          Node& var)
 {
-  if (Trace.isOn("quant-velim-bv"))
+  if (TraceIsOn("quant-velim-bv"))
   {
     Trace("quant-velim-bv") << "Bv-Elim : " << lit << " varList = { ";
     for (const Node& v : args)

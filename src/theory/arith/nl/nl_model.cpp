@@ -215,7 +215,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             {
               // set its exact model value in the substitution
               Node curv = computeConcreteModelValue(cur);
-              if (Trace.isOn("nl-ext-cm"))
+              if (TraceIsOn("nl-ext-cm"))
               {
                 Trace("nl-ext-cm")
                     << "check-model-bound : exact : " << cur << " = ";
@@ -336,7 +336,7 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
   Assert(u.isConst());
   Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
-  if (Trace.isOn("nl-ext-cm"))
+  if (TraceIsOn("nl-ext-cm"))
   {
     Trace("nl-ext-cm") << "check-model-bound : approximate : ";
     printRationalApprox("nl-ext-cm", l);
@@ -490,7 +490,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
-        if (Trace.isOn("nl-ext-cm"))
+        if (TraceIsOn("nl-ext-cm"))
         {
           Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
           printRationalApprox("nl-ext-cm", uvfv);
@@ -523,7 +523,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     Node val = nm->mkConst(CONST_RATIONAL,
                            -c.getConst<Rational>() / b.getConst<Rational>());
-    if (Trace.isOn("nl-ext-cm"))
+    if (TraceIsOn("nl-ext-cm"))
     {
       Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
       printRationalApprox("nl-ext-cm", val);
@@ -811,7 +811,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
       {
         Node vc = vars[i];
         unsigned vcfact = factors[i];
-        if (Trace.isOn("nl-ext-cms-debug"))
+        if (TraceIsOn("nl-ext-cms-debug"))
         {
           Trace("nl-ext-cms-debug") << "-- " << vc;
           if (vcfact > 1)
@@ -989,7 +989,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
 
 void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     Trace(c) << "  " << n << " -> ";
     const Node& aval = d_abstractModelCache.at(n);

@@ -936,7 +936,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
-    if( Trace.isOn("cegqi-inst-debug") ){
+    if( TraceIsOn("cegqi-inst-debug") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
         Trace("cegqi-inst-debug") << " ";
       }
@@ -1084,7 +1084,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       subs.push_back( n );
     }
   }
-  if (Trace.isOn("cegqi-inst"))
+  if (TraceIsOn("cegqi-inst"))
   {
     Trace("cegqi-inst") << "Ceg Instantiator produced : " << std::endl;
     for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
@@ -1136,7 +1136,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
   n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
-  if( Trace.isOn("sygus-si-apply-subs-debug") ){
+  if( TraceIsOn("sygus-si-apply-subs-debug") ){
     Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;

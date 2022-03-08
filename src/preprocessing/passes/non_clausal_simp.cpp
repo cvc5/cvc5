@@ -68,7 +68,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 {
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
-  if (Trace.isOn("non-clausal-simplify"))
+  if (TraceIsOn("non-clausal-simplify"))
   {
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {

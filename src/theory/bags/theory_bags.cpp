@@ -418,9 +418,9 @@ void TheoryBags::preRegisterTerm(TNode n)
 
 void TheoryBags::presolve()
 {
-  Debug("bags-presolve") << "Started presolve" << std::endl;
+  Trace("bags-presolve") << "Started presolve" << std::endl;
   d_strat.initializeStrategy();
-  Debug("bags-presolve") << "Finished presolve" << std::endl;
+  Trace("bags-presolve") << "Finished presolve" << std::endl;
 }
 
 /**************************** eq::NotifyClass *****************************/
