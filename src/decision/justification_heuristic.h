@@ -49,8 +49,6 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   typedef std::vector<Node> ChildList;
   typedef context::CDHashMap<Node, std::pair<ChildList, ChildList>> ChildCache;
   typedef context::CDHashMap<Node, Node> SkolemMap;
-  typedef context::CDHashMap<Node, std::pair<DecisionWeight, DecisionWeight>>
-      WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
   typedef context::CDHashSet<Node> JustifiedSet;
@@ -92,25 +90,9 @@ class JustificationHeuristic : public ITEDecisionStrategy {
 
   /** current decision for the recursive call */
   prop::SatLiteral d_curDecision;
-  /** current threshold for the recursive call */
-  DecisionWeight d_curThreshold;
 
   /** child cache */
   ChildCache d_childCache;
-
-  /** computed polarized weight cache */
-  WeightCache d_weightCache;
-
-
-  class myCompareClass {
-    JustificationHeuristic* d_jh;
-    bool d_b;
-  public:
-    myCompareClass(JustificationHeuristic* jh, bool b):d_jh(jh),d_b(b) {};
-    bool operator() (TNode n1, TNode n2) {
-      return d_jh->getWeightPolarized(n1, d_b) < d_jh->getWeightPolarized(n2, d_b);
-    }
-  };
 
 public:
  JustificationHeuristic(Env& env, DecisionEngineOld* de);
@@ -131,8 +113,6 @@ public:
  void addSkolemDefinition(TNode lem, TNode skolem) override;
 
 private:
- /* getNext with an option to specify threshold */
- prop::SatLiteral getNextThresh(bool& stopSearch, DecisionWeight threshold);
 
  prop::SatLiteral findSplitter(TNode node, prop::SatValue desiredVal);
 

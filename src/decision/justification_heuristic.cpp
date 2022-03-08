@@ -50,9 +50,7 @@ JustificationHeuristic::JustificationHeuristic(Env& env, DecisionEngineOld* de)
       d_visited(),
       d_visitedComputeSkolems(),
       d_curDecision(),
-      d_curThreshold(0),
       d_childCache(userContext()),
-      d_weightCache(userContext()),
       d_startIndexCache(context())
 {
   Trace("decision") << "Justification heuristic enabled" << std::endl;
@@ -62,29 +60,10 @@ JustificationHeuristic::~JustificationHeuristic() {}
 
 cvc5::prop::SatLiteral JustificationHeuristic::getNext(bool& stopSearch)
 {
-  if (options().decision.decisionThreshold > 0)
-  {
-    bool stopSearchTmp = false;
-    prop::SatLiteral lit =
-        getNextThresh(stopSearchTmp, options().decision.decisionThreshold);
-    if (lit != prop::undefSatLiteral)
-    {
-      Assert(stopSearchTmp == false);
-      return lit;
-    }
-    Assert(stopSearchTmp == true);
-  }
-  return getNextThresh(stopSearch, 0);
-}
-
-cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
-    bool& stopSearch, DecisionWeight threshold)
-{
-  Trace("decision") << "JustificationHeuristic::getNextThresh(stopSearch, "<<threshold<<")" << std::endl;
+  Trace("decision") << "JustificationHeuristic::getNext(stopSearch)" << std::endl;
   TimerStat::CodeTimer codeTimer(d_timestat);
 
   d_visited.clear();
-  d_curThreshold = threshold;
 
   if(Trace.isOn("justified")) {
     for(JustifiedSet::key_iterator i = d_justified.key_begin();
@@ -135,12 +114,12 @@ cvc5::prop::SatLiteral JustificationHeuristic::getNextThresh(
                           << d_assertions[i] << std::endl;
     }
   }
-  Assert(alljustified || d_curThreshold != 0);
+  Assert(alljustified);
 #endif
 
   // SAT solver can stop...
   stopSearch = true;
-  if (d_curThreshold == 0) d_decisionEngine->setResult(prop::SAT_VALUE_TRUE);
+  if (0 == 0) d_decisionEngine->setResult(prop::SAT_VALUE_TRUE);
   return prop::undefSatLiteral;
 }
 
@@ -226,12 +205,12 @@ DecisionWeight JustificationHeuristic::getExploredThreshold(TNode n)
 
 void JustificationHeuristic::setExploredThreshold(TNode n)
 {
-  d_exploredThreshold[n] = d_curThreshold;
+  d_exploredThreshold[n] = 0;
 }
 
 int JustificationHeuristic::getPrvsIndex()
 {
-  if(d_curThreshold == 0)
+  if(0 == 0)
     return d_prvsIndex;
   else
     return d_threshPrvsIndex;
@@ -239,7 +218,7 @@ int JustificationHeuristic::getPrvsIndex()
 
 void JustificationHeuristic::setPrvsIndex(int prvsIndex)
 {
-  if(d_curThreshold == 0)
+  if(0 == 0)
     d_prvsIndex = prvsIndex;
   else
     d_threshPrvsIndex = prvsIndex;
@@ -321,9 +300,9 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     Debug("decision::jh") << "  justified, returning" << std::endl;
     return NO_SPLITTER;
   }
-  if (getExploredThreshold(node) < d_curThreshold) {
+  if (getExploredThreshold(node) < 0) {
     Debug("decision::jh") << "  explored, returning" << std::endl;
-    Assert(d_curThreshold != 0);
+    Assert(0 != 0);
     return DONT_KNOW;
   }
 
@@ -377,7 +356,6 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
     }
     else {
       Assert(d_decisionEngine->hasSatLiteral(node));
-      if (d_curThreshold != 0 && 0 >= d_curThreshold) return DONT_KNOW;
       SatVariable v =
         d_decisionEngine->getSatLiteral(node).getSatVariable();
       d_curDecision = SatLiteral(v, /* negated = */ desiredVal != SAT_VALUE_TRUE );
@@ -466,7 +444,7 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
       }
     }
   }
-  Assert(d_curThreshold != 0) << "handleAndOrEasy: No controlling input found";
+  Assert(false) << "handleAndOrEasy: No controlling input found";
   return DONT_KNOW;
 }
 
@@ -513,7 +491,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryEasy(TN
     if(ret != DONT_KNOW)
       return ret;
   }
-  Assert(d_curThreshold != 0) << "handleBinaryEasy: No controlling input found";
+  Assert(false) << "handleBinaryEasy: No controlling input found";
   return DONT_KNOW;
 }
 
@@ -566,7 +544,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleITE(TNode nod
     if(findSplitterRec(node[0], ifDesiredVal) == FOUND_SPLITTER)
       return FOUND_SPLITTER;
 
-    Assert(d_curThreshold != 0) << "No controlling input found (6)";
+    Assert(false) << "No controlling input found (6)";
     return DONT_KNOW;
   } else {
     // Try to justify 'if'
