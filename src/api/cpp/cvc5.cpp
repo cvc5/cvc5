@@ -5162,7 +5162,8 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
-  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE || kind == REGEXP_ALL
+  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE
+                                   || kind == REGEXP_ALL
                                    || kind == REGEXP_ALLCHAR || kind == SEP_EMP,
                                kind)
       << "PI, REGEXP_NONE, REGEXP_ALL, REGEXP_ALLCHAR or SEP_EMP";
