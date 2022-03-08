@@ -652,15 +652,7 @@ name   = "Quantifiers"
   long       = "fmf-inst-engine"
   type       = "bool"
   default    = "false"
-  help       = "use instantiation engine in conjunction with finite model finding"
-
-[[option]]
-  name       = "fmfFreshDistConst"
-  category   = "regular"
-  long       = "fmf-fresh-dc"
-  type       = "bool"
-  default    = "false"
-  help       = "use fresh distinguished representative when applying Inst-Gen techniques"
+  help       = "use E-matching in conjunction with finite model finding"
 
 [[option]]
   name       = "fmfFmcSimple"
@@ -727,27 +719,6 @@ name   = "Quantifiers"
 [[option.mode.PARTIAL]]
   name = "partial"
   help = "Use QCF for conflicts, propagations and heuristic instantiations."
-
-[[option]]
-  name       = "qcfWhenMode"
-  category   = "regular"
-  long       = "quant-cf-when=MODE"
-  type       = "QcfWhenMode"
-  default    = "DEFAULT"
-  help       = "when to invoke conflict find mechanism for quantifiers"
-  help_mode  = "Quantifier conflict find modes."
-[[option.mode.DEFAULT]]
-  name = "default"
-  help = "Default, apply conflict finding at full effort."
-[[option.mode.LAST_CALL]]
-  name = "last-call"
-  help = "Apply conflict finding at last call, after theory combination and and all theories report sat."
-[[option.mode.STD]]
-  name = "std"
-  help = "Apply conflict finding at standard effort."
-[[option.mode.STD_H]]
-  name = "std-h"
-  help = "Apply conflict finding at standard effort when heuristic says to."
 
 [[option]]
   name       = "qcfTConstraint"

@@ -2155,21 +2155,11 @@ void QuantConflictFind::registerQuantifier( Node q ) {
 //-------------------------------------------------- check function
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
-  bool performCheck = false;
   if (options().quantifiers.quantConflictFind && !d_conflict)
   {
-    if( level==Theory::EFFORT_LAST_CALL ){
-      performCheck =
-          options().quantifiers.qcfWhenMode == options::QcfWhenMode::LAST_CALL;
-    }else if( level==Theory::EFFORT_FULL ){
-      performCheck =
-          options().quantifiers.qcfWhenMode == options::QcfWhenMode::DEFAULT;
-    }else if( level==Theory::EFFORT_STANDARD ){
-      performCheck =
-          options().quantifiers.qcfWhenMode == options::QcfWhenMode::STD;
-    }
+    return (level==Theory::EFFORT_FULL);
   }
-  return performCheck;
+  return false;
 }
 
 void QuantConflictFind::reset_round( Theory::Effort level ) {

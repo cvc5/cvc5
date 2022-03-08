@@ -50,7 +50,6 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
-  options/decision_weight.h
   options/io_utils.cpp
   options/io_utils.h
   options/language.cpp
