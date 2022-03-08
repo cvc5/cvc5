@@ -2186,7 +2186,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
-  return reinterpret_cast<jlong>(solver->getInterpolant(*conj));
+  Term* result = solver->getInterpolant(*conj);
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -2206,7 +2207,8 @@ Java_io_github_cvc5_api_Solver_getInterpolant__JJJJ(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
   Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
-  return reinterpret_cast<jlong>(solver->getInterpolant(*conj, *grammar));
+  Term* result = solver->getInterpolant(*conj, *grammar);
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -2220,7 +2222,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  return reinterpret_cast<jlong>(solver->getInterpolantNext());
+  Term* result = solver->getInterpolantNext();
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -2235,7 +2238,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJJ(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
-  return reinterpret_cast<jlong>(solver->getAbduct(*conj));
+  Term* result = solver->getAbduct(*conj);
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -2255,7 +2259,8 @@ Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
   Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
-  return reinterpret_cast<jlong>(solver->getAbduct(*conj, *grammar));
+  Term* result = solver->getAbduct(*conj, *grammar);
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -2269,7 +2274,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  return reinterpret_cast<jlong>(solver->getAbductNext(*output));
+  Term* result = solver->getAbductNext(*output);
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
