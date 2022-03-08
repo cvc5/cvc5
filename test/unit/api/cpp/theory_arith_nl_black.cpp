@@ -85,7 +85,7 @@ TEST_F(TestTheoryBlackArithNl, proj_issue421)
   Term t77 = slv.mkTerm(Kind::LEQ, {t69, t10});
   Term t128 = slv.mkTerm(Kind::SEQ_PREFIX, {t65, t8});
   slv.assertFormula({t77});
-  slv.checkEntailed({1, t128});
+  slv.checkSatAssuming({1.notTerm(), t128.notTerm()});
 }
 
 TEST_F(TestTheoryBlackArithNl, cvc5Projects455)
@@ -135,7 +135,7 @@ TEST_F(TestTheoryBlackArithNl, cvc5Projects455)
   Term t36 = slv.mkTerm(Kind::NOT, {t35});
   slv.assertFormula({t36});
   slv.assertFormula({t33});
-  slv.checkEntailed({t18});
+  slv.checkSatAssuming({t18.notTerm()});
 }
 
 }  // namespace test
