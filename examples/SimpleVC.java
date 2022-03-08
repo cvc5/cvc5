@@ -53,7 +53,8 @@ public class SimpleVC
 
       System.out.println("Checking entailment of formula " + formula + " with cvc5.");
       System.out.println("cvc5 should report UNSAT.");
-      System.out.println("Result from cvc5 is: " + slv.checkSatAssuming(formula.notTerm()));
+      System.out.println(
+          "Result from cvc5 is: " + slv.checkSatAssuming(formula.notTerm()));
     }
   }
 }

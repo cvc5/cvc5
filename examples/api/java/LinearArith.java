@@ -57,7 +57,8 @@ public class LinearArith
       Term diff_leq_two_thirds = slv.mkTerm(Kind.LEQ, diff, two_thirds);
       System.out.println("Prove that " + diff_leq_two_thirds + " with cvc5.");
       System.out.println("cvc5 should report UNSAT.");
-      System.out.println("Result from cvc5 is: " + slv.checkSatAssuming(diff_leq_two_thirds.notTerm()));
+      System.out.println("Result from cvc5 is: "
+          + slv.checkSatAssuming(diff_leq_two_thirds.notTerm()));
       slv.pop();
 
       System.out.println();
