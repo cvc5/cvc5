@@ -355,6 +355,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT},
     {REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP},
     {REGEXP_NONE, cvc5::Kind::REGEXP_NONE},
+    {REGEXP_ALL, cvc5::Kind::REGEXP_ALL},
     {REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR},
     {REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT},
     // maps to the same kind as the string versions
@@ -671,6 +672,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_NONE, REGEXP_NONE},
+        {cvc5::Kind::REGEXP_ALL, REGEXP_ALL},
         {cvc5::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
         {cvc5::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
         {cvc5::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
@@ -5907,9 +5909,8 @@ Term Solver::mkRegexpAll() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Node res = d_nodeMgr->mkNode(
-      cvc5::kind::REGEXP_STAR,
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>()));
+  Node res = 
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALL, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
