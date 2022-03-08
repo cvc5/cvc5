@@ -37,12 +37,10 @@
  *
  * AverageStat is a BackedStat<double>.
  *
- * HistogramStat counts instances of some type T. It is implemented as a
- * std::map<T, std::uint64_t>.
- *
- * IntegralHistogramStat is a (conceptual) specialization of HistogramStat
- * for types that are (convertible to) integral. This allows to use a
- * std::vector<std::uint64_t> instead of a std::map.
+ * HistogramStat counts instances of some type T. We assume that T is either an
+ * integral type, or an enum type (that is convertible to an interval type).
+ * This allows a more efficient implementation as std::vector<std::uint64_t>
+ * instead of a std::map<T, uint64_t>.
  *
  * TimerStat uses std::chrono to collect timing information. It is
  * implemented as BackedStat<std::chrono::duration> and provides methods
