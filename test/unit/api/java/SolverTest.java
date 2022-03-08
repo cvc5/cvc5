@@ -1365,8 +1365,7 @@ class SolverTest
     Term conj = d_solver.mkTerm(GT, y, zero);
     Term output  = d_solver.getNullTerm();
     // Fails due to option not set
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.getAbduct(conj));
+    assertThrows(CVC5ApiException.class, () -> d_solver.getAbduct(conj));
   }
 
   @Test void getAbductNext() throws CVC5ApiException
