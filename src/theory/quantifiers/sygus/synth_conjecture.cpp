@@ -745,7 +745,6 @@ ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
   {
     return its->second.get();
   }
-  Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
   d_exprm[e].reset(new ExpressionMinerManager(d_env));
   ExpressionMinerManager* emm = d_exprm[e].get();
   emm->initializeSygus(d_tds, e, options().quantifiers.sygusSamples, true);
@@ -804,7 +803,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
 
 bool SynthConjecture::runExprMiner()
 {
-  // if not using expression mining or sygus stream
+  // if not using expression mining and sygus stream
   if (!d_runExprMiner && !options().quantifiers.sygusStream)
   {
     return false;
