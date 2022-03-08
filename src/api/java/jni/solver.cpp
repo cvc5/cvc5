@@ -2178,7 +2178,7 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_pop(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolant
- * Signature: (JJ)Z
+ * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(
     JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
@@ -2194,7 +2194,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolant
- * Signature: (JJJ)Z
+ * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_api_Solver_getInterpolant__JJJJ(JNIEnv* env,
@@ -2215,7 +2215,7 @@ Java_io_github_cvc5_api_Solver_getInterpolant__JJJJ(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolantNext
- * Signature: (J)Z
+ * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
     JNIEnv* env, jobject, jlong pointer)
@@ -2230,7 +2230,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbduct
- * Signature: (JJ)Z
+ * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJJ(
     JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
@@ -2246,7 +2246,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJJ(
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbduct
- * Signature: (JJJ)Z
+ * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
@@ -2267,7 +2267,7 @@ Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbductNext
- * Signature: (J)Z
+ * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext(
     JNIEnv* env, jobject, jlong pointer)
