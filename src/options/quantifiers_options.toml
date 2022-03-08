@@ -737,14 +737,6 @@ name   = "Quantifiers"
   help       = "add all available conflicting instances during conflict-based instantiation"
 
 [[option]]
-  name       = "qcfNestedConflict"
-  category   = "regular"
-  long       = "qcf-nested-conflict"
-  type       = "bool"
-  default    = "false"
-  help       = "consider conflicts for nested quantifiers"
-
-[[option]]
   name       = "qcfVoExp"
   category   = "regular"
   long       = "qcf-vo-exp"
@@ -865,14 +857,6 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "50"
   help       = "number of ground terms to generate for model filtering"
-
-[[option]]
-  name       = "conjectureUeeIntro"
-  category   = "regular"
-  long       = "conjecture-gen-uee-intro"
-  type       = "bool"
-  default    = "false"
-  help       = "more aggressive merging for universal equality engine, introduces terms"
 
 [[option]]
   name       = "conjectureGenMaxDepth"

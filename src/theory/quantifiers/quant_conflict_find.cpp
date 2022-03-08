@@ -1567,8 +1567,7 @@ void MatchGen::reset(bool tgt)
       if( d_tgt && d_n.getKind()==FORALL ){
         //fail
       }
-      else if (d_n.getKind() == FORALL && d_parent->atConflictEffort()
-               && !options::qcfNestedConflict())
+      else if (d_n.getKind() == FORALL && d_parent->atConflictEffort())
       {
         //fail
       }

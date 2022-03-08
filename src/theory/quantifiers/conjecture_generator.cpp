@@ -278,9 +278,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
               {
                 Assert(eqt.getType() == tn);
                 registerPattern(eqt, tn);
-                if (isUniversalLessThan(eqt, t)
-                    || (options().quantifiers.conjectureUeeIntro
-                        && d_pattern_fun_sum[t] >= d_pattern_fun_sum[eqt]))
+                if (isUniversalLessThan(eqt, t))
                 {
                   setUniversalRelevant(eqt);
                   assertEq = true;
