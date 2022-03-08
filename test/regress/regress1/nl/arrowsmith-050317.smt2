@@ -1,4 +1,5 @@
-; COMMAND-LINE: --nl-ext=full --no-check-unsat-cores
+; DISABLE-TESTER: unsat-core
+; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat
 (set-logic QF_NRAT)
 (set-info :status unsat)

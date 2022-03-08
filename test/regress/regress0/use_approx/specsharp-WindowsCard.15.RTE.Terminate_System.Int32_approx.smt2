@@ -1,5 +1,6 @@
 ; REQUIRES: glpk
-; COMMAND-LINE: --use-approx --no-check-unsat-cores
+; DISABLE-TESTER: unsat-core
+; COMMAND-LINE: --use-approx
 ; EXPECT: unsat
 (set-logic UFNIA)
 (set-info :source "Reduced from regression 'specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2' using ddSMT to exercise GLPK")
