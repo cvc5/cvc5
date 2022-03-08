@@ -375,7 +375,7 @@ RewriteResponse DatatypesRewriter::rewriteConstructor(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
 {
-  Kind k = in.getKind();
+  Assert (in.getKind()==kind::APPLY_SELECTOR);
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
     // Have to be careful not to rewrite well-typed expressions
