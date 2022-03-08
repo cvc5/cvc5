@@ -209,10 +209,7 @@ void JustificationHeuristic::setExploredThreshold(TNode n)
   d_exploredThreshold[n] = 0;
 }
 
-int JustificationHeuristic::getPrvsIndex()
-{
-  return d_prvsIndex;
-}
+int JustificationHeuristic::getPrvsIndex() { return d_prvsIndex; }
 
 void JustificationHeuristic::setPrvsIndex(int prvsIndex)
 {
