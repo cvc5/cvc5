@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for singleton operator for sets.
+ * A class for sequence unit
  */
 
-#include "theory/sets/singleton_op.h"
+#include "theory/strings/seq_unit_op.h"
 
 #include <iostream>
 
@@ -21,29 +21,28 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, const SetSingletonOp& op)
+std::ostream& operator<<(std::ostream& out, const SeqUnitOp& op)
 {
-  return out << "(SetSingletonOp " << op.getType() << ')';
+  return out << "(SeqUnitOp " << op.getType() << ')';
 }
 
-size_t SetSingletonOpHashFunction::operator()(const SetSingletonOp& op) const
+size_t SeqUnitOpHashFunction::operator()(const SeqUnitOp& op) const
 {
   return std::hash<TypeNode>()(op.getType());
 }
 
-SetSingletonOp::SetSingletonOp(const TypeNode& elementType)
+SeqUnitOp::SeqUnitOp(const TypeNode& elementType)
     : d_type(new TypeNode(elementType))
 {
 }
 
-SetSingletonOp::SetSingletonOp(const SetSingletonOp& op)
-    : d_type(new TypeNode(op.getType()))
+SeqUnitOp::SeqUnitOp(const SeqUnitOp& op) : d_type(new TypeNode(op.getType()))
 {
 }
 
-const TypeNode& SetSingletonOp::getType() const { return *d_type; }
+const TypeNode& SeqUnitOp::getType() const { return *d_type; }
 
-bool SetSingletonOp::operator==(const SetSingletonOp& op) const
+bool SeqUnitOp::operator==(const SeqUnitOp& op) const
 {
   return getType() == op.getType();
 }

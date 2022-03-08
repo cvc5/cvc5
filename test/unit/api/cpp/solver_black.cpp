@@ -1635,7 +1635,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   Sort boolSort = d_solver.getBooleanSort();
   Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
   Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
-  std::vector<Term> unsat_core;
+  std::vector<Term> uc;
 
   Term x = d_solver.mkConst(uSort, "x");
   Term y = d_solver.mkConst(uSort, "y");
@@ -1655,12 +1655,13 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   d_solver.assertFormula(p_f_y.notTerm());
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 
-  ASSERT_NO_THROW(unsat_core = d_solver.getUnsatCore());
+  ASSERT_NO_THROW(uc = d_solver.getUnsatCore());
+  ASSERT_FALSE(uc.empty());
 
   ASSERT_NO_THROW(d_solver.getProof());
 
   d_solver.resetAssertions();
-  for (const auto& t : unsat_core)
+  for (const auto& t : uc)
   {
     d_solver.assertFormula(t);
   }
@@ -2826,6 +2827,18 @@ TEST_F(TestApiBlackSolver, issue5893)
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
 }
 
+TEST_F(TestApiBlackSolver, proj_issue308)
+{
+  Solver slv;
+  slv.setOption("check-proofs", "true");
+  Sort s1 = slv.getBooleanSort();
+  Term t1 = slv.mkConst(s1, "_x0");
+  Term t2 = slv.mkTerm(Kind::XOR, t1, t1);
+  slv.checkSatAssuming({t2});
+  auto unsat_core = slv.getUnsatCore();
+  ASSERT_FALSE(unsat_core.empty());
+}
+
 TEST_F(TestApiBlackSolver, proj_issue373)
 {
   Sort s1 = d_solver.getRealSort();
@@ -3140,6 +3153,40 @@ TEST_F(TestApiBlackSolver, proj_issue431)
   Term t103 = slv.mkTerm(Kind::SELECT, {t57, t3});
   slv.checkSat();
   ASSERT_THROW(slv.blockModelValues({t103}), CVC5ApiException);
+}
+TEST_F(TestApiBlackSolver, proj_issue426)
+{
+  Solver slv;
+  slv.setLogic("ALL");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-assertions", "true");
+  Sort s1 = slv.getRealSort();
+  Sort s2 = slv.getRoundingModeSort();
+  Sort s4 = slv.mkSequenceSort(s1);
+  Sort s5 = slv.mkArraySort(s4, s4);
+  Term t4 = slv.mkConst(s1, "_x3");
+  Term t5 = slv.mkReal("9192/832927743");
+  Term t19 = slv.mkConst(s2, "_x42");
+  Term t24 = slv.mkConst(s5, "_x44");
+  Term t37 = slv.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
+  slv.checkSat();
+  slv.blockModelValues({t24, t19, t4, t37});
+  slv.checkSat();
+  ASSERT_NO_THROW(slv.getValue({t5}));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue429)
+{
+  Solver slv;
+  Sort s1 = slv.getRealSort();
+  Term t6 = slv.mkConst(s1, "_x5");
+  Term t16 =
+      slv.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
+  Term t111 = slv.mkTerm(Kind::SEQ_UNIT, {t16});
+  Term t119 = slv.mkTerm(slv.mkOp(Kind::SEQ_UNIT), {t6});
+  Term t126 = slv.mkTerm(Kind::SEQ_PREFIX, {t111, t119});
+  slv.checkEntailed({t126});
 }
 
 TEST_F(TestApiBlackSolver, proj_issue422)

@@ -127,6 +127,7 @@ set(regress_0_tests
   regress0/arrays/issue6276.smt2
   regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
+  regress0/arrays/issue8103-1-weak-equiv-models.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -784,6 +785,7 @@ set(regress_0_tests
   regress0/nl/issue6619-ran-model.smt2
   regress0/nl/issue8135-icp-candidates.smt2
   regress0/nl/issue8161-var-elim.smt2
+  regress0/nl/issue8226-ran-refinement.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1165,7 +1167,13 @@ set(regress_0_tests
   regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/proj-issue384-subtypes.smt2
+  regress0/seq/proj-issue384-2-subtypes.smt2
+  regress0/seq/proj-issue427-subtypes-value.smt2
   regress0/seq/quant_len_trigger.smt2
+  regress0/seq/query0-subtype-skel.smt2
+  regress0/seq/query1-subtype.smt2
+  regress0/seq/query2-subtype.smt2
   regress0/seq/rev.smt2
   regress0/seq/seqa-model-unsound-dd.smt2
   regress0/seq/array/array1.smt2
