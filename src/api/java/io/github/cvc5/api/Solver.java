@@ -2175,7 +2175,7 @@ public class Solver implements IPointer, AutoCloseable
     return getInterpolant(pointer, conj.getPointer());
   }
 
-  private native Term getInterpolant(long pointer, long conjPointer);
+  private native long getInterpolant(long pointer, long conjPointer);
 
   /**
    * Get an interpolant
@@ -2195,7 +2195,7 @@ public class Solver implements IPointer, AutoCloseable
     return getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
   }
 
-  private native Term getInterpolant(long pointer, long conjPointer, long grammarPointer);
+  private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
@@ -2224,7 +2224,7 @@ public class Solver implements IPointer, AutoCloseable
     return getInterpolantNext(pointer);
   }
 
-  private native Term getInterpolantNext(long pointer);
+  private native long getInterpolantNext(long pointer);
 
   /**
    * Get an abduct.
@@ -2244,7 +2244,7 @@ public class Solver implements IPointer, AutoCloseable
     return getAbduct(pointer, conj.getPointer());
   }
 
-  private native Term getAbduct(long pointer, long conjPointer);
+  private native long getAbduct(long pointer, long conjPointer);
   /**
    * Get an abduct.
    * SMT-LIB:
@@ -2264,7 +2264,7 @@ public class Solver implements IPointer, AutoCloseable
     return getAbduct(pointer, conj.getPointer(), grammar.getPointer());
   }
 
-  private native Term getAbduct(long pointer, long conjPointer, long grammarPointer);
+  private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -2285,7 +2285,7 @@ public class Solver implements IPointer, AutoCloseable
     return getAbductNext(pointer);
   }
 
-  private native Term getAbductNext(long pointer);
+  private native long getAbductNext(long pointer);
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
