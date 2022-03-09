@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-bound
+; COMMAND-LINE: --fmf-bound -q
 ; EXPECT: sat
 (set-logic ALL)
 (declare-datatypes ((list 0)) (((cons (head Int) (tail list)) (nil))))

@@ -787,9 +787,8 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                             dt[index].getSelectorInternal(e.getType(), i),
-                             e);
+        Node se = nm->mkNode(
+            APPLY_SELECTOR, dt[index].getSelectorInternal(e.getType(), i), e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){

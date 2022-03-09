@@ -3231,5 +3231,32 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   slv.push(4);
 }
 
+TEST_F(TestApiBlackSolver, projIssue431)
+{
+  Solver slv;
+  slv.setOption("produce-abducts", "true");
+  Sort s2 = slv.mkBitVectorSort(22);
+  Sort s4 = slv.mkSetSort(s2);
+  Sort s5 = slv.getBooleanSort();
+  Sort s6 = slv.getRealSort();
+  Sort s7 = slv.mkFunctionSort({s6}, s5);
+  DatatypeDecl _dt46 = slv.mkDatatypeDecl("_dt46", {});
+  DatatypeConstructorDecl _cons64 = slv.mkDatatypeConstructorDecl("_cons64");
+  _cons64.addSelector("_sel62", s6);
+  _cons64.addSelector("_sel63", s4);
+  _dt46.addConstructor(_cons64);
+  Sort s14 = slv.mkDatatypeSorts({_dt46})[0];
+  Term t31 = slv.mkConst(s7, "_x100");
+  Term t47 = slv.mkConst(s14, "_x112");
+  Term sel =
+      t47.getSort().getDatatype().getConstructor("_cons64").getSelectorTerm(
+          "_sel62");
+  Term t274 = slv.mkTerm(APPLY_SELECTOR, sel, t47);
+  Term t488 = slv.mkTerm(Kind::APPLY_UF, {t31, t274});
+  slv.assertFormula({t488});
+  Term abduct;
+  slv.getAbduct(t488, abduct);
+}
+
 }  // namespace test
 }  // namespace cvc5
