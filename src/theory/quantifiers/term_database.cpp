@@ -508,7 +508,9 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
         return false;
       }
     }else{
-      Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
+      Trace("inst-add-debug")
+          << "Term " << n << " does not have an instantiation level."
+          << std::endl;
       return false;
     }
   }
