@@ -1914,7 +1914,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out) const
   }
   else
   {
-    d_solver->printInstantiations(out);
+    out << d_solver->getInstantiations();
   }
 }
 
