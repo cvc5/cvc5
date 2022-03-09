@@ -1086,7 +1086,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     opts.smt.sortInference = false;
   }
 
-  if (opts.quantifiers.preSkolemQuant!=options::PreSkolemQuantMode::OFF)
+  if (opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
   {
     if (opts.quantifiers.preSkolemQuantWasSetByUser)
     {
@@ -1542,7 +1542,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
   }
   // can't pre-skolemize nested quantifiers without UF theory
-  if (!logic.isTheoryEnabled(THEORY_UF) && opts.quantifiers.preSkolemQuant!=options::PreSkolemQuantMode::OFF)
+  if (!logic.isTheoryEnabled(THEORY_UF)
+      && opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
   {
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
     {

@@ -212,7 +212,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       {
         // coefficient or val won't make a difference, just compare with zero
         Trace("cegqi-arith-debug") << "Disequality : check infinity polarity "
-                                    << vts_coeff_inf << std::endl;
+                                   << vts_coeff_inf << std::endl;
         Assert(vts_coeff_inf.isConst());
         is_upper = (vts_coeff_inf.getConst<Rational>().sgn() == 1);
       }
@@ -282,14 +282,13 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
     unsigned index = isUpperBoundCTT(uires) ? 0 : 1;
     d_mbp_bounds[index].push_back(uval);
     d_mbp_coeff[index].push_back(pv_prop.d_coeff);
-    Trace("cegqi-arith-debug")
-        << "Store bound " << index << " " << uval << " " << pv_prop.d_coeff
-        << " " << vts_coeff_inf << " " << vts_coeff_delta << " " << lit
-        << std::endl;
+    Trace("cegqi-arith-debug") << "Store bound " << index << " " << uval << " "
+                               << pv_prop.d_coeff << " " << vts_coeff_inf << " "
+                               << vts_coeff_delta << " " << lit << std::endl;
     for (unsigned t = 0; t < 2; t++)
     {
       d_mbp_vts_coeff[index][t].push_back(t == 0 ? vts_coeff_inf
-                                                  : vts_coeff_delta);
+                                                 : vts_coeff_delta);
     }
     d_mbp_lit[index].push_back(lit);
   }

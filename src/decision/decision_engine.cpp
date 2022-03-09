@@ -24,7 +24,8 @@ DecisionEngine::DecisionEngine(Env& env)
 {
 }
 
-void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs)
+void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
+                                prop::CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;

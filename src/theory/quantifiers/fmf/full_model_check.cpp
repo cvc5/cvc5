@@ -488,7 +488,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
       }
-      Node en = hasNonStar ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
+      Node en = hasNonStar ? n
+                           : NodeManager::currentNM()->mkNode(APPLY_UF,
+                                                              entry_children);
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
         Trace("fmc-model-debug") << "- add " << n << " -> " << nv << " (entry is " << en << ")" << std::endl;
         conds.push_back(n);
