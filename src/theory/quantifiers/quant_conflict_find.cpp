@@ -61,7 +61,6 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
 
   registerNode( qn, true, true );
 
-
   Trace("cbqi-qregister") << "- Make match gen structure..." << std::endl;
   d_mg.reset(new MatchGen(p, this, qn));
 
@@ -81,7 +80,8 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
           d_var_mg[j] = std::make_unique<MatchGen>(p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
-          Trace("cbqi-invalid") << "QCF invalid : cannot match for " << d_vars[j] << std::endl;
+          Trace("cbqi-invalid")
+              << "QCF invalid : cannot match for " << d_vars[j] << std::endl;
           d_mg->setInvalid();
           break;
         }else{
@@ -95,9 +95,12 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
       d_mg->determineVariableOrder(bvars);
     }
   }else{
-    Trace("cbqi-invalid") << "QCF invalid : body of formula cannot be processed." << std::endl;
+    Trace("cbqi-invalid")
+        << "QCF invalid : body of formula cannot be processed." << std::endl;
   }
-  Trace("cbqi-qregister-summary") << "QCF register : " << ( d_mg->isValid() ? "VALID " : "INVALID" ) << " : " << q << std::endl;
+  Trace("cbqi-qregister-summary")
+      << "QCF register : " << (d_mg->isValid() ? "VALID " : "INVALID") << " : "
+      << q << std::endl;
 
   if (d_mg->isValid() && options().quantifiers.cbqiEagerCheckRd)
   {
@@ -120,14 +123,16 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
     {
       TNode f = p->getTermDatabase()->getMatchOperator( v );
       if( !f.isNull() ){
-        Trace("cbqi-opt") << "Record variable argument positions in " << v << ", op=" << f << "..." << std::endl;
+        Trace("cbqi-opt") << "Record variable argument positions in " << v
+                          << ", op=" << f << "..." << std::endl;
         for (size_t k = 0, vnchild = v.getNumChildren(); k < vnchild; k++)
         {
           Node n = v[k];
           std::map<TNode, size_t>::iterator itv = d_var_num.find(n);
           if( itv!=d_var_num.end() ){
             std::vector<size_t>& vrd = d_var_rel_dom[itv->second][f];
-            Trace("cbqi-opt") << "  arg " << k << " is var #" << itv->second << std::endl;
+            Trace("cbqi-opt")
+                << "  arg " << k << " is var #" << itv->second << std::endl;
             if (std::find(vrd.begin(), vrd.end(), k) == vrd.end())
             {
               vrd.push_back(k);
@@ -174,7 +179,8 @@ void QuantInfo::getPropagateVars(std::vector<TNode>& vars,
       Assert(n.getKind() != IMPLIES);
       QuantPhaseReq::getEntailPolarity( n, 0, true, pol, rec, newPol );
     }
-    Trace("cbqi-opt-debug") << "getPropagateVars " << n << ", pol = " << pol << ", rec = " << rec << std::endl;
+    Trace("cbqi-opt-debug") << "getPropagateVars " << n << ", pol = " << pol
+                            << ", rec = " << rec << std::endl;
     if( rec ){
       for (const Node& nc : n)
       {
@@ -230,9 +236,9 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
         bool newHasPol;
         bool newPol;
         QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-        //QcfNode * cbqic = new QcfNode( d_c );
-        //cbqic->d_parent = cbqi;
-        //cbqi->d_child[i] = cbqic;
+        // QcfNode * cbqic = new QcfNode( d_c );
+        // cbqic->d_parent = cbqi;
+        // cbqi->d_child[i] = cbqic;
         registerNode( n[i], newHasPol, newPol, beneathQuant );
       }
     }
@@ -394,8 +400,11 @@ int QuantInfo::addConstraint(
 {
   Assert(v < d_match.size());
   //for handling equalities between variables, and disequalities involving variables
-  Debug("cbqi-match-debug") << "- " << (doRemove ? "un" : "" ) << "constrain : " << v << " -> " << n << " (cv=" << getCurrentValue( n ) << ")";
-  Debug("cbqi-match-debug") << ", (vn=" << vn << "), polarity = " << polarity << std::endl;
+  Debug("cbqi-match-debug")
+      << "- " << (doRemove ? "un" : "") << "constrain : " << v << " -> " << n
+      << " (cv=" << getCurrentValue(n) << ")";
+  Debug("cbqi-match-debug")
+      << ", (vn=" << vn << "), polarity = " << polarity << std::endl;
   Assert(doRemove || n == getCurrentValue(n));
   Assert(doRemove || v == getCurrentRepVar(v));
   Assert(doRemove || (vn == -1 && getVarNum(n) == -1)
@@ -438,7 +447,8 @@ int QuantInfo::addConstraint(
         bool isGroundRep = false;
         bool isGround = false;
         if( vn!=-1 ){
-          Debug("cbqi-match-debug") << "  ...Variable bound to variable" << std::endl;
+          Debug("cbqi-match-debug")
+              << "  ...Variable bound to variable" << std::endl;
           if( d_match[v].isNull() ){
             //setting variables equal
             bool alreadySet = false;
@@ -478,19 +488,22 @@ int QuantInfo::addConstraint(
               //set the opposite direction
               return addConstraint(vn, d_vars[v], v, true, false);
             }else{
-              Debug("cbqi-match-debug") << "  -> Both variables bound, compare" << std::endl;
+              Debug("cbqi-match-debug")
+                  << "  -> Both variables bound, compare" << std::endl;
               //are they currently equal
               return d_match[v] == d_match[vn] ? 0 : -1;
             }
           }
         }else{
-          Debug("cbqi-match-debug") << "  ...Variable bound to ground" << std::endl;
+          Debug("cbqi-match-debug")
+              << "  ...Variable bound to ground" << std::endl;
           if( d_match[v].isNull() ){
             //isGroundRep = true;   ??
             isGround = true;
           }else{
             //compare ground values
-            Debug("cbqi-match-debug") << "  -> Ground value, compare " << d_match[v] << " "<< n << std::endl;
+            Debug("cbqi-match-debug") << "  -> Ground value, compare "
+                                      << d_match[v] << " " << n << std::endl;
             return d_match[v] == n ? 0 : -1;
           }
         }
@@ -501,14 +514,16 @@ int QuantInfo::addConstraint(
         }
         else
         {
-          Debug("cbqi-match-debug") << "  -> fail, conflicting disequality" << std::endl;
+          Debug("cbqi-match-debug")
+              << "  -> fail, conflicting disequality" << std::endl;
           return -1;
         }
       }
     }
     else
     {
-      Debug("cbqi-match-debug") << "  -> redundant, variable identity" << std::endl;
+      Debug("cbqi-match-debug")
+          << "  -> redundant, variable identity" << std::endl;
       return 0;
     }
   }else{
@@ -530,7 +545,8 @@ int QuantInfo::addConstraint(
             TNode nv = getCurrentValue( n );
             if (nv == d_match[v])
             {
-              Debug("cbqi-match-debug") << "  -> fail, conflicting disequality" << std::endl;
+              Debug("cbqi-match-debug")
+                  << "  -> fail, conflicting disequality" << std::endl;
               return -1;
             }
           }
@@ -538,7 +554,8 @@ int QuantInfo::addConstraint(
           Debug("cbqi-match-debug") << "  -> success" << std::endl;
           return 1;
         }else{
-          Debug("cbqi-match-debug") << "  -> redundant disequality" << std::endl;
+          Debug("cbqi-match-debug")
+              << "  -> redundant disequality" << std::endl;
           return 0;
         }
       }
@@ -593,7 +610,7 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
         for (size_t index : rd.second)
         {
           Debug("cbqi-match-debug2") << n << " in relevant domain " << rd.first
-                                    << "." << index << "?" << std::endl;
+                                     << "." << index << "?" << std::endl;
           if (!tdb->inRelevantDomain(rd.first, index, n))
           {
             Debug("cbqi-match-debug")
@@ -605,9 +622,9 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
       }
     }
   }
-  Debug("cbqi-match-debug") << "-- bind : " << v << " -> " << n << ", checked "
-                           << d_curr_var_deq[v].size() << " disequalities"
-                           << std::endl;
+  Debug("cbqi-match-debug")
+      << "-- bind : " << v << " -> " << n << ", checked "
+      << d_curr_var_deq[v].size() << " disequalities" << std::endl;
   if (isGround)
   {
     if (d_vars[v].getKind() == BOUND_VARIABLE)
@@ -665,10 +682,12 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
       subs[d_extra_var[i]] = n;
     }
     if (d_parent->atConflictEffort()) {
-      Trace("cbqi-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
+      Trace("cbqi-instance-check")
+          << "Possible conflict instance for " << d_q << " : " << std::endl;
       if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
-        Trace("cbqi-instance-check") << "...not entailed to be false." << std::endl;
+        Trace("cbqi-instance-check")
+            << "...not entailed to be false." << std::endl;
         return true;
       }
     }else{
@@ -677,10 +696,13 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
       // the helper method evaluateTerm from the entailment check utility.
       Node inst_eval = echeck->evaluateTerm(
           d_q[1], subs, false, options().quantifiers.cbqiTConstraint, true);
-      if( Trace.isOn("cbqi-instance-check") ){
-        Trace("cbqi-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
+      if (Trace.isOn("cbqi-instance-check"))
+      {
+        Trace("cbqi-instance-check") << "Possible propagating instance for "
+                                     << d_q << " : " << std::endl;
         Trace("cbqi-instance-check") << "  " << terms << std::endl;
-        Trace("cbqi-instance-check") << "...evaluates to " << inst_eval << std::endl;
+        Trace("cbqi-instance-check")
+            << "...evaluates to " << inst_eval << std::endl;
       }
       // If it is the case that instantiation can be rewritten to a Boolean
       // combination of terms that exist in the current context, then inst_eval
@@ -736,8 +758,9 @@ bool QuantInfo::entailmentTest(Node lit, bool chEnt)
   Node rew = rewrite(lit);
   if (rew.isConst())
   {
-    Trace("cbqi-tconstraint-debug") << "...constraint " << lit << " rewrites to "
-                                   << rew << "." << std::endl;
+    Trace("cbqi-tconstraint-debug")
+        << "...constraint " << lit << " rewrites to " << rew << "."
+        << std::endl;
     return rew.getConst<bool>();
   }
   // if checking for conflicts, we must be sure that the (negation of)
@@ -786,7 +809,9 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
       if( v==d_vars[index] ){
         slv_v = index;
       }
-      Trace("cbqi-tconstraint-debug") << "Solve " << d_vars[index] << " = " << v << " " << d_vars[index].getKind() << std::endl;
+      Trace("cbqi-tconstraint-debug")
+          << "Solve " << d_vars[index] << " = " << v << " "
+          << d_vars[index].getKind() << std::endl;
       if (d_vars[index].getKind() == ADD || d_vars[index].getKind() == MULT)
       {
         Kind k = d_vars[index].getKind();
@@ -798,7 +823,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             if( vv==vi ){
               //we will assign this
               if( slv_v==-1 ){
-                Trace("cbqi-tconstraint-debug") << "...will solve for var #" << vn << std::endl;
+                Trace("cbqi-tconstraint-debug")
+                    << "...will solve for var #" << vn << std::endl;
                 slv_v = vn;
                 if (!d_parent->atConflictEffort())
                 {
@@ -808,7 +834,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
                 Node z = d_parent->getZero(d_vars[index].getType(), k);
                 if( !z.isNull() ){
                   size_t vni = static_cast<size_t>(vn);
-                  Trace("cbqi-tconstraint-debug") << "...set " << d_vars[vn] << " = " << z << std::endl;
+                  Trace("cbqi-tconstraint-debug")
+                      << "...set " << d_vars[vn] << " = " << z << std::endl;
                   assigned.push_back(vni);
                   if (!setMatch(vni, z, false, true))
                   {
@@ -818,7 +845,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
                 }
               }
             }else{
-              Trace("cbqi-tconstraint-debug") << "...sum value " << vv << std::endl;
+              Trace("cbqi-tconstraint-debug")
+                  << "...sum value " << vv << std::endl;
               children.push_back( vv );
             }
           }else{
@@ -854,7 +882,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }
             if( !sum.isNull() ){
               assigned.push_back( slv_v );
-              Trace("cbqi-tconstraint-debug") << "...set " << d_vars[slv_v] << " = " << sum << std::endl;
+              Trace("cbqi-tconstraint-debug")
+                  << "...set " << d_vars[slv_v] << " = " << sum << std::endl;
               if (!setMatch(slv_v, sum, false, true))
               {
                 success = false;
@@ -904,7 +933,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
   }
 
   if( !d_unassigned.empty() && ( success || doContinue ) ){
-    Trace("cbqi-check") << "Assign to unassigned (" << d_unassigned.size() << ")..." << std::endl;
+    Trace("cbqi-check") << "Assign to unassigned (" << d_unassigned.size()
+                        << ")..." << std::endl;
     do {
       if( doFail ){
         Trace("cbqi-check-unassign") << "Failure, try again..." << std::endl;
@@ -934,18 +964,22 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
           if( !doFail ){
             if( d_una_index<d_unassigned_nvar ){
               if( !isConstrainedVar( d_unassigned[d_una_index] ) ){
-                Trace("cbqi-check-unassign") << "Succeeded, variable unconstrained at " << d_una_index << std::endl;
+                Trace("cbqi-check-unassign")
+                    << "Succeeded, variable unconstrained at " << d_una_index
+                    << std::endl;
                 d_una_index++;
               }
               else if (d_var_mg[d_unassigned[d_una_index]]->getNextMatch())
               {
-                Trace("cbqi-check-unassign") << "Succeeded match with mg at " << d_una_index << std::endl;
+                Trace("cbqi-check-unassign") << "Succeeded match with mg at "
+                                             << d_una_index << std::endl;
                 d_una_index++;
               }
               else
               {
                 failed = true;
-                Trace("cbqi-check-unassign") << "Failed match with mg at " << d_una_index << std::endl;
+                Trace("cbqi-check-unassign")
+                    << "Failed match with mg at " << d_una_index << std::endl;
               }
             }else{
               Assert(doFail || d_una_index + 1 == d_una_eqc_count.size());
@@ -955,25 +989,29 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               {
                 int currIndex = d_una_eqc_count[d_una_index];
                 d_una_eqc_count[d_una_index]++;
-                Trace("cbqi-check-unassign") << d_unassigned[d_una_index] << "->"
-                                            << eqcs[currIndex] << std::endl;
+                Trace("cbqi-check-unassign")
+                    << d_unassigned[d_una_index] << "->" << eqcs[currIndex]
+                    << std::endl;
                 if (setMatch(
                         d_unassigned[d_una_index], eqcs[currIndex], true, true))
                 {
                   d_match_term[d_unassigned[d_una_index]] = TNode::null();
-                  Trace("cbqi-check-unassign") << "Succeeded match " << d_una_index << std::endl;
+                  Trace("cbqi-check-unassign")
+                      << "Succeeded match " << d_una_index << std::endl;
                   d_una_index++;
                 }
                 else
                 {
-                  Trace("cbqi-check-unassign") << "Failed match " << d_una_index << std::endl;
+                  Trace("cbqi-check-unassign")
+                      << "Failed match " << d_una_index << std::endl;
                   invalidMatch = true;
                 }
               }
               else
               {
                 failed = true;
-                Trace("cbqi-check-unassign") << "No more matches " << d_una_index << std::endl;
+                Trace("cbqi-check-unassign")
+                    << "No more matches " << d_una_index << std::endl;
               }
             }
           }
@@ -1021,7 +1059,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
         if (!d_match[ui].isNull())
         {
           Trace("cbqi-check") << "  Assigned #" << ui << " : " << d_vars[ui]
-                             << " -> " << d_match[ui] << std::endl;
+                              << " -> " << d_match[ui] << std::endl;
         }
       }
     }
@@ -1042,7 +1080,8 @@ void QuantInfo::getMatch( std::vector< Node >& terms ){
     }else{
       cv = d_match[repVar];
     }
-    Debug("cbqi-check-inst") << "INST : " << i << " -> " << cv << ", from " << d_match[i] << std::endl;
+    Debug("cbqi-check-inst") << "INST : " << i << " -> " << cv << ", from "
+                             << d_match[i] << std::endl;
     terms.push_back( cv );
   }
 }
@@ -1105,8 +1144,9 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
   //initialize temporary
   d_child_counter = -1;
   d_use_children = true;
-  
-  Trace("cbqi-qregister-debug") << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
+
+  Trace("cbqi-qregister-debug")
+      << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
   std::vector< Node > qni_apps;
   d_qni_size = 0;
   if( isVar ){
@@ -1174,7 +1214,9 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
         }else if( d_n.getKind()==BOUND_VARIABLE ){
           Assert(d_n.getType().isBoolean());
           d_type = typ_bool_var;
-        }else if( d_n.getKind()==EQUAL || options::cbqiTConstraint() ){
+        }
+        else if (d_n.getKind() == EQUAL || options::cbqiTConstraint())
+        {
           for (unsigned i = 0; i < d_n.getNumChildren(); i++)
           {
             if (expr::hasBoundVar(d_n[i]))
@@ -1205,10 +1247,9 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
       d_type = typ_ground;
     }
   }
-  Trace("cbqi-qregister-debug")  << "Done make match gen " << n << ", type = ";
-  debugPrintType( "cbqi-qregister-debug", d_type, true );
+  Trace("cbqi-qregister-debug") << "Done make match gen " << n << ", type = ";
+  debugPrintType("cbqi-qregister-debug", d_type, true);
   Trace("cbqi-qregister-debug") << std::endl;
-
 }
 
 void MatchGen::collectBoundVar(Node n,
@@ -1234,7 +1275,8 @@ void MatchGen::collectBoundVar(Node n,
 
 void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
 {
-  Trace("cbqi-qregister-debug") << "Determine variable order " << d_n << ", #bvars = " << bvars.size() << std::endl;
+  Trace("cbqi-qregister-debug") << "Determine variable order " << d_n
+                                << ", #bvars = " << bvars.size() << std::endl;
   bool isComm = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==EQUAL );
   if( isComm ){
     std::map< int, std::vector< int > > c_to_vars;
@@ -1243,7 +1285,8 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
     std::map< int, int > vu_count;
     std::map< int, bool > has_nested;
     std::vector< bool > assigned;
-    Trace("cbqi-qregister-debug") << "Calculate bound variables..." << std::endl;
+    Trace("cbqi-qregister-debug")
+        << "Calculate bound variables..." << std::endl;
     for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       std::map< Node, bool > visited;
@@ -1264,7 +1307,8 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
       }
     }
     //children that bind no unbound variable, then the most number of bound, unbound variables go first
-    Trace("cbqi-qregister-vo") << "Variable order for " << d_n << " : " << std::endl;
+    Trace("cbqi-qregister-vo")
+        << "Variable order for " << d_n << " : " << std::endl;
     size_t nqvars = d_qi->d_vars.size();
     do {
       int min_score0 = -1;
@@ -1273,12 +1317,17 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
       for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
       {
         if( !assigned[i] ){
-          Trace("cbqi-qregister-debug2") << "Child " << i << " has b/ub : " << vb_count[i] << "/" << vu_count[i] << std::endl;
+          Trace("cbqi-qregister-debug2")
+              << "Child " << i << " has b/ub : " << vb_count[i] << "/"
+              << vu_count[i] << std::endl;
           int score0 = 0;//has_nested[i] ? 0 : 1;
           int score;
-          if( !options::cbqiVoExp() ){
+          if (!options::cbqiVoExp())
+          {
             score = vu_count[i];
-          }else{
+          }
+          else
+          {
             score = vu_count[i] == 0 ? 0
                                      : (1 + nqvars * (nqvars - vb_count[i])
                                         + (nqvars - vu_count[i]));
@@ -1293,8 +1342,11 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
       Trace("cbqi-qregister-vo")
           << "  " << d_children_order.size() + 1 << ": "
           << d_children[min_score_index]->getNode() << " : ";
-      Trace("cbqi-qregister-vo") << vu_count[min_score_index] << " " << vb_count[min_score_index] << " " << has_nested[min_score_index] << std::endl;
-      Trace("cbqi-qregister-debug") << "...assign child " << min_score_index << std::endl;
+      Trace("cbqi-qregister-vo")
+          << vu_count[min_score_index] << " " << vb_count[min_score_index]
+          << " " << has_nested[min_score_index] << std::endl;
+      Trace("cbqi-qregister-debug")
+          << "...assign child " << min_score_index << std::endl;
       Trace("cbqi-qregister-debug") << "...score : " << min_score << std::endl;
       Assert(min_score_index != -1);
       //add to children order
@@ -1302,7 +1354,7 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
       assigned[min_score_index] = true;
       //determine order internal to children
       d_children[min_score_index]->determineVariableOrder(bvars);
-      Trace("cbqi-qregister-debug")  << "...bind variables" << std::endl;
+      Trace("cbqi-qregister-debug") << "...bind variables" << std::endl;
       //now, make it a bound variable
       if( vu_count[min_score_index]>0 ){
         for( unsigned i=0; i<c_to_vars[min_score_index].size(); i++ ){
@@ -1317,9 +1369,11 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
           }
         }
       }
-      Trace("cbqi-qregister-debug") << "...done assign child " << min_score_index << std::endl;
+      Trace("cbqi-qregister-debug")
+          << "...done assign child " << min_score_index << std::endl;
     }while( d_children_order.size()!=d_children.size() );
-    Trace("cbqi-qregister-debug") << "Done assign variable ordering for " << d_n << std::endl;
+    Trace("cbqi-qregister-debug")
+        << "Done assign variable ordering for " << d_n << std::endl;
   }else{
     for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
     {
@@ -1396,8 +1450,10 @@ void MatchGen::reset(bool tgt)
 {
   d_tgt = d_type_not ? !tgt : tgt;
   Debug("cbqi-match") << "     Reset for : " << d_n << ", type : ";
-  debugPrintType( "cbqi-match", d_type );
-  Debug("cbqi-match") << ", tgt = " << d_tgt << ", children = " << d_children.size() << " " << d_children_order.size() << std::endl;
+  debugPrintType("cbqi-match", d_type);
+  Debug("cbqi-match") << ", tgt = " << d_tgt
+                      << ", children = " << d_children.size() << " "
+                      << d_children_order.size() << std::endl;
   d_qn.clear();
   d_qni.clear();
   d_qni_bound.clear();
@@ -1452,7 +1508,8 @@ void MatchGen::reset(bool tgt)
   {
     Assert(isHandledUfTerm(d_n));
     TNode f = d_parent->getTermDatabase()->getMatchOperator(d_n);
-    Debug("cbqi-match-debug") << "       reset: Var will match operators of " << f << std::endl;
+    Debug("cbqi-match-debug")
+        << "       reset: Var will match operators of " << f << std::endl;
     TNodeTrie* qni =
         d_parent->getTermDatabase()->getTermArgTrie(Node::null(), f);
     if (qni == nullptr || qni->empty())
@@ -1474,7 +1531,7 @@ void MatchGen::reset(bool tgt)
       if (d_qi->d_match[repVar].isNull())
       {
         Debug("cbqi-match-debug") << "Force matching on child #" << qvn.first
-                                 << ", which is var #" << repVar << std::endl;
+                                  << ", which is var #" << repVar << std::endl;
         d_qni_bound[qvn.first] = repVar;
       }
     }
@@ -1511,8 +1568,11 @@ void MatchGen::reset(bool tgt)
     }
     bool success;
     if( vn[0]==-1 && vn[1]==-1 ){
-      //Trace("cbqi-explain") << "    reset : " << d_n << " check ground values " << nn[0] << " " << nn[1] << " (tgt=" << d_tgt << ")" << std::endl;
-      Debug("cbqi-match-debug") << "       reset: check ground values " << nn[0] << " " << nn[1] << " (" << d_tgt << ")" << std::endl;
+      // Trace("cbqi-explain") << "    reset : " << d_n << " check ground values
+      // " << nn[0] << " " << nn[1] << " (tgt=" << d_tgt << ")" << std::endl;
+      Debug("cbqi-match-debug")
+          << "       reset: check ground values " << nn[0] << " " << nn[1]
+          << " (" << d_tgt << ")" << std::endl;
       //just compare values
       if( d_tgt ){
         success = nn[0] == nn[1];
@@ -1536,13 +1596,17 @@ void MatchGen::reset(bool tgt)
         vn[0] = vn[1];
         vn[1] = -1;
       }
-      Debug("cbqi-match-debug") << "       reset: add constraint " << vn[0] << " -> " << nn[1] << " (vn=" << vn[1] << ")" << std::endl;
+      Debug("cbqi-match-debug")
+          << "       reset: add constraint " << vn[0] << " -> " << nn[1]
+          << " (vn=" << vn[1] << ")" << std::endl;
       //add some constraint
       int addc = d_qi->addConstraint(vn[0], nn[1], vn[1], d_tgt, false);
       success = addc!=-1;
       //if successful and non-redundant, store that we need to cleanup this
       if( addc==1 ){
-        //Trace("cbqi-explain") << "       reset: " << d_n << " add constraint " << vn[0] << " -> " << nn[1] << " (vn=" << vn[1] << ")" << ", d_tgt = " << d_tgt << std::endl;
+        // Trace("cbqi-explain") << "       reset: " << d_n << " add constraint
+        // " << vn[0] << " -> " << nn[1] << " (vn=" << vn[1] << ")" << ", d_tgt =
+        // " << d_tgt << std::endl;
         for (size_t i = 0; i < 2; i++)
         {
           if( vn[i]!=-1 && std::find( d_qni_bound_except.begin(), d_qni_bound_except.end(), i )==d_qni_bound_except.end() ){
@@ -1581,14 +1645,17 @@ void MatchGen::reset(bool tgt)
   }
   d_binding = false;
   d_wasSet = true;
-  Debug("cbqi-match") << "     reset: Finished reset for " << d_n << ", success = " << ( !d_qn.empty() || d_child_counter!=-1 ) << std::endl;
+  Debug("cbqi-match") << "     reset: Finished reset for " << d_n
+                      << ", success = "
+                      << (!d_qn.empty() || d_child_counter != -1) << std::endl;
 }
 
 bool MatchGen::getNextMatch()
 {
   Debug("cbqi-match") << "     Get next match for : " << d_n << ", type = ";
-  debugPrintType( "cbqi-match", d_type );
-  Debug("cbqi-match") << ", children = " << d_children.size() << ", binding = " << d_binding << std::endl;
+  debugPrintType("cbqi-match", d_type);
+  Debug("cbqi-match") << ", children = " << d_children.size()
+                      << ", binding = " << d_binding << std::endl;
   if( !d_use_children ){
     if( d_child_counter==0 ){
       d_child_counter = -1;
@@ -1638,19 +1705,24 @@ bool MatchGen::getNextMatch()
       if( d_binding ){
         //also need to create match for each variable we bound
         success = true;
-        Debug("cbqi-match-debug") << "     Produce matches for bound variables by " << d_n << ", type = ";
-        debugPrintType( "cbqi-match-debug", d_type );
+        Debug("cbqi-match-debug")
+            << "     Produce matches for bound variables by " << d_n
+            << ", type = ";
+        debugPrintType("cbqi-match-debug", d_type);
         Debug("cbqi-match-debug") << "..." << std::endl;
 
         while( ( success && d_binding_it!=d_qni_bound.end() ) || doFail ){
           QuantInfo::VarMgMap::const_iterator itm;
           if( !doFail ){
-            Debug("cbqi-match-debug") << "       check variable " << d_binding_it->second << std::endl;
+            Debug("cbqi-match-debug") << "       check variable "
+                                      << d_binding_it->second << std::endl;
             itm = d_qi->var_mg_find(d_binding_it->second);
           }
           if (doFail || (d_binding_it->first != 0 && itm != d_qi->var_mg_end()))
           {
-            Debug("cbqi-match-debug") << "       we had bound variable " << d_binding_it->second << ", reset = " << doReset << std::endl;
+            Debug("cbqi-match-debug")
+                << "       we had bound variable " << d_binding_it->second
+                << ", reset = " << doReset << std::endl;
             if( doReset ){
               itm->second->reset(true);
             }
@@ -1662,7 +1734,8 @@ bool MatchGen::getNextMatch()
                   success = false;
                 }else{
                   --d_binding_it;
-                  Debug("cbqi-match-debug") << "       decrement..." << std::endl;
+                  Debug("cbqi-match-debug")
+                      << "       decrement..." << std::endl;
                 }
               } while (success
                        && (d_binding_it->first == 0
@@ -1679,7 +1752,8 @@ bool MatchGen::getNextMatch()
           }
           else
           {
-            Debug("cbqi-match-debug") << "       skip..." << d_binding_it->second << std::endl;
+            Debug("cbqi-match-debug")
+                << "       skip..." << d_binding_it->second << std::endl;
             ++d_binding_it;
             doReset = true;
           }
@@ -1734,7 +1808,8 @@ bool MatchGen::getNextMatch()
         }
       }
     }
-    Debug("cbqi-match") << "    ...finished matching for " << d_n << ", success = " << success << std::endl;
+    Debug("cbqi-match") << "    ...finished matching for " << d_n
+                        << ", success = " << success << std::endl;
     d_wasSet = success;
     return success;
   }
@@ -1756,7 +1831,9 @@ bool MatchGen::getNextMatch()
             {
               if( d_child_counter<(int)(getNumChildren()-1) ){
                 d_child_counter++;
-                Debug("cbqi-match-debug") << "       Reset child " << d_child_counter << " of " << d_n << std::endl;
+                Debug("cbqi-match-debug")
+                    << "       Reset child " << d_child_counter << " of " << d_n
+                    << std::endl;
                 getChild(d_child_counter)->reset(d_tgt);
               }else{
                 success = true;
@@ -1772,7 +1849,9 @@ bool MatchGen::getNextMatch()
             {
               if( d_child_counter<(int)(getNumChildren()-1) ){
                 d_child_counter++;
-                Debug("cbqi-match-debug") << "       Reset child " << d_child_counter << " of " << d_n << ", one match" << std::endl;
+                Debug("cbqi-match-debug")
+                    << "       Reset child " << d_child_counter << " of " << d_n
+                    << ", one match" << std::endl;
                 getChild(d_child_counter)->reset(d_tgt);
               }else{
                 d_child_counter = -1;
@@ -1857,7 +1936,8 @@ bool MatchGen::getNextMatch()
         }
       }
       d_wasSet = success;
-      Debug("cbqi-match") << "    ...finished construct match for " << d_n << ", success = " << success << std::endl;
+      Debug("cbqi-match") << "    ...finished construct match for " << d_n
+                          << ", success = " << success << std::endl;
       return success;
     }
   }
@@ -1882,8 +1962,9 @@ bool MatchGen::doMatching()
   do
   {
     invalidMatch = false;
-    Debug("cbqi-match-debug") << "       Do matching " << d_n << " "
-                             << d_qn.size() << " " << d_qni.size() << std::endl;
+    Debug("cbqi-match-debug")
+        << "       Do matching " << d_n << " " << d_qn.size() << " "
+        << d_qni.size() << std::endl;
     if (d_qn.size() == d_qni.size() + 1)
     {
       size_t index = d_qni.size();
@@ -2137,7 +2218,8 @@ void QuantConflictFind::registerQuantifier( Node q ) {
     Trace("cbqi-qregister") << std::endl;
     if (qi->d_vars.size() > q[0].getNumChildren())
     {
-      Trace("cbqi-qregister") << "  with additional constraints : " << std::endl;
+      Trace("cbqi-qregister")
+          << "  with additional constraints : " << std::endl;
       for (size_t j = q[0].getNumChildren(), nvars = qi->d_vars.size();
            j < nvars;
            j++)
@@ -2221,7 +2303,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   if (d_conflict)
   {
     Trace("cbqi-check2") << "QCF : finished check : already in conflict."
-                        << std::endl;
+                         << std::endl;
     if (level >= Theory::EFFORT_FULL)
     {
       Trace("cbqi-warn") << "ALREADY IN CONFLICT? " << level << std::endl;
@@ -2237,7 +2319,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     prevEt = d_statistics.d_entailment_checks.get();
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("cbqi-engine") << "---Conflict Find Engine Round, effort = " << level
-                        << "---" << std::endl;
+                         << "---" << std::endl;
   }
 
   // reset the round-specific information
@@ -2259,7 +2341,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     // set the effort (data member for convienence of access)
     d_effort = static_cast<Effort>(e);
     Trace("cbqi-check") << "Checking quantified formulas at effort " << e
-                       << "..." << std::endl;
+                        << "..." << std::endl;
     // for each quantified formula
     for (unsigned i = 0; i < nquant; i++)
     {
@@ -2292,14 +2374,14 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   {
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("cbqi-engine") << "Finished conflict find engine, time = "
-                        << (clSet2 - clSet);
+                         << (clSet2 - clSet);
     if (addedLemmas > 0)
     {
       Trace("cbqi-engine") << ", effort = "
-                          << (d_effort == EFFORT_CONFLICT
-                                  ? "conflict"
-                                  : (d_effort == EFFORT_PROP_EQ ? "prop_eq"
-                                                                : "mc"));
+                           << (d_effort == EFFORT_CONFLICT
+                                   ? "conflict"
+                                   : (d_effort == EFFORT_PROP_EQ ? "prop_eq"
+                                                                 : "mc"));
       Trace("cbqi-engine") << ", addedLemmas = " << addedLemmas;
     }
     Trace("cbqi-engine") << std::endl;
@@ -2307,7 +2389,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     if (currEt != prevEt)
     {
       Trace("cbqi-engine") << "  Entailment checks = " << (currEt - prevEt)
-                          << std::endl;
+                           << std::endl;
     }
   }
   Trace("cbqi-check2") << "QCF : finished check : " << level << std::endl;
@@ -2347,14 +2429,14 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     {
       Trace("cbqi-check") << "   ... Quantifiers engine discovered conflict, ";
       Trace("cbqi-check") << "probably related to disequal congruent terms in "
-                            "master equality engine"
-                         << std::endl;
+                             "master equality engine"
+                          << std::endl;
       return;
     }
     if (Trace.isOn("cbqi-inst"))
     {
       Trace("cbqi-inst") << "*** Produced match at effort " << d_effort << " : "
-                        << std::endl;
+                         << std::endl;
       qi->debugPrintMatch("cbqi-inst");
       Trace("cbqi-inst") << std::endl;
     }
@@ -2362,7 +2444,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     if (qi->isMatchSpurious())
     {
       Trace("cbqi-inst") << "   ... Spurious (match is inconsistent)"
-                        << std::endl;
+                         << std::endl;
       continue;
     }
     // check whether match can be completed
@@ -2370,7 +2452,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     if (!qi->completeMatch(assigned))
     {
       Trace("cbqi-inst") << "   ... Spurious (cannot assign unassigned vars)"
-                        << std::endl;
+                         << std::endl;
       continue;
     }
     // check whether the match is spurious according to (T-)entailment checks
@@ -2380,7 +2462,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     if (tcs)
     {
       Trace("cbqi-inst") << "   ... Spurious (match is T-inconsistent)"
-                        << std::endl;
+                         << std::endl;
     }
     else
     {
@@ -2412,7 +2494,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       if (Trace.isOn("cbqi-inst"))
       {
         Trace("cbqi-inst") << "*** Was from effort " << d_effort << " : "
-                          << std::endl;
+                           << std::endl;
         qi->debugPrintMatch("cbqi-inst");
         Trace("cbqi-inst") << std::endl;
       }
