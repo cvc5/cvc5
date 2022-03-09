@@ -682,9 +682,9 @@ name   = "Quantifiers"
   help       = "enable conflict-based quantifier instantiation"
 
 [[option]]
-  name       = "qcfMode"
+  name       = "cbqiMode"
   category   = "regular"
-  long       = "quant-cf-mode=MODE"
+  long       = "cbqi-mode=MODE"
   type       = "QcfMode"
   default    = "PROP_EQ"
   help       = "what effort to apply conflict find mechanism"
@@ -700,28 +700,28 @@ name   = "Quantifiers"
   help = "Use QCF for conflicts, propagations and heuristic instantiations."
 
 [[option]]
-  name       = "qcfTConstraint"
+  name       = "cbqiTConstraint"
   category   = "expert"
-  long       = "qcf-tconstraint"
+  long       = "cbqi-tconstraint"
   type       = "bool"
   default    = "false"
-  help       = "enable entailment checks for t-constraints in qcf algorithm"
+  help       = "enable entailment checks for t-constraints in cbqi algorithm"
 
 [[option]]
-  name       = "qcfAllConflict"
+  name       = "cbqiAllConflict"
   category   = "expert"
-  long       = "qcf-all-conflict"
+  long       = "cbqi-all-conflict"
   type       = "bool"
   default    = "false"
   help       = "add all available conflicting instances during conflict-based instantiation"
 
 [[option]]
-  name       = "qcfVoExp"
+  name       = "cbqiVoExp"
   category   = "expert"
-  long       = "qcf-vo-exp"
+  long       = "cbqi-vo-exp"
   type       = "bool"
   default    = "false"
-  help       = "qcf experimental variable ordering"
+  help       = "cbqi experimental variable ordering"
 
 [[option]]
   name       = "instNoEntail"
@@ -732,25 +732,25 @@ name   = "Quantifiers"
   help       = "do not consider instances of quantified formulas that are currently entailed"
 
 [[option]]
-  name       = "qcfEagerTest"
+  name       = "cbqiEagerTest"
   category   = "expert"
-  long       = "qcf-eager-test"
+  long       = "cbqi-eager-test"
   type       = "bool"
   default    = "true"
-  help       = "optimization, test qcf instances eagerly"
+  help       = "optimization, test cbqi instances eagerly"
 
 [[option]]
-  name       = "qcfEagerCheckRd"
+  name       = "cbqiEagerCheckRd"
   category   = "expert"
-  long       = "qcf-eager-check-rd"
+  long       = "cbqi-eager-check-rd"
   type       = "bool"
   default    = "true"
   help       = "optimization, eagerly check relevant domain of matched position"
 
 [[option]]
-  name       = "qcfSkipRd"
+  name       = "cbqiSkipRd"
   category   = "expert"
-  long       = "qcf-skip-rd"
+  long       = "cbqi-skip-rd"
   type       = "bool"
   default    = "false"
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
