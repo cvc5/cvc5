@@ -1,6 +1,6 @@
-; COMMAND-LINE: -o post-asserts
+; COMMAND-LINE: -o pre-asserts
 ; SCRUBBER: grep -E '\(assert'
-; EXPECT: (assert true)
+; EXPECT: (assert (= x x))
 ; EXPECT: (assert true)
 (set-logic ALL)
 (declare-fun x () Int)
