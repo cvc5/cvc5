@@ -277,7 +277,7 @@ bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
     Trace("deep-restart") << "No learned literals" << std::endl;
     return false;
   }
-  Trace("deep-restart") << "Have #" << zll.size()
+  Trace("deep-restart") << "Have " << zll.size()
                         << " zero level learned literals" << std::endl;
 
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
@@ -298,7 +298,7 @@ bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
   {
     Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
     apr.push_back(lit);
-    Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
+    AlwaysAssert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
         << "Relearned: " << lit << std::endl;
     d_allLearnedLits.insert(lit);
   }
