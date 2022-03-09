@@ -1420,9 +1420,8 @@ TEST_F(TestApiBlackSolver, getInterpolant)
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
-  Term output;
   // Call the interpolation api, while the resulting interpolant is the output
-  d_solver.getInterpolant(conj, output);
+  Term output = d_solver.getInterpolant(conj);
 
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
@@ -1447,10 +1446,8 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
-  Term output;
-  d_solver.getInterpolant(conj, output);
-  Term output2;
-  d_solver.getInterpolantNext(output2);
+  Term output =d_solver.getInterpolant(conj);
+  Term output2 = d_solver.getInterpolantNext();
 
   // We expect the next output to be distinct
   ASSERT_TRUE(output != output2);
