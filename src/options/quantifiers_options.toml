@@ -128,17 +128,6 @@ name   = "Quantifiers"
   default    = "false"
   help       = "split ites with dt testers as conditions"
 
-# Whether to pre-skolemize quantifier bodies.
-# For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
-#   forall x. P( x ) => f( S( x ) ) = x
-[[option]]
-  name       = "preSkolemQuant"
-  category   = "regular"
-  long       = "pre-skolem-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "apply skolemization eagerly to bodies of quantified formulas"
-
 [[option]]
   name       = "preSkolemQuant"
   category   = "regular"
@@ -152,11 +141,14 @@ name   = "Quantifiers"
   help = "Do not apply Skolemization eagerly."
 [[option.mode.ON]]
   name = "on"
-  help = "Apply Skolemization eagerly."
+  help = "Apply Skolemization eagerly to top-level (negatively asserted) quantified formulas."
 [[option.mode.AGG]]
   name = "agg"
   help = "Apply Skolemization eagerly and aggressively during preprocessing."
 
+# Whether to pre-skolemize quantifier bodies.
+# For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
+#   forall x. P( x ) => f( S( x ) ) = x
 [[option]]
   name       = "preSkolemQuantNested"
   category   = "regular"
@@ -164,15 +156,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "apply skolemization to nested quantified formulas"
-
-# TODO: merge
-[[option]]
-  name       = "preSkolemQuantAgg"
-  category   = "regular"
-  long       = "pre-skolem-quant-agg"
-  type       = "bool"
-  default    = "true"
-  help       = "apply skolemization to quantified formulas aggressively"
 
 # TODO: merge
 [[option]]
