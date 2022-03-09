@@ -345,7 +345,6 @@ Integer Integer::pow(unsigned long int exp) const
   uint32_t low = static_cast<uint32_t>(exp);
   uint32_t high = static_cast<uint32_t>(exp << 32);
   if (low == exp) {
-    Assert(false);
     // if it is, safely call the gmp pow function
     return powHelper(exp);
   } else {
