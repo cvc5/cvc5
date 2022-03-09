@@ -1507,14 +1507,6 @@ name   = "Quantifiers"
   help       = "when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cegqiRepeatLit"
-  category   = "regular"
-  long       = "cegqi-repeat-lit"
-  type       = "bool"
-  default    = "false"
-  help       = "solve literals more than once in counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cegqiInnermost"
   category   = "regular"
   long       = "cegqi-innermost"
@@ -1618,7 +1610,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvRmExtract"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-rm-extract"
   type       = "bool"
   default    = "true"
@@ -1626,7 +1618,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvLinearize"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-linear"
   type       = "bool"
   default    = "true"
@@ -1634,7 +1626,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvSolveNl"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-solve-nl"
   type       = "bool"
   default    = "false"
@@ -1642,7 +1634,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvConcInv"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-concat-inv"
   type       = "bool"
   default    = "true"
