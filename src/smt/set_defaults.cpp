@@ -1392,7 +1392,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
     if (!opts.quantifiers.eMatchingWasSetByUser)
     {
-      opts.quantifiers.eMatching = opts.quantifiers.fmfInstEngine;
+      // do not use E-matching by default. For E-matching + FMF, the user should
+      // specify --finite-model-find --e-matching.
+      opts.quantifiers.eMatching = false;
     }
     if (!opts.quantifiers.instWhenModeWasSetByUser)
     {

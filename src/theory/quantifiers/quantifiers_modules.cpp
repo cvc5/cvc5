@@ -61,7 +61,7 @@ void QuantifiersModules::initialize(Env& env,
     d_sg_gen.reset(new ConjectureGenerator(env, qs, qim, qr, tr));
     modules.push_back(d_sg_gen.get());
   }
-  if (!options.quantifiers.finiteModelFind || options.quantifiers.fmfInstEngine)
+  if (options.quantifiers.eMatching)
   {
     d_inst_engine.reset(new InstantiationEngine(env, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());

@@ -23,6 +23,15 @@ name   = "Quantifiers"
   default    = "true"
   help       = "miniscope quantifiers for ground subformulas"
 
+# TODO: merge
+[[option]]
+  name       = "aggressiveMiniscopeQuant"
+  category   = "regular"
+  long       = "ag-miniscope-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "perform aggressive miniscoping for quantifiers"
+
 [[option]]
   name       = "quantSplit"
   category   = "regular"
@@ -156,15 +165,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "apply skolemization to nested quantified formulas"
-
-# TODO: merge
-[[option]]
-  name       = "aggressiveMiniscopeQuant"
-  category   = "regular"
-  long       = "ag-miniscope-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "perform aggressive miniscoping for quantifiers"
 
 [[option]]
   name       = "elimTautQuant"
@@ -640,15 +640,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "interleave model-based quantifier instantiation with other techniques"
-
-# TODO: delete?
-[[option]]
-  name       = "fmfInstEngine"
-  category   = "regular"
-  long       = "fmf-inst-engine"
-  type       = "bool"
-  default    = "false"
-  help       = "use E-matching in conjunction with finite model finding"
 
 [[option]]
   name       = "fmfBoundInt"
