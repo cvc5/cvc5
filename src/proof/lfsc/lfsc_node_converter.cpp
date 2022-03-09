@@ -181,7 +181,7 @@ Node LfscNodeConverter::postConvert(Node n)
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
-           || k == APPLY_SELECTOR_TOTAL || k == APPLY_UPDATER)
+           || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
@@ -1089,12 +1089,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       // get its variable name
       opName << getNameForUserNameOf(dt[index].getConstructor());
     }
-    else if (k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL)
+    else if (k == APPLY_SELECTOR)
     {
-      if (k == APPLY_SELECTOR_TOTAL)
-      {
-        ret = maybeMkSkolemFun(op, macroApply);
-      }
+      ret = maybeMkSkolemFun(op, macroApply);
       if (ret.isNull())
       {
         unsigned index = DType::indexOf(op);
