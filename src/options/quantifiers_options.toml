@@ -448,7 +448,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "instWhenPhase"
-  category   = "regular"
+  category   = "expert"
   long       = "inst-when-phase=N"
   type       = "int64_t"
   default    = "2"
@@ -1699,7 +1699,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoElim"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-elim"
   type       = "bool"
   default    = "false"
@@ -1707,7 +1707,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoElimStoreAx"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-elim-store-ax"
   type       = "bool"
   default    = "true"

@@ -278,14 +278,14 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "doITESimp"
-  category   = "regular"
+  category   = "expert"
   long       = "ite-simp"
   type       = "bool"
   help       = "turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)"
 
 [[option]]
   name       = "doITESimpOnRepeat"
-  category   = "regular"
+  category   = "expert"
   long       = "on-repeat-ite-simp"
   type       = "bool"
   default    = "false"
@@ -293,7 +293,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "regular"
+  category   = "expert"
   long       = "ext-rew-prep=MODE"
   type       = "ExtRewPrepMode"
   default    = "OFF"
@@ -311,7 +311,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "simplifyWithCareEnabled"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-with-care"
   type       = "bool"
   default    = "false"
@@ -319,7 +319,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "compressItes"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-ite-compress"
   type       = "bool"
   default    = "false"
@@ -343,7 +343,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "repeatSimp"
-  category   = "regular"
+  category   = "expert"
   long       = "repeat-simp"
   type       = "bool"
   help       = "make multiple passes with nonclausal simplifier"
@@ -358,7 +358,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "abstractValues"
-  category   = "regular"
+  category   = "expert"
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
@@ -385,7 +385,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "foreignTheoryRewrite"
-  category   = "regular"
+  category   = "expert"
   long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"
