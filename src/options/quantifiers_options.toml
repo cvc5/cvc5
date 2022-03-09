@@ -673,14 +673,13 @@ name   = "Quantifiers"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
-# TODO: change name
 [[option]]
-  name       = "quantConflictFind"
+  name       = "conflictBasedInst"
   category   = "regular"
-  long       = "quant-cf"
+  long       = "cbqi"
   type       = "bool"
   default    = "true"
-  help       = "enable conflict find mechanism for quantifiers"
+  help       = "enable conflict-based quantifier instantiation"
 
 [[option]]
   name       = "qcfMode"

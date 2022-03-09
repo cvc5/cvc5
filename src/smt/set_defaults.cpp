@@ -1446,9 +1446,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
-      if (!opts.quantifiers.quantConflictFindWasSetByUser)
+      if (!opts.quantifiers.conflictBasedInstWasSetByUser)
       {
-        opts.quantifiers.quantConflictFind = false;
+        opts.quantifiers.conflictBasedInst = false;
       }
       if (!opts.quantifiers.instNoEntailWasSetByUser)
       {
@@ -1476,7 +1476,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // implied options...
   if (opts.quantifiers.qcfModeWasSetByUser || opts.quantifiers.qcfTConstraint)
   {
-    opts.quantifiers.quantConflictFind = true;
+    opts.quantifiers.conflictBasedInst = true;
   }
   if (opts.quantifiers.cegqiNestedQE)
   {
@@ -1600,9 +1600,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::USE;
   }
-  if (!opts.quantifiers.quantConflictFindWasSetByUser)
+  if (!opts.quantifiers.conflictBasedInstWasSetByUser)
   {
-    opts.quantifiers.quantConflictFind = false;
+    opts.quantifiers.conflictBasedInst = false;
   }
   if (!opts.quantifiers.instNoEntailWasSetByUser)
   {
