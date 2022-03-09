@@ -673,6 +673,8 @@ name   = "Quantifiers"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
+### Conflict-based instantiation options
+
 [[option]]
   name       = "conflictBasedInst"
   category   = "regular"
@@ -695,9 +697,6 @@ name   = "Quantifiers"
 [[option.mode.PROP_EQ]]
   name = "prop-eq"
   help = "Apply QCF algorithm to propagate equalities as well as conflicts."
-[[option.mode.PARTIAL]]
-  name = "partial"
-  help = "Use QCF for conflicts, propagations and heuristic instantiations."
 
 [[option]]
   name       = "cbqiTConstraint"
