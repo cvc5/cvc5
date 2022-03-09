@@ -996,7 +996,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   Assert(varlist.size() == args.size());
 
   Node res;
-  if (tryEval && options().quantifiers.sygusEvalOpt)
+  if (tryEval)
   {
     // Try evaluating, which is much faster than substitution+rewriting.
     // This may fail if there is a subterm of bn under the

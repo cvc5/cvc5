@@ -681,6 +681,7 @@ name   = "Quantifiers"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
+# TODO: change name
 [[option]]
   name       = "quantConflictFind"
   category   = "regular"
@@ -966,7 +967,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusUnifShuffleCond"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-unif-shuffle-cond"
   type       = "bool"
   default    = "false"
@@ -974,7 +975,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-unif-cond-independent-no-repeat-sol"
   type       = "bool"
   default    = "true"
@@ -982,7 +983,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusBoolIteReturnConst"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-bool-ite-return-const"
   type       = "bool"
   default    = "true"
@@ -990,7 +991,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusQePreproc"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-qe-preproc"
   type       = "bool"
   default    = "false"
@@ -1045,7 +1046,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusEnumRandomP"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-enum-random-p=P"
   type       = "double"
   default    = "0.5"
@@ -1055,7 +1056,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusEnumFastNumConsts"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-enum-fast-num-consts=N"
   type       = "uint64_t"
   default    = "5"
@@ -1077,9 +1078,10 @@ name   = "Quantifiers"
   default    = "true"
   help       = "statically add constants appearing in conjecture to grammars"
 
+# TODO: delete?
 [[option]]
   name       = "sygusGrammarNorm"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-grammar-norm"
   type       = "bool"
   default    = "false"
@@ -1142,7 +1144,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInvAutoUnfold"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-auto-unfold"
   type       = "bool"
   default    = "true"
@@ -1158,7 +1160,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusPbeMultiFair"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-pbe-multi-fair"
   type       = "bool"
   default    = "false"
@@ -1166,7 +1168,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusPbeMultiFairDiff"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-pbe-multi-fair-diff=N"
   type       = "int64_t"
   default    = "0"
@@ -1182,7 +1184,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusEvalUnfoldBool"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-eval-unfold-bool"
   type       = "bool"
   default    = "true"
@@ -1198,7 +1200,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegisSample"
-  category   = "regular"
+  category   = "expert"
   long       = "cegis-sample=MODE"
   type       = "CegisSampleMode"
   default    = "NONE"
@@ -1213,14 +1215,6 @@ name   = "Quantifiers"
 [[option.mode.TRUST]]
   name = "trust"
   help = "Trust that when a solution for a conjecture is always true under sampling, then it is indeed a solution. Note this option may print out spurious solutions for synthesis conjectures."
-
-[[option]]
-  name       = "sygusEvalOpt"
-  category   = "regular"
-  long       = "sygus-eval-opt"
-  type       = "bool"
-  default    = "true"
-  help       = "use optimized approach for evaluation in sygus"
 
 [[option]]
   name       = "sygusArgRelevant"
