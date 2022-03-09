@@ -345,12 +345,13 @@ Integer Integer::pow(unsigned long int exp) const
   uint32_t low = static_cast<uint32_t>(exp); 
   uint32_t high = static_cast<uint32_t>(exp << 32);
   if (low == exp) {
+    Assert(false);
     // if it is, safely call the gmp pow function
     return powHelper(exp);
   } else {
       // if exp is bigger than max uint32_t, use the following identity:
       // a^(x + 2^32*y) = a^x * (a^(2^32))^y
-      return powHelper(low) * ((Integer(static_cast<uint32_t>(-1))) * (*this)).powHelper(high);
+      return powHelper(low) * (powHelper(static_cast<uint32_t>(-1))).powHelper(high);
   }
 }
 
