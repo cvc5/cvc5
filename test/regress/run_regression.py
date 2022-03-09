@@ -470,6 +470,8 @@ def run_benchmark(benchmark_info):
         error = error.decode()
     output = re.sub(r"^[ \t]*", "", output.strip(), flags=re.MULTILINE)
     error = re.sub(r"^[ \t]*", "", error.strip(), flags=re.MULTILINE)
+    error = re.sub(r"qemu: uncaught target signal.*", "", error.strip(),
+                   flags=re.MULTILINE)
     return (output, error, exit_status)
 
 

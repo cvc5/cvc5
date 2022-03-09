@@ -3,7 +3,7 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT-ERROR: Expected result unsat but got sat
-; ERROR-SCRUBBER: sed -e '/Fatal failure within.*/d' -e '/qemu: uncaught target signal.*/d'
+; ERROR-SCRUBBER: sed -e '/Fatal failure within.*/d'
 ; EXIT: -6
 (set-option :incremental true)
 (set-option :produce-unsat-cores true)
