@@ -21,14 +21,8 @@ libcvc5_add_sources(
   api/cpp/cvc5_kind.h
   decision/assertion_list.cpp
   decision/assertion_list.h
-  decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
-  decision/decision_engine_old.cpp
-  decision/decision_engine_old.h
-  decision/decision_strategy.h
-  decision/justification_heuristic.cpp
-  decision/justification_heuristic.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
   decision/justify_info.cpp
