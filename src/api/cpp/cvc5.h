@@ -4586,10 +4586,10 @@ class CVC5_EXPORT Solver
   void blockModelValues(const std::vector<Term>& terms) const;
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * @return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  void printInstantiations(std::ostream& out) const;
+  std::string getInstantiations() const;
 
   /**
    * Push (a) level(s) to the assertion stack.

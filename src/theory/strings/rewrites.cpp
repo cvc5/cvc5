@@ -73,6 +73,7 @@ const char* toString(Rewrite r)
     case Rewrite::INDEXOF_RE_INVALID_INDEX: return "INDEXOF_RE_INVALID_INDEX";
     case Rewrite::INDEXOF_RE_MAX_INDEX: return "INDEXOF_RE_MAX_INDEX";
     case Rewrite::ITOS_EVAL: return "ITOS_EVAL";
+    case Rewrite::RE_ALL_ELIM: return "RE_ALL_ELIM";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";

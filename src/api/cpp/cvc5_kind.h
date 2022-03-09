@@ -3088,6 +3088,16 @@ enum Kind : int32_t
    */
   REGEXP_NONE,
   /**
+   * Regexp all.
+   *
+   * Parameters: none
+   *
+   * Create with:
+   *   - `Solver::mkRegexpAll() const`
+   *   - `Solver::mkTerm(Kind kind) const`
+   */
+  REGEXP_ALL,
+  /**
    * Regexp all characters.
    *
    * Parameters: none
