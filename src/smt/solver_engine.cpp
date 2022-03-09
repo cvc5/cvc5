@@ -785,12 +785,20 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
 
   // check the satisfiability with the solver object
   Result r;
-  bool checkAgain;
+  bool checkAgain = false;
   do
   {
+    if (checkAgain)
+    {
+      r = d_smtSolver->checkSatisfiability(
+          *d_asserts.get(), {}, isEntailmentCheck);
+    }
+    else
+    {
+      r = d_smtSolver->checkSatisfiability(
+          *d_asserts.get(), assumptions, isEntailmentCheck);
+    }
     checkAgain = false;
-    r = d_smtSolver->checkSatisfiability(
-        *d_asserts.get(), assumptions, isEntailmentCheck);
     if (options().smt.deepRestart)
     {
       Trace("deep-restart")
