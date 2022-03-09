@@ -1943,6 +1943,23 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getProof(self):
+        """Get the refutation proof
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+           (get-proof)
+
+        Requires to enable option
+        :ref:`produce-proofs <lbl-option-produce-proofs>`.
+
+        :return: a string representing the proof, according to the value of
+                 proof-format-mode.
+        """
+        return self.csolver.getProof()
+
     def getLearnedLiterals(self):
         """Get a list of literals that are entailed by the current set of assertions
 
@@ -2035,9 +2052,16 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-unsat-core )
+          (get-unsat-core)
 
         Requires to enable option :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+
+        .. note::
+          In contrast to SMT-LIB, the API does not distinguish between named and
+          unnamed assertions when producing an unsatisfiable core. Additionally,
+          the API allows this option to be called after a check with assumptions.
+          A subset of those assumptions may be included in the unsatisfiable core
+          returned by this method.
 
         :return: a set of terms representing the unsatisfiable core
         """

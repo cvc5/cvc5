@@ -4149,6 +4149,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   *
+   * .. note::
+   *   In contrast to SMT-LIB, the API does not distinguish between named and
+   *   unnamed assertions when producing an unsatisfiable core. Additionally,
+   *   the API allows this option to be called after a check with assumptions.
+   *   A subset of those assumptions may be included in the unsatisfiable core
+   *   returned by this method.
    * \endverbatim
    *
    * @return a set of terms representing the unsatisfiable core
