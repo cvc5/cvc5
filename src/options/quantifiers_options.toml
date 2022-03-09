@@ -112,13 +112,13 @@ name   = "Quantifiers"
   help_mode  = "Modes for splitting quantified formulas that lead to variable eliminations."
 [[option.mode.OFF]]
   name = "off"
-  help = "Do not split quantified formulas that lead to variable eliminations."
+  help = "Do not split quantified formulas."
 [[option.mode.ON]]
   name = "on"
   help = "Split quantified formulas that lead to variable eliminations."
 [[option.mode.AGG]]
   name = "agg"
-  help = "Aggressive split quantified formulas that lead to variable eliminations."
+  help = "Aggressively split quantified formulas that lead to variable eliminations."
   
 [[option]]
   name       = "iteDtTesterSplitQuant"
@@ -147,6 +147,7 @@ name   = "Quantifiers"
   default    = "true"
   help       = "apply skolemization to nested quantified formulas"
 
+# TODO: merge
 [[option]]
   name       = "preSkolemQuantAgg"
   category   = "regular"
@@ -155,6 +156,7 @@ name   = "Quantifiers"
   default    = "true"
   help       = "apply skolemization to quantified formulas aggressively"
 
+# TODO: merge
 [[option]]
   name       = "aggressiveMiniscopeQuant"
   category   = "regular"
@@ -214,7 +216,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "termDbCd"
-  category   = "regular"
+  category   = "expert"
   long       = "term-db-cd"
   type       = "bool"
   default    = "true"
@@ -222,7 +224,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "registerQuantBodyTerms"
-  category   = "regular"
+  category   = "expert"
   long       = "register-quant-body-terms"
   type       = "bool"
   default    = "false"
@@ -230,7 +232,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "relevantTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "relevant-triggers"
   type       = "bool"
   default    = "false"
@@ -238,7 +240,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "relationalTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "relational-triggers"
   type       = "bool"
   default    = "false"
@@ -246,7 +248,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "purifyTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "purify-triggers"
   type       = "bool"
   default    = "false"
@@ -254,7 +256,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "partialTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "partial-triggers"
   type       = "bool"
   default    = "false"
@@ -262,7 +264,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "consExpandTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "cons-exp-triggers"
   type       = "bool"
   default    = "false"
@@ -405,7 +407,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "incrementTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "increment-triggers"
   type       = "bool"
   default    = "true"
@@ -453,7 +455,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "instMaxLevel"
-  category   = "regular"
+  category   = "expert"
   long       = "inst-max-level=N"
   type       = "int64_t"
   default    = "-1"
@@ -469,7 +471,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantRepMode"
-  category   = "regular"
+  category   = "expert"
   long       = "quant-rep-mode=MODE"
   type       = "QuantRepMode"
   default    = "FIRST"
@@ -503,7 +505,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstRd"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-rd"
   type       = "bool"
   default    = "true"
@@ -511,7 +513,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstLimit"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-limit=N"
   type       = "int64_t"
   default    = "-1"
@@ -527,7 +529,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstStratify"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-stratify"
   type       = "bool"
   default    = "false"
@@ -535,7 +537,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstSum"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-sum"
   type       = "bool"
   default    = "false"
@@ -543,7 +545,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "literalMatchMode"
-  category   = "regular"
+  category   = "expert"
   long       = "literal-matching=MODE"
   type       = "LiteralMatchMode"
   default    = "USE"
@@ -564,7 +566,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "poolInst"
-  category   = "regular"
+  category   = "expert"
   long       = "pool-inst"
   type       = "bool"
   default    = "true"
@@ -582,7 +584,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantFunWellDefined"
-  category   = "regular"
+  category   = "expert"
   long       = "quant-fun-wd"
   type       = "bool"
   default    = "false"
@@ -606,7 +608,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiMode"
-  category   = "regular"
+  category   = "expert"
   long       = "mbqi=MODE"
   type       = "MbqiMode"
   default    = "FMC"
@@ -638,6 +640,7 @@ name   = "Quantifiers"
   default    = "false"
   help       = "interleave model-based quantifier instantiation with other techniques"
 
+# TODO: delete?
 [[option]]
   name       = "fmfInstEngine"
   category   = "regular"
@@ -645,14 +648,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "use E-matching in conjunction with finite model finding"
-
-[[option]]
-  name       = "fmfFmcSimple"
-  category   = "regular"
-  long       = "fmf-fmc-simple"
-  type       = "bool"
-  default    = "true"
-  help       = "simple models in full model check for finite model finding"
 
 [[option]]
   name       = "fmfBoundInt"
