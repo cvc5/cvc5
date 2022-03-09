@@ -2270,11 +2270,11 @@ cdef class Solver:
         :return: True iff an interpolant was found
         """
         cdef Term result = Term(self)
-        if len(args) == 1:
+        if len(args) == 0:
             assert isinstance(args[0], Term)
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 2
+            assert len(args) == 1
             assert isinstance(args[0], Grammar)
             assert isinstance(args[1], Term)
             result.cterm = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
@@ -2327,11 +2327,11 @@ cdef class Solver:
         :return: True iff an abduct was found
         """
         cdef Term result = Term(self)
-        if len(args) == 1:
+        if len(args) == 0:
             assert isinstance(args[0], Term)
             result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 2
+            assert len(args) == 1
             assert isinstance(args[0], Grammar)
             assert isinstance(args[1], Term)
             result.cterm = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
