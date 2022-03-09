@@ -782,7 +782,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
   // update the state to indicate we are about to run a check-sat
   bool hasAssumptions = !assumptions.empty();
   d_state->notifyCheckSat(hasAssumptions);
-    
+
   // check the satisfiability with the solver object
   Result r;
   bool checkAgain;
@@ -1863,7 +1863,7 @@ bool SolverEngine::deepRestart()
 
   // get the zero-level learned literals now, before resetting the context
   std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiterals();
-  
+
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
   // push the state to maintain global context around everything
