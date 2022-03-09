@@ -140,6 +140,24 @@ name   = "Quantifiers"
   help       = "apply skolemization eagerly to bodies of quantified formulas"
 
 [[option]]
+  name       = "preSkolemQuant"
+  category   = "regular"
+  long       = "pre-skolem-quant=MODE"
+  type       = "PreSkolemQuantMode"
+  default    = "ON"
+  help       = "modes to apply skolemization eagerly to bodies of quantified formulas"
+  help_mode  = "Modes to apply skolemization eagerly to bodies of quantified formulas."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not apply Skolemization eagerly."
+[[option.mode.ON]]
+  name = "on"
+  help = "Apply Skolemization eagerly."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Apply Skolemization eagerly and aggressively during preprocessing."
+
+[[option]]
   name       = "preSkolemQuantNested"
   category   = "regular"
   long       = "pre-skolem-quant-nested"

@@ -1086,15 +1086,15 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     opts.smt.sortInference = false;
   }
 
-  if (opts.quantifiers.preSkolemQuant)
+  if (opts.quantifiers.preSkolemQuant!=options::PreSkolemQuantMode::OFF)
   {
     if (opts.quantifiers.preSkolemQuantWasSetByUser)
     {
       reason << "pre-skolemization";
       return true;
     }
-    notifyModifyOption("preSkolemQuant", "false", "unsat cores");
-    opts.quantifiers.preSkolemQuant = false;
+    notifyModifyOption("preSkolemQuant", "off", "unsat cores");
+    opts.quantifiers.preSkolemQuant = options::PreSkolemQuantMode::OFF;
   }
 
   if (opts.bv.bitvectorToBool)
@@ -1482,7 +1482,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     opts.quantifiers.prenexQuantUser = true;
     if (!opts.quantifiers.preSkolemQuantWasSetByUser)
     {
-      opts.quantifiers.preSkolemQuant = true;
+      opts.quantifiers.preSkolemQuant = options::PreSkolemQuantMode::ON;
     }
   }
   // for induction techniques
@@ -1543,7 +1543,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
   }
   // can't pre-skolemize nested quantifiers without UF theory
-  if (!logic.isTheoryEnabled(THEORY_UF) && opts.quantifiers.preSkolemQuant)
+  if (!logic.isTheoryEnabled(THEORY_UF) && opts.quantifiers.preSkolemQuant!=options::PreSkolemQuantMode::OFF)
   {
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
     {
@@ -1586,7 +1586,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // optimization: apply preskolemization, makes it succeed more often
     if (!opts.quantifiers.preSkolemQuantWasSetByUser)
     {
-      opts.quantifiers.preSkolemQuant = true;
+      opts.quantifiers.preSkolemQuant = options::PreSkolemQuantMode::ON;
     }
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
     {
