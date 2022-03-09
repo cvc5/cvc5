@@ -297,10 +297,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void setOption(const string& option, const string& value) except +
         Term getInterpolant(const Term& conj) except +
         Term getInterpolant(const Term& conj, Grammar& grammar) except +
-        Term getInterpolantNext(const Term& conj) except +
+        Term getInterpolantNext() except +
         Term getAbduct(const Term& conj) except +
         Term getAbduct(const Term& conj, Grammar& grammar) except +
-        Term getAbductNext(const Term& conj) except +
+        Term getAbductNext() except +
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
