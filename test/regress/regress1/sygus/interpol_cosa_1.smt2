@@ -1,9 +1,9 @@
-; COMMAND-LINE: --produce-interpols=conjecture --sygus-active-gen=enum --check-interpols
+; COMMAND-LINE: --produce-interpols=conjecture --sygus-enum=fast --check-interpols
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic ALL)
 (set-option :produce-interpols conjecture)
-(set-option :sygus-active-gen enum)
+(set-option :sygus-enum fast)
 (declare-fun cfg@1 () (_ BitVec 1))
 (declare-fun witness_0@1 () Bool)
 (declare-fun op@1 () (_ BitVec 4))

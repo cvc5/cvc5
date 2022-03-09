@@ -15,9 +15,12 @@
 
 #include "proof/lfsc/lfsc_node_converter.h"
 
+#include <algorithm>
+#include <iomanip>
 #include <sstream>
 
 #include "expr/array_store_all.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
@@ -26,9 +29,11 @@
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
+#include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/rational.h"
 #include "util/regexp.h"
@@ -68,10 +73,24 @@ LfscNodeConverter::LfscNodeConverter()
       getSymbolInternal(FUNCTION_TYPE, setType, "Seq");
 }
 
+Node LfscNodeConverter::preConvert(Node n)
+{
+  // match is not supported in LFSC syntax, we eliminate it at pre-order
+  // traversal, which avoids type-checking errors during conversion, since e.g.
+  // match case nodes are required but cannot be preserved
+  if (n.getKind() == MATCH)
+  {
+    return theory::datatypes::DatatypesRewriter::expandMatch(n);
+  }
+  return n;
+}
+
 Node LfscNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
+  // we eliminate MATCH at preConvert above
+  Assert(k != MATCH);
   if (k == ASCRIPTION_TYPE)
   {
     // dummy node, return it
@@ -142,17 +161,27 @@ Node LfscNodeConverter::postConvert(Node n)
   }
   else if (n.isVar())
   {
-    std::stringstream ss;
-    ss << n;
-    Node nn = mkInternalSymbol(getNameForUserName(ss.str()), tn);
-    return nn;
+    return mkInternalSymbol(getNameForUserNameOf(n), tn);
+  }
+  else if (k == CARDINALITY_CONSTRAINT)
+  {
+    Trace("lfsc-term-process-debug")
+        << "...convert cardinality constraint" << std::endl;
+    const CardinalityConstraint& cc =
+        n.getOperator().getConst<CardinalityConstraint>();
+    Node tnn = typeAsNode(convertType(cc.getType()));
+    Node ub = nm->mkConstInt(Rational(cc.getUpperBound()));
+    TypeNode tnc =
+        nm->mkFunctionType({tnn.getType(), ub.getType()}, nm->booleanType());
+    Node fcard = getSymbolInternal(k, tnc, "fmf.card");
+    return nm->mkNode(APPLY_UF, fcard, tnn, ub);
   }
   else if (k == APPLY_UF)
   {
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
-           || k == APPLY_SELECTOR_TOTAL || k == APPLY_UPDATER)
+           || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
@@ -227,20 +256,22 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     TypeNode btn = nm->booleanType();
     TypeNode tnv = nm->mkFunctionType(btn, tn);
-    TypeNode btnv = nm->mkFunctionType({btn, btn}, btn);
     BitVector bv = n.getConst<BitVector>();
-    size_t w = bv.getSize();
-    Node ret = getSymbolInternal(k, btn, "bvn");
-    Node b0 = getSymbolInternal(k, btn, "b0");
-    Node b1 = getSymbolInternal(k, btn, "b1");
-    Node bvc = getSymbolInternal(k, btnv, "bvc");
-    for (size_t i = 0; i < w; i++)
-    {
-      Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
-      ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
-    }
+    Node ret = convertBitVector(bv);
     Node bconstf = getSymbolInternal(k, tnv, "bv");
     return nm->mkNode(APPLY_UF, bconstf, ret);
+  }
+  else if (k == CONST_FLOATINGPOINT)
+  {
+    BitVector s, e, i;
+    n.getConst<FloatingPoint>().getIEEEBitvectors(s, e, i);
+    Node sn = convert(nm->mkConst(s));
+    Node en = convert(nm->mkConst(e));
+    Node in = convert(nm->mkConst(i));
+    TypeNode btn = nm->booleanType();
+    TypeNode tnv = nm->mkFunctionType({btn, btn, btn}, tn);
+    Node bconstf = getSymbolInternal(k, tnv, "fp");
+    return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
   }
   else if (k == CONST_STRING)
   {
@@ -292,14 +323,14 @@ Node LfscNodeConverter::postConvert(Node n)
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     return nm->mkNode(APPLY_UF, f, convert(storeAll.getValue()));
   }
-  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS
+  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == SUB
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
-           || k == INTS_MODULUS_TOTAL || k == UMINUS || k == POW
+           || k == INTS_MODULUS_TOTAL || k == NEG || k == POW
            || isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
-    // note that MINUS is not n-ary
+    // note that SUB is not n-ary
     // get the macro-apply version of the operator
     Node opc = getOperatorOfTerm(n, true);
     std::vector<Node> children;
@@ -349,11 +380,6 @@ Node LfscNodeConverter::postConvert(Node n)
     Node n1 = nm->mkConstInt(Rational(op.d_loopMinOcc));
     Node n2 = nm->mkConstInt(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
-  }
-  else if (k == MATCH)
-  {
-    // currently unsupported
-    return n;
   }
   else if (k == BITVECTOR_BB_TERM)
   {
@@ -428,7 +454,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // check whether we are also changing the operator name, in which case
     // we build a binary uninterpreted function opc
     Node opc;
-    if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
+    if (k == ADD || k == MULT || k == NONLINEAR_MULT)
     {
       std::stringstream opName;
       // currently allow subtyping
@@ -450,6 +476,8 @@ Node LfscNodeConverter::postConvert(Node n)
         ret = nm->mkNode(ck, children[i], ret);
       }
     }
+    Trace("lfsc-term-process-debug")
+        << "...return n-ary conv " << ret << std::endl;
     return ret;
   }
   return n;
@@ -600,11 +628,70 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   return cur;
 }
 
-std::string LfscNodeConverter::getNameForUserName(const std::string& name)
+std::string LfscNodeConverter::getNameForUserName(const std::string& name,
+                                                  size_t variant)
 {
+  // For user name X, we do cvc.Y, where Y contains an escaped version of X.
+  // Specifically, since LFSC does not allow these characters in identifier
+  // bodies: "() \t\n\f;", each is replaced with an escape sequence "\xXX"
+  // where XX is the zero-padded hex representation of the code point. "\\" is
+  // also escaped.
+  //
+  // See also: https://github.com/cvc5/LFSC/blob/master/src/lexer.flex#L24
+  //
+  // The "cvc." prefix ensures we do not clash with LFSC definitions.
+  //
+  // The escaping ensures that all names are valid LFSC identifiers.
   std::stringstream ss;
-  ss << "cvc." << name;
-  return ss.str();
+  ss << "cvc";
+  if (variant != 0)
+  {
+    ss << variant;
+  }
+  ss << ".";
+  std::string sanitized = ss.str();
+  size_t found = sanitized.size();
+  sanitized += name;
+  // The following sanitizes symbols that are not allowed in LFSC identifiers
+  // here, e.g.
+  //   |a b|
+  // is converted to:
+  //   cvc.a\x20b
+  // where "20" is the hex unicode value of " ".
+  do
+  {
+    found = sanitized.find_first_of("() \t\n\f\\;", found);
+    if (found != std::string::npos)
+    {
+      // Emit hex sequence
+      std::stringstream seq;
+      seq << "\\x" << std::setbase(16) << std::setfill('0') << std::setw(2)
+          << static_cast<size_t>(sanitized[found]);
+      sanitized.replace(found, 1, seq.str());
+      // increment found over the escape
+      found += 3;
+    }
+  } while (found != std::string::npos);
+  return sanitized;
+}
+
+std::string LfscNodeConverter::getNameForUserNameOf(Node v)
+{
+  std::string name;
+  v.getAttribute(expr::VarNameAttr(), name);
+  std::vector<Node>& syms = d_userSymbolList[name];
+  size_t variant = 0;
+  std::vector<Node>::iterator itr = std::find(syms.begin(), syms.end(), v);
+  if (itr != syms.cend())
+  {
+    variant = std::distance(syms.begin(), itr);
+  }
+  else
+  {
+    variant = syms.size();
+    syms.push_back(v);
+  }
+  return getNameForUserName(name, variant);
 }
 
 bool LfscNodeConverter::shouldTraverse(Node n)
@@ -728,13 +815,35 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
   }
 }
 
+Node LfscNodeConverter::convertBitVector(const BitVector& bv)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode btn = nm->booleanType();
+  TypeNode btnv = nm->mkFunctionType({btn, btn}, btn);
+  size_t w = bv.getSize();
+  Node ret = getSymbolInternal(CONST_BITVECTOR, btn, "bvn");
+  Node b0 = getSymbolInternal(CONST_BITVECTOR, btn, "b0");
+  Node b1 = getSymbolInternal(CONST_BITVECTOR, btn, "b1");
+  Node bvc = getSymbolInternal(CONST_BITVECTOR, btnv, "bvc");
+  for (size_t i = 0; i < w; i++)
+  {
+    Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
+    ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
+  }
+  return ret;
+}
+
 bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
 {
-  return k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
+  return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND || k == APPLY_UPDATER
-         || k == APPLY_TESTER;
+         || k == INT_TO_BITVECTOR || k == IAND
+         || k == FLOATINGPOINT_TO_FP_FLOATINGPOINT
+         || k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
+         || k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
+         || k == FLOATINGPOINT_TO_FP_REAL || k == FLOATINGPOINT_TO_FP_GENERIC
+         || k == APPLY_UPDATER || k == APPLY_TESTER;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
@@ -743,6 +852,13 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
   std::vector<Node> indices;
   switch (k)
   {
+    case REGEXP_LOOP:
+    {
+      RegExpLoop op = n.getConst<RegExpLoop>();
+      indices.push_back(nm->mkConstInt(Rational(op.d_loopMinOcc)));
+      indices.push_back(nm->mkConstInt(Rational(op.d_loopMaxOcc)));
+      break;
+    }
     case BITVECTOR_EXTRACT:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
@@ -777,6 +893,45 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
     case IAND:
       indices.push_back(nm->mkConstInt(Rational(n.getConst<IntAnd>().d_size)));
       break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    {
+      const FloatingPointToFPFloatingPoint& ffp =
+          n.getConst<FloatingPointToFPFloatingPoint>();
+      indices.push_back(nm->mkConstInt(ffp.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    {
+      const FloatingPointToFPIEEEBitVector& fbv =
+          n.getConst<FloatingPointToFPIEEEBitVector>();
+      indices.push_back(nm->mkConstInt(fbv.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    {
+      const FloatingPointToFPSignedBitVector& fsbv =
+          n.getConst<FloatingPointToFPSignedBitVector>();
+      indices.push_back(nm->mkConstInt(fsbv.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_FP_REAL:
+    {
+      const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
+      indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
+    }
+    break;
+    case FLOATINGPOINT_TO_FP_GENERIC:
+    {
+      const FloatingPointToFPGeneric& fg =
+          n.getConst<FloatingPointToFPGeneric>();
+      indices.push_back(nm->mkConstInt(fg.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fg.getSize().significandWidth()));
+    }
+    break;
     case APPLY_TESTER:
     {
       unsigned index = DType::indexOf(n);
@@ -862,11 +1017,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         Assert(indices.size() == 1);
         // must convert to user name
-        std::stringstream sss;
-        sss << indices[0];
         TypeNode intType = nm->integerType();
         indices[0] =
-            getSymbolInternal(k, intType, getNameForUserName(sss.str()));
+            getSymbolInternal(k, intType, getNameForUserNameOf(indices[0]));
       }
     }
     else if (op.getType().isFunction())
@@ -903,29 +1056,49 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
           opName << "f_";
         }
       }
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
+      // must avoid overloading for to_fp variants
+      if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+      {
+        opName << "to_fp_fp";
+      }
+      else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
+      {
+        opName << "to_fp_ieee_bv";
+      }
+      else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
+      {
+        opName << "to_fp_sbv";
+      }
+      else if (k == FLOATINGPOINT_TO_FP_REAL)
+      {
+        opName << "to_fp_real";
+      }
+      else if (k == FLOATINGPOINT_TO_FP_GENERIC)
+      {
+        opName << "to_fp_generic";
+      }
+      else
+      {
+        opName << printer::smt2::Smt2Printer::smtKindString(k);
+      }
     }
     else if (k == APPLY_CONSTRUCTOR)
     {
       unsigned index = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      std::stringstream ssc;
-      ssc << dt[index].getConstructor();
-      opName << getNameForUserName(ssc.str());
+      // get its variable name
+      opName << getNameForUserNameOf(dt[index].getConstructor());
     }
     else if (k == APPLY_SELECTOR)
     {
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      unsigned cindex = DType::cindexOf(op);
-      std::stringstream sss;
-      sss << dt[cindex][index].getSelector();
-      opName << getNameForUserName(sss.str());
-    }
-    else if (k == APPLY_SELECTOR_TOTAL)
-    {
       ret = maybeMkSkolemFun(op, macroApply);
-      Assert(!ret.isNull());
+      if (ret.isNull())
+      {
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        unsigned cindex = DType::cindexOf(op);
+        opName << getNameForUserNameOf(dt[cindex][index].getSelector());
+      }
     }
     else if (k == SET_SINGLETON || k == BAG_MAKE)
     {
@@ -941,6 +1114,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     }
     if (ret.isNull())
     {
+      Trace("lfsc-term-process-debug2") << "...default symbol" << std::endl;
       ret = getSymbolInternal(k, ftype, opName.str());
     }
     // if indexed, apply to index
@@ -973,16 +1147,15 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
-      || k == LEQ || k == LT || k == MINUS || k == DIVISION
-      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
-      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == UMINUS
-      || k == POW)
+  if (k == ADD || k == MULT || k == NONLINEAR_MULT || k == GEQ || k == GT
+      || k == LEQ || k == LT || k == SUB || k == DIVISION || k == DIVISION_TOTAL
+      || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
+      || k == INTS_MODULUS_TOTAL || k == NEG || k == POW)
   {
     // currently allow subtyping
     opName << "a.";
   }
-  if (k == UMINUS)
+  if (k == NEG)
   {
     opName << "u";
   }

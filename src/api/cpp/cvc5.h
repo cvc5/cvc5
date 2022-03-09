@@ -589,6 +589,13 @@ class CVC5_EXPORT Sort
    * Substitution of Sorts.
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point.
+   *
+   * For example,
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
@@ -596,6 +603,11 @@ class CVC5_EXPORT Sort
    * Simultaneous substitution of Sorts.
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point. In the case that
+   * sorts contains duplicates, the replacement earliest in the vector takes
+   * priority.
    */
   Sort substitute(const std::vector<Sort>& sorts,
                   const std::vector<Sort>& replacements) const;
@@ -1130,13 +1142,23 @@ class CVC5_EXPORT Term
   Sort getSort() const;
 
   /**
-   * @return the result of replacing 'term' by 'replacement' in this term
+   * @return the result of replacing 'term' by 'replacement' in this term.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point.
    */
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point. In the case that
+   * terms contains duplicates, the replacement earliest in the vector takes
+   * priority. For example, calling substitute on f(x,y) with
+   *   terms = { x, z }, replacements = { g(z), w }
+   * results in the term f(g(z),y).
    */
   Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
@@ -1563,6 +1585,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(const Solver* slv,
+                                             const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
@@ -2771,13 +2796,14 @@ class CVC5_EXPORT DriverOptions
  * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
- * - VoidInfo if the option holds no value (or the value has no native type)
- * - ValueInfo<T> if the option is of type bool or std::string, holds the
+ * - `VoidInfo` if the option holds no value (or the value has no native type)
+ * - `ValueInfo<T>` if the option is of type `bool` or `std::string`, holds the
  *   current value and the default value.
- * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
+ * - `NumberInfo<T>` if the option is of type `int64_t`, `uint64_t` or `double`, holds
  *   the current and default value, as well as the minimum and maximum.
- * - ModeInfo if the option is a mode option, holds the current and default
+ * - `ModeInfo` if the option is a mode option, holds the current and default
  *   values, as well as a list of valid modes.
+ *
  * Additionally, this class provides convenience functions to obtain the
  * current value of an option in a type-safe manner using boolValue(),
  * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
@@ -3625,7 +3651,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative infinity floating-point constant.
@@ -3633,7 +3659,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegInf(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a not-a-number (NaN) floating-point constant.
@@ -3641,7 +3667,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNaN(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
@@ -3649,7 +3675,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkPosZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
@@ -3657,7 +3683,7 @@ class CVC5_EXPORT Solver
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  Term mkNegZero(uint32_t exp, uint32_t sig) const;
+  Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create a roundingmode constant.
@@ -4123,6 +4149,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   *
+   * .. note::
+   *   In contrast to SMT-LIB, the API does not distinguish between named and
+   *   unnamed assertions when producing an unsatisfiable core. Additionally,
+   *   the API allows this option to be called after a check with assumptions.
+   *   A subset of those assumptions may be included in the unsatisfiable core
+   *   returned by this method.
    * \endverbatim
    *
    * @return a set of terms representing the unsatisfiable core
@@ -4157,6 +4190,14 @@ class CVC5_EXPORT Solver
    * proof-format-mode.
    */
   std::string getProof() const;
+
+  /**
+   * Get learned literals
+   *
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
+   */
+  std::vector<Term> getLearnedLiterals() const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4205,9 +4246,7 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>` \endverbatim
    * has been set.
    *
    * @param v The term in question
@@ -4227,8 +4266,6 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * \endverbatim
-   *
    * \endverbatim
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
@@ -4543,18 +4580,16 @@ class CVC5_EXPORT Solver
    *
    * Requires enabling option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * 'produce-models' and setting option
-   * :ref:`block-models <lbl-option-block-models>`.
-   * to a mode other than ``none``.
+   * 'produce-models'.
    * \endverbatim
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * @return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  void printInstantiations(std::ostream& out) const;
+  std::string getInstantiations() const;
 
   /**
    * Push (a) level(s) to the assertion stack.
@@ -4979,6 +5014,16 @@ class CVC5_EXPORT Solver
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
+
+  /**
+   * Check that the given term is a valid closed term, which can be used as an
+   * argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param t The term to check
+   */
+  void ensureWellFormedTerm(const Term& t) const;
+  /** Vector version of above. */
+  void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
   /** Increment the term stats counter. */
   void increment_term_stats(Kind kind) const;

@@ -293,8 +293,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     if (!assertionNew.isNull())
     {
       Trace("non-clausal-simplify")
@@ -395,7 +395,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // Note that we don't have to keep rhs's in full solved form
   // because SubstitutionMap::apply does a fixed-point iteration when
   // substituting
-  ttls.addSubstitutions(*newSubstitutions.get());
+  d_preprocContext->addSubstitutions(*newSubstitutions.get());
 
   if (!learnedLitsToConjoin.empty())
   {

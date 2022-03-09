@@ -230,6 +230,16 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
+   *  - (bag.filter p (as bag.empty (Bag T)) = (as bag.empty (Bag T))
+   *  - (bag.filter p (bag x y)) = (ite (p x) (bag x y) (as bag.empty (Bag T)))
+   *  - (bag.filter p (bag.union_disjoint A B)) =
+   *       (bag.union_disjoint (bag.filter p A) (bag.filter p B))
+   *  where p: T -> Bool
+   */
+  BagsRewriteResponse postRewriteFilter(const TNode& n) const;
+
+  /**
+   *  rewrites for n include:
    *  - (bag.fold f t (as bag.empty (Bag T1))) = t
    *  - (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, where n > 0
    *  - (bag.fold f t (bag.union_disjoint A B)) =
@@ -237,6 +247,15 @@ class BagsRewriter : public TheoryRewriter
    *  where f: T1 -> T2 -> T2
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
+  /**
+   *  rewrites for n include:
+   *  - (bag.product A (as bag.empty T2)) = (as bag.empty T)
+   *  - (bag.product (as bag.empty T2)) = (f t ... (f t (f t x))) n times, where n > 0
+   *  - (bag.fold f t (bag.union_disjoint A B)) =
+   *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+   *  where f: T1 -> T2 -> T2
+   */
+  BagsRewriteResponse postRewriteProduct(const TNode& n)const;
 
  private:
   /** Reference to the rewriter statistics. */

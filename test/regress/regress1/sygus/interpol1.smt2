@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols=default --sygus-active-gen=enum --check-interpols
+; COMMAND-LINE: --produce-interpols=default --sygus-enum=fast --check-interpols
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic NIA)

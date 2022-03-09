@@ -141,17 +141,19 @@ class ResourceManager
   uint64_t getResourceUsage() const;
   /** Retrieves time used over all calls. */
   uint64_t getTimeUsage() const;
+  /** Retrieves the remaining time until the time limit is reached. */
+  uint64_t getRemainingTime() const;
   /** Retrieves the remaining number of cumulative resources. */
   uint64_t getResourceRemaining() const;
 
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(Resource r);
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(theory::InferenceId iid);
 

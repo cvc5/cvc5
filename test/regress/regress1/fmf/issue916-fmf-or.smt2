@@ -1,5 +1,6 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
+; DISABLE-TESTER: model
 
 (set-logic UFDTLIA)
 (set-info :smt-lib-version 2.6)

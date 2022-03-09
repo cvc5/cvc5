@@ -49,7 +49,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
-      d_rewriter(d_opElim)
+      d_rewriter(d_opElim),
+      d_arithModelCacheSet(false)
 {
   // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
@@ -132,7 +133,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     return d_ppre.ppRewriteEq(atom);
   }
-  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
@@ -163,19 +164,25 @@ void TheoryArith::postCheck(Effort level)
 {
   d_im.reset();
   Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
+  if (Theory::fullEffort(level))
+  {
+    // Make sure we don't have old lemmas floating around. This can happen if we
+    // didn't actually reach a last call effort check, but backtracked for some
+    // other reason. In such a case, these lemmas are likely to be irrelevant
+    // and possibly even harmful. If we produce proofs, their proofs have most
+    // likely been deallocated already as well.
+    d_im.clearPending();
+    d_im.clearWaitingLemmas();
+  }
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
-    if (d_nonlinearExtension != nullptr)
+    // If we computed lemmas in the last FULL_EFFORT check, send them now.
+    if (d_im.hasPendingLemma())
     {
-      // If we computed lemmas in the last FULL_EFFORT check, send them now.
-      if (d_im.hasPendingLemma())
-      {
-        d_im.doPendingFacts();
-        d_im.doPendingLemmas();
-        d_im.doPendingPhaseRequirements();
-        return;
-      }
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
     }
     return;
   }
@@ -193,6 +200,7 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
@@ -290,13 +298,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    if (d_nonlinearExtension != nullptr)
-    {
-      if (d_nonlinearExtension->assertModel(m, p.first))
-      {
-        continue;
-      }
-    }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
     if (m->assertEquality(p.first, p.second, true))
@@ -342,12 +343,13 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node diff = d_env.getNodeManager()->mkNode(Kind::MINUS, a, b);
-  if (isExpressionZero(d_env, diff, d_arithModelCache))
+  Node diff = d_env.getNodeManager()->mkNode(Kind::SUB, a, b);
+  std::optional<bool> isZero = isExpressionZero(d_env, diff, d_arithModelCache);
+  if (isZero)
   {
-    return EQUALITY_TRUE_IN_MODEL;
+    return *isZero ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
   }
-  return EQUALITY_FALSE_IN_MODEL;
+  return EQUALITY_UNKNOWN;
 }
 
 Node TheoryArith::getModelValue(TNode var) {
@@ -369,16 +371,18 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 
 void TheoryArith::updateModelCache(std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }
 void TheoryArith::updateModelCache(const std::set<Node>& termSet)
 {
-  if (d_arithModelCache.empty())
+  if (!d_arithModelCacheSet)
   {
+    d_arithModelCacheSet = true;
     d_internal->collectModelValues(termSet, d_arithModelCache);
   }
 }

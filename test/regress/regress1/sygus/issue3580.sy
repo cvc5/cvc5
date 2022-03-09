@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-active-gen=none --lang=sygus2
+; COMMAND-LINE: --sygus-out=status --sygus-enum=smart --lang=sygus2
 (set-logic ALL)
 (synth-fun f 
 	() Bool 

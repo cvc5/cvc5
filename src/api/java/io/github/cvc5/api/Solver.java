@@ -1109,45 +1109,45 @@ public class Solver implements IPointer, AutoCloseable
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkPosInf(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkPosInf(pointer, exp, sig);
+    long termPointer = mkFloatingPointPosInf(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkPosInf(long pointer, int exp, int sig);
+  private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
   /**
    * Create a negative infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNegInf(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkNegInf(pointer, exp, sig);
+    long termPointer = mkFloatingPointNegInf(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkNegInf(long pointer, int exp, int sig);
+  private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
   /**
    * Create a not-a-number (NaN) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNaN(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkNaN(pointer, exp, sig);
+    long termPointer = mkFloatingPointNaN(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkNaN(long pointer, int exp, int sig);
+  private native long mkFloatingPointNaN(long pointer, int exp, int sig);
 
   /**
    * Create a positive zero (+0.0) floating-point constant.
@@ -1155,15 +1155,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkPosZero(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkPosZero(pointer, exp, sig);
+    long termPointer = mkFloatingPointPosZero(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkPosZero(long pointer, int exp, int sig);
+  private native long mkFloatingPointPosZero(long pointer, int exp, int sig);
 
   /**
    * Create a negative zero (-0.0) floating-point constant.
@@ -1171,15 +1171,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param sig Number of bits in the significand
    * @return the floating-point constant
    */
-  public Term mkNegZero(int exp, int sig) throws CVC5ApiException
+  public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkNegZero(pointer, exp, sig);
+    long termPointer = mkFloatingPointNegZero(pointer, exp, sig);
     return new Term(this, termPointer);
   }
 
-  private native long mkNegZero(long pointer, int exp, int sig);
+  private native long mkFloatingPointNegZero(long pointer, int exp, int sig);
 
   /**
    * Create a roundingmode constant.
@@ -1761,6 +1761,21 @@ public class Solver implements IPointer, AutoCloseable
   // TODO: void echo(std::ostream& out, String  str)
 
   /**
+   * Get a list of literals that are entailed by the current set of assertions
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals )
+   * }
+   * @return the list of learned literals
+   */
+  public Term[] getLearnedLiterals() {
+    long[] retPointers = getLearnedLiterals(pointer);
+    return Utils.getTerms(this, retPointers);
+  }
+
+  private native long[] getLearnedLiterals(long pointer);
+
+  /**
    * Get the list of asserted formulas.
    * SMT-LIB:
    * {@code
@@ -1850,9 +1865,14 @@ public class Solver implements IPointer, AutoCloseable
    * Get the unsatisfiable core.
    * SMT-LIB:
    * {@code
-   * ( get-unsat-core )
+   * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   * @apiNote In contrast to SMT-LIB, the API does not distinguish between
+   *          named and unnamed assertions when producing an unsatisfiable
+   *          core. Additionally, the API allows this option to be called after
+   *          a check with assumptions. A subset of those assumptions may be
+   *          included in the unsatisfiable core returned by this method.
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -2292,8 +2312,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( block-model-values ( <terms>+ ) )
    * }
-   * Requires enabling 'produce-models' option and setting 'block-models' option
-   * to a mode other than "none".
+   * Requires enabling 'produce-models' option.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2304,10 +2323,15 @@ public class Solver implements IPointer, AutoCloseable
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * Return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  // TODO: void printInstantiations(std::ostream& out)
+  public String getInstantiations()
+  {
+    return getInstantiations(pointer);
+  }
+
+  private native String getInstantiations(long pointer);
 
   /**
    * Push a level to the assertion stack.

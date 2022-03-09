@@ -1,0 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-const s Real)
+(assert (or (or false (= 0.0 s)) (< (* s (+ 6 (* s 12))) (- 1))))
+(check-sat)
