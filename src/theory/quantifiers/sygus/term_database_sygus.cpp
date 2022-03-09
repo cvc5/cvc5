@@ -258,7 +258,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   Trace("sygus-db-canon") << "  CanonizeBuiltin : compute for " << n << "\n";
   Node ret = n;
   // it is symbolic if it represents "any constant"
-  if (n.getKind() == APPLY_SELECTOR_TOTAL)
+  if (n.getKind() == APPLY_SELECTOR)
   {
     ret = getFreeVarInc(n[0].getType(), var_count, true);
   }
@@ -960,17 +960,23 @@ bool TermDbSygus::involvesDivByZero( Node n ) {
 }
 
 Node TermDbSygus::getAnchor( Node n ) {
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+  if (n.getKind() == APPLY_SELECTOR)
+  {
     return getAnchor( n[0] );
-  }else{
+  }
+  else
+  {
     return n;
   }
 }
 
 unsigned TermDbSygus::getAnchorDepth( Node n ) {
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
+  if (n.getKind() == APPLY_SELECTOR)
+  {
     return 1+getAnchorDepth( n[0] );
-  }else{
+  }
+  else
+  {
     return 0;
   }
 }

@@ -2313,6 +2313,23 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_blockModelValues(
 
 /*
  * Class:     io_github_cvc5_api_Solver
+ * Method:    getInstantiations
+ * Signature: (J[J[J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Solver_getInstantiations(JNIEnv* env,
+                                        jobject,
+                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::string insts = solver->getInstantiations();
+  return env->NewStringUTF(insts.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
  * Method:    push
  * Signature: (JI)V
  */
