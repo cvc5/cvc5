@@ -680,12 +680,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
-  Node pv_value;
-  if (options().quantifiers.cegqiModel)
-  {
-    pv_value = getModelValue(pv);
-    Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
-  }
+  Node pv_value = getModelValue(pv);
+  Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv

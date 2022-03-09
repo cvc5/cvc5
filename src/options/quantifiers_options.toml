@@ -1491,22 +1491,6 @@ name   = "Quantifiers"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
 
 [[option]]
-  name       = "cegqiSat"
-  category   = "regular"
-  long       = "cegqi-sat"
-  type       = "bool"
-  default    = "true"
-  help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
-
-[[option]]
-  name       = "cegqiModel"
-  category   = "regular"
-  long       = "cegqi-model"
-  type       = "bool"
-  default    = "true"
-  help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cegqiAll"
   category   = "regular"
   long       = "cegqi-all"
@@ -1728,9 +1712,10 @@ name   = "Quantifiers"
   default    = "true"
   help       = "do higher-order matching algorithm for triggers with variable operators"
 
+# TODO: delete?
 [[option]]
   name       = "hoMatchingVarArgPriority"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-matching-var-priority"
   type       = "bool"
   default    = "true"
@@ -1738,7 +1723,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoMergeTermDb"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-merge-term-db"
   type       = "bool"
   default    = "true"
@@ -1772,7 +1757,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInstScope"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inst-scope=MODE"
   type       = "SygusInstScope"
   default    = "IN"
@@ -1790,7 +1775,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInstTermSel"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inst-term-sel=MODE"
   type       = "SygusInstTermSelMode"
   default    = "MIN"
@@ -1808,7 +1793,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInstMode"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inst-mode=MODE"
   type       = "SygusInstMode"
   default    = "PRIORITY_INST"
