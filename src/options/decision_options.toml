@@ -19,12 +19,6 @@ name   = "Decision Heuristics"
 [[option.mode.STOPONLY]]
   name = "stoponly"
   help = "Use the justification heuristic only to stop early, not for decisions."
-[[option.mode.JUSTIFICATION_OLD]]
-  name = "justification-old"
-  help = "Older implementation of an ATGP-inspired justification heuristic."
-[[option.mode.STOPONLY_OLD]]
-  name = "stoponly-old"
-  help = "Use the old implementation of justification heuristic only to stop early, not for decisions."
 
 [[option]]
   name       = "jhSkolemMode"
