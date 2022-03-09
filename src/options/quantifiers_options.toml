@@ -460,14 +460,6 @@ name   = "Quantifiers"
   help       = "maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)"
 
 [[option]]
-  name       = "instLevelInputOnly"
-  category   = "regular"
-  long       = "inst-level-input-only"
-  type       = "bool"
-  default    = "true"
-  help       = "only input terms are assigned instantiation level zero"
-
-[[option]]
   name       = "instMaxRounds"
   category   = "regular"
   long       = "inst-max-rounds=N"
