@@ -445,8 +445,6 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
-  // should not use APPLY_SELECTOR_TOTAL
-  Assert(n.getKind() != APPLY_SELECTOR_TOTAL);
   // must ensure the type is well founded and has no nested recursion if
   // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
