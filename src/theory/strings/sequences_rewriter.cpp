@@ -757,6 +757,15 @@ Node SequencesRewriter::rewriteConcat(Node node)
   return node;
 }
 
+Node SequencesRewriter::rewriteAllRegExp(TNode node)
+{
+  Assert(node.getKind() == kind::REGEXP_ALL);
+  NodeManager* nm = NodeManager::currentNM();
+  // re.all ----> (re.* re.allchar)
+  Node ret = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+  return returnRewrite(node, ret, Rewrite::RE_ALL_ELIM);
+}
+
 Node SequencesRewriter::rewriteConcatRegExp(TNode node)
 {
   Assert(node.getKind() == kind::REGEXP_CONCAT);
@@ -1654,6 +1663,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == kind::STRING_IN_REGEXP)
   {
     retNode = rewriteMembership(node);
+  }
+  else if (nk == REGEXP_ALL)
+  {
+    retNode = rewriteAllRegExp(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
