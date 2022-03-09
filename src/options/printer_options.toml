@@ -31,3 +31,11 @@ name   = "Printing"
   type       = "bool"
   default    = "true"
   help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
+  name       = "printUnsatCoresFull"
+  category   = "regular"
+  long       = "print-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing unsat cores, include unlabeled assertions"
