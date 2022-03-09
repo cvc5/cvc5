@@ -627,7 +627,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfOneInstPerRound"
-  category   = "regular"
+  category   = "expert"
   long       = "mbqi-one-inst-per-round"
   type       = "bool"
   default    = "false"
@@ -635,7 +635,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiInterleave"
-  category   = "regular"
+  category   = "expert"
   long       = "mbqi-interleave"
   type       = "bool"
   default    = "false"
@@ -659,7 +659,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfBoundLazy"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-bound-lazy"
   type       = "bool"
   default    = "false"
@@ -667,7 +667,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfTypeCompletionThresh"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-type-completion-thresh=N"
   type       = "int64_t"
   default    = "1000"
