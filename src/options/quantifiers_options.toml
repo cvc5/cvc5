@@ -1642,6 +1642,7 @@ name   = "Quantifiers"
   default    = "false"
   help       = "perform quantifiers macro expansion"
 
+  # TODO: merge?
 [[option]]
   name       = "macrosQuantMode"
   category   = "regular"
@@ -1682,20 +1683,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoMatching"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-matching"
   type       = "bool"
   default    = "true"
   help       = "do higher-order matching algorithm for triggers with variable operators"
-
-# TODO: delete?
-[[option]]
-  name       = "hoMatchingVarArgPriority"
-  category   = "expert"
-  long       = "ho-matching-var-priority"
-  type       = "bool"
-  default    = "true"
-  help       = "give priority to variable arguments over constant arguments"
 
 [[option]]
   name       = "hoMergeTermDb"
