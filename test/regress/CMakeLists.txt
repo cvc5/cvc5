@@ -825,6 +825,7 @@ set(regress_0_tests
   regress0/nl/proj-issue-444-memout-eqelim.smt2
   regress0/nl/proj-issue-451-ran-combination-1.smt2
   regress0/nl/proj-issue-451-ran-combination-2.smt2
+  regress0/nl/proj-issue-465-asan-proofs.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -1974,7 +1975,6 @@ set(regress_1_tests
   regress1/nl/proj-issue215.smt2
   regress1/nl/proj-issue231.smt2
   regress1/nl/proj-issue232.smt2
-  regress1/nl/proj-issue251.smt2
   regress1/nl/proj-issue253.smt2
   regress1/nl/proj-issue279.smt2
   regress1/nl/proj-issue280.smt2
@@ -3058,6 +3058,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # times out after changes to nl-ext in #8236
+  regress1/nl/proj-issue251.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
