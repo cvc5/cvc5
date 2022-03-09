@@ -133,7 +133,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "pre-skolem-quant=MODE"
   type       = "PreSkolemQuantMode"
-  default    = "ON"
+  default    = "OFF"
   help       = "modes to apply skolemization eagerly to bodies of quantified formulas"
   help_mode  = "Modes to apply skolemization eagerly to bodies of quantified formulas."
 [[option.mode.OFF]]
