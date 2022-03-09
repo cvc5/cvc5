@@ -810,6 +810,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
   // notify our state of the check-sat result
   d_state->notifyCheckSatResult(hasAssumptions, r);
 
+  // Check that SAT results generate a model correctly.
+  if (d_env->getOptions().smt.checkModels)
+  {
+    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      checkModel();
+    }
+  }
   // Check that UNSAT results generate a proof correctly.
   if (d_env->getOptions().smt.checkProofs)
   {
