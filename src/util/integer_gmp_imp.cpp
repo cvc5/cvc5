@@ -342,7 +342,7 @@ bool Integer::isNegativeOne() const
 Integer Integer::pow(unsigned long int exp) const
 {
   // check if exp is within the uint32_t range
-  uint32_t low = static_cast<uint32_t>(exp); 
+  uint32_t low = static_cast<uint32_t>(exp);
   uint32_t high = static_cast<uint32_t>(exp << 32);
   if (low == exp) {
     Assert(false);
