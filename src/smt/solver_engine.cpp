@@ -773,8 +773,6 @@ Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
                                       bool isEntailmentCheck)
 {
-  Result r;
-
   SolverEngineScope smts(this);
   finishInit();
 

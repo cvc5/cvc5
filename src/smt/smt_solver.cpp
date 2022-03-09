@@ -204,6 +204,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   }
 
   // set the filename on the result
+  const std::string& filename = d_env.getOptions().driver.filename;
   return Result(result, filename);
 }
 
@@ -274,7 +275,7 @@ bool SmtSolver::deepRestart(Assertions& asr)
   Assert(options().smt.deepRestart);
 
   // get the set of literals we learned at top-level
-  const std::unordered_set<Node>& zll =
+  const std::vector<Node>& zll =
       d_propEngine->getLearnedZeroLevelLiterals();
   if (zll.empty())
   {
