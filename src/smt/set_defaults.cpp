@@ -1207,6 +1207,11 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   {
     return true;
   }
+  if (opts.smt.deepRestart)
+  {
+    reason << "deep-restart";
+    return true;
+  }
   return false;
 }
 

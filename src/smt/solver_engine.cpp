@@ -1861,12 +1861,15 @@ bool SolverEngine::deepRestart()
 
   Trace("smt") << "SMT deepRestart()" << endl;
 
+  // get the zero-level learned literals now, before resetting the context
+  std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiterals();
+  
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
   // push the state to maintain global context around everything
   d_state->setup();
 
-  if (!d_smtSolver->deepRestart(*d_asserts.get()))
+  if (!d_smtSolver->deepRestart(*d_asserts.get(), zll))
   {
     return false;
   }

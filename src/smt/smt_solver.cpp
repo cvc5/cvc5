@@ -269,14 +269,9 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-bool SmtSolver::deepRestart(Assertions& asr)
+bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 {
-  Trace("deep-restart") << "Compute deep restart assertions..." << std::endl;
   Assert(options().smt.deepRestart);
-
-  // get the set of literals we learned at top-level
-  const std::vector<Node>& zll =
-      d_propEngine->getLearnedZeroLevelLiterals();
   if (zll.empty())
   {
     Trace("deep-restart") << "No learned literals" << std::endl;

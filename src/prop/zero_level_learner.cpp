@@ -172,6 +172,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
 
 std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals() const
 {
+  Trace("level-zero") << "Get zero level learned " << d_levelZeroAssertsLearned.size() << std::endl;
   std::vector<Node> ret;
   for (const Node& n : d_levelZeroAssertsLearned)
   {

@@ -109,7 +109,7 @@ class SmtSolver : protected EnvObj
   /**
    * Compute deep restart assertions.
    */
-  bool deepRestart(Assertions& as);
+  bool deepRestart(Assertions& as, const std::vector<Node>& zll);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
