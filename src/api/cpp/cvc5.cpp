@@ -572,7 +572,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Datatypes ------------------------------------------------------- */
         {cvc5::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
         {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
-        {cvc5::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
         {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
