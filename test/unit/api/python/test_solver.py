@@ -1223,9 +1223,10 @@ def test_get_unsat_core2(solver):
         solver.getUnsatCore()
 
 
-def test_get_unsat_core3(solver):
+def test_get_unsat_core_and_proof(solver):
     solver.setOption("incremental", "true")
     solver.setOption("produce-unsat-cores", "true")
+    solver.setOption("produce-proofs", "true");
 
     uSort = solver.mkUninterpretedSort("u")
     intSort = solver.getIntegerSort()
@@ -1258,6 +1259,7 @@ def test_get_unsat_core3(solver):
         solver.assertFormula(t)
     res = solver.checkSat()
     assert res.isUnsat()
+    solver.getProof()
 
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")

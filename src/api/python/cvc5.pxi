@@ -1943,6 +1943,23 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getProof(self):
+        """Get the refutation proof
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+           (get-proof)
+
+        Requires to enable option
+        :ref:`produce-proofs <lbl-option-produce-proofs>`.
+
+        :return: a string representing the proof, according to the value of
+                 proof-format-mode.
+        """
+        return self.csolver.getProof()
+
     def getLearnedLiterals(self):
         """Get a list of literals that are entailed by the current set of assertions
 
@@ -2379,6 +2396,13 @@ cdef class Solver:
         for t in terms:
             nts.push_back((<Term?> t).cterm)
         self.csolver.blockModelValues(nts)
+
+    def getInstantiations(self):
+        """
+        Return a string that contains information about all instantiations made
+        by the quantifiers module.
+        """
+        return self.csolver.getInstantiations()
 
 
 cdef class Sort:

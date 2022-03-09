@@ -2328,10 +2328,15 @@ public class Solver implements IPointer, AutoCloseable
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * Return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  // TODO: void printInstantiations(std::ostream& out)
+  public String getInstantiations()
+  {
+    return getInstantiations(pointer);
+  }
+
+  private native String getInstantiations(long pointer);
 
   /**
    * Push a level to the assertion stack.

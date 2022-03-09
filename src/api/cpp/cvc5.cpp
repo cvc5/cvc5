@@ -355,6 +355,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT},
     {REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP},
     {REGEXP_NONE, cvc5::Kind::REGEXP_NONE},
+    {REGEXP_ALL, cvc5::Kind::REGEXP_ALL},
     {REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR},
     {REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT},
     // maps to the same kind as the string versions
@@ -571,7 +572,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Datatypes ------------------------------------------------------- */
         {cvc5::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
         {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
-        {cvc5::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
         {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
@@ -671,6 +671,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_NONE, REGEXP_NONE},
+        {cvc5::Kind::REGEXP_ALL, REGEXP_ALL},
         {cvc5::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
         {cvc5::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
         {cvc5::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
@@ -5161,13 +5162,14 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 Term Solver::mkTermFromKind(Kind kind) const
 {
   CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE
+                                   || kind == REGEXP_ALL
                                    || kind == REGEXP_ALLCHAR || kind == SEP_EMP,
                                kind)
-      << "PI, REGEXP_NONE, REGEXP_ALLCHAR or SEP_EMP";
+      << "PI, REGEXP_NONE, REGEXP_ALL, REGEXP_ALLCHAR or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
-  if (kind == REGEXP_NONE || kind == REGEXP_ALLCHAR)
+  if (kind == REGEXP_NONE || kind == REGEXP_ALL || kind == REGEXP_ALLCHAR)
   {
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
@@ -5907,9 +5909,8 @@ Term Solver::mkRegexpAll() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Node res = d_nodeMgr->mkNode(
-      cvc5::kind::REGEXP_STAR,
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>()));
+  Node res =
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALL, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -7687,11 +7688,13 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::printInstantiations(std::ostream& out) const
+std::string Solver::getInstantiations() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  d_slv->printInstantiations(out);
+  std::stringstream ss;
+  d_slv->printInstantiations(ss);
+  return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
