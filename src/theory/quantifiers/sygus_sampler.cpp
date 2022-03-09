@@ -831,12 +831,8 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     out << ptOut.str();
     Assert(bve != bvre);
     out << "where they evaluate to " << bve << " and " << bvre << std::endl;
-
-    if (options().quantifiers.sygusRewVerifyAbort)
-    {
-      AlwaysAssert(false)
-          << "--sygus-rr-verify detected unsoundness in the rewriter!";
-    }
+    AlwaysAssert(false)
+        << "--sygus-rr-verify detected unsoundness in the rewriter!";
   }
 }
 
