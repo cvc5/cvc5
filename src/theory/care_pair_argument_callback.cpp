@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The care argument callback.
+ * The care pair argument callback.
  */
 
 #include "theory/care_pair_argument_callback.h"

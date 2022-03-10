@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The care argument callback.
+ * The care pair argument callback.
  */
 
 #include "cvc5_private.h"
@@ -32,9 +32,17 @@ class CarePairArgumentCallback : public NodeTriePathPairProcessCallback
  public:
   CarePairArgumentCallback(Theory& t);
   ~CarePairArgumentCallback() {}
-  /** Whether to consider a pair in paths in a trie */
+  /**
+   * Call on the arguments a and b of two function applications we are
+   * computing care pairs for. Returns true if a and b are not already
+   * disequal according to theory combination (Theory::areCareDisequal).
+   */
   bool considerPath(TNode a, TNode b) override;
-  /** Process leaves */
+  /**
+   * Called when we have two function applications that do not have pairs
+   * of disequal arguments at any position. We call Theory::processCarePairArgs
+   * to add all relevant care pairs.
+   */
   void processData(TNode fa, TNode fb) override;
 
  private:
