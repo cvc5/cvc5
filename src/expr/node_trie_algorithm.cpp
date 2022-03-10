@@ -25,25 +25,25 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
 {
   if (depth == arity)
   {
+    // We are at the leaves. If we split the path, process the data.
     if (t2 != nullptr)
     {
-      Node f1 = t1->getData();
-      Node f2 = t2->getData();
-      ntpc.processData(f1, f2);
+      ntpc.processData(t1->getData(), t2->getData());
     }
   }
   else if (t2 == nullptr)
   {
+    // we are exploring paths with a common prefix
     if (depth < (arity - 1))
     {
-      // add care pairs internal to each child
+      // continue exploring paths with common prefix, internal to each child
       for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
       {
         nodeTriePathCompareInternal(
             &tt.second, nullptr, arity, depth + 1, ntpc);
       }
     }
-    // add care pairs based on each pair of non-disequal arguments
+    // consider splitting the path at this node
     for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
          it != t1->d_data.end();
          ++it)
@@ -52,7 +52,7 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
       ++it2;
       for (; it2 != t1->d_data.end(); ++it2)
       {
-        if (ntpc.considerFork(it->first, it2->first))
+        if (ntpc.considerPath(it->first, it2->first))
         {
           nodeTriePathCompareInternal(
               &it->second, &it2->second, arity, depth + 1, ntpc);
@@ -62,15 +62,16 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
   }
   else
   {
-    // add care pairs based on product of indices, non-disequal arguments
+    Assert (t1 != t2);
+    // considering two different paths, take the product of their children
     for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
     {
       for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
       {
-        if (ntpc.considerFork(tt1.first, tt2.first))
+        if (ntpc.considerPath(tt1.first, tt2.first))
         {
           nodeTriePathCompareInternal(
-              &tt1.second, &tt2.second, arity, depth + 1);
+              &tt1.second, &tt2.second, arity, depth + 1, ntpc);
         }
       }
     }
