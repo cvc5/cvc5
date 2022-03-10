@@ -209,6 +209,28 @@ namespace api {
     }                                                                       \
   } while (0)
 
+/**
+ * Sort check for member functions of classes other than class Solver.
+ * Check if each sort in the given container of sorts is not null and
+ * associated with the solver object this object is associated with.
+ */
+#define CVC5_API_CHECK_DOMAIN_SORTS(sorts)                                  \
+  do                                                                        \
+  {                                                                         \
+    size_t i = 0;                                                           \
+    for (const auto& s : sorts)                                             \
+    {                                                                       \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);            \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
+          this->d_solver == s.d_solver, "sort", sorts, i)                   \
+          << "a sort associated with the solver this object is associated " \
+             "with";                                                        \
+      CVC5_API_ARG_CHECK_EXPECTED(s.isFirstClass(), s)                      \
+          << "first-class sort as domain sort";                             \
+      i += 1;                                                               \
+    }                                                                       \
+  } while (0)
+
 /* -------------------------------------------------------------------------- */
 /* Term checks.                                                               */
 /* -------------------------------------------------------------------------- */

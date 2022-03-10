@@ -1409,7 +1409,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(params);
+  CVC5_API_CHECK_DOMAIN_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(isSortConstructor()
