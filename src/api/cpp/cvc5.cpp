@@ -7578,8 +7578,7 @@ Term Solver::getInterpolant(const Term& conj) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getInterpolant(const Term& conj,
-                            Grammar& grammar) const
+Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7588,8 +7587,7 @@ Term Solver::getInterpolant(const Term& conj,
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result =
-      d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
+  Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
   return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7633,8 +7631,7 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result =
-      d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
+  Node result = d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
   return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
