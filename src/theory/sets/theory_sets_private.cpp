@@ -1139,7 +1139,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
           {
             // when we have y -> (set.member x S) where rep(x)=y, we use x
             // in the model here. Using y may not be legal with respect to
-            // subtyping.
+            // subtyping, since y may be real where x is an int.
             Node t = nm->mkSingleton(elementType, itmm.second[0]);
             els.push_back(t);
           }
