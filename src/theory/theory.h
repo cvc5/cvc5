@@ -47,6 +47,7 @@ class ProofRuleChecker;
 
 namespace theory {
 
+class CarePairArgumentCallback;
 class DecisionManager;
 struct EeSetupInfo;
 class OutputChannel;
@@ -97,6 +98,7 @@ namespace eq {
  */
 class Theory : protected EnvObj
 {
+  friend class CarePairArgumentCallback;
   friend class ::cvc5::TheoryEngine;
 
  protected:

@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__CARE_ARGUMENT_CALLBACK_H
-#define CVC5__THEORY__CARE_ARGUMENT_CALLBACK_H
+#ifndef CVC5__THEORY__CARE_PAIR_ARGUMENT_CALLBACK_H
+#define CVC5__THEORY__CARE_PAIR_ARGUMENT_CALLBACK_H
 
 #include "expr/node_trie_algorithm.h"
 #include "theory/theory.h"
@@ -30,7 +30,7 @@ namespace theory {
 class CarePairArgumentCallback : public NodeTriePathCompareCallback
 {
  public:
-  CarePairArgumentCallback(Theory& t) : d_theory(t) {}
+  CarePairArgumentCallback(Theory& t);
   ~CarePairArgumentCallback() {}
   /** Whether to consider a pair in paths in a trie */
   bool considerPath(TNode a, TNode b) override;

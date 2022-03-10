@@ -21,7 +21,7 @@
 #define CVC5__THEORY__UF__THEORY_UF_H
 
 #include "expr/node.h"
-#include "expr/node_trie_algorithm.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"

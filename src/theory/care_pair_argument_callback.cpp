@@ -18,7 +18,7 @@
 namespace cvc5 {
 namespace theory {
 
-CarePairArgumentCallback(Theory& t) : d_theory(t) {}
+CarePairArgumentCallback::CarePairArgumentCallback(Theory& t) : d_theory(t) {}
 
 bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 {
@@ -28,7 +28,7 @@ bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 
 void CarePairArgumentCallback::processData(TNode fa, TNode fb)
 {
-  d_theory.addCarePairArgs(a, b);
+  d_theory.addCarePairArgs(fa, fb);
 }
 
 }  // namespace theory
