@@ -852,7 +852,7 @@ bool TheoryModel::isValue(TNode n) const
       // The only non-constant operator is for APPLY_UF. All other operators
       // are either builtin, or should be considered constants, e.g.
       // constructors.
-      bool hasOperator = cur.getKind()==kind::APPLY_UF;
+      bool hasOperator = cur.getKind() == kind::APPLY_UF;
       size_t nextChildIndex = v.second;
       if (hasOperator && nextChildIndex > 0)
       {
