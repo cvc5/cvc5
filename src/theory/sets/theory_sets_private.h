@@ -181,6 +181,7 @@ class TheorySetsPrivate : protected EnvObj
    * equal nor disequal and are sets.
    */
   void processCarePairArgs(TNode a, TNode b);
+
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */

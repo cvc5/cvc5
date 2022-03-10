@@ -227,7 +227,7 @@ void TheorySets::processCarePairArgs(TNode a, TNode b)
   }
   // otherwise, we add pairs for each of their arguments
   addCarePairArgs(a, b);
-  
+
   d_internal->processCarePairArgs(a, b);
 }
 
