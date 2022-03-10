@@ -1751,6 +1751,7 @@ set(regress_1_tests
   regress1/bags/murxla1.smt2
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
+  regress1/bags/murxla4.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
