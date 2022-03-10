@@ -211,8 +211,9 @@ namespace api {
 
 /**
  * Sort check for member functions of classes other than class Solver.
- * Check if each sort in the given container of sorts is not null and
- * associated with the solver object this object is associated with.
+ * Check if each sort in the given container of sorts is not null, is
+ * associated with the solver object this object is associated with, and is a
+ * first-class sort.
  */
 #define CVC5_API_CHECK_DOMAIN_SORTS(sorts)                                  \
   do                                                                        \
