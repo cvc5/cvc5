@@ -60,7 +60,10 @@ EqualityStatus SharedSolverDistributed::getEqualityStatus(TNode a, TNode b)
     }
   }
   // otherwise, ask the theory, which may depend on the uninterpreted sort owner
-  return d_te.theoryOf(Theory::theoryOf(a.getType(), d_env.getUninterpretedSortOwner()))->getEqualityStatus(a, b);
+  return d_te
+      .theoryOf(
+          Theory::theoryOf(a.getType(), d_env.getUninterpretedSortOwner()))
+      ->getEqualityStatus(a, b);
 }
 
 TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
