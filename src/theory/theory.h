@@ -112,10 +112,18 @@ class Theory : protected EnvObj
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  /**
-   * The only method to add suff to the care graph.
-   */
+  /** Add (t1, t2) to the care graph */
   void addCarePair(TNode t1, TNode t2);
+  /**
+   * Assuming a is f(a1, ..., an) and b is f(b1, ..., bn), this method adds
+   * (ai, bi) to the care graph for each i where ai is not equal to bi.
+   */
+  void addCarePairArgs(TNode a, TNode b);
+  /**
+   * Are care disequal? Return true if x and y are shared terms that are
+   * disequal according to the valuation.
+   */
+  bool areCareDisequal(TNode x, TNode y);
 
   /**
    * The function should compute the care graph over the shared terms.

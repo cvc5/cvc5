@@ -21,7 +21,7 @@
 #define CVC5__THEORY__UF__THEORY_UF_H
 
 #include "expr/node.h"
-#include "expr/node_trie.h"
+#include "expr/node_trie_algorithm.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
@@ -152,11 +152,7 @@ private:
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 
-  bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs(const TNodeTrie* t1,
-                    const TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth);
+  bool areCareDisequalUF(TNode x, TNode y);
   /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking
@@ -174,6 +170,21 @@ private:
   NotifyClass d_notify;
   /** Cache for isHigherOrderType */
   std::map<TypeNode, bool> d_isHoType;
+  class NodeTriePathCompareCallbackUF : public NodeTriePathCompareCallback
+  {
+  public:
+    NodeTriePathCompareCallbackUF(TheoryUF& uf) : d_uf(uf){}
+    ~NodeTriePathCompareCallbackUF() {}
+    /** Whether to consider a pair in paths in a trie */
+    bool considerPath(TNode a, TNode b) override;
+    /** Process leaves */
+    void processData(TNode fa, TNode fb) override;
+  private:
+    /** Reference to theory UF */
+    TheoryUF& d_uf;
+  };
+  /** Instance of the above class */
+  NodeTriePathCompareCallbackUF d_ntpcUf;
 };/* class TheoryUF */
 
 }  // namespace uf

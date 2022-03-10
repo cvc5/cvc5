@@ -495,8 +495,60 @@ std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
 
 void Theory::addCarePair(TNode t1, TNode t2) {
   if (d_careGraph) {
+    Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1 << " " << t2 << std::endl;
     d_careGraph->insert(CarePair(t1, t2, d_id));
   }
+}
+void Theory::addCarePairArgs(TNode a, TNode b)
+{
+  if (d_careGraph==nullptr)
+  {
+    return;
+  }
+  // a and b are already equal
+  if (d_equalityEngine->areEqual(a, b))
+  {
+    return;
+  }
+  Assert (a.hasOperator() && b.hasOperator());
+  Assert (a.getOperator()==b.getOperator());
+  Assert (a.getNumChildren()==b.getNumChildren());
+  Trace("sharing") << "Theory::addCarePairArgs: checking function " << d_id << " " << a << " " << b << std::endl;
+  for (size_t k = 0, nchildren = a.getNumChildren(); k < nchildren; ++k)
+  {
+    TNode x = a[k];
+    TNode y = b[k];
+    if (d_equalityEngine->isTriggerTerm(x, d_id)
+        && d_equalityEngine->isTriggerTerm(y, d_id) && 
+        !d_equalityEngine->areEqual(x, y))
+    {
+      Assert(!d_equalityEngine->areDisequal(x, y));
+      Assert(!areCareDisequal(x, y));
+      TNode x_shared =
+          d_equalityEngine->getTriggerTermRepresentative(x, d_id);
+      TNode y_shared =
+          d_equalityEngine->getTriggerTermRepresentative(y, d_id);
+      addCarePair(x_shared, y_shared);
+    }
+  }
+}
+
+bool Theory::areCareDisequal(TNode x, TNode y)
+{
+  Assert (d_equalityEngine!=nullptr);
+  Assert(d_equalityEngine->hasTerm(x));
+  Assert(d_equalityEngine->hasTerm(y));
+  if (!d_equalityEngine->isTriggerTerm(x, d_id)
+      || !d_equalityEngine->isTriggerTerm(y, d_id))
+  {
+    return false;
+  }
+  TNode x_shared =
+      d_equalityEngine->getTriggerTermRepresentative(x, d_id);
+  TNode y_shared =
+      d_equalityEngine->getTriggerTermRepresentative(y, d_id);
+  EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+  return eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL;
 }
 
 void Theory::getCareGraph(CareGraph* careGraph) {
