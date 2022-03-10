@@ -60,7 +60,8 @@ EqualityStatus SharedSolverDistributed::getEqualityStatus(TNode a, TNode b)
     }
   }
   // otherwise, ask the theory
-  return d_te.theoryOf(Theory::theoryOf(a.getType()))->getEqualityStatus(a, b);
+  TheoryId tid = d_env.theoryOf(a.eqNode(b));
+  return d_te.theoryOf(tid)->getEqualityStatus(a, b);
 }
 
 TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
