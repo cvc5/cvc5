@@ -2078,10 +2078,6 @@ bool MatchGen::isHandledBoolConnective( TNode n ) {
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
-  //return n.getKind()==APPLY_UF || n.getKind()==STORE || n.getKind()==SELECT ||
-  //       n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
-  //TODO : treat APPLY_TESTER as a T-constraint instead of matching (currently leads to overabundance of instantiations)
-  //return inst::Trigger::isAtomicTriggerKind( n.getKind() ) && ( !options::qcfTConstraint() || n.getKind()!=APPLY_TESTER );
   return inst::TriggerTermInfo::isAtomicTriggerKind(n.getKind());
 }
 
