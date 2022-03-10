@@ -671,7 +671,6 @@ bool TheoryUF::isHigherOrderType(TypeNode tn)
   return ret;
 }
 
-
 bool TheoryUF::NodeTriePathCompareCallbackUF::considerPath(TNode a, TNode b)
 {
   return !d_uf.d_state.areDisequal(a, b) && !d_uf.areCareDisequalUF(a, b);
@@ -684,8 +683,9 @@ void TheoryUF::NodeTriePathCompareCallbackUF::processData(TNode fa, TNode fb)
   {
     return;
   }
-  eq::EqualityEngine * ee = d_uf.d_equalityEngine;
-  Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << fa << " and " << fb << std::endl;
+  eq::EqualityEngine* ee = d_uf.d_equalityEngine;
+  Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function "
+                       << fa << " and " << fb << std::endl;
   for (size_t k = 0, nchildren = fa.getNumChildren(); k < nchildren; ++k)
   {
     TNode x = fa[k];
@@ -693,13 +693,12 @@ void TheoryUF::NodeTriePathCompareCallbackUF::processData(TNode fa, TNode fb)
     Assert(!state.areDisequal(x, y));
     Assert(considerPath(x, y));
     if (!state.areEqual(x, y) && ee->isTriggerTerm(x, THEORY_UF)
-          && ee->isTriggerTerm(y, THEORY_UF))
+        && ee->isTriggerTerm(y, THEORY_UF))
     {
-      TNode x_shared =
-          ee->getTriggerTermRepresentative(x, THEORY_UF);
-      TNode y_shared =
-          ee->getTriggerTermRepresentative(y, THEORY_UF);
-      Debug("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
+      TNode x_shared = ee->getTriggerTermRepresentative(x, THEORY_UF);
+      TNode y_shared = ee->getTriggerTermRepresentative(y, THEORY_UF);
+      Debug("uf::sharing")
+          << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
       d_uf.addCarePair(x_shared, y_shared);
     }
   }

@@ -172,14 +172,15 @@ private:
   std::map<TypeNode, bool> d_isHoType;
   class NodeTriePathCompareCallbackUF : public NodeTriePathCompareCallback
   {
-  public:
-    NodeTriePathCompareCallbackUF(TheoryUF& uf) : d_uf(uf){}
+   public:
+    NodeTriePathCompareCallbackUF(TheoryUF& uf) : d_uf(uf) {}
     ~NodeTriePathCompareCallbackUF() {}
     /** Whether to consider a pair in paths in a trie */
     bool considerPath(TNode a, TNode b) override;
     /** Process leaves */
     void processData(TNode fa, TNode fb) override;
-  private:
+
+   private:
     /** Reference to theory UF */
     TheoryUF& d_uf;
   };
