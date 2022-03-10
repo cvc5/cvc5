@@ -1719,7 +1719,10 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
 }
 
 //computes miniscoping, also eliminates variables that do not occur free in body
-Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa, bool miniscopeConj, bool miniscopeFv) const
+Node QuantifiersRewriter::computeMiniscoping(Node q,
+                                             QAttributes& qa,
+                                             bool miniscopeConj,
+                                             bool miniscopeFv) const
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
@@ -1922,7 +1925,8 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
   {
-    return d_opts.quantifiers.miniscopeQuant==options::MiniscopeQuantMode::AGG && is_std;
+    return d_opts.quantifiers.miniscopeQuant == options::MiniscopeQuantMode::AGG
+           && is_std;
   }
   else if (computeOption == COMPUTE_EXT_REWRITE)
   {
@@ -1942,7 +1946,9 @@ bool QuantifiersRewriter::doOperation(Node q,
   else if (computeOption == COMPUTE_PRENEX)
   {
     return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
-           && d_opts.quantifiers.miniscopeQuant!=options::MiniscopeQuantMode::AGG && is_std;
+           && d_opts.quantifiers.miniscopeQuant
+                  != options::MiniscopeQuantMode::AGG
+           && is_std;
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
@@ -1972,7 +1978,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
       }
     }
     bool miniscopeConj = doMiniscopeConj(d_opts);
-    bool miniscopeFv  = doMiniscopeFv(d_opts);
+    bool miniscopeFv = doMiniscopeFv(d_opts);
     //return directly
     return computeMiniscoping(f, qa, miniscopeConj, miniscopeFv);
   }
@@ -2035,13 +2041,17 @@ Node QuantifiersRewriter::computeOperation(Node f,
 bool QuantifiersRewriter::doMiniscopeConj(const Options& opts)
 {
   options::MiniscopeQuantMode mqm = opts.quantifiers.miniscopeQuant;
-  return mqm == options::MiniscopeQuantMode::CONJ_AND_FV || mqm == options::MiniscopeQuantMode::CONJ || mqm == options::MiniscopeQuantMode::AGG;
+  return mqm == options::MiniscopeQuantMode::CONJ_AND_FV
+         || mqm == options::MiniscopeQuantMode::CONJ
+         || mqm == options::MiniscopeQuantMode::AGG;
 }
 
 bool QuantifiersRewriter::doMiniscopeFv(const Options& opts)
 {
   options::MiniscopeQuantMode mqm = opts.quantifiers.miniscopeQuant;
-  return mqm == options::MiniscopeQuantMode::CONJ_AND_FV || mqm == options::MiniscopeQuantMode::FV || mqm == options::MiniscopeQuantMode::AGG;
+  return mqm == options::MiniscopeQuantMode::CONJ_AND_FV
+         || mqm == options::MiniscopeQuantMode::FV
+         || mqm == options::MiniscopeQuantMode::AGG;
 }
 
 bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {

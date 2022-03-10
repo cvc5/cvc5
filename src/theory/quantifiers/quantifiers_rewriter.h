@@ -170,7 +170,10 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
-  Node computeMiniscoping(Node q, QAttributes& qa, bool miniscopeConj, bool miniscopeFv) const;
+  Node computeMiniscoping(Node q,
+                          QAttributes& qa,
+                          bool miniscopeConj,
+                          bool miniscopeFv) const;
   Node computeAggressiveMiniscoping(std::vector<Node>& args, Node body) const;
   /**
    * This function removes top-level quantifiers from subformulas of body

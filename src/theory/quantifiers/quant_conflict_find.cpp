@@ -1605,8 +1605,8 @@ void MatchGen::reset(bool tgt)
       //if successful and non-redundant, store that we need to cleanup this
       if( addc==1 ){
         // Trace("cbqi-explain") << "       reset: " << d_n << " add constraint
-        // " << vn[0] << " -> " << nn[1] << " (vn=" << vn[1] << ")" << ", d_tgt =
-        // " << d_tgt << std::endl;
+        // " << vn[0] << " -> " << nn[1] << " (vn=" << vn[1] << ")" << ", d_tgt
+        // = " << d_tgt << std::endl;
         for (size_t i = 0; i < 2; i++)
         {
           if( vn[i]!=-1 && std::find( d_qni_bound_except.begin(), d_qni_bound_except.end(), i )==d_qni_bound_except.end() ){
