@@ -23,14 +23,13 @@ CarePairArgumentCallback(Theory& t) : d_theory(t) {}
 bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 {
   // interested in finding pairs that are not disequal
-  return !d_theory.areCareDisequal(a,b);
+  return !d_theory.areCareDisequal(a, b);
 }
 
 void CarePairArgumentCallback::processData(TNode fa, TNode fb)
 {
-  d_theory.addCarePairArgs(a,b);
+  d_theory.addCarePairArgs(a, b);
 }
 
 }  // namespace theory
 }  // namespace cvc5
-

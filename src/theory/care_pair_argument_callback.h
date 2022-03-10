@@ -29,14 +29,15 @@ namespace theory {
  */
 class CarePairArgumentCallback : public NodeTriePathCompareCallback
 {
-  public:
+ public:
   CarePairArgumentCallback(Theory& t) : d_theory(t) {}
   ~CarePairArgumentCallback() {}
   /** Whether to consider a pair in paths in a trie */
   bool considerPath(TNode a, TNode b) override;
   /** Process leaves */
   void processData(TNode fa, TNode fb) override;
-  private:
+
+ private:
   /** Reference to theory */
   Theory& d_theory;
 };
