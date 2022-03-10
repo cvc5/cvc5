@@ -42,7 +42,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
                                      InferenceManager& im,
                                      SkolemCache& skc,
                                      ProofNodeManager* pnm,
-                    CarePairArgumentCallback& cpacb)
+                                     CarePairArgumentCallback& cpacb)
     : EnvObj(env),
       d_deq(context()),
       d_termProcessed(userContext()),

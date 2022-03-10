@@ -22,6 +22,7 @@
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
 #include "smt/env_obj.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
@@ -30,7 +31,6 @@
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
 namespace theory {

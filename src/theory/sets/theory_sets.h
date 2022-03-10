@@ -21,13 +21,13 @@
 #include <memory>
 
 #include "smt/logic_exception.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
 namespace theory {
