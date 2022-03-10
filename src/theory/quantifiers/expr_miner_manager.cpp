@@ -150,7 +150,7 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
   {
     d_qg = std::make_unique<QueryGeneratorBasic>(d_env);
   }
-  if (d_qg!=nullptr)
+  if (d_qg != nullptr)
   {
     // initialize the query generator
     d_qg->initialize(vars, &d_sampler);

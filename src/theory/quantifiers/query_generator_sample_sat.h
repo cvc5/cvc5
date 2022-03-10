@@ -53,11 +53,11 @@ namespace quantifiers {
 class QueryGeneratorSampleSat : public QueryGenerator
 {
  public:
-   /**
-    * @param env reference to the environment
-    * @param deqThresh the maximal number of sample points that each query we
-    * generate is allowed to be satisfied by.
-    */
+  /**
+   * @param env reference to the environment
+   * @param deqThresh the maximal number of sample points that each query we
+   * generate is allowed to be satisfied by.
+   */
   QueryGeneratorSampleSat(Env& env, unsigned deqThresh);
   ~QueryGeneratorSampleSat() {}
   /**

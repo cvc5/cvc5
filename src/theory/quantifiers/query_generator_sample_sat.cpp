@@ -31,7 +31,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env, unsigned deqThresh) : QueryGenerator(env), d_deqThresh(deqThresh)
+QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env, unsigned deqThresh)
+    : QueryGenerator(env), d_deqThresh(deqThresh)
 {
 }
 
