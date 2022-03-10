@@ -27,6 +27,7 @@
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
 namespace theory {
@@ -85,6 +86,10 @@ class TheorySets : public Theory
   bool isEntailed(Node n, bool pol);
 
  private:
+  /**
+   * Overrides to handle a special case of set membership.
+   */
+  void processCarePairArgs(TNode a, TNode b) override;
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public TheoryEqNotifyClass
   {
@@ -106,6 +111,8 @@ class TheorySets : public Theory
   SolverState d_state;
   /** The inference manager */
   InferenceManager d_im;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
   /** The internal theory */
   std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Instance of the above class */

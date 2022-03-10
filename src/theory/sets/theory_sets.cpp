@@ -32,8 +32,9 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
       d_skCache(env.getRewriter()),
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
+      d_cpacb(*this),
       d_internal(
-          new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_pnm)),
+          new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_pnm, d_cpacb)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -207,6 +208,25 @@ void TheorySets::presolve() {
 
 bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
+}
+
+void TheorySets::processCarePairArgs(TNode a, TNode b)
+{
+  // Usually when (= (f x) (f y)), we don't care whether (= x y) is true or
+  // not for the shared variables x, y in the care graph.
+  // However, this does not apply to the membership operator since the
+  // equality or disequality between members affects the number of elements
+  // in a set. Therefore we need to split on (= x y) for kind SET_MEMBER.
+  // Example:
+  // Suppose (= (member x S) member( y, S)) is true and there are
+  // no other members in S. We would get S = {x} if (= x y) is true.
+  // Otherwise we would get S = {x, y}.
+  if (a.getKind() != SET_MEMBER && d_state.areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
 }
 
 /**************************** eq::NotifyClass *****************************/

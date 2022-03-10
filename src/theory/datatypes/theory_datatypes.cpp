@@ -1079,7 +1079,7 @@ void TheoryDatatypes::computeCareGraph(){
     {
       Trace("dt-cg") << "Process index " << tt.first << ", " << t.first << "..."
                      << std::endl;
-      nodeTriePathCompare(&t.second, arity[t.first], d_cpacb);
+      nodeTriePathPairProcess(&t.second, arity[t.first], d_cpacb);
       Trace("dt-cg") << "...finish" << std::endl;
     }
   }

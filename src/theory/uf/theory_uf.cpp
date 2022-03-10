@@ -628,14 +628,14 @@ void TheoryUF::computeCareGraph() {
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
                          << tt.first << "..." << std::endl;
     Assert(arity.find(tt.first) != arity.end());
-    nodeTriePathCompare(&tt.second, arity[tt.first], d_cpacb);
+    nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
   for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
   {
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    nodeTriePathCompare(&tt.second, 2, d_cpacb);
+    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
   }
   Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;

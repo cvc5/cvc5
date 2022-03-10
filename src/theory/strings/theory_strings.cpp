@@ -1022,7 +1022,7 @@ void TheoryStrings::computeCareGraph(){
     Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
                         << ti.first << "..." << std::endl;
     Node op = ti.first.second;
-    nodeTriePathCompare(&ti.second, arity[op], d_cpacb);
+    nodeTriePathPairProcess(&ti.second, arity[op], d_cpacb);
   }
 }
 

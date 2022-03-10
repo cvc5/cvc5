@@ -30,6 +30,7 @@
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
 namespace theory {
@@ -87,12 +88,6 @@ class TheorySetsPrivate : protected EnvObj
    */
   void checkReduceComprehensions();
 
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth,
-                    unsigned& n_pairs);
-
   Node d_true;
   Node d_false;
   Node d_zero;
@@ -140,7 +135,8 @@ class TheorySetsPrivate : protected EnvObj
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
-                    ProofNodeManager* pnm);
+                    ProofNodeManager* pnm,
+                    CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();
 
@@ -229,6 +225,8 @@ class TheorySetsPrivate : protected EnvObj
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */
   std::map<Node, Node> d_isSingletonNodes;
+  /** Reference to care pair argument callback, used for theory combination */
+  CarePairArgumentCallback& d_cpacb;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets
