@@ -24,6 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/array_solver.h"
 #include "theory/strings/base_solver.h"
@@ -45,7 +46,6 @@
 #include "theory/strings/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
 namespace theory {

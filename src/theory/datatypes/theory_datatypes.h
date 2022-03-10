@@ -24,6 +24,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/proof_checker.h"
@@ -33,7 +34,6 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
-#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
 namespace theory {
