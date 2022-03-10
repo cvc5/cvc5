@@ -59,9 +59,8 @@ EqualityStatus SharedSolverDistributed::getEqualityStatus(TNode a, TNode b)
       return EQUALITY_FALSE_AND_PROPAGATED;
     }
   }
-  // otherwise, ask the theory that owns this equality
-  TheoryId tid = d_env.theoryOf(a.eqNode(b));
-  return d_te.theoryOf(tid)->getEqualityStatus(a, b);
+  // otherwise, ask the theory, which may depend on the uninterpreted sort owner
+  return d_te.theoryOf(Theory::theoryOf(a.getType(), d_env.getUninterpretedSortOwner()))->getEqualityStatus(a, b);
 }
 
 TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
