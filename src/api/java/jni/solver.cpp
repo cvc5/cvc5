@@ -2180,7 +2180,7 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_pop(JNIEnv* env,
  * Method:    getInterpolant
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2197,11 +2197,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getInterpolant__JJJJ(JNIEnv* env,
-                                                    jobject,
-                                                    jlong pointer,
-                                                    jlong conjPointer,
-                                                    jlong grammarPointer)
+Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(JNIEnv* env,
+                                                   jobject,
+                                                   jlong pointer,
+                                                   jlong conjPointer,
+                                                   jlong grammarPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2232,7 +2232,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
  * Method:    getAbduct
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2249,11 +2249,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJJ(
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer,
-                                               jlong conjPointer,
-                                               jlong grammarPointer)
+Java_io_github_cvc5_api_Solver_getAbduct__JJJ(JNIEnv* env,
+                                              jobject,
+                                              jlong pointer,
+                                              jlong conjPointer,
+                                              jlong grammarPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
