@@ -2271,12 +2271,10 @@ cdef class Solver:
         """
         cdef Term result = Term(self)
         if len(args) == 0:
-            assert isinstance(args[0], Term)
             result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
             assert len(args) == 1
             assert isinstance(args[0], Grammar)
-            assert isinstance(args[1], Term)
             result.cterm = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
@@ -2328,12 +2326,10 @@ cdef class Solver:
         """
         cdef Term result = Term(self)
         if len(args) == 0:
-            assert isinstance(args[0], Term)
             result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
             assert len(args) == 1
             assert isinstance(args[0], Grammar)
-            assert isinstance(args[1], Term)
             result.cterm = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
