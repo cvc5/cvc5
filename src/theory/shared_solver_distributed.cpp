@@ -59,7 +59,7 @@ EqualityStatus SharedSolverDistributed::getEqualityStatus(TNode a, TNode b)
       return EQUALITY_FALSE_AND_PROPAGATED;
     }
   }
-  // otherwise, ask the theory
+  // otherwise, ask the theory that owns this equality
   TheoryId tid = d_env.theoryOf(a.eqNode(b));
   return d_te.theoryOf(tid)->getEqualityStatus(a, b);
 }
