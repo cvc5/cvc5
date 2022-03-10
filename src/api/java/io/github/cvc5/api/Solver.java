@@ -2282,8 +2282,8 @@ public class Solver implements IPointer, AutoCloseable
    * Requires enabling incremental mode and option 'produce-abducts'
    * @param output a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj in the last call to getAbduct.
-   * @return true if it gets C successfully, false otherwise
+   *        given in the input by conj in the last call to getAbduct, or the
+   *        null term if such a term cannot be found.
    */
   public Term getAbductNext()
   {
