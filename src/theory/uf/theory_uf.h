@@ -152,10 +152,14 @@ private:
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 
-  /**
-   * Overrides to ensure that pairs of lambdas are not considered disequal.
-   */
+  /** Overrides to ensure that pairs of lambdas are not considered disequal. */
   bool areCareDisequal(TNode x, TNode y) override;
+  /** 
+   * Overrides to use the theory state instead of the equality engine, since
+   * for higher-order, some terms that do not occur in the equality engine are
+   * considered.
+   */
+  void processCarePairArgs(TNode a, TNode b) override;
   /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking

@@ -494,24 +494,15 @@ std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
-  if (d_careGraph) {
-    Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1
-                     << " " << t2 << std::endl;
-    d_careGraph->insert(CarePair(t1, t2, d_id));
-  }
+  Assert (d_careGraph != nullptr);
+  Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1
+                    << " " << t2 << std::endl;
+  d_careGraph->insert(CarePair(t1, t2, d_id));
 }
 void Theory::addCarePairArgs(TNode a, TNode b)
 {
-  if (d_careGraph == nullptr)
-  {
-    return;
-  }
+  Assert (d_careGraph != nullptr);
   Assert(d_equalityEngine != nullptr);
-  // a and b are already equal
-  if (d_equalityEngine->areEqual(a, b))
-  {
-    return;
-  }
   Assert(a.hasOperator() && b.hasOperator());
   Assert(a.getOperator() == b.getOperator());
   Assert(a.getNumChildren() == b.getNumChildren());
@@ -525,13 +516,24 @@ void Theory::addCarePairArgs(TNode a, TNode b)
         && d_equalityEngine->isTriggerTerm(y, d_id)
         && !d_equalityEngine->areEqual(x, y))
     {
-      Assert(!d_equalityEngine->areDisequal(x, y));
+      Assert(!d_equalityEngine->areDisequal(x, y, false));
       Assert(!areCareDisequal(x, y));
       TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
       TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
       addCarePair(x_shared, y_shared);
     }
   }
+}
+
+void Theory::processCarePairArgs(TNode a, TNode b)
+{
+  // if a and b are already equal, we ignore this pair
+  if (d_theoryState->areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a,b);
 }
 
 bool Theory::areCareDisequal(TNode x, TNode y)
@@ -552,13 +554,13 @@ bool Theory::areCareDisequal(TNode x, TNode y)
 }
 
 void Theory::getCareGraph(CareGraph* careGraph) {
-  Assert(careGraph != NULL);
+  Assert(careGraph != nullptr);
 
   Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
   TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
   d_careGraph = careGraph;
   computeCareGraph();
-  d_careGraph = NULL;
+  d_careGraph = nullptr;
 }
 
 bool Theory::proofsEnabled() const

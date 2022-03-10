@@ -548,6 +548,17 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y)
   return false;
 }
 
+void TheoryUF::processCarePairArgs(TNode a, TNode b)
+{
+  // if a and b are already equal, we ignore this pair
+  if (d_state.areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a,b);
+}
+
 void TheoryUF::computeCareGraph() {
   if (d_sharedTerms.empty())
   {

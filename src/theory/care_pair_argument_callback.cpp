@@ -28,7 +28,7 @@ bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 
 void CarePairArgumentCallback::processData(TNode fa, TNode fb)
 {
-  d_theory.addCarePairArgs(fa, fb);
+  d_theory.processCarePairArgs(fa, fb);
 }
 
 }  // namespace theory

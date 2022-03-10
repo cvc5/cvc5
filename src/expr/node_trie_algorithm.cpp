@@ -17,11 +17,11 @@
 
 namespace cvc5 {
 
-void nodeTriePathCompareInternal(const TNodeTrie* t1,
+void nodeTriePathPairProcessInternal(const TNodeTrie* t1,
                                  const TNodeTrie* t2,
                                  size_t arity,
                                  size_t depth,
-                                 NodeTriePathCompareCallback& ntpc)
+                                 NodeTriePathPairProcessCallback& ntpc)
 {
   if (depth == arity)
   {
@@ -39,7 +39,7 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
       // continue exploring paths with common prefix, internal to each child
       for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
       {
-        nodeTriePathCompareInternal(
+        nodeTriePathPairProcessInternal(
             &tt.second, nullptr, arity, depth + 1, ntpc);
       }
     }
@@ -54,7 +54,7 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
       {
         if (ntpc.considerPath(it->first, it2->first))
         {
-          nodeTriePathCompareInternal(
+          nodeTriePathPairProcessInternal(
               &it->second, &it2->second, arity, depth + 1, ntpc);
         }
       }
@@ -70,7 +70,7 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
       {
         if (ntpc.considerPath(tt1.first, tt2.first))
         {
-          nodeTriePathCompareInternal(
+          nodeTriePathPairProcessInternal(
               &tt1.second, &tt2.second, arity, depth + 1, ntpc);
         }
       }
@@ -78,11 +78,11 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
   }
 }
 
-void nodeTriePathCompare(const TNodeTrie* t,
+void nodeTriePathPairProcess(const TNodeTrie* t,
                          size_t n,
-                         NodeTriePathCompareCallback& ntpc)
+                         NodeTriePathPairProcessCallback& ntpc)
 {
-  nodeTriePathCompareInternal(t, nullptr, n, 0, ntpc);
+  nodeTriePathPairProcessInternal(t, nullptr, n, 0, ntpc);
 }
 
 }  // namespace cvc5

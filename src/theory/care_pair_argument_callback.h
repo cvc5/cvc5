@@ -27,7 +27,7 @@ namespace theory {
 /**
  * The standard callback for computing the care pairs from a node trie.
  */
-class CarePairArgumentCallback : public NodeTriePathCompareCallback
+class CarePairArgumentCallback : public NodeTriePathPairProcessCallback
 {
  public:
   CarePairArgumentCallback(Theory& t);

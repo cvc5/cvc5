@@ -25,11 +25,11 @@
 namespace cvc5 {
 
 /** A virtual base class for the algorithm below. */
-class NodeTriePathCompareCallback
+class NodeTriePathPairProcessCallback
 {
  public:
-  NodeTriePathCompareCallback() {}
-  virtual ~NodeTriePathCompareCallback() {}
+  NodeTriePathPairProcessCallback() {}
+  virtual ~NodeTriePathPairProcessCallback() {}
   /** Whether to consider a pair in paths in a trie */
   virtual bool considerPath(TNode a, TNode b) = 0;
   /** Process leaves */
@@ -39,15 +39,15 @@ class NodeTriePathCompareCallback
 /**
  * Given a TNode trie of arity n, this calls ntpc.processData(fa, fb) on all
  * pairs of distinct leaves fa and fb in t at paths [fa1, ..., fan] and
- * [fb1, ..., fbn] in tsuch that ntpc.considerFork(fai, fbi) returns true for
+ * [fb1, ..., fbn] in tsuch that ntpc.considerPath(fai, fbi) returns true for
  * all i = 1, ..., n.
  *
  * A common use case for this algorithm is computing the care graph for theory
  * combination.
  */
-void nodeTriePathCompare(const TNodeTrie* t,
+void nodeTriePathPairProcess(const TNodeTrie* t,
                          size_t n,
-                         NodeTriePathCompareCallback& ntpc);
+                         NodeTriePathPairProcessCallback& ntpc);
 
 }  // namespace cvc5
 

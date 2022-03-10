@@ -122,6 +122,12 @@ class Theory : protected EnvObj
    */
   void addCarePairArgs(TNode a, TNode b);
   /**
+   * Process care pair arguments for a and b. By default, this calls the
+   * method above if a and b are not equal according to the equality engine
+   * of this theory.
+   */
+  virtual void processCarePairArgs(TNode a, TNode b);
+  /**
    * Are care disequal? Return true if x and y are shared terms that are
    * disequal according to the valuation.
    */
