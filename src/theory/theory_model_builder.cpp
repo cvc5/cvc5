@@ -1200,8 +1200,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     {
       children.push_back(r.getOperator());
     }
-    bool childrenConst = true;
-    for (size_t i = 0; i < r.getNumChildren(); ++i)
+    for (size_t i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
       Node ri = r[i];
       bool recurse = true;
@@ -1231,18 +1230,11 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!m->isValue(ri))
-        {
-          childrenConst = false;
-        }
       }
       children.push_back(ri);
     }
     retNode = NodeManager::currentNM()->mkNode(r.getKind(), children);
-    if (childrenConst)
-    {
-      retNode = rewrite(retNode);
-    }
+    retNode = rewrite(retNode);
   }
   d_normalizedCache[r] = retNode;
   return retNode;
