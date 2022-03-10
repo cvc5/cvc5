@@ -18,10 +18,10 @@
 namespace cvc5 {
 
 void nodeTriePathPairProcessInternal(const TNodeTrie* t1,
-                                 const TNodeTrie* t2,
-                                 size_t arity,
-                                 size_t depth,
-                                 NodeTriePathPairProcessCallback& ntpc)
+                                     const TNodeTrie* t2,
+                                     size_t arity,
+                                     size_t depth,
+                                     NodeTriePathPairProcessCallback& ntpc)
 {
   if (depth == arity)
   {
@@ -79,8 +79,8 @@ void nodeTriePathPairProcessInternal(const TNodeTrie* t1,
 }
 
 void nodeTriePathPairProcess(const TNodeTrie* t,
-                         size_t n,
-                         NodeTriePathPairProcessCallback& ntpc)
+                             size_t n,
+                             NodeTriePathPairProcessCallback& ntpc)
 {
   nodeTriePathPairProcessInternal(t, nullptr, n, 0, ntpc);
 }

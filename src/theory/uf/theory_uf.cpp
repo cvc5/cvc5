@@ -556,7 +556,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
     return;
   }
   // otherwise, we add pairs for each of their arguments
-  addCarePairArgs(a,b);
+  addCarePairArgs(a, b);
 }
 
 void TheoryUF::computeCareGraph() {

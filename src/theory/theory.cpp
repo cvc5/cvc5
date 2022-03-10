@@ -494,14 +494,14 @@ std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
-  Assert (d_careGraph != nullptr);
+  Assert(d_careGraph != nullptr);
   Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1
-                    << " " << t2 << std::endl;
+                   << " " << t2 << std::endl;
   d_careGraph->insert(CarePair(t1, t2, d_id));
 }
 void Theory::addCarePairArgs(TNode a, TNode b)
 {
-  Assert (d_careGraph != nullptr);
+  Assert(d_careGraph != nullptr);
   Assert(d_equalityEngine != nullptr);
   Assert(a.hasOperator() && b.hasOperator());
   Assert(a.getOperator() == b.getOperator());
@@ -533,7 +533,7 @@ void Theory::processCarePairArgs(TNode a, TNode b)
     return;
   }
   // otherwise, we add pairs for each of their arguments
-  addCarePairArgs(a,b);
+  addCarePairArgs(a, b);
 }
 
 bool Theory::areCareDisequal(TNode x, TNode y)

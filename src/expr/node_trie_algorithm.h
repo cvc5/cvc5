@@ -46,8 +46,8 @@ class NodeTriePathPairProcessCallback
  * combination.
  */
 void nodeTriePathPairProcess(const TNodeTrie* t,
-                         size_t n,
-                         NodeTriePathPairProcessCallback& ntpc);
+                             size_t n,
+                             NodeTriePathPairProcessCallback& ntpc);
 
 }  // namespace cvc5
 

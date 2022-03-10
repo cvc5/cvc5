@@ -154,7 +154,7 @@ private:
 
   /** Overrides to ensure that pairs of lambdas are not considered disequal. */
   bool areCareDisequal(TNode x, TNode y) override;
-  /** 
+  /**
    * Overrides to use the theory state instead of the equality engine, since
    * for higher-order, some terms that do not occur in the equality engine are
    * considered.
