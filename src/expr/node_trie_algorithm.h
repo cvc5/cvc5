@@ -19,24 +19,24 @@
 #define CVC5__EXPR__NODE_TRIE_ALGORITHM_H
 
 #include <map>
+
 #include "expr/node_trie.h"
 
 namespace cvc5 {
 
-/** 
+/**
  * A virtual base class for the algorithm below.
  */
 class NodeTriePathCompareCallback
 {
-public:
+ public:
   NodeTriePathCompareCallback() {}
-  virtual ~NodeTriePathCompareCallback(){}
+  virtual ~NodeTriePathCompareCallback() {}
   /** Whether to consider a fork in the path in a trie */
   virtual bool considerFork(TNode a, TNode b) = 0;
   /** Process leaves */
   virtual void processData(TNode fa, TNode fb) = 0;
 };
-
 
 /**
  * Given a TNode trie of arity n, this calls ntpc.processData(fa, fb) on all
@@ -44,7 +44,9 @@ public:
  * [fb1, ..., fbn] such that ntpc.considerFork(fai, fbi) returns true for all
  * i = 1, ..., n.
  */
-void nodeTriePathCompare(const TNodeTrie* t, size_t n, NodeTriePathCompareCallback& ntpc);
+void nodeTriePathCompare(const TNodeTrie* t,
+                         size_t n,
+                         NodeTriePathCompareCallback& ntpc);
 
 }  // namespace cvc5
 
