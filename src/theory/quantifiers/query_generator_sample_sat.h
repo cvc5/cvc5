@@ -53,18 +53,18 @@ namespace quantifiers {
 class QueryGeneratorSampleSat : public QueryGenerator
 {
  public:
-  QueryGeneratorSampleSat(Env& env);
+   /**
+    * @param env reference to the environment
+    * @param deqThresh the maximal number of sample points that each query we
+    * generate is allowed to be satisfied by.
+    */
+  QueryGeneratorSampleSat(Env& env, unsigned deqThresh);
   ~QueryGeneratorSampleSat() {}
   /**
    * Add term to this module. This may trigger the printing and/or checking of
    * new queries.
    */
   bool addTerm(Node n, std::ostream& out) override;
-  /**
-   * Set the threshold value. This is the maximal number of sample points that
-   * each query we generate is allowed to be satisfied by.
-   */
-  void setThreshold(unsigned deqThresh);
 
  private:
   /** find queries

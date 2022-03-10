@@ -18,6 +18,8 @@
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/query_generator_sample_sat.h"
+#include "theory/quantifiers/query_generator_unsat.h"
 
 namespace cvc5 {
 namespace theory {
@@ -138,24 +140,20 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
       enableRewriteRuleSynth();
       d_crd.setSilent(true);
     }
-    d_qgss = std::make_unique<QueryGeneratorSampleSat>(d_env);
-    // initialize the query generator
-    d_qgss->initialize(vars, &d_sampler);
-    d_qgss->setThreshold(deqThresh);
-    d_qg = d_qgss.get();
+    d_qg = std::make_unique<QueryGeneratorSampleSat>(d_env, deqThresh);
   }
   else if (mode == options::SygusQueryGenMode::UNSAT)
   {
-    d_qgu = std::make_unique<QueryGeneratorUnsat>(d_env);
-    // initialize the query generator
-    d_qgu->initialize(vars, &d_sampler);
-    d_qg = d_qgu.get();
+    d_qg = std::make_unique<QueryGeneratorUnsat>(d_env);
   }
   else if (mode == options::SygusQueryGenMode::BASIC)
   {
-    d_qgb = std::make_unique<QueryGeneratorBasic>(d_env);
-    d_qgb->initialize(vars, &d_sampler);
-    d_qg = d_qgb.get();
+    d_qg = std::make_unique<QueryGeneratorBasic>(d_env);
+  }
+  if (d_qg!=nullptr)
+  {
+    // initialize the query generator
+    d_qg->initialize(vars, &d_sampler);
   }
 }
 

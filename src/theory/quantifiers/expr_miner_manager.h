@@ -21,8 +21,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/query_generator_sample_sat.h"
-#include "theory/quantifiers/query_generator_unsat.h"
+#include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
@@ -105,14 +104,8 @@ class ExpressionMinerManager : protected EnvObj
   TermDbSygus* d_tds;
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
-  /** query generator */
-  std::unique_ptr<QueryGeneratorBasic> d_qgb;
-  /** query generator */
-  std::unique_ptr<QueryGeneratorSampleSat> d_qgss;
-  /** query generator */
-  std::unique_ptr<QueryGeneratorUnsat> d_qgu;
   /** The query generator we are using */
-  QueryGenerator* d_qg;
+  std::unique_ptr<QueryGenerator> d_qg;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
   /** sygus sampler object */
