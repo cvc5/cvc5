@@ -15,7 +15,7 @@
  * These macros implement guards for the cvc5 C++ API functions.
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
@@ -392,7 +392,7 @@ namespace api {
           this == s.d_solver, "sort", sorts, i)                   \
           << "a sorts associated with this solver";               \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          !s.isFunctionLike(), "sort", sorts, i)                  \
+          !s.getTypeNode().isFunctionLike(), "sort", sorts, i)    \
           << "non-function-like sort";                            \
       i += 1;                                                     \
     }                                                             \
@@ -403,14 +403,14 @@ namespace api {
  * Check if domain sort is not null, associated with this solver, and a
  * first-class sort.
  */
-#define CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort)             \
-  do                                                        \
-  {                                                         \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
-    CVC5_API_CHECK(this == sort.d_solver)                   \
-        << "Given sort is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)  \
-        << "first-class sort as domain sort";               \
+#define CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort)                          \
+  do                                                                     \
+  {                                                                      \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);                                   \
+    CVC5_API_CHECK(this == sort.d_solver)                                \
+        << "Given sort is not associated with this solver";              \
+    CVC5_API_ARG_CHECK_EXPECTED(sort.getTypeNode().isFirstClass(), sort) \
+        << "first-class sort as domain sort";                            \
   } while (0)
 
 /**
@@ -429,7 +429,7 @@ namespace api {
           this == s.d_solver, "domain sort", sorts, i)                  \
           << "a sort associated with this solver object";               \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          s.isFirstClass(), "domain sort", sorts, i)                    \
+          s.getTypeNode().isFirstClass(), "domain sort", sorts, i)      \
           << "first-class sort as domain sort";                         \
       i += 1;                                                           \
     }                                                                   \
@@ -578,7 +578,10 @@ namespace api {
           bound_vars,                                                         \
           i);                                                                 \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          domain_sorts[i].isFirstClass(), "domain sort", domain_sorts, i)     \
+          domain_sorts[i].getTypeNode().isFirstClass(),                       \
+          "domain sort",                                                      \
+          domain_sorts,                                                       \
+          i)                                                                  \
           << "first-class sort of parameter of defined function";             \
       i += 1;                                                                 \
     }                                                                         \
@@ -605,14 +608,15 @@ namespace api {
  * Check if given datatype declaration is not null and associated with this
  * solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                     \
-  do                                                                           \
-  {                                                                            \
-    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                         \
-    CVC5_API_CHECK(this == decl.d_solver)                                      \
-        << "Given datatype declaration is not associated with this solver";    \
-    CVC5_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl) \
-        << "a datatype declaration with at least one constructor";             \
+#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                  \
+  do                                                                        \
+  {                                                                         \
+    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                      \
+    CVC5_API_CHECK(this == decl.d_solver)                                   \
+        << "Given datatype declaration is not associated with this solver"; \
+    CVC5_API_ARG_CHECK_EXPECTED(                                            \
+        dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)        \
+        << "a datatype declaration with at least one constructor";          \
   } while (0)
 
 /**
@@ -620,22 +624,25 @@ namespace api {
  * Check if each datatype declaration in the given container of declarations is
  * not null and associated with this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECLS(decls)                            \
-  do                                                                    \
-  {                                                                     \
-    size_t i = 0;                                                       \
-    for (const auto& d : decls)                                         \
-    {                                                                   \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                             \
-          "datatype declaration", d, decls, i);                         \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          this == d.d_solver, "datatype declaration", decls, i)         \
-          << "a datatype declaration associated with this solver";      \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          d.getNumConstructors() > 0, "datatype declaration", decls, i) \
-          << "a datatype declaration with at least one constructor";    \
-      i += 1;                                                           \
-    }                                                                   \
+#define CVC5_API_SOLVER_CHECK_DTDECLS(decls)                         \
+  do                                                                 \
+  {                                                                  \
+    size_t i = 0;                                                    \
+    for (const auto& d : decls)                                      \
+    {                                                                \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                          \
+          "datatype declaration", d, decls, i);                      \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                          \
+          this == d.d_solver, "datatype declaration", decls, i)      \
+          << "a datatype declaration associated with this solver";   \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                          \
+          d.getDatatype().getNumConstructors() > 0,                  \
+          "datatype declaration",                                    \
+          decls,                                                     \
+          i)                                                         \
+          << "a datatype declaration with at least one constructor"; \
+      i += 1;                                                        \
+    }                                                                \
   } while (0)
 
 /**
