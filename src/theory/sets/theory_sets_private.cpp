@@ -193,26 +193,6 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   }
 }
 
-bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
-{
-  if (d_equalityEngine->isTriggerTerm(a, THEORY_SETS)
-      && d_equalityEngine->isTriggerTerm(b, THEORY_SETS))
-  {
-    TNode a_shared =
-        d_equalityEngine->getTriggerTermRepresentative(a, THEORY_SETS);
-    TNode b_shared =
-        d_equalityEngine->getTriggerTermRepresentative(b, THEORY_SETS);
-    EqualityStatus eqStatus =
-        d_external.d_valuation.getEqualityStatus(a_shared, b_shared);
-    if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
-        || eqStatus == EQUALITY_FALSE_IN_MODEL)
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());

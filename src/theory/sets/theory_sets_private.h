@@ -50,8 +50,6 @@ class TheorySetsPrivate : protected EnvObj
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  private:
-  /** Are a and b trigger terms in the equality engine that may be disequal? */
-  bool areCareDisequal(Node a, Node b);
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
