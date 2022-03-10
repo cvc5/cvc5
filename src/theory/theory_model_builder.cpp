@@ -79,6 +79,7 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
+      Trace("model-builder-debug") << "...return " << normalized << ", isValue=" << m->isValue(normalized) << std::endl;
       if (m->isValue(normalized))
       {
         return normalized;
@@ -803,7 +804,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Node normalized = normalize(tm, rep, false);
             Trace("model-builder") << "    Normalizing rep (" << rep
                                    << "), normalized to (" << normalized << ")"
-                                   << endl;
+                                   << ", isValue=" << tm->isValue(normalized) << std::endl;
             if (tm->isValue(normalized))
             {
               changed = true;
