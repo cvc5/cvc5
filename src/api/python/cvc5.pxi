@@ -2394,6 +2394,13 @@ cdef class Solver:
             nts.push_back((<Term?> t).cterm)
         self.csolver.blockModelValues(nts)
 
+    def getInstantiations(self):
+        """
+        Return a string that contains information about all instantiations made
+        by the quantifiers module.
+        """
+        return self.csolver.getInstantiations()
+
 
 cdef class Sort:
     """
