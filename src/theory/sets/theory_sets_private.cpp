@@ -912,10 +912,7 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
   {
     return true;
   }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 /******************** Model generation ********************/
@@ -1103,6 +1100,29 @@ Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 bool TheorySetsPrivate::isEntailed(Node n, bool pol)
 {
   return d_state.isEntailed(n, pol);
+}
+
+void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
+{
+  for (size_t k = 0, nchild = a.getNumChildren(); k < nchild; ++k)
+  {
+    TNode x = a[k];
+    TNode y = b[k];
+    if (!d_equalityEngine->areEqual(x, y))
+    {
+      if (isCareArg(a, k) && isCareArg(b, k))
+      {
+        // splitting on sets (necessary for handling set of sets properly)
+        if (x.getType().isSet())
+        {
+          Assert(y.getType().isSet());
+          Trace("sets-cg-lemma")
+              << "Should split on : " << x << "==" << y << std::endl;
+          d_im.split(x.eqNode(y), InferenceId::SETS_CG_SPLIT);
+        }
+      }
+    }
+  }
 }
 
 Node TheorySetsPrivate::explain(TNode literal)

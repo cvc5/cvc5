@@ -176,6 +176,11 @@ class TheorySetsPrivate : protected EnvObj
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
 
+  /**
+   * Adds inferences for splitting on arguments of a and b that are not
+   * equal nor disequal and are sets.
+   */
+  void processCarePairArgs(TNode a, TNode b);
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */

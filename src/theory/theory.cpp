@@ -516,8 +516,6 @@ void Theory::addCarePairArgs(TNode a, TNode b)
         && d_equalityEngine->isTriggerTerm(y, d_id)
         && !d_equalityEngine->areEqual(x, y))
     {
-      Assert(!d_equalityEngine->areDisequal(x, y, false));
-      Assert(!areCareDisequal(x, y));
       TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
       TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
       addCarePair(x_shared, y_shared);
