@@ -106,12 +106,12 @@ name   = "Base"
   help       = "print unchanged (defaulted) statistics as well"
 
 [[option]]
-  name       = "statisticsExpert"
-  long       = "stats-expert"
+  name       = "statisticsInternal"
+  long       = "stats-internal"
   category   = "expert"
   type       = "bool"
   predicates = ["setStatsDetail"]
-  help       = "print expert (non-public) statistics as well"
+  help       = "print internal (non-public) statistics as well"
 
 [[option]]
   name       = "statisticsEveryQuery"
