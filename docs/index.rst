@@ -17,6 +17,10 @@ Table of Contents
    installation/installation
    binary/binary
    api/api
+   options
+   output-tags
+   resource-limits
+   statistics
    examples/examples
    theories/theories
    references

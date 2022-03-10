@@ -686,22 +686,22 @@ def _sphinx_help_add(module, option, common, others):
     names = []
     if option.long:
         if option.long_opt:
-            names.append('--{}={}'.format(option.long_name, option.long_opt))
+            names.append('{} = {}'.format(option.long_name, option.long_opt))
         else:
-            names.append('--{}'.format(option.long_name))
+            names.append('{}'.format(option.long_name))
 
     if option.alias:
         if option.long_opt:
             names.extend(
-                ['--{}={}'.format(a, option.long_opt) for a in option.alias])
+                ['{} = {}'.format(a, option.long_opt) for a in option.alias])
         else:
-            names.extend(['--{}'.format(a) for a in option.alias])
+            names.extend(['{}'.format(a) for a in option.alias])
 
     if option.short:
         if option.long_opt:
-            names.append('-{} {}'.format(option.short, option.long_opt))
+            names.append('{} = {}'.format(option.short, option.long_opt))
         else:
-            names.append('-{}'.format(option.short))
+            names.append('{}'.format(option.short))
 
     modes = None
     if option.mode:
