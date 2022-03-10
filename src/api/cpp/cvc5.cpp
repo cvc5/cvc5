@@ -238,15 +238,12 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {FLOATINGPOINT_IS_NAN, cvc5::Kind::FLOATINGPOINT_IS_NAN},
     {FLOATINGPOINT_IS_NEG, cvc5::Kind::FLOATINGPOINT_IS_NEG},
     {FLOATINGPOINT_IS_POS, cvc5::Kind::FLOATINGPOINT_IS_POS},
-    {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-     cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
-    {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-     cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
-    {FLOATINGPOINT_TO_FP_REAL, cvc5::Kind::FLOATINGPOINT_TO_FP_REAL},
-    {FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-     cvc5::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
-    {FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-     cvc5::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
+    {FLOATINGPOINT_TO_FP_FROM_FP, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP},
+    {FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+     cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
+    {FLOATINGPOINT_TO_FP_FROM_REAL, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
+    {FLOATINGPOINT_TO_FP_FROM_SBV, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
+    {FLOATINGPOINT_TO_FP_FROM_UBV, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
     {FLOATINGPOINT_TO_FP_GENERIC, cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC},
     {FLOATINGPOINT_TO_UBV, cvc5::Kind::FLOATINGPOINT_TO_UBV},
     {FLOATINGPOINT_TO_SBV, cvc5::Kind::FLOATINGPOINT_TO_SBV},
@@ -534,24 +531,25 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::FLOATINGPOINT_IS_NAN, FLOATINGPOINT_IS_NAN},
         {cvc5::Kind::FLOATINGPOINT_IS_NEG, FLOATINGPOINT_IS_NEG},
         {cvc5::Kind::FLOATINGPOINT_IS_POS, FLOATINGPOINT_IS_POS},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
-         FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-         FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
-         FLOATINGPOINT_TO_FP_FLOATINGPOINT},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-         FLOATINGPOINT_TO_FP_FLOATINGPOINT},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_REAL_OP, FLOATINGPOINT_TO_FP_REAL},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_REAL, FLOATINGPOINT_TO_FP_REAL},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
-         FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-         FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
-         FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-         FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP,
+         FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+         FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP,
+         FLOATINGPOINT_TO_FP_FROM_FP},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP, FLOATINGPOINT_TO_FP_FROM_FP},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP,
+         FLOATINGPOINT_TO_FP_FROM_REAL},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
+         FLOATINGPOINT_TO_FP_FROM_REAL},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP,
+         FLOATINGPOINT_TO_FP_FROM_SBV},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
+         FLOATINGPOINT_TO_FP_FROM_SBV},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP,
+         FLOATINGPOINT_TO_FP_FROM_UBV},
+        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
+         FLOATINGPOINT_TO_FP_FROM_UBV},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC_OP,
          FLOATINGPOINT_TO_FP_GENERIC},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC, FLOATINGPOINT_TO_FP_GENERIC},
@@ -705,11 +703,11 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      FLOATINGPOINT_TO_UBV,
      FLOATINGPOINT_TO_SBV,
      BITVECTOR_EXTRACT,
-     FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-     FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-     FLOATINGPOINT_TO_FP_REAL,
-     FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-     FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+     FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+     FLOATINGPOINT_TO_FP_FROM_FP,
+     FLOATINGPOINT_TO_FP_FROM_REAL,
+     FLOATINGPOINT_TO_FP_FROM_SBV,
+     FLOATINGPOINT_TO_FP_FROM_UBV,
      FLOATINGPOINT_TO_FP_GENERIC});
 
 namespace {
@@ -1936,11 +1934,11 @@ size_t Op::getNumIndicesHelper() const
     case FLOATINGPOINT_TO_SBV: size = 1; break;
     case REGEXP_REPEAT: size = 1; break;
     case BITVECTOR_EXTRACT: size = 2; break;
-    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: size = 2; break;
-    case FLOATINGPOINT_TO_FP_FLOATINGPOINT: size = 2; break;
-    case FLOATINGPOINT_TO_FP_REAL: size = 2; break;
-    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: size = 2; break;
-    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FROM_FP: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FROM_REAL: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FROM_SBV: size = 2; break;
+    case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
     case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
@@ -2039,7 +2037,7 @@ Term Op::getIndexHelper(size_t index) const
                      : d_solver->mkRationalValHelper(ext.d_low);
       break;
     }
-    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
     {
       cvc5::FloatingPointToFPIEEEBitVector ext =
           d_node->getConst<FloatingPointToFPIEEEBitVector>();
@@ -2049,7 +2047,7 @@ Term Op::getIndexHelper(size_t index) const
               : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
-    case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    case FLOATINGPOINT_TO_FP_FROM_FP:
     {
       cvc5::FloatingPointToFPFloatingPoint ext =
           d_node->getConst<FloatingPointToFPFloatingPoint>();
@@ -2058,7 +2056,7 @@ Term Op::getIndexHelper(size_t index) const
               : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
-    case FLOATINGPOINT_TO_FP_REAL:
+    case FLOATINGPOINT_TO_FP_FROM_REAL:
     {
       cvc5::FloatingPointToFPReal ext =
           d_node->getConst<FloatingPointToFPReal>();
@@ -2068,7 +2066,7 @@ Term Op::getIndexHelper(size_t index) const
               : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
-    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_SBV:
     {
       cvc5::FloatingPointToFPSignedBitVector ext =
           d_node->getConst<FloatingPointToFPSignedBitVector>();
@@ -2077,7 +2075,7 @@ Term Op::getIndexHelper(size_t index) const
               : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
-    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_UBV:
     {
       cvc5::FloatingPointToFPUnsignedBitVector ext =
           d_node->getConst<FloatingPointToFPUnsignedBitVector>();
@@ -2206,34 +2204,34 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
     cvc5::BitVectorExtract ext = d_node->getConst<BitVectorExtract>();
     indices = std::make_pair(ext.d_high, ext.d_low);
   }
-  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
+  else if (k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
   {
     cvc5::FloatingPointToFPIEEEBitVector ext =
         d_node->getConst<FloatingPointToFPIEEEBitVector>();
     indices = std::make_pair(ext.getSize().exponentWidth(),
                              ext.getSize().significandWidth());
   }
-  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+  else if (k == FLOATINGPOINT_TO_FP_FROM_FP)
   {
     cvc5::FloatingPointToFPFloatingPoint ext =
         d_node->getConst<FloatingPointToFPFloatingPoint>();
     indices = std::make_pair(ext.getSize().exponentWidth(),
                              ext.getSize().significandWidth());
   }
-  else if (k == FLOATINGPOINT_TO_FP_REAL)
+  else if (k == FLOATINGPOINT_TO_FP_FROM_REAL)
   {
     cvc5::FloatingPointToFPReal ext = d_node->getConst<FloatingPointToFPReal>();
     indices = std::make_pair(ext.getSize().exponentWidth(),
                              ext.getSize().significandWidth());
   }
-  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
+  else if (k == FLOATINGPOINT_TO_FP_FROM_SBV)
   {
     cvc5::FloatingPointToFPSignedBitVector ext =
         d_node->getConst<FloatingPointToFPSignedBitVector>();
     indices = std::make_pair(ext.getSize().exponentWidth(),
                              ext.getSize().significandWidth());
   }
-  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
+  else if (k == FLOATINGPOINT_TO_FP_FROM_UBV)
   {
     cvc5::FloatingPointToFPUnsignedBitVector ext =
         d_node->getConst<FloatingPointToFPUnsignedBitVector>();
@@ -6571,35 +6569,35 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
                     cvc5::BitVectorExtract(arg1, arg2))
                     .d_node);
       break;
-    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
       res = Op(this,
                kind,
                *mkValHelper<cvc5::FloatingPointToFPIEEEBitVector>(
                     cvc5::FloatingPointToFPIEEEBitVector(arg1, arg2))
                     .d_node);
       break;
-    case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    case FLOATINGPOINT_TO_FP_FROM_FP:
       res = Op(this,
                kind,
                *mkValHelper<cvc5::FloatingPointToFPFloatingPoint>(
                     cvc5::FloatingPointToFPFloatingPoint(arg1, arg2))
                     .d_node);
       break;
-    case FLOATINGPOINT_TO_FP_REAL:
+    case FLOATINGPOINT_TO_FP_FROM_REAL:
       res = Op(this,
                kind,
                *mkValHelper<cvc5::FloatingPointToFPReal>(
                     cvc5::FloatingPointToFPReal(arg1, arg2))
                     .d_node);
       break;
-    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_SBV:
       res = Op(this,
                kind,
                *mkValHelper<cvc5::FloatingPointToFPSignedBitVector>(
                     cvc5::FloatingPointToFPSignedBitVector(arg1, arg2))
                     .d_node);
       break;
-    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_UBV:
       res = Op(this,
                kind,
                *mkValHelper<cvc5::FloatingPointToFPUnsignedBitVector>(

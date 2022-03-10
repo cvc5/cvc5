@@ -732,11 +732,11 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create operator of Kind:
    *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
-   *   - FLOATINGPOINT_TO_FP_REAL
-   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - FLOATINGPOINT_TO_FP_FROM_FP
+   *   - FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - FLOATINGPOINT_TO_FP_FROM_UBV
    *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
