@@ -210,7 +210,8 @@ class SynthTester(Tester):
         return (
             benchmark_info.benchmark_ext == ".sy"
             and "--no-check-synth-sol" not in benchmark_info.command_line_args
-            and "--sygus-rr" not in benchmark_info.command_line_args
+            and "--sygus-rr-synth" not in benchmark_info.command_line_args
+            and "--sygus-rr-verify" not in benchmark_info.command_line_args
             and "--check-synth-sol" not in benchmark_info.command_line_args
         )
 

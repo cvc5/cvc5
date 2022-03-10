@@ -236,9 +236,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus
-  repcChecker->setOption("miniscope-quant", "true");
-  repcChecker->setOption("miniscope-quant-fv", "true");
-  repcChecker->setOption("quant-split", "true");
+  repcChecker->setOption("miniscope-quant", "conj-and-fv");
   repcChecker->assertFormula(fo_body);
   // check satisfiability
   Result r = repcChecker->checkSat();

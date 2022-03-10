@@ -2,43 +2,37 @@ id     = "QUANTIFIERS"
 name   = "Quantifiers"
 
 # Whether to mini-scope quantifiers.
-# For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
-# ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
+# Miniscoping is done based on two techniques.
+# First, miniscoping can be done based on conjunctions within quantified
+# formulas. For example, forall x. (P(x) ^ Q(x)) can be rewritten to
+# (forall x. P(x)) ^ (forall x. Q(x))
+# Second, miniscoping can be done based which free variables occur in
+# subformulas of quantified formulas. For example, forall xy. (P(x) V Q(y))
+# can be rewritten to:
+# (forall x. P(x)) V (forall y. Q(y)).
 [[option]]
   name       = "miniscopeQuant"
   category   = "regular"
-  long       = "miniscope-quant"
-  type       = "bool"
-  default    = "true"
-  help       = "miniscope quantifiers"
-
-# Whether to mini-scope quantifiers based on formulas with no free variables.
-# For example, forall x. ( P( x ) V Q ) will be rewritten to
-# ( forall x. P( x ) ) V Q
-[[option]]
-  name       = "miniscopeQuantFreeVar"
-  category   = "regular"
-  long       = "miniscope-quant-fv"
-  type       = "bool"
-  default    = "true"
-  help       = "miniscope quantifiers for ground subformulas"
-
-# TODO: merge
-[[option]]
-  name       = "aggressiveMiniscopeQuant"
-  category   = "regular"
-  long       = "ag-miniscope-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "perform aggressive miniscoping for quantifiers"
-
-[[option]]
-  name       = "quantSplit"
-  category   = "regular"
-  long       = "quant-split"
-  type       = "bool"
-  default    = "true"
-  help       = "apply splitting to quantified formulas based on variable disjoint disjuncts"
+  long       = "miniscope-quant=MODE"
+  type       = "MiniscopeQuantMode"
+  default    = "CONJ_AND_FV"
+  help       = "miniscope mode for quantified formulas"
+  help_mode  = "Miniscope quantifiers modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not miniscope quantifiers."
+[[option.mode.CONJ]]
+  name = "conj"
+  help = "Use miniscoping of conjunctions only."
+[[option.mode.FV]]
+  name = "fv"
+  help = "Use free variable miniscoping only."
+[[option.mode.CONJ_AND_FV]]
+  name = "conj-and-fv"
+  help = "Enable both conjunction and free variable miniscoping."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Enable aggressive miniscope, which further may rewrite quantified formulas into a form where miniscoping is possible."
 
 [[option]]
   name       = "prenexQuant"
@@ -50,7 +44,7 @@ name   = "Quantifiers"
   help_mode  = "Prenex quantifiers modes."
 [[option.mode.NONE]]
   name = "none"
-  help = "Do no prenex nested quantifiers."
+  help = "Do not prenex nested quantifiers."
 [[option.mode.SIMPLE]]
   name = "simple"
   help = "Do simple prenexing of same sign quantifiers."
@@ -723,14 +717,6 @@ name   = "Quantifiers"
   help       = "cbqi experimental variable ordering"
 
 [[option]]
-  name       = "instNoEntail"
-  category   = "regular"
-  long       = "inst-no-entail"
-  type       = "bool"
-  default    = "true"
-  help       = "do not consider instances of quantified formulas that are currently entailed"
-
-[[option]]
   name       = "cbqiEagerTest"
   category   = "expert"
   long       = "cbqi-eager-test"
@@ -753,6 +739,14 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
+
+[[option]]
+  name       = "instNoEntail"
+  category   = "regular"
+  long       = "inst-no-entail"
+  type       = "bool"
+  default    = "true"
+  help       = "do not consider instances of quantified formulas that are currently entailed"
 
 ### Induction options
 
@@ -1241,14 +1235,6 @@ name   = "Quantifiers"
 # Internal uses of sygus
 
 [[option]]
-  name       = "sygusRew"
-  category   = "regular"
-  long       = "sygus-rr"
-  type       = "bool"
-  default    = "false"
-  help       = "use sygus to enumerate and verify correctness of rewrite rules"
-
-[[option]]
   name       = "sygusRewSynth"
   category   = "expert"
   long       = "sygus-rr-synth"
@@ -1330,7 +1316,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthCheck"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-check"
   type       = "bool"
   default    = "true"
@@ -1338,7 +1324,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthInput"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-input"
   type       = "bool"
   default    = "false"
@@ -1401,7 +1387,7 @@ name   = "Quantifiers"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
 
-# TODO: delete
+# TODO: delete after merging other PR
 [[option]]
   name       = "sygusQueryGenCheck"
   category   = "regular"

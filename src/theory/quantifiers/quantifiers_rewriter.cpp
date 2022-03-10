@@ -720,7 +720,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
   // we only do this splitting if miniscoping is enabled, as this is
   // required to eliminate variables in conjuncts below. We also never
   // miniscope non-standard quantifiers, so this is also guarded here.
-  if (!d_opts.quantifiers.miniscopeQuant || !qa.isStandard())
+  if (!doMiniscopeConj(d_opts) || !qa.isStandard())
   {
     return body;
   }
@@ -1719,7 +1719,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
 }
 
 //computes miniscoping, also eliminates variables that do not occur free in body
-Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
+Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa, bool miniscopeConj, bool miniscopeFv) const
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
@@ -1735,8 +1735,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
   }else if( body.getKind()==AND ){
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
-    if (d_opts.quantifiers.miniscopeQuant
-        || d_opts.quantifiers.aggressiveMiniscopeQuant)
+    if (miniscopeConj)
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
@@ -1780,37 +1779,10 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
       return retVal;
     }
   }else if( body.getKind()==OR ){
-    if (d_opts.quantifiers.quantSplit)
+    if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
-    }
-    else if (d_opts.quantifiers.miniscopeQuantFreeVar
-             || d_opts.quantifiers.aggressiveMiniscopeQuant)
-    {
-      // aggressive miniscoping implies that free variable miniscoping should
-      // be applied first
-      Node newBody = body;
-      NodeBuilder body_split(kind::OR);
-      NodeBuilder tb(kind::OR);
-      for (const Node& trm : body)
-      {
-        if (expr::hasSubterm(trm, args))
-        {
-          tb << trm;
-        }else{
-          body_split << trm;
-        }
-      }
-      if( tb.getNumChildren()==0 ){
-        return body_split;
-      }else if( body_split.getNumChildren()>0 ){
-        newBody = tb.getNumChildren()==1 ? tb.getChild( 0 ) : tb;
-        std::vector< Node > activeArgs;
-        computeArgVec2( args, activeArgs, newBody, qa.d_ipl );
-        body_split << mkForAll( activeArgs, newBody, qa );
-        return body_split.getNumChildren()==1 ? body_split.getChild( 0 ) : body_split;
-      }
     }
   }else if( body.getKind()==NOT ){
     Assert(isLiteral(body[0]));
@@ -1950,7 +1922,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
   {
-    return d_opts.quantifiers.aggressiveMiniscopeQuant && is_std;
+    return d_opts.quantifiers.miniscopeQuant==options::MiniscopeQuantMode::AGG && is_std;
   }
   else if (computeOption == COMPUTE_EXT_REWRITE)
   {
@@ -1970,7 +1942,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   else if (computeOption == COMPUTE_PRENEX)
   {
     return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
-           && !d_opts.quantifiers.aggressiveMiniscopeQuant && is_std;
+           && d_opts.quantifiers.miniscopeQuant!=options::MiniscopeQuantMode::AGG && is_std;
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
@@ -1999,8 +1971,10 @@ Node QuantifiersRewriter::computeOperation(Node f,
         return f;
       }
     }
+    bool miniscopeConj = doMiniscopeConj(d_opts);
+    bool miniscopeFv  = doMiniscopeFv(d_opts);
     //return directly
-    return computeMiniscoping(f, qa);
+    return computeMiniscoping(f, qa, miniscopeConj, miniscopeFv);
   }
   std::vector<Node> args(f[0].begin(), f[0].end());
   Node n = f[1];
@@ -2057,6 +2031,17 @@ Node QuantifiersRewriter::computeOperation(Node f,
       return NodeManager::currentNM()->mkNode(kind::FORALL, children );
     }
   }
+}
+bool QuantifiersRewriter::doMiniscopeConj(const Options& opts)
+{
+  options::MiniscopeQuantMode mqm = opts.quantifiers.miniscopeQuant;
+  return mqm == options::MiniscopeQuantMode::CONJ_AND_FV || mqm == options::MiniscopeQuantMode::CONJ || mqm == options::MiniscopeQuantMode::AGG;
+}
+
+bool QuantifiersRewriter::doMiniscopeFv(const Options& opts)
+{
+  options::MiniscopeQuantMode mqm = opts.quantifiers.miniscopeQuant;
+  return mqm == options::MiniscopeQuantMode::CONJ_AND_FV || mqm == options::MiniscopeQuantMode::FV || mqm == options::MiniscopeQuantMode::AGG;
 }
 
 bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {

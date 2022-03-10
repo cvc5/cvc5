@@ -1613,11 +1613,6 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // should use full effort cbqi for single invocation and repair const
     opts.quantifiers.cegqiFullEffort = true;
   }
-  if (opts.quantifiers.sygusRew)
-  {
-    opts.quantifiers.sygusRewSynth = true;
-    opts.quantifiers.sygusRewVerify = true;
-  }
   if (opts.quantifiers.sygusRewSynthInput)
   {
     // If we are using synthesis rewrite rules from input, we use
@@ -1683,15 +1678,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   // do not miniscope
   if (!opts.quantifiers.miniscopeQuantWasSetByUser)
   {
-    opts.quantifiers.miniscopeQuant = false;
-  }
-  if (!opts.quantifiers.miniscopeQuantFreeVarWasSetByUser)
-  {
-    opts.quantifiers.miniscopeQuantFreeVar = false;
-  }
-  if (!opts.quantifiers.quantSplitWasSetByUser)
-  {
-    opts.quantifiers.quantSplit = false;
+    opts.quantifiers.miniscopeQuant = options::MiniscopeQuantMode::OFF;
   }
   // do not do macros
   if (!opts.quantifiers.macrosQuantWasSetByUser)
