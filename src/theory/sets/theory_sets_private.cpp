@@ -1137,10 +1137,10 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
           TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Trace("sets-model")
-                << "m->getRepresentative(" << itmm.first
-                << ")= " << m->getRepresentative(itmm.first) << std::endl;
-            Node t = nm->mkSingleton(elementType, itmm.first);
+            // when we have y -> (set.member x S) where rep(x)=y, we use x
+            // in the model here. Using y may not be legal with respect to
+            // subtyping.
+            Node t = nm->mkSingleton(elementType, itmm.second[0]);
             els.push_back(t);
           }
         }
