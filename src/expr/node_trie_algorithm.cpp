@@ -62,7 +62,7 @@ void nodeTriePathCompareInternal(const TNodeTrie* t1,
   }
   else
   {
-    Assert (t1 != t2);
+    Assert(t1 != t2);
     // considering two different paths, take the product of their children
     for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
     {

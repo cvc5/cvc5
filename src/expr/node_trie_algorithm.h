@@ -41,7 +41,7 @@ class NodeTriePathCompareCallback
  * pairs of distinct leaves fa and fb in t at paths [fa1, ..., fan] and
  * [fb1, ..., fbn] in tsuch that ntpc.considerFork(fai, fbi) returns true for
  * all i = 1, ..., n.
- * 
+ *
  * A common use case for this algorithm is computing the care graph for theory
  * combination.
  */
