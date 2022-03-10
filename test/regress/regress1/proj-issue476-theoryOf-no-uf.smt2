@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic QF_ADTNIA)
 (set-info :status sat)
 (declare-sort u 0)
