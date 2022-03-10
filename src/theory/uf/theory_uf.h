@@ -152,7 +152,10 @@ private:
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 
-  bool areCareDisequalUF(TNode x, TNode y);
+  /**
+   * Overrides to ensure that pairs of lambdas are not considered disequal.
+   */
+  bool areCareDisequal(TNode x, TNode y) override;
   /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking
@@ -170,22 +173,8 @@ private:
   NotifyClass d_notify;
   /** Cache for isHigherOrderType */
   std::map<TypeNode, bool> d_isHoType;
-  class NodeTriePathCompareCallbackUF : public NodeTriePathCompareCallback
-  {
-   public:
-    NodeTriePathCompareCallbackUF(TheoryUF& uf) : d_uf(uf) {}
-    ~NodeTriePathCompareCallbackUF() {}
-    /** Whether to consider a pair in paths in a trie */
-    bool considerPath(TNode a, TNode b) override;
-    /** Process leaves */
-    void processData(TNode fa, TNode fb) override;
-
-   private:
-    /** Reference to theory UF */
-    TheoryUF& d_uf;
-  };
-  /** Instance of the above class */
-  NodeTriePathCompareCallbackUF d_ntpcUf;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryUF */
 
 }  // namespace uf

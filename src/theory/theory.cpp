@@ -506,6 +506,7 @@ void Theory::addCarePairArgs(TNode a, TNode b)
   {
     return;
   }
+  Assert (d_equalityEngine!=nullptr);
   // a and b are already equal
   if (d_equalityEngine->areEqual(a, b))
   {

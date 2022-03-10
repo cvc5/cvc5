@@ -123,7 +123,7 @@ class Theory : protected EnvObj
    * Are care disequal? Return true if x and y are shared terms that are
    * disequal according to the valuation.
    */
-  bool areCareDisequal(TNode x, TNode y);
+  virtual bool areCareDisequal(TNode x, TNode y);
 
   /**
    * The function should compute the care graph over the shared terms.
