@@ -20,7 +20,10 @@
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -56,7 +59,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_monomialSlv(d_env, &d_extState),
       d_splitZeroSlv(d_env, &d_extState),
       d_tangentPlaneSlv(d_env, &d_extState),
-      d_cadSlv(d_env, d_im, d_model),
+      d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
@@ -86,6 +89,19 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
   d_extTheory.registerTerm(n);
+  // logic exceptions based on the configuration of nl-ext: if we are a
+  // transcendental function, we require nl-ext=full.
+  Kind k = n.getKind();
+  if (isTranscendentalKind(k))
+  {
+    if (options().arith.nlExt != options::NlExtMode::FULL)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " requires nl-ext mode to be set to value 'full'";
+      throw LogicException(ss.str());
+    }
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -223,9 +239,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
       return false;
     }
   }
-  if (options().arith.nlCad)
+  if (options().arith.nlCov)
   {
-    d_cadSlv.constructModelIfAvailable(passertions);
+    d_covSlv.constructModelIfAvailable(passertions);
   }
 
   Trace("nl-ext-cm") << "-----" << std::endl;
@@ -442,8 +458,8 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     {
       case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
       case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
-      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
-      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::COVERINGS_FULL: d_covSlv.checkFull(); break;
+      case InferStep::COVERINGS_INIT: d_covSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;

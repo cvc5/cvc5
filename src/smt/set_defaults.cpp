@@ -464,8 +464,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // cases where we need produce models
   if (!opts.smt.produceModels
-      && (opts.smt.produceAssignments || opts.quantifiers.sygusRewSynthCheck
-          || usesSygus(opts)))
+      && (opts.smt.produceAssignments || usesSygus(opts)))
   {
     verbose(1) << "SolverEngine: turning on produce-models" << std::endl;
     opts.smt.produceModels = true;
@@ -798,10 +797,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 #ifdef CVC5_USE_POLY
   if (logic == LogicInfo("QF_UFNRA"))
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
+      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -815,10 +814,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
            && logic.areRealsUsed() && !logic.areIntegersUsed())
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
+      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -826,18 +825,18 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 #else
-  if (opts.arith.nlCad)
+  if (opts.arith.nlCov)
   {
-    if (opts.arith.nlCadWasSetByUser)
+    if (opts.arith.nlCovWasSetByUser)
     {
       throw OptionException(
-          "Cannot use --nl-cad without configuring with --poly.");
+          "Cannot use --nl-cov without configuring with --poly.");
     }
     else
     {
-      verbose(1) << "Cannot use --nl-cad without configuring with --poly."
+      verbose(1) << "Cannot use --nl-cov without configuring with --poly."
                  << std::endl;
-      opts.arith.nlCad = false;
+      opts.arith.nlCov = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
   }
@@ -964,6 +963,11 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
   else if (opts.quantifiers.globalNegate)
   {
     reason << "global-negate";
+    return true;
+  }
+  else if (opts.arrays.arraysWeakEquivalence)
+  {
+    reason << "arrays-weak-equiv";
     return true;
   }
   return false;
@@ -1448,8 +1452,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
       {
         opts.quantifiers.instNoEntail = false;
       }
-      if (!opts.quantifiers.instWhenModeWasSetByUser
-          && opts.quantifiers.cegqiModel)
+      if (!opts.quantifiers.instWhenModeWasSetByUser)
       {
         // only instantiation should happen at last call when model is avaiable
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;

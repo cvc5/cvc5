@@ -68,7 +68,7 @@ poly::UPolynomial as_poly_upolynomial(const cvc5::Node& n,
  * Once the polynomial has been fully constructed, we can oftentimes ignore the
  * denominator (except for its sign, which is always positive, though).
  * This is the case if we are solely interested in the roots of the polynomials
- * (like in the context of CAD). If we need the actual polynomial (for example
+ * (like in the context of coverings). If we need the actual polynomial (for example
  * in the context of ICP) the second overload provides the denominator in the
  * third argument.
  */

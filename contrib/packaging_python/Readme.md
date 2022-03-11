@@ -40,7 +40,7 @@ The `mk_clean_wheel.sh`:
 
 To upload a wheel to test PyPi,
 
-    twine upload --repository testpypi -u $USERNAME -p $PASSWORD <path to wheel>
+    twine upload --repository testpypi -u $USERNAME -p $PASSWORD PATH_TO_WHEEL
 
 Note that you will need a TestPyPi login. Once it has been uploaded, you can
 test (from anywhere, not just the container) that the wheel works by installing

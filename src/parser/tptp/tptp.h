@@ -183,6 +183,8 @@ class Tptp : public Parser {
 
  private:
   void addArithmeticOperators();
+  /** is the name declared, if so, return the term for that name */
+  api::Term isTptpDeclared(const std::string& name);
 
   // In CNF variable are implicitly binded
   // d_freevar collect them
@@ -194,6 +196,13 @@ class Tptp : public Parser {
   // The set of expression that already have a bridge
   std::unordered_set<api::Term> d_r_converted;
   std::unordered_map<std::string, api::Term> d_distinct_objects;
+  /**
+   * TPTP automatically declares symbols as they are parsed inline. This
+   * requires using an auxiliary symbol table for such symbols. This must be
+   * independent of the main symbol table which is aware of quantifier
+   * scopes.
+   */
+  std::unordered_map<std::string, api::Term> d_auxSymbolTable;
 
   std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 

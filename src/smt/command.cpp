@@ -1914,7 +1914,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out) const
   }
   else
   {
-    d_solver->printInstantiations(out);
+    out << d_solver->getInstantiations();
   }
 }
 
@@ -2547,6 +2547,72 @@ void GetDifficultyCommand::toStream(std::ostream& out,
                                     Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetLearnedLiteralsCommand */
+/* -------------------------------------------------------------------------- */
+
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand() {}
+void GetLearnedLiteralsCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_result = solver->getLearnedLiterals();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetLearnedLiteralsCommand::printResult(std::ostream& out) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out);
+  }
+  else
+  {
+    out << "(" << std::endl;
+    for (const api::Term& lit : d_result)
+    {
+      out << lit << std::endl;
+    }
+    out << ")" << std::endl;
+  }
+}
+
+const std::vector<api::Term>& GetLearnedLiteralsCommand::getLearnedLiterals()
+    const
+{
+  return d_result;
+}
+
+Command* GetLearnedLiteralsCommand::clone() const
+{
+  GetLearnedLiteralsCommand* c = new GetLearnedLiteralsCommand;
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetLearnedLiteralsCommand::getCommandName() const
+{
+  return "get-learned-literals";
+}
+
+void GetLearnedLiteralsCommand::toStream(std::ostream& out,
+                                         int toDepth,
+                                         size_t dag,
+                                         Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetLearnedLiterals(out);
 }
 
 /* -------------------------------------------------------------------------- */

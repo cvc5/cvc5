@@ -102,6 +102,12 @@ namespace cvc5 {
 #define IS_POLY_BUILD false
 #endif /* CVC5_USE_POLY */
 
+#if CVC5_USE_COCOA
+#define IS_COCOA_BUILD true
+#else /* CVC5_USE_COCOA */
+#define IS_COCOA_BUILD false
+#endif /* CVC5_USE_COCOA */
+
 #if HAVE_LIBEDITLINE
 #define IS_EDITLINE_BUILD true
 #else /* HAVE_LIBEDITLINE */

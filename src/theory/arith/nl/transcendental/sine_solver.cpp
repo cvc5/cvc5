@@ -144,7 +144,6 @@ void SineSolver::doReductions()
           d_data->addModelBoundForPurifyTerm(tf, mvs, mvs);
         }
         reduced = true;
-        break;
       }
     }
     if (!reduced)
@@ -158,8 +157,9 @@ void SineSolver::doReductions()
   }
 }
 
-void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
+void SineSolver::doPhaseShift(TNode a, TNode new_a)
 {
+  TNode y = new_a[0];
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);

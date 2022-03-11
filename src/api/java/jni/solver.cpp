@@ -1785,6 +1785,22 @@ Java_io_github_cvc5_api_Solver_defineFunsRec(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Solver
+ * Method:    getLearnedLiterals
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Solver_getLearnedLiterals(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> assertions = solver->getLearnedLiterals();
+  jlongArray ret = getPointersFromObjects<Term>(env, assertions);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
  * Method:    getAssertions
  * Signature: (J)[J
  */
@@ -2293,6 +2309,23 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_blockModelValues(
   std::vector<Term> terms = getObjectsFromPointers<Term>(env, jTerms);
   solver->blockModelValues(terms);
   CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
+ * Method:    getInstantiations
+ * Signature: (J[J[J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Solver_getInstantiations(JNIEnv* env,
+                                        jobject,
+                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::string insts = solver->getInstantiations();
+  return env->NewStringUTF(insts.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*

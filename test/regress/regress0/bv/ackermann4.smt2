@@ -1,5 +1,6 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models
+; COMMAND-LINE: --bitblast=eager
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

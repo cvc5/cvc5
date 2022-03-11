@@ -100,9 +100,9 @@ const char* toString(InferenceId i)
       return "ARITH_NL_POW2_MONOTONE_REFINE";
     case InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE:
       return "ARITH_NL_POW2_TRIVIAL_CASE_REFINE";
-    case InferenceId::ARITH_NL_CAD_CONFLICT: return "ARITH_NL_CAD_CONFLICT";
-    case InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL:
-      return "ARITH_NL_CAD_EXCLUDED_INTERVAL";
+    case InferenceId::ARITH_NL_COVERING_CONFLICT: return "ARITH_NL_COVERING_CONFLICT";
+    case InferenceId::ARITH_NL_COVERING_EXCLUDED_INTERVAL:
+      return "ARITH_NL_COVERING_EXCLUDED_INTERVAL";
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";
@@ -129,7 +129,8 @@ const char* toString(InferenceId i)
       return "BAGS_DIFFERENCE_SUBTRACT";
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
-    case InferenceId::BAGS_MAP: return "BAGS_MAP";
+    case InferenceId::BAGS_MAP_DOWN: return "BAGS_MAP_DOWN";
+    case InferenceId::BAGS_MAP_UP: return "BAGS_MAP_UP";
     case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
     case InferenceId::BAGS_FILTER_UP: return "BAGS_FILTER_UP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
@@ -330,7 +331,6 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_UP_CLOSURE: return "SETS_UP_CLOSURE";
     case InferenceId::SETS_UP_CLOSURE_2: return "SETS_UP_CLOSURE_2";
     case InferenceId::SETS_UP_UNIV: return "SETS_UP_UNIV";
-    case InferenceId::SETS_UNIV_TYPE: return "SETS_UNIV_TYPE";
     case InferenceId::SETS_CARD_SPLIT_EMPTY: return "SETS_CARD_SPLIT_EMPTY";
     case InferenceId::SETS_CARD_CYCLE: return "SETS_CARD_CYCLE";
     case InferenceId::SETS_CARD_EQUAL: return "SETS_CARD_EQUAL";

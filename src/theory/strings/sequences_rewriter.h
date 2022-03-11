@@ -40,6 +40,12 @@ class SequencesRewriter : public TheoryRewriter
   StringsEntail& getStringsEntail();
 
  protected:
+  /** rewrite regular expression all
+   *
+   * This is the entry point for post-rewriting applications of re.all.
+   * Returns the rewritten form of node.
+   */
+  Node rewriteAllRegExp(TNode node);
   /** rewrite regular expression concatenation
    *
    * This is the entry point for post-rewriting applications of re.++.

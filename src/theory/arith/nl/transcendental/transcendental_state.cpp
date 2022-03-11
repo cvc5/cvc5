@@ -15,6 +15,7 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
@@ -72,19 +73,19 @@ void TranscendentalState::init(const std::vector<Node>& xts,
   d_funcMap.clear();
   d_tf_region.clear();
 
+  Trace("nl-ext-trans-init") << "TranscendentalState::init" << std::endl;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
   NodeMap::const_iterator itp;
-  for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
+  for (const Node& a : xts)
   {
+    Kind ak = a.getKind();
     // Ignore if it is not a transcendental
-    if (!isTranscendentalKind(xts[i].getKind()))
+    if (!isTranscendentalKind(ak))
     {
       continue;
     }
-    Node a = xts[i];
-    Kind ak = a.getKind();
     bool consider = true;
     // if we've already assigned a purified term
     itp = d_trPurify.find(a);
@@ -110,17 +111,18 @@ void TranscendentalState::init(const std::vector<Node>& xts,
           }
         }
       }
-      if (!consider)
-      {
-        // must assign a purified term
-        needsPurify.push_back(a);
-      }
-      else
+      if (consider)
       {
         // assume own purified
         d_trPurify[a] = a;
         d_trPurifies[a] = a;
       }
+    }
+    Trace("nl-ext-trans-init") << "extf: " << a << ", consider=" << consider << std::endl;
+    if (!consider)
+    {
+      // must assign a purified term
+      needsPurify.push_back(a);
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
     {
@@ -187,6 +189,7 @@ void TranscendentalState::ensureCongruence(TNode a,
     Assert(aa.getNumChildren() == a.getNumChildren());
     Node mvaa = d_model.computeAbstractModelValue(a);
     Node mvaaa = d_model.computeAbstractModelValue(aa);
+    Trace("nl-ext-trans-init") << "...congruent to " << aa << std::endl;
     if (mvaa != mvaaa)
     {
       std::vector<Node> exp;
@@ -197,12 +200,14 @@ void TranscendentalState::ensureCongruence(TNode a,
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       Node cong_lemma = expn.impNode(a.eqNode(aa));
       d_im.addPendingLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
+      Trace("nl-ext-trans-init") << "...needs lemma" << std::endl;
     }
   }
   else
   {
     // new representative of congruence class
     d_funcMap[a.getKind()].push_back(a);
+    Trace("nl-ext-trans-init") << "...new rep" << std::endl;
   }
   // add to congruence class
   d_funcCongClass[aa].push_back(a);
@@ -452,6 +457,27 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
 bool TranscendentalState::isPurified(TNode n) const
 {
   return d_trPurifies.find(n) != d_trPurifies.end();
+}
+
+Node TranscendentalState::getPurifiedForm(TNode n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  NodeMap::const_iterator it = d_trPurify.find(n);
+  if (it != d_trPurify.end())
+  {
+    return it->second;
+  }
+  Kind k = n.getKind();
+  Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
+  Node y = sm->mkSkolemFunction(
+      SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+  Node new_n = nm->mkNode(k, y);
+  d_trPurify[n] = new_n;
+  d_trPurify[new_n] = new_n;
+  d_trPurifies[new_n] = n;
+  d_trPurifyVars.insert(y);
+  return new_n;
 }
 
 bool TranscendentalState::addModelBoundForPurifyTerm(TNode n, TNode l, TNode u)

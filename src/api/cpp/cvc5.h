@@ -1585,6 +1585,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(const Solver* slv,
+                                             const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
@@ -2881,8 +2884,8 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
  * (`std::map<std::string, uint64_t>`).
  * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
  * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
- * It is possible to query whether this statistic is an expert statistic by
- * `isExpert()` and whether its value is the default value by `isDefault()`.
+ * It is possible to query whether this statistic is an internal statistic by
+ * `isInternal()` and whether its value is the default value by `isDefault()`.
  */
 class CVC5_EXPORT Stat
 {
@@ -2903,10 +2906,10 @@ class CVC5_EXPORT Stat
   Stat& operator=(const Stat& s);
 
   /**
-   * Is this value intended for experts only?
-   * @return Whether this is an expert statistic.
+   * Is this value intended for internal use only?
+   * @return Whether this is an internal statistic.
    */
-  bool isExpert() const;
+  bool isInternal() const;
   /**
    * Does this value hold the default value?
    * @return Whether this is a defaulted statistic.
@@ -2955,9 +2958,9 @@ class CVC5_EXPORT Stat
   const HistogramData& getHistogram() const;
 
  private:
-  Stat(bool expert, bool def, StatData&& sd);
-  /** Whether this statistic is only meant for experts */
-  bool d_expert;
+  Stat(bool internal, bool def, StatData&& sd);
+  /** Whether this statistic is only meant for internal use */
+  bool d_internal;
   /** Whether this statistic has the default value */
   bool d_default;
   std::unique_ptr<StatData> d_data;
@@ -2975,7 +2978,7 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
  * will not be invalidated if the solver is destroyed.
  * Iterating on this class (via `begin()` and `end()`) shows only public
  * statistics that have been changed. By passing appropriate flags to
- * `begin()`, statistics that are expert, defaulted, or both, can be
+ * `begin()`, statistics that are internal, defaulted, or both, can be
  * included as well. A single statistic value is represented as `Stat`.
  */
 class CVC5_EXPORT Statistics
@@ -3002,12 +3005,12 @@ class CVC5_EXPORT Statistics
    private:
     iterator(BaseType::const_iterator it,
              const BaseType& base,
-             bool expert,
+             bool internal,
              bool defaulted);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
-    bool d_showExpert = false;
+    bool d_showInternal = false;
     bool d_showDefault = false;
   };
 
@@ -3021,12 +3024,12 @@ class CVC5_EXPORT Statistics
   const Stat& get(const std::string& name);
   /**
    * Begin iteration over the statistics values.
-   * By default, only entries that are public (non-expert) and have been set
+   * By default, only entries that are public and have been set
    * are visible while the others are skipped.
-   * @param expert If set to true, expert statistics are shown as well.
+   * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool expert = false, bool defaulted = false) const;
+  iterator begin(bool internal = false, bool defaulted = false) const;
   /** End iteration */
   iterator end() const;
 
@@ -4146,6 +4149,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   *
+   * .. note::
+   *   In contrast to SMT-LIB, the API does not distinguish between named and
+   *   unnamed assertions when producing an unsatisfiable core. Additionally,
+   *   the API allows this option to be called after a check with assumptions.
+   *   A subset of those assumptions may be included in the unsatisfiable core
+   *   returned by this method.
    * \endverbatim
    *
    * @return a set of terms representing the unsatisfiable core
@@ -4180,6 +4190,14 @@ class CVC5_EXPORT Solver
    * proof-format-mode.
    */
   std::string getProof() const;
+
+  /**
+   * Get learned literals
+   *
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
+   */
+  std::vector<Term> getLearnedLiterals() const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4228,9 +4246,7 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>` \endverbatim
    * has been set.
    *
    * @param v The term in question
@@ -4250,8 +4266,6 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * \endverbatim
-   *
    * \endverbatim
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
@@ -4572,10 +4586,10 @@ class CVC5_EXPORT Solver
   void blockModelValues(const std::vector<Term>& terms) const;
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * @return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  void printInstantiations(std::ostream& out) const;
+  std::string getInstantiations() const;
 
   /**
    * Push (a) level(s) to the assertion stack.

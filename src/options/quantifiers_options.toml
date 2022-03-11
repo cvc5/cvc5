@@ -1421,7 +1421,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-rr-synth-check"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
@@ -1558,22 +1558,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
-
-[[option]]
-  name       = "cegqiSat"
-  category   = "regular"
-  long       = "cegqi-sat"
-  type       = "bool"
-  default    = "true"
-  help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
-
-[[option]]
-  name       = "cegqiModel"
-  category   = "regular"
-  long       = "cegqi-model"
-  type       = "bool"
-  default    = "true"
-  help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cegqiAll"

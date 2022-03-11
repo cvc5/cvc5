@@ -59,7 +59,7 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::SELECT);
   // d_equalityEngine->addFunctionKind(kind::STORE);
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH_TOTAL);
@@ -154,6 +154,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
+  Assert(nn.getType().isSubtypeOf(n.getType()));
   return nn;
 }
 
@@ -784,7 +785,7 @@ bool TheoryModel::isBaseModelValue(TNode n) const
   }
   Kind k = n.getKind();
   if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-      || k == kind::WITNESS || k == kind::PI)
+      || k == kind::WITNESS)
   {
     // we are a value if we are one of the above kinds
     return true;
@@ -826,8 +827,17 @@ bool TheoryModel::isValue(TNode n) const
         finishedComputing = true;
         currentReturn = true;
       }
-      else if (cur.getNumChildren() == 0 || rewrite(cur) != cur)
+      else if (cur.getNumChildren() == 0)
       {
+        // PI is a (non-base) value. We require it as a special case here
+        // since nullary operators are represented internal as variables.
+        // All other non-constant terms with zero children are not values.
+        finishedComputing = true;
+        currentReturn = (cur.getKind() == kind::PI);
+      }
+      else if (rewrite(cur) != cur)
+      {
+        // non-rewritten terms are never model values
         finishedComputing = true;
         currentReturn = false;
       }
@@ -839,7 +849,11 @@ bool TheoryModel::isValue(TNode n) const
     }
     if (!finishedComputing)
     {
-      bool hasOperator = cur.hasOperator();
+      // The only non-constant operators we consider are APPLY_UF and
+      // APPLY_SELECTOR. All other operators are either builtin, or should be
+      // considered constants, e.g. constructors.
+      Kind k = cur.getKind();
+      bool hasOperator = k == kind::APPLY_UF || k == kind::APPLY_SELECTOR;
       size_t nextChildIndex = v.second;
       if (hasOperator && nextChildIndex > 0)
       {

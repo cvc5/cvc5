@@ -1223,9 +1223,10 @@ def test_get_unsat_core2(solver):
         solver.getUnsatCore()
 
 
-def test_get_unsat_core3(solver):
+def test_get_unsat_core_and_proof(solver):
     solver.setOption("incremental", "true")
     solver.setOption("produce-unsat-cores", "true")
+    solver.setOption("produce-proofs", "true");
 
     uSort = solver.mkUninterpretedSort("u")
     intSort = solver.getIntegerSort()
@@ -1258,6 +1259,28 @@ def test_get_unsat_core3(solver):
         solver.assertFormula(t)
     res = solver.checkSat()
     assert res.isUnsat()
+    solver.getProof()
+
+def test_learned_literals(solver):
+    solver.setOption("produce-learned-literals", "true")
+    with pytest.raises(RuntimeError):
+        solver.getLearnedLiterals()
+    solver.checkSat()
+    solver.getLearnedLiterals()
+
+def test_learned_literals2(solver):
+    solver.setOption("produce-learned-literals", "true")
+    intSort = solver.getIntegerSort()
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    zero = solver.mkInteger(0)
+    ten = solver.mkInteger(10)
+    f0 = solver.mkTerm(Kind.Geq, x, ten)
+    f1 = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Geq, zero, x), solver.mkTerm(Kind.Geq, y, zero))
+    solver.assertFormula(f0)
+    solver.assertFormula(f1)
+    solver.checkSat()
+    solver.getLearnedLiterals()
 
 
 def test_get_value1(solver):

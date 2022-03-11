@@ -266,10 +266,12 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
+      TypeNode type = n.getType();
+      TypeNode elemType = type.getSequenceElementType();
       if (snvec.empty())
       {
         out << "(as seq.empty ";
-        toStreamType(out, n.getType());
+        toStreamType(out, type);
         out << ")";
       }
       else if (snvec.size() > 1)
@@ -277,13 +279,17 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "(seq.++";
         for (const Node& snvc : snvec)
         {
-          out << " (seq.unit " << snvc << ")";
+          out << " (seq.unit ";
+          toStreamCastToType(out, snvc, toDepth, elemType);
+          out << ")";
         }
         out << ")";
       }
       else
       {
-        out << "(seq.unit " << snvec[0] << ")";
+        out << "(seq.unit ";
+        toStreamCastToType(out, snvec[0], toDepth, elemType);
+        out << ")";
       }
       break;
     }
@@ -711,6 +717,18 @@ void Smt2Printer::toStream(std::ostream& out,
     stillNeedToPrintParams = false;
     break;
 
+  // strings
+  case kind::SEQ_UNIT:
+  {
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getSequenceElementType();
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << ")";
+    return;
+  }
+  break;
+
   // sets
   case kind::SET_SINGLETON:
   {
@@ -825,7 +843,6 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   break;
-  case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
@@ -953,7 +970,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
         Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindString(n.getKind(), d_variant) << ' ';
+        out << " (" << smtKindStringOf(n, d_variant) << ' ';
         parens << ')';
         ++c;
       } else {
@@ -1229,6 +1246,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
   case kind::REGEXP_NONE: return "re.none";
+  case kind::REGEXP_ALL: return "re.all";
   case kind::REGEXP_ALLCHAR: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
@@ -1267,6 +1285,35 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // output that support for the kind needs to be added here.
   // no SMT way to print these
   return kind::kindToString(k);
+}
+
+std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
+{
+  Kind k = n.getKind();
+  if (n.getNumChildren() > 0 && n[0].getType().isSequence())
+  {
+    // this method parallels api::Term::getKind
+    switch (k)
+    {
+      case kind::STRING_CONCAT: return "seq.concat";
+      case kind::STRING_LENGTH: return "seq.len";
+      case kind::STRING_SUBSTR: return "seq.extract";
+      case kind::STRING_UPDATE: return "seq.update";
+      case kind::STRING_CHARAT: return "seq.at";
+      case kind::STRING_CONTAINS: return "seq.contains";
+      case kind::STRING_INDEXOF: return "seq.indexof";
+      case kind::STRING_REPLACE: return "seq.replace";
+      case kind::STRING_REPLACE_ALL: return "seq.replace_all";
+      case kind::STRING_REV: return "seq.rev";
+      case kind::STRING_PREFIX: return "seq.prefixof";
+      case kind::STRING_SUFFIX: return "seq.suffixof";
+      default:
+        // fall through to conversion below
+        break;
+    }
+  }
+  // by default
+  return smtKindString(k, v);
 }
 
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
@@ -1695,6 +1742,11 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   out << "(get-difficulty)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  out << "(get-learned-literals)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
