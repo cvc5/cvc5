@@ -536,6 +536,7 @@ set(regress_0_tests
   regress0/datatypes/par-updater-type-rule.smt2 
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
+  regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -810,6 +811,7 @@ set(regress_0_tests
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
+  regress0/nl/nta/proj-issue483-arccos-oob.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sin-sym-schema.smt2
@@ -928,6 +930,7 @@ set(regress_0_tests
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/post-asserts-output.smt2
+  regress0/printer/pre-asserts-output.smt2
   regress0/printer/print_subs.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
@@ -1751,6 +1754,7 @@ set(regress_1_tests
   regress1/bags/murxla1.smt2
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
+  regress1/bags/murxla4.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
@@ -1973,7 +1977,6 @@ set(regress_1_tests
   regress1/nl/poly-1025.smt2
   regress1/nl/proj-365-is-int-pi.smt2
   regress1/nl/proj-issue215.smt2
-  regress1/nl/proj-issue231.smt2
   regress1/nl/proj-issue232.smt2
   regress1/nl/proj-issue253.smt2
   regress1/nl/proj-issue279.smt2
@@ -2015,6 +2018,7 @@ set(regress_1_tests
   regress1/non-fatal-errors.smt2
   regress1/proj-issue175.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
+  regress1/proj-issue476-theoryOf-no-uf.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -2206,7 +2210,6 @@ set(regress_1_tests
   regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2
   regress1/quantifiers/proj-issue151-2.smt2
   regress1/quantifiers/proj-issue155.smt2
-  regress1/quantifiers/proj-issue285.smt2
   regress1/quantifiers/proj-issue295.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
@@ -3058,6 +3061,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # times out on various builds
+  regress1/nl/proj-issue231.smt2
   # times out after changes to nl-ext in #8236
   regress1/nl/proj-issue251.smt2
   # slow with sygus-inference after removing anti-skolemization
@@ -3070,6 +3075,8 @@ set(regression_disabled_tests
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build, ok with other builds:
   regress1/quantifiers/model_6_1_bv.smt2
+  # time out on some regressions
+  regress1/quantifiers/proj-issue285.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2

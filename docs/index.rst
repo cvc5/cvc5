@@ -19,6 +19,7 @@ Table of Contents
    api/api
    options
    output-tags
+   proofs/proofs
    resource-limits
    statistics
    examples/examples
