@@ -11,7 +11,6 @@
 # directory for licensing information.
 # #############################################################################
 ##
-
 """
 This script implements KindsParser which
 parses the header file cvc5/src/api/cpp/cvc5_kind.h
@@ -44,15 +43,6 @@ BLOCK_COMMENT_END = '*/'
 MACRO_BLOCK_BEGIN = '#if 0'
 MACRO_BLOCK_END = '#endif'
 
-# Format Kind Names
-# special cases for format_name
-_IS = '_IS'
-# replacements after some preprocessing
-replacements = {
-    'Bitvector': 'BV',
-    'Floatingpoint': 'FP'
-}
-
 
 class KindsParser:
     tokenmap = {
@@ -61,8 +51,6 @@ class KindsParser:
     }
 
     def __init__(self):
-        # dictionary from C++ Kind name to shortened name
-        self.kinds = OrderedDict()
         # dictionary from shortened name to documentation comment
         self.kinds_doc = OrderedDict()
         # the end token for the current type of block
@@ -77,46 +65,9 @@ class KindsParser:
 
     def get_comment(self, kind_name):
         '''
-        Look up a documentation comment for a Kind by name
-        Accepts both full C++ name and shortened name
+        Look up a documentation comment for a Kind by C++ name
         '''
-        try:
-            return self.kinds_doc[kind_name]
-        except KeyError:
-            return self.kinds_doc[self.kinds[kind_name]]
-
-    def format_name(self, name):
-        '''
-        In the Python API, each Kind name is reformatted for easier use
-
-        The naming scheme is:
-           1. capitalize the first letter of each word (delimited by underscores)
-           2. make the rest of the letters lowercase
-           3. replace Floatingpoint with FP
-           4. replace Bitvector with BV
-
-        There is one exception:
-           FLOATINGPOINT_IS_NAN  --> FPIsNan
-
-        For every "_IS" in the name, there's an underscore added before step 1,
-           so that the word after "Is" is capitalized
-
-        Examples:
-           BITVECTOR_ADD       -->  BVAdd
-           APPLY_SELECTOR      -->  ApplySelector
-           FLOATINGPOINT_IS_NAN -->  FPIsNan
-           SET_MINUS            -->  Setminus
-
-        See the generated .pxi file for an explicit mapping
-        '''
-        name = name.replace(_IS, _IS + US)
-        words = [w.capitalize() for w in name.lower().split(US)]
-        name = "".join(words)
-
-        for og, new in replacements.items():
-            name = name.replace(og, new)
-
-        return name
+        return self.kinds_doc[kind_name]
 
     def format_comment(self, comment):
         '''
@@ -126,10 +77,10 @@ class KindsParser:
             "Expecting to start with /* but got \"{}\"".format(comment[:2])
         assert comment[-2:] == '*/', \
             "Expecting to end with */ but got \"{}\"".format(comment[-2:])
-        comment = comment[2:-2].strip('*\n')   # /** ... */ -> ...
-        comment = textwrap.dedent(comment)     # remove indentation
-        comment = comment.replace('\n*', '\n') # remove leading "*""
-        comment = textwrap.dedent(comment)     # remove indentation
+        comment = comment[2:-2].strip('*\n')  # /** ... */ -> ...
+        comment = textwrap.dedent(comment)  # remove indentation
+        comment = comment.replace('\n*', '\n')  # remove leading "*""
+        comment = textwrap.dedent(comment)  # remove indentation
         comment = comment.replace('\\rst', '').replace('\\endrst', '')
         comment = comment.strip()  # remove leading and trailing spaces
         return comment
@@ -187,16 +138,14 @@ class KindsParser:
             elif self.in_kinds:
                 if line == OCB:
                     continue
+                name = line
                 if EQ in line:
-                    line = line[:line.find(EQ)].strip()
+                    name = line[:line.find(EQ)].strip()
                 elif C in line:
-                    line = line[:line.find(C)].strip()
-                fmt_name = self.format_name(line)
-                self.kinds[line] = fmt_name
+                    name = line[:line.find(C)].strip()
                 fmt_comment = self.format_comment(self.latest_block_comment)
-                self.kinds_doc[fmt_name] = fmt_comment
+                self.kinds_doc[name] = fmt_comment
             elif ENUM_START in line:
                 self.in_kinds = True
                 continue
         f.close()
-
