@@ -18,8 +18,6 @@
 #ifndef CVC5__EXPR__NODE_TRIE_ALGORITHM_H
 #define CVC5__EXPR__NODE_TRIE_ALGORITHM_H
 
-#include <map>
-
 #include "expr/node_trie.h"
 
 namespace cvc5 {
