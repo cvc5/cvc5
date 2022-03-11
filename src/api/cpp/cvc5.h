@@ -4422,11 +4422,11 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param conj the conjecture term
-   * @param output a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj,
+   *        or the null term if such a term cannot be found.
    */
-  bool getInterpolant(const Term& conj, Term& output) const;
+  Term getInterpolant(const Term& conj) const;
 
   /**
    * Get an interpolant
@@ -4445,11 +4445,11 @@ class CVC5_EXPORT Solver
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
-   * @param output a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that A->I and I->B are valid, where A is the
+   *         current set of assertions and B is given in the input by conj,
+   *         or the null term if such a term cannot be found.
    */
-  bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
+  Term getInterpolant(const Term& conj, Grammar& grammar) const;
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
@@ -4469,12 +4469,11 @@ class CVC5_EXPORT Solver
    * mode different from `none`.
    * \endverbatim
    *
-   * @param output a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj
-   *        on the last call to getInterpolant.
-   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   * @return a Term I such that A->I and I->B are valid, where A is the
+   *         current set of assertions and B is given in the input by conj
+   *         on the last call to getInterpolant.
    */
-  bool getInterpolantNext(Term& output) const;
+  Term getInterpolantNext() const;
 
   /**
    * Get an abduct.
@@ -4491,13 +4490,13 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param conj the conjecture term
-   * @param output a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
-   *               and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
-   *               @f$A@f$ is the current set of assertions and @f$B@f$ is
-   *               given in the input by ``conj``.
-   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   * @return a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
+   *         and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
+   *         @f$A@f$ is the current set of assertions and @f$B@f$ is
+   *         given in the input by ``conj``, or the null term if such a term
+   *         cannot be found.
    */
-  bool getAbduct(const Term& conj, Term& output) const;
+  Term getAbduct(const Term& conj) const;
 
   /**
    * Get an abduct.
@@ -4515,13 +4514,12 @@ class CVC5_EXPORT Solver
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct @f$C@f$
-   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   * @return a term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        ``conj``
-   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   *        ``conj``, or the null term if such a term cannot be found.
    */
-  bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
+  Term getAbduct(const Term& conj, Grammar& grammar) const;
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -4539,13 +4537,13 @@ class CVC5_EXPORT Solver
    * :ref:`produce-abducts <lbl-option-produce-abducts>`.
    * \endverbatim
    *
-   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   * @return a term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        the last call to getAbduct.
-   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   *        the last call to getAbduct, or the null term if such a term cannot
+   *        be found.
    */
-  bool getAbductNext(Term& output) const;
+  Term getAbductNext() const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
