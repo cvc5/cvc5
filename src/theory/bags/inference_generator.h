@@ -217,7 +217,6 @@ class InferenceGenerator
    *   (= (sum 0) 0)
    *   (= (sum preImageSize) (bag.count e skolem))
    *   (>= preImageSize 0)
-   *   (=> (bag.member e skolem) (>= preImageSize 1))
    *   (forall ((i Int))
    *          (let ((uf_i (uf i)))
    *            (let ((bag.count_uf_i (bag.count uf_i A)))
@@ -256,6 +255,7 @@ class InferenceGenerator
    *   (or
    *     (not (= (f x) y)
    *     (and
+   *       (<= (bag.count x A) (bag.count y n))
    *       (>= skolem 1)
    *       (<= skolem preImageSize)
    *       (= (uf skolem) x)))))
