@@ -17,72 +17,74 @@
 
 namespace cvc5 {
 
-void nodeTriePathPairProcessInternal(const TNodeTrie* t1,
-                                     const TNodeTrie* t2,
+void nodeTriePathPairProcess(const TNodeTrie* t,
                                      size_t arity,
-                                     size_t depth,
                                      NodeTriePathPairProcessCallback& ntpc)
 {
-  if (depth == arity)
+  std::vector<std::tuple<const TNodeTrie*, const TNodeTrie*, size_t>> visit;
+  std::tuple<const TNodeTrie*, const TNodeTrie*, size_t> cur;
+  const TNodeTrie* t1;
+  const TNodeTrie* t2;
+  size_t depth;
+  visit.emplace_back(t, nullptr, 0);
+  do
   {
-    // We are at the leaves. If we split the path, process the data.
-    if (t2 != nullptr)
+    cur = visit.back();
+    t1 = std::get<0>(cur);
+    t2 = std::get<1>(cur);
+    depth = std::get<2>(cur);
+    visit.pop_back();
+    if (depth == arity)
     {
-      ntpc.processData(t1->getData(), t2->getData());
-    }
-  }
-  else if (t2 == nullptr)
-  {
-    // we are exploring paths with a common prefix
-    if (depth < (arity - 1))
-    {
-      // continue exploring paths with common prefix, internal to each child
-      for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
+      // We are at the leaves. If we split the path, process the data.
+      if (t2 != nullptr)
       {
-        nodeTriePathPairProcessInternal(
-            &tt.second, nullptr, arity, depth + 1, ntpc);
+        ntpc.processData(t1->getData(), t2->getData());
       }
     }
-    // consider splitting the path at this node
-    for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
-         it != t1->d_data.end();
-         ++it)
+    else if (t2 == nullptr)
     {
-      std::map<TNode, TNodeTrie>::const_iterator it2 = it;
-      ++it2;
-      for (; it2 != t1->d_data.end(); ++it2)
+      // we are exploring paths with a common prefix
+      if (depth < (arity - 1))
       {
-        if (ntpc.considerPath(it->first, it2->first))
+        // continue exploring paths with common prefix, internal to each child
+        for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
         {
-          nodeTriePathPairProcessInternal(
-              &it->second, &it2->second, arity, depth + 1, ntpc);
+          visit.emplace_back(&tt.second, nullptr, depth + 1);
+        }
+      }
+      // consider splitting the path at this node
+      for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
+          it != t1->d_data.end();
+          ++it)
+      {
+        std::map<TNode, TNodeTrie>::const_iterator it2 = it;
+        ++it2;
+        for (; it2 != t1->d_data.end(); ++it2)
+        {
+          if (ntpc.considerPath(it->first, it2->first))
+          {
+            visit.emplace_back(&it->second, &it2->second, depth + 1);
+          }
         }
       }
     }
-  }
-  else
-  {
-    Assert(t1 != t2);
-    // considering two different paths, take the product of their children
-    for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
+    else
     {
-      for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
+      Assert(t1 != t2);
+      // considering two different paths, take the product of their children
+      for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
       {
-        if (ntpc.considerPath(tt1.first, tt2.first))
+        for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          nodeTriePathPairProcessInternal(
-              &tt1.second, &tt2.second, arity, depth + 1, ntpc);
+          if (ntpc.considerPath(tt1.first, tt2.first))
+          {
+            visit.emplace_back(&tt1.second, &tt2.second, depth + 1);
+          }
         }
       }
     }
-  }
-}
-
-void nodeTriePathPairProcess(const TNodeTrie* t,
-                             size_t n,
-                             NodeTriePathPairProcessCallback& ntpc)
-{
-  nodeTriePathPairProcessInternal(t, nullptr, n, 0, ntpc);
+  }while (!visit.empty());
 }
 
 }  // namespace cvc5
