@@ -69,7 +69,6 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_dtfCounter = 0;
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -307,15 +306,6 @@ void TheoryDatatypes::postCheck(Effort level)
                     }
                   }
                 }
-              }
-              //if we want to force an assignment of constructors to all ground eqc
-              //d_dtfCounter++;
-              if (!needSplit && options().datatypes.dtForceAssignment
-                  && d_dtfCounter % 2 == 0)
-              {
-                Trace("datatypes-force-assign") << "Force assignment for " << n << std::endl;
-                needSplit = true;
-                consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
               }
 
               if( needSplit ) {
