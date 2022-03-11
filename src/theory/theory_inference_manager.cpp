@@ -609,9 +609,8 @@ DecisionManager* TheoryInferenceManager::getDecisionManager()
 
 void TheoryInferenceManager::requirePhase(TNode n, bool pol)
 {
-  n = rewrite(n);
-  d_theoryState.getValuation().ensureLiteral(n);
-  return d_out.requirePhase(n, pol);
+  Node en = d_theoryState.getValuation().ensureLiteral(n);
+  return d_out.requirePhase(en, pol);
 }
 
 void TheoryInferenceManager::spendResource(Resource r)
