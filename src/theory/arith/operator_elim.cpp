@@ -357,11 +357,14 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(LT, var, pi));
         }
         Node cond;
-        if (k == ARCSINE || k == ARCCOSINE || k == ARCSECANT || k == ARCCOSECANT)
+        if (k == ARCSINE || k == ARCCOSINE || k == ARCSECANT
+            || k == ARCCOSECANT)
         {
           // -1 <= x <= 1
-          cond = nm->mkNode(AND, nm->mkNode(GEQ, node[0], nm->mkConstReal(Rational(-1))),
-                                            nm->mkNode(LEQ, node[0], nm->mkConstReal(Rational(1))));
+          cond = nm->mkNode(
+              AND,
+              nm->mkNode(GEQ, node[0], nm->mkConstReal(Rational(-1))),
+              nm->mkNode(LEQ, node[0], nm->mkConstReal(Rational(1))));
           if (k == ARCSECANT || k == ARCCOSECANT)
           {
             cond = cond.notNode();
