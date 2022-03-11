@@ -14,8 +14,8 @@
 (declare-fun a5 () Bool)
 (declare-fun a6 () Bool)
 
-(assert (= a1 (not (= (sin (arcsin x1)) x1))))
-(assert (= a3 (< (arccos x3) 0)))
+(assert (= a1 (and (<= (- 1) x1 1) (not (= (sin (arcsin x1)) x1)))))
+(assert (= a3 (and (<= (- 1) x3 1) (< (arccos x3) 0))))
 (assert (= a4 (> (arctan x4) 1.8)))
 
 (assert (or a1 a3 a4))
