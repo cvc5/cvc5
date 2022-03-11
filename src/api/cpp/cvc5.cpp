@@ -7563,7 +7563,7 @@ void Solver::pop(uint32_t nscopes) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(const Term& conj, Term& output) const
+Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7572,21 +7572,14 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result;
   TypeNode nullType;
-  bool success = d_slv->getInterpolant(*conj.d_node, nullType, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolant(*conj.d_node, nullType);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(const Term& conj,
-                            Grammar& grammar,
-                            Term& output) const
+Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7595,19 +7588,13 @@ bool Solver::getInterpolant(const Term& conj,
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result;
-  bool success =
-      d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolantNext(Term& output) const
+Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
@@ -7618,56 +7605,40 @@ bool Solver::getInterpolantNext(Term& output) const
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
-  Node result;
-  bool success = d_slv->getInterpolantNext(result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolantNext();
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbduct(const Term& conj, Term& output) const
+Term Solver::getAbduct(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result;
   TypeNode nullType;
-  bool success = d_slv->getAbduct(*conj.d_node, nullType, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbduct(*conj.d_node, nullType);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
+Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result;
-  bool success =
-      d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbductNext(Term& output) const
+Term Solver::getAbductNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
@@ -7677,13 +7648,8 @@ bool Solver::getAbductNext(Term& output) const
       << "Cannot get next abduct when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
-  Node result;
-  bool success = d_slv->getAbductNext(result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbductNext();
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
