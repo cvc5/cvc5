@@ -1250,6 +1250,7 @@ set(regress_0_tests
   regress0/sets/nonvar-univ.smt2
   regress0/sets/pre-proc-univ.smt2
   regress0/sets/proj-issue177.smt2
+  regress0/sets/proj-issue486-sets-split-eq.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
