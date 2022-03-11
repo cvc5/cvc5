@@ -2,6 +2,7 @@
 ; ERROR-SCRUBBER: grep -o "reconstruction to syntax failed."
 ; EXPECT-ERROR: reconstruction to syntax failed.
 ; EXPECT: unknown
+; REQUIRES: no-competition
 
 (set-logic LIA)
 
