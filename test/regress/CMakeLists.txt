@@ -1376,6 +1376,7 @@ set(regress_0_tests
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
   regress0/strings/proj-issue409-re-loop-none.smt2
+  regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
@@ -3030,8 +3031,6 @@ set(regression_disabled_tests
   regress0/bv/test00.smtv1.smt2
   # timeout after fixing upwards closure for relations
   regress0/rels/rel_tc_7.cvc.smt2
-  # timeout after changes to equality rewriting policy in strings
-  regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes
