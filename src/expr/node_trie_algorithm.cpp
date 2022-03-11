@@ -18,8 +18,8 @@
 namespace cvc5 {
 
 void nodeTriePathPairProcess(const TNodeTrie* t,
-                                     size_t arity,
-                                     NodeTriePathPairProcessCallback& ntpc)
+                             size_t arity,
+                             NodeTriePathPairProcessCallback& ntpc)
 {
   std::vector<std::tuple<const TNodeTrie*, const TNodeTrie*, size_t>> visit;
   std::tuple<const TNodeTrie*, const TNodeTrie*, size_t> cur;
@@ -55,8 +55,8 @@ void nodeTriePathPairProcess(const TNodeTrie* t,
       }
       // consider splitting the path at this node
       for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
-          it != t1->d_data.end();
-          ++it)
+           it != t1->d_data.end();
+           ++it)
       {
         std::map<TNode, TNodeTrie>::const_iterator it2 = it;
         ++it2;
@@ -84,7 +84,7 @@ void nodeTriePathPairProcess(const TNodeTrie* t,
         }
       }
     }
-  }while (!visit.empty());
+  } while (!visit.empty());
 }
 
 }  // namespace cvc5
