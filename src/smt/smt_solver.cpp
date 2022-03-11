@@ -17,6 +17,7 @@
 
 #include "options/main_options.h"
 #include "options/smt_options.h"
+#include "options/base_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
@@ -294,6 +295,17 @@ bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
     ismr[k.first] = k.second;
   }
 
+  if (isOutputOn(OutputTag::DEEP_RESTART))
+  {
+    output(OutputTag::DEEP_RESTART) << "(deep-restart (";
+    bool firstTime = true;
+    for (TNode lit : zll)
+    {
+      output(OutputTag::DEEP_RESTART) << (firstTime ? "" : " ") << lit;
+      firstTime = false;
+    }
+    output(OutputTag::DEEP_RESTART) << ")" << std::endl;
+  }
   for (TNode lit : zll)
   {
     Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
