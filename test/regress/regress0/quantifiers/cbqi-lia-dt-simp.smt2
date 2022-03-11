@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi --dt-rewrite-error-sel
+; COMMAND-LINE: --cegqi
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatypes ((List 0)) (((cons (head Int) (tail List)) (nil))))

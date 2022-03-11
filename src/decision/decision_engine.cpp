@@ -14,10 +14,6 @@
  */
 #include "decision/decision_engine.h"
 
-#include "decision/decision_engine_old.h"
-#include "options/decision_options.h"
-#include "prop/sat_solver.h"
-#include "smt/env.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
@@ -28,7 +24,8 @@ DecisionEngine::DecisionEngine(Env& env)
 {
 }
 
-void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
+                                prop::CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;
@@ -50,7 +47,7 @@ void DecisionEngineEmpty::addSkolemDefinition(TNode lem,
 }
 prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
-  return undefSatLiteral;
+  return prop::undefSatLiteral;
 }
 
 }  // namespace decision

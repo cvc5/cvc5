@@ -23,32 +23,32 @@
 (get-option :stats)
 (get-option :stats-all)
 (get-option :stats-every-query)
-(get-option :stats-expert)
+(get-option :stats-internal)
 
 (set-option :stats-all true)
 
 (get-option :stats)
 (get-option :stats-all)
 (get-option :stats-every-query)
-(get-option :stats-expert)
+(get-option :stats-internal)
 
 (set-option :stats false)
 
 (get-option :stats)
 (get-option :stats-all)
 (get-option :stats-every-query)
-(get-option :stats-expert)
+(get-option :stats-internal)
 
-(set-option :stats-expert true)
+(set-option :stats-internal true)
 
 (get-option :stats)
 (get-option :stats-all)
 (get-option :stats-every-query)
-(get-option :stats-expert)
+(get-option :stats-internal)
 
 (set-option :stats false)
 
 (get-option :stats)
 (get-option :stats-all)
 (get-option :stats-every-query)
-(get-option :stats-expert)
+(get-option :stats-internal)

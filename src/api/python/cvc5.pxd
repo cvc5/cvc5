@@ -297,14 +297,15 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
         void setOption(const string& option, const string& value) except +
-        bint getInterpolant(const Term& conj, Term& output) except +
-        bint getInterpolant(const Term& conj, Grammar& grammar, Term& output) except +
-        bint getInterpolantNext(const Term& conj) except +
-        bint getAbduct(const Term& conj, Term& output) except +
-        bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
-        bint getAbductNext(const Term& conj) except +
+        Term getInterpolant(const Term& conj) except +
+        Term getInterpolant(const Term& conj, Grammar& grammar) except +
+        Term getInterpolantNext() except +
+        Term getAbduct(const Term& conj) except +
+        Term getAbduct(const Term& conj, Grammar& grammar) except +
+        Term getAbductNext() except +
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
+        string getInstantiations() except +
 
     cdef cppclass Grammar:
         Grammar() except +
