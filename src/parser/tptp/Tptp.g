@@ -257,7 +257,12 @@ parseCommand returns [cvc5::Command* cmd = NULL]
         filename = filename.substr(0, filename.length() - 2);
       }
       seq->addCommand(new SetInfoCommand("filename", filename));
-      seq->addCommand(new CheckSatCommand());
+      if(PARSER_STATE->hasConjecture()) {
+        // note this does not impact how the TPTP status is reported currently
+        seq->addCommand(new CheckSatAssumingCommand((SOLVER->mkTrue()));
+      } else {
+        seq->addCommand(new CheckSatCommand());
+      }
       PARSER_STATE->preemptCommand(seq);
       cmd = NULL;
     }
