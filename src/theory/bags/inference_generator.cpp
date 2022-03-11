@@ -175,7 +175,7 @@ Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
 InferInfo InferenceGenerator::empty(Node n, Node e)
 {
   Assert(n.getKind() == BAG_EMPTY);
-  Assert(e.getType() == n.getType().getBagElementType());
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_EMPTY);
   Node skolem = getSkolem(n, inferInfo);
