@@ -3242,7 +3242,7 @@ TEST_F(TestApiBlackSolver, projIssue431)
   Term t488 = slv.mkTerm(Kind::APPLY_UF, {t31, t274});
   slv.assertFormula({t488});
   Term abduct;
-  slv.getAbduct(t488);
+  abduct = slv.getAbduct(t488);
 }
 
 }  // namespace test
