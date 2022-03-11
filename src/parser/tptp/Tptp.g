@@ -257,11 +257,7 @@ parseCommand returns [cvc5::Command* cmd = NULL]
         filename = filename.substr(0, filename.length() - 2);
       }
       seq->addCommand(new SetInfoCommand("filename", filename));
-      if(PARSER_STATE->hasConjecture()) {
-        seq->addCommand(new CheckSatCommand());
-      } else {
-        seq->addCommand(new CheckSatCommand());
-      }
+      seq->addCommand(new CheckSatCommand());
       PARSER_STATE->preemptCommand(seq);
       cmd = NULL;
     }
