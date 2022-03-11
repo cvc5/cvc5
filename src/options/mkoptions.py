@@ -683,78 +683,64 @@ def generate_cli_help(modules):
 
 def _sphinx_help_add(module, option, common, others):
     """Analyze an option and add it to either common or others."""
-    names = []
-    if option.long:
-        if option.long_opt:
-            names.append('{} = {}'.format(option.long_name, option.long_opt))
-        else:
-            names.append('{}'.format(option.long_name))
-
-    if option.alias:
-        if option.long_opt:
-            names.extend(
-                ['{} = {}'.format(a, option.long_opt) for a in option.alias])
-        else:
-            names.extend(['{}'.format(a) for a in option.alias])
-
-    if option.short:
-        if option.long_opt:
-            names.append('{} = {}'.format(option.short, option.long_opt))
-        else:
-            names.append('{}'.format(option.short))
-
-    modes = None
-    if option.mode:
-        modes = {}
-        for _, data in option.mode.items():
-            assert len(data) == 1
-            modes[data[0]['name']] = data[0].get('help', '')
-
-    data = {
-        'long_name': option.long_name,
-        'name': names,
-        'help': option.help,
-        'expert': option.category == 'expert',
-        'alternate': option.alternate,
-        'help_mode': option.help_mode,
-        'modes': modes,
-    }
-
     if option.category == 'common':
-        common.append(data)
+        common.append(option)
     else:
         if module.name not in others:
             others[module.name] = []
-        others[module.name].append(data)
+        others[module.name].append(option)
 
 
 def _sphinx_help_render_option(res, opt):
     """Render an option to be displayed with sphinx."""
-    indent = ' ' * 4
-    desc = '``{}``'
-    if opt['alternate']:
-        desc += ' (also ``--no-*``)'
-    val = indent + '{}'
+    names = []
+    if opt.short:
+        names.append(opt.short)
+    names.append(opt.long_name)
+    if opt.alias:
+        names.extend(opt.alias)
+    names = ' | '.join(names)
 
-    res.append('.. _lbl-option-{}:'.format(opt['long_name']))
+    if opt.long_opt:
+        names = names + ' = ' + opt.long_opt
+        if opt.type == 'std::string':
+            names = names + ' (string)'
+        elif is_numeric_cpp_type(opt.type):
+            names = names + ' ({})'.format(opt.type)
+        elif opt.mode:
+            modes = [
+                d[0]['name'] for d in opt.mode.values()
+            ]
+            names = names + ' (' + ' | '.join(modes) + ')'
+
+    desc = '``{}``'.format(names)
+    if opt.alternate:
+        desc += ' (also ``--no-*``)'
+
+    res.append('.. _lbl-option-{}:'.format(opt.long_name))
     res.append('')
-    if opt['expert']:
+    if opt.category == 'expert':
         res.append('.. rst-class:: expert-option simple')
         res.append('')
-        desc += '\n{0}.. rst-class:: float-right\n\n{0}**[experts only]**\n'.format(indent)
+        desc += '''
+    .. rst-class:: float-right
 
-    res.append(desc.format(' | '.join(opt['name'])))
-    res.append(val.format(opt['help']))
+    **[experts only]**
+'''
 
-    if opt['modes']:
-        res.append(val.format(''))
-        res.append(val.format(opt['help_mode']))
-        res.append(val.format(''))
-        for k, v in opt['modes'].items():
-            if v == '':
+    res.append(desc)
+    res.append('    ' + opt.help)
+
+    if opt.mode:
+        res.append('    ')
+        res.append('    ' + opt.help_mode)
+        res.append('    ')
+        for value in opt.mode.values():
+            v = value[0]
+            if 'help' not in v:
                 continue
-            res.append(val.format(':{}: {}'.format(k, v)))
-    res.append(indent)
+            res.append('    :{}: {}'.format(v['name'], v['help']))
+    res.append('    ')
 
 
 def generate_sphinx_help(modules):
