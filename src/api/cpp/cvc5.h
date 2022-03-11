@@ -2884,8 +2884,8 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
  * (`std::map<std::string, uint64_t>`).
  * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
  * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
- * It is possible to query whether this statistic is an expert statistic by
- * `isExpert()` and whether its value is the default value by `isDefault()`.
+ * It is possible to query whether this statistic is an internal statistic by
+ * `isInternal()` and whether its value is the default value by `isDefault()`.
  */
 class CVC5_EXPORT Stat
 {
@@ -2906,10 +2906,10 @@ class CVC5_EXPORT Stat
   Stat& operator=(const Stat& s);
 
   /**
-   * Is this value intended for experts only?
-   * @return Whether this is an expert statistic.
+   * Is this value intended for internal use only?
+   * @return Whether this is an internal statistic.
    */
-  bool isExpert() const;
+  bool isInternal() const;
   /**
    * Does this value hold the default value?
    * @return Whether this is a defaulted statistic.
@@ -2958,9 +2958,9 @@ class CVC5_EXPORT Stat
   const HistogramData& getHistogram() const;
 
  private:
-  Stat(bool expert, bool def, StatData&& sd);
-  /** Whether this statistic is only meant for experts */
-  bool d_expert;
+  Stat(bool internal, bool def, StatData&& sd);
+  /** Whether this statistic is only meant for internal use */
+  bool d_internal;
   /** Whether this statistic has the default value */
   bool d_default;
   std::unique_ptr<StatData> d_data;
@@ -2978,7 +2978,7 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
  * will not be invalidated if the solver is destroyed.
  * Iterating on this class (via `begin()` and `end()`) shows only public
  * statistics that have been changed. By passing appropriate flags to
- * `begin()`, statistics that are expert, defaulted, or both, can be
+ * `begin()`, statistics that are internal, defaulted, or both, can be
  * included as well. A single statistic value is represented as `Stat`.
  */
 class CVC5_EXPORT Statistics
@@ -3005,12 +3005,12 @@ class CVC5_EXPORT Statistics
    private:
     iterator(BaseType::const_iterator it,
              const BaseType& base,
-             bool expert,
+             bool internal,
              bool defaulted);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
-    bool d_showExpert = false;
+    bool d_showInternal = false;
     bool d_showDefault = false;
   };
 
@@ -3024,12 +3024,12 @@ class CVC5_EXPORT Statistics
   const Stat& get(const std::string& name);
   /**
    * Begin iteration over the statistics values.
-   * By default, only entries that are public (non-expert) and have been set
+   * By default, only entries that are public and have been set
    * are visible while the others are skipped.
-   * @param expert If set to true, expert statistics are shown as well.
+   * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool expert = false, bool defaulted = false) const;
+  iterator begin(bool internal = false, bool defaulted = false) const;
   /** End iteration */
   iterator end() const;
 

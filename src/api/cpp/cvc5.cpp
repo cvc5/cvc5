@@ -1409,7 +1409,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK_SORTS(params);
+  CVC5_API_CHECK_DOMAIN_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(isSortConstructor()
@@ -4814,19 +4814,20 @@ struct Stat::StatData
 
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
-    : d_expert(s.d_expert),
+    : d_internal(s.d_internal),
       d_default(s.d_default),
       d_data(std::make_unique<StatData>(s.d_data->data))
 {
 }
 Stat& Stat::operator=(const Stat& s)
 {
-  d_expert = s.d_expert;
+  d_internal = s.d_internal;
+  d_default = s.d_default;
   d_data = std::make_unique<StatData>(s.d_data->data);
   return *this;
 }
 
-bool Stat::isExpert() const { return d_expert; }
+bool Stat::isInternal() const { return d_internal; }
 bool Stat::isDefault() const { return d_default; }
 
 bool Stat::isInt() const
@@ -4876,8 +4877,8 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert, bool defaulted, StatData&& sd)
-    : d_expert(expert),
+Stat::Stat(bool internal, bool defaulted, StatData&& sd)
+    : d_internal(internal),
       d_default(defaulted),
       d_data(std::make_unique<StatData>(std::move(sd)))
 {
@@ -4940,9 +4941,9 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 }
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
-                               bool expert,
+                               bool internal,
                                bool defaulted)
-    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(defaulted)
+    : d_it(it), d_base(&base), d_showInternal(internal), d_showDefault(defaulted)
 {
   while (!isVisible())
   {
@@ -4952,7 +4953,7 @@ Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
 bool Statistics::iterator::isVisible() const
 {
   if (d_it == d_base->end()) return true;
-  if (!d_showExpert && d_it->second.isExpert()) return false;
+  if (!d_showInternal && d_it->second.isInternal()) return false;
   if (!d_showDefault && d_it->second.isDefault()) return false;
   return true;
 }
@@ -4967,9 +4968,9 @@ const Stat& Statistics::get(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
-Statistics::iterator Statistics::begin(bool expert, bool defaulted) const
+Statistics::iterator Statistics::begin(bool internal, bool defaulted) const
 {
-  return iterator(d_stats.begin(), d_stats, expert, defaulted);
+  return iterator(d_stats.begin(), d_stats, internal, defaulted);
 }
 Statistics::iterator Statistics::end() const
 {
@@ -4981,7 +4982,7 @@ Statistics::Statistics(const StatisticsRegistry& reg)
   for (const auto& svp : reg)
   {
     d_stats.emplace(svp.first,
-                    Stat(svp.second->d_expert,
+                    Stat(svp.second->d_internal,
                          svp.second->isDefault(),
                          svp.second->getViewer()));
   }
