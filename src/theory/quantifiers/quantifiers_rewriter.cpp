@@ -57,19 +57,28 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
+ * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
+ * shadowed variable v, which is quantified by a subformula q' of quantified
+ * formula q. Shadowed variables may be introduced when e.g. quantified formulas
+ * appear on the right hand sides of substitutions in preprocessing. They are
+ * eliminated by the rewriter.
  */
 struct QRewPrenexAttributeId
 {
 };
-typedef expr::Attribute<QRewPrenexAttributeId, Node> QRewPrenexAttribute;
+using QRewPrenexAttribute = expr::Attribute<QRewPrenexAttributeId, Node>;
 struct QRewMiniscopeAttributeId
 {
 };
-typedef expr::Attribute<QRewMiniscopeAttributeId, Node> QRewMiniscopeAttribute;
+using QRewMiniscopeAttribute = expr::Attribute<QRewMiniscopeAttributeId, Node>;
 struct QRewDtExpandAttributeId
 {
 };
-typedef expr::Attribute<QRewDtExpandAttributeId, Node> QRewDtExpandAttribute;
+using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
+struct QElimShadowAttributeId
+{
+};
+using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -505,37 +514,34 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
-Node QuantifiersRewriter::computeProcessTerms(Node body,
-                                              std::vector<Node>& new_vars,
-                                              std::vector<Node>& new_conds,
-                                              Node q,
+Node QuantifiersRewriter::computeProcessTerms(const Node& q,
+                                              const std::vector<Node>& args,
+                                              Node body,
                                               QAttributes& qa) const
 {
-  std::map< Node, Node > cache;
-  if( qa.isFunDef() ){
-    Node h = QuantAttributes::getFunDefHead( q );
-    Assert(!h.isNull());
-    // if it is a function definition, rewrite the body independently
-    Node fbody = QuantAttributes::getFunDefBody( q );
-    Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
-    if (!fbody.isNull())
-    {
-      Node r = computeProcessTerms2(fbody, cache, new_vars, new_conds);
-      Assert(new_vars.size() == h.getNumChildren());
-      return NodeManager::currentNM()->mkNode(EQUAL, h, r);
-    }
-    // It can happen that we can't infer the shape of the function definition,
-    // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
-    // forall xy. false.
+  options::IteLiftQuantMode iteLiftMode = options::IteLiftQuantMode::NONE;
+  if (qa.isStandard())
+  {
+    iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
-  return computeProcessTerms2(body, cache, new_vars, new_conds);
+  std::vector<Node> new_conds;
+  std::map<Node, Node> cache;
+  Node n = computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
+  if (!new_conds.empty())
+  {
+    new_conds.push_back(n);
+    n = NodeManager::currentNM()->mkNode(OR, new_conds);
+  }
+  return n;
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
+    const Node& q,
+    const std::vector<Node>& args,
     Node body,
     std::map<Node, Node>& cache,
-    std::vector<Node>& new_vars,
-    std::vector<Node>& new_conds) const
+    std::vector<Node>& new_conds,
+    options::IteLiftQuantMode iteLiftMode) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2")
@@ -544,14 +550,43 @@ Node QuantifiersRewriter::computeProcessTerms2(
   if( iti!=cache.end() ){
     return iti->second;
   }
+  if (body.isClosure())
+  {
+    // Ensure no shadowing. If this term is a closure quantifying a variable
+    // in args, then we introduce fresh variable(s) and replace this closure
+    // to be over the fresh variables instead.
+    std::vector<Node> oldVars;
+    std::vector<Node> newVars;
+    for (const Node& v : body[0])
+    {
+      if (std::find(args.begin(), args.end(), v) != args.end())
+      {
+        Trace("quantifiers-rewrite-unshadow")
+            << "Found shadowed variable " << v << " in " << q << std::endl;
+        BoundVarManager* bvm = nm->getBoundVarManager();
+        oldVars.push_back(v);
+        Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
+        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+        newVars.push_back(nv);
+      }
+    }
+    if (!oldVars.empty())
+    {
+      Assert(oldVars.size() == newVars.size());
+      Node sbody = body.substitute(
+          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+      cache[body] = sbody;
+      return sbody;
+    }
+  }
   bool changed = false;
   std::vector<Node> children;
-  for (size_t i = 0; i < body.getNumChildren(); i++)
+  for (const Node& bc : body)
   {
     // do the recursive call on children
-    Node nn = computeProcessTerms2(body[i], cache, new_vars, new_conds);
+    Node nn = computeProcessTerms2(q, args, bc, cache, new_conds, iteLiftMode);
     children.push_back(nn);
-    changed = changed || nn != body[i];
+    changed = changed || nn != bc;
   }
 
   // make return value
@@ -572,8 +607,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.getKind() == EQUAL
-      && d_opts.quantifiers.iteLiftQuant != options::IteLiftQuantMode::NONE)
+  if (ret.getKind() == EQUAL && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -582,8 +616,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
         Node no = i == 0 ? ret[1] : ret[0];
         if (no.getKind() != ITE)
         {
-          bool doRewrite =
-              d_opts.quantifiers.iteLiftQuant == options::IteLiftQuantMode::ALL;
+          bool doRewrite = (iteLiftMode == options::IteLiftQuantMode::ALL);
           std::vector<Node> childrenIte;
           childrenIte.push_back(ret[i][0]);
           for (size_t j = 1; j <= 2; j++)
@@ -684,8 +717,9 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
   Trace("cond-var-split-debug")
       << "Conditional var elim split " << body << "?" << std::endl;
   // we only do this splitting if miniscoping is enabled, as this is
-  // required to eliminate variables in conjuncts below
-  if (!d_opts.quantifiers.miniscopeQuant)
+  // required to eliminate variables in conjuncts below. We also never
+  // miniscope non-standard quantifiers, so this is also guarded here.
+  if (!d_opts.quantifiers.miniscopeQuant || !qa.isStandard())
   {
     return body;
   }
@@ -1922,9 +1956,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return is_std
-           && d_opts.quantifiers.iteLiftQuant
-                  != options::IteLiftQuantMode::NONE;
+    return true;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
@@ -1981,12 +2013,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    std::vector< Node > new_conds;
-    n = computeProcessTerms( n, args, new_conds, f, qa );
-    if( !new_conds.empty() ){
-      new_conds.push_back( n );
-      n = NodeManager::currentNM()->mkNode( OR, new_conds );
-    }
+    n = computeProcessTerms(f, args, n, qa);
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {

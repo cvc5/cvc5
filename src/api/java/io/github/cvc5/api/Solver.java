@@ -1865,9 +1865,14 @@ public class Solver implements IPointer, AutoCloseable
    * Get the unsatisfiable core.
    * SMT-LIB:
    * {@code
-   * ( get-unsat-core )
+   * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   * @apiNote In contrast to SMT-LIB, the API does not distinguish between
+   *          named and unnamed assertions when producing an unsatisfiable
+   *          core. Additionally, the API allows this option to be called after
+   *          a check with assumptions. A subset of those assumptions may be
+   *          included in the unsatisfiable core returned by this method.
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -2318,10 +2323,15 @@ public class Solver implements IPointer, AutoCloseable
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * Return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  // TODO: void printInstantiations(std::ostream& out)
+  public String getInstantiations()
+  {
+    return getInstantiations(pointer);
+  }
+
+  private native String getInstantiations(long pointer);
 
   /**
    * Push a level to the assertion stack.
