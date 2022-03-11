@@ -2379,6 +2379,44 @@ def test_is_model_core_symbol(solver):
         solver.isModelCoreSymbol(zero)
 
 
+def test_get_model(solver):
+    solver.setOption("produce-models", "true")
+    uSort = solver.mkUninterpretedSort("u")
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    z = solver.mkConst(uSort, "z")
+    f = solver.mkTerm(Kind.Not, solver.mkTerm(Kind.Equal, x, y))
+    solver.assertFormula(f)
+    solver.checkSat()
+    sorts = [uSort]
+    terms = [x, y]
+    solver.getModel(sorts, terms)
+    null = cvc5.Term(solver)
+    terms.append(null)
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+
+def test_get_model2(solver):
+    solver.setOption("produce-models", "true")
+    sorts = []
+    terms = []
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+
+def test_get_model3(solver):
+    solver.setOption("produce-models", "true")
+    sorts = []
+    terms = []
+    solver.checkSat()
+    solver.getModel(sorts, terms)
+    integer = solver.getIntegerSort()
+    sorts.append(integer)
+    with pytest.raises(RuntimeError):
+        solver.getModel(sorts, terms)
+
+
 def test_issue5893(solver):
     slv = cvc5.Solver()
     bvsort4 = solver.mkBitVectorSort(4)
