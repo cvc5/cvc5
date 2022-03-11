@@ -812,7 +812,7 @@ def generate_sphinx_output_tags(modules, src_dir, build_dir):
         info = info[0]
         if 'description' not in info:
             continue
-        res.append('{} (``-o {}``)'.format(name, info['name']))
+        res.append(opt.mode_name[name])
         res.append('~' * len(res[-1]))
         res.append('')
         res.append(info['description'])
