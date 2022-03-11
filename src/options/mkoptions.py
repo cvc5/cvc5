@@ -706,11 +706,17 @@ def _sphinx_help_render_option(res, opt):
         if opt.type == 'std::string':
             names = names + ' (string)'
         elif is_numeric_cpp_type(opt.type):
-            names = names + ' ({})'.format(opt.type)
+            val = opt.type
+            if opt.minimum and opt.maximum:
+                val = '{}, {} <= {} <= {}'.format(val, opt.minimum,
+                                                  opt.long_opt, opt.maximum)
+            elif opt.minimum:
+                val = '{}, {} <= {}'.format(val, opt.minimum, opt.long_opt)
+            elif opt.maximum:
+                val = '{}, {} <= {}'.format(val, opt.long_opt, opt.maximum)
+            names = names + ' ({})'.format(val)
         elif opt.mode:
-            modes = [
-                d[0]['name'] for d in opt.mode.values()
-            ]
+            modes = [d[0]['name'] for d in opt.mode.values()]
             names = names + ' (' + ' | '.join(modes) + ')'
 
     desc = '``{}``'.format(names)
