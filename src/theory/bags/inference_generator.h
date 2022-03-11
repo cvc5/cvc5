@@ -211,12 +211,13 @@ class InferenceGenerator
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
-   * @param e is a node of Type E
+   * @param e is a node of Type T
    * @return an inference that represents the following implication
    * (and
    *   (= (sum 0) 0)
    *   (= (sum preImageSize) (bag.count e skolem))
    *   (>= preImageSize 0)
+   *   (=> (bag.member e skolem) (>= preImageSize 1))
    *   (forall ((i Int))
    *          (let ((uf_i (uf i)))
    *            (let ((bag.count_uf_i (bag.count uf_i A)))

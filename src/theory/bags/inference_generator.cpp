@@ -420,13 +420,18 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node baseCase = d_nm->mkNode(EQUAL, sum_zero, d_zero);
 
   // guess the size of the preimage of e
-  Node preImageSize = d_sm->mkDummySkolem("preImageSize", d_nm->integerType());
+  Node preImageSize = d_sm->mkSkolemFunction(
+      SkolemFunId::BAGS_MAP_PREIMAGE_SIZE, d_nm->integerType(), {n, e});
 
   // (= (sum preImageSize) (bag.count e skolem))
   Node mapSkolem = getSkolem(n, inferInfo);
   Node countE = getMultiplicityTerm(e, mapSkolem);
   Node totalSum = d_nm->mkNode(APPLY_UF, sum, preImageSize);
   Node totalSumEqualCountE = d_nm->mkNode(EQUAL, totalSum, countE);
+
+  Node member = d_nm->mkNode(GEQ, countE, d_one);
+  Node preImageSizeGeqOne = d_nm->mkNode(GEQ, preImageSize, d_one);
+  Node preImageSizeImplication = member.notNode().orNode(preImageSizeGeqOne);
 
   // (forall ((i Int))
   //        (let ((uf_i (uf i)))
@@ -481,12 +486,14 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node body_i = d_nm->mkNode(OR, interval_i.negate(), andNode);
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
   Node preImageGTE_zero = d_nm->mkNode(GEQ, preImageSize, d_zero);
-  Node conclusion = d_nm->mkNode(
-      AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
+  Node conclusion = d_nm->mkNode(AND,
+                                 {baseCase,
+                                  totalSumEqualCountE,
+                                  preImageSizeImplication,
+                                  forAll_i,
+                                  preImageGTE_zero});
   inferInfo.d_conclusion = conclusion;
 
-  std::map<Node, Node> m;
-  m[e] = conclusion;
   Trace("bags::InferenceGenerator::mapDown")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return std::tuple(inferInfo, uf, preImageSize);
