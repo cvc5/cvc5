@@ -76,7 +76,7 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
     else if (it->second.isNull())
     {
       it = rewrittenTo.find(cur);
-      if (it!=rewrittenTo.end())
+      if (it != rewrittenTo.end())
       {
         // rewritten form is the rewritten form of what it was rewritten to
         Assert(visited.find(it->second) != visited.end());
