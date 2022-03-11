@@ -2178,106 +2178,104 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_api_Solver_pop(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolant
- * Signature: (JJJ)Z
+ * Signature: (JJ)J
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong conjPointer, jlong outputPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolant__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
-  Term* output = reinterpret_cast<Term*>(outputPointer);
-  return (jboolean)solver->getInterpolant(*conj, *output);
+  Term* result = new Term(solver->getInterpolant(*conj));
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolant
- * Signature: (JJJJ)Z
+ * Signature: (JJJ)J
  */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Solver_getInterpolant__JJJJ(JNIEnv* env,
-                                                    jobject,
-                                                    jlong pointer,
-                                                    jlong conjPointer,
-                                                    jlong grammarPointer,
-                                                    jlong outputPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Solver_getInterpolant__JJJ(JNIEnv* env,
+                                                   jobject,
+                                                   jlong pointer,
+                                                   jlong conjPointer,
+                                                   jlong grammarPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
   Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
-  Term* output = reinterpret_cast<Term*>(outputPointer);
-  return (jboolean)solver->getInterpolant(*conj, *grammar, *output);
+  Term* result = new Term(solver->getInterpolant(*conj, *grammar));
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getInterpolantNext
- * Signature: (JJ)Z
+ * Signature: (J)J
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
-    JNIEnv* env, jobject, jlong pointer, jlong outputPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getInterpolantNext(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* output = reinterpret_cast<Term*>(outputPointer);
-  return (jboolean)solver->getInterpolantNext(*output);
+  Term* result = new Term(solver->getInterpolantNext());
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbduct
- * Signature: (JJJ)Z
+ * Signature: (JJ)J
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJJ(
-    JNIEnv* env, jobject, jlong pointer, jlong conjPointer, jlong outputPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbduct__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong conjPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
-  Term* output = reinterpret_cast<Term*>(outputPointer);
-  return (jboolean)solver->getAbduct(*conj, *output);
+  Term* result = new Term(solver->getAbduct(*conj));
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbduct
- * Signature: (JJJJ)Z
+ * Signature: (JJJ)J
  */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Solver_getAbduct__JJJJ(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer,
-                                               jlong conjPointer,
-                                               jlong grammarPointer,
-                                               jlong outputPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Solver_getAbduct__JJJ(JNIEnv* env,
+                                              jobject,
+                                              jlong pointer,
+                                              jlong conjPointer,
+                                              jlong grammarPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* conj = reinterpret_cast<Term*>(conjPointer);
   Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
-  Term* output = reinterpret_cast<Term*>(outputPointer);
-  return (jboolean)solver->getAbduct(*conj, *grammar, *output);
+  Term* result = new Term(solver->getAbduct(*conj, *grammar));
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
  * Method:    getAbductNext
- * Signature: (JJ)Z
+ * Signature: (J)J
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Solver_getAbductNext
-    (JNIEnv * env, jobject, jlong pointer, jlong outputPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getAbductNext(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* output = reinterpret_cast<Term*>(outputPointer);
-  return (jboolean)solver->getAbductNext(*output);
+  Term* result = new Term(solver->getAbductNext());
+  return reinterpret_cast<jlong>(result);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
