@@ -185,6 +185,9 @@ class Option(object):
             self.names.add(self.long_name)
         if self.alias:
             self.names.update(self.alias)
+        if self.mode:
+            self.mode_name = { k: v[0]['name'] for k,v in self.mode.items() }
+            self.mode_help = { k: v[0].get('help', None) for k,v in self.mode.items() }
 
     def __lt__(self, other):
         if self.long_name and other.long_name:
@@ -699,29 +702,43 @@ def _sphinx_help_render_option(res, opt):
     names.append(opt.long_name)
     if opt.alias:
         names.extend(opt.alias)
-    names = ' | '.join(names)
 
-    if opt.long_opt:
-        names = names + ' = ' + opt.long_opt
-        if opt.type == 'std::string':
-            names = names + ' (string)'
-        elif is_numeric_cpp_type(opt.type):
-            val = opt.type
-            if opt.minimum and opt.maximum:
-                val = '{}, {} <= {} <= {}'.format(val, opt.minimum,
-                                                  opt.long_opt, opt.maximum)
-            elif opt.minimum:
-                val = '{}, {} <= {}'.format(val, opt.minimum, opt.long_opt)
-            elif opt.maximum:
-                val = '{}, {} <= {}'.format(val, opt.long_opt, opt.maximum)
-            names = names + ' ({})'.format(val)
-        elif opt.mode:
-            modes = [d[0]['name'] for d in opt.mode.values()]
-            names = names + ' (' + ' | '.join(modes) + ')'
+    data = {
+        'names': ' | '.join(names),
+        'alternate': '',
+        'type': '',
+        'default': '',
+    }
 
-    desc = '``{}``'.format(names)
     if opt.alternate:
-        desc += ' (also ``--no-*``)'
+        data['alternate'] = ' (also ``--no-*``)'
+
+    if opt.type == 'bool':
+        data['type'] = 'type ``bool``'
+    elif opt.type == 'std::string':
+        data['type'] = 'type ``string``'
+    elif is_numeric_cpp_type(opt.type):
+        data['type'] = 'type ``{}``'.format(opt.type)
+        if opt.minimum and opt.maximum:
+            data['type'] += ', ``{} <= {} <= {}``'.format(
+                opt.minimum, opt.long_opt, opt.maximum)
+        elif opt.minimum:
+            data['type'] += ', ``{} <= {}``'.format(opt.minimum, opt.long_opt)
+        elif opt.maximum:
+            data['type'] += ', ``{} <= {}``'.format(opt.long_opt, opt.maximum)
+    elif opt.mode:
+        data['type'] = '``' + ' | '.join(opt.mode_name.values()) + '``'
+    else:
+        data['type'] = 'custom ``{}``'.format(opt.type)
+
+    if opt.default:
+        if opt.mode:
+            data['default'] = ', default ``{}``'.format(
+                opt.mode_name[opt.default])
+        else:
+            data['default'] = ', default ``{}``'.format(opt.default)
+
+    desc = '``{names}`` [{type}{default}]{alternate}'.format(**data)
 
     res.append('.. _lbl-option-{}:'.format(opt.long_name))
     res.append('')
@@ -741,11 +758,9 @@ def _sphinx_help_render_option(res, opt):
         res.append('    ')
         res.append('    ' + opt.help_mode)
         res.append('    ')
-        for value in opt.mode.values():
-            v = value[0]
-            if 'help' not in v:
-                continue
-            res.append('    :{}: {}'.format(v['name'], v['help']))
+        for m in opt.mode.keys():
+            if opt.mode_help[m]:
+                res.append('    :``{}``: {}'.format(opt.mode_name[m], opt.mode_help[m]))
     res.append('    ')
 
 
