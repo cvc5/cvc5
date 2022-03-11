@@ -1,8 +1,5 @@
-; COMMAND-LINE: --solve-real-as-int --no-new-prop --nl-ext-tplanes --no-produce-proofs
+; COMMAND-LINE: --solve-real-as-int --no-new-prop --nl-ext-tplanes
 ; EXPECT: sat
-
-; NOTE: fails proofs (segfault) only on some CI
-
 (set-info :smt-lib-version 2.6)
 (set-logic QF_NRA)
 (set-info :source |
