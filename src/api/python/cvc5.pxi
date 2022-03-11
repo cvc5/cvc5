@@ -2123,6 +2123,7 @@ cdef class Solver:
         SMT-LIB:
 
         .. code:: smtlib
+        
             (get-model)
 
         Requires to enable option
