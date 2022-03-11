@@ -41,8 +41,7 @@ A statistic value can be any of the following types:
 
 Printing statistics on the command line looks like this:
 
-.. command-output:: bin/cvc5 --stats ../test/regress/regress0/auflia/bug336.smt2
-  :cwd: /../build_debug
+.. run-command:: bin/cvc5 --stats ../test/regress/regress0/auflia/bug336.smt2
 
 Public statistics include some general information about the input file
 (``driver::filename`` and ``api::*``), the overall runtime (``global::totalTime``)

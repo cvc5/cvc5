@@ -48,6 +48,7 @@ extensions = [
         'autoenum',
         'examples',
         'include_build_file',
+        'run_command',
 ]
 
 bibtex_bibfiles = ['references.bib']
@@ -78,6 +79,8 @@ html_css_files = ['custom.css']
 html_show_sourcelink = False
 
 html_extra_path = []
+
+runcmd_build = '/' + os.path.relpath('${CMAKE_BINARY_DIR}', '${CMAKE_CURRENT_SOURCE_DIR}')
 
 # -- Configuration for examples extension ------------------------------------
 # Configuration for tabs: title, language and group for detecting missing files
