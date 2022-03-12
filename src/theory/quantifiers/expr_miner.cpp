@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include <sstream>
+
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_util.h"
@@ -41,7 +43,9 @@ Node ExprMiner::convertToSkolem(Node n)
     SkolemManager* sm = nm->getSkolemManager();
     for (const Node& v : d_vars)
     {
-      Node sk = sm->mkDummySkolem("rrck", v.getType());
+      std::stringstream ss;
+      ss << "k_" << v;
+      Node sk = sm->mkDummySkolem(ss.str(), v.getType());
       d_skolems.push_back(sk);
       d_fv_to_skolem[v] = sk;
     }
