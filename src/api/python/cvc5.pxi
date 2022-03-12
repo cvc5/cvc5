@@ -155,8 +155,7 @@ cdef class Datatype:
 
     def getParameters(self):
         """
-            :return: the parameters of this datatype, if it is parametric. An
-            exception is thrown if this datatype is not parametric.
+            :return: the parameters of this datatype, if it is parametric. An exception is thrown if this datatype is not parametric.
         """
         param_sorts = []
         for s in self.cd.getParameters():
@@ -1678,7 +1677,7 @@ cdef class Solver:
             ( check-synth )
 
         :return: the result of the check, which is unsat if the check succeeded,
-        in which case solutions are available via getSynthSolutions.
+                 in which case solutions are available via getSynthSolutions.
         """
         cdef Result r = Result()
         r.cr = self.csolver.checkSynthNext()
@@ -1944,6 +1943,23 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getProof(self):
+        """Get the refutation proof
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+           (get-proof)
+
+        Requires to enable option
+        :ref:`produce-proofs <lbl-option-produce-proofs>`.
+
+        :return: a string representing the proof, according to the value of
+                 proof-format-mode.
+        """
+        return self.csolver.getProof()
+
     def getLearnedLiterals(self):
         """Get a list of literals that are entailed by the current set of assertions
 
@@ -2036,9 +2052,16 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-unsat-core )
+          (get-unsat-core)
 
         Requires to enable option :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+
+        .. note::
+          In contrast to SMT-LIB, the API does not distinguish between named and
+          unnamed assertions when producing an unsatisfiable core. Additionally,
+          the API allows this option to be called after a check with assumptions.
+          A subset of those assumptions may be included in the unsatisfiable core
+          returned by this method.
 
         :return: a set of terms representing the unsatisfiable core
         """
@@ -2093,6 +2116,36 @@ cdef class Solver:
         :return: true if v is a model core symbol
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
+
+    def getModel(self, sorts, consts):
+        """Get the model
+
+        SMT-LIB:
+
+        .. code:: smtlib
+        
+            (get-model)
+
+        Requires to enable option
+        :ref:`produce-models <lbl-option-produce-models>`.
+   
+        :param sorts: The list of uninterpreted sorts that should be printed in
+                      the model.
+        :param vars: The list of free constants that should be printed in the
+                     model. A subset of these may be printed based on
+                     isModelCoreSymbol.
+        :return: a string representing the model.
+        """
+
+        cdef vector[c_Sort] csorts
+        for sort in sorts:
+            csorts.push_back((<Sort?> sort).csort)
+
+        cdef vector[c_Term] cconsts
+        for const in consts:
+            cconsts.push_back((<Term?> const).cterm)
+
+        return self.csolver.getModel(csorts, cconsts)
 
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
@@ -2223,6 +2276,7 @@ cdef class Solver:
         """
         self.csolver.setOption(option.encode(), value.encode())
 
+
     def getInterpolant(self, Term conj, *args):
         """Get an interpolant.
 
@@ -2237,27 +2291,25 @@ cdef class Solver:
 
         Supports the following variants:
 
-        - ``bool getInteprolant(Term conj, Term output)``
-        - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+        - ``Term getInteprolant(Term conj)``
+        - ``Term getInteprolant(Term conj, Grammar grammar)``
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
         :param grammar: a grammar for the inteprolant
         :return: True iff an interpolant was found
         """
-        result = False
-        if len(args) == 1:
-            assert isinstance(args[0], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Term ?> args[0]).cterm)
+        cdef Term result = Term(self)
+        if len(args) == 0:
+            result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 2
+            assert len(args) == 1
             assert isinstance(args[0], Grammar)
-            assert isinstance(args[1], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+            result.cterm = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
 
-    def getInterpolantNext(self, Term output):
+    def getInterpolantNext(self):
         """
         Get the next interpolant. Can only be called immediately after
         a succesful call to get-interpol or get-interpol-next. 
@@ -2276,7 +2328,8 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found
         """
-        result = self.csolver.getInterpolantNext(output.cterm)
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getInterpolantNext()
         return result
         
     def getAbduct(self, Term conj, *args):
@@ -2293,26 +2346,24 @@ cdef class Solver:
 
         Supports the following variants:
 
-        - ``bool getAbduct(Term conj, Term output)``
-        - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+        - ``Term getAbduct(Term conj)``
+        - ``Term getAbduct(Term conj, Grammar grammar)``
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
         :param grammar: a grammar for the abduct 
         :return: True iff an abduct was found
         """
-        result = False
-        if len(args) == 1:
-            assert isinstance(args[0], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Term ?> args[0]).cterm)
+        cdef Term result = Term(self)
+        if len(args) == 0:
+            result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 2
+            assert len(args) == 1
             assert isinstance(args[0], Grammar)
-            assert isinstance(args[1], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+            result.cterm = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
-    def getAbductNext(self, Term output):
+    def getAbductNext(self):
         """
         Get the next abduct. Can only be called immediately after
         a succesful call to get-abduct or get-abduct-next. 
@@ -2330,7 +2381,8 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an abduct was found
         """
-        result = self.csolver.getAbductNext(output.cterm)
+        cdef Term result = Term(self)
+        result.cterm  = self.csolver.getAbductNext()
         return result
 
     def blockModel(self):
@@ -2370,6 +2422,13 @@ cdef class Solver:
         for t in terms:
             nts.push_back((<Term?> t).cterm)
         self.csolver.blockModelValues(nts)
+
+    def getInstantiations(self):
+        """
+        Return a string that contains information about all instantiations made
+        by the quantifiers module.
+        """
+        return self.csolver.getInstantiations()
 
 
 cdef class Sort:
@@ -2682,10 +2741,10 @@ cdef class Sort:
 
     def substitute(self, sort_or_list_1, sort_or_list_2):
         """
-            Substitution of Sorts.
+        Substitution of Sorts.
 
-	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-            :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
 
         Note that this replacement is applied during a pre-order traversal and
         only once to the sort. It is not run until fix point. In the case that
@@ -2693,8 +2752,8 @@ cdef class Sort:
         takes priority.
 
         For example,
-        (Array A B) .substitute([A, C], [(Array C D), (Array A B)]) will
-        return (Array (Array C D) B).
+        ``(Array A B) .substitute([A, C], [(Array C D), (Array A B)])`` will
+        return ``(Array (Array C D) B)``.
         """
 
         # The resulting sort after substitution
@@ -3018,13 +3077,17 @@ cdef class Term:
         """
 	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
 	   
-      Note that this replacement is applied during a pre-order traversal and
-      only once to the term. It is not run until fix point. In the case that
-      terms contains duplicates, the replacement earliest in the list takes
-      priority. For example, calling substitute on f(x,y) with
-        term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
-      results in the term f(g(z),y).
-	"""
+        Note that this replacement is applied during a pre-order traversal and
+        only once to the term. It is not run until fix point. In the case that
+        terms contains duplicates, the replacement earliest in the list takes
+        priority. For example, calling substitute on ``f(x,y)`` with
+
+        .. code:: python
+
+            term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
+        
+        results in the term ``f(g(z),y)``.
+	    """
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -3212,7 +3275,8 @@ cdef class Term:
         or otherwise an exception is thrown.
         
         :return: 0 if this term is zero, -1 if this term is a negative real or
-        integer value, 1 if this term is a positive real or integer value.
+                 integer value, 1 if this term is a positive real or integer
+                 value.
         """
         return self.cterm.getRealOrIntegerValueSign()
 

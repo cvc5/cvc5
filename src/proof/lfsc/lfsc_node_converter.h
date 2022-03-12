@@ -103,10 +103,16 @@ class LfscNodeConverter : public NodeConverter
    */
   Kind getBuiltinKindForInternalSymbol(Node op) const;
 
-  /** get name for user name */
-  static std::string getNameForUserName(const std::string& name);
+  /**
+   * get name for user name
+   * @param name The user provided name for the symbol
+   * @param variant A unique index for the symbol to resolve multiple symbols
+   * with the same name.
+   */
+  static std::string getNameForUserName(const std::string& name,
+                                        size_t variant = 0);
   /** get name for the name of node v, where v should be a variable */
-  static std::string getNameForUserNameOf(Node v);
+  std::string getNameForUserNameOf(Node v);
 
  private:
   /** Should we traverse n? */
@@ -140,6 +146,8 @@ class LfscNodeConverter : public NodeConverter
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);
+  /** convert bitvector to its LFSC term (of LFSC sort bitvec) */
+  Node convertBitVector(const BitVector& bv);
   /** Is k a kind that is printed as an indexed operator in LFSC? */
   static bool isIndexedOperatorKind(Kind k);
   /** get indices for printing the operator of n in the LFSC format */
@@ -148,6 +156,11 @@ class LfscNodeConverter : public NodeConverter
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
   std::unordered_set<Node> d_symbols;
+  /**
+   * Mapping from user symbols to the (list of) symbols with that name. This
+   * is used to resolve symbol overloading, which is forbidden in LFSC.
+   */
+  std::map<std::string, std::vector<Node> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */

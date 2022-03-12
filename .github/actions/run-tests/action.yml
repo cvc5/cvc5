@@ -20,7 +20,10 @@ runs:
       shell: bash
       run: |
         make -j${{ env.num_proc }} build-tests
-        ctest -j${{ env.num_proc }} --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
+        if ! ctest -j${{ env.num_proc }} --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
+        then
+          ctest --output-on-failure --rerun-failed
+        fi
       env:
         CVC5_REGRESSION_ARGS: --no-early-exit
         RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
