@@ -75,6 +75,8 @@ jobs:
       with:
         configure-env: ${{ matrix.env }}
         configure-config: ${{ matrix.config }}
+        build-shared: ${{ matrix.build-shared }}
+        build-static: ${{ matrix.build-static }}
 
     - name: ccache Statistics
       run: ccache -s
