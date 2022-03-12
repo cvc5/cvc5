@@ -2117,6 +2117,36 @@ cdef class Solver:
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
+    def getModel(self, sorts, consts):
+        """Get the model
+
+        SMT-LIB:
+
+        .. code:: smtlib
+        
+            (get-model)
+
+        Requires to enable option
+        :ref:`produce-models <lbl-option-produce-models>`.
+   
+        :param sorts: The list of uninterpreted sorts that should be printed in
+                      the model.
+        :param vars: The list of free constants that should be printed in the
+                     model. A subset of these may be printed based on
+                     isModelCoreSymbol.
+        :return: a string representing the model.
+        """
+
+        cdef vector[c_Sort] csorts
+        for sort in sorts:
+            csorts.push_back((<Sort?> sort).csort)
+
+        cdef vector[c_Term] cconsts
+        for const in consts:
+            cconsts.push_back((<Term?> const).cterm)
+
+        return self.csolver.getModel(csorts, cconsts)
+
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
