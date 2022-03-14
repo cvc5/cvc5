@@ -743,18 +743,18 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
-TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
+TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems)
 {
   Assert(lems.empty());
-  TheoryId tid = d_env.theoryOf(node);
-  TrustNode trn = d_theoryTable[tid]->ppRewrite(eq, lems);
+  TheoryId tid = d_env.theoryOf(term);
+  TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems);
+  // should never introduce a skolem to eliminate an equality
+  Assert(lems.empty() || term.getKind() != kind::EQUAL);
   if (!isProofEnabled())
   {
     return trn;
   }
-  // should never introduce a skolem to eliminate an equality
-  Assert(lems.empty() || term.getKind() != kind::EQUAL);
-  // if proofs must ensure we have proofs for the lemmas
+  // if proofs are enabled, must ensure we have proofs for all the skolem lemmas
   for (SkolemLemma& skl : lems)
   {
     TrustNode tskl = skl.d_lemma;
@@ -764,7 +764,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
       Node proven = tskl.getProven();
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
       d_lazyProof->addStep(
-          proven, PfRule::THEORY_PREPROCESS, {}, {proven, tidn});
+          proven, PfRule::THEORY_PREPROCESS_LEMMA, {}, {proven, tidn});
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
     }
   }

@@ -228,7 +228,7 @@ enum class PfRule : uint32_t
   // The remaining rules in this section have the signature of a "trusted rule":
   //
   // Children: ?
-  // Arguments: (F)
+  // Arguments: (F, ...)
   // ---------------------------------------------------------------
   // Conclusion: F
   //

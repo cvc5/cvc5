@@ -179,7 +179,7 @@ class TheoryEngine : protected EnvObj
    * Calls the ppRewrite of the theory of term and adds the associated skolem
    * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewrite(TNode term, std::vector<SkolemLemma>& lems);
+  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
