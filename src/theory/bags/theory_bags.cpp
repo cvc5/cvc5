@@ -328,7 +328,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
-  // map each bag term in termSet to a model value
+  // a map from bag representatives to their constructed models
   std::map<Node, Node> processedBags;
 
   // get the relevant bag equivalence classes
@@ -343,14 +343,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     Node r = d_state.getRepresentative(n);
     eq::EqualityEngine* ee = d_state.getEqualityEngine();
     eq::EqClassIterator it = eq::EqClassIterator(r, ee);
-    Trace("bags-model") << "eqc model [" << r << "] = { ";
-    while (!it.isFinished())
-    {
-      Node node = *it;
-      Trace("bags-model") << "<" << node << ", " << m->hasTerm(n) << "> ";
-      ++it;
-    }
-    Trace("bags-model") << "}\n ";
 
     if (processedBags.find(r) != processedBags.end())
     {
@@ -380,8 +372,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
     constructedBag = rewrite(constructedBag);
-    Trace("bags-model") << "constructed bag for " << n
-                        << " is: " << constructedBag << std::endl;
     NodeManager* nm = NodeManager::currentNM();
     if (d_state.hasCardinalityTerms())
     {
@@ -418,8 +408,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
             constructedBag =
                 nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
             constructedBag = rewrite(constructedBag);
-            Trace("bags-model") << "constructed bag for " << n
-                                << " is: " << constructedBag << std::endl;
           }
         }
       }
@@ -444,6 +432,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     m->assertSkeleton(constructedBag);
     processedBags[r] = constructedBag;
   }
+
+  Trace("bags-model") << "processedBags:  " << processedBags << std::endl;
   return true;
 }
 

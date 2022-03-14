@@ -1835,12 +1835,6 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           ss << " " << theoryId << " has an asserted fact that";
           if (val == d_false)
           {
-            Node val0 = d_tc->getModel()->getValue(assertion[0]);
-            val0 = rewrite(val0);
-            Node val1 = d_tc->getModel()->getValue(assertion[1]);
-            val1 = rewrite(val1);
-            ss << "\nassertion[0] " << val0 << std::endl;
-            ss << "assertion[1] " << val1 << std::endl;
             ss << " the model doesn't satisfy." << std::endl;
           }
           else
