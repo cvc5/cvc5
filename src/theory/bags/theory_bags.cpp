@@ -341,8 +341,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
     Node r = d_state.getRepresentative(n);
-    eq::EqualityEngine* ee = d_state.getEqualityEngine();
-    eq::EqClassIterator it = eq::EqClassIterator(r, ee);
 
     if (processedBags.find(r) != processedBags.end())
     {

@@ -59,8 +59,6 @@ void SolverState::registerCardinalityTerm(Node n, Node skolem)
   Assert(n.getKind() == BAG_CARD);
   Assert(skolem.isVar());
   d_cardTerms[n] = skolem;
-  Trace("bags-card") << "SolverState::registerCardinalityTerm: " << n << " = "
-                     << skolem << std::endl;
 }
 
 Node SolverState::getCardinalitySkolem(Node n)
