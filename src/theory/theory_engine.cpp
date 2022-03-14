@@ -743,7 +743,8 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
-TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems)
+TrustNode TheoryEngine::ppRewrite(TNode term,
+                                  std::vector<theory::SkolemLemma>& lems)
 {
   Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(term);
