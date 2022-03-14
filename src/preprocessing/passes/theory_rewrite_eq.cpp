@@ -111,8 +111,10 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
         // can make proof producing by using proof generator from trn
         if (!trn.isNull() && trn.getNode() != ret)
         {
+          Trace("pp-rewrite-eq") << "Rewrite equality " << ret << " to " << trn.getNode() << std::endl;
           wasRewritten = true;
           Node retr = trn.getNode();
+          rewrittenTo[cur] = retr;
           rewrittenTo[ret] = retr;
           visit.push_back(retr);
         }
