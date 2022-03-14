@@ -383,7 +383,6 @@ bool NlModel::solveEqualitySimple(Node eq,
   bool is_valid = true;
   // the variable we will solve a quadratic equation for
   Node var;
-  Node a = d_zero;
   Node b = d_zero;
   Node c = d_zero;
   NodeManager* nm = NodeManager::currentNM();
@@ -403,23 +402,13 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     else if (v.getKind() == NONLINEAR_MULT)
     {
-      if (v.getNumChildren() == 2 && v[0].isVar() && v[0] == v[1]
-          && (var.isNull() || var == v[0]))
+      is_valid = false;
+      Trace("nl-ext-cms-debug")
+          << "...invalid due to non-linear monomial " << v << std::endl;
+      // may wish to set an exact bound for a factor and repeat
+      for (const Node& vc : v)
       {
-        // may solve quadratic
-        a = coeff;
-        var = v[0];
-      }
-      else
-      {
-        is_valid = false;
-        Trace("nl-ext-cms-debug")
-            << "...invalid due to non-linear monomial " << v << std::endl;
-        // may wish to set an exact bound for a factor and repeat
-        for (const Node& vc : v)
-        {
-          unc_vars_factor.insert(vc);
-        }
+        unc_vars_factor.insert(vc);
       }
     }
     else if (!v.isVar() || (!var.isNull() && var != v))
@@ -513,31 +502,27 @@ bool NlModel::solveEqualitySimple(Node eq,
   }
 
   // we are linear, it is simple
-  if (a == d_zero)
+  if (b == d_zero)
   {
-    if (b == d_zero)
-    {
-      Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
-      Assert(false);
-      return false;
-    }
-    Node val = nm->mkConst(CONST_RATIONAL,
-                           -c.getConst<Rational>() / b.getConst<Rational>());
-    if (Trace.isOn("nl-ext-cm"))
-    {
-      Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
-      printRationalApprox("nl-ext-cm", val);
-      Trace("nl-ext-cm") << std::endl;
-    }
-    bool ret = addSubstitution(var, val);
-    if (ret)
-    {
-      Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
-      d_check_model_solved[eq] = var;
-    }
-    return ret;
+    Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
+    Assert(false);
+    return false;
   }
-  return false;
+  Node val = nm->mkConst(CONST_RATIONAL,
+                          -c.getConst<Rational>() / b.getConst<Rational>());
+  if (Trace.isOn("nl-ext-cm"))
+  {
+    Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
+    printRationalApprox("nl-ext-cm", val);
+    Trace("nl-ext-cm") << std::endl;
+  }
+  bool ret = addSubstitution(var, val);
+  if (ret)
+  {
+    Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+    d_check_model_solved[eq] = var;
+  }
+  return ret;
 }
 
 bool NlModel::simpleCheckModelLit(Node lit)
