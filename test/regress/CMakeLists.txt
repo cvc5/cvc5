@@ -2409,6 +2409,7 @@ set(regress_1_tests
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
+  regress1/sets/proj-issue494-finite-leafof.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
