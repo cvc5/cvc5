@@ -755,7 +755,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   {
     return trn;
   }
-  Assert (d_lazyProof!=nullptr);
+  Assert(d_lazyProof != nullptr);
   // if proofs are enabled, must ensure we have proofs for all the skolem lemmas
   for (SkolemLemma& skl : lems)
   {
