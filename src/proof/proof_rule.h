@@ -23,10 +23,20 @@
 namespace cvc5 {
 
 /**
+ * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects. In the documentation below, P:F denotes a ProofNode that
  * proves formula F.
+ * 
+ * All proof rules are given as inference rules, presented in the following form:
  *
+ * .. math::
+ *   
+ *   \texttt{RULENAME}: \inferrule*[vcenter, right={if $C$}]{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}
+ *
+ * where we call ``RULENAME`` its name, :math:`\varphi_i` its premises, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
+ *
+ * 
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
  * are designed to reason about, among other things, common operations on Node
@@ -42,9 +52,10 @@ namespace cvc5 {
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  *
- * Rules with prefix MACRO_ are those that can be defined in terms of other
+ * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convienience. We provide their definition in the line
  * "Macro:".
+ * \endverbatim
  */
 enum class PfRule : uint32_t
 {
@@ -58,15 +69,15 @@ enum class PfRule : uint32_t
    * 
    * .. math::
    *   
-   *   \texttt{ASSUME}(F): \inferrule{\top}{F}
-   *
-   * \endverbatim
+   *   \texttt{ASSUME}: \inferrule{\top \mid F}{F}
    *
    * This rule has special status, in that an application of assume is an
    * open leaf in a proof that is not (yet) justified. An assume leaf is
    * analogous to a free variable in a term, where we say "F is a free
    * assumption in proof P" if it contains an application of F that is not
-   * bound by SCOPE (see below).
+   * bound by :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>` (see below).
+   *
+   * \endverbatim
    */
   ASSUME,
   /**
@@ -74,11 +85,14 @@ enum class PfRule : uint32_t
    * 
    * .. math::
    *   
-   *   \texttt{SCOPE}(F_1 \dots F_n): \inferrule{F \neq \bot}{(F_1 \land \dots \land F_n) \Rightarrow F} \textrm{ or } \inferrule{\bot}{\neg (F_1 \land \dots \land F_n)}
+   *   \texttt{SCOPE}:
+   *   \inferrule*[vcenter, right={if $F\neq\bot$}]{F\neq\bot \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n) \Rightarrow F}
+   *   \textrm{ or }
+   *   \inferrule*[vcenter, right={if $F=\bot$}]{F=\bot \mid F_1 \dots F_n}{\neg (F_1 \land \dots \land F_n)}
    *
-   * This rule has a dual purpose with ASSUME. It is a way to close
-   * assumptions in a proof. We require that F1 ... Fn are free assumptions in
-   * P and say that F1, ..., Fn are not free in (SCOPE P). In other words, they
+   * This rule has a dual purpose with :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`. It is a way to close
+   * assumptions in a proof. We require that :math:`F_1 \dots F_n` are free assumptions in
+   * P and say that :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
    * are bound by this application. For example, the proof node:
    * ``(SCOPE (ASSUME F) :args F)``
    * has the conclusion (=> F F) and has no free assumptions. More generally, a
