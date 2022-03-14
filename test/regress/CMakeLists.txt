@@ -1363,6 +1363,7 @@ set(regress_0_tests
   regress0/strings/issue6681-split-eq-strip-l.smt2
   regress0/strings/issue6834-str-eq-const-nhomog.smt2
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  regress0/strings/issue8295-star-union-char.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2

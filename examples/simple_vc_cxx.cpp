@@ -49,9 +49,9 @@ int main() {
 
   std::cout << "Checking entailment of formula " << formula << " with cvc5."
             << std::endl;
-  std::cout << "cvc5 should report ENTAILED." << std::endl;
-  std::cout << "Result from cvc5 is: " << slv.checkEntailed(formula)
-            << std::endl;
+  std::cout << "cvc5 should report UNSAT." << std::endl;
+  std::cout << "Result from cvc5 is: "
+            << slv.checkSatAssuming(formula.notTerm()) << std::endl;
 
   return 0;
 }

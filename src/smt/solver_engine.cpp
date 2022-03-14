@@ -746,48 +746,28 @@ Result SolverEngine::checkSat(const Node& assumption)
   {
     assump.push_back(assumption);
   }
-  return checkSatInternal(assump, false);
+  return checkSatInternal(assump);
 }
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
   ensureWellFormedTerms(assumptions, "checkSat");
-  return checkSatInternal(assumptions, false);
+  return checkSatInternal(assumptions);
 }
 
-Result SolverEngine::checkEntailed(const Node& node)
-{
-  ensureWellFormedTerm(node, "checkEntailed");
-  return checkSatInternal(
-             node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
-             true)
-      .asEntailmentResult();
-}
-
-Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
-{
-  ensureWellFormedTerms(nodes, "checkEntailed");
-  return checkSatInternal(nodes, true).asEntailmentResult();
-}
-
-Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
-                                      bool isEntailmentCheck)
+Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
   Result r;
 
   SolverEngineScope smts(this);
   finishInit();
 
-  Trace("smt") << "SolverEngine::"
-                << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
-                << assumptions << ")" << endl;
+  Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // check the satisfiability with the solver object
-  r = d_smtSolver->checkSatisfiability(
-      *d_asserts.get(), assumptions, isEntailmentCheck);
+  r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions);
 
-  Trace("smt") << "SolverEngine::"
-                << (isEntailmentCheck ? "query" : "checkSat") << "("
-                << assumptions << ") => " << r << endl;
+  Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
+               << endl;
 
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)

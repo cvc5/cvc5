@@ -48,9 +48,9 @@ int main()
   slv.assertFormula(eq);
 
   Term eq2 = slv.mkTerm(EQUAL, x_31_31, x_0_0);
-  cout << " Check entailment assuming: " << eq2 << endl;
-  cout << " Expect ENTAILED. " << endl;
-  cout << " cvc5: " << slv.checkEntailed(eq2) << endl;
+  cout << " Check sat assuming: " << eq2.notTerm() << endl;
+  cout << " Expect UNSAT. " << endl;
+  cout << " cvc5: " << slv.checkSatAssuming(eq2.notTerm()) << endl;
 
   return 0;
 }

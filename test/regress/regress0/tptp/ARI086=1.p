@@ -9,7 +9,7 @@
 % Source   : [TPTP]
 % Names    :
 
-% Status   : CounterSatisfiable
+% Status   : Satisfiable
 % Rating   : 0.00 v5.2.0, 1.00 v5.0.0
 % Syntax   : Number of formulae    :    1 (   1 unit;   0 type)
 %            Number of atoms       :    1 (   1 equality)
