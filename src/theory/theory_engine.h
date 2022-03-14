@@ -171,10 +171,13 @@ class TheoryEngine : protected EnvObj
   }
 
   /**
-   * Preprocess rewrite equality, called by the preprocessor to rewrite
-   * equalities appearing in the input.
+   * Preprocess rewrite, called:
+   * (1) on equalities by the preprocessor to rewrite equalities appearing in
+   * the input,
+   * (2) on non-equalities by the theory preprocessor.
    */
-  TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewrite(TNode eq,
+                           std::vector<SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
