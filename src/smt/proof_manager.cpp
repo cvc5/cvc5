@@ -45,7 +45,7 @@ PfManager::PfManager(Env& env)
       d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
-          options().proof.proofPedantic,
+          static_cast<uint32_t>(options().proof.proofPedantic,
           d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),

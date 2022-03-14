@@ -1343,9 +1343,8 @@ TEST_F(TestApiBlackSolver, getAbduct)
   d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
   // Conjecture for abduction: y > 0
   Term conj = d_solver.mkTerm(GT, y, zero);
-  Term output;
   // Call the abduction api, while the resulting abduct is the output
-  ASSERT_TRUE(d_solver.getAbduct(conj, output));
+  Term output = d_solver.getAbduct(conj);
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(!output.isNull() && output.getSort().isBoolean());
 
@@ -1358,7 +1357,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term conj2 = d_solver.mkTerm(GT, x, zero);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
-  ASSERT_TRUE(d_solver.getAbduct(conj2, g, output2));
+  output2 = d_solver.getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
 }
@@ -1375,9 +1374,8 @@ TEST_F(TestApiBlackSolver, getAbduct2)
   d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
   // Conjecture for abduction: y > 0
   Term conj = d_solver.mkTerm(GT, y, zero);
-  Term output;
   // Fails due to option not set
-  ASSERT_THROW(d_solver.getAbduct(conj, output), CVC5ApiException);
+  ASSERT_THROW(d_solver.getAbduct(conj), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getAbductNext)
@@ -1395,11 +1393,9 @@ TEST_F(TestApiBlackSolver, getAbductNext)
   d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
   // Conjecture for abduction: y > 0
   Term conj = d_solver.mkTerm(GT, y, zero);
-  Term output;
   // Call the abduction api, while the resulting abduct is the output
-  ASSERT_TRUE(d_solver.getAbduct(conj, output));
-  Term output2;
-  ASSERT_TRUE(d_solver.getAbductNext(output2));
+  Term output = d_solver.getAbduct(conj);
+  Term output2 = d_solver.getAbductNext();
   // should produce a different output
   ASSERT_TRUE(output != output2);
 }
@@ -1424,9 +1420,8 @@ TEST_F(TestApiBlackSolver, getInterpolant)
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
-  Term output;
   // Call the interpolation api, while the resulting interpolant is the output
-  d_solver.getInterpolant(conj, output);
+  Term output = d_solver.getInterpolant(conj);
 
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
@@ -1451,10 +1446,8 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero),
                       d_solver.mkTerm(LT, z, zero));
-  Term output;
-  d_solver.getInterpolant(conj, output);
-  Term output2;
-  d_solver.getInterpolantNext(output2);
+  Term output = d_solver.getInterpolant(conj);
+  Term output2 = d_solver.getInterpolantNext();
 
   // We expect the next output to be distinct
   ASSERT_TRUE(output != output2);
@@ -3139,9 +3132,8 @@ TEST_F(TestApiBlackSolver, proj_issue436)
     t23 = slv.mkBitVector(bw, 1);
   }
   Term t33 = slv.mkTerm(Kind::BITVECTOR_ULT, {t17, t23});
-  Term abduct;
   // solve-bv-as-int is incompatible with get-abduct
-  ASSERT_THROW(slv.getAbduct(t33, abduct), CVC5ApiException);
+  ASSERT_THROW(slv.getAbduct(t33), CVC5ApiException);
 }
   
 TEST_F(TestApiBlackSolver, proj_issue431)
@@ -3255,7 +3247,7 @@ TEST_F(TestApiBlackSolver, projIssue431)
   Term t488 = slv.mkTerm(Kind::APPLY_UF, {t31, t274});
   slv.assertFormula({t488});
   Term abduct;
-  slv.getAbduct(t488, abduct);
+  abduct = slv.getAbduct(t488);
 }
 
 }  // namespace test
