@@ -1,3 +1,4 @@
+; DISABLE-TESTER: unsat-core
 ; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat
 (set-logic QF_NRAT)

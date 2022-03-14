@@ -269,6 +269,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
                           Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
+        string getProof() except +
         vector[Term] getLearnedLiterals() except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
@@ -279,6 +280,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getValue(const vector[Term]& terms) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
+        string getModel(const vector[Sort]& sorts,
+                        const vector[Term]& consts) except +
         void declareSepHeap(Sort locSort, Sort dataSort) except +
         Term getValueSepHeap() except +
         Term getValueSepNil() except +
@@ -290,14 +293,15 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
         void setOption(const string& option, const string& value) except +
-        bint getInterpolant(const Term& conj, Term& output) except +
-        bint getInterpolant(const Term& conj, Grammar& grammar, Term& output) except +
-        bint getInterpolantNext(const Term& conj) except +
-        bint getAbduct(const Term& conj, Term& output) except +
-        bint getAbduct(const Term& conj, Grammar& grammar, Term& output) except +
-        bint getAbductNext(const Term& conj) except +
+        Term getInterpolant(const Term& conj) except +
+        Term getInterpolant(const Term& conj, Grammar& grammar) except +
+        Term getInterpolantNext() except +
+        Term getAbduct(const Term& conj) except +
+        Term getAbduct(const Term& conj, Grammar& grammar) except +
+        Term getAbductNext() except +
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
+        string getInstantiations() except +
 
     cdef cppclass Grammar:
         Grammar() except +

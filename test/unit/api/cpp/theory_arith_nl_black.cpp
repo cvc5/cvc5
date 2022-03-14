@@ -90,6 +90,10 @@ TEST_F(TestTheoryBlackArithNl, proj_issue421)
 
 TEST_F(TestTheoryBlackArithNl, cvc5Projects455)
 {
+  if (!Configuration::isBuiltWithPoly())
+  {
+    return;
+  }
   Solver slv;
   slv.setLogic("QF_UFNRA");
   slv.setOption("produce-unsat-assumptions", "true");

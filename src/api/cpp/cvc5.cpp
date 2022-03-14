@@ -355,6 +355,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT},
     {REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP},
     {REGEXP_NONE, cvc5::Kind::REGEXP_NONE},
+    {REGEXP_ALL, cvc5::Kind::REGEXP_ALL},
     {REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR},
     {REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT},
     // maps to the same kind as the string versions
@@ -571,7 +572,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Datatypes ------------------------------------------------------- */
         {cvc5::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
         {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
-        {cvc5::Kind::APPLY_SELECTOR_TOTAL, INTERNAL_KIND},
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
         {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
@@ -671,6 +671,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_NONE, REGEXP_NONE},
+        {cvc5::Kind::REGEXP_ALL, REGEXP_ALL},
         {cvc5::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
         {cvc5::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
         {cvc5::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
@@ -1371,7 +1372,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK_SORTS(params);
+  CVC5_API_CHECK_DOMAIN_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(isSortConstructor()
@@ -4754,19 +4755,20 @@ struct Stat::StatData
 
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
-    : d_expert(s.d_expert),
+    : d_internal(s.d_internal),
       d_default(s.d_default),
       d_data(std::make_unique<StatData>(s.d_data->data))
 {
 }
 Stat& Stat::operator=(const Stat& s)
 {
-  d_expert = s.d_expert;
+  d_internal = s.d_internal;
+  d_default = s.d_default;
   d_data = std::make_unique<StatData>(s.d_data->data);
   return *this;
 }
 
-bool Stat::isExpert() const { return d_expert; }
+bool Stat::isInternal() const { return d_internal; }
 bool Stat::isDefault() const { return d_default; }
 
 bool Stat::isInt() const
@@ -4816,8 +4818,8 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Stat::Stat(bool expert, bool defaulted, StatData&& sd)
-    : d_expert(expert),
+Stat::Stat(bool internal, bool defaulted, StatData&& sd)
+    : d_internal(internal),
       d_default(defaulted),
       d_data(std::make_unique<StatData>(std::move(sd)))
 {
@@ -4880,9 +4882,9 @@ bool Statistics::iterator::operator!=(const Statistics::iterator& rhs) const
 }
 Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
-                               bool expert,
+                               bool internal,
                                bool defaulted)
-    : d_it(it), d_base(&base), d_showExpert(expert), d_showDefault(defaulted)
+    : d_it(it), d_base(&base), d_showInternal(internal), d_showDefault(defaulted)
 {
   while (!isVisible())
   {
@@ -4892,7 +4894,7 @@ Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
 bool Statistics::iterator::isVisible() const
 {
   if (d_it == d_base->end()) return true;
-  if (!d_showExpert && d_it->second.isExpert()) return false;
+  if (!d_showInternal && d_it->second.isInternal()) return false;
   if (!d_showDefault && d_it->second.isDefault()) return false;
   return true;
 }
@@ -4907,9 +4909,9 @@ const Stat& Statistics::get(const std::string& name)
   CVC5_API_TRY_CATCH_END;
 }
 
-Statistics::iterator Statistics::begin(bool expert, bool defaulted) const
+Statistics::iterator Statistics::begin(bool internal, bool defaulted) const
 {
-  return iterator(d_stats.begin(), d_stats, expert, defaulted);
+  return iterator(d_stats.begin(), d_stats, internal, defaulted);
 }
 Statistics::iterator Statistics::end() const
 {
@@ -4921,7 +4923,7 @@ Statistics::Statistics(const StatisticsRegistry& reg)
   for (const auto& svp : reg)
   {
     d_stats.emplace(svp.first,
-                    Stat(svp.second->d_expert,
+                    Stat(svp.second->d_internal,
                          svp.second->isDefault(),
                          svp.second->getViewer()));
   }
@@ -5102,13 +5104,14 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 Term Solver::mkTermFromKind(Kind kind) const
 {
   CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE
+                                   || kind == REGEXP_ALL
                                    || kind == REGEXP_ALLCHAR || kind == SEP_EMP,
                                kind)
-      << "PI, REGEXP_NONE, REGEXP_ALLCHAR or SEP_EMP";
+      << "PI, REGEXP_NONE, REGEXP_ALL, REGEXP_ALLCHAR or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
-  if (kind == REGEXP_NONE || kind == REGEXP_ALLCHAR)
+  if (kind == REGEXP_NONE || kind == REGEXP_ALL || kind == REGEXP_ALLCHAR)
   {
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
@@ -5848,9 +5851,8 @@ Term Solver::mkRegexpAll() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Node res = d_nodeMgr->mkNode(
-      cvc5::kind::REGEXP_STAR,
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>()));
+  Node res =
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALL, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -7467,7 +7469,7 @@ void Solver::pop(uint32_t nscopes) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(const Term& conj, Term& output) const
+Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7476,21 +7478,14 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result;
   TypeNode nullType;
-  bool success = d_slv->getInterpolant(*conj.d_node, nullType, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolant(*conj.d_node, nullType);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(const Term& conj,
-                            Grammar& grammar,
-                            Term& output) const
+Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7499,19 +7494,13 @@ bool Solver::getInterpolant(const Term& conj,
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result;
-  bool success =
-      d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolantNext(Term& output) const
+Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
@@ -7522,56 +7511,40 @@ bool Solver::getInterpolantNext(Term& output) const
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
-  Node result;
-  bool success = d_slv->getInterpolantNext(result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolantNext();
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbduct(const Term& conj, Term& output) const
+Term Solver::getAbduct(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result;
   TypeNode nullType;
-  bool success = d_slv->getAbduct(*conj.d_node, nullType, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbduct(*conj.d_node, nullType);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
+Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result;
-  bool success =
-      d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbductNext(Term& output) const
+Term Solver::getAbductNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
@@ -7581,13 +7554,8 @@ bool Solver::getAbductNext(Term& output) const
       << "Cannot get next abduct when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
-  Node result;
-  bool success = d_slv->getAbductNext(result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbductNext();
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7624,11 +7592,13 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::printInstantiations(std::ostream& out) const
+std::string Solver::getInstantiations() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  d_slv->printInstantiations(out);
+  std::stringstream ss;
+  d_slv->printInstantiations(ss);
+  return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

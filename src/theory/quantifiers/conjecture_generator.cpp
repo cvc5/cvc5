@@ -1844,7 +1844,9 @@ void TermGenEnv::collectSignatureInformation() {
     {
       Node nn = dbl->d_list[0];
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
-      if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
+      if (d_cg->isHandledTerm(nn) && nn.getKind() != APPLY_SELECTOR
+          && !nn.getType().isBoolean())
+      {
         bool do_enum = true;
         //check if we have enumerated ground terms
         if( nn.getKind()==APPLY_UF ){

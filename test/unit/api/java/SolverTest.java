@@ -1333,7 +1333,7 @@ class SolverTest
     Term conj = d_solver.mkTerm(GT, y, zero);
     Term output = d_solver.getNullTerm();
     // Call the abduction api, while the resulting abduct is the output
-    assertTrue(d_solver.getAbduct(conj, output));
+    output = d_solver.getAbduct(conj);
     // We expect the resulting output to be a boolean formula
     assertTrue(!output.isNull() && output.getSort().isBoolean());
 
@@ -1346,7 +1346,7 @@ class SolverTest
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
-    assertTrue(d_solver.getAbduct(conj2, g, output2));
+    output2 = d_solver.getAbduct(conj2, g);
     // abduct must be true
     assertEquals(output2, truen);
   }
@@ -1365,8 +1365,7 @@ class SolverTest
     Term conj = d_solver.mkTerm(GT, y, zero);
     Term output  = d_solver.getNullTerm();
     // Fails due to option not set
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.getAbduct(conj, output));
+    assertThrows(CVC5ApiException.class, () -> d_solver.getAbduct(conj));
   }
 
   @Test void getAbductNext() throws CVC5ApiException
@@ -1384,11 +1383,9 @@ class SolverTest
     d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
     // Conjecture for abduction: y > 0
     Term conj = d_solver.mkTerm(GT, y, zero);
-    Term output = d_solver.getNullTerm();
     // Call the abduction api, while the resulting abduct is the output
-    assertTrue(d_solver.getAbduct(conj, output));
-    Term output2 = d_solver.getNullTerm();
-    assertTrue(d_solver.getAbductNext(output2));
+    Term output = d_solver.getAbduct(conj);
+    Term output2 = d_solver.getAbductNext();
     // should produce a different output
     assertNotEquals(output, output2);
   }
@@ -1412,9 +1409,8 @@ class SolverTest
     // Conjecture for interpolation: y + z > 0 \/ z < 0
     Term conj = d_solver.mkTerm(
         OR, d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero), d_solver.mkTerm(LT, z, zero));
-    Term output = d_solver.getNullTerm();
     // Call the interpolation api, while the resulting interpolant is the output
-    d_solver.getInterpolant(conj, output);
+    Term output = d_solver.getInterpolant(conj);
 
     // We expect the resulting output to be a boolean formula
     assertTrue(output.getSort().isBoolean());
@@ -1436,10 +1432,8 @@ class SolverTest
     d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
     Term conj = d_solver.mkTerm(
         OR, d_solver.mkTerm(GT, d_solver.mkTerm(ADD, y, z), zero), d_solver.mkTerm(LT, z, zero));
-    Term output = d_solver.getNullTerm();
-    d_solver.getInterpolant(conj, output);
-    Term output2 = d_solver.getNullTerm();
-    d_solver.getInterpolantNext(output2);
+    Term output = d_solver.getInterpolant(conj);
+    Term output2 = d_solver.getInterpolantNext();
 
     // We expect the next output to be distinct
     assertNotEquals(output, output2);

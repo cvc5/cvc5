@@ -17,3 +17,4 @@ Alternatively, cvc5 features :doc:`several APIs <../api/api>` for different prog
     options
     output-tags
     resource-limits
+    statistics

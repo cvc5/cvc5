@@ -112,6 +112,7 @@ operator REGEXP_RANGE 2 "regexp range"
 operator REGEXP_COMPLEMENT 1 "regexp complement"
 
 operator REGEXP_NONE 0 "regexp empty"
+operator REGEXP_ALL 0 "regexp all"
 operator REGEXP_ALLCHAR 0 "regexp all characters"
 
 constant REGEXP_REPEAT_OP \
@@ -152,6 +153,7 @@ typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule STRING_TO_REGEXP ::cvc5::theory::strings::StringToRegExpTypeRule
 typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
 typerule REGEXP_NONE "SimpleTypeRule<RRegExp>"
+typerule REGEXP_ALL "SimpleTypeRule<RRegExp>"
 typerule REGEXP_ALLCHAR "SimpleTypeRule<RRegExp>"
 
 # we return isConst for some regular expressions, including all that we enumerate
