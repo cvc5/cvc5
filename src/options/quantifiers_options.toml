@@ -1474,9 +1474,12 @@ name   = "Quantifiers"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not generate queries with SyGuS."
-[[option.mode.SAT]]
-  name = "sat"
-  help = "Generate interesting SAT queries, for e.g. soundness testing."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Generate all queries using SyGuS enumeration of the given grammar"
+[[option.mode.SAMPLE_SAT]]
+  name = "sample-sat"
+  help = "Generate interesting SAT queries based on sampling, for e.g. soundness testing."
 [[option.mode.UNSAT]]
   name = "unsat"
   help = "Generate interesting UNSAT queries, for e.g. proof testing."
@@ -1488,14 +1491,6 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
-
-[[option]]
-  name       = "sygusQueryGenCheck"
-  category   = "regular"
-  long       = "sygus-query-gen-check"
-  type       = "bool"
-  default    = "true"
-  help       = "use interesting satisfiability queries to check soundness of cvc5"
 
 [[option]]
   name       = "sygusQueryGenDumpFiles"

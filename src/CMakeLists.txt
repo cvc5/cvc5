@@ -21,14 +21,8 @@ libcvc5_add_sources(
   api/cpp/cvc5_kind.h
   decision/assertion_list.cpp
   decision/assertion_list.h
-  decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
-  decision/decision_engine_old.cpp
-  decision/decision_engine_old.h
-  decision/decision_strategy.h
-  decision/justification_heuristic.cpp
-  decision/justification_heuristic.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
   decision/justify_info.cpp
@@ -50,7 +44,6 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
-  options/decision_weight.h
   options/io_utils.cpp
   options/io_utils.h
   options/language.cpp
@@ -866,6 +859,8 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
+  theory/quantifiers/query_generator_sample_sat.cpp
+  theory/quantifiers/query_generator_sample_sat.h
   theory/quantifiers/query_generator_unsat.cpp
   theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp

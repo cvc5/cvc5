@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "decision/decision_engine_old.h"
 #include "decision/justification_strategy.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
@@ -87,11 +86,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(env));
-  }
-  else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
-           || dmode == options::DecisionMode::STOPONLY_OLD)
-  {
-    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {

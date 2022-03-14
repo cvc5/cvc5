@@ -18,8 +18,6 @@
 #ifndef CVC5__EXPR__NODE_TRIE_ALGORITHM_H
 #define CVC5__EXPR__NODE_TRIE_ALGORITHM_H
 
-#include <map>
-
 #include "expr/node_trie.h"
 
 namespace cvc5 {
@@ -39,7 +37,7 @@ class NodeTriePathPairProcessCallback
 /**
  * Given a TNode trie of arity n, this calls ntpc.processData(fa, fb) on all
  * pairs of distinct leaves fa and fb in t at paths [fa1, ..., fan] and
- * [fb1, ..., fbn] in tsuch that ntpc.considerPath(fai, fbi) returns true for
+ * [fb1, ..., fbn] in t such that ntpc.considerPath(fai, fbi) returns true for
  * all i = 1, ..., n.
  *
  * A common use case for this algorithm is computing the care graph for theory
