@@ -173,12 +173,14 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
                          std::vector<NlLemma>& lemmas)
 {
-  Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
+  Trace("nl-ext-cm-debug") << "NlModel::checkModel: solve for equalities..." << std::endl;
   for (const Node& atom : assertions)
   {
+    Trace("nl-ext-cm-debug") << "- assertion: " << atom << std::endl;
     // see if it corresponds to a univariate polynomial equation of degree two
     if (atom.getKind() == EQUAL)
     {
+      // we substitute inside of solve equality simple
       if (!solveEqualitySimple(atom, d, lemmas))
       {
         // no chance we will satisfy this equality
@@ -227,10 +229,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             }
           }
         }
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     } while (!visit.empty());
   }
@@ -247,6 +246,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       {
         av = rewrite(arithSubstitute(av, d_substitutions));
       }
+      Trace("nl-ext-cm") << "simpleCheckModelLit " << av << " (from " << a << ")" << std::endl;
       // simple check literal
       if (!simpleCheckModelLit(av))
       {
@@ -271,18 +271,19 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
 
 bool NlModel::addSubstitution(TNode v, TNode s)
 {
-  // should not substitute the same variable twice
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
+  Node ss = arithSubstitute(s, d_substitutions);
+  // should not substitute the same variable twice
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
   {
     Node cur = d_substitutions.getSubs(v);
-    if (cur != s)
+    if (cur != ss)
     {
       Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
       // this should never happen since substitutions should be applied eagerly
-      Assert(false);
+      Assert(false) << "Conflicting exact bounds given for a variable";
       return false;
     }
   }
@@ -292,16 +293,18 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       d_check_model_bounds.find(v);
   if (itb != d_check_model_bounds.end())
   {
-    if (s.getConst<Rational>() >= itb->second.first.getConst<Rational>()
-        || s.getConst<Rational>() <= itb->second.second.getConst<Rational>())
+    Assert (ss.isConst());
+    if (ss.getConst<Rational>() <= itb->second.first.getConst<Rational>()
+        || ss.getConst<Rational>() >= itb->second.second.getConst<Rational>())
     {
       Trace("nl-ext-model")
           << "...ERROR: already has bound which is out of range." << std::endl;
+      Assert(false) << "Out of bounds exact bound given for a variable with an approximate bound";
       return false;
     }
   }
   Subs tmp;
-  tmp.add(v, s);
+  tmp.add(v, ss);
   for (auto& sub : d_substitutions.d_subs)
   {
     Node ms = arithSubstitute(sub, tmp);
@@ -310,7 +313,7 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       sub = rewrite(ms);
     }
   }
-  d_substitutions.add(v, s);
+  d_substitutions.add(v, ss);
   return true;
 }
 
