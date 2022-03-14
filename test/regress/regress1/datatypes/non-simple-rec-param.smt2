@@ -1,4 +1,4 @@
-; COMMAND-LINE: --dt-nested-rec
+; COMMAND-LINE: --dt-nested-rec -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

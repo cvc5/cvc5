@@ -328,7 +328,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
-  std::set<Node> processedBags;
+  // map each bag term in termSet to a model value
+  std::map<Node, Node> processedBags;
 
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
@@ -340,13 +341,22 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
     Node r = d_state.getRepresentative(n);
+    eq::EqualityEngine* ee = d_state.getEqualityEngine();
+    eq::EqClassIterator it = eq::EqClassIterator(r, ee);
+    Trace("bags-model") << "eqc model [" << r << "] = { ";
+    while (!it.isFinished())
+    {
+      Node node = *it;
+      Trace("bags-model") << "<" << node << ", " << m->hasTerm(n) << "> ";
+      ++it;
+    }
+    Trace("bags-model") << "}\n ";
+
     if (processedBags.find(r) != processedBags.end())
     {
       // skip bags whose representatives are already processed
       continue;
     }
-
-    processedBags.insert(r);
 
     const std::vector<std::pair<Node, Node>>& solverElements =
         d_state.getElementCountPairs(r);
@@ -432,6 +442,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     m->assertEquality(constructedBag, n, true);
     m->assertSkeleton(constructedBag);
+    processedBags[r] = constructedBag;
   }
   return true;
 }

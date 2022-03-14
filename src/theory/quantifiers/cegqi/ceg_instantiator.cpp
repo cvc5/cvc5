@@ -232,7 +232,7 @@ void CegInstantiator::computeProgVars( Node n ){
       d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
     }
     // selectors applied to program variables are also variables
-    if (n.getKind() == APPLY_SELECTOR_TOTAL
+    if (n.getKind() == APPLY_SELECTOR
         && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
     {
       d_prog_var[n].insert(n);
@@ -521,7 +521,7 @@ void CegInstantiator::registerTheoryIds(TypeNode tn,
   if (visited.find(tn) == visited.end())
   {
     visited[tn] = true;
-    TheoryId tid = Theory::theoryOf(tn);
+    TheoryId tid = d_env.theoryOf(tn);
     registerTheoryId(tid);
     if (tn.isDatatype())
     {
@@ -680,12 +680,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
-  Node pv_value;
-  if (options().quantifiers.cegqiModel)
-  {
-    pv_value = getModelValue(pv);
-    Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
-  }
+  Node pv_value = getModelValue(pv);
+  Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv
@@ -861,7 +857,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   std::unordered_set<Node> lits;
   for (unsigned r = 0; r < 2; r++)
   {
-    TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
+    TheoryId tid = r == 0 ? d_env.theoryOf(pvtn) : THEORY_UF;
     Trace("cegqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
     std::map<TheoryId, std::vector<Node> >::iterator ita =
         d_curr_asserts.find(tid);
@@ -873,7 +869,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         {
           lits.insert(lit);
           Node plit;
-          if (options().quantifiers.cegqiRepeatLit || !isSolvedAssertion(lit))
+          if (!isSolvedAssertion(lit))
           {
             plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
           }
@@ -1399,7 +1395,7 @@ void CegInstantiator::processAssertions() {
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode rtn = r.getType();
-    TheoryId tid = Theory::theoryOf( rtn );
+    TheoryId tid = d_env.theoryOf(rtn);
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
       if (rtn.isRealOrInt())

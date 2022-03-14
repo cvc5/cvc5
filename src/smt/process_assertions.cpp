@@ -98,6 +98,13 @@ bool ProcessAssertions::apply(Assertions& as)
   // Dump the assertions
   dumpAssertions("assertions::pre-everything", as);
   Trace("assertions::pre-everything") << std::endl;
+  if (isOutputOn(OutputTag::PRE_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::PRE_ASSERTS);
+    outPA << ";; pre-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; pre-asserts end" << std::endl;
+  }
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
@@ -170,7 +177,7 @@ bool ProcessAssertions::apply(Assertions& as)
 
   bool noConflict = true;
 
-  if (options().smt.extRewPrep)
+  if (options().smt.extRewPrep != options::ExtRewPrepMode::OFF)
   {
     applyPass("ext-rew-pre", as);
   }

@@ -2014,7 +2014,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
         Assert(v.getKind() == SEQ_UNIT);
         vc = v[0];
       }
-      Assert(u[0].getType() == vc.getType());
+      Assert(u[0].getType().isComparableTo(vc.getType()));
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {
@@ -2530,7 +2530,8 @@ void CoreSolver::checkNormalFormsDeq()
   NodeManager* nm = NodeManager::currentNM();
   Trace("str-deq") << "Process disequalites..." << std::endl;
   std::vector<Node> relevantDeqs;
-  //for each pair of disequal strings, must determine whether their lengths are equal or disequal
+  // for each pair of disequal strings, must determine whether their lengths
+  // are equal or disequal
   for (const Node& eq : deqs)
   {
     Trace("str-deq") << "- disequality " << eq << std::endl;

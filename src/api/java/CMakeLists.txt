@@ -35,6 +35,7 @@ add_custom_command(
     --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parsekinds.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
 )
 

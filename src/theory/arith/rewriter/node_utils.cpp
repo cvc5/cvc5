@@ -23,39 +23,6 @@ namespace theory {
 namespace arith {
 namespace rewriter {
 
-bool isIntegral(TNode n)
-{
-  std::vector<TNode> queue = {n};
-  while (!queue.empty())
-  {
-    TNode cur = queue.back();
-    queue.pop_back();
-
-    if (cur.isConst()) continue;
-    switch (cur.getKind())
-    {
-      case Kind::LT:
-      case Kind::LEQ:
-      case Kind::EQUAL:
-      case Kind::DISTINCT:
-      case Kind::GEQ:
-      case Kind::GT:
-        queue.emplace_back(n[0]);
-        queue.emplace_back(n[1]);
-        break;
-      case Kind::ADD:
-      case Kind::NEG:
-      case Kind::SUB:
-      case Kind::MULT:
-        queue.insert(queue.end(), cur.begin(), cur.end());
-        break;
-      default:
-        if (!cur.getType().isInteger()) return false;
-    }
-  }
-  return true;
-}
-
 Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 {
   if (monomial.isConst())
@@ -82,7 +49,14 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   }
   std::vector<Node> prod;
   prod.emplace_back(mkConst(multiplicity));
-  prod.insert(prod.end(), monomial.begin(), monomial.end());
+  if (monomial.getKind() == Kind::MULT || monomial.getKind() == Kind::NONLINEAR_MULT)
+  {
+    prod.insert(prod.end(), monomial.begin(), monomial.end());
+  }
+  else
+  {
+    prod.emplace_back(monomial);
+  }
   Assert(prod.size() >= 2);
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
 }

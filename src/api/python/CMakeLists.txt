@@ -113,6 +113,19 @@ set_target_properties(cvc5_python_base
 
 python_extension_module(cvc5_python_base)
 
+# Copy the pythonic API to the right place. It does not come with its own
+# installation routine and consists only of a few files that need to go to
+# the right place.
+find_package(CVC5PythonicAPI)
+add_custom_target(
+  cvc5_python_api
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+    "${CVC5PythonicAPI_BASEDIR}/cvc5_z3py_compat"
+    "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
+  DEPENDS cvc5_python_base CVC5PythonicAPI
+)
+
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
 configure_file(setup.py.in setup.py)

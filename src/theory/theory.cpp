@@ -42,9 +42,6 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 
-/** Default value for the uninterpreted sorts is the UF theory */
-TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
-
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
   case Theory::EFFORT_STANDARD:
@@ -144,7 +141,9 @@ void Theory::finishInitStandalone()
   finishInit();
 }
 
-TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
+TheoryId Theory::theoryOf(TNode node,
+                          options::TheoryOfMode mode,
+                          TheoryId usortOwner)
 {
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {
@@ -158,13 +157,13 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
         }
         else
         {
-          tid = Theory::theoryOf(node.getType());
+          tid = theoryOf(node.getType(), usortOwner);
         }
       }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
-        tid = Theory::theoryOf(node[0].getType());
+        tid = theoryOf(node[0].getType(), usortOwner);
       }
       else
       {
@@ -178,10 +177,10 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       // Variables
       if (node.isVar())
       {
-        if (Theory::theoryOf(node.getType()) != theory::THEORY_BOOL)
+        if (theoryOf(node.getType(), usortOwner) != theory::THEORY_BOOL)
         {
           // We treat the variables as uninterpreted
-          tid = s_uninterpretedSortOwner;
+          tid = THEORY_UF;
         }
         else
         {
@@ -199,60 +198,47 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
-        // If one of them is an ITE, it's irelevant, since they will get
-        // replaced out anyhow
-        if (node[0].getKind() == kind::ITE)
+        TNode l = node[0];
+        TNode r = node[1];
+        TypeNode ltype = l.getType();
+        TypeNode rtype = r.getType();
+        // If the types are different, we must assign based on type due
+        // to handling subtypes (limited to arithmetic). Also, if we are
+        // a Boolean equality, we must assign THEORY_BOOL.
+        if (ltype != rtype || ltype.isBoolean())
         {
-          tid = Theory::theoryOf(node[0].getType());
-        }
-        else if (node[1].getKind() == kind::ITE)
-        {
-          tid = Theory::theoryOf(node[1].getType());
+          tid = theoryOf(ltype, usortOwner);
         }
         else
         {
-          TNode l = node[0];
-          TNode r = node[1];
-          TypeNode ltype = l.getType();
-          TypeNode rtype = r.getType();
-          // If the types are different, we must assign based on type due
-          // to handling subtypes (limited to arithmetic). Also, if we are
-          // a Boolean equality, we must assign THEORY_BOOL.
-          if (ltype != rtype || ltype.isBoolean())
+          // If both sides belong to the same theory the choice is easy
+          TheoryId T1 = theoryOf(l, mode, usortOwner);
+          TheoryId T2 = theoryOf(r, mode, usortOwner);
+          if (T1 == T2)
           {
-            tid = Theory::theoryOf(ltype);
+            tid = T1;
           }
           else
           {
-            // If both sides belong to the same theory the choice is easy
-            TheoryId T1 = Theory::theoryOf(l);
-            TheoryId T2 = Theory::theoryOf(r);
-            if (T1 == T2)
+            TheoryId T3 = theoryOf(ltype, usortOwner);
+            // This is a case of
+            // * x*y = f(z) -> UF
+            // * x = c      -> UF
+            // * f(x) = read(a, y) -> either UF or ARRAY
+            // at least one of the theories has to be parametric, i.e. theory
+            // of the type is different from the theory of the term
+            if (T1 == T3)
+            {
+              tid = T2;
+            }
+            else if (T2 == T3)
             {
               tid = T1;
             }
             else
             {
-              TheoryId T3 = Theory::theoryOf(ltype);
-              // This is a case of
-              // * x*y = f(z) -> UF
-              // * x = c      -> UF
-              // * f(x) = read(a, y) -> either UF or ARRAY
-              // at least one of the theories has to be parametric, i.e. theory
-              // of the type is different from the theory of the term
-              if (T1 == T3)
-              {
-                tid = T2;
-              }
-              else if (T2 == T3)
-              {
-                tid = T1;
-              }
-              else
-              {
-                // If both are parametric, we take the smaller one (arbitrary)
-                tid = T1 < T2 ? T1 : T2;
-              }
+              // If both are parametric, we take the smaller one (arbitrary)
+              tid = T1 < T2 ? T1 : T2;
             }
           }
         }
@@ -267,7 +253,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
   default:
     Unreachable();
   }
-  Trace("theory::internal") << "theoryOf(" << mode << ", " << node << ") -> " << tid << std::endl;
   return tid;
 }
 
@@ -339,9 +324,14 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options().smt.produceModels && !logicInfo().isQuantified())
+  if (!options().smt.produceModels || options().smt.modelVarElimUneval)
   {
-    // Don't care about the model and logic is not quantified, we can eliminate.
+    // Don't care about the model, or we allow variables to be eliminated by
+    // unevaluatable terms, we can eliminate. Notice that when
+    // options().smt.modelVarElimUneval is true, val may contain unevaluatable
+    // kinds. This means that e.g. a Boolean variable may be eliminated based on
+    // an equality (= b (forall ((x)) (P x))), where its model value is (forall
+    // ((x)) (P x)).
     return true;
   }
   // If models are enabled, then it depends on whether the term contains any
@@ -434,7 +424,7 @@ void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
       termSet.insert(cur);
     }
     // traverse owned terms, don't go under quantifiers
-    if ((k == kind::NOT || k == kind::EQUAL || Theory::theoryOf(cur) == d_id)
+    if ((k == kind::NOT || k == kind::EQUAL || d_env.theoryOf(cur) == d_id)
         && !cur.isClosure())
     {
       visit.insert(visit.end(), cur.begin(), cur.end());

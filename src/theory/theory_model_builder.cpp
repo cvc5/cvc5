@@ -79,7 +79,10 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
-      if (TheoryModel::isValue(normalized))
+      Trace("model-builder-debug")
+          << "...return " << normalized
+          << ", isValue=" << m->isValue(normalized) << std::endl;
+      if (m->isValue(normalized))
       {
         return normalized;
       }
@@ -101,7 +104,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
     // Members of exclusion set must have values, otherwise we are not yet
     // assignable.
     Node er = eset[i];
-    if (TheoryModel::isValue(er))
+    if (tm->isValue(er))
     {
       // already processed
       continue;
@@ -127,7 +130,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL
+  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR
       || n.getKind() == kind::SEQ_NTH_TOTAL || n.getKind() == kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
@@ -458,6 +461,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
     // The assigned represenative and constant representative
     Node rep, constRep;
+    // is constant rep a "base model value" (see TheoryModel::isBaseModelValue)
+    bool constRepBaseModelValue = false;
     // A flag set to true if the current equivalence class is assignable (see
     // assignableEqc).
     bool assignable = false;
@@ -499,38 +504,69 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // model-specific processing of the term
       tm->addTermInternal(n);
 
-      // (2) Record constant representative or assign representative, if
-      // applicable. We check if n is a value here, e.g. a term for which
-      // isConst returns true, or a lambda. The latter is required only for
-      // higher-order.
-      if (TheoryModel::isValue(n))
-      {
-        Assert(constRep.isNull());
-        constRep = n;
-        Trace("model-builder")
-            << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
-        // if we have a constant representative, nothing else matters
-        continue;
-      }
-
-      // If we don't have a constant rep, check if this is an assigned rep.
-      itm = tm->d_reps.find(n);
-      if (itm != tm->d_reps.end())
-      {
-        // Notice that this equivalence class may contain multiple terms that
-        // were specified as being a representative, since e.g. datatypes may
-        // assert representative for two constructor terms that are not in the
-        // care graph and are merged during collectModeInfo due to equality
-        // information from another theory. We overwrite the value of rep in
-        // these cases here.
-        rep = itm->second;
-        Trace("model-builder")
-            << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
-      }
-
-      // (3) Finally, process assignable information
+      // compute whether n is assignable
       if (!isAssignable(n))
       {
+        // (2) Record constant representative or assign representative, if
+        // applicable. We check if n is a value here, e.g. a term for which
+        // isConst returns true, or a lambda. The latter is required only for
+        // higher-order.
+        if (tm->isValue(n))
+        {
+          // In rare cases, it could be that multiple terms in the same
+          // equivalence class are considered values. We prefer the one that is
+          // a "base" model value (e.g. a constant) here. We throw a warning
+          // if there are 2 model values in the same equivalence class, and
+          // a debug failure if there are 2 base values in the same equivalence
+          // class.
+          bool assignConstRep = false;
+          bool isBaseValue = tm->isBaseModelValue(n);
+          if (constRep.isNull())
+          {
+            assignConstRep = true;
+          }
+          else
+          {
+            warning() << "Model values in the same equivalence class "
+                      << constRep << " " << n << std::endl;
+            if (!constRepBaseModelValue)
+            {
+              assignConstRep = isBaseValue;
+            }
+            else if (isBaseValue)
+            {
+              Assert(false)
+                  << "Base model values in the same equivalence class "
+                  << constRep << " " << n << std::endl;
+            }
+          }
+          if (assignConstRep)
+          {
+            constRep = n;
+            Trace("model-builder") << "    ..ConstRep( " << eqc
+                                   << " ) = " << constRep << std::endl;
+            constRepBaseModelValue = isBaseValue;
+          }
+          // if we have a constant representative, nothing else matters
+          continue;
+        }
+
+        // If we don't have a constant rep, check if this is an assigned rep.
+        itm = tm->d_reps.find(n);
+        if (itm != tm->d_reps.end())
+        {
+          // Notice that this equivalence class may contain multiple terms that
+          // were specified as being a representative, since e.g. datatypes may
+          // assert representative for two constructor terms that are not in the
+          // care graph and are merged during collectModeInfo due to equality
+          // information from another theory. We overwrite the value of rep in
+          // these cases here.
+          rep = itm->second;
+          Trace("model-builder")
+              << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
+        }
+
+        // (3) Finally, process assignable information
         evaluable = true;
         // expressions that are not assignable should not be given assignment
         // exclusion sets
@@ -732,7 +768,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             }
             if (!normalized.isNull())
             {
-              Assert(TheoryModel::isValue(normalized));
+              Assert(tm->isValue(normalized));
               typeConstSet.add(tb, normalized);
               assignConstantRep(tm, *i2, normalized);
               Trace("model-builder") << "    Eval: Setting constant rep of "
@@ -768,10 +804,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Assert(assertedReps.find(*i) != assertedReps.end());
             Node rep = assertedReps[*i];
             Node normalized = normalize(tm, rep, false);
-            Trace("model-builder") << "    Normalizing rep (" << rep
-                                   << "), normalized to (" << normalized << ")"
-                                   << endl;
-            if (TheoryModel::isValue(normalized))
+            Trace("model-builder")
+                << "    Normalizing rep (" << rep << "), normalized to ("
+                << normalized << ")"
+                << ", isValue=" << tm->isValue(normalized) << std::endl;
+            if (tm->isValue(normalized))
             {
               changed = true;
               typeConstSet.add(tb, normalized);
@@ -1091,11 +1128,6 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-  if (tm->hasApproximations())
-  {
-    // models with approximations may fail the assertions below
-    return;
-  }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   std::map<Node, Node>::iterator itMap;
   // Check that every term evaluates to its representative in the model
@@ -1172,8 +1204,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     {
       children.push_back(r.getOperator());
     }
-    bool childrenConst = true;
-    for (size_t i = 0; i < r.getNumChildren(); ++i)
+    for (size_t i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
       Node ri = r[i];
       bool recurse = true;
@@ -1203,18 +1234,11 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!TheoryModel::isValue(ri))
-        {
-          childrenConst = false;
-        }
       }
       children.push_back(ri);
     }
     retNode = NodeManager::currentNM()->mkNode(r.getKind(), children);
-    if (childrenConst)
-    {
-      retNode = rewrite(retNode);
-    }
+    retNode = rewrite(retNode);
   }
   d_normalizedCache[r] = retNode;
   return retNode;

@@ -486,7 +486,11 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
     }
   }
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  // There are cases where we need to rewrite the resulting term again. For
+  // example, if we rewrite (bvneg (bvneg (bvneg #b0))) to (bvneg #b0) then we
+  // have to rewrite again.
+  return RewriteResponse(resultNode != node ? REWRITE_AGAIN : REWRITE_DONE,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite){

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models --produce-models --decision=internal --nl-rlv=always
+; COMMAND-LINE: --produce-models --decision=internal --nl-rlv=always -q
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)

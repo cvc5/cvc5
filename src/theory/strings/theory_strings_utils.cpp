@@ -22,6 +22,7 @@
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
@@ -355,11 +356,11 @@ bool isStringKind(Kind k)
 
 bool isRegExpKind(Kind k)
 {
-  return k == REGEXP_NONE || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
-         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
-         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
-         || k == REGEXP_COMPLEMENT;
+  return k == REGEXP_NONE || k == REGEXP_ALL || k == REGEXP_ALLCHAR
+         || k == STRING_TO_REGEXP || k == REGEXP_CONCAT || k == REGEXP_UNION
+         || k == REGEXP_INTER || k == REGEXP_STAR || k == REGEXP_PLUS
+         || k == REGEXP_OPT || k == REGEXP_RANGE || k == REGEXP_LOOP
+         || k == REGEXP_RV || k == REGEXP_COMPLEMENT;
 }
 
 TypeNode getOwnerStringType(Node n)
@@ -419,7 +420,7 @@ struct StringValueForLengthVarAttributeId
 typedef expr::Attribute<StringValueForLengthVarAttributeId, Node>
     StringValueForLengthVarAttribute;
 
-Node mkAbstractStringValueForLength(Node n, Node len)
+Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
@@ -428,7 +429,10 @@ Node mkAbstractStringValueForLength(Node n, Node len)
       cacheVal, "s", n.getType());
   Node pred = nm->mkNode(STRING_LENGTH, v).eqNode(len);
   // return (witness ((v String)) (= (str.len v) len))
-  return nm->mkNode(WITNESS, nm->mkNode(BOUND_VAR_LIST, v), pred);
+  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
+  std::stringstream ss;
+  ss << "w" << id;
+  return quantifiers::mkNamedQuant(WITNESS, bvl, pred, ss.str());
 }
 
 }  // namespace utils

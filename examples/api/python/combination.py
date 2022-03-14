@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     print("Given the following assertions:", assertions, "\n")
     print("Prove x /= y is entailed.\ncvc5: ",
-          slv.checkEntailed(slv.mkTerm(Kind.Distinct, x, y)), "\n")
+          slv.checkSatAssuming(slv.mkTerm(Kind.Equal, x, y)), "\n")
 
     print("Call checkSat to show that the assertions are satisfiable")
     print("cvc5:", slv.checkSat(), "\n")
