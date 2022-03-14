@@ -758,7 +758,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<theory::SkolemLemma>& 
   for (SkolemLemma& skl : lems)
   {
     TrustNode tskl = skl.d_lemma;
-    Assert(tskl.getTrustNodeKind() == TrustNodeKind::REWRITE);
+    Assert(tskl.getTrustNodeKind() == TrustNodeKind::LEMMA);
     if (tskl.getGenerator() == nullptr)
     {
       Node proven = tskl.getProven();
@@ -768,6 +768,9 @@ TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<theory::SkolemLemma>& 
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
     }
   }
+  // notice that we don't ensure proofs are processed for the returned (rewrite)
+  // trust node, this is the responsibility of the caller, i.e. theory
+  // preprocessor.
   return trn;
 }
 
