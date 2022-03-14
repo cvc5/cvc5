@@ -141,7 +141,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_allCompSets.push_back(n);
     Trace("sets-debug2") << "Comp-set[" << r << "] : " << n << std::endl;
   }
-  else if (n.isVar() && !d_skCache.isSkolem(n))
+  else if (Theory::isLeafOf(n, THEORY_SETS) && !d_skCache.isSkolem(n))
   {
     // it is important that we check it is a variable, but not an internally
     // introduced skolem, due to the semantics of the universe set.
