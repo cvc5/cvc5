@@ -455,6 +455,8 @@ bool NlModel::solveEqualitySimple(Node eq,
         if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
         {
           Assert(!slv.isNull());
+          // must rewrite here to be in substituted form
+          slv = rewrite(slv);
           // Currently do not support substitution-with-coefficients.
           // We also ensure types are correct here, which avoids substituting
           // a term of non-integer type for a variable of integer type.
