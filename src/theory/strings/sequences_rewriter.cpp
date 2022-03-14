@@ -959,7 +959,7 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   {
     for (const Node& nc : node[0])
     {
-      if (nc.getKind()==REGEXP_ALLCHAR)
+      if (nc.getKind() == REGEXP_ALLCHAR)
       {
         // (re.* (re.union ... re.allchar ...)) ---> (re.* re.allchar)
         retNode = nm->mkNode(REGEXP_STAR, nc);
