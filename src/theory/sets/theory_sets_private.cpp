@@ -1373,7 +1373,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node);
+  Node x = sm->mkPurifySkolem(node, "setChoose");
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);

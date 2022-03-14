@@ -117,7 +117,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node);
+  Node x = sm->mkPurifySkolem(node, "bagChoose");
   Node A = node[0];
   TypeNode bagType = A.getType();
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
@@ -131,8 +131,8 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node count = nm->mkNode(BAG_COUNT, x, A);
   Node one = nm->mkConstInt(Rational(1));
   Node geqOne = nm->mkNode(GEQ, count, one);
-  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, geqOne))
-  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);;
+  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, geqOne));
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
   lems.push_back(SkolemLemma(tlem, x));
   Trace("TheoryBags::ppRewrite")
       << "ppRewrite(" << node << ") = " << x << std::endl;
