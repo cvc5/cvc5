@@ -225,6 +225,22 @@ enum class PfRule : uint32_t
   // the quantifiers rewriter involves constructing new bound variables that are
   // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
+  // ======== Theory Preprocess
+  // Children: none
+  // Arguments: (F, tid)
+  // ----------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = Theory::ppRewrite(t) for the theory
+  // with identifier tid. Notice this is a "trusted" rule.
+  THEORY_PREPROCESS,
+  // ======== Theory Preprocess
+  // Children: none
+  // Arguments: (F, tid)
+  // ----------------------------------------
+  // Conclusion: F
+  // where F was added as a new assertion by theory preprocessing from the
+  // theory with identifier tid.
+  THEORY_PREPROCESS_LEMMA,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
   // Children: ?
@@ -240,11 +256,6 @@ enum class PfRule : uint32_t
   PREPROCESS,
   // where F was added as a new assertion by some preprocessing pass.
   PREPROCESS_LEMMA,
-  // where F is an equality of the form t = Theory::ppRewrite(t) for some
-  // theory. Notice this is a "trusted" rule.
-  THEORY_PREPROCESS,
-  // where F was added as a new assertion by theory preprocessing.
-  THEORY_PREPROCESS_LEMMA,
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on theory expand definitions.
   THEORY_EXPAND_DEF,
