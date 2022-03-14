@@ -755,11 +755,12 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   {
     return trn;
   }
+  Assert (d_lazyProof!=nullptr);
   // if proofs are enabled, must ensure we have proofs for all the skolem lemmas
   for (SkolemLemma& skl : lems)
   {
     TrustNode tskl = skl.d_lemma;
-    Assert(tskl.getTrustNodeKind() == TrustNodeKind::LEMMA);
+    Assert(tskl.getKind() == TrustNodeKind::LEMMA);
     if (tskl.getGenerator() == nullptr)
     {
       Node proven = tskl.getProven();
