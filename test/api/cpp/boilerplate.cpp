@@ -27,7 +27,7 @@ using namespace std;
 
 int main() {
   Solver slv;
-  Result r = slv.checkEntailed(slv.mkBoolean(true));
-  return r.isEntailed() ? 0 : 1;
+  Result r = slv.checkSatAssuming(slv.mkBoolean(false));
+  return r.isUnsat() ? 0 : 1;
 }
 

@@ -23,7 +23,7 @@ int main()
 {
   Solver slv;
   Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
-  std::cout << helloworld << " is " << slv.checkEntailed(helloworld)
+  std::cout << helloworld << " is " << slv.checkSatAssuming(helloworld)
             << std::endl;
   return 0;
 }

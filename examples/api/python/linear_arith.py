@@ -56,9 +56,9 @@ if __name__ == "__main__":
     slv.push()
     diff_leq_two_thirds = slv.mkTerm(Kind.Leq, diff, two_thirds)
     print("Prove that", diff_leq_two_thirds, "with cvc5")
-    print("cvc5 should report ENTAILED")
+    print("cvc5 should report UNSAT")
     print("Result from cvc5 is:",
-          slv.checkEntailed(diff_leq_two_thirds))
+          slv.checkSatAssuming(diff_leq_two_thirds.notTerm()))
     slv.pop()
 
     print()
