@@ -328,7 +328,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
-  // a map from bag representatives to their constructed models
+  // a map from bag representatives to their constructed values
   std::map<Node, Node> processedBags;
 
   // get the relevant bag equivalence classes
