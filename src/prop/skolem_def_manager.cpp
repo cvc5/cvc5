@@ -28,10 +28,12 @@ SkolemDefManager::~SkolemDefManager() {}
 
 void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
 {
-  Assert (d_hasSkolems.find(skolem)==d_hasSkolems.end());
   // Notice that skolem may have kind SKOLEM or BOOLEAN_TERM_VARIABLE
   Trace("sk-defs") << "notifySkolemDefinition: " << def << " for " << skolem
                    << std::endl;
+  // should not have already computed whether the skolem has skolems, or else
+  // our computation of hasSkolems is wrong after adding this definition
+  Assert (d_hasSkolems.find(skolem)==d_hasSkolems.end());
   // in very rare cases, a skolem may be generated twice for terms that are
   // equivalent up to purification
   if (d_skDefs.find(skolem) == d_skDefs.end())
