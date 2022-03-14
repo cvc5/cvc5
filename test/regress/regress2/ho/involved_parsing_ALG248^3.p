@@ -1,5 +1,5 @@
 % COMMAND-LINE:  --ho-elim
-% EXPECT: % SZS status Theorem for involved_parsing_ALG248^3
+% EXPECT: % SZS status Unsatisfiable for involved_parsing_ALG248^3
 
 %------------------------------------------------------------------------------
 % File     : ALG248^3 : TPTP v7.2.0. Bugfixed v5.2.0.

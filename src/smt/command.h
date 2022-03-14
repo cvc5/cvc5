@@ -1052,8 +1052,6 @@ class CVC5_EXPORT GetInterpolCommand : public Command
   api::Term d_conj;
   /** The (optional) grammar of the interpolation query */
   api::Grammar* d_sygus_grammar;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 }; /* class GetInterpolCommand */
@@ -1081,8 +1079,6 @@ class CVC5_EXPORT GetInterpolNextCommand : public Command
  protected:
   /** The name of the interpolation predicate */
   std::string d_name;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 };
@@ -1131,8 +1127,6 @@ class CVC5_EXPORT GetAbductCommand : public Command
   api::Term d_conj;
   /** The (optional) grammar of the abduction query */
   api::Grammar* d_sygus_grammar;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 }; /* class GetAbductCommand */
@@ -1159,8 +1153,6 @@ class CVC5_EXPORT GetAbductNextCommand : public Command
  protected:
   /** The name of the abduction predicate */
   std::string d_name;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 };

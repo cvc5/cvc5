@@ -15,7 +15,7 @@
 % Names    : LEMMA 1 [PM93]
 %          : L1 [PB+94]
 
-% Status   : CounterSatisfiable
+% Status   : Satisfiable
 % Rating   : 0.00 v4.1.0, 0.20 v4.0.1, 0.00 v3.5.0, 0.33 v3.4.0, 0.00 v2.1.0
 % Syntax   : Number of formulae    :    5 (   0 unit)
 %            Number of atoms       :   21 (   1 equality)
