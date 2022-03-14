@@ -175,8 +175,11 @@ class TheoryEngine : protected EnvObj
    * (1) on equalities by the preprocessor to rewrite equalities appearing in
    * the input,
    * (2) on non-equalities by the theory preprocessor.
+   * 
+   * Calls the ppRewrite of the theory of term and adds the associated skolem
+   * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewrite(TNode eq, std::vector<SkolemLemma>& lems);
+  TrustNode ppRewrite(TNode term, std::vector<SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
