@@ -1367,7 +1367,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   Assert(node.getKind() == SET_CHOOSE);
 
   // (choose A) is eliminated to k, with lemma
-  //   (and (= k (uf A)) (or (= A (as set.empty E)) (set.member k A)))
+  //   (and (= k (uf A)) (or (= A (as set.empty (Set E))) (set.member k A)))
   // where uf: (Set E) -> E is a skolem function, and E is the type of elements
   // of A
 

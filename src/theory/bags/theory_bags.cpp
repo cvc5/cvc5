@@ -111,8 +111,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Assert(node.getKind() == BAG_CHOOSE);
 
   // (bag.choose A) is eliminated to k, with lemma
-  //   (and (= k (uf A)) (or (= A (as bag.empty (Bag E))) (>= (bag.count k A)
-  //   1)))
+  // (and (= k (uf A)) (or (= A (as bag.empty (Bag E))) (>= (bag.count k A) 1)))
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
   // of A
 
