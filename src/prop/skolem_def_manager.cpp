@@ -83,7 +83,7 @@ void SkolemDefManager::notifyAsserted(TNode literal,
 
 bool SkolemDefManager::hasSkolems(TNode n)
 {
-  Trace("sk-defs") << "Compute has skolems for " << n << std::endl;
+  Trace("sk-defs-debug") << "Compute has skolems for " << n << std::endl;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
   NodeBoolMap::const_iterator itn;
