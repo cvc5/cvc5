@@ -280,8 +280,10 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     Node cur = d_substitutions.getSubs(v);
     if (cur != s)
     {
-      Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
-      // this should never happen since substitutions should be applied eagerly
+      Trace("nl-ext-model") << "...warning: already has value: " << cur << std::endl;
+      // We set two different substitutions for a variable v. If both are
+      // constant, then we throw an error. Otherwise, we ignore the newer
+      // substitution and return false here.
       Assert(!cur.isConst() || !s.isConst())
           << "Conflicting exact bounds given for a variable (" << cur << " and "
           << s << ") for " << v;
@@ -334,7 +336,7 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
         << std::endl;
-    Assert(false);
+    Assert(false) << "Setting bound for variable that already has exact value.";
     return false;
   }
   Assert(l.isConst());
@@ -861,7 +863,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          Assert(false);
+          Assert(false) << "A variable " << vc << " is missing a bound/value in the model";
           return false;
         }
       }
