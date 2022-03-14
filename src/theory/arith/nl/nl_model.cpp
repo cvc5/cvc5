@@ -173,7 +173,8 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
                          std::vector<NlLemma>& lemmas)
 {
-  Trace("nl-ext-cm-debug") << "NlModel::checkModel: solve for equalities..." << std::endl;
+  Trace("nl-ext-cm-debug") << "NlModel::checkModel: solve for equalities..."
+                           << std::endl;
   for (const Node& atom : assertions)
   {
     Trace("nl-ext-cm-debug") << "- assertion: " << atom << std::endl;
@@ -242,7 +243,8 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     {
       // apply the substitution to a
       Node av = getSubstitutedForm(a);
-      Trace("nl-ext-cm") << "simpleCheckModelLit " << av << " (from " << a << ")" << std::endl;
+      Trace("nl-ext-cm") << "simpleCheckModelLit " << av << " (from " << a
+                         << ")" << std::endl;
       // simple check literal
       if (!simpleCheckModelLit(av))
       {
@@ -269,7 +271,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
 {
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
-  Assert(getSubstitutedForm(s)==s) << "Added a substitution whose range is not in substituted form " << s;
+  Assert(getSubstitutedForm(s) == s)
+      << "Added a substitution whose range is not in substituted form " << s;
   // should not substitute the same variable twice
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
@@ -279,7 +282,9 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     {
       Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
       // this should never happen since substitutions should be applied eagerly
-      Assert(!cur.isConst() || !s.isConst()) << "Conflicting exact bounds given for a variable (" << cur << " and " << s << ") for " << v;
+      Assert(!cur.isConst() || !s.isConst())
+          << "Conflicting exact bounds given for a variable (" << cur << " and "
+          << s << ") for " << v;
       return false;
     }
   }
@@ -289,13 +294,14 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       d_check_model_bounds.find(v);
   if (itb != d_check_model_bounds.end())
   {
-    Assert (s.isConst());
+    Assert(s.isConst());
     if (s.getConst<Rational>() <= itb->second.first.getConst<Rational>()
         || s.getConst<Rational>() >= itb->second.second.getConst<Rational>())
     {
       Trace("nl-ext-model")
           << "...ERROR: already has bound which is out of range." << std::endl;
-      Assert(false) << "Out of bounds exact bound given for a variable with an approximate bound";
+      Assert(false) << "Out of bounds exact bound given for a variable with an "
+                       "approximate bound";
       return false;
     }
   }
@@ -507,7 +513,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     return false;
   }
   Node val = nm->mkConst(CONST_RATIONAL,
-                          -c.getConst<Rational>() / b.getConst<Rational>());
+                         -c.getConst<Rational>() / b.getConst<Rational>());
   if (Trace.isOn("nl-ext-cm"))
   {
     Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";

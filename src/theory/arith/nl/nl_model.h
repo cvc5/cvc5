@@ -178,6 +178,7 @@ class NlModel : protected EnvObj
 
   /** Return the substituted form of s */
   Node getSubstitutedForm(TNode s) const;
+
  private:
   /** Cache for concrete model values */
   std::map<Node, Node> d_concreteModelCache;
