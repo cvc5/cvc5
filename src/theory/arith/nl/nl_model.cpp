@@ -280,7 +280,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
     Node cur = d_substitutions.getSubs(v);
     if (cur != s)
     {
-      Trace("nl-ext-model") << "...warning: already has value: " << cur << std::endl;
+      Trace("nl-ext-model")
+          << "...warning: already has value: " << cur << std::endl;
       // We set two different substitutions for a variable v. If both are
       // constant, then we throw an error. Otherwise, we ignore the newer
       // substitution and return false here.
@@ -863,7 +864,8 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          Assert(false) << "A variable " << vc << " is missing a bound/value in the model";
+          Assert(false) << "A variable " << vc
+                        << " is missing a bound/value in the model";
           return false;
         }
       }
