@@ -33,7 +33,7 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
                    << std::endl;
   // should not have already computed whether the skolem has skolems, or else
   // our computation of hasSkolems is wrong after adding this definition
-  Assert (d_hasSkolems.find(skolem)==d_hasSkolems.end());
+  Assert(d_hasSkolems.find(skolem) == d_hasSkolems.end());
   // in very rare cases, a skolem may be generated twice for terms that are
   // equivalent up to purification
   if (d_skDefs.find(skolem) == d_skDefs.end())
@@ -55,7 +55,8 @@ void SkolemDefManager::notifyAsserted(TNode literal,
 {
   std::unordered_set<Node> skolems;
   getSkolems(literal, skolems);
-  Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems " << skolems << std::endl;
+  Trace("sk-defs") << "notifyAsserted: " << literal << " has skolems "
+                   << skolems << std::endl;
   for (const Node& k : skolems)
   {
     if (d_skActive.find(k) != d_skActive.end())
@@ -136,7 +137,7 @@ bool SkolemDefManager::hasSkolems(TNode n)
         hasSkolem = false;
         for (TNode i : cur)
         {
-          Assert(d_hasSkolems.find(i)!=d_hasSkolems.end());
+          Assert(d_hasSkolems.find(i) != d_hasSkolems.end());
           if (d_hasSkolems[i])
           {
             hasSkolem = true;
@@ -147,12 +148,11 @@ bool SkolemDefManager::hasSkolems(TNode n)
       d_hasSkolems[cur] = hasSkolem;
     }
   } while (!visit.empty());
-  Assert(d_hasSkolems.find(n)!=d_hasSkolems.end());
+  Assert(d_hasSkolems.find(n) != d_hasSkolems.end());
   return d_hasSkolems[n];
 }
 
-void SkolemDefManager::getSkolems(TNode n,
-                                  std::unordered_set<Node>& skolems)
+void SkolemDefManager::getSkolems(TNode n, std::unordered_set<Node>& skolems)
 {
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;

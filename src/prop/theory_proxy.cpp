@@ -131,7 +131,8 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       // check if this corresponds to a zero-level asserted literal
       d_zll->notifyAsserted(assertion);
     }
-    Trace("ajr-temp") << "assertFact " << assertion << " " << d_dmNeedsActiveDefs << std::endl;
+    Trace("ajr-temp") << "assertFact " << assertion << " "
+                      << d_dmNeedsActiveDefs << std::endl;
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
     if (d_dmNeedsActiveDefs)

@@ -22,8 +22,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "context/cdhashset.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
