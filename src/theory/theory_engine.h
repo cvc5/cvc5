@@ -176,8 +176,7 @@ class TheoryEngine : protected EnvObj
    * the input,
    * (2) on non-equalities by the theory preprocessor.
    */
-  TrustNode ppRewrite(TNode eq,
-                           std::vector<SkolemLemma>& lems);
+  TrustNode ppRewrite(TNode eq, std::vector<SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 

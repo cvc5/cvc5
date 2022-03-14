@@ -743,10 +743,9 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
-TrustNode TheoryEngine::ppRewrite(TNode term,
-                           std::vector<SkolemLemma>& lems)
+TrustNode TheoryEngine::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
-  Assert (lems.empty());
+  Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(node);
   TrustNode trn = d_theoryTable[tid]->ppRewrite(eq, lems);
   if (!isProofEnabled())
@@ -759,14 +758,14 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   for (SkolemLemma& skl : lems)
   {
     TrustNode tskl = skl.d_lemma;
-    Assert (tskl.getTrustNodeKind()==TrustNodeKind::REWRITE);
-    if (tskl.getGenerator()==nullptr)
+    Assert(tskl.getTrustNodeKind() == TrustNodeKind::REWRITE);
+    if (tskl.getGenerator() == nullptr)
     {
       Node proven = tskl.getProven();
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-      d_lazyProof->addStep(proven, PfRule::THEORY_PREPROCESS, {}, {proven, tidn});
-      skl.d_lemma =
-          TrustNode::mkTrustLemma(proven, d_lazyProof.get());
+      d_lazyProof->addStep(
+          proven, PfRule::THEORY_PREPROCESS, {}, {proven, tidn});
+      skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
     }
   }
   return trn;
@@ -1817,7 +1816,10 @@ TrustNode TheoryEngine::getExplanation(
   return TrustNode::mkTrustPropExp(conclusion, expNode, nullptr);
 }
 
-bool TheoryEngine::isProofEnabled() const { return d_env.isTheoryProofProducing(); }
+bool TheoryEngine::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasFailure = false;
