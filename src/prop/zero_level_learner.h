@@ -81,7 +81,7 @@ class ZeroLevelLearner : protected EnvObj
 
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
-  
+
   /**
    * Have we seen a non-zero level literal yet? This is used as a way to ignore
    * literals that we have learned during preprocessing. In particular, all
