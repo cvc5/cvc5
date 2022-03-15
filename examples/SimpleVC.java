@@ -52,8 +52,9 @@ public class SimpleVC
       Term formula = slv.mkTerm(Kind.AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
       System.out.println("Checking entailment of formula " + formula + " with cvc5.");
-      System.out.println("cvc5 should report ENTAILED.");
-      System.out.println("Result from cvc5 is: " + slv.checkEntailed(formula));
+      System.out.println("cvc5 should report UNSAT.");
+      System.out.println(
+          "Result from cvc5 is: " + slv.checkSatAssuming(formula.notTerm()));
     }
   }
 }
