@@ -70,7 +70,7 @@ class ZeroLevelLearner : protected EnvObj
   /** Set of literals that hold at level 0 */
   NodeSet d_levelZeroAsserts;
 
-  /** Set of learnable, non-preprocess learned literals that hold at level 0 */
+  /** Set of learnable literals that hold at level 0 */
   NodeSet d_levelZeroAssertsLearned;
 
   /** Whether we have seen an assertion level > 0 */
@@ -79,16 +79,11 @@ class ZeroLevelLearner : protected EnvObj
   /** Preprocessed literals that are not learned */
   NodeSet d_ppnAtoms;
 
+  /** Already learned TEMPORARY */
+  NodeSet d_pplAtoms;
+
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
-
-  /**
-   * Have we seen a non-zero level literal yet? This is used as a way to ignore
-   * literals that we have learned during preprocessing. In particular, all
-   * literals that are asserted at level zero before we see a literal at
-   * non-zero level literal are considered to be learned during preprocessing.
-   */
-  bool d_seenNonZero;
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop

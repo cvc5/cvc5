@@ -34,8 +34,8 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
       d_levelZeroAssertsLearned(userContext()),
       d_nonZeroAssert(context(), false),
       d_ppnAtoms(userContext()),
-      d_assertNoLearnCount(0),
-      d_seenNonZero(false)
+      d_pplAtoms(userContext()),
+      d_assertNoLearnCount(0)
 {
 }
 
@@ -69,11 +69,34 @@ void ZeroLevelLearner::notifyInputFormulas(
     const std::vector<Node>& assertions,
     const std::unordered_map<size_t, Node>& skolemMap)
 {
-  d_seenNonZero = false;
   d_assertNoLearnCount = 0;
-  // Copy the preprocessed assertions and skolem map information directly
-  // Also, compute the set of literals in the preprocessed assertions
   std::unordered_set<TNode> visited;
+  // We consider top level literals of assertions to be the preprocessed
+  // learned literals, and not the learned literals from preprocessing. This
+  // means that a learned literal from e.g. circuit propagation will be
+  // considered a non-preprocessed learned literal.
+  // Note that d_pplAtoms and d_ppnAtoms are disjoint
+  for (const Node& lit : assertions)
+  {
+    TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
+    if (expr::isBooleanConnective(atom))
+    {
+      continue;
+    }
+    visited.insert(atom);
+    d_pplAtoms.insert(atom);
+  }
+  if (isOutputOn(OutputTag::LEARNED_LITS))
+  {
+    // output learned literals from preprocessing
+    for (const Node& lit : d_pplAtoms)
+    {
+      output(OutputTag::LEARNED_LITS)
+          << "(learned-lit " << SkolemManager::getOriginalForm(lit)
+          << " :preprocess)" << std::endl;
+    }
+  }
+  // Compute the set of literals in the preprocessed assertions
   for (const Node& a : assertions)
   {
     getAtoms(a, visited, d_ppnAtoms);
@@ -82,6 +105,7 @@ void ZeroLevelLearner::notifyInputFormulas(
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
+  Trace("level-zero") << "#Learned lits = " << d_pplAtoms.size() << std::endl;
   Trace("level-zero") << "#Top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
@@ -103,38 +127,28 @@ void ZeroLevelLearner::notifyAsserted(TNode assertion)
       bool learnable = d_ppnAtoms.find(aatom) != d_ppnAtoms.end();
       Trace("level-zero-assert")
           << "Level zero assert: " << assertion << ", learnable=" << learnable
-          << ", seen non-zero=" << d_seenNonZero << std::endl;
+          << ", already learned="
+          << (d_pplAtoms.find(aatom) != d_pplAtoms.end()) << std::endl;
       d_levelZeroAsserts.insert(assertion);
       if (learnable)
       {
-        // if not at preprocess
-        if (d_seenNonZero)
-        {
-          d_assertNoLearnCount = 0;
-          d_levelZeroAssertsLearned.insert(assertion);
-          Trace("level-zero-assert")
-              << "#learned now " << d_levelZeroAssertsLearned.size()
-              << std::endl;
-        }
+        d_assertNoLearnCount = 0;
+        d_levelZeroAssertsLearned.insert(assertion);
+        Trace("level-zero-assert")
+            << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
         if (isOutputOn(OutputTag::LEARNED_LITS))
         {
           // get the original form so that internally generated variables
           // are mapped back to their original form
           output(OutputTag::LEARNED_LITS)
-              << "(learned-lit " << SkolemManager::getOriginalForm(assertion);
-          if (!d_seenNonZero)
-          {
-            output(OutputTag::LEARNED_LITS) << ":preprocess";
-          }
-          output(OutputTag::LEARNED_LITS) << ")" << std::endl;
+              << "(learned-lit " << SkolemManager::getOriginalForm(assertion)
+              << ")" << std::endl;
         }
         return;
       }
     }
     else
     {
-      // we have now seen a non-zero-level literal
-      d_seenNonZero = true;
       d_nonZeroAssert = true;
     }
     d_assertNoLearnCount++;
