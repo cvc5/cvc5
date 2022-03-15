@@ -45,7 +45,7 @@ void SolverEngineState::notifyExpectedStatus(const std::string& status)
       << "SolverEngineState::notifyExpectedStatus: unexpected status string "
       << status;
   d_expectedStatus = Result(status, options().driver.filename);
-  Assert (d_expectedStatus.getStatus()!=Result::NONE);
+  Assert(d_expectedStatus.getStatus() != Result::NONE);
 }
 
 void SolverEngineState::notifyResetAssertions()
@@ -97,14 +97,14 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   // Remember the status
   d_status = r;
   // Check against expected status, if it is set
-  if (d_expectedStatus.getStatus()!=Result::NONE)
+  if (d_expectedStatus.getStatus() != Result::NONE)
   {
     // unknown results don't give an error
     if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
         && d_status != d_expectedStatus)
     {
-      CVC5_FATAL() << "Expected result " << d_expectedStatus
-                  << " but got " << d_status;
+      CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
+                   << d_status;
     }
   }
   // clear expected status

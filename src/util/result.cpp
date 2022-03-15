@@ -196,7 +196,7 @@ void Result::toStreamDefault(std::ostream& out) const {
 }
 
 void Result::toStreamSmt2(ostream& out) const {
-  if (d_status==Result::UNKNOWN)
+  if (d_status == Result::UNKNOWN)
   {
     // to avoid printing the reason
     out << "unknown";
