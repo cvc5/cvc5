@@ -1,6 +1,5 @@
 (set-logic ALL)
 (set-info :status unsat)
-(set-option :check-unsat-cores true)
 (declare-const x (Bag Int))
 (assert (distinct (bag.union_disjoint x x) (as bag.empty (Bag Int))))
 (assert (= 0 (bag.card x)))
