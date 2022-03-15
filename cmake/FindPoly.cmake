@@ -90,6 +90,28 @@ if(NOT Poly_FOUND_SYSTEM)
     )
   endif()
 
+  if(BUILD_SHARED_LIBS)
+    set(POLY_TARGETS poly polyxx)
+    unset(POLY_INSTALL_COMMAND)
+  else()
+    # For static builds, we only build and install the `static_pic_poly` and
+    # `static_pic_polyxx` targets. We pass the full path of GMP to LibPoly
+    # below. If we are building a static version of cvc5, it is the static
+    # version of GMP, which does not work for building a shared version of
+    # LibPoly.
+    set(POLY_TARGETS static_pic_poly static_pic_polyxx)
+    set(POLY_INSTALL_COMMAND
+      COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
+              <INSTALL_DIR>/lib/libpicpoly.a
+      COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
+              <INSTALL_DIR>/lib/libpicpolyxx.a
+    )
+  endif()
+
+  # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
+  # able to find the correct version of GMP if we built it locally. This is
+  # primarily important for cross-compiling cvc5, because LibPoly's search
+  # paths make it impossible to find the locally built GMP library otherwise.
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
@@ -107,13 +129,9 @@ if(NOT Poly_FOUND_SYSTEM)
                -DLIBPOLY_BUILD_STATIC_PIC=ON
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
-    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM}
-    COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
-    INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
-    COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
-            <INSTALL_DIR>/lib/libpicpoly.a
-    COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
-            <INSTALL_DIR>/lib/libpicpolyxx.a
+    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
+    INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install ${POLY_TARGETS}
+      ${POLY_INSTALL_COMMAND}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
   )
   ExternalProject_Add_Step(
