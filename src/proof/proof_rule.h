@@ -25,17 +25,16 @@ namespace cvc5 {
 /**
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
- * Node objects. In the documentation below, P:F denotes a ProofNode that
- * proves formula F.
- * 
+ * Node objects. 
  * All proof rules are given as inference rules, presented in the following form:
  *
  * .. math::
  *   
  *   \texttt{RULENAME}: \inferrule*[vcenter, right={if $C$}]{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}
  *
- * where we call ``RULENAME`` its name, :math:`\varphi_i` its premises, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- *
+ * where we call ``RULENAME`` its name, :math:`\varphi_i` its premises or children, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
+ * Alternatively, we write ``(RULENAME F1 ... Fn :args t1 ... tm)``.
+ * Note that premises are sometimes given as proofs, or rather application of proof rules, instead of formulas.
  * 
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
@@ -53,7 +52,7 @@ namespace cvc5 {
  * internally on nodes, e.g. calling Rewriter::rewrite.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
- * rules. These exist for convienience. We provide their definition in the line
+ * rules. These exist for convenience. We provide their definition in the line
  * "Macro:".
  * \endverbatim
  */
