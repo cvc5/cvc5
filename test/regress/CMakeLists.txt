@@ -536,6 +536,7 @@ set(regress_0_tests
   regress0/datatypes/par-updater-type-rule.smt2 
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
+  regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -574,6 +575,7 @@ set(regress_0_tests
   regress0/decision/error20.delta01.smtv1.smt2
   regress0/decision/error20.smtv1.smt2
   regress0/decision/error3.delta01.smtv1.smt2
+  regress0/decision/issue8296-sk-def-before-assert.smt2
   regress0/decision/pp-regfile.delta01.smtv1.smt2
   regress0/decision/pp-regfile.delta02.smtv1.smt2
   regress0/decision/quant-ex1.smt2
@@ -810,6 +812,7 @@ set(regress_0_tests
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
+  regress0/nl/nta/proj-issue483-arccos-oob.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sin-sym-schema.smt2
@@ -1250,6 +1253,7 @@ set(regress_0_tests
   regress0/sets/nonvar-univ.smt2
   regress0/sets/pre-proc-univ.smt2
   regress0/sets/proj-issue177.smt2
+  regress0/sets/proj-issue486-sets-split-eq.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
@@ -1360,6 +1364,7 @@ set(regress_0_tests
   regress0/strings/issue6681-split-eq-strip-l.smt2
   regress0/strings/issue6834-str-eq-const-nhomog.smt2
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  regress0/strings/issue8295-star-union-char.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1376,6 +1381,8 @@ set(regress_0_tests
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
   regress0/strings/proj-issue409-re-loop-none.smt2
+  regress0/strings/quad-028-2-2-unsat.smt2
+  regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1753,6 +1760,7 @@ set(regress_1_tests
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
   regress1/bags/murxla4.smt2
+  regress1/bags/murxla5.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
@@ -2016,6 +2024,7 @@ set(regress_1_tests
   regress1/non-fatal-errors.smt2
   regress1/proj-issue175.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
+  regress1/proj-issue476-theoryOf-no-uf.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -3028,8 +3037,6 @@ set(regression_disabled_tests
   regress0/bv/test00.smtv1.smt2
   # timeout after fixing upwards closure for relations
   regress0/rels/rel_tc_7.cvc.smt2
-  # timeout after changes to equality rewriting policy in strings
-  regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes

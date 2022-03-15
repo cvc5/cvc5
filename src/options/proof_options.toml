@@ -39,6 +39,7 @@ name   = "Proof"
   long       = "proof-pedantic=N"
   type       = "uint64_t"
   default    = "0"
+  maximum    = "100"
   help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
 [[option]]

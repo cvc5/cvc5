@@ -61,9 +61,9 @@ int main()
   slv.push();
   Term diff_leq_two_thirds = slv.mkTerm(LEQ, diff, two_thirds);
   cout << "Prove that " << diff_leq_two_thirds << " with cvc5." << endl;
-  cout << "cvc5 should report ENTAILED." << endl;
-  cout << "Result from cvc5 is: " << slv.checkEntailed(diff_leq_two_thirds)
-       << endl;
+  cout << "cvc5 should report UNSAT." << endl;
+  cout << "Result from cvc5 is: "
+       << slv.checkSatAssuming(diff_leq_two_thirds.notTerm()) << endl;
   slv.pop();
 
   cout << endl;

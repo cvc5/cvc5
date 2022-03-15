@@ -937,24 +937,6 @@ bool Result::isSatUnknown(void) const
          && d_result->isSat() == cvc5::Result::SAT_UNKNOWN;
 }
 
-bool Result::isEntailed(void) const
-{
-  return d_result->getType() == cvc5::Result::TYPE_ENTAILMENT
-         && d_result->isEntailed() == cvc5::Result::ENTAILED;
-}
-
-bool Result::isNotEntailed(void) const
-{
-  return d_result->getType() == cvc5::Result::TYPE_ENTAILMENT
-         && d_result->isEntailed() == cvc5::Result::NOT_ENTAILED;
-}
-
-bool Result::isEntailmentUnknown(void) const
-{
-  return d_result->getType() == cvc5::Result::TYPE_ENTAILMENT
-         && d_result->isEntailed() == cvc5::Result::ENTAILMENT_UNKNOWN;
-}
-
 bool Result::operator==(const Result& r) const
 {
   return *d_result == *r.d_result;
@@ -1375,25 +1357,6 @@ bool Sort::isFirstClass() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isFunctionLike() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_type->isFunctionLike();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-bool Sort::isSubsortOf(const Sort& s) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_SOLVER("sort", s);
-  //////// all checks before this line
-  return d_type->isSubtypeOf(*s.d_type);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1409,7 +1372,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK_SORTS(params);
+  CVC5_API_CHECK_DOMAIN_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(isSortConstructor()
@@ -1656,17 +1619,6 @@ Sort Sort::getSequenceElementSort() const
 
 /* Uninterpreted sort -------------------------------------------------- */
 
-std::string Sort::getUninterpretedSortName() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  //////// all checks before this line
-  return d_type->getName();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 bool Sort::isUninterpretedSortParameterized() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1701,17 +1653,6 @@ std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 }
 
 /* Sort constructor sort ----------------------------------------------- */
-
-std::string Sort::getSortConstructorName() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
-  //////// all checks before this line
-  return d_type->getName();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 
 size_t Sort::getSortConstructorArity() const
 {
@@ -5801,7 +5742,7 @@ Sort Solver::mkSortConstructorSort(const std::string& symbol,
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORTS_NOT_FUNCTION_LIKE(sorts);
+  CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
   //////// all checks before this line
   return mkTupleSortHelper(sorts);
   ////////
@@ -6064,7 +6005,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(sort.isArray(), sort) << "an array sort";
-  CVC5_API_CHECK(val.getSort().isSubsortOf(sort.getArrayElementSort()))
+  CVC5_API_CHECK(val.getSort() == sort.getArrayElementSort())
       << "Value does not match element sort";
   //////// all checks before this line
 
@@ -6672,36 +6613,6 @@ Term Solver::simplify(const Term& term)
   CVC5_API_TRY_CATCH_END;
 }
 
-Result Solver::checkEntailed(const Term& term) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_slv->isQueryMade()
-                 || d_slv->getOptions().base.incrementalSolving)
-      << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
-  CVC5_API_SOLVER_CHECK_TERM(term);
-  ensureWellFormedTerm(term);
-  //////// all checks before this line
-  return d_slv->checkEntailed(*term.d_node);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Result Solver::checkEntailed(const std::vector<Term>& terms) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_slv->isQueryMade()
-                 || d_slv->getOptions().base.incrementalSolving)
-      << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
-  CVC5_API_SOLVER_CHECK_TERMS(terms);
-  ensureWellFormedTerms(terms);
-  //////// all checks before this line
-  return d_slv->checkEntailed(Term::termVectorToNodes(terms));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 /* SMT-LIB commands                                                           */
 /* -------------------------------------------------------------------------- */
 
@@ -6831,7 +6742,7 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_CHECK(term.getSort().isSubsortOf(sort))
+  CVC5_API_CHECK(term.getSort() == sort)
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -7002,11 +6913,6 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
   d_slv->defineFunctionsRec(efuns, ebound_vars, nodes, global);
   ////////
   CVC5_API_TRY_CATCH_END;
-}
-
-void Solver::echo(std::ostream& out, const std::string& str) const
-{
-  out << str;
 }
 
 std::vector<Term> Solver::getAssertions(void) const
@@ -7563,7 +7469,7 @@ void Solver::pop(uint32_t nscopes) const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(const Term& conj, Term& output) const
+Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7572,21 +7478,14 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result;
   TypeNode nullType;
-  bool success = d_slv->getInterpolant(*conj.d_node, nullType, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolant(*conj.d_node, nullType);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(const Term& conj,
-                            Grammar& grammar,
-                            Term& output) const
+Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
@@ -7595,19 +7494,13 @@ bool Solver::getInterpolant(const Term& conj,
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpols=mode)";
   //////// all checks before this line
-  Node result;
-  bool success =
-      d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolantNext(Term& output) const
+Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
@@ -7618,56 +7511,40 @@ bool Solver::getInterpolantNext(Term& output) const
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
-  Node result;
-  bool success = d_slv->getInterpolantNext(result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getInterpolantNext();
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbduct(const Term& conj, Term& output) const
+Term Solver::getAbduct(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result;
   TypeNode nullType;
-  bool success = d_slv->getAbduct(*conj.d_node, nullType, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbduct(*conj.d_node, nullType);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
+Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
-  Node result;
-  bool success =
-      d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type, result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Solver::getAbductNext(Term& output) const
+Term Solver::getAbductNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
@@ -7677,13 +7554,8 @@ bool Solver::getAbductNext(Term& output) const
       << "Cannot get next abduct when not solving incrementally (try "
          "--incremental)";
   //////// all checks before this line
-  Node result;
-  bool success = d_slv->getAbductNext(result);
-  if (success)
-  {
-    output = Term(this, result);
-  }
-  return success;
+  Node result = d_slv->getAbductNext();
+  return Term(this, result);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
