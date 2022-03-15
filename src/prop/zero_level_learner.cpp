@@ -67,7 +67,7 @@ void ZeroLevelLearner::getAtoms(TNode a,
 
 void ZeroLevelLearner::notifyInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap)
+    const std::unordered_map<size_t, Node>& skolemMap)
 {
   d_seenNonZero = false;
   d_assertNoLearnCount = 0;

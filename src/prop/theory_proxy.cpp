@@ -68,10 +68,6 @@ void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
 void TheoryProxy::presolve()
 {
-  if (d_zll != nullptr)
-  {
-    d_zll->presolve();
-  }
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
 }

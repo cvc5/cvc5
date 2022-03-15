@@ -50,7 +50,7 @@ class ZeroLevelLearner : protected EnvObj
   ~ZeroLevelLearner();
 
   void notifyInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap);
+                           const std::unordered_map<size_t, Node>& skolemMap);
   /**
    * Notify the given literal was asserted
    */
