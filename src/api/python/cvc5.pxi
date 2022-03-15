@@ -603,24 +603,6 @@ cdef class Result:
         """
         return self.cr.isSatUnknown()
 
-    def isEntailed(self):
-        """
-            :return: True if corresponding query was an entailed :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query.
-        """
-        return self.cr.isEntailed()
-
-    def isNotEntailed(self):
-        """
-            :return: True if corresponding query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query that is not entailed.
-        """
-        return self.cr.isNotEntailed()
-
-    def isEntailmentUnknown(self):
-        """
-            :return: True if query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query  query and cvc5 was not able to determine if it is entailed.
-        """
-        return self.cr.isEntailmentUnknown()
-
     def getUnknownExplanation(self):
         """
             :return: an explanation for an unknown query result.
@@ -1761,21 +1743,6 @@ cdef class Solver:
         r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
         return r
 
-    @expand_list_arg(num_req_args=0)
-    def checkEntailed(self, *assumptions):
-        """Check entailment of the given formula w.r.t. the current set of assertions.
-
-        :param terms: the formulas to check entailment for, as a list or as distinct arguments
-        :return: the result of the entailment check.
-        """
-        cdef Result r = Result()
-        # used if assumptions is a list of terms
-        cdef vector[c_Term] v
-        for a in assumptions:
-            v.push_back((<Term?> a).cterm)
-        r.cr = self.csolver.checkEntailed(<const vector[c_Term]&> v)
-        return r
-
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         """
@@ -2116,6 +2083,36 @@ cdef class Solver:
         :return: true if v is a model core symbol
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
+
+    def getModel(self, sorts, consts):
+        """Get the model
+
+        SMT-LIB:
+
+        .. code:: smtlib
+        
+            (get-model)
+
+        Requires to enable option
+        :ref:`produce-models <lbl-option-produce-models>`.
+   
+        :param sorts: The list of uninterpreted sorts that should be printed in
+                      the model.
+        :param vars: The list of free constants that should be printed in the
+                     model. A subset of these may be printed based on
+                     isModelCoreSymbol.
+        :return: a string representing the model.
+        """
+
+        cdef vector[c_Sort] csorts
+        for sort in sorts:
+            csorts.push_back((<Sort?> sort).csort)
+
+        cdef vector[c_Term] cconsts
+        for const in consts:
+            cconsts.push_back((<Term?> const).cterm)
+
+        return self.csolver.getModel(csorts, cconsts)
 
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
@@ -2664,29 +2661,6 @@ cdef class Sort:
         """
         return self.csort.isFirstClass()
 
-    def isFunctionLike(self):
-        """
-        Is this a function-LIKE sort?
-
-        Anything function-like except arrays (e.g., datatype selectors) is
-        considered a function here. Function-like terms can not be the argument
-        or return value for any term that is function-like.
-        This is mainly to avoid higher order.
-
-        .. note:: Arrays are explicitly not considered function-like here.
-
-        :return: True if this is a function-like sort
-        """
-        return self.csort.isFunctionLike()
-
-    def isSubsortOf(self, Sort sort):
-        """
-            Is this sort a subsort of the given sort?
-
-	    :return: True if this sort is a subsort of s
-        """
-        return self.csort.isSubsortOf(sort.csort)
-
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort
@@ -2878,12 +2852,6 @@ cdef class Sort:
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
-    def getUninterpretedSortName(self):
-        """
-            :return: the name of an uninterpreted sort
-        """
-        return self.csort.getUninterpretedSortName().decode()
-
     def isUninterpretedSortParameterized(self):
         """
             :return: True if an uninterpreted sort is parameterized
@@ -2900,12 +2868,6 @@ cdef class Sort:
             sort.csort = s
             param_sorts.append(sort)
         return param_sorts
-
-    def getSortConstructorName(self):
-        """
-            :return: the name of a sort constructor sort
-        """
-        return self.csort.getSortConstructorName().decode()
 
     def getSortConstructorArity(self):
         """

@@ -1,5 +1,5 @@
 % COMMAND-LINE:  --full-saturate-quant --ho-elim
-% EXPECT: % SZS status Theorem for bug_instfalse_SEU882^5
+% EXPECT: % SZS status Unsatisfiable for bug_instfalse_SEU882^5
 
 %------------------------------------------------------------------------------
 % File     : SEU882^5 : TPTP v7.2.0. Released v4.0.0.

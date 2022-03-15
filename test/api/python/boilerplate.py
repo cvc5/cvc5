@@ -20,5 +20,5 @@
 import cvc5
 
 slv = cvc5.Solver()
-r = slv.checkEntailed(slv.mkBoolean(True))
-r.isEntailed()
+r = slv.checkSatAssuming(slv.mkBoolean(False))
+r.isUnsat()

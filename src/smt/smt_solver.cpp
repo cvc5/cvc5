@@ -113,8 +113,7 @@ void SmtSolver::interrupt()
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
-                                      const std::vector<Node>& assumptions,
-                                      bool isEntailmentCheck)
+                                      const std::vector<Node>& assumptions)
 {
   Result result;
 
@@ -126,7 +125,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     d_state.notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
-    as.initializeCheckSat(assumptions, isEntailmentCheck);
+    as.initializeCheckSat(assumptions);
 
     // make the check, where notice smt engine should be fully inited by now
 
