@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE: -q --no-produce-proofs
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)
