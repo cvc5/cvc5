@@ -61,12 +61,10 @@ Result::Result(const std::string& instr, std::string inputName)
   {
     d_status = SAT;
   } else if (s == "unsat" || s == "unsatisfiable") {
-    d_which = TYPE_SAT;
     d_status = UNSAT;
   }
   else if (s == "incomplete")
   {
-    d_which = TYPE_SAT;
     d_status = UNKNOWN;
     d_unknownExplanation = INCOMPLETE;
   }
@@ -184,9 +182,9 @@ void Result::toStreamDefault(std::ostream& out) const {
     case Result::SAT: out << "sat"; break;
     case Result::UNKNOWN:
       out << "unknown";
-      if (whyUnknown() != Result::UNKNOWN_REASON)
+      if (getUnknownExplanation() != Result::UNKNOWN_REASON)
       {
-        out << " (" << whyUnknown() << ")";
+        out << " (" << getUnknownExplanation() << ")";
       }
       break;
   }

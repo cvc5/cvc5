@@ -37,9 +37,13 @@ class Result
  public:
   enum Status
   {
+    // the status has not been set
     NONE,
+    // the status is "unsat"
     UNSAT,
+    // the status is "sat"
     SAT,
+    // the status is "unknown"
     UNKNOWN
   };
 
