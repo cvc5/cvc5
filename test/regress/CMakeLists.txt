@@ -1254,6 +1254,7 @@ set(regress_0_tests
   regress0/sets/pre-proc-univ.smt2
   regress0/sets/proj-issue177.smt2
   regress0/sets/proj-issue486-sets-split-eq.smt2
+  regress0/sets/proj-issue493-choose-det.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
@@ -2411,6 +2412,7 @@ set(regress_1_tests
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
+  regress1/sets/proj-issue494-finite-leafof.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
