@@ -65,6 +65,7 @@ enum class PfRule : uint32_t
 {
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Assumption (a leaf)**
    *
    * .. math::
    *
@@ -80,6 +81,7 @@ enum class PfRule : uint32_t
   ASSUME,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Scope (a binder for assumptions)**
    *
    * .. math::
    *
@@ -101,6 +103,7 @@ enum class PfRule : uint32_t
 
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution**
    *
    * .. math::
    *
@@ -115,6 +118,7 @@ enum class PfRule : uint32_t
   SUBS,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Rewrite**
    *
    * .. math::
    *   \inferrule{- \mid t, idr}{t = \texttt{Rewriter}_{idr}(t)}
@@ -125,6 +129,7 @@ enum class PfRule : uint32_t
   REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Evaluate**
    *
    * .. math::
    *   \inferrule{- \mid t}{t = \texttt{Evaluator::evaluate}(t)}
@@ -135,6 +140,7 @@ enum class PfRule : uint32_t
   EVALUATE,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting equality introduction**
    *
    * In this rule, we provide a term :math:`t` and conclude that it is equal to
    * its rewritten form under a (proven) substitution.
@@ -155,6 +161,7 @@ enum class PfRule : uint32_t
   MACRO_SR_EQ_INTRO,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting predicate introduction**
    *
    * In this rule, we provide a formula :math:`F` and conclude it, under the
    * condition that it rewrites to true under a proven substitution.
@@ -184,6 +191,7 @@ enum class PfRule : uint32_t
   MACRO_SR_PRED_INTRO,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting predicate elimination**
    *
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid (ids (ida (idr)?)?)?}{\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))}
@@ -196,6 +204,7 @@ enum class PfRule : uint32_t
   MACRO_SR_PRED_ELIM,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting predicate elimination**
    *
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid G, (ids (ida (idr)?)?)?}{G}
@@ -211,6 +220,7 @@ enum class PfRule : uint32_t
   MACRO_SR_PRED_TRANSFORM,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Annotation**
    *
    * .. math::
    *   \inferrule{F \mid a_1 \dots a_n}{F}
@@ -222,6 +232,7 @@ enum class PfRule : uint32_t
   ANNOTATION,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Processing rules -- Remove Term Formulas Axiom**
    *
    * .. math::
    *   \inferrule{- \mid t}{\texttt{RemoveTermFormulas::getAxiomFor}(t)}
@@ -232,6 +243,7 @@ enum class PfRule : uint32_t
 
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory lemma**
    * 
    * .. math::
    *   \inferrule{- \mid F, tid}{F}
@@ -244,6 +256,7 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory rewrite**
    * 
    * .. math::
    *   \inferrule{- \mid F, tid, rid}{F}
@@ -259,20 +272,9 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   THEORY_REWRITE,
-  // The remaining rules in this section have the signature of a "trusted rule":
-  //
-  // Children: ?
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  //
-  // Unless stated below, the expected children vector of the rule is empty.
-  //
-  // where F is an equality of the form t = t' where t was replaced by t'
-  // based on some preprocessing pass, or otherwise F was added as a new
-  // assertion by some preprocessing pass.
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Preprocessing**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -285,6 +287,7 @@ enum class PfRule : uint32_t
   PREPROCESS,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Preprocessing new assertion**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -295,17 +298,19 @@ enum class PfRule : uint32_t
   PREPROCESS_LEMMA,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory preprocessing**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
    *
    * where :math:`F` is an equality of the form :math:`t = \texttt{Theory::ppRewrite}(t)` for some
-   * theory. Notice this is a "trusted" rule.
+   * theory.
    * \endverbatim
    */
   THEORY_PREPROCESS,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory preprocessing**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -316,6 +321,7 @@ enum class PfRule : uint32_t
   THEORY_PREPROCESS_LEMMA,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory expand definitions**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -327,6 +333,7 @@ enum class PfRule : uint32_t
   THEORY_EXPAND_DEF,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Witness term axiom**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -338,6 +345,7 @@ enum class PfRule : uint32_t
   WITNESS_AXIOM,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-replayable rewriting**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -349,6 +357,7 @@ enum class PfRule : uint32_t
   TRUST_REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-replayable substitution**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -360,6 +369,7 @@ enum class PfRule : uint32_t
   TRUST_SUBS,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-replayable substitution map**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
@@ -373,6 +383,7 @@ enum class PfRule : uint32_t
   TRUST_SUBS_MAP,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Solved equality**
    * 
    * .. math::
    *   \inferrule{F' \mid F}{F}
@@ -384,6 +395,7 @@ enum class PfRule : uint32_t
   TRUST_SUBS_EQ,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Theory-specific inference**
    * 
    * .. math::
    *   \inferrule{- \mid F}{F}
