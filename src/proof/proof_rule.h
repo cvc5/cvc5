@@ -30,7 +30,7 @@ namespace cvc5 {
  *
  * .. math::
  * 
- *   \texttt{RULENAME}: \inferruleSC{\varphi_1 \dots \varphi_n}{\psi}{if $C$}
+ *   \texttt{RULENAME}: \inferruleSC{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}{if $C$}
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
  * Alternatively, we write ``(RULENAME F1 ... Fn :args t1 ... tm)``.
