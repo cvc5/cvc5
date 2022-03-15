@@ -28,122 +28,74 @@ using namespace std;
 namespace cvc5 {
 
 Result::Result()
-    : d_sat(SAT_UNKNOWN),
-      d_entailment(ENTAILMENT_UNKNOWN),
-      d_which(TYPE_NONE),
+    : d_status(UNKNOWN),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName("")
 {
 }
 
-Result::Result(enum Sat s, std::string inputName)
-    : d_sat(s),
-      d_entailment(ENTAILMENT_UNKNOWN),
-      d_which(TYPE_SAT),
+Result::Result( Status s, std::string inputName)
+    : d_status(s),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName(inputName)
 {
-  PrettyCheckArgument(s != SAT_UNKNOWN,
+  PrettyCheckArgument(s != UNKNOWN,
                       "Must provide a reason for satisfiability being unknown");
 }
 
-Result::Result(enum Entailment e, std::string inputName)
-    : d_sat(SAT_UNKNOWN),
-      d_entailment(e),
-      d_which(TYPE_ENTAILMENT),
-      d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName(inputName)
-{
-  PrettyCheckArgument(e != ENTAILMENT_UNKNOWN,
-                      "Must provide a reason for entailment being unknown");
-}
-
-Result::Result(enum Sat s,
-               enum UnknownExplanation unknownExplanation,
+Result::Result( Status s,
+              UnknownExplanation unknownExplanation,
                std::string inputName)
-    : d_sat(s),
-      d_entailment(ENTAILMENT_UNKNOWN),
-      d_which(TYPE_SAT),
+    : d_status(s),
       d_unknownExplanation(unknownExplanation),
       d_inputName(inputName)
 {
-  PrettyCheckArgument(s == SAT_UNKNOWN,
-                      "improper use of unknown-result constructor");
-}
-
-Result::Result(enum Entailment e,
-               enum UnknownExplanation unknownExplanation,
-               std::string inputName)
-    : d_sat(SAT_UNKNOWN),
-      d_entailment(e),
-      d_which(TYPE_ENTAILMENT),
-      d_unknownExplanation(unknownExplanation),
-      d_inputName(inputName)
-{
-  PrettyCheckArgument(e == ENTAILMENT_UNKNOWN,
+  PrettyCheckArgument(s == UNKNOWN,
                       "improper use of unknown-result constructor");
 }
 
 Result::Result(const std::string& instr, std::string inputName)
-    : d_sat(SAT_UNKNOWN),
-      d_entailment(ENTAILMENT_UNKNOWN),
-      d_which(TYPE_NONE),
+    : d_status(UNKNOWN),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName(inputName)
 {
   string s = instr;
   transform(s.begin(), s.end(), s.begin(), ::tolower);
-  if (s == "sat" || s == "satisfiable") {
-    d_which = TYPE_SAT;
-    d_sat = SAT;
+  if (s == "sat"  || s == "satisfiable") {
+    d_status = SAT;
   } else if (s == "unsat" || s == "unsatisfiable") {
     d_which = TYPE_SAT;
-    d_sat = UNSAT;
-  }
-  else if (s == "entailed")
-  {
-    d_which = TYPE_ENTAILMENT;
-    d_entailment = ENTAILED;
-  }
-  else if (s == "not_entailed")
-  {
-    d_which = TYPE_ENTAILMENT;
-    d_entailment = NOT_ENTAILED;
+    d_status = UNSAT;
   }
   else if (s == "incomplete")
   {
     d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
+    d_status = UNKNOWN;
     d_unknownExplanation = INCOMPLETE;
   }
   else if (s == "timeout")
   {
-    d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
+    d_status = UNKNOWN;
     d_unknownExplanation = TIMEOUT;
   }
   else if (s == "resourceout")
   {
-    d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
+    d_status = UNKNOWN;
     d_unknownExplanation = RESOURCEOUT;
   }
   else if (s == "memout")
   {
-    d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
+    d_status = UNKNOWN;
     d_unknownExplanation = MEMOUT;
   }
   else if (s == "interrupted")
   {
-    d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
+    d_status = UNKNOWN;
     d_unknownExplanation = INTERRUPTED;
   }
   else if (s.size() >= 7 && s.compare(0, 7, "unknown") == 0)
   {
-    d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
+    d_status = UNKNOWN;
   }
   else
   {
@@ -154,85 +106,11 @@ Result::Result(const std::string& instr, std::string inputName)
   }
 }
 
-Result::UnknownExplanation Result::whyUnknown() const {
+Result::UnknownExplanation Result::getUnknownExplanation() const {
   PrettyCheckArgument(isUnknown(), this,
                       "This result is not unknown, so the reason for "
                       "being unknown cannot be inquired of it");
   return d_unknownExplanation;
-}
-
-bool Result::operator==(const Result& r) const {
-  if (d_which != r.d_which) {
-    return false;
-  }
-  if (d_which == TYPE_SAT) {
-    return d_sat == r.d_sat && (d_sat != SAT_UNKNOWN ||
-                                d_unknownExplanation == r.d_unknownExplanation);
-  }
-  if (d_which == TYPE_ENTAILMENT)
-  {
-    return d_entailment == r.d_entailment
-           && (d_entailment != ENTAILMENT_UNKNOWN
-               || d_unknownExplanation == r.d_unknownExplanation);
-  }
-  return false;
-}
-
-bool operator==(enum Result::Sat sr, const Result& r) { return r == sr; }
-
-bool operator==(enum Result::Entailment e, const Result& r) { return r == e; }
-bool operator!=(enum Result::Sat s, const Result& r) { return !(s == r); }
-bool operator!=(enum Result::Entailment e, const Result& r)
-{
-  return !(e == r);
-}
-
-Result Result::asSatisfiabilityResult() const {
-  if (d_which == TYPE_SAT) {
-    return *this;
-  }
-
-  if (d_which == TYPE_ENTAILMENT)
-  {
-    switch (d_entailment)
-    {
-      case NOT_ENTAILED: return Result(SAT, d_inputName);
-
-      case ENTAILED: return Result(UNSAT, d_inputName);
-
-      case ENTAILMENT_UNKNOWN:
-        return Result(SAT_UNKNOWN, d_unknownExplanation, d_inputName);
-
-      default: Unhandled() << d_entailment;
-    }
-  }
-
-  // TYPE_NONE
-  return Result(SAT_UNKNOWN, NO_STATUS, d_inputName);
-}
-
-Result Result::asEntailmentResult() const
-{
-  if (d_which == TYPE_ENTAILMENT)
-  {
-    return *this;
-  }
-
-  if (d_which == TYPE_SAT) {
-    switch (d_sat) {
-      case SAT: return Result(NOT_ENTAILED, d_inputName);
-
-      case UNSAT: return Result(ENTAILED, d_inputName);
-
-      case SAT_UNKNOWN:
-        return Result(ENTAILMENT_UNKNOWN, d_unknownExplanation, d_inputName);
-
-      default: Unhandled() << d_sat;
-    }
-  }
-
-  // TYPE_NONE
-  return Result(ENTAILMENT_UNKNOWN, NO_STATUS, d_inputName);
 }
 
 string Result::toString() const {
@@ -241,7 +119,7 @@ string Result::toString() const {
   return ss.str();
 }
 
-ostream& operator<<(ostream& out, enum Result::Sat s) {
+ostream& operator<<(ostream& out, enum Result::Status s) {
   switch (s) {
     case Result::UNSAT:
       out << "UNSAT";
@@ -249,22 +127,10 @@ ostream& operator<<(ostream& out, enum Result::Sat s) {
     case Result::SAT:
       out << "SAT";
       break;
-    case Result::SAT_UNKNOWN:
-      out << "SAT_UNKNOWN";
+    case Result::UNKNOWN:
+      out << "UNKNOWN";
       break;
     default: Unhandled() << s;
-  }
-  return out;
-}
-
-ostream& operator<<(ostream& out, enum Result::Entailment e)
-{
-  switch (e)
-  {
-    case Result::NOT_ENTAILED: out << "NOT_ENTAILED"; break;
-    case Result::ENTAILED: out << "ENTAILED"; break;
-    case Result::ENTAILMENT_UNKNOWN: out << "ENTAILMENT_UNKNOWN"; break;
-    default: Unhandled() << e;
   }
   return out;
 }
@@ -304,61 +170,35 @@ ostream& operator<<(ostream& out, const Result& r) {
       }
   };
   return out;
-} /* operator<<(ostream&, const Result&) */
+}
 
 void Result::toStreamDefault(std::ostream& out) const {
-  if (getType() == Result::TYPE_SAT) {
-    switch (isSat()) {
-      case Result::UNSAT:
-        out << "unsat";
-        break;
-      case Result::SAT:
-        out << "sat";
-        break;
-      case Result::SAT_UNKNOWN:
-        out << "unknown";
-        if (whyUnknown() != Result::UNKNOWN_REASON) {
-          out << " (" << whyUnknown() << ")";
-        }
-        break;
-    }
-  } else {
-    switch (isEntailed())
-    {
-      case Result::NOT_ENTAILED: out << "not_entailed"; break;
-      case Result::ENTAILED: out << "entailed"; break;
-      case Result::ENTAILMENT_UNKNOWN:
-        out << "unknown";
-        if (whyUnknown() != Result::UNKNOWN_REASON) {
-          out << " (" << whyUnknown() << ")";
-        }
-        break;
-    }
+  switch (d_status) {
+    case Result::UNSAT:
+      out << "unsat";
+      break;
+    case Result::SAT:
+      out << "sat";
+      break;
+    case Result::UNKNOWN:
+      out << "unknown";
+      if (whyUnknown() != Result::UNKNOWN_REASON) {
+        out << " (" << whyUnknown() << ")";
+      }
+      break;
   }
-} /* Result::toStreamDefault() */
+}
 
 void Result::toStreamSmt2(ostream& out) const {
-  if (getType() == Result::TYPE_SAT && isSat() == Result::SAT_UNKNOWN) {
-    out << "unknown";
-  } else {
-    toStreamDefault(out);
-  }
+  toStreamDefault(out);
 }
 
 void Result::toStreamTptp(std::ostream& out) const {
   out << "% SZS status ";
-  if (isSat() == Result::SAT) {
+  if (d_status == Result::SAT) {
     out << "Satisfiable";
-  } else if (isSat() == Result::UNSAT) {
+  } else if (d_status == Result::UNSAT) {
     out << "Unsatisfiable";
-  }
-  else if (isEntailed() == Result::ENTAILED)
-  {
-    out << "Theorem";
-  }
-  else if (isEntailed() == Result::NOT_ENTAILED)
-  {
-    out << "CounterSatisfiable";
   }
   else
   {

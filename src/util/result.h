@@ -35,20 +35,10 @@ std::ostream& operator<<(std::ostream& out, const Result& r);
 class Result
 {
  public:
-  enum Sat { UNSAT = 0, SAT = 1, SAT_UNKNOWN = 2 };
-
-  enum Entailment
-  {
-    NOT_ENTAILED = 0,
-    ENTAILED = 1,
-    ENTAILMENT_UNKNOWN = 2
-  };
-
-  enum Type
-  {
-    TYPE_SAT,
-    TYPE_ENTAILMENT,
-    TYPE_NONE
+  enum Status {
+    UNSAT, 
+    SAT, 
+    UNKNOWN
   };
 
   enum UnknownExplanation
@@ -65,25 +55,12 @@ class Result
     UNKNOWN_REASON
   };
 
- private:
-  enum Sat d_sat;
-  enum Entailment d_entailment;
-  enum Type d_which;
-  enum UnknownExplanation d_unknownExplanation;
-  std::string d_inputName;
-
  public:
   Result();
 
-  Result(enum Sat s, std::string inputName = "");
+  Result(Status s, std::string inputName = "");
 
-  Result(enum Entailment v, std::string inputName = "");
-
-  Result(enum Sat s, enum UnknownExplanation unknownExplanation,
-         std::string inputName = "");
-
-  Result(enum Entailment v,
-         enum UnknownExplanation unknownExplanation,
+  Result(Status s, enum UnknownExplanation unknownExplanation,
          std::string inputName = "");
 
   Result(const std::string& s, std::string inputName = "");
@@ -93,27 +70,13 @@ class Result
     d_inputName = inputName;
   }
 
-  enum Sat isSat() const { return d_which == TYPE_SAT ? d_sat : SAT_UNKNOWN; }
-
-  enum Entailment isEntailed() const
-  {
-    return d_which == TYPE_ENTAILMENT ? d_entailment : ENTAILMENT_UNKNOWN;
-  }
+  Status getStatus() const { return d_status; }
 
   bool isUnknown() const {
-    return isSat() == SAT_UNKNOWN && isEntailed() == ENTAILMENT_UNKNOWN;
+    return d_status==UNKNOWN;
   }
 
-  Type getType() const { return d_which; }
-
-  bool isNull() const { return d_which == TYPE_NONE; }
-
-  enum UnknownExplanation whyUnknown() const;
-
-  bool operator==(const Result& r) const;
-  inline bool operator!=(const Result& r) const;
-  Result asSatisfiabilityResult() const;
-  Result asEntailmentResult() const;
+  UnknownExplanation getUnknownExplanation() const;
 
   std::string toString() const;
 
@@ -140,19 +103,20 @@ class Result
    * has a particular preference for how results should appear.
    */
   void toStreamDefault(std::ostream& out) const;
+
+ private:
+  /** The result */
+  Status d_status;
+  /** The unknown explanation */
+  UnknownExplanation d_unknownExplanation;
+  /** The input name */
+  std::string d_inputName;
 }; /* class Result */
 
 inline bool Result::operator!=(const Result& r) const { return !(*this == r); }
 
-std::ostream& operator<<(std::ostream& out, enum Result::Sat s);
-std::ostream& operator<<(std::ostream& out, enum Result::Entailment e);
+std::ostream& operator<<(std::ostream& out, enum Result::Status s);
 std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);
-
-bool operator==(enum Result::Sat s, const Result& r);
-bool operator==(enum Result::Entailment e, const Result& r);
-
-bool operator!=(enum Result::Sat s, const Result& r);
-bool operator!=(enum Result::Entailment e, const Result& r);
 
 }  // namespace cvc5
 
