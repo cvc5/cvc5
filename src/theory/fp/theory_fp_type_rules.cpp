@@ -688,7 +688,7 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
                                          "sort");
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "floating-point bit component "
@@ -718,7 +718,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
                                          "sort");
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "floating-point exponent component "
@@ -754,7 +754,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
                                          "floating-point sort");
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "floating-point significand "

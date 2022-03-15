@@ -57,9 +57,9 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
 
   /**
    * Begin iteration over the statistics values.
-   * By default, only entries that are public (non-expert) and have been set
+   * By default, only entries that are public (non-internal) and have been set
    * are visible while the others are skipped.
-   * @param expert If set to true, expert statistics are shown as well.
+   * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
 

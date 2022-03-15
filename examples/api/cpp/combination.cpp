@@ -83,7 +83,7 @@ int main()
        << assertions << endl << endl;
 
   cout << "Prove x /= y is entailed. " << endl
-       << "cvc5: " << slv.checkEntailed(slv.mkTerm(DISTINCT, x, y)) << "."
+       << "cvc5: " << slv.checkSatAssuming(slv.mkTerm(EQUAL, x, y)) << "."
        << endl
        << endl;
 

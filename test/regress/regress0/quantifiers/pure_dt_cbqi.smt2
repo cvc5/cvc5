@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi
+; COMMAND-LINE: --cegqi -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

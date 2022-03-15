@@ -17,6 +17,7 @@ Table of Contents
    installation/installation
    binary/binary
    api/api
+   proofs/proofs
    examples/examples
    theories/theories
    references

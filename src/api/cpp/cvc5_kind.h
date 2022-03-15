@@ -1643,14 +1643,14 @@ enum Kind : int32_t
    * Conversion from an IEEE-754 bit vector to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_IEEE_BV
    *   - 2: Term of sort FloatingPoint
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+  FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
   /**
    * Operator for to_fp from floating point.
    *
@@ -1664,14 +1664,14 @@ enum Kind : int32_t
    * Conversion between floating-point sorts.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FLOATINGPOINT
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_FP
    *   - 2: Term of sort FloatingPoint
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+  FLOATINGPOINT_TO_FP_FROM_FP,
   /**
    * Operator for to_fp from real.
    *
@@ -1685,14 +1685,14 @@ enum Kind : int32_t
    * Conversion from a real to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_REAL
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_REAL
    *   - 2: Term of sort FloatingPoint
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_REAL,
+  FLOATINGPOINT_TO_FP_FROM_REAL,
   /**
    * Operator for to_fp from signed bit vector
    *
@@ -1706,14 +1706,14 @@ enum Kind : int32_t
    * Conversion from a signed bit vector to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_SBV
    *   - 2: Term of sort FloatingPoint
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+  FLOATINGPOINT_TO_FP_FROM_SBV,
   /**
    * Operator for to_fp from unsigned bit vector.
    *
@@ -1727,14 +1727,14 @@ enum Kind : int32_t
    * Converting an unsigned bit vector to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_UBV
    *   - 2: Term of sort FloatingPoint
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+  FLOATINGPOINT_TO_FP_FROM_UBV,
   /**
    * Operator for a generic to_fp.
    *
@@ -3087,6 +3087,16 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind) const`
    */
   REGEXP_NONE,
+  /**
+   * Regexp all.
+   *
+   * Parameters: none
+   *
+   * Create with:
+   *   - `Solver::mkRegexpAll() const`
+   *   - `Solver::mkTerm(Kind kind) const`
+   */
+  REGEXP_ALL,
   /**
    * Regexp all characters.
    *

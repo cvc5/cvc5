@@ -1,4 +1,5 @@
 ; REQUIRES: glpk
+; DISABLE-TESTER: unsat-core
 ; COMMAND-LINE: --use-approx
 ; EXPECT: unsat
 (set-logic UFNIA)
