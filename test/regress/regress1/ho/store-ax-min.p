@@ -1,6 +1,6 @@
 % COMMAND-LINE: --full-saturate-quant --ho-elim-store-ax
 % COMMAND-LINE: --full-saturate-quant --ho-elim
-% EXPECT: % SZS status Theorem for store-ax-min
+% EXPECT: % SZS status Unsatisfiable for store-ax-min
 
 thf(a, type, (a: $i)).
 thf(b, type, (b: $i)).

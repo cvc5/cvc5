@@ -118,29 +118,27 @@ class OpTest
     assertArrayEquals(bitvector_extract_indices, new int[] {4, 0});
 
     Op floatingpoint_to_fp_ieee_bitvector_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
+        d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 4, 25);
     int[] floatingpoint_to_fp_ieee_bitvector_indices =
         floatingpoint_to_fp_ieee_bitvector_ot.getIntegerIndices();
     assertArrayEquals(floatingpoint_to_fp_ieee_bitvector_indices, new int[] {4, 25});
 
-    Op floatingpoint_to_fp_floatingpoint_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25);
+    Op floatingpoint_to_fp_floatingpoint_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 4, 25);
     int[] floatingpoint_to_fp_floatingpoint_indices =
         floatingpoint_to_fp_floatingpoint_ot.getIntegerIndices();
     assertArrayEquals(floatingpoint_to_fp_floatingpoint_indices, new int[] {4, 25});
 
-    Op floatingpoint_to_fp_real_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25);
+    Op floatingpoint_to_fp_real_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 4, 25);
     int[] floatingpoint_to_fp_real_indices = floatingpoint_to_fp_real_ot.getIntegerIndices();
     assertArrayEquals(floatingpoint_to_fp_real_indices, new int[] {4, 25});
 
-    Op floatingpoint_to_fp_signed_bitvector_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25);
+    Op floatingpoint_to_fp_signed_bitvector_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 4, 25);
     int[] floatingpoint_to_fp_signed_bitvector_indices =
         floatingpoint_to_fp_signed_bitvector_ot.getIntegerIndices();
     assertArrayEquals(floatingpoint_to_fp_signed_bitvector_indices, new int[] {4, 25});
 
     Op floatingpoint_to_fp_unsigned_bitvector_ot =
-        d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25);
+        d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 4, 25);
     int[] floatingpoint_to_fp_unsigned_bitvector_indices =
         floatingpoint_to_fp_unsigned_bitvector_ot.getIntegerIndices();
     assertArrayEquals(floatingpoint_to_fp_unsigned_bitvector_indices, new int[] {4, 25});

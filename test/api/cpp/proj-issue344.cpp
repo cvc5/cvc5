@@ -29,5 +29,6 @@ int main(void)
   Term t25 = slv.mkTerm(slv.mkOp(Kind::INT_TO_BITVECTOR, 4124876294), {t13});
   Term t66 = slv.mkTerm(Kind::BITVECTOR_ULTBV, {t25, t25});
   Term t154 = slv.mkTerm(Kind::BITVECTOR_SGT, {t66, t66});
-  slv.checkEntailed({t154, t154, t154, t154});
+  Term query = slv.mkTerm(Kind::AND, {t154, t154, t154, t154});
+  slv.checkSatAssuming(query.notTerm());
 }
