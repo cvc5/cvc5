@@ -55,7 +55,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     concurrency:
-      group: build-${{ github.ref }}
+      group: build-${{ github.ref }}-${{ matrix.name }}
       cancel-in-progress: true
 
     steps:
