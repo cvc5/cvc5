@@ -3222,12 +3222,14 @@ TEST_F(TestApiBlackSolver, proj_issue423)
   Sort s3 = slv.mkSequenceSort(s2);
   Term t2;
   {
-    t2 = slv.mkEmptySequence(s3);
+    t2 = slv.mkEmptySequence(s3.getSequenceElementSort());
   }
   Term t22 = slv.mkReal("119605652059157009");
   Term t32 = slv.mkTerm(Kind::SEQ_UNIT, {t22});
-  // incorrect types: t2 is a sequence of sequence of reals
-  ASSERT_THROW(slv.mkTerm(Kind::SEQ_CONCAT, {t2, t32}), CVC5ApiException);
+  Term t43 = slv.mkTerm(Kind::SEQ_CONCAT, {t2, t32});
+  Term t51 = slv.mkTerm(Kind::DISTINCT, {t32, t32});
+  slv.checkSat();
+  slv.blockModelValues({t51, t43});
 }
 
 }  // namespace test
