@@ -839,89 +839,145 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   CNF_IMPLIES_NEG2,
-  // ======== CNF Equiv Pos version 1
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (= F1 F2)) (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Positive 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{\neg(F_1 = F_2) \lor \neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_POS1,
-  // ======== CNF Equiv Pos version 2
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (= F1 F2)) F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Positive 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{\neg(F_1 = F_2) \lor F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_POS2,
-  // ======== CNF Equiv Neg version 1
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (= F1 F2) F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Negative 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{(F_1 = F_2) \lor F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_NEG1,
-  // ======== CNF Equiv Neg version 2
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (= F1 F2) (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Negative 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{(F_1 = F_2) \lor \neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_NEG2,
-  // ======== CNF Xor Pos version 1
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (xor F1 F2)) F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Positive 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{\neg(F_1 \xor F_2) \lor F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_POS1,
-  // ======== CNF Xor Pos version 2
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (xor F1 F2)) (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Positive 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{\neg(F_1 \xor F_2) \lor \neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_POS2,
-  // ======== CNF Xor Neg version 1
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (xor F1 F2) (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Negative 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{(F_1 \xor F_2) \lor \neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_NEG1,
-  // ======== CNF Xor Neg version 2
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (xor F1 F2) F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Negative 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{(F_1 \xor F_2) \lor F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_NEG2,
-  // ======== CNF ITE Pos version 1
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (ite C F1 F2)) (not C) F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Positive 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{\neg(\ite{C}{F_1}{F_2}) \lor \neg C \lor F_1}
+   *
+   * \endverbatim
+   */
   CNF_ITE_POS1,
-  // ======== CNF ITE Pos version 2
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (ite C F1 F2)) C F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Positive 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{\neg(\ite{C}{F_1}{F_2}) \lor C \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_POS2,
-  // ======== CNF ITE Pos version 3
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (ite C F1 F2)) F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Positive 3**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{\neg(\ite{C}{F_1}{F_2}) \lor F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_POS3,
-  // ======== CNF ITE Neg version 1
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (ite C F1 F2) (not C) (not F1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Negative 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg C \lor \not F_1}
+   *
+   * \endverbatim
+   */
   CNF_ITE_NEG1,
-  // ======== CNF ITE Neg version 2
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (ite C F1 F2) C (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Negative 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor C \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_NEG2,
-  // ======== CNF ITE Neg version 3
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Negative 3**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_NEG3,
 
   //================================================= Equality rules
