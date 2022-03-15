@@ -94,7 +94,7 @@ enum class PfRule : uint32_t
    * P and say that :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
    * are bound by this application. For example, the proof node:
    * ``(SCOPE (ASSUME F) :args F)``
-   * has the conclusion (=> F F) and has no free assumptions. More generally, a
+   * has the conclusion :math:`F \Rightarrow F` and has no free assumptions. More generally, a
    * proof with no free assumptions always concludes a valid formula.
    * 
    * \endverbatim
