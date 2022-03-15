@@ -42,7 +42,7 @@ extensions = [
         'breathe',
         'sphinx.ext.autodoc',
         'sphinx.ext.autosectionlabel',
-        'sphinx.ext.imgmath',
+        'sphinx.ext.mathjax',
         'sphinxcontrib.bibtex',
         'sphinxcontrib.programoutput',
         'sphinx_tabs.tabs',
@@ -54,6 +54,20 @@ extensions = [
 imgmath_latex_preamble = '''\\usepackage{mathpartir}'''
 
 mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+mathjax3_config = {
+  'loader': {
+    'load': ['[tex]/bussproofs'],
+  },
+  'tex': {
+    'packages': {
+      '[+]': ['bussproofs'],
+    },
+    'macros': {
+      'inferrule': ['\\begin{prooftree}\AxiomC{$#1$}\\UnaryInfC{$#2$}\\end{prooftree}', 2],
+      'inferruleSC': ['\\begin{prooftree}\AxiomC{$#1$}\RightLabel{ #3}\\UnaryInfC{$#2$}\\end{prooftree}', 3],
+    }
+  }
+}
 
 bibtex_bibfiles = ['references.bib']
 
