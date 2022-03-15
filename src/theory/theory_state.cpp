@@ -27,10 +27,16 @@ TheoryState::TheoryState(Env& env, Valuation val)
 
 void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
 
-bool TheoryState::hasTerm(TNode a) const
+bool TheoryState::hasTerm(TNode t) const
 {
   Assert(d_ee != nullptr);
-  return d_ee->hasTerm(a);
+  return d_ee->hasTerm(t);
+}
+
+void TheoryState::addTerm(TNode t)
+{
+  Assert(d_ee != nullptr);
+  d_ee->addTerm(t);
 }
 
 TNode TheoryState::getRepresentative(TNode t) const
