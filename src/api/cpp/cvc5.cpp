@@ -6610,7 +6610,7 @@ Term Solver::simplify(const Term& term)
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
   Term res = Term(this, d_slv->simplify(*term.d_node));
-  Assert(res.getSort() == term.getSort());
+  Assert(res.getSort().d_type->isSubtypeOf(*term.getSort().d_type));
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
