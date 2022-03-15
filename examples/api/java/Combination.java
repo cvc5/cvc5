@@ -86,7 +86,8 @@ public class Combination
       System.out.println("Given the following assertions:\n" + assertions + "\n");
 
       System.out.println("Prove x /= y is entailed. \n"
-          + "cvc5: " + slv.checkEntailed(slv.mkTerm(Kind.DISTINCT, x, y)) + ".\n");
+          + "cvc5: " + slv.checkSatAssuming(slv.mkTerm(Kind.EQUAL, x, y))
+          + ".\n");
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
           + "cvc5: " + slv.checkSat() + ".\n");
