@@ -54,6 +54,7 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
+    # cancel already running jobs for the same branch/pr/tag
     concurrency:
       group: build-${{ github.ref }}-${{ matrix.name }}
       cancel-in-progress: true
