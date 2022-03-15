@@ -54,6 +54,10 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
+    concurrency:
+      group: build-${{ github.ref }}
+      cancel-in-progress: true
+
     steps:
 
     - uses: actions/checkout@v2
