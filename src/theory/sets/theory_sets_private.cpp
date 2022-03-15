@@ -1137,10 +1137,10 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
           TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
-            Trace("sets-model")
-                << "m->getRepresentative(" << itmm.first
-                << ")= " << m->getRepresentative(itmm.first) << std::endl;
-            Node t = nm->mkSingleton(elementType, itmm.first);
+            // when we have y -> (set.member x S) where rep(x)=y, we use x
+            // in the model here. Using y may not be legal with respect to
+            // subtyping, since y may be real where x is an int.
+            Node t = nm->mkSingleton(elementType, itmm.second[0]);
             els.push_back(t);
           }
         }
@@ -1247,6 +1247,11 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
+bool TheorySetsPrivate::isEntailed(Node n, bool pol)
+{
+  return d_state.isEntailed(n, pol);
+}
+
 Node TheorySetsPrivate::explain(TNode literal)
 {
   Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
@@ -1277,6 +1282,11 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
   Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
+  TypeNode tn = node.getType();
+  if (tn.isSet())
+  {
+    ensureFirstClassSetType(tn);
+  }
   switch (node.getKind())
   {
     case kind::EQUAL:
@@ -1356,35 +1366,30 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 {
   Assert(node.getKind() == SET_CHOOSE);
 
-  // (choose A) is expanded as
-  // (witness ((x elementType))
-  //    (ite
-  //      (= A (as emptyset (Set E)))
-  //      (= x (uf A))
-  //      (and (member x A) (= x uf(A)))
+  // (choose A) is eliminated to k, with lemma
+  //   (and (= k (uf A)) (or (= A (as set.empty (Set E))) (set.member k A)))
   // where uf: (Set E) -> E is a skolem function, and E is the type of elements
   // of A
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  Node x = sm->mkPurifySkolem(node, "setChoose");
   Node A = node[0];
   TypeNode setType = A.getType();
+  ensureFirstClassSetType(setType);
   TypeNode ufType = nm->mkFunctionType(setType, setType.getSetElementType());
   // a Null node is used here to get a unique skolem function per set type
   Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, Node());
   Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
 
-  Node x = nm->mkBoundVar(setType.getSetElementType());
-
   Node equal = x.eqNode(ufA);
   Node emptySet = nm->mkConst(EmptySet(setType));
   Node isEmpty = A.eqNode(emptySet);
   Node member = nm->mkNode(SET_MEMBER, x, A);
-  Node memberAndEqual = member.andNode(equal);
-  Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
-  Node ret = sm->mkSkolem(x, ite, "kSetChoose");
-  lems.push_back(SkolemLemma(ret, nullptr));
-  return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, member));
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  lems.push_back(SkolemLemma(tlem, x));
+  return TrustNode::mkTrustRewrite(node, x, nullptr);
 }
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
@@ -1414,6 +1419,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   }
 
   TypeNode setType = set.getType();
+  ensureFirstClassSetType(setType);
   Node boundVar = nm->mkBoundVar(setType.getSetElementType());
   Node singleton = nm->mkSingleton(setType.getSetElementType(), boundVar);
   Node equal = set.eqNode(singleton);
@@ -1423,6 +1429,18 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   d_isSingletonNodes[rewritten] = exists;
 
   return TrustNode::mkTrustRewrite(node, exists, nullptr);
+}
+
+void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const
+{
+  Assert(tn.isSet());
+  if (!tn.getSetElementType().isFirstClass())
+  {
+    std::stringstream ss;
+    ss << "Cannot handle sets of non-first class types, offending set type is "
+       << tn;
+    throw LogicException(ss.str());
+  }
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }

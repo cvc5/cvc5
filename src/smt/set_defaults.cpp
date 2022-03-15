@@ -1452,8 +1452,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
       {
         opts.quantifiers.instNoEntail = false;
       }
-      if (!opts.quantifiers.instWhenModeWasSetByUser
-          && opts.quantifiers.cegqiModel)
+      if (!opts.quantifiers.instWhenModeWasSetByUser)
       {
         // only instantiation should happen at last call when model is avaiable
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;

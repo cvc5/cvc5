@@ -11,7 +11,6 @@
 # directory for licensing information.
 # #############################################################################
 ##
-
 """
 This script reads cvc5/src/api/cpp/cvc5_kind.h and generates
 .pxd and .pxi files which declare all the cvc5 kinds and
@@ -26,6 +25,7 @@ handle nested '#if 0' pairs.
 
 import argparse
 import os
+import re
 import sys
 
 # get access to cvc5/src/api/parsekinds.py
@@ -37,7 +37,7 @@ from parsekinds import *
 DEFAULT_PREFIX = 'kinds'
 
 ################ Comments and Macro Tokens ############
-PYCOMMENT           = '#'
+PYCOMMENT = '#'
 
 KINDS_PXD_TOP = \
 r"""cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api":
@@ -63,42 +63,104 @@ class Kind(Enum):
 KINDS_ATTR_TEMPLATE = r'''    {name}=c_Kind.{kind}, """{doc}"""
 '''
 
+# Format Kind Names
+# special cases for format_name
+_IS = '_IS'
+# replacements after some preprocessing
+replacements = {'Bitvector': 'BV', 'Floatingpoint': 'FP'}
+
+
+def format_name(name):
+    '''
+    In the Python API, each Kind name is reformatted for easier use
+
+    The naming scheme is:
+       1. capitalize the first letter of each word (delimited by underscores)
+       2. make the rest of the letters lowercase
+       3. replace Floatingpoint with FP
+       4. replace Bitvector with BV
+
+    There is one exception:
+       FLOATINGPOINT_IS_NAN  --> FPIsNan
+
+    For every "_IS" in the name, there's an underscore added before step 1,
+       so that the word after "Is" is capitalized
+
+    Examples:
+       BITVECTOR_ADD       -->  BVAdd
+       APPLY_SELECTOR      -->  ApplySelector
+       FLOATINGPOINT_IS_NAN -->  FPIsNan
+       SET_MINUS            -->  Setminus
+
+    See the generated .pxi file for an explicit mapping
+    '''
+    name = name.replace(_IS, _IS + US)
+    words = [w.capitalize() for w in name.lower().split(US)]
+    name = "".join(words)
+
+    for og, new in replacements.items():
+        name = name.replace(og, new)
+
+    return name
+
+
 def gen_pxd(parser: KindsParser, filename):
     with open(filename, "w") as f:
         # include the format_name docstring in the generated file
         # could be helpful for users to see the formatting rules
-        for line in parser.format_name.__doc__.split(NL):
+        for line in format_name.__doc__.split(NL):
             f.write(PYCOMMENT)
             if not line.isspace():
                 f.write(line)
             f.write(NL)
         f.write(KINDS_PXD_TOP)
-        for kind in parser.kinds:
-            f.write('       {},\n'.format(kind))
+        for name, _ in parser.kinds_doc.items():
+            f.write('       {},\n'.format(name))
 
-def gen_pxi(parser : KindsParser, filename):
+
+def gen_pxi(parser: KindsParser, filename):
     with open(filename, "w") as f:
         f.write(KINDS_PXI_TOP)
-        for kind, name in parser.kinds.items():
-            doc = parser.kinds_doc.get(name, '')
-            f.write(KINDS_ATTR_TEMPLATE.format(name=name, kind=kind, doc=doc))
+        for name, doc in parser.kinds_doc.items():
+            f.write(
+                KINDS_ATTR_TEMPLATE.format(name=format_name(name),
+                                           kind=name,
+                                           doc=doc))
+
+
+comment_repls = {
+    '`Solver::([a-zA-Z]+)\(([^)]*)\)[^`]*`': ':py:meth:`pycvc5.Solver.\\1`',
+}
+
+
+def reformat_comment(comment):
+    for pat, repl in comment_repls.items():
+        comment = re.sub(pat, repl, comment)
+    return comment
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Read a kinds header file and generate a '
-                         'corresponding pxd file, with simplified kind names.')
-    parser.add_argument('--kinds-header', metavar='<KINDS_HEADER>',
+    parser = argparse.ArgumentParser(
+        'Read a kinds header file and generate a '
+        'corresponding pxd file, with simplified kind names.')
+    parser.add_argument('--kinds-header',
+                        metavar='<KINDS_HEADER>',
                         help='The header file to read kinds from')
-    parser.add_argument('--kinds-file-prefix', metavar='<KIND_FILE_PREFIX>',
+    parser.add_argument('--kinds-file-prefix',
+                        metavar='<KIND_FILE_PREFIX>',
                         help='The prefix for the .pxd and .pxi files to write '
                         'the Cython declarations to.',
                         default=DEFAULT_PREFIX)
 
-    args               = parser.parse_args()
-    kinds_header       = args.kinds_header
-    kinds_file_prefix  = args.kinds_file_prefix
+    args = parser.parse_args()
+    kinds_header = args.kinds_header
+    kinds_file_prefix = args.kinds_file_prefix
 
     kp = KindsParser()
     kp.parse(kinds_header)
+
+    for name in kp.kinds_doc:
+        kp.kinds_doc[name] = reformat_comment(kp.kinds_doc[name])
 
     gen_pxd(kp, kinds_file_prefix + ".pxd")
     gen_pxi(kp, kinds_file_prefix + ".pxi")

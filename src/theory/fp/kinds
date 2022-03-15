@@ -27,7 +27,7 @@ constant CONST_ROUNDINGMODE \
     RoundingMode \
     ::cvc5::RoundingModeHashFunction \
     "util/roundingmode.h" \
-    "a floating-point rounding mode"    
+    "a floating-point rounding mode"
 typerule CONST_ROUNDINGMODE    ::cvc5::theory::fp::RoundingModeConstantTypeRule
 
 
@@ -157,70 +157,70 @@ typerule FLOATINGPOINT_IS_POS   ::cvc5::theory::fp::FloatingPointTestTypeRule
 
 
 
-constant FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP \
+constant FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP \
     class \
     FloatingPointToFPIEEEBitVector \
     "::cvc5::FloatingPointConvertSortHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_fp from bit vector"
-typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
-parameterized FLOATINGPOINT_TO_FP_IEEE_BITVECTOR FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP 1 "convert an IEEE-754 bit vector to floating-point"
-typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR   ::cvc5::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule
+parameterized FLOATINGPOINT_TO_FP_FROM_IEEE_BV FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP 1 "convert an IEEE-754 bit vector to floating-point"
+typerule FLOATINGPOINT_TO_FP_FROM_IEEE_BV ::cvc5::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule
 
 
 
-constant FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP \
+constant FLOATINGPOINT_TO_FP_FROM_FP_OP \
     class \
     FloatingPointToFPFloatingPoint \
     "::cvc5::FloatingPointConvertSortHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_fp from floating point"
-typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_FP_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
-parameterized FLOATINGPOINT_TO_FP_FLOATINGPOINT FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP 2 "convert between floating-point sorts"
-typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT   ::cvc5::theory::fp::FloatingPointToFPFloatingPointTypeRule
-
-
+parameterized FLOATINGPOINT_TO_FP_FROM_FP FLOATINGPOINT_TO_FP_FROM_FP_OP 2 "convert between floating-point sorts"
+typerule FLOATINGPOINT_TO_FP_FROM_FP   ::cvc5::theory::fp::FloatingPointToFPFloatingPointTypeRule
 
 
-constant FLOATINGPOINT_TO_FP_REAL_OP \
+
+
+constant FLOATINGPOINT_TO_FP_FROM_REAL_OP \
     class \
     FloatingPointToFPReal \
     "::cvc5::FloatingPointConvertSortHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_fp from real"
-typerule FLOATINGPOINT_TO_FP_REAL_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_REAL_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
-parameterized FLOATINGPOINT_TO_FP_REAL FLOATINGPOINT_TO_FP_REAL_OP 2 "convert a real to floating-point"
-typerule FLOATINGPOINT_TO_FP_REAL   ::cvc5::theory::fp::FloatingPointToFPRealTypeRule
+parameterized FLOATINGPOINT_TO_FP_FROM_REAL FLOATINGPOINT_TO_FP_FROM_REAL_OP 2 "convert a real to floating-point"
+typerule FLOATINGPOINT_TO_FP_FROM_REAL   ::cvc5::theory::fp::FloatingPointToFPRealTypeRule
 
 
 
-constant FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP \
+constant FLOATINGPOINT_TO_FP_FROM_SBV_OP \
     class \
     FloatingPointToFPSignedBitVector \
     "::cvc5::FloatingPointConvertSortHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_fp from signed bit vector"
-typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_SBV_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
-parameterized FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP 2 "convert a signed bit vector to floating-point"
-typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR   ::cvc5::theory::fp::FloatingPointToFPSignedBitVectorTypeRule
+parameterized FLOATINGPOINT_TO_FP_FROM_SBV FLOATINGPOINT_TO_FP_FROM_SBV_OP 2 "convert a signed bit vector to floating-point"
+typerule FLOATINGPOINT_TO_FP_FROM_SBV   ::cvc5::theory::fp::FloatingPointToFPSignedBitVectorTypeRule
 
 
 
-constant FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP \
+constant FLOATINGPOINT_TO_FP_FROM_UBV_OP \
     class \
     FloatingPointToFPUnsignedBitVector \
     "::cvc5::FloatingPointConvertSortHashFunction<0x10>" \
     "util/floatingpoint.h" \
     "operator for to_fp from unsigned bit vector"
-typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_UBV_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
 
 
-parameterized FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP 2 "convert an unsigned bit vector to floating-point"
-typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR   ::cvc5::theory::fp::FloatingPointToFPUnsignedBitVectorTypeRule
+parameterized FLOATINGPOINT_TO_FP_FROM_UBV FLOATINGPOINT_TO_FP_FROM_UBV_OP 2 "convert an unsigned bit vector to floating-point"
+typerule FLOATINGPOINT_TO_FP_FROM_UBV   ::cvc5::theory::fp::FloatingPointToFPUnsignedBitVectorTypeRule
 
 
 

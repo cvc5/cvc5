@@ -1,5 +1,5 @@
-; COMMAND-LINE: --ee-mode=distributed
-; COMMAND-LINE: --ee-mode=central
+; COMMAND-LINE: --ee-mode=distributed -q
+; COMMAND-LINE: --ee-mode=central -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

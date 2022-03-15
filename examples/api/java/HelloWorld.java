@@ -23,7 +23,8 @@ public class HelloWorld
     {
       Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
 
-      System.out.println(helloworld + " is " + slv.checkEntailed(helloworld));
+      System.out.println(
+          helloworld + " is " + slv.checkSatAssuming(helloworld));
     }
   }
 }

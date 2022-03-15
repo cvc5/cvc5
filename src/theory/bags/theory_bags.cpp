@@ -110,17 +110,14 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 {
   Assert(node.getKind() == BAG_CHOOSE);
 
-  // (bag.choose A) is expanded as
-  // (witness ((x elementType))
-  //    (ite
-  //      (= A (as bag.empty (Bag E)))
-  //      (= x (uf A))
-  //      (and (>= (bag.count x A) 1) (= x (uf A)))
+  // (bag.choose A) is eliminated to k, with lemma
+  // (and (= k (uf A)) (or (= A (as bag.empty (Bag E))) (>= (bag.count k A) 1)))
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
   // of A
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  Node x = sm->mkPurifySkolem(node, "bagChoose");
   Node A = node[0];
   TypeNode bagType = A.getType();
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
@@ -128,21 +125,18 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, ufType, Node());
   Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
 
-  Node x = nm->mkBoundVar(bagType.getBagElementType());
-
   Node equal = x.eqNode(ufA);
   Node emptyBag = nm->mkConst(EmptyBag(bagType));
   Node isEmpty = A.eqNode(emptyBag);
   Node count = nm->mkNode(BAG_COUNT, x, A);
   Node one = nm->mkConstInt(Rational(1));
   Node geqOne = nm->mkNode(GEQ, count, one);
-  Node geqOneAndEqual = geqOne.andNode(equal);
-  Node ite = nm->mkNode(ITE, isEmpty, equal, geqOneAndEqual);
-  Node ret = sm->mkSkolem(x, ite, "kBagChoose");
-  lems.push_back(SkolemLemma(ret, nullptr));
+  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, geqOne));
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  lems.push_back(SkolemLemma(tlem, x));
   Trace("TheoryBags::ppRewrite")
-      << "ppRewrite(" << node << ") = " << ret << std::endl;
-  return TrustNode::mkTrustRewrite(node, ret, nullptr);
+      << "ppRewrite(" << node << ") = " << x << std::endl;
+  return TrustNode::mkTrustRewrite(node, x, nullptr);
 }
 
 void TheoryBags::postCheck(Effort effort)

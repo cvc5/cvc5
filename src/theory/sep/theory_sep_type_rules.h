@@ -25,32 +25,58 @@ namespace cvc5 {
 namespace theory {
 namespace sep {
 
+/**
+ * Separation empty heap constraint is a nullary predicate. Its type rule
+ * returns the Boolean type.
+ */
 class SepEmpTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Separation points-to is a predicate over any two types that specify the
+ * heap, which is not checked by the type system. Its type rule
+ * returns the Boolean type.
+ */
 struct SepPtoTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Separation star is an n-ary Boolean connective. Its type rule ensures all
+ * arguments are Boolean. Returns the Boolean type.
+ */
 struct SepStarTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Separation star is a binary Boolean connective. Its type rule ensures all
+ * arguments are Boolean and returns the Boolean type.
+ */
 struct SepWandTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Separation label annotates formulas with sets that specify the heap. It
+ * ensures its first argument is a Boolean, its second argument is a set and
+ * returns the Boolean type.
+ */
 struct SepLabelTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Separation nil is a nullary constructor. Its type is specified via an
+ * attribute upon construction and is return in this rule.
+ */
 struct SepNilTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);

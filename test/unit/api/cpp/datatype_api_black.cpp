@@ -301,23 +301,6 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_NE(pairIntInt, pairIntReal);
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
-
-  ASSERT_TRUE(pairRealReal.isSubsortOf(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isSubsortOf(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isSubsortOf(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isSubsortOf(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isSubsortOf(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isSubsortOf(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isSubsortOf(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isSubsortOf(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isSubsortOf(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isSubsortOf(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isSubsortOf(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isSubsortOf(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isSubsortOf(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
 }
 
 TEST_F(TestApiBlackDatatype, isFinite)

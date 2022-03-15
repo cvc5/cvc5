@@ -69,7 +69,6 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_dtfCounter = 0;
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -104,7 +103,7 @@ void TheoryDatatypes::finishInit()
   Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   // We could but don't do congruence for DT_SIZE and DT_HEIGHT_BOUND here.
   // It also could make sense in practice to do congruence for APPLY_UF, but
@@ -308,15 +307,6 @@ void TheoryDatatypes::postCheck(Effort level)
                   }
                 }
               }
-              //if we want to force an assignment of constructors to all ground eqc
-              //d_dtfCounter++;
-              if (!needSplit && options().datatypes.dtForceAssignment
-                  && d_dtfCounter % 2 == 0)
-              {
-                Trace("datatypes-force-assign") << "Force assignment for " << n << std::endl;
-                needSplit = true;
-                consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
-              }
 
               if( needSplit ) {
                 if( dt.getNumConstructors()==1 ){
@@ -445,8 +435,6 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
-  // external selectors should be preprocessed away by now
-  Assert(n.getKind() != APPLY_SELECTOR);
   // must ensure the type is well founded and has no nested recursion if
   // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
@@ -992,30 +980,26 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Node r;
   bool wrong = false;
   Node eq_exp = s[0].eqNode(c);
-  if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+  if (s.getKind() == kind::APPLY_SELECTOR)
+  {
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
     const DType& dt = utils::datatypeOf(selector);
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
+    Trace("dt-collapse-sel")
+        << "selector index is " << selectorIndex << std::endl;
     wrong = selectorIndex<0;
-    r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
+    r = NodeManager::currentNM()->mkNode(
+        kind::APPLY_SELECTOR, s.getOperator(), c);
   }
   if( !r.isNull() ){
     Node rrs;
     if (wrong)
     {
-      // Must use make ground term here instead of the rewriter, since we
-      // do not want to introduce arbitrary values. This is important so that
-      // we avoid constants for types that are not "closed enumerable", e.g.
-      // uninterpreted sorts and arrays, where the solver does not fully
-      // handle values of the sort. The call to mkGroundTerm does not introduce
-      // values for these sorts.
-      NodeManager* nm = NodeManager::currentNM();
-      rrs = nm->mkGroundTerm(r.getType());
-      Trace("datatypes-wrong-sel")
-          << "Bad apply " << r << " term = " << rrs
-          << ", value = " << nm->mkGroundValue(r.getType()) << std::endl;
+      // If the selector application was wrong, we do nothing. The selector
+      // term in this context will be unevaluated, and treated via congruence.
+      return;
     }
     else
     {
@@ -1387,7 +1371,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
     }
     return;
   }
-  if (nk == APPLY_SELECTOR_TOTAL || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
   {
     d_functionTerms.push_back(n);
     // we must also record which selectors exist
