@@ -29,10 +29,10 @@ namespace cvc5 {
  * All proof rules are given as inference rules, presented in the following form:
  *
  * .. math::
- *   
- *   \texttt{RULENAME}: \inferrule*[vcenter, right={if $C$}]{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}
+ * 
+ *   \texttt{RULENAME}: \inferruleSC{\varphi_1 \dots \varphi_n}{\psi}{if $C$}
  *
- * where we call ``RULENAME`` its name, :math:`\varphi_i` its premises or children, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
+ * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
  * Alternatively, we write ``(RULENAME F1 ... Fn :args t1 ... tm)``.
  * Note that premises are sometimes given as proofs, or rather application of proof rules, instead of formulas.
  * 
@@ -46,8 +46,8 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) ASSUME, which represents an open leaf in a proof.
- * (2) SCOPE, which closes the scope of assumptions.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open leaf in a proof.
+ * (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which closes the scope of assumptions.
  * The core rules additionally correspond to generic operations that are done
  * internally on nodes, e.g. calling Rewriter::rewrite.
  *
@@ -68,7 +68,7 @@ enum class PfRule : uint32_t
    * 
    * .. math::
    *   
-   *   \texttt{ASSUME}: \inferrule{\top \mid F}{F}
+   *   \inferrule{\top \mid F}{F}
    *
    * This rule has special status, in that an application of assume is an
    * open leaf in a proof that is not (yet) justified. An assume leaf is
@@ -84,10 +84,9 @@ enum class PfRule : uint32_t
    * 
    * .. math::
    *   
-   *   \texttt{SCOPE}:
-   *   \inferrule*[vcenter, right={if $F\neq\bot$}]{F\neq\bot \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n) \Rightarrow F}
+   *   \inferruleSC{F\neq\bot \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n) \Rightarrow F}{if $F\neq\bot$}
    *   \textrm{ or }
-   *   \inferrule*[vcenter, right={if $F=\bot$}]{F=\bot \mid F_1 \dots F_n}{\neg (F_1 \land \dots \land F_n)}
+   *   \inferruleSC{F=\bot \mid F_1 \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
    * This rule has a dual purpose with :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`. It is a way to close
    * assumptions in a proof. We require that :math:`F_1 \dots F_n` are free assumptions in
