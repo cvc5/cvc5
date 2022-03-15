@@ -166,11 +166,10 @@ TrustNode PropEngine::removeItes(TNode node,
 
 void PropEngine::assertInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
+    std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  d_theoryProxy->notifyInputFormulas(assertions, skolemMap, ppl);
+  d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
   for (const Node& node : assertions)
   {
     Debug("prop") << "assertFormula(" << node << ")" << std::endl;
