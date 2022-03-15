@@ -67,7 +67,7 @@ FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
 {
 }
 
-Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
+Result::Status FCSimplexDecisionProcedure::findModel(bool exactResult){
   Assert(d_conflictVariables.empty());
   Assert(d_sgnDisagreements.empty());
 
@@ -103,7 +103,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   d_prevWitnessImprovement = HeuristicDegenerate;
   d_witnessImprovementInARow = 0;
 
-  Result::Sat result = Result::UNKNOWN;
+  Result::Status result = Result::UNKNOWN;
 
   if(result == Result::UNKNOWN){
     if(exactResult){
@@ -658,7 +658,7 @@ bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w,
   return false;
 }
 
-Result::Sat FCSimplexDecisionProcedure::dualLike(){
+Result::Status FCSimplexDecisionProcedure::dualLike(){
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_fcTimer);
 

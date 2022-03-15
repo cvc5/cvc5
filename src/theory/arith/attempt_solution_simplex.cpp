@@ -54,7 +54,7 @@ bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv, Arit
   return nv[v] == d_variables.getAssignment(v);
 }
 
-Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol){
+Result::Status AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol){
   const DenseSet& newBasis = sol.newBasis;
   const DenseMap<DeltaRational>& newValues = sol.newValues;
 

@@ -73,7 +73,7 @@ SumOfInfeasibilitiesSPD::Statistics::Statistics(const std::string& name,
 {
 }
 
-Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
+Result::Status SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   Assert(d_conflictVariables.empty());
   Assert(d_sgnDisagreements.empty());
 
@@ -110,7 +110,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   d_prevWitnessImprovement = HeuristicDegenerate;
   d_witnessImprovementInARow = 0;
 
-  Result::Sat result = Result::UNKNOWN;
+  Result::Status result = Result::UNKNOWN;
 
   if(result == Result::UNKNOWN){
     if(exactResult){
@@ -857,7 +857,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
   }
 }
 
-Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
+Result::Status SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_soiTimer);
 
   Assert(d_sgnDisagreements.empty());

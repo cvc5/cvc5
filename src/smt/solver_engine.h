@@ -229,10 +229,8 @@ class CVC5_EXPORT SolverEngine
    *
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by cvc5.
-   *
-   * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModel();
+  void blockModel();
 
   /**
    * Block the current model values of (at least) the values in exprs.
@@ -243,10 +241,8 @@ class CVC5_EXPORT SolverEngine
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
    * where M0 ... Mn are the current model values of exprs[0] ... exprs[n].
-   *
-   * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModelValues(const std::vector<Node>& exprs);
+  void blockModelValues(const std::vector<Node>& exprs);
 
   /**
    * Declare heap. For smt2 inputs, this is called when the command
@@ -336,8 +332,7 @@ class CVC5_EXPORT SolverEngine
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent. Note this formula will
+   * literals and conjunction of literals. Note this formula will
    * be included in the unsat core when applicable.
    *
    * @throw TypeCheckingException, LogicException

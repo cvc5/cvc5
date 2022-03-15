@@ -400,7 +400,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.asSatisfiabilityResult().isUnknown())
+    if (r.isUnknown())
     {
       InternalError() << "SygusSolver::checkSynthSolution(): could not check "
                          "solution, result "

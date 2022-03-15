@@ -136,7 +136,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     {
       Result::UnknownExplanation why =
           rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
-      result = Result(Result::ENTAILMENT_UNKNOWN, why);
+      result = Result(Result::UNKNOWN, why);
     }
     else
     {

@@ -288,7 +288,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Sat res = modelBasedRefinement(termSet);
+  Result::Status res = modelBasedRefinement(termSet);
   if (res == Result::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
@@ -301,7 +301,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_trSlv.postProcessModel(arithModel, termSet);
 }
 
-Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
+Result::Status NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;

@@ -58,7 +58,7 @@ DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
 {
 }
 
-Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
+Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Assert(d_conflictVariables.empty());
 
   d_pivots = 0;
@@ -85,7 +85,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   Debug("arith::findModel") << "dualFindModel() start non-trivial" << endl;
 
-  Result::Sat result = Result::UNKNOWN;
+  Result::Status result = Result::UNKNOWN;
 
   exactResult |= d_varOrderPivotLimit < 0;
 

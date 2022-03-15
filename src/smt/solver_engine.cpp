@@ -1087,7 +1087,7 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   return ssm.str();
 }
 
-Result SolverEngine::blockModel()
+void SolverEngine::blockModel()
 {
   Trace("smt") << "SMT blockModel()" << endl;
   SolverEngineScope smts(this);
@@ -1109,10 +1109,10 @@ Result SolverEngine::blockModel()
   Node eblocker = mb.getModelBlocker(
       eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
-  return assertFormulaInternal(eblocker);
+  assertFormulaInternal(eblocker);
 }
 
-Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
+void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
   SolverEngineScope smts(this);
@@ -1132,7 +1132,7 @@ Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
       eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
-  return assertFormulaInternal(eblocker);
+  assertFormulaInternal(eblocker);
 }
 
 std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
@@ -1354,7 +1354,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     {
       removed.insert(skip);
     }
-    else if (r.asSatisfiabilityResult().isUnknown())
+    else if (r.isUnknown())
     {
       d_env->warning()
           << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
@@ -1428,7 +1428,7 @@ void SolverEngine::checkUnsatCore()
   }
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): result is " << r
                     << std::endl;
-  if (r.asSatisfiabilityResult().isUnknown())
+  if (r.isUnknown())
   {
     d_env->warning() << "SolverEngine::checkUnsatCore(): could not check core result "
                  "unknown."
