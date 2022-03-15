@@ -64,7 +64,9 @@ if(NOT Poly_FOUND_SYSTEM)
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 
   if(BUILD_SHARED_LIBS)
+    set(POLY_BUILD_STATIC OFF)
     set(POLY_TARGETS poly polyxx)
+    set(POLY_INSTALL_CMD ${CMAKE_MAKE_PROGRAM} install)
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       set(POLY_BYPRODUCTS
@@ -103,13 +105,21 @@ if(NOT Poly_FOUND_SYSTEM)
     # below. If we are building a static version of cvc5, it is the static
     # version of GMP, which does not work for building a shared version of
     # LibPoly.
-    set(POLY_TARGETS static_poly static_polyxx)
-    set(POLY_BYPRODUCTS
-      <INSTALL_DIR>/lib/libpoly.a
-      <INSTALL_DIR>/lib/libpolyxx.a
+    set(POLY_BUILD_STATIC ON)
+    set(POLY_TARGETS static_pic_poly static_pic_polyxx)
+    set(POLY_INSTALL_CMD
+      ${CMAKE_PROGRAM} -E copy
+        src/libpicpoly.${CMAKE_STATIC_LIBRARY_SUFFIX}
+        src/libpicpolyxx.${CMAKE_STATIC_LIBRARY_SUFFIX}
+        "${DEPS_BASE}/lib"
     )
-    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly.a")
-    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx.a")
+
+    set(POLY_BYPRODUCTS
+      <INSTALL_DIR>/lib/libpicpoly.a
+      <INSTALL_DIR>/lib/libpicpolyxx.a
+    )
+    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
   endif()
 
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
@@ -129,12 +139,13 @@ if(NOT Poly_FOUND_SYSTEM)
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DLIBPOLY_BUILD_PYTHON_API=OFF
-               -DLIBPOLY_BUILD_STATIC=ON
+               -DLIBPOLY_BUILD_STATIC=${POLY_BUILD_STATIC}
+               -DLIBPOLY_BUILD_STATIC_PIC=${POLY_BUILD_STATIC}
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
-    INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install ${POLY_TARGETS}
+    INSTALL_COMMAND ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
   )
   ExternalProject_Add_Step(
