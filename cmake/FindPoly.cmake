@@ -60,52 +60,57 @@ if(NOT Poly_FOUND_SYSTEM)
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
 
-  set(POLY_BYPRODUCTS
-    <INSTALL_DIR>/lib/libpicpoly.a
-    <INSTALL_DIR>/lib/libpicpolyxx.a
-  )
-  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    list(APPEND POLY_BYPRODUCTS
-      <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpoly.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpolyxx.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    # For Windows builds, LibPoly installs the .dlls to the bin directory
-    list(APPEND POLY_BYPRODUCTS
-      <INSTALL_DIR>/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    list(APPEND POLY_BYPRODUCTS
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  endif()
+
+  set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 
   if(BUILD_SHARED_LIBS)
     set(POLY_TARGETS poly polyxx)
     unset(POLY_INSTALL_COMMAND)
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(POLY_BYPRODUCTS
+        <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpoly.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+      set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      # For Windows builds, LibPoly installs the .dlls to the bin directory
+      set(POLY_BYPRODUCTS
+        <INSTALL_DIR>/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+      set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+      set(POLY_BYPRODUCTS
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+      set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    endif()
   else()
     # For static builds, we only build and install the `static_pic_poly` and
     # `static_pic_polyxx` targets. We pass the full path of GMP to LibPoly
     # below. If we are building a static version of cvc5, it is the static
     # version of GMP, which does not work for building a shared version of
     # LibPoly.
-    set(POLY_TARGETS static_pic_poly static_pic_polyxx)
-    set(POLY_INSTALL_COMMAND
-      COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
-              <INSTALL_DIR>/lib/libpicpoly.a
-      COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
-              <INSTALL_DIR>/lib/libpicpolyxx.a
+    set(POLY_TARGETS static_poly static_polyxx)
+    set(POLY_BYPRODUCTS
+      <INSTALL_DIR>/lib/libpoly.a
+      <INSTALL_DIR>/lib/libpolyxx.a
     )
+    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly.a")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx.a")
   endif()
 
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
@@ -126,7 +131,6 @@ if(NOT Poly_FOUND_SYSTEM)
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DLIBPOLY_BUILD_PYTHON_API=OFF
                -DLIBPOLY_BUILD_STATIC=ON
-               -DLIBPOLY_BUILD_STATIC_PIC=ON
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
@@ -140,20 +144,6 @@ if(NOT Poly_FOUND_SYSTEM)
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
   add_dependencies(Poly-EP GMP)
-
-  set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
-  if(BUILD_SHARED_LIBS)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
-      set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    else()
-      set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
-      set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    endif()
-  else()
-    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
-    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
-  endif()
 endif()
 
 set(Poly_FOUND TRUE)
