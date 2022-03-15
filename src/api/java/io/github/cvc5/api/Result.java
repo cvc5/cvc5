@@ -95,7 +95,7 @@ public class Result extends AbstractPointer
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */
-  public boolean isSat()
+  public boolean getStatus()
   {
     return isSat(pointer);
   }

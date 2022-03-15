@@ -914,7 +914,7 @@ Result::Result() : d_result(new cvc5::Result()) {}
 
 bool Result::isNull() const
 {
-  return d_result->getStatus() == cvc5::Result::NULL;
+  return d_result->getStatus() == cvc5::Result::NONE;
 }
 
 bool Result::isSat(void) const

@@ -36,7 +36,7 @@ class Result
 {
  public:
   enum Status {
-    NULL,
+    NONE,
     UNSAT, 
     SAT, 
     UNKNOWN
@@ -85,7 +85,7 @@ class Result
 
   /**
    * This is mostly the same the default
-   * If getType() == Result::TYPE_SAT && isSat() == Result::SAT_UNKNOWN,
+   * If getType() == Result::TYPE_SAT && getStatus() == Result::SAT_UNKNOWN,
    *
    */
   void toStreamSmt2(std::ostream& out) const;

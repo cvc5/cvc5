@@ -134,7 +134,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   bool isResultUnsat = res.isUnsat();
-  bool isResultSat = res.isSat();
+  bool isResultSat = res.getStatus();
 
   // dump the model/proof/unsat core if option is set
   if (status) {

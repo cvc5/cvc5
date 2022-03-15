@@ -139,7 +139,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
-        bint isSat() except +
+        bint getStatus() except +
         bint isUnsat() except +
         bint isSatUnknown() except +
         bint operator==(const Result& r) except +

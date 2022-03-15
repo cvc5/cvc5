@@ -56,7 +56,7 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isSat(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Result* current = (Result*)pointer;
-  return (jboolean)current->isSat();
+  return (jboolean)current->getStatus();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 

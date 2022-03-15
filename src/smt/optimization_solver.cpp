@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
         << "Only the SMTLib2 language supports optimization right now";
   }
   out << "(" << result.getResult();
-  switch (result.getResult().isSat())
+  switch (result.getResult().getStatus())
   {
     case Result::SAT:
     case Result::SAT_UNKNOWN:
@@ -191,7 +191,7 @@ Result OptimizationSolver::optimizeBox()
     }
     // match the optimization result type, and aggregate the results of
     // subproblems
-    switch (partialResult.getResult().isSat())
+    switch (partialResult.getResult().getStatus())
     {
       case Result::SAT: break;
       case Result::UNSAT:
@@ -249,7 +249,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
     d_results[i] = partialResult;
 
     // checks the optimization result of the current objective
-    switch (partialResult.getResult().isSat())
+    switch (partialResult.getResult().getStatus())
     {
       case Result::SAT:
         // assert target[i] == value[i] and proceed
@@ -287,7 +287,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   // checks whether the current set of assertions are satisfied or not
   Result satResult = d_optChecker->checkSat();
 
-  switch (satResult.isSat())
+  switch (satResult.getStatus())
   {
     case Result::Sat::UNSAT:
     case Result::Sat::SAT_UNKNOWN: return satResult;
@@ -315,7 +315,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   std::vector<Node> someObjBetter;
   d_optChecker->push();
 
-  while (satResult.isSat() == Result::Sat::SAT)
+  while (satResult.getStatus() == Result::Sat::SAT)
   {
     noWorseObj.clear();
     someObjBetter.clear();
@@ -342,7 +342,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
     // checks if previous assertions + noWorseObj + someObjBetter are satisfied
     satResult = d_optChecker->checkSat();
 
-    switch (satResult.isSat())
+    switch (satResult.getStatus())
     {
       case Result::Sat::UNSAT:
         // if result is UNSAT, it means no more improvement could be made,

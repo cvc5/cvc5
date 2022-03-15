@@ -210,7 +210,7 @@ class CVC5_EXPORT Result
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */
-  bool isSat() const;
+  bool getStatus() const;
 
   /**
    * Return true if query was an unsatisfiable checkSat() or

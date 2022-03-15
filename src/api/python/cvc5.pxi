@@ -589,7 +589,7 @@ cdef class Result:
         """
             :return: True if query was a satisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
         """
-        return self.cr.isSat()
+        return self.cr.getStatus()
 
     def isUnsat(self):
         """
