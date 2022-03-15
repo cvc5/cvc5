@@ -99,8 +99,8 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
       && d_status != d_expectedStatus)
   {
-    CVC5_FATAL() << "Expected result " << d_expectedStatus.getStatus() << " but got "
-                 << d_status;
+    CVC5_FATAL() << "Expected result " << d_expectedStatus.getStatus()
+                 << " but got " << d_status;
   }
   // clear expected status
   d_expectedStatus = Result();

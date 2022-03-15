@@ -60,7 +60,9 @@ Result::Result(const std::string& instr, std::string inputName)
   if (s == "sat" || s == "satisfiable")
   {
     d_status = SAT;
-  } else if (s == "unsat" || s == "unsatisfiable") {
+  }
+  else if (s == "unsat" || s == "unsatisfiable")
+  {
     d_status = UNSAT;
   }
   else if (s == "incomplete")
@@ -126,9 +128,7 @@ string Result::toString() const {
 ostream& operator<<(ostream& out, enum Result::Status s)
 {
   switch (s) {
-    case Result::NONE:
-      out << "NONE";
-      break;
+    case Result::NONE: out << "NONE"; break;
     case Result::UNSAT:
       out << "UNSAT";
       break;
