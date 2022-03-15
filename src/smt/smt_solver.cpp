@@ -163,7 +163,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
            || d_env.getOptions().smt.solveIntAsBV > 0)
           && result.getStatus() == Result::UNSAT)
       {
-        result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+        result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
       }
       // flipped if we did a global negation
       if (as.isGlobalNegated())
@@ -188,7 +188,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
           }
           else
           {
-            result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+            result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
           }
         }
         Trace("smt") << "SmtSolver::global negate returned " << result

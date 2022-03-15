@@ -355,7 +355,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
-    return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+    return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
 
   // Reset the interrupted flag
@@ -388,7 +388,7 @@ Result PropEngine::checkSat() {
     {
       why = Result::RESOURCEOUT;
     }
-    return Result(Result::SAT_UNKNOWN, why);
+    return Result(Result::UNKNOWN, why);
   }
 
   if( result == SAT_VALUE_TRUE && Debug.isOn("prop") ) {
@@ -398,7 +398,7 @@ Result PropEngine::checkSat() {
   Debug("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
-    return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
+    return Result(Result::UNKNOWN, Result::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }

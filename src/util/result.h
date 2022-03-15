@@ -85,7 +85,7 @@ class Result
 
   /**
    * This is mostly the same the default
-   * If getType() == Result::TYPE_SAT && getStatus() == Result::SAT_UNKNOWN,
+   * If getType() == Result::TYPE_SAT && getStatus() == Result::UNKNOWN,
    *
    */
   void toStreamSmt2(std::ostream& out) const;
@@ -113,8 +113,6 @@ class Result
   /** The input name */
   std::string d_inputName;
 }; /* class Result */
-
-inline bool Result::operator!=(const Result& r) const { return !(*this == r); }
 
 std::ostream& operator<<(std::ostream& out, enum Result::Status s);
 std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e);

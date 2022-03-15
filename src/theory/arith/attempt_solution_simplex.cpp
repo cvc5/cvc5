@@ -141,7 +141,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     return Result::SAT;
   }else{
     d_errorSet.reduceToSignals();
-    return Result::SAT_UNKNOWN;
+    return Result::UNKNOWN;
   }
 }
 

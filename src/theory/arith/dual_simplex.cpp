@@ -85,12 +85,12 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   Debug("arith::findModel") << "dualFindModel() start non-trivial" << endl;
 
-  Result::Sat result = Result::SAT_UNKNOWN;
+  Result::Sat result = Result::UNKNOWN;
 
   exactResult |= d_varOrderPivotLimit < 0;
 
   uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
-  if(result == Result::SAT_UNKNOWN){
+  if(result == Result::UNKNOWN){
     uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
                                        ? d_numVariables + 1
                                        : options().arith.arithHeuristicPivots;
@@ -126,7 +126,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::SAT_UNKNOWN && d_errorSet.errorEmpty()){
+  if(result == Result::UNKNOWN && d_errorSet.errorEmpty()){
     result = Result::SAT;
   }
 

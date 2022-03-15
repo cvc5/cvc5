@@ -104,7 +104,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
     intermediateSatResult = optChecker->checkSat();
     switch (intermediateSatResult.getStatus())
     {
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         optChecker->pop();
         return OptimizationResult(intermediateSatResult, value);
       case Result::SAT:
@@ -190,7 +190,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
     intermediateSatResult = optChecker->checkSat();
     switch (intermediateSatResult.getStatus())
     {
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         optChecker->pop();
         return OptimizationResult(intermediateSatResult, value);
       case Result::SAT:

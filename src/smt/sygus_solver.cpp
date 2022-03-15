@@ -300,7 +300,7 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   else
   {
     // otherwise, we return "unknown"
-    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    r = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
   }
   return r;
 }

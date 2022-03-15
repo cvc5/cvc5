@@ -110,9 +110,9 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   d_prevWitnessImprovement = HeuristicDegenerate;
   d_witnessImprovementInARow = 0;
 
-  Result::Sat result = Result::SAT_UNKNOWN;
+  Result::Sat result = Result::UNKNOWN;
 
-  if(result == Result::SAT_UNKNOWN){
+  if(result == Result::UNKNOWN){
     if(exactResult){
       d_pivotBudget = -1;
     }else{
@@ -131,7 +131,7 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::SAT_UNKNOWN && d_errorSet.errorEmpty()){
+  if(result == Result::UNKNOWN && d_errorSet.errorEmpty()){
     result = Result::SAT;
   }
 
@@ -899,7 +899,7 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
     return Result::SAT;
   }else{
     Assert(d_pivotBudget == 0);
-    return Result::SAT_UNKNOWN;
+    return Result::UNKNOWN;
   }
 }
 

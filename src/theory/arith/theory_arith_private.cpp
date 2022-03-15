@@ -102,7 +102,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                            d_congruenceManager,
                            RaiseConflict(*this),
                            d_pfGen.get()),
-      d_qflraStatus(Result::SAT_UNKNOWN),
+      d_qflraStatus(Result::UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
       d_learner(userContext()),
@@ -166,7 +166,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_newFacts(false),
-      d_previousStatus(Result::SAT_UNKNOWN),
+      d_previousStatus(Result::UNKNOWN),
       d_statistics(statisticsRegistry(), "theory::arith::")
 {
 }
@@ -1915,7 +1915,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   }
 
   /* It is not clear what the d_qflraStatus is at this point */
-  d_qflraStatus = Result::SAT_UNKNOWN;
+  d_qflraStatus = Result::UNKNOWN;
 
   Assert(d_replayVariables.empty());
   Assert(d_replayConstraints.empty());
@@ -2884,12 +2884,12 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
 {
   // if at this point the linear relaxation is still unknown,
   //  attempt to branch an integer variable as a last ditch effort on full check
-  if (d_qflraStatus == Result::SAT_UNKNOWN)
+  if (d_qflraStatus == Result::UNKNOWN)
   {
     d_qflraStatus = selectSimplex(true).findModel(false);
   }
 
-  if (Theory::fullEffort(effortLevel) && d_qflraStatus == Result::SAT_UNKNOWN)
+  if (Theory::fullEffort(effortLevel) && d_qflraStatus == Result::UNKNOWN)
   {
     ArithVar canBranch = nextIntegerViolation(false);
     if (canBranch != ARITHVAR_SENTINEL)
@@ -2938,7 +2938,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   Debug("TheoryArithPrivate::solveRealRelaxation")
     << "solveRealRelaxation()" << " pass1 " << d_qflraStatus << endl;
 
-  if(d_qflraStatus == Result::SAT_UNKNOWN && useApprox && safeToCallApprox()){
+  if(d_qflraStatus == Result::UNKNOWN && useApprox && safeToCallApprox()){
     // pass2: fancy-final
     static constexpr int32_t relaxationLimit = 10000;
     Assert(ApproximateSimplex::enabled());
@@ -3060,7 +3060,7 @@ bool TheoryArithPrivate::preCheck(Theory::Effort level)
   d_previousStatus = d_qflraStatus;
   if (d_newFacts)
   {
-    d_qflraStatus = Result::SAT_UNKNOWN;
+    d_qflraStatus = Result::UNKNOWN;
     d_hasDoneWorkSinceCut = true;
   }
   return false;
@@ -3181,7 +3181,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       }
     }
     break;
-  case Result::SAT_UNKNOWN:
+  case Result::UNKNOWN:
     ++d_unknownsInARow;
     ++(d_statistics.d_unknownChecks);
     Assert(!Theory::fullEffort(effortLevel));
@@ -3737,7 +3737,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
 DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
 {
-  AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
+  AlwaysAssert(d_qflraStatus != Result::UNKNOWN);
   Debug("arith::value") << term << std::endl;
 
   if (d_partialModel.hasArithVar(term)) {
@@ -4032,7 +4032,7 @@ void TheoryArithPrivate::presolve(){
 }
 
 EqualityStatus TheoryArithPrivate::getEqualityStatus(TNode a, TNode b) {
-  if(d_qflraStatus == Result::SAT_UNKNOWN){
+  if(d_qflraStatus == Result::UNKNOWN){
     return EQUALITY_UNKNOWN;
   }else{
     try {

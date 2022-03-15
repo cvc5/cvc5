@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
   switch (result.getResult().getStatus())
   {
     case Result::SAT:
-    case Result::SAT_UNKNOWN:
+    case Result::UNKNOWN:
     {
       switch (result.isInfinity())
       {
@@ -202,7 +202,7 @@ Result OptimizationSolver::optimizeBox()
         }
         d_optChecker.reset();
         return partialResult.getResult();
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         aggregatedResult = partialResult.getResult();
         break;
       default: Unreachable();
@@ -259,7 +259,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
       case Result::UNSAT:
         d_optChecker.reset();
         return partialResult.getResult();
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         d_optChecker.reset();
         return partialResult.getResult();
       default: Unreachable();
@@ -290,7 +290,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   switch (satResult.getStatus())
   {
     case Result::Sat::UNSAT:
-    case Result::Sat::SAT_UNKNOWN: return satResult;
+    case Result::Sat::UNKNOWN: return satResult;
     case Result::Sat::SAT:
     {
       // if satisfied, use d_results to store the initial results
@@ -349,7 +349,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
         // then the results stored in d_results are one of the Pareto optimal
         // results
         break;
-      case Result::Sat::SAT_UNKNOWN:
+      case Result::Sat::UNKNOWN:
         // if result is UNKNOWN, abort the current session and return UNKNOWN
         d_optChecker.reset();
         return satResult;

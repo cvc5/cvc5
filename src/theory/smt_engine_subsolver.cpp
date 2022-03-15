@@ -38,7 +38,7 @@ Result quickCheck(Node& query)
       return Result(Result::SAT);
     }
   }
-  return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+  return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
 void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,

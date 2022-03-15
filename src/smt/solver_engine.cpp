@@ -134,7 +134,7 @@ SmtMode SolverEngine::getSmtMode() const { return d_state->getMode(); }
 bool SolverEngine::isSmtModeSat() const
 {
   SmtMode mode = getSmtMode();
-  return mode == SmtMode::SAT || mode == SmtMode::SAT_UNKNOWN;
+  return mode == SmtMode::SAT || mode == SmtMode::UNKNOWN;
 }
 Result SolverEngine::getStatusOfLastCommand() const
 {
@@ -653,7 +653,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   }
 
   if (d_state->getMode() != SmtMode::SAT
-      && d_state->getMode() != SmtMode::SAT_UNKNOWN)
+      && d_state->getMode() != SmtMode::UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
