@@ -1062,7 +1062,6 @@ name   = "Quantifiers"
   default    = "true"
   help       = "statically add constants appearing in conjecture to grammars"
 
-# TODO: delete?
 [[option]]
   name       = "sygusGrammarNorm"
   category   = "expert"
@@ -1390,7 +1389,6 @@ name   = "Quantifiers"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
 
-# TODO: delete after merging other PR
 [[option]]
   name       = "sygusQueryGenDumpFiles"
   category   = "regular"
@@ -1621,7 +1619,6 @@ name   = "Quantifiers"
   default    = "false"
   help       = "perform quantifiers macro expansion"
 
-  # TODO: merge?
 [[option]]
   name       = "macrosQuantMode"
   category   = "regular"
