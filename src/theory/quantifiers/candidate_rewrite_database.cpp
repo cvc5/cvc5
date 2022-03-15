@@ -191,7 +191,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         }
         else
         {
-          verified = !r.asSatisfiabilityResult().isUnknown();
+          verified = !r.isUnknown();
         }
       }
       else
