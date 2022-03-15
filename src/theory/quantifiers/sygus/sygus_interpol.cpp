@@ -349,7 +349,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   Result r = d_subSolver->checkSynth();
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation result: " << r
                           << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }
@@ -364,7 +364,7 @@ bool SygusInterpol::solveInterpolationNext(Node& interpol)
   Result r = d_subSolver->checkSynth(true);
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: "
                           << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }

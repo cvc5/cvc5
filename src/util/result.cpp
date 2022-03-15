@@ -28,7 +28,7 @@ using namespace std;
 namespace cvc5 {
 
 Result::Result()
-    : d_status(UNKNOWN),
+    : d_status(NULL),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName("")
 {
@@ -55,7 +55,7 @@ Result::Result( Status s,
 }
 
 Result::Result(const std::string& instr, std::string inputName)
-    : d_status(UNKNOWN),
+    : d_status(NULL),
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName(inputName)
 {

@@ -417,7 +417,7 @@ std::string SolverEngine::getInfo(const std::string& key) const
   {
     // sat | unsat | unknown
     Result status = d_state->getStatus();
-    switch (status.asSatisfiabilityResult().isSat())
+    switch (status.getStatus())
     {
       case Result::SAT: return "sat";
       case Result::UNSAT: return "unsat";
@@ -772,7 +772,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    if (r.getStatus() == Result::SAT)
     {
       checkModel();
     }
@@ -780,7 +780,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Check that UNSAT results generate a proof correctly.
   if (d_env->getOptions().smt.checkProofs)
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       checkProof();
     }
@@ -788,7 +788,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Check that UNSAT results generate an unsat core correctly.
   if (d_env->getOptions().smt.checkUnsatCores)
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
       checkUnsatCore();
@@ -1360,7 +1360,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
       throw;
     }
 
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       removed.insert(skip);
     }
@@ -1444,7 +1444,7 @@ void SolverEngine::checkUnsatCore()
                  "unknown."
               << std::endl;
   }
-  else if (r.asSatisfiabilityResult().isSat())
+  else if (r.getStatus())
   {
     InternalError()
         << "SolverEngine::checkUnsatCore(): produced core was satisfiable.";

@@ -406,7 +406,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
                          "solution, result "
                          "unknown.";
     }
-    else if (r.asSatisfiabilityResult().isSat())
+    else if (r.getStatus())
     {
       InternalError()
           << "SygusSolver::checkSynthSolution(): produced solution leads to "

@@ -36,6 +36,7 @@ class Result
 {
  public:
   enum Status {
+    NULL,
     UNSAT, 
     SAT, 
     UNKNOWN

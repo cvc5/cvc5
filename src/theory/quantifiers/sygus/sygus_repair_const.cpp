@@ -243,7 +243,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
+  if (r.getStatus() == Result::UNSAT
       || r.asSatisfiabilityResult().isUnknown())
   {
     Trace("sygus-engine") << "...failed" << std::endl;

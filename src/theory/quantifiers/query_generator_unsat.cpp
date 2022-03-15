@@ -70,7 +70,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
       Result r = checkCurrent(aTermCurr, out, currModel);
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
         activeTerms.pop_back();
@@ -131,7 +131,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
   initializeChecker(queryChecker, qy, d_subOptions, logicInfo());
   Result r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     // if unsat, get the unsat core
     std::vector<Node> unsatCore;
@@ -140,7 +140,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
     Trace("sygus-qgen-check") << "...unsat core: " << unsatCore << std::endl;
     d_cores.add(d_false, unsatCore);
   }
-  else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  else if (r.getStatus() == Result::SAT)
   {
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
     Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;

@@ -111,7 +111,7 @@ Result checkWithSubsolver(Node query,
   Result r = quickCheck(query);
   if (!r.isUnknown())
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    if (r.getStatus() == Result::SAT)
     {
       // default model
       NodeManager* nm = NodeManager::currentNM();
@@ -126,7 +126,7 @@ Result checkWithSubsolver(Node query,
   initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  if (r.getStatus() == Result::SAT)
   {
     for (const Node& v : vars)
     {

@@ -105,7 +105,7 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   // clear expected status
   d_expectedStatus = Result();
   // Update the SMT mode
-  switch (d_status.asSatisfiabilityResult().isSat())
+  switch (d_status.getStatus())
   {
     case Result::UNSAT: d_smtMode = SmtMode::UNSAT; break;
     case Result::SAT: d_smtMode = SmtMode::SAT; break;
@@ -115,7 +115,7 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
 
 void SolverEngineState::notifyCheckSynthResult(Result r)
 {
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     // successfully generated a synthesis solution, update to abduct state
     d_smtMode = SmtMode::SYNTH;
