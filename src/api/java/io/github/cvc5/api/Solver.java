@@ -732,11 +732,11 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create operator of Kind:
    *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
-   *   - FLOATINGPOINT_TO_FP_REAL
-   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - FLOATINGPOINT_TO_FP_FROM_FP
+   *   - FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - FLOATINGPOINT_TO_FP_FROM_UBV
    *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
@@ -1486,34 +1486,6 @@ public class Solver implements IPointer, AutoCloseable
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
 
   /**
-   * Check entailment of the given formula w.r.t. the current set of assertions.
-   * @param term the formula to check entailment for
-   * @return the result of the entailment check.
-   */
-  public Result checkEntailed(Term term)
-  {
-    long resultPointer = checkEntailed(pointer, term.getPointer());
-    return new Result(this, resultPointer);
-  }
-
-  private native long checkEntailed(long pointer, long termPointer);
-
-  /**
-   * Check entailment of the given set of given formulas w.r.t. the current
-   * set of assertions.
-   * @param terms the terms to check entailment for
-   * @return the result of the entailmentcheck.
-   */
-  public Result checkEntailed(Term[] terms)
-  {
-    long[] pointers = Utils.getPointers(terms);
-    long resultPointer = checkEntailed(pointer, pointers);
-    return new Result(this, resultPointer);
-  }
-
-  private native long checkEntailed(long pointer, long[] termPointers);
-
-  /**
    * Create datatype sort.
    * SMT-LIB:
    * {@code
@@ -1761,6 +1733,21 @@ public class Solver implements IPointer, AutoCloseable
   // TODO: void echo(std::ostream& out, String  str)
 
   /**
+   * Get a list of literals that are entailed by the current set of assertions
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals )
+   * }
+   * @return the list of learned literals
+   */
+  public Term[] getLearnedLiterals() {
+    long[] retPointers = getLearnedLiterals(pointer);
+    return Utils.getTerms(this, retPointers);
+  }
+
+  private native long[] getLearnedLiterals(long pointer);
+
+  /**
    * Get the list of asserted formulas.
    * SMT-LIB:
    * {@code
@@ -1850,9 +1837,14 @@ public class Solver implements IPointer, AutoCloseable
    * Get the unsatisfiable core.
    * SMT-LIB:
    * {@code
-   * ( get-unsat-core )
+   * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   * @apiNote In contrast to SMT-LIB, the API does not distinguish between
+   *          named and unnamed assertions when producing an unsatisfiable
+   *          core. Additionally, the API allows this option to be called after
+   *          a check with assumptions. A subset of those assumptions may be
+   *          included in the unsatisfiable core returned by this method.
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -2146,16 +2138,17 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
-   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
+   *        A is the current set of assertions and B is given in the input by
+   *        conj, or the null term if such a term cannot be found.
    */
-  public boolean getInterpolant(Term conj, Term output)
+  public Term getInterpolant(Term conj)
   {
-    return getInterpolant(pointer, conj.getPointer(), output.getPointer());
+    long interpolPtr = getInterpolant(pointer, conj.getPointer());
+    return new Term(this, interpolPtr);
   }
 
-  private native boolean getInterpolant(long pointer, long conjPointer, long outputPointer);
+  private native long getInterpolant(long pointer, long conjPointer);
 
   /**
    * Get an interpolant
@@ -2166,17 +2159,17 @@ public class Solver implements IPointer, AutoCloseable
    * Requires 'produce-interpols' to be set to a mode different from 'none'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
-   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
+   *        A is the current set of assertions and B is given in the input by
+   *        conj, or the null term if such a term cannot be found.
    */
-  public boolean getInterpolant(Term conj, Grammar grammar, Term output)
+  public Term getInterpolant(Term conj, Grammar grammar)
   {
-    return getInterpolant(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer());
+    long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
+    return new Term(this, interpolPtr);
   }
 
-  private native boolean getInterpolant(
-      long pointer, long conjPointer, long grammarPointer, long outputPointer);
+  private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
@@ -2195,17 +2188,18 @@ public class Solver implements IPointer, AutoCloseable
    * set to a mode different from 'none'.
    * \endverbatim
    *
-   * @param output a Term I such that {@code A->I} and {@code I->B} are valid,
+   * @return a Term I such that {@code A->I} and {@code I->B} are valid,
    *        where A is the current set of assertions and B is given in the input
-   *        by conj on the last call to getInterpolant.
-   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   *        by conj on the last call to getInterpolant, or the null term if such
+   *        a term cannot be found.
    */
-  public boolean getInterpolantNext(Term output)
+  public Term getInterpolantNext()
   {
-    return getInterpolantNext(pointer, output.getPointer());
+    long interpolPtr = getInterpolantNext(pointer);
+    return new Term(this, interpolPtr);
   }
 
-  private native boolean getInterpolantNext(long pointer, long outputPointer);
+  private native long getInterpolantNext(long pointer);
 
   /**
    * Get an abduct.
@@ -2215,17 +2209,18 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   * @return a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   *        given in the input by conj, or the null term if such a term cannot
+   *        be found.
    */
-  public boolean getAbduct(Term conj, Term output)
+  public Term getAbduct(Term conj)
   {
-    return getAbduct(pointer, conj.getPointer(), output.getPointer());
+    long abdPtr = getAbduct(pointer, conj.getPointer());
+    return new Term(this, abdPtr);
   }
 
-  private native boolean getAbduct(long pointer, long conjPointer, long outputPointer);
+  private native long getAbduct(long pointer, long conjPointer);
   /**
    * Get an abduct.
    * SMT-LIB:
@@ -2235,18 +2230,18 @@ public class Solver implements IPointer, AutoCloseable
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   * @return a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   *        given in the input by conj, or the null term if such a term cannot
+   *        be found.
    */
-  public boolean getAbduct(Term conj, Grammar grammar, Term output)
+  public Term getAbduct(Term conj, Grammar grammar)
   {
-    return getAbduct(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer());
+    long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
+    return new Term(this, abdPtr);
   }
 
-  private native boolean getAbduct(
-      long pointer, long conjPointer, long grammarPointer, long outputPointer);
+  private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -2257,16 +2252,18 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct-next )
    * }
    * Requires enabling incremental mode and option 'produce-abducts'
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj in the last call to getAbduct.
-   * @return true if it gets C successfully, false otherwise
+   * @return a term C such that A^C is satisfiable, and A^~B^C is
+   *         unsatisfiable, where A is the current set of assertions and B is
+   *         given in the input by conj in the last call to getAbduct, or the
+   *         null term if such a term cannot be found.
    */
-  public boolean getAbductNext(Term output) {
-    return getAbductNext(pointer, output.getPointer());
+  public Term getAbductNext()
+  {
+    long abdPtr = getAbductNext(pointer);
+    return new Term(this, abdPtr);
   }
 
-  private native boolean getAbductNext(long pointer, long outputPointer);
+  private native long getAbductNext(long pointer);
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -2303,10 +2300,15 @@ public class Solver implements IPointer, AutoCloseable
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * Return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  // TODO: void printInstantiations(std::ostream& out)
+  public String getInstantiations()
+  {
+    return getInstantiations(pointer);
+  }
+
+  private native String getInstantiations(long pointer);
 
   /**
    * Push a level to the assertion stack.

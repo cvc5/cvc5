@@ -225,23 +225,6 @@ class CVC5_EXPORT Result
   bool isSatUnknown() const;
 
   /**
-   * Return true if corresponding query was an entailed checkEntailed() query.
-   */
-  bool isEntailed() const;
-
-  /**
-   * Return true if corresponding query was a checkEntailed() query that is
-   * not entailed.
-   */
-  bool isNotEntailed() const;
-
-  /**
-   * Return true if query was a checkEntailed() query and cvc5 was not able to
-   * determine if it is entailed.
-   */
-  bool isEntailmentUnknown() const;
-
-  /**
    * Operator overloading for equality of two results.
    * @param r the result to compare to for equality
    * @return true if the results are equal
@@ -554,26 +537,6 @@ class CVC5_EXPORT Sort
   bool isFirstClass() const;
 
   /**
-   * Is this a function-LIKE sort?
-   *
-   * Anything function-like except arrays (e.g., datatype selectors) is
-   * considered a function here. Function-like terms can not be the argument
-   * or return value for any term that is function-like.
-   * This is mainly to avoid higher order.
-   *
-   * @note Arrays are explicitly not considered function-like here.
-   *
-   * @return true if this is a function-like sort
-   */
-  bool isFunctionLike() const;
-
-  /**
-   * Is this sort a subsort of the given sort?
-   * @return true if this sort is a subsort of s
-   */
-  bool isSubsortOf(const Sort& s) const;
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -735,11 +698,6 @@ class CVC5_EXPORT Sort
   std::vector<Sort> getUninterpretedSortParamSorts() const;
 
   /* Sort constructor sort ----------------------------------------------- */
-
-  /**
-   * @return the name of a sort constructor sort
-   */
-  std::string getSortConstructorName() const;
 
   /**
    * @return the arity of a sort constructor sort
@@ -1585,6 +1543,9 @@ class CVC5_EXPORT Term
  private:
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+  /** Helper to convert a vector of internal Nodes to Terms. */
+  std::vector<Term> static nodeVectorToTerms(const Solver* slv,
+                                             const std::vector<Node>& nodes);
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
@@ -2881,8 +2842,8 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
  * (`std::map<std::string, uint64_t>`).
  * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
  * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
- * It is possible to query whether this statistic is an expert statistic by
- * `isExpert()` and whether its value is the default value by `isDefault()`.
+ * It is possible to query whether this statistic is an internal statistic by
+ * `isInternal()` and whether its value is the default value by `isDefault()`.
  */
 class CVC5_EXPORT Stat
 {
@@ -2903,10 +2864,10 @@ class CVC5_EXPORT Stat
   Stat& operator=(const Stat& s);
 
   /**
-   * Is this value intended for experts only?
-   * @return Whether this is an expert statistic.
+   * Is this value intended for internal use only?
+   * @return Whether this is an internal statistic.
    */
-  bool isExpert() const;
+  bool isInternal() const;
   /**
    * Does this value hold the default value?
    * @return Whether this is a defaulted statistic.
@@ -2955,9 +2916,9 @@ class CVC5_EXPORT Stat
   const HistogramData& getHistogram() const;
 
  private:
-  Stat(bool expert, bool def, StatData&& sd);
-  /** Whether this statistic is only meant for experts */
-  bool d_expert;
+  Stat(bool internal, bool def, StatData&& sd);
+  /** Whether this statistic is only meant for internal use */
+  bool d_internal;
   /** Whether this statistic has the default value */
   bool d_default;
   std::unique_ptr<StatData> d_data;
@@ -2975,7 +2936,7 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
  * will not be invalidated if the solver is destroyed.
  * Iterating on this class (via `begin()` and `end()`) shows only public
  * statistics that have been changed. By passing appropriate flags to
- * `begin()`, statistics that are expert, defaulted, or both, can be
+ * `begin()`, statistics that are internal, defaulted, or both, can be
  * included as well. A single statistic value is represented as `Stat`.
  */
 class CVC5_EXPORT Statistics
@@ -3002,12 +2963,12 @@ class CVC5_EXPORT Statistics
    private:
     iterator(BaseType::const_iterator it,
              const BaseType& base,
-             bool expert,
+             bool internal,
              bool defaulted);
     bool isVisible() const;
     BaseType::const_iterator d_it;
     const BaseType* d_base;
-    bool d_showExpert = false;
+    bool d_showInternal = false;
     bool d_showDefault = false;
   };
 
@@ -3021,12 +2982,12 @@ class CVC5_EXPORT Statistics
   const Stat& get(const std::string& name);
   /**
    * Begin iteration over the statistics values.
-   * By default, only entries that are public (non-expert) and have been set
+   * By default, only entries that are public and have been set
    * are visible while the others are skipped.
-   * @param expert If set to true, expert statistics are shown as well.
+   * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool expert = false, bool defaulted = false) const;
+  iterator begin(bool internal = false, bool defaulted = false) const;
   /** End iteration */
   iterator end() const;
 
@@ -3443,11 +3404,11 @@ class CVC5_EXPORT Solver
   /**
    * Create operator of Kind:
    *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
-   *   - FLOATINGPOINT_TO_FP_REAL
-   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - FLOATINGPOINT_TO_FP_FROM_FP
+   *   - FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - FLOATINGPOINT_TO_FP_FROM_UBV
    *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
@@ -3863,21 +3824,6 @@ class CVC5_EXPORT Solver
   Result checkSatAssuming(const std::vector<Term>& assumptions) const;
 
   /**
-   * Check entailment of the given formula w.r.t. the current set of assertions.
-   * @param term the formula to check entailment for
-   * @return the result of the entailment check.
-   */
-  Result checkEntailed(const Term& term) const;
-
-  /**
-   * Check entailment of the given set of given formulas w.r.t. the current
-   * set of assertions.
-   * @param terms the terms to check entailment for
-   * @return the result of the entailmentcheck.
-   */
-  Result checkEntailed(const std::vector<Term>& terms) const;
-
-  /**
    * Create datatype sort.
    *
    * SMT-LIB:
@@ -4034,22 +3980,6 @@ class CVC5_EXPORT Solver
                      bool global = false) const;
 
   /**
-   * Echo a given string to the given output stream.
-   *
-   * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (echo <string>)
-   * \endverbatim
-   *
-   * @param out the output stream
-   * @param str the string to echo
-   */
-  void echo(std::ostream& out, const std::string& str) const;
-
-  /**
    * Get the list of asserted formulas.
    *
    * SMT-LIB:
@@ -4146,6 +4076,13 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
+   *
+   * .. note::
+   *   In contrast to SMT-LIB, the API does not distinguish between named and
+   *   unnamed assertions when producing an unsatisfiable core. Additionally,
+   *   the API allows this option to be called after a check with assumptions.
+   *   A subset of those assumptions may be included in the unsatisfiable core
+   *   returned by this method.
    * \endverbatim
    *
    * @return a set of terms representing the unsatisfiable core
@@ -4180,6 +4117,14 @@ class CVC5_EXPORT Solver
    * proof-format-mode.
    */
   std::string getProof() const;
+
+  /**
+   * Get learned literals
+   *
+   * @return a list of literals that were learned at top-level. In other words,
+   * these are literals that are entailed by the current set of assertions.
+   */
+  std::vector<Term> getLearnedLiterals() const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4228,10 +4173,8 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
    * option
-   * \verbatim:rst:inline
-   * :ref:`model-cores <lbl-option-model-cores>`
-   * \endverbatim
-   * has been set.
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`
+   * \endverbatim has been set.
    *
    * @param v The term in question
    * @return true if v is a model core symbol
@@ -4250,8 +4193,6 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable option
    * :ref:`produce-models <lbl-option-produce-models>`.
-   * \endverbatim
-   *
    * \endverbatim
    *
    * @param sorts The list of uninterpreted sorts that should be printed in the
@@ -4408,11 +4349,11 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param conj the conjecture term
-   * @param output a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj,
+   *        or the null term if such a term cannot be found.
    */
-  bool getInterpolant(const Term& conj, Term& output) const;
+  Term getInterpolant(const Term& conj) const;
 
   /**
    * Get an interpolant
@@ -4431,11 +4372,11 @@ class CVC5_EXPORT Solver
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
-   * @param output a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that A->I and I->B are valid, where A is the
+   *         current set of assertions and B is given in the input by conj,
+   *         or the null term if such a term cannot be found.
    */
-  bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
+  Term getInterpolant(const Term& conj, Grammar& grammar) const;
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
@@ -4455,12 +4396,11 @@ class CVC5_EXPORT Solver
    * mode different from `none`.
    * \endverbatim
    *
-   * @param output a Term I such that A->I and I->B are valid, where A is the
-   *        current set of assertions and B is given in the input by conj
-   *        on the last call to getInterpolant.
-   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   * @return a Term I such that A->I and I->B are valid, where A is the
+   *         current set of assertions and B is given in the input by conj
+   *         on the last call to getInterpolant.
    */
-  bool getInterpolantNext(Term& output) const;
+  Term getInterpolantNext() const;
 
   /**
    * Get an abduct.
@@ -4477,13 +4417,13 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param conj the conjecture term
-   * @param output a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
-   *               and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
-   *               @f$A@f$ is the current set of assertions and @f$B@f$ is
-   *               given in the input by ``conj``.
-   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   * @return a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
+   *         and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
+   *         @f$A@f$ is the current set of assertions and @f$B@f$ is
+   *         given in the input by ``conj``, or the null term if such a term
+   *         cannot be found.
    */
-  bool getAbduct(const Term& conj, Term& output) const;
+  Term getAbduct(const Term& conj) const;
 
   /**
    * Get an abduct.
@@ -4501,13 +4441,12 @@ class CVC5_EXPORT Solver
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct @f$C@f$
-   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   * @return a term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        ``conj``
-   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   *        ``conj``, or the null term if such a term cannot be found.
    */
-  bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
+  Term getAbduct(const Term& conj, Grammar& grammar) const;
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -4525,13 +4464,13 @@ class CVC5_EXPORT Solver
    * :ref:`produce-abducts <lbl-option-produce-abducts>`.
    * \endverbatim
    *
-   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   * @return a term C such that @f$(A \wedge C)@f$ is satisfiable, and
    *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
-   *        the last call to getAbduct.
-   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
+   *        the last call to getAbduct, or the null term if such a term cannot
+   *        be found.
    */
-  bool getAbductNext(Term& output) const;
+  Term getAbductNext() const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -4572,10 +4511,10 @@ class CVC5_EXPORT Solver
   void blockModelValues(const std::vector<Term>& terms) const;
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * @return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  void printInstantiations(std::ostream& out) const;
+  std::string getInstantiations() const;
 
   /**
    * Push (a) level(s) to the assertion stack.

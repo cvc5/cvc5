@@ -1,7 +1,7 @@
 % example from the TFF0 paper
 % see https://sites.google.com/site/polymorphictptptff/relevant-links/tff-tfa
 %
-% Status : Theorem
+% Status : Unsatisfiable
 %
 tff(list_type,type, ( list: $tType )).
 tff(nil_type,type, ( nil: list )).

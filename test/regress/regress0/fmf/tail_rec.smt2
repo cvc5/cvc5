@@ -1,5 +1,6 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
+; DISABLE-TESTER: model
 (set-logic ALL)
 (declare-sort elem 0)
 (declare-datatypes ((list 0)) (((Nil) (Cons (hd elem) (tl list)))))

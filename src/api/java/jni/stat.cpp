@@ -51,16 +51,16 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Stat_toString(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Stat
- * Method:    isExpert
+ * Method:    isInternal
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isExpert(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Stat_isInternal(JNIEnv* env,
                                                                  jobject,
                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Stat* current = reinterpret_cast<Stat*>(pointer);
-  return static_cast<jboolean>(current->isExpert());
+  return static_cast<jboolean>(current->isInternal());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 

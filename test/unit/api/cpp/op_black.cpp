@@ -60,14 +60,15 @@ TEST_F(TestApiBlackOp, getNumIndices)
   Op floatingpoint_to_ubv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 11);
   Op floatingopint_to_sbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
   Op floatingpoint_to_fp_ieee_bitvector =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 4, 25);
   Op floatingpoint_to_fp_floatingpoint =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25);
-  Op floatingpoint_to_fp_real = d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 4, 25);
+  Op floatingpoint_to_fp_real =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 4, 25);
   Op floatingpoint_to_fp_signed_bitvector =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 4, 25);
   Op floatingpoint_to_fp_unsigned_bitvector =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 4, 25);
   Op floatingpoint_to_fp_generic =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
   Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 2, 3);
@@ -106,14 +107,15 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   Op floatingpoint_to_ubv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 4);
   Op floatingopint_to_sbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 4);
   Op floatingpoint_to_fp_ieee_bitvector =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 5);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 4, 5);
   Op floatingpoint_to_fp_floatingpoint =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 5);
-  Op floatingpoint_to_fp_real = d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 5);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 4, 5);
+  Op floatingpoint_to_fp_real =
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 4, 5);
   Op floatingpoint_to_fp_signed_bitvector =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 5);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 4, 5);
   Op floatingpoint_to_fp_unsigned_bitvector =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 5);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 4, 5);
   Op floatingpoint_to_fp_generic =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 5);
   Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 4, 5);
@@ -204,7 +206,7 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
       (bitvector_extract_indices == std::pair<uint32_t, uint32_t>{4, 0}));
 
   Op floatingpoint_to_fp_ieee_bitvector_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_IEEE_BITVECTOR, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 4, 25);
   std::pair<uint32_t, uint32_t> floatingpoint_to_fp_ieee_bitvector_indices =
       floatingpoint_to_fp_ieee_bitvector_ot
           .getIndices<std::pair<uint32_t, uint32_t>>();
@@ -212,7 +214,7 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
                == std::pair<uint32_t, uint32_t>{4, 25}));
 
   Op floatingpoint_to_fp_floatingpoint_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_FLOATINGPOINT, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 4, 25);
   std::pair<uint32_t, uint32_t> floatingpoint_to_fp_floatingpoint_indices =
       floatingpoint_to_fp_floatingpoint_ot
           .getIndices<std::pair<uint32_t, uint32_t>>();
@@ -220,14 +222,14 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
                == std::pair<uint32_t, uint32_t>{4, 25}));
 
   Op floatingpoint_to_fp_real_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_REAL, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 4, 25);
   std::pair<uint32_t, uint32_t> floatingpoint_to_fp_real_indices =
       floatingpoint_to_fp_real_ot.getIndices<std::pair<uint32_t, uint32_t>>();
   ASSERT_TRUE((floatingpoint_to_fp_real_indices
                == std::pair<uint32_t, uint32_t>{4, 25}));
 
   Op floatingpoint_to_fp_signed_bitvector_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 4, 25);
   std::pair<uint32_t, uint32_t> floatingpoint_to_fp_signed_bitvector_indices =
       floatingpoint_to_fp_signed_bitvector_ot
           .getIndices<std::pair<uint32_t, uint32_t>>();
@@ -235,7 +237,7 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
                == std::pair<uint32_t, uint32_t>{4, 25}));
 
   Op floatingpoint_to_fp_unsigned_bitvector_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR, 4, 25);
+      d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 4, 25);
   std::pair<uint32_t, uint32_t> floatingpoint_to_fp_unsigned_bitvector_indices =
       floatingpoint_to_fp_unsigned_bitvector_ot
           .getIndices<std::pair<uint32_t, uint32_t>>();

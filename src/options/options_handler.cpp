@@ -205,7 +205,7 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
   {
     d_options->base.statisticsAll = false;
     d_options->base.statisticsEveryQuery = false;
-    d_options->base.statisticsExpert = false;
+    d_options->base.statisticsInternal = false;
   }
 }
 
@@ -447,6 +447,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
+  print_config_cond("cocoa", Configuration::isBuiltWithCoCoA());
   print_config_cond("editline", Configuration::isBuiltWithEditline());
 }
 

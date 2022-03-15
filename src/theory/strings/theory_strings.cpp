@@ -84,7 +84,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg),
-      d_strat(d_env)
+      d_strat(d_env),
+      d_absModelCounter(0)
 {
   d_termReg.finishInit(&d_im);
 
@@ -317,7 +318,7 @@ bool TheoryStrings::collectModelInfoType(
   std::vector<Node> len_splits;
   for (size_t i = 0, csize = col.size(); i < csize; i++)
   {
-    Trace("strings-model") << "Checking length for {" << col[i];
+    Trace("strings-model") << "Checking length for { " << col[i];
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     Node len_value;
     if( lts[i].isConst() ) {
@@ -392,6 +393,26 @@ bool TheoryStrings::collectModelInfoType(
         // in the term set and, as a result, are skipped when the equality
         // engine is asserted to the theory model.
         m->getEqualityEngine()->addTerm(eqc);
+
+        // For sequences constants, also add the elements (expanding elements
+        // as necessary)
+        if (eqc.getType().isSequence())
+        {
+          const std::vector<Node> elems = eqc.getConst<Sequence>().getVec();
+          std::vector<TNode> visit(elems.begin(), elems.end());
+          for (size_t j = 0; j < visit.size(); j++)
+          {
+            Node se = visit[j];
+            Assert(se.isConst());
+            if (se.getType().isSequence())
+            {
+              const std::vector<Node> selems = se.getConst<Sequence>().getVec();
+              visit.insert(visit.end(), selems.begin(), selems.end());
+            }
+            m->getEqualityEngine()->addTerm(se);
+          }
+        }
+
         Trace("strings-model") << "-> constant" << std::endl;
         continue;
       }
@@ -408,7 +429,9 @@ bool TheoryStrings::collectModelInfoType(
         Assert(!lenValue.isNull() && lenValue.isConst());
         // make the abstract value (witness ((x String)) (= (str.len x)
         // lenValue))
-        Node w = utils::mkAbstractStringValueForLength(eqc, lenValue);
+        Node w = utils::mkAbstractStringValueForLength(
+            eqc, lenValue, d_absModelCounter);
+        d_absModelCounter++;
         Trace("strings-model")
             << "-> length out of bounds, assign abstract " << w << std::endl;
         if (!m->assertEquality(eqc, w, true))
@@ -455,7 +478,8 @@ bool TheoryStrings::collectModelInfoType(
           argVal = nfe.d_nf[0][0];
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-        assignedValue = rewrite(nm->mkNode(SEQ_UNIT, argVal));
+        assignedValue = rewrite(
+            nm->mkSeqUnit(eqc.getType().getSequenceElementType(), argVal));
         Trace("strings-model")
             << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
@@ -481,6 +505,7 @@ bool TheoryStrings::collectModelInfoType(
       }
       else if (options().strings.seqArray != options::SeqArrayMode::NONE)
       {
+        TypeNode etype = eqc.getType().getSequenceElementType();
         // determine skeleton based on the write model, if it exists
         const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
         Trace("strings-model")
@@ -508,7 +533,7 @@ bool TheoryStrings::collectModelInfoType(
               continue;
             }
             usedWrites.insert(ivalue);
-            Node wsunit = nm->mkNode(SEQ_UNIT, w.second);
+            Node wsunit = nm->mkSeqUnit(etype, w.second);
             writes.emplace_back(ivalue, wsunit);
           }
           // sort based on index value
@@ -738,13 +763,14 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   const Sequence& sn = c.getConst<Sequence>();
   const std::vector<Node>& snvec = sn.getVec();
   std::vector<Node> skChildren;
+  TypeNode etn = c.getType().getSequenceElementType();
   for (const Node& snv : snvec)
   {
-    TypeNode etn = snv.getType();
+    Assert(snv.getType().isSubtypeOf(etn));
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v, "smv");
-    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+    skChildren.push_back(nm->mkSeqUnit(etn, kv));
   }
   return utils::mkConcat(skChildren, c.getType());
 }
@@ -766,7 +792,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     cacheVals.push_back(nm->mkConst(CONST_RATIONAL, Rational(currIndex)));
     Node kv = sm->mkSkolemFunction(
         SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
-    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+    skChildren.push_back(nm->mkSeqUnit(etn, kv));
     cacheVals.pop_back();
   }
   return utils::mkConcat(skChildren, r.getType());

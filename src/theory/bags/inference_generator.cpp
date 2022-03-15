@@ -175,7 +175,7 @@ Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
 InferInfo InferenceGenerator::empty(Node n, Node e)
 {
   Assert(n.getKind() == BAG_EMPTY);
-  Assert(e.getType() == n.getType().getBagElementType());
+  Assert(e.getType().isSubtypeOf(n.getType().getBagElementType()));
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_EMPTY);
   Node skolem = getSkolem(n, inferInfo);
@@ -393,15 +393,14 @@ Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
   return count;
 }
 
-std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
-                                                                   Node e)
+std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
 {
   Assert(n.getKind() == BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
   Assert(e.getType() == n[0].getType().getRangeType());
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN);
 
   Node f = n[0];
   Node A = n[1];
@@ -488,19 +487,19 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
 
   std::map<Node, Node> m;
   m[e] = conclusion;
-  Trace("bags::InferenceGenerator::mapDownwards")
+  Trace("bags::InferenceGenerator::mapDown")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return std::tuple(inferInfo, uf, preImageSize);
 }
 
-InferInfo InferenceGenerator::mapUpwards(
+InferInfo InferenceGenerator::mapUp(
     Node n, Node uf, Node preImageSize, Node y, Node x)
 {
   Assert(n.getKind() == BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP);
   Node f = n[0];
   Node A = n[1];
 
@@ -508,7 +507,9 @@ InferInfo InferenceGenerator::mapUpwards(
   Node xInA = d_nm->mkNode(GEQ, countA, d_one);
   Node notEqual = d_nm->mkNode(EQUAL, d_nm->mkNode(APPLY_UF, f, x), y).negate();
 
-  Node k = d_sm->mkDummySkolem("k", d_nm->integerType());
+  Node k = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INDEX,
+                                  d_nm->integerType(),
+                                  {n, uf, preImageSize, y, x});
   Node inRange = d_nm->mkNode(
       AND, d_nm->mkNode(GEQ, k, d_one), d_nm->mkNode(LEQ, k, preImageSize));
   Node equal = d_nm->mkNode(EQUAL, d_nm->mkNode(APPLY_UF, uf, k), x);

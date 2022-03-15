@@ -1,6 +1,7 @@
-; COMMAND-LINE: --ee-mode=distributed --no-check-unsat-cores
-; COMMAND-LINE: --ee-mode=central --no-check-unsat-cores
+; COMMAND-LINE: --ee-mode=distributed
+; COMMAND-LINE: --ee-mode=central
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((dA 0)) (((A))))

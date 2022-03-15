@@ -117,6 +117,14 @@ name   = "SMT Layer"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
+  name       = "produceLearnedLiterals"
+  category   = "regular"
+  long       = "produce-learned-literals"
+  type       = "bool"
+  default    = "false"
+  help       = "produce learned literals, support get-learned-literals"
+
+[[option]]
   name       = "produceProofs"
   category   = "regular"
   long       = "produce-proofs"
@@ -286,18 +294,20 @@ name   = "SMT Layer"
 [[option]]
   name       = "extRewPrep"
   category   = "regular"
-  long       = "ext-rew-prep"
-  type       = "bool"
-  default    = "false"
-  help       = "use extended rewriter as a preprocessing pass"
-
-[[option]]
-  name       = "extRewPrepAgg"
-  category   = "regular"
-  long       = "ext-rew-prep-agg"
-  type       = "bool"
-  default    = "false"
-  help       = "use aggressive extended rewriter as a preprocessing pass"
+  long       = "ext-rew-prep=MODE"
+  type       = "ExtRewPrepMode"
+  default    = "OFF"
+  help       = "mode for using extended rewriter as a preprocessing pass, see --ext-rew-prep=help"
+  help_mode  = "extended rewriter preprocessing pass modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "do not use extended rewriter as a preprocessing pass."
+[[option.mode.USE]]
+  name = "use"
+  help = "use extended rewriter as a preprocessing pass."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "use aggressive extended rewriter as a preprocessing pass."
 
 [[option]]
   name       = "simplifyWithCareEnabled"
@@ -380,15 +390,6 @@ name   = "SMT Layer"
 [[option.mode.None]]
   name = "none"
   help = "(default) do not print declarations of uninterpreted elements in models."
-
-
-[[option]]
-  name       = "modelWitnessValue"
-  category   = "regular"
-  long       = "model-witness-value"
-  type       = "bool"
-  default    = "false"
-  help       = "in models, use a witness constant for choice functions"
 
 [[option]]
   name       = "foreignTheoryRewrite"

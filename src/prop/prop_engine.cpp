@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "decision/decision_engine_old.h"
 #include "decision/justification_strategy.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
@@ -87,11 +86,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(env));
-  }
-  else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
-           || dmode == options::DecisionMode::STOPONLY_OLD)
-  {
-    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {
@@ -225,8 +219,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options().smt.unsatCores);
+  // should have a proof generator if the theory engine is proof producing
+  Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -273,15 +267,11 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
-  // assert to decision engine
+  // Assert to decision engine. Notice this must come before the calls to
+  // assertTrustedLemmaInternal below, since the decision engine requires
+  // setting up information about the relevance of skolems before literals
+  // are potentially asserted to the theory engine, which it listens to for
+  // tracking active skolem definitions.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -294,6 +284,14 @@ void PropEngine::assertLemmasInternal(
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
+  }
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
 }
 
@@ -672,7 +670,7 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   return cdp.getProofFor(fnode);
 }
 
-const std::unordered_set<Node>& PropEngine::getLearnedZeroLevelLiterals() const
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
 {
   return d_theoryProxy->getLearnedZeroLevelLiterals();
 }

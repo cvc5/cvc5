@@ -57,13 +57,11 @@ def test_get_num_indices(solver):
     iand = solver.mkOp(Kind.Iand, 3)
     floatingpoint_to_ubv = solver.mkOp(Kind.FPToUbv, 11)
     floatingopint_to_sbv = solver.mkOp(Kind.FPToSbv, 13)
-    floatingpoint_to_fp_ieee_bitvector = solver.mkOp(Kind.FPToFpIeeeBV, 4, 25)
-    floatingpoint_to_fp_floatingpoint = solver.mkOp(Kind.FPToFpFP, 4, 25)
-    floatingpoint_to_fp_real = solver.mkOp(Kind.FPToFpReal, 4, 25)
-    floatingpoint_to_fp_signed_bitvector = solver.mkOp(Kind.FPToFpSignedBV, 4,
-                                                       25)
-    floatingpoint_to_fp_unsigned_bitvector = solver.mkOp(
-        Kind.FPToFpUnsignedBV, 4, 25)
+    floatingpoint_to_fp_from_ieee_bv = solver.mkOp(Kind.FPToFpFromIeeeBv, 4, 25)
+    floatingpoint_to_fp_from_fp = solver.mkOp(Kind.FPToFpFromFp, 4, 25)
+    floatingpoint_to_fp_from_real = solver.mkOp(Kind.FPToFpFromReal, 4, 25)
+    floatingpoint_to_fp_from_sbv = solver.mkOp(Kind.FPToFpFromSbv, 4, 25)
+    floatingpoint_to_fp_from_ubv = solver.mkOp(Kind.FPToFpFromUbv, 4, 25)
     floatingpoint_to_fp_generic = solver.mkOp(Kind.FPToFpGeneric, 4, 25)
     regexp_loop = solver.mkOp(Kind.RegexpLoop, 2, 3)
 
@@ -78,11 +76,11 @@ def test_get_num_indices(solver):
     assert 1 == iand.getNumIndices()
     assert 1 == floatingpoint_to_ubv.getNumIndices()
     assert 1 == floatingopint_to_sbv.getNumIndices()
-    assert 2 == floatingpoint_to_fp_ieee_bitvector.getNumIndices()
-    assert 2 == floatingpoint_to_fp_floatingpoint.getNumIndices()
-    assert 2 == floatingpoint_to_fp_real.getNumIndices()
-    assert 2 == floatingpoint_to_fp_signed_bitvector.getNumIndices()
-    assert 2 == floatingpoint_to_fp_unsigned_bitvector.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_ieee_bv.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_fp.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_real.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_sbv.getNumIndices()
+    assert 2 == floatingpoint_to_fp_from_ubv.getNumIndices()
     assert 2 == floatingpoint_to_fp_generic.getNumIndices()
     assert 2 == regexp_loop.getNumIndices()
 
@@ -142,36 +140,35 @@ def test_get_indices_pair_uint(solver):
     bitvector_extract_indices = bitvector_extract_ot.getIndices()
     assert bitvector_extract_indices == (4, 0)
 
-    floatingpoint_to_fp_ieee_bitvector_ot = solver.mkOp(
-        Kind.FPToFpIeeeBV, 4, 25)
-    floatingpoint_to_fp_ieee_bitvector_indices = floatingpoint_to_fp_ieee_bitvector_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_ieee_bitvector_indices == (4, 25)
+    floatingpoint_to_fp_from_ieee_bv_ot = \
+            solver.mkOp(Kind.FPToFpFromIeeeBv, 4, 25)
+    floatingpoint_to_fp_from_ieee_bv_indices = \
+            floatingpoint_to_fp_from_ieee_bv_ot.getIndices()
+    assert floatingpoint_to_fp_from_ieee_bv_indices == (4, 25)
 
-    floatingpoint_to_fp_floatingpoint_ot = solver.mkOp(Kind.FPToFpFP, 4, 25)
-    floatingpoint_to_fp_floatingpoint_indices = floatingpoint_to_fp_floatingpoint_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_floatingpoint_indices == (4, 25)
+    floatingpoint_to_fp_from_fp_ot = solver.mkOp(Kind.FPToFpFromFp, 4, 25)
+    floatingpoint_to_fp_from_fp_indices = \
+            floatingpoint_to_fp_from_fp_ot.getIndices()
+    assert floatingpoint_to_fp_from_fp_indices == (4, 25)
 
-    floatingpoint_to_fp_real_ot = solver.mkOp(Kind.FPToFpReal, 4, 25)
-    floatingpoint_to_fp_real_indices = floatingpoint_to_fp_real_ot.getIndices()
-    assert floatingpoint_to_fp_real_indices == (4, 25)
+    floatingpoint_to_fp_from_real_ot = solver.mkOp(Kind.FPToFpFromReal, 4, 25)
+    floatingpoint_to_fp_from_real_indices = \
+            floatingpoint_to_fp_from_real_ot.getIndices()
+    assert floatingpoint_to_fp_from_real_indices == (4, 25)
 
-    floatingpoint_to_fp_signed_bitvector_ot = solver.mkOp(
-        Kind.FPToFpSignedBV, 4, 25)
-    floatingpoint_to_fp_signed_bitvector_indices = floatingpoint_to_fp_signed_bitvector_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_signed_bitvector_indices == (4, 25)
+    floatingpoint_to_fp_from_sbv_ot = solver.mkOp(Kind.FPToFpFromSbv, 4, 25)
+    floatingpoint_to_fp_from_sbv_indices = \
+            floatingpoint_to_fp_from_sbv_ot.getIndices()
+    assert floatingpoint_to_fp_from_sbv_indices == (4, 25)
 
-    floatingpoint_to_fp_unsigned_bitvector_ot = solver.mkOp(
-        Kind.FPToFpUnsignedBV, 4, 25)
-    floatingpoint_to_fp_unsigned_bitvector_indices = floatingpoint_to_fp_unsigned_bitvector_ot.getIndices(
-    )
-    assert floatingpoint_to_fp_unsigned_bitvector_indices == (4, 25)
+    floatingpoint_to_fp_from_ubv_ot = solver.mkOp(Kind.FPToFpFromUbv, 4, 25)
+    floatingpoint_to_fp_from_ubv_indices = \
+            floatingpoint_to_fp_from_ubv_ot.getIndices()
+    assert floatingpoint_to_fp_from_ubv_indices == (4, 25)
 
     floatingpoint_to_fp_generic_ot = solver.mkOp(Kind.FPToFpGeneric, 4, 25)
-    floatingpoint_to_fp_generic_indices = floatingpoint_to_fp_generic_ot.getIndices(
-    )
+    floatingpoint_to_fp_generic_indices = \
+            floatingpoint_to_fp_generic_ot.getIndices()
     assert floatingpoint_to_fp_generic_indices == (4, 25)
 
 

@@ -237,8 +237,8 @@ void Smt2::addFloatingPointOperators() {
   addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,
                      api::FLOATINGPOINT_TO_FP_GENERIC,
                      "to_fp");
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV,
+                     api::FLOATINGPOINT_TO_FP_FROM_UBV,
                      "to_fp_unsigned");
   addIndexedOperator(
       api::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
@@ -247,17 +247,17 @@ void Smt2::addFloatingPointOperators() {
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+                       api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
                        "to_fp_bv");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP,
+                       api::FLOATINGPOINT_TO_FP_FROM_FP,
                        "to_fp_fp");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_REAL,
-                       api::FLOATINGPOINT_TO_FP_REAL,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL,
+                       api::FLOATINGPOINT_TO_FP_FROM_REAL,
                        "to_fp_real");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV,
+                       api::FLOATINGPOINT_TO_FP_FROM_SBV,
                        "to_fp_signed");
   }
 }
@@ -277,9 +277,9 @@ void Smt2::addSepOperators() {
 
 void Smt2::addCoreSymbols()
 {
-  defineType("Bool", d_solver->getBooleanSort(), true, true);
-  defineVar("true", d_solver->mkTrue(), true, true);
-  defineVar("false", d_solver->mkFalse(), true, true);
+  defineType("Bool", d_solver->getBooleanSort(), true);
+  defineVar("true", d_solver->mkTrue(), true);
+  defineVar("false", d_solver->mkFalse(), true);
   addOperator(api::AND, "and");
   addOperator(api::DISTINCT, "distinct");
   addOperator(api::EQUAL, "=");
@@ -410,7 +410,7 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, false, true);
+  return bindVar(fname, ft, true);
 }
 
 void Smt2::pushDefineFunRecScope(
@@ -513,7 +513,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
-      defineType("Int", d_solver->getIntegerSort(), true, true);
+      defineType("Int", d_solver->getIntegerSort(), true);
       addArithmeticOperators();
       if (!strictModeEnabled() || !d_logic.isLinear())
       {
@@ -526,7 +526,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
     if (d_logic.areRealsUsed())
     {
-      defineType("Real", d_solver->getRealSort(), true, true);
+      defineType("Real", d_solver->getRealSort(), true);
       addArithmeticOperators();
       addOperator(api::DIVISION, "/");
       if (!strictModeEnabled())
@@ -577,7 +577,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
     const std::vector<api::Sort> types;
-    defineType("Tuple", d_solver->mkTupleSort(types), true, true);
+    defineType("Tuple", d_solver->mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
@@ -632,9 +632,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::TABLE_PRODUCT, "table.product");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
-    defineType("String", d_solver->getStringSort(), true, true);
-    defineType("RegLan", d_solver->getRegExpSort(), true, true);
-    defineType("Int", d_solver->getIntegerSort(), true, true);
+    defineType("String", d_solver->getStringSort(), true);
+    defineType("RegLan", d_solver->getRegExpSort(), true);
+    defineType("Int", d_solver->getIntegerSort(), true);
 
     defineVar("re.none", d_solver->mkRegexpNone());
     defineVar("re.allchar", d_solver->mkRegexpAllchar());
@@ -651,11 +651,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
-    defineType("RoundingMode", d_solver->getRoundingModeSort(), true, true);
-    defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true, true);
-    defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true, true);
-    defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true, true);
-    defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true, true);
+    defineType("RoundingMode", d_solver->getRoundingModeSort(), true);
+    defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true);
+    defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true);
+    defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true);
+    defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true);
 
     defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",
@@ -680,6 +680,10 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     addSepOperators();
   }
+
+  // builtin symbols of the logic are declared at context level zero, hence
+  // we push the outermost scope here
+  pushScope(true);
 
   std::string logic = sygus() ? d_logic.getLogicString() : name;
   if (!fromCommand)

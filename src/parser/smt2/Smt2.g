@@ -287,7 +287,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -404,6 +404,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | /* get-difficulty */
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
+  | /* get-learned-literals */
+    GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetLearnedLiteralsCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -781,7 +784,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
                                       "version 2.0");
       }
       api::Term c =
-          PARSER_STATE->bindVar(name, t, false, true);
+          PARSER_STATE->bindVar(name, t, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -947,7 +950,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, false, true);
+            PARSER_STATE->bindVar(name, tt, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -967,7 +970,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1802,7 +1805,9 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       api::Term keyword = SOLVER->mkString("qid");
-      api::Term name = SOLVER->mkString(s);
+      // must create a variable whose name is the name of the quantified
+      // formula, not a string.
+      api::Term name = SOLVER->mkConst(SOLVER->getBooleanSort(), s);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -2202,6 +2207,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 GET_DIFFICULTY_TOK : 'get-difficulty';
+GET_LEARNED_LITERALS_TOK : { !PARSER_STATE->strictModeEnabled() }? 'get-learned-literals';
 EXIT_TOK : 'exit';
 RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';

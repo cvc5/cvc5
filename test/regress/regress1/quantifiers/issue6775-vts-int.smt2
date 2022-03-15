@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i --no-check-models
+; COMMAND-LINE: -i
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic NIA)

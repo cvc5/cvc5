@@ -164,19 +164,25 @@ void TheoryArith::postCheck(Effort level)
 {
   d_im.reset();
   Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
+  if (Theory::fullEffort(level))
+  {
+    // Make sure we don't have old lemmas floating around. This can happen if we
+    // didn't actually reach a last call effort check, but backtracked for some
+    // other reason. In such a case, these lemmas are likely to be irrelevant
+    // and possibly even harmful. If we produce proofs, their proofs have most
+    // likely been deallocated already as well.
+    d_im.clearPending();
+    d_im.clearWaitingLemmas();
+  }
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
-    if (d_nonlinearExtension != nullptr)
+    // If we computed lemmas in the last FULL_EFFORT check, send them now.
+    if (d_im.hasPendingLemma())
     {
-      // If we computed lemmas in the last FULL_EFFORT check, send them now.
-      if (d_im.hasPendingLemma())
-      {
-        d_im.doPendingFacts();
-        d_im.doPendingLemmas();
-        d_im.doPendingPhaseRequirements();
-        return;
-      }
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
     }
     return;
   }
@@ -291,13 +297,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (termSet.find(p.first) == termSet.end())
     {
       continue;
-    }
-    if (d_nonlinearExtension != nullptr)
-    {
-      if (d_nonlinearExtension->assertModel(m, p.first))
-      {
-        continue;
-      }
     }
     // maps to constant of comparable type
     Assert(p.first.getType().isComparableTo(p.second.getType()));
