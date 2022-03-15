@@ -55,7 +55,7 @@ Result::Result(const std::string& instr, std::string inputName)
       d_unknownExplanation(UNKNOWN_REASON),
       d_inputName(inputName)
 {
-  string s = instr;
+  std::string s = instr;
   transform(s.begin(), s.end(), s.begin(), ::tolower);
   if (s == "sat" || s == "satisfiable")
   {
@@ -126,6 +126,9 @@ string Result::toString() const {
 ostream& operator<<(ostream& out, enum Result::Status s)
 {
   switch (s) {
+    case Result::NONE:
+      out << "NONE";
+      break;
     case Result::UNSAT:
       out << "UNSAT";
       break;
@@ -178,6 +181,7 @@ ostream& operator<<(ostream& out, const Result& r) {
 void Result::toStreamDefault(std::ostream& out) const {
   switch (d_status)
   {
+    case Result::NONE: out << "none"; break;
     case Result::UNSAT: out << "unsat"; break;
     case Result::SAT: out << "sat"; break;
     case Result::UNKNOWN:
@@ -187,6 +191,7 @@ void Result::toStreamDefault(std::ostream& out) const {
         out << " (" << getUnknownExplanation() << ")";
       }
       break;
+    default: out << "???"; break;
   }
 }
 
