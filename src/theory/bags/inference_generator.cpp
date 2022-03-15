@@ -442,7 +442,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node countE = getMultiplicityTerm(e, mapSkolem);
   Node totalSum = d_nm->mkNode(APPLY_UF, sum, preImageSize);
   Node totalSumEqualCountE = d_nm->mkNode(EQUAL, totalSum, countE);
-  
+
   // (forall ((i Int))
   //        (let ((uf_i (uf i)))
   //          (let ((count_uf_i (bag.count uf_i A)))
@@ -496,11 +496,8 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node body_i = d_nm->mkNode(OR, interval_i.negate(), andNode);
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
   Node preImageGTE_zero = d_nm->mkNode(GEQ, preImageSize, d_zero);
-  Node conclusion = d_nm->mkNode(AND,
-                                 {baseCase,
-                                  totalSumEqualCountE,
-                                  forAll_i,
-                                  preImageGTE_zero});
+  Node conclusion = d_nm->mkNode(
+      AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
   inferInfo.d_conclusion = conclusion;
 
   Trace("bags::InferenceGenerator::mapDown")
@@ -520,8 +517,6 @@ InferInfo InferenceGenerator::mapUp(
   Node A = n[1];
 
   Node countA = getMultiplicityTerm(x, A);
-  Node countN = getMultiplicityTerm(y, n);
-  Node lessThan = d_nm->mkNode(LEQ, countA, countN);
   Node xInA = d_nm->mkNode(GEQ, countA, d_one);
   Node notEqual = d_nm->mkNode(EQUAL, d_nm->mkNode(APPLY_UF, f, x), y).negate();
 
@@ -531,7 +526,7 @@ InferInfo InferenceGenerator::mapUp(
   Node inRange = d_nm->mkNode(
       AND, d_nm->mkNode(GEQ, k, d_one), d_nm->mkNode(LEQ, k, preImageSize));
   Node equal = d_nm->mkNode(EQUAL, d_nm->mkNode(APPLY_UF, uf, k), x);
-  Node andNode = d_nm->mkNode(AND, inRange, equal, lessThan);
+  Node andNode = d_nm->mkNode(AND, inRange, equal);
   Node orNode = d_nm->mkNode(OR, notEqual, andNode);
   Node implies = d_nm->mkNode(IMPLIES, xInA, orNode);
   inferInfo.d_conclusion = implies;

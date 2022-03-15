@@ -270,7 +270,6 @@ class InferenceGenerator
    *   (or
    *     (not (= (f x) y)
    *     (and
-   *       (<= (bag.count x A) (bag.count y n))
    *       (>= skolem 1)
    *       (<= skolem preImageSize)
    *       (= (uf skolem) x)))))
