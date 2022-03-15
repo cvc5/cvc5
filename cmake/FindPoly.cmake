@@ -109,17 +109,19 @@ if(NOT Poly_FOUND_SYSTEM)
     set(POLY_TARGETS static_pic_poly static_pic_polyxx)
     set(POLY_INSTALL_CMD
       ${CMAKE_PROGRAM} -E copy
-        src/libpicpoly.${CMAKE_STATIC_LIBRARY_SUFFIX}
-        src/libpicpolyxx.${CMAKE_STATIC_LIBRARY_SUFFIX}
+        src/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
+        src/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
         "${DEPS_BASE}/lib"
     )
 
     set(POLY_BYPRODUCTS
-      <INSTALL_DIR>/lib/libpicpoly.a
-      <INSTALL_DIR>/lib/libpicpolyxx.a
+      <INSTALL_DIR>/lib/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
-    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
-    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
+    set(Poly_LIBRARIES
+      "${DEPS_BASE}/lib/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(PolyXX_LIBRARIES
+      "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
