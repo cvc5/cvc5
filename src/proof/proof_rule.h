@@ -404,89 +404,122 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   THEORY_INFERENCE,
-  // ========= SAT Refutation for assumption-based unsat cores
-  // Children: (P1, ..., Pn)
-  // Arguments: none
-  // ---------------------
-  // Conclusion: false
-  // Note: P1, ..., Pn correspond to the unsat core determined by the SAT
-  // solver.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **SAT Refutation for assumption-based unsat cores**
+   * 
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{false}
+   *
+   * where :math:`F_1 \dots F_n` correspond to the unsat core determined by the SAT
+   * solver.
+   * \endverbatim
+   */
   SAT_REFUTATION,
 
-  //================================================= Boolean rules
-  // ======== Resolution
-  // Children:
-  //  (P1:C1, P2:C2)
-  // Arguments: (pol, L)
-  // ---------------------
-  // Conclusion: C
-  // where
-  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
-  //     each children viewed as a literal or a node viewed as a literal. Note
-  //     that an OR node could also be a literal.
-  //   - pol is either true or false, representing the polarity of the pivot on
-  //     the first clause
-  //   - L is the pivot of the resolution, which occurs as is (resp. under a
-  //     NOT) in C1 and negatively (as is) in C2 if pol = true (pol = false).
-  //   C is a clause resulting from collecting all the literals in C1, minus the
-  //   first occurrence of the pivot or its negation, and C2, minus the first
-  //   occurrence of the pivot or its negation, according to the policy above.
-  //   If the resulting clause has a single literal, that literal itself is the
-  //   result; if it has no literals, then the result is false; otherwise it's
-  //   an OR node of the resulting literals.
-  //
-  //   Note that it may be the case that the pivot does not occur in the
-  //   clauses. In this case the rule is not unsound, but it does not correspond
-  //   to resolution but rather to a weakening of the clause that did not have a
-  //   literal eliminated.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Resolution**
+   * 
+   * .. math::
+   *   \inferrule{C_1, C_2 \mid pol, L}{C}
+   *
+   * where
+   * 
+   * - :math:`C_1` and :math:`C_2` are nodes viewed as clauses, i.e., either an ``OR`` node with
+   *   each children viewed as a literal or a node viewed as a literal. Note
+   *   that an ``OR`` node could also be a literal.
+   * - :math:`pol` is either true or false, representing the polarity of the pivot on
+   *   the first clause
+   * - :math:`L` is the pivot of the resolution, which occurs as is (resp. under a
+   *   ``NOT``) in :math:`C_1` and negatively (as is) in :math:`C_2` if :math:`pol = true` (:math:`pol = false`).
+   * 
+   * :math:`C` is a clause resulting from collecting all the literals in :math:`C_1`, minus the
+   * first occurrence of the pivot or its negation, and :math:`C_2`, minus the first
+   * occurrence of the pivot or its negation, according to the policy above.
+   * If the resulting clause has a single literal, that literal itself is the
+   * result; if it has no literals, then the result is false; otherwise it's
+   * an ``OR`` node of the resulting literals.
+   *
+   * Note that it may be the case that the pivot does not occur in the
+   * clauses. In this case the rule is not unsound, but it does not correspond
+   * to resolution but rather to a weakening of the clause that did not have a
+   * literal eliminated.
+   * \endverbatim
+   */
   RESOLUTION,
-  // ======== N-ary Resolution
-  // Children: (P1:C_1, ..., Pm:C_n)
-  // Arguments: (pol_1, L_1, ..., pol_{n-1}, L_{n-1})
-  // ---------------------
-  // Conclusion: C
-  // where
-  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
-  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
-  //     pivot L and polarity pol, as defined above
-  //   - let C_1' = C_1 (from P1),
-  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
-  //   The result of the chain resolution is C = C_n'
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- N-ary Resolution**
+   * 
+   * .. math::
+   *   \inferrule{C_1 \dots C_2 \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *
+   * where
+   * 
+   * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined above
+   * - let :math:`C_1 \stackrel{L,pol}{\bowtie} C_2` represent the resolution of :math:`C_1` with :math:`C_2` with
+   *   pivot :math:`L` and polarity :math:`pol`, as defined above
+   * - let :math:`C_1' = C_1`,
+   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \stackrel{L_{i-1}, pol_{i-1}}{\bowtie} C_i'`
+   * 
+   * The result of the chain resolution is :math:`C = C_n'`
+   * \endverbatim
+   */
   CHAIN_RESOLUTION,
-  // ======== Factoring
-  // Children: (P:C1)
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: C2
-  // where
-  //  Set representations of C1 and C2 is the same and the number of literals in
-  //  C2 is smaller than that of C1
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Factoring**
+   * 
+   * .. math::
+   *   \inferrule{C_1 \mid -}{C_2}
+   *
+   * where the set representations of :math:`C_1` and :math:`C_2` are the same and the number of literals in
+   * :math:`C_2` is smaller than that of :math:`C_1`.
+   * \endverbatim
+   */
   FACTORING,
-  // ======== Reordering
-  // Children: (P:C1)
-  // Arguments: (C2)
-  // ---------------------
-  // Conclusion: C2
-  // where
-  //  Set representations of C1 and C2 are the same and the number of literals
-  //  in C2 is the same of that of C1
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Reordering**
+   * 
+   * .. math::
+   *   \inferrule{C_1 \mid C_2}{C_2}
+   *
+   * where 
+   * the set representations of :math:`C_1` and :math:`C_2` are the same and the number of literals
+   * in :math:`C_2` is the same of that of :math:`C_1`.
+   * \endverbatim
+   */
   REORDERING,
-  // ======== N-ary Resolution + Factoring + Reordering
-  // Children: (P1:C_1, ..., Pm:C_n)
-  // Arguments: (C, pol_1, L_1, ..., pol_{n-1}, L_{n-1})
-  // ---------------------
-  // Conclusion: C
-  // where
-  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
-  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
-  //     pivot L and polarity pol, as defined in RESOLUTION
-  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
-  //   - for each i > 1, let C_i' be equal, it its set representation, to
-  //     C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
-  //   The result of the chain resolution is C, which is equal, in its set
-  //   representation, to C_n'
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- N-ary Resolution + Factoring + Reordering**
+   * 
+   * .. math::
+   *   \inferrule{C_1 \dots C_n \mid C, pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *
+   * where
+   * 
+   * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   * - let :math:`C_1 \stackrel{L,pol}{\bowtie} C_2` represent the resolution of :math:`C_1` with :math:`C_2` with
+   *   pivot :math:`L` and polarity :math:`pol`, as defined in :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
+   * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set representation, to
+   *   :math:`C_{i-1} \stackrel{L_{i-1}, pol_{i-1}}{\bowtie} C_i'`
+   * 
+   * The result of the chain resolution is :math:`C`, which is equal, in its set
+   * representation, to :math:`C_n'`
+   * \endverbatim
+   */
   MACRO_RESOLUTION,
-  // As above but not checked
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
+   * 
+   * Same as :cpp:enumerator:`RESOLUTION <cvc5::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof checker.
+   * \endverbatim
+   */
   MACRO_RESOLUTION_TRUST,
 
   // ======== Split
