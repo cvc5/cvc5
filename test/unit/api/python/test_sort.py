@@ -233,16 +233,6 @@ def test_is_sort_constructor(solver):
     Sort(solver).isSortConstructor()
 
 
-def test_is_first_class(solver):
-    fun_sort = solver.mkFunctionSort(solver.getRealSort(),
-                                     solver.getIntegerSort())
-    assert solver.getIntegerSort().isFirstClass()
-    assert fun_sort.isFirstClass()
-    reSort = solver.getRegExpSort()
-    assert not reSort.isFirstClass()
-    Sort(solver).isFirstClass()
-
-
 def test_get_datatype(solver):
     dtypeSort = create_datatype_sort(solver)
     dtypeSort.getDatatype()
