@@ -97,7 +97,7 @@ runs:
       shell: bash
       run: |
         echo "::group::Install software for documentation"
-        sudo apt-get install -y doxygen python3-docutils python3-jinja2 texlive texlive-latex-extra texlive-science dvipng
+        sudo apt-get install -y doxygen python3-docutils python3-jinja2
         python3 -m pip install \
           sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \
           sphinxcontrib-programoutput
