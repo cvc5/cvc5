@@ -51,8 +51,7 @@ void QueryGenerator::dumpQuery(Node qy, const Result& r)
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::UNSOLVED)
   {
-    if (r.getStatus() == Result::SAT
-        || r.getStatus() == Result::UNSAT)
+    if (r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT)
     {
       return;
     }

@@ -58,7 +58,8 @@ DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
 {
 }
 
-Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
+Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult)
+{
   Assert(d_conflictVariables.empty());
 
   d_pivots = 0;
@@ -90,7 +91,8 @@ Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   exactResult |= d_varOrderPivotLimit < 0;
 
   uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
-  if(result == Result::UNKNOWN){
+  if (result == Result::UNKNOWN)
+  {
     uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
                                        ? d_numVariables + 1
                                        : options().arith.arithHeuristicPivots;
@@ -126,7 +128,8 @@ Result::Status DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::UNKNOWN && d_errorSet.errorEmpty()){
+  if (result == Result::UNKNOWN && d_errorSet.errorEmpty())
+  {
     result = Result::SAT;
   }
 

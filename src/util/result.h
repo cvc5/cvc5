@@ -35,10 +35,11 @@ std::ostream& operator<<(std::ostream& out, const Result& r);
 class Result
 {
  public:
-  enum Status {
+  enum Status
+  {
     NONE,
-    UNSAT, 
-    SAT, 
+    UNSAT,
+    SAT,
     UNKNOWN
   };
 
@@ -61,7 +62,8 @@ class Result
 
   Result(Status s, std::string inputName = "");
 
-  Result(Status s, enum UnknownExplanation unknownExplanation,
+  Result(Status s,
+         enum UnknownExplanation unknownExplanation,
          std::string inputName = "");
 
   Result(const std::string& s, std::string inputName = "");
@@ -74,12 +76,10 @@ class Result
   Status getStatus() const { return d_status; }
 
   bool isNull() const { return d_status == NONE; }
-  bool isUnknown() const {
-    return d_status==UNKNOWN;
-  }
+  bool isUnknown() const { return d_status == UNKNOWN; }
 
   UnknownExplanation getUnknownExplanation() const;
-  
+
   bool operator==(const Result& r) const;
   bool operator!=(const Result& r) const;
 

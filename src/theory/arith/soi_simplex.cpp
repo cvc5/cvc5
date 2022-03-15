@@ -73,7 +73,8 @@ SumOfInfeasibilitiesSPD::Statistics::Statistics(const std::string& name,
 {
 }
 
-Result::Status SumOfInfeasibilitiesSPD::findModel(bool exactResult){
+Result::Status SumOfInfeasibilitiesSPD::findModel(bool exactResult)
+{
   Assert(d_conflictVariables.empty());
   Assert(d_sgnDisagreements.empty());
 
@@ -112,7 +113,8 @@ Result::Status SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
   Result::Status result = Result::UNKNOWN;
 
-  if(result == Result::UNKNOWN){
+  if (result == Result::UNKNOWN)
+  {
     if(exactResult){
       d_pivotBudget = -1;
     }else{
@@ -131,7 +133,8 @@ Result::Status SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::UNKNOWN && d_errorSet.errorEmpty()){
+  if (result == Result::UNKNOWN && d_errorSet.errorEmpty())
+  {
     result = Result::SAT;
   }
 
@@ -857,7 +860,8 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
   }
 }
 
-Result::Status SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
+Result::Status SumOfInfeasibilitiesSPD::sumOfInfeasibilities()
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_soiTimer);
 
   Assert(d_sgnDisagreements.empty());

@@ -202,9 +202,7 @@ Result OptimizationSolver::optimizeBox()
         }
         d_optChecker.reset();
         return partialResult.getResult();
-      case Result::UNKNOWN:
-        aggregatedResult = partialResult.getResult();
-        break;
+      case Result::UNKNOWN: aggregatedResult = partialResult.getResult(); break;
       default: Unreachable();
     }
 

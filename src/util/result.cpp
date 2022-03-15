@@ -28,23 +28,19 @@ using namespace std;
 namespace cvc5 {
 
 Result::Result()
-    : d_status(NONE),
-      d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName("")
+    : d_status(NONE), d_unknownExplanation(UNKNOWN_REASON), d_inputName("")
 {
 }
 
-Result::Result( Status s, std::string inputName)
-    : d_status(s),
-      d_unknownExplanation(UNKNOWN_REASON),
-      d_inputName(inputName)
+Result::Result(Status s, std::string inputName)
+    : d_status(s), d_unknownExplanation(UNKNOWN_REASON), d_inputName(inputName)
 {
   PrettyCheckArgument(s != UNKNOWN,
                       "Must provide a reason for satisfiability being unknown");
 }
 
-Result::Result( Status s,
-              UnknownExplanation unknownExplanation,
+Result::Result(Status s,
+               UnknownExplanation unknownExplanation,
                std::string inputName)
     : d_status(s),
       d_unknownExplanation(unknownExplanation),
@@ -61,7 +57,8 @@ Result::Result(const std::string& instr, std::string inputName)
 {
   string s = instr;
   transform(s.begin(), s.end(), s.begin(), ::tolower);
-  if (s == "sat"  || s == "satisfiable") {
+  if (s == "sat" || s == "satisfiable")
+  {
     d_status = SAT;
   } else if (s == "unsat" || s == "unsatisfiable") {
     d_which = TYPE_SAT;
@@ -106,7 +103,8 @@ Result::Result(const std::string& instr, std::string inputName)
   }
 }
 
-Result::UnknownExplanation Result::getUnknownExplanation() const {
+Result::UnknownExplanation Result::getUnknownExplanation() const
+{
   PrettyCheckArgument(isUnknown(), this,
                       "This result is not unknown, so the reason for "
                       "being unknown cannot be inquired of it");
@@ -114,13 +112,12 @@ Result::UnknownExplanation Result::getUnknownExplanation() const {
 }
 
 bool Result::operator==(const Result& r) const {
-  return d_status == r.d_status && (d_status != UNKNOWN ||
-                              d_unknownExplanation == r.d_unknownExplanation);
+  return d_status == r.d_status
+         && (d_status != UNKNOWN
+             || d_unknownExplanation == r.d_unknownExplanation);
 }
 
-bool Result::operator!=(const Result& r) const {
-  return !(*this == r);
-}
+bool Result::operator!=(const Result& r) const { return !(*this == r); }
 
 string Result::toString() const {
   stringstream ss;
@@ -128,7 +125,8 @@ string Result::toString() const {
   return ss.str();
 }
 
-ostream& operator<<(ostream& out, enum Result::Status s) {
+ostream& operator<<(ostream& out, enum Result::Status s)
+{
   switch (s) {
     case Result::UNSAT:
       out << "UNSAT";
@@ -136,9 +134,7 @@ ostream& operator<<(ostream& out, enum Result::Status s) {
     case Result::SAT:
       out << "SAT";
       break;
-    case Result::UNKNOWN:
-      out << "UNKNOWN";
-      break;
+    case Result::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;
   }
   return out;
@@ -182,31 +178,30 @@ ostream& operator<<(ostream& out, const Result& r) {
 }
 
 void Result::toStreamDefault(std::ostream& out) const {
-  switch (d_status) {
-    case Result::UNSAT:
-      out << "unsat";
-      break;
-    case Result::SAT:
-      out << "sat";
-      break;
+  switch (d_status)
+  {
+    case Result::UNSAT: out << "unsat"; break;
+    case Result::SAT: out << "sat"; break;
     case Result::UNKNOWN:
       out << "unknown";
-      if (whyUnknown() != Result::UNKNOWN_REASON) {
+      if (whyUnknown() != Result::UNKNOWN_REASON)
+      {
         out << " (" << whyUnknown() << ")";
       }
       break;
   }
 }
 
-void Result::toStreamSmt2(ostream& out) const {
-  toStreamDefault(out);
-}
+void Result::toStreamSmt2(ostream& out) const { toStreamDefault(out); }
 
 void Result::toStreamTptp(std::ostream& out) const {
   out << "% SZS status ";
-  if (d_status == Result::SAT) {
+  if (d_status == Result::SAT)
+  {
     out << "Satisfiable";
-  } else if (d_status == Result::UNSAT) {
+  }
+  else if (d_status == Result::UNSAT)
+  {
     out << "Unsatisfiable";
   }
   else

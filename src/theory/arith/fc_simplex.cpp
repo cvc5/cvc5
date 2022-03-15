@@ -67,7 +67,8 @@ FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
 {
 }
 
-Result::Status FCSimplexDecisionProcedure::findModel(bool exactResult){
+Result::Status FCSimplexDecisionProcedure::findModel(bool exactResult)
+{
   Assert(d_conflictVariables.empty());
   Assert(d_sgnDisagreements.empty());
 
@@ -105,7 +106,8 @@ Result::Status FCSimplexDecisionProcedure::findModel(bool exactResult){
 
   Result::Status result = Result::UNKNOWN;
 
-  if(result == Result::UNKNOWN){
+  if (result == Result::UNKNOWN)
+  {
     if(exactResult){
       d_pivotBudget = -1;
     }else{
@@ -124,7 +126,8 @@ Result::Status FCSimplexDecisionProcedure::findModel(bool exactResult){
   }
 
   Assert(!d_errorSet.moreSignals());
-  if(result == Result::UNKNOWN && d_errorSet.errorEmpty()){
+  if (result == Result::UNKNOWN && d_errorSet.errorEmpty())
+  {
     result = Result::SAT;
   }
 
@@ -658,8 +661,8 @@ bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w,
   return false;
 }
 
-Result::Status FCSimplexDecisionProcedure::dualLike(){
-
+Result::Status FCSimplexDecisionProcedure::dualLike()
+{
   TimerStat::CodeTimer codeTimer(d_statistics.d_fcTimer);
 
   Assert(d_sgnDisagreements.empty());

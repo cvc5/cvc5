@@ -301,7 +301,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_trSlv.postProcessModel(arithModel, termSet);
 }
 
-Result::Status NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
+Result::Status NonlinearExtension::modelBasedRefinement(
+    const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;

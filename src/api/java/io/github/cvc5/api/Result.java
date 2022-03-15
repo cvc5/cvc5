@@ -117,8 +117,7 @@ public class Result extends AbstractPointer
    * Return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  public boolean isUnknown()
-  {
+  public boolean isUnknown() {
     return isUnknown(pointer);
   }
 

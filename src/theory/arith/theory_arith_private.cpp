@@ -2938,7 +2938,8 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   Debug("TheoryArithPrivate::solveRealRelaxation")
     << "solveRealRelaxation()" << " pass1 " << d_qflraStatus << endl;
 
-  if(d_qflraStatus == Result::UNKNOWN && useApprox && safeToCallApprox()){
+  if (d_qflraStatus == Result::UNKNOWN && useApprox && safeToCallApprox())
+  {
     // pass2: fancy-final
     static constexpr int32_t relaxationLimit = 10000;
     Assert(ApproximateSimplex::enabled());
@@ -4032,7 +4033,8 @@ void TheoryArithPrivate::presolve(){
 }
 
 EqualityStatus TheoryArithPrivate::getEqualityStatus(TNode a, TNode b) {
-  if(d_qflraStatus == Result::UNKNOWN){
+  if (d_qflraStatus == Result::UNKNOWN)
+  {
     return EQUALITY_UNKNOWN;
   }else{
     try {
