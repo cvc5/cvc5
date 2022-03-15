@@ -589,7 +589,7 @@ cdef class Result:
         """
             :return: True if query was a satisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
         """
-        return self.cr.getStatus()
+        return self.cr.isSat()
 
     def isUnsat(self):
         """
@@ -597,11 +597,11 @@ cdef class Result:
         """
         return self.cr.isUnsat()
 
-    def isSatUnknown(self):
+    def isUnknown(self):
         """
             :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
-        return self.cr.isSatUnknown()
+        return self.cr.isUnknown()
 
     def getUnknownExplanation(self):
         """

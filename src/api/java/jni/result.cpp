@@ -56,7 +56,7 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isSat(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Result* current = (Result*)pointer;
-  return (jboolean)current->getStatus();
+  return (jboolean)current->isSat();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
@@ -77,15 +77,15 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Result_isUnsat(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Result
- * Method:    isSatUnknown
+ * Method:    isUnknown
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Result_isSatUnknown(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_api_Result_isUnknown(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Result* current = (Result*)pointer;
-  return (jboolean)current->isSatUnknown();
+  return (jboolean)current->isUnknown();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 

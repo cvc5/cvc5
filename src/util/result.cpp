@@ -113,6 +113,15 @@ Result::UnknownExplanation Result::getUnknownExplanation() const {
   return d_unknownExplanation;
 }
 
+bool Result::operator==(const Result& r) const {
+  return d_status == r.d_status && (d_status != UNKNOWN ||
+                              d_unknownExplanation == r.d_unknownExplanation);
+}
+
+bool Result::operator!=(const Result& r) const {
+  return !(*this == r);
+}
+
 string Result::toString() const {
   stringstream ss;
   ss << *this;

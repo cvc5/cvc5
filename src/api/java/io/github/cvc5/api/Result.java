@@ -95,7 +95,7 @@ public class Result extends AbstractPointer
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */
-  public boolean getStatus()
+  public boolean isSat()
   {
     return isSat(pointer);
   }
@@ -117,12 +117,12 @@ public class Result extends AbstractPointer
    * Return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  public boolean isSatUnknown()
+  public boolean isUnknown()
   {
-    return isSatUnknown(pointer);
+    return isUnknown(pointer);
   }
 
-  private native boolean isSatUnknown(long pointer);
+  private native boolean isUnknown(long pointer);
 
   /**
    * Operator overloading for equality of two results.

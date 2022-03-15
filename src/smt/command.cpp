@@ -1838,8 +1838,8 @@ GetInstantiationsCommand::GetInstantiationsCommand() : d_solver(nullptr) {}
 bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
                                          const api::Result& res)
 {
-  return (res.getStatus()
-          || (res.isSatUnknown()
+  return (res.isSat()
+          || (res.isUnknown()
               && res.getUnknownExplanation() == api::Result::INCOMPLETE))
          || res.isUnsat();
 }

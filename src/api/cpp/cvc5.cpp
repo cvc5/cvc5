@@ -944,7 +944,7 @@ bool Result::operator!=(const Result& r) const
 
 Result::UnknownExplanation Result::getUnknownExplanation(void) const
 {
-  cvc5::Result::UnknownExplanation expl = d_result->whyUnknown();
+  cvc5::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
   switch (expl)
   {
     case cvc5::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;

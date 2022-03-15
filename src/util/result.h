@@ -78,6 +78,9 @@ class Result
   }
 
   UnknownExplanation getUnknownExplanation() const;
+  
+  bool operator==(const Result& r) const;
+  bool operator!=(const Result& r) const;
 
   std::string toString() const;
 
