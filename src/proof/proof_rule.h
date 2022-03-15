@@ -517,201 +517,327 @@ enum class PfRule : uint32_t
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    * 
-   * Same as :cpp:enumerator:`RESOLUTION <cvc5::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof checker.
+   * Same as :cpp:enumerator:`MACRO_RESOLUTION <cvc5::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof checker.
    * \endverbatim
    */
   MACRO_RESOLUTION_TRUST,
 
-  // ======== Split
-  // Children: none
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: (or F (not F))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Split**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F}{F \lor \neg F}
+   *
+   * \endverbatim
+   */
   SPLIT,
-  // ======== Equality resolution
-  // Children: (P1:F1, P2:(= F1 F2))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (F2)
-  // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Equality resolution**
+   * 
+   * .. math::
+   *   \inferrule{F_1, (F_1 = F_2) \mid -}{F_2}
+   *
+   * Note this can optionally be seen as a macro for 
+   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::PfRule::EQUIV_ELIM1>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * \endverbatim
+   */
   EQ_RESOLVE,
-  // ======== Modus ponens
-  // Children: (P1:F1, P2:(=> F1 F2))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (F2)
-  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Modus Ponens**
+   * 
+   * .. math::
+   *   \inferrule{F_1, (F_1 \implies F_2) \mid -}{F_2}
+   *
+   * Note this can optionally be seen as a macro for 
+   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::PfRule::IMPLIES_ELIM>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * \endverbatim
+   */
   MODUS_PONENS,
-  // ======== Double negation elimination
-  // Children: (P:(not (not F)))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (F)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Double negation elimination**
+   * 
+   * .. math::
+   *   \inferrule{\neg (\neg F) \mid -}{F}
+   *
+   * \endverbatim
+   */
   NOT_NOT_ELIM,
-  // ======== Contradiction
-  // Children: (P1:F P2:(not F))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: false
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Contradiction**
+   * 
+   * .. math::
+   *   \inferrule{F, \neg F \mid -}{false}
+   *
+   * \endverbatim
+   */
   CONTRA,
-  // ======== And elimination
-  // Children: (P:(and F1 ... Fn))
-  // Arguments: (i)
-  // ---------------------
-  // Conclusion: (Fi)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- And elimination**
+   * 
+   * .. math::
+   *   \inferrule{(F_1 \land \dots \land F_n) \mid i}{F_i}
+   *
+   * \endverbatim
+   */
   AND_ELIM,
-  // ======== And introduction
-  // Children: (P1:F1 ... Pn:Fn))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (and P1 ... Pn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- And introduction**
+   * 
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{(F_1 \land \dots \land F_n)}
+   *
+   * \endverbatim
+   */
   AND_INTRO,
-  // ======== Not Or elimination
-  // Children: (P:(not (or F1 ... Fn)))
-  // Arguments: (i)
-  // ---------------------
-  // Conclusion: (not Fi)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Or elimination**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 \lor \dots \lor F_n) \mid i}{\neg F_i}
+   *
+   * \endverbatim
+   */
   NOT_OR_ELIM,
-  // ======== Implication elimination
-  // Children: (P:(=> F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Implication elimination**
+   * 
+   * .. math::
+   *   \inferrule{F_1 \implies F_2 \mid -}{\neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   IMPLIES_ELIM,
-  // ======== Not Implication elimination version 1
-  // Children: (P:(not (=> F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Implication elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 \implies F_2) \mid -}{F_1}
+   *
+   * \endverbatim
+   */
   NOT_IMPLIES_ELIM1,
-  // ======== Not Implication elimination version 2
-  // Children: (P:(not (=> F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (not F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Implication elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 \implies F_2) \mid -}{\neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_IMPLIES_ELIM2,
-  // ======== Equivalence elimination version 1
-  // Children: (P:(= F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Equivalence elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{F_1 = F_2 \mid -}{\neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   EQUIV_ELIM1,
-  // ======== Equivalence elimination version 2
-  // Children: (P:(= F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Equivalence elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{F_1 = F_2 \mid -}{F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   EQUIV_ELIM2,
-  // ======== Not Equivalence elimination version 1
-  // Children: (P:(not (= F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Equivalence elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 = F_2) \mid -}{F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   NOT_EQUIV_ELIM1,
-  // ======== Not Equivalence elimination version 2
-  // Children: (P:(not (= F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Equivalence elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 = F_2) \mid -}{\neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_EQUIV_ELIM2,
-  // ======== XOR elimination version 1
-  // Children: (P:(xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- XOR elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{F_1 \xor F_2 \mid -}{F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   XOR_ELIM1,
-  // ======== XOR elimination version 2
-  // Children: (P:(xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- XOR elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{F_1 \xor F_2 \mid -}{\neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   XOR_ELIM2,
-  // ======== Not XOR elimination version 1
-  // Children: (P:(not (xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not XOR elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 \xor F_2) \mid -}{F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_XOR_ELIM1,
-  // ======== Not XOR elimination version 2
-  // Children: (P:(not (xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not XOR elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 \xor F_2) \mid -}{\neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   NOT_XOR_ELIM2,
-  // ======== ITE elimination version 1
-  // Children: (P:(ite C F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not C) F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- ITE elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{(\ite{C}{F_1}{F_2}) \mid -}{\neg C \lor F_1}
+   *
+   * \endverbatim
+   */
   ITE_ELIM1,
-  // ======== ITE elimination version 2
-  // Children: (P:(ite C F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or C F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- ITE elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{(\ite{C}{F_1}{F_2}) \mid -}{C \lor F_2}
+   *
+   * \endverbatim
+   */
   ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P:(not (ite C F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not C) (not F1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not ITE elimination version 1**
+   * 
+   * .. math::
+   *   \inferrule{\neg(\ite{C}{F_1}{F_2}) \mid -}{\neg C \lor \neg F_1}
+   *
+   * \endverbatim
+   */
   NOT_ITE_ELIM1,
-  // ======== Not ITE elimination version 1
-  // Children: (P:(not (ite C F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or C (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not ITE elimination version 2**
+   * 
+   * .. math::
+   *   \inferrule{\neg(\ite{C}{F_1}{F_2}) \mid -}{C \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_ITE_ELIM2,
 
-  //================================================= De Morgan rules
-  // ======== Not And
-  // Children: (P:(not (and F1 ... Fn))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) ... (not Fn))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- De Morgan -- Not And**
+   * 
+   * .. math::
+   *   \inferrule{\neg(F_1 \land \dots \land F_n) \mid -}{\neg F_1 \lor \dots \lor \neg F_n}
+   *
+   * \endverbatim
+   */
   NOT_AND,
-  //================================================= CNF rules
-  // ======== CNF And Pos
-  // Children: ()
-  // Arguments: ((and F1 ... Fn), i)
-  // ---------------------
-  // Conclusion: (or (not (and F1 ... Fn)) Fi)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- And Positive**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (F_1 \land \dots \land F_n), i}{\neg (F_1 \land \dots \land F_n) \lor F_i}
+   *
+   * \endverbatim
+   */
   CNF_AND_POS,
-  // ======== CNF And Neg
-  // Children: ()
-  // Arguments: ((and F1 ... Fn))
-  // ---------------------
-  // Conclusion: (or (and F1 ... Fn) (not F1) ... (not Fn))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- And Negative**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (F_1 \land \dots \land F_n)}{(F_1 \land \dots \land F_n) \lor \neg F_1 \lor \dots \lor \neg F_n}
+   *
+   * \endverbatim
+   */
   CNF_AND_NEG,
-  // ======== CNF Or Pos
-  // Children: ()
-  // Arguments: ((or F1 ... Fn))
-  // ---------------------
-  // Conclusion: (or (not (or F1 ... Fn)) F1 ... Fn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Or Positive**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (F_1 \lor \dots \lor F_n)}{\neg(F_1 \lor \dots \lor F_n) \lor F_1 \lor \dots \lor F_n}
+   *
+   * \endverbatim
+   */
   CNF_OR_POS,
-  // ======== CNF Or Neg
-  // Children: ()
-  // Arguments: ((or F1 ... Fn), i)
-  // ---------------------
-  // Conclusion: (or (or F1 ... Fn) (not Fi))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Or Negative**
+   * 
+   * .. math::
+   *   \inferrule{- \mid (F_1 \lor \dots \lor F_n), i}{(F_1 \lor \dots \lor F_n) \lor \neg F_i}
+   *
+   * \endverbatim
+   */
   CNF_OR_NEG,
-  // ======== CNF Implies Pos
-  // Children: ()
-  // Arguments: ((implies F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (implies F1 F2)) (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Implies Positive**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \implies F_2}{\neg(F_1 \implies F_2) \lor \neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_IMPLIES_POS,
-  // ======== CNF Implies Neg version 1
-  // Children: ()
-  // Arguments: ((implies F1 F2))
-  // ---------------------
-  // Conclusion: (or (implies F1 F2) F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Implies Negative 1**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \implies F_2}{(F_1 \implies F_2) \lor F_1}
+   *
+   * \endverbatim
+   */
   CNF_IMPLIES_NEG1,
-  // ======== CNF Implies Neg version 2
-  // Children: ()
-  // Arguments: ((implies F1 F2))
-  // ---------------------
-  // Conclusion: (or (implies F1 F2) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Implies Negative 2**
+   * 
+   * .. math::
+   *   \inferrule{- \mid F_1 \implies F_2}{(F_1 \implies F_2) \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_IMPLIES_NEG2,
   // ======== CNF Equiv Pos version 1
   // Children: ()
