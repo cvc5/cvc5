@@ -58,11 +58,6 @@ namespace cvc5 {
  */
 enum class PfRule : uint32_t
 {
-  /*
-   * ================================================= Core rules
-   * ======================== Assume and Scope
-   * ======== Assumption (a leaf)
-   */
   /** 
    * \verbatim embed:rst:leading-asterisk
    * 
@@ -75,7 +70,6 @@ enum class PfRule : uint32_t
    * analogous to a free variable in a term, where we say "F is a free
    * assumption in proof P" if it contains an application of F that is not
    * bound by :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>` (see below).
-   *
    * \endverbatim
    */
   ASSUME,
@@ -95,21 +89,23 @@ enum class PfRule : uint32_t
    * ``(SCOPE (ASSUME F) :args F)``
    * has the conclusion :math:`F \Rightarrow F` and has no free assumptions. More generally, a
    * proof with no free assumptions always concludes a valid formula.
-   * 
    * \endverbatim
    */
   SCOPE,
 
-  //======================== Builtin theory (common node operations)
-  // ======== Substitution
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids)?)
-  // ---------------------------------------------------------------
-  // Conclusion: (= t t*sigma{ids}(Fn)*...*sigma{ids}(F1))
-  // where sigma{ids}(Fi) are substitutions, which notice are applied in
-  // reverse order.
-  // Notice that ids is a MethodId identifier, which determines how to convert
-  // the formulas F1, ..., Fn into substitutions.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * 
+   * .. math::
+   * 
+   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n) \circ \cdots \circ \sigma_{ids}(F_1)}
+   * 
+   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied in
+   * reverse order.
+   * Notice that :math:`ids` is a MethodId identifier, which determines how to convert
+   * the formulas :math:`F_1 \dots F_n` into substitutions.
+   * \endverbatim
+   */
   SUBS,
   // ======== Rewrite
   // Children: none
