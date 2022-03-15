@@ -1434,7 +1434,7 @@ void SolverEngine::checkUnsatCore()
                  "unknown."
               << std::endl;
   }
-  else if (r.getStatus())
+  else if (r.getStatus()==Result::SAT)
   {
     InternalError()
         << "SolverEngine::checkUnsatCore(): produced core was satisfiable.";

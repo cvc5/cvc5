@@ -195,7 +195,15 @@ void Result::toStreamDefault(std::ostream& out) const {
   }
 }
 
-void Result::toStreamSmt2(ostream& out) const { toStreamDefault(out); }
+void Result::toStreamSmt2(ostream& out) const {
+  if (d_status==Result::UNKNOWN)
+  {
+    // to avoid printing the reason
+    out << "unknown";
+    return;
+  }
+  toStreamDefault(out);
+}
 
 void Result::toStreamTptp(std::ostream& out) const {
   out << "% SZS status ";
