@@ -289,7 +289,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
   Result::Sat res = modelBasedRefinement(termSet);
-  if (res == Result::Sat::SAT)
+  if (res == Result::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     // modify the model values
@@ -364,7 +364,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
     }
     Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -385,7 +385,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       if (d_im.hasUsed())
       {
         d_im.clearWaitingLemmas();
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
     }
 
@@ -399,7 +399,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
 
       // we are incomplete
@@ -419,14 +419,14 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
                            "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
-        return Result::Sat::UNKNOWN;
+        return Result::UNKNOWN;
       }
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
-  return Result::Sat::SAT;
+  return Result::SAT;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,

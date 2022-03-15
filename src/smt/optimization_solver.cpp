@@ -169,7 +169,7 @@ Result OptimizationSolver::optimizeBox()
   // resets the optChecker
   d_optChecker = createOptCheckerWithTimeout(d_parent);
   OptimizationResult partialResult;
-  Result aggregatedResult(Result::Sat::SAT);
+  Result aggregatedResult(Result::SAT);
   std::unique_ptr<OMTOptimizer> optimizer;
   for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
   {
@@ -289,9 +289,9 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 
   switch (satResult.getStatus())
   {
-    case Result::Sat::UNSAT:
-    case Result::Sat::UNKNOWN: return satResult;
-    case Result::Sat::SAT:
+    case Result::UNSAT:
+    case Result::UNKNOWN: return satResult;
+    case Result::SAT:
     {
       // if satisfied, use d_results to store the initial results
       // they will be gradually updated and optimized
@@ -315,7 +315,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   std::vector<Node> someObjBetter;
   d_optChecker->push();
 
-  while (satResult.getStatus() == Result::Sat::SAT)
+  while (satResult.getStatus() == Result::SAT)
   {
     noWorseObj.clear();
     someObjBetter.clear();
@@ -344,16 +344,16 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
 
     switch (satResult.getStatus())
     {
-      case Result::Sat::UNSAT:
+      case Result::UNSAT:
         // if result is UNSAT, it means no more improvement could be made,
         // then the results stored in d_results are one of the Pareto optimal
         // results
         break;
-      case Result::Sat::UNKNOWN:
+      case Result::UNKNOWN:
         // if result is UNKNOWN, abort the current session and return UNKNOWN
         d_optChecker.reset();
         return satResult;
-      case Result::Sat::SAT:
+      case Result::SAT:
       {
         lastSatResult = satResult;
         // if result is SAT, update d_results to the more optimal values
