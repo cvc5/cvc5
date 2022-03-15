@@ -72,9 +72,10 @@ void ZeroLevelLearner::notifyInputFormulas(
   d_assertNoLearnCount = 0;
   std::unordered_set<TNode> visited;
   // We consider top level literals of assertions to be the preprocessed
-  // learned literals, and not the learned literals from preprocessing. This
-  // means that a learned literal from e.g. circuit propagation will be
-  // considered a non-preprocessed learned literal.
+  // learned literals only, and not the literals tracked by the preprocessor
+  // (Preprocessor::getLearnedLiterals). This means that a learned literal from
+  // e.g. circuit propagation that is not trivially a top level assertion will
+  // be considered an ordinary learned literal.
   // Note that d_pplAtoms and d_ppnAtoms are disjoint
   for (const Node& lit : assertions)
   {
