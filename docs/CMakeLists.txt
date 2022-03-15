@@ -64,10 +64,6 @@ add_custom_target(
           ${SPHINX_GH_OUTPUT_DIR}/static
   COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f | xargs sed -i'orig'
           's/_static/static/'
-  COMMAND ${CMAKE_COMMAND} -E rename ${SPHINX_GH_OUTPUT_DIR}/_images
-          ${SPHINX_GH_OUTPUT_DIR}/images
-  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f | xargs sed -i'orig'
-          's/_images/images/'
   COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
   # done
   COMMENT "Generating GitHub Api docs"
