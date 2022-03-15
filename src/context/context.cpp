@@ -370,20 +370,14 @@ Scope::~Scope() {
     d_pContextObjList = d_pContextObjList->restoreAndContinue();
   }
 
-  if (d_garbage) {
-    while (!d_garbage->empty()) {
-      ContextObj* obj = d_garbage->back();
-      d_garbage->pop_back();
-      obj->deleteSelf();
-    }
+  for (ContextObj* obj : d_garbage)
+  {
+    obj->deleteSelf();
   }
 }
 
 void Scope::enqueueToGarbageCollect(ContextObj* obj) {
-  if (!d_garbage) {
-    d_garbage.reset(new std::vector<ContextObj*>);
-  }
-  d_garbage->push_back(obj);
+  d_garbage.push_back(obj);
 }
 
 }  // namespace context

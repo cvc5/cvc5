@@ -237,8 +237,8 @@ void Smt2::addFloatingPointOperators() {
   addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,
                      api::FLOATINGPOINT_TO_FP_GENERIC,
                      "to_fp");
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV,
+                     api::FLOATINGPOINT_TO_FP_FROM_UBV,
                      "to_fp_unsigned");
   addIndexedOperator(
       api::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
@@ -247,17 +247,17 @@ void Smt2::addFloatingPointOperators() {
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+                       api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
                        "to_fp_bv");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP,
+                       api::FLOATINGPOINT_TO_FP_FROM_FP,
                        "to_fp_fp");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_REAL,
-                       api::FLOATINGPOINT_TO_FP_REAL,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL,
+                       api::FLOATINGPOINT_TO_FP_FROM_REAL,
                        "to_fp_real");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV,
+                       api::FLOATINGPOINT_TO_FP_FROM_SBV,
                        "to_fp_signed");
   }
 }

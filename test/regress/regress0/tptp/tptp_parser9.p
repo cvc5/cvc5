@@ -1,5 +1,5 @@
 % COMMAND-LINE: --finite-model-find
-% Status: CounterSatisfiable
+% Status: Satisfiable
 
 %--------------------------------------------------------------------------
 

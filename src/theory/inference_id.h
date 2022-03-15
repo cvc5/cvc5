@@ -481,6 +481,8 @@ enum class InferenceId
   //-------------------- sets cardinality solver
   // split on emptyset
   SETS_CARD_SPLIT_EMPTY,
+  // split on equality between two distinct Venn regions
+  SETS_CARD_SPLIT_EQ,
   // cycle of cardinalities, hence all sets have the same
   SETS_CARD_CYCLE,
   // two sets have the same cardinality
