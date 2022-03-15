@@ -156,7 +156,7 @@ if(NOT Poly_FOUND_SYSTEM)
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
       <SOURCE_DIR>/CMakeLists.txt
-    ${POLY_PATCH_CMD}
+      ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -165,6 +165,7 @@ if(NOT Poly_FOUND_SYSTEM)
                -DLIBPOLY_BUILD_STATIC_PIC=${POLY_BUILD_STATIC}
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
+               -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
