@@ -25,17 +25,21 @@ namespace cvc5 {
 /**
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
- * Node objects. 
- * All proof rules are given as inference rules, presented in the following form:
+ * Node objects.
+ * All proof rules are given as inference rules, presented in the following
+ * form:
  *
  * .. math::
- * 
- *   \texttt{RULENAME}: \inferruleSC{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}{if $C$}
  *
- * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
+ *   \texttt{RULENAME}:
+ *   \inferruleSC{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}{if $C$}
+ *
+ * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
+ * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
  * Alternatively, we write ``(RULENAME F1 ... Fn :args t1 ... tm)``.
- * Note that premises are sometimes given as proofs, or rather application of proof rules, instead of formulas.
- * 
+ * Note that premises are sometimes given as proofs, or rather application of
+ * proof rules, instead of formulas.
+ *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
  * are designed to reason about, among other things, common operations on Node
@@ -46,10 +50,11 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open leaf in a proof.
- * (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which closes the scope of assumptions.
- * The core rules additionally correspond to generic operations that are done
- * internally on nodes, e.g. calling Rewriter::rewrite.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open
+ * leaf in a proof. (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which
+ * closes the scope of assumptions. The core rules additionally correspond to
+ * generic operations that are done internally on nodes, e.g. calling
+ * Rewriter::rewrite.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convenience. We provide their definition in the line
@@ -58,11 +63,11 @@ namespace cvc5 {
  */
 enum class PfRule : uint32_t
 {
-  /** 
+  /**
    * \verbatim embed:rst:leading-asterisk
-   * 
+   *
    * .. math::
-   *   
+   *
    *   \inferrule{- \mid F}{F}
    *
    * This rule has special status, in that an application of assume is an
@@ -75,97 +80,101 @@ enum class PfRule : uint32_t
   ASSUME,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * 
+   *
    * .. math::
-   *   
+   *
    *   \inferruleSC{F\neq\bot \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n) \Rightarrow F}{if $F\neq\bot$}
    *   \textrm{ or }
    *   \inferruleSC{F=\bot \mid F_1 \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
-   * This rule has a dual purpose with :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`. It is a way to close
-   * assumptions in a proof. We require that :math:`F_1 \dots F_n` are free assumptions in
-   * P and say that :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
+   * This rule has a dual purpose with :cpp:enumerator:`ASSUME
+   * <cvc5::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
+   * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
+   * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
    * are bound by this application. For example, the proof node:
    * ``(SCOPE (ASSUME F) :args F)``
-   * has the conclusion :math:`F \Rightarrow F` and has no free assumptions. More generally, a
-   * proof with no free assumptions always concludes a valid formula.
-   * \endverbatim
+   * has the conclusion :math:`F \Rightarrow F` and has no free assumptions.
+   * More generally, a proof with no free assumptions always concludes a valid
+   * formula. \endverbatim
    */
   SCOPE,
 
   /**
    * \verbatim embed:rst:leading-asterisk
-   * 
+   *
    * .. math::
-   * 
-   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n) \circ \cdots \circ \sigma_{ids}(F_1)}
-   * 
-   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied in
-   * reverse order.
-   * Notice that :math:`ids` is a MethodId identifier, which determines how to convert
-   * the formulas :math:`F_1 \dots F_n` into substitutions.
-   * \endverbatim
+   *
+   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n)
+   *   \circ \cdots \circ \sigma_{ids}(F_1)}
+   *
+   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
+   * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
+   * determines how to convert the formulas :math:`F_1 \dots F_n` into
+   * substitutions. \endverbatim
    */
   SUBS,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid t, idr}{t = \texttt{Rewriter}_{idr}(t)}
-   * 
-   * where :math:`idr` is a MethodId identifier, which determines the kind of rewriter
-   * to apply, e.g. Rewriter::rewrite.
-   * \endverbatim
+   *
+   * where :math:`idr` is a MethodId identifier, which determines the kind of
+   * rewriter to apply, e.g. Rewriter::rewrite. \endverbatim
    */
   REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * 
+   *
    * .. math::
    *   \inferrule{- \mid t}{t = \texttt{Evaluator::evaluate}(t)}
-   * 
+   *
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
    * \endverbatim
    */
   EVALUATE,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * 
-   * In this rule, we provide a term :math:`t` and conclude that it is equal to its
-   * rewritten form under a (proven) substitution.
+   *
+   * In this rule, we provide a term :math:`t` and conclude that it is equal to
+   * its rewritten form under a (proven) substitution.
    *
    * .. math::
-   *   \inferrule{F_1 \dots F_n \mid t, (ids (ida (idr)?)?)?}{t = \texttt{Rewriter}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))}
-   * 
+   *   \inferrule{F_1 \dots F_n \mid t, (ids (ida (idr)?)?)?}{t =
+   *   \texttt{Rewriter}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ
+   *   \sigma_{ids, ida}(F_1))}
+   *
    * In other words, from the point of view of Skolem forms, this rule
    * transforms :math:`t` to :math:`t'` by standard substitution + rewriting.
    *
-   * The arguments :math:`ids`, :math:`ida` and :math:`idr` are optional and specify the identifier of
-   * the substitution, the substitution application and rewriter respectively to
-   * be used. For details, see :cvc5src:`theory/builtin/proof_checker.h`.
-   * \endverbatim
+   * The arguments :math:`ids`, :math:`ida` and :math:`idr` are optional and
+   * specify the identifier of the substitution, the substitution application
+   * and rewriter respectively to be used. For details, see
+   * :cvc5src:`theory/builtin/proof_checker.h`. \endverbatim
    */
   MACRO_SR_EQ_INTRO,
   /**
    * \verbatim embed:rst:leading-asterisk
-   * 
-   * In this rule, we provide a formula :math:`F` and conclude it, under the condition
-   * that it rewrites to true under a proven substitution.
+   *
+   * In this rule, we provide a formula :math:`F` and conclude it, under the
+   * condition that it rewrites to true under a proven substitution.
    *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid F, (ids (ida (idr)?)?)?}{F}
-   * 
-   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1)) = \top`
-   * and :math:`ids` and :math:`idr` are method identifiers.
-   * 
+   *
+   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   * \cdots \circ \sigma_{ids, ida}(F_1)) = \top` and :math:`ids` and
+   * :math:`idr` are method identifiers.
+   *
    * More generally, this rule also holds when
    * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) = \top`
-   * where :math:`F'` is the result of the left hand side of the equality above. Here,
-   * notice that we apply rewriting on the original form of :math:`F'`, meaning that
-   * this rule may conclude an :math:`F` whose Skolem form is justified by the
-   * definition of its (fresh) Skolem variables. For example, this rule may
-   * justify the conclusion :math:`k = t` where :math:`k` is the purification Skolem for :math:`t`,
-   * e.g. where the original form of :math:`k` is :math:`t`.
+   * where :math:`F'` is the result of the left hand side of the equality above.
+   * Here, notice that we apply rewriting on the original form of :math:`F'`,
+   * meaning that this rule may conclude an :math:`F` whose Skolem form is
+   * justified by the definition of its (fresh) Skolem variables. For example,
+   * this rule may justify the conclusion :math:`k = t` where :math:`k` is the
+   * purification Skolem for :math:`t`, e.g. where the original form of
+   * :math:`k` is :math:`t`.
    *
    * Furthermore, notice that the rewriting and substitution is applied only
    * within the side condition, meaning the rewritten form of the original form
