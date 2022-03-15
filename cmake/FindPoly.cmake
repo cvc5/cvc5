@@ -114,6 +114,7 @@ if(NOT Poly_FOUND_SYSTEM)
       INSTALL_COMMAND 
         ${CMAKE_COMMAND} -E copy
           src/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
+          <INSTALL_DIR>/lib
       COMMAND
         ${CMAKE_COMMAND} -E copy
           src/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
