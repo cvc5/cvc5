@@ -342,7 +342,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @throw TypeCheckingException, LogicException
    */
-  Result assertFormula(const Node& formula);
+  void assertFormula(const Node& formula);
 
   /**
    * Reduce an unsatisfiable core to make it minimal.
@@ -898,7 +898,7 @@ class CVC5_EXPORT SolverEngine
   UnsatCore getUnsatCoreInternal();
 
   /** Internal version of assertFormula */
-  Result assertFormulaInternal(const Node& formula);
+  void assertFormulaInternal(const Node& formula);
 
   /**
    * Check that a generated proof checks. This method is the same as printProof,
@@ -937,13 +937,6 @@ class CVC5_EXPORT SolverEngine
    * between PropEngine and Theory.
    */
   void shutdown();
-
-  /**
-   * Quick check of consistency in current context: calls
-   * processAssertionList() then look for inconsistency (based only on
-   * that).
-   */
-  Result quickCheck();
 
   /**
    * Get the (SMT-level) model pointer, if we are in SAT mode. Otherwise,

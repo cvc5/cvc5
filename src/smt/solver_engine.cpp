@@ -434,7 +434,7 @@ std::string SolverEngine::getInfo(const std::string& key) const
     if (!status.isNull() && status.isUnknown())
     {
       std::stringstream ss;
-      ss << status.whyUnknown();
+      ss << status.getUnknownExplanation();
       std::string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return s;
@@ -634,15 +634,6 @@ void SolverEngine::defineFunctionRec(Node func,
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
-Result SolverEngine::quickCheck()
-{
-  Assert(d_state->isFullyInited());
-  Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_env->getOptions().driver.filename;
-  return Result(
-      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
-}
-
 TheoryModel* SolverEngine::getAvailableModel(const char* c) const
 {
   if (!d_env->getOptions().theory.assignFunctionValues)
@@ -832,16 +823,16 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SolverEngine::assertFormula(const Node& formula)
+void SolverEngine::assertFormula(const Node& formula)
 {
   SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   ensureWellFormedTerm(formula, "assertFormula");
-  return assertFormulaInternal(formula);
+  assertFormulaInternal(formula);
 }
 
-Result SolverEngine::assertFormulaInternal(const Node& formula)
+void SolverEngine::assertFormulaInternal(const Node& formula)
 {
   // as an optimization we do not check whether formula is well-formed here, and
   // defer this check for certain cases within the assertions module.
@@ -851,7 +842,6 @@ Result SolverEngine::assertFormulaInternal(const Node& formula)
   Node n = d_absValues->substituteAbstractValues(formula);
 
   d_asserts->assertFormula(n);
-  return quickCheck().asEntailmentResult();
 }
 
 /*

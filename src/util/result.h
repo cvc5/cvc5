@@ -73,6 +73,7 @@ class Result
 
   Status getStatus() const { return d_status; }
 
+  bool isNull() const { return d_status == NONE; }
   bool isUnknown() const {
     return d_status==UNKNOWN;
   }
