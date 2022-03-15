@@ -245,7 +245,7 @@ void InstMatchGenerator::initialize(Node q,
   }
   else if (mpk == INST_CONSTANT)
   {
-    if (d_pattern.getKind() == APPLY_SELECTOR_TOTAL)
+    if (d_pattern.getKind() == APPLY_SELECTOR)
     {
       Node selectorExpr = tdb->getMatchOperator(d_pattern);
       size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);

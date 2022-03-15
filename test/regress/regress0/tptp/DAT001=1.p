@@ -10,7 +10,7 @@
 % Source   : [TPTP]
 % Names    :
 
-% Status   : Theorem
+% Status   : Unsatisfiable
 % Rating   : 0.12 v5.5.0, 0.25 v5.4.0, 0.38 v5.3.0, 0.29 v5.2.0, 0.20 v5.1.0, 0.25 v5.0.0
 % Syntax   : Number of formulae    :    8 (   5 unit;   4 type)
 %            Number of atoms       :   13 (   0 equality)

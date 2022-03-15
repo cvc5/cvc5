@@ -30,7 +30,7 @@ jobs:
           - name: ubuntu:production-clang
             os: ubuntu-18.04
             env: CC=clang CXX=clang++
-            config: production --auto-download
+            config: production --auto-download --no-poly
             cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
@@ -75,6 +75,8 @@ jobs:
       with:
         configure-env: ${{ matrix.env }}
         configure-config: ${{ matrix.config }}
+        build-shared: ${{ matrix.build-shared }}
+        build-static: ${{ matrix.build-static }}
 
     - name: ccache Statistics
       run: ccache -s

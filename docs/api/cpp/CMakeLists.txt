@@ -18,7 +18,7 @@ find_package(Doxygen REQUIRED)
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/src/api/cpp)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INPUT
-    "${DOXYGEN_INPUT_DIR}/cvc5.h ${DOXYGEN_INPUT_DIR}/cvc5_kind.h"
+    "${DOXYGEN_INPUT_DIR}/cvc5.h ${DOXYGEN_INPUT_DIR}/cvc5_kind.h ${PROJECT_SOURCE_DIR}/src/proof/proof_rule.h"
 )
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 

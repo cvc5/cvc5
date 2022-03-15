@@ -68,33 +68,14 @@ void Assertions::clearCurrent()
   d_assertions.getIteSkolemMap().clear();
 }
 
-void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
-                                    bool isEntailmentCheck)
+void Assertions::initializeCheckSat(const std::vector<Node>& assumptions)
 {
-  NodeManager* nm = NodeManager::currentNM();
   // reset global negation
   d_globalNegation = false;
   // clear the assumptions
   d_assumptions.clear();
-  if (isEntailmentCheck)
-  {
-    size_t size = assumptions.size();
-    if (size > 1)
-    {
-      /* Assume: not (BIGAND assumptions)  */
-      d_assumptions.push_back(nm->mkNode(AND, assumptions).notNode());
-    }
-    else if (size == 1)
-    {
-      /* Assume: not expr  */
-      d_assumptions.push_back(assumptions[0].notNode());
-    }
-  }
-  else
-  {
-    /* Assume: BIGAND assumptions  */
-    d_assumptions = assumptions;
-  }
+  /* Assume: BIGAND assumptions  */
+  d_assumptions = assumptions;
 
   Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)

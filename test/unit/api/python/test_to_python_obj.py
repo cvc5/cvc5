@@ -52,7 +52,7 @@ def testGetBV():
 
 def testGetArray():
     solver = cvc5.Solver()
-    arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
+    arrsort = solver.mkArraySort(solver.getIntegerSort(), solver.getIntegerSort())
     zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
     stores = solver.mkTerm(Kind.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
     stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(2), solver.mkInteger(3))

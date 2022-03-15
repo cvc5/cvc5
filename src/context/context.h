@@ -257,7 +257,7 @@ class Scope {
    *
    * This is either nullptr or list owned by this scope.
    */
-  std::unique_ptr<std::vector<ContextObj*>> d_garbage;
+  std::vector<ContextObj*> d_garbage;
 
   friend std::ostream& operator<<(std::ostream&, const Scope&);
 
