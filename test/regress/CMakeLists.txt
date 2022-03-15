@@ -449,6 +449,7 @@ set(regress_0_tests
   regress0/bv/issue3621.smt2
   regress0/bv/issue5396.smt2
   regress0/bv/issue8159-1-rewrite-bvneg.smt2
+  regress0/bv/issue8240-rewrite-bvnot.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -575,6 +576,7 @@ set(regress_0_tests
   regress0/decision/error20.delta01.smtv1.smt2
   regress0/decision/error20.smtv1.smt2
   regress0/decision/error3.delta01.smtv1.smt2
+  regress0/decision/issue8296-sk-def-before-assert.smt2
   regress0/decision/pp-regfile.delta01.smtv1.smt2
   regress0/decision/pp-regfile.delta02.smtv1.smt2
   regress0/decision/quant-ex1.smt2
@@ -808,6 +810,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
   regress0/nl/nta/issue8183-tc-pi.smt2
   regress0/nl/nta/issue8208-red-nred.smt2
+  regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
@@ -1254,6 +1257,7 @@ set(regress_0_tests
   regress0/sets/pre-proc-univ.smt2
   regress0/sets/proj-issue177.smt2
   regress0/sets/proj-issue486-sets-split-eq.smt2
+  regress0/sets/proj-issue493-choose-det.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
@@ -1760,6 +1764,7 @@ set(regress_1_tests
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
   regress1/bags/murxla4.smt2
+  regress1/bags/murxla5.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
@@ -2410,6 +2415,7 @@ set(regress_1_tests
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
+  regress1/sets/proj-issue494-finite-leafof.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2

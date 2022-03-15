@@ -3146,6 +3146,25 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   slv.push(4);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue423)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-difficulty", "true");
+  Sort s2 = slv.getRealSort();
+  Sort s3 = slv.mkSequenceSort(s2);
+  Term t2;
+  {
+    t2 = slv.mkEmptySequence(s3.getSequenceElementSort());
+  }
+  Term t22 = slv.mkReal("119605652059157009");
+  Term t32 = slv.mkTerm(Kind::SEQ_UNIT, {t22});
+  Term t43 = slv.mkTerm(Kind::SEQ_CONCAT, {t2, t32});
+  Term t51 = slv.mkTerm(Kind::DISTINCT, {t32, t32});
+  slv.checkSat();
+  slv.blockModelValues({t51, t43});
+}
+
 TEST_F(TestApiBlackSolver, projIssue431)
 {
   Solver slv;

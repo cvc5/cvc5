@@ -59,6 +59,15 @@ class TheoryBags : public Theory
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   //--------------------------------- end initialization
 
+  /**
+   * initialize bag and count terms
+   */
+  void initialize();
+  /**
+   * collect bags' representatives and all count terms.
+   */
+  void collectBagsAndCountTerms();
+
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort effort) override;

@@ -260,17 +260,6 @@ TEST_F(TestApiBlackSort, isSortConstructor)
   ASSERT_NO_THROW(Sort().isSortConstructor());
 }
 
-TEST_F(TestApiBlackSort, isFirstClass)
-{
-  Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(),
-                                          d_solver.getIntegerSort());
-  ASSERT_TRUE(d_solver.getIntegerSort().isFirstClass());
-  ASSERT_TRUE(fun_sort.isFirstClass());
-  Sort reSort = d_solver.getRegExpSort();
-  ASSERT_FALSE(reSort.isFirstClass());
-  ASSERT_NO_THROW(Sort().isFirstClass());
-}
-
 TEST_F(TestApiBlackSort, getDatatype)
 {
   Sort dtypeSort = create_datatype_sort();
