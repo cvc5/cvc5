@@ -3732,7 +3732,7 @@ class CVC5_EXPORT Solver
    * @return the DatatypeDecl
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
-                              Sort param,
+                              const Sort& param,
                               bool isCoDatatype = false);
 
   /**
