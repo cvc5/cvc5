@@ -53,6 +53,8 @@ extensions = [
 
 imgmath_latex_preamble = '''\\usepackage{mathpartir}'''
 
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+
 bibtex_bibfiles = ['references.bib']
 
 # Make sure the target is unique
