@@ -132,7 +132,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   // get all equivalent classes of type t
   vector<Node> representatives = d_state.getSetsEqClasses(t);
 
-  if (finiteType)
+  if (finiteType && !card.isLargeFinite())
   {
     Node typeCardinality =
         nm->mkConstInt(Rational(card.getFiniteCardinality()));

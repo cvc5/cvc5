@@ -2373,6 +2373,7 @@ set(regress_1_tests
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
   regress1/sets/finite-type/bug3663.smt2
+  regress1/sets/finite-type/murxla405.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
   regress1/sets/finite-type/sets-card-arrunit.smt2
   regress1/sets/finite-type/sets-card-bool-1.smt2
