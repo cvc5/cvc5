@@ -51,8 +51,6 @@ extensions = [
         'include_build_file',
 ]
 
-imgmath_latex_preamble = '''\\usepackage{mathpartir}'''
-
 mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 mathjax3_config = {
   'loader': {
