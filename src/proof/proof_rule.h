@@ -63,7 +63,7 @@ enum class PfRule : uint32_t
    * 
    * .. math::
    *   
-   *   \inferrule{\top \mid F}{F}
+   *   \inferrule{- \mid F}{F}
    *
    * This rule has special status, in that an application of assume is an
    * open leaf in a proof that is not (yet) justified. An assume leaf is
@@ -107,67 +107,71 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   SUBS,
-  // ======== Rewrite
-  // Children: none
-  // Arguments: (t, (idr)?)
-  // ----------------------------------------
-  // Conclusion: (= t Rewriter{idr}(t))
-  // where idr is a MethodId identifier, which determines the kind of rewriter
-  // to apply, e.g. Rewriter::rewrite.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * 
+   * .. math::
+   *   \inferrule{- \mid t, idr}{t = \texttt{Rewriter}_{idr}(t)}
+   * 
+   * where :math:`idr` is a MethodId identifier, which determines the kind of rewriter
+   * to apply, e.g. Rewriter::rewrite.
+   * \endverbatim
+   */
   REWRITE,
-  // ======== Evaluate
-  // Children: none
-  // Arguments: (t)
-  // ----------------------------------------
-  // Conclusion: (= t Evaluator::evaluate(t))
-  // Note this is equivalent to:
-  //   (REWRITE t MethodId::RW_EVALUATE)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * 
+   * .. math::
+   *   \inferrule{- \mid t}{t = \texttt{Evaluator::evaluate}(t)}
+   * 
+   * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
+   * \endverbatim
+   */
   EVALUATE,
-  // ======== Substitution + Rewriting equality introduction
-  //
-  // In this rule, we provide a term t and conclude that it is equal to its
-  // rewritten form under a (proven) substitution.
-  //
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids (ida (idr)?)?)?)
-  // ---------------------------------------------------------------
-  // Conclusion: (= t t')
-  // where
-  //   t' is
-  //   Rewriter{idr}(t*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
-  //
-  // In other words, from the point of view of Skolem forms, this rule
-  // transforms t to t' by standard substitution + rewriting.
-  //
-  // The arguments ids, ida and idr are optional and specify the identifier of
-  // the substitution, the substitution application and rewriter respectively to
-  // be used. For details, see theory/builtin/proof_checker.h.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * 
+   * In this rule, we provide a term :math:`t` and conclude that it is equal to its
+   * rewritten form under a (proven) substitution.
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid t, (ids (ida (idr)?)?)?}{t = \texttt{Rewriter}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))}
+   * 
+   * In other words, from the point of view of Skolem forms, this rule
+   * transforms :math:`t` to :math:`t'` by standard substitution + rewriting.
+   *
+   * The arguments :math:`ids`, :math:`ida` and :math:`idr` are optional and specify the identifier of
+   * the substitution, the substitution application and rewriter respectively to
+   * be used. For details, see :cvc5src:`theory/builtin/proof_checker.h`.
+   * \endverbatim
+   */
   MACRO_SR_EQ_INTRO,
-  // ======== Substitution + Rewriting predicate introduction
-  //
-  // In this rule, we provide a formula F and conclude it, under the condition
-  // that it rewrites to true under a proven substitution.
-  //
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (F, (ids (ida (idr)?)?)?)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  // where
-  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) == true
-  // where ids and idr are method identifiers.
-  //
-  // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toOriginal(F')) == true
-  // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the original form of F', meaning that
-  // this rule may conclude an F whose Skolem form is justified by the
-  // definition of its (fresh) Skolem variables. For example, this rule may
-  // justify the conclusion (= k t) where k is the purification Skolem for t,
-  // e.g. where the original form of k is t.
-  //
-  // Furthermore, notice that the rewriting and substitution is applied only
-  // within the side condition, meaning the rewritten form of the original form
-  // of F does not escape this rule.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * 
+   * In this rule, we provide a formula :math:`F` and conclude it, under the condition
+   * that it rewrites to true under a proven substitution.
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid F, (ids (ida (idr)?)?)?}{F}
+   * 
+   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1)) = \top`
+   * and :math:`ids` and :math:`idr` are method identifiers.
+   * 
+   * More generally, this rule also holds when
+   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) = \top`
+   * where :math:`F'` is the result of the left hand side of the equality above. Here,
+   * notice that we apply rewriting on the original form of :math:`F'`, meaning that
+   * this rule may conclude an :math:`F` whose Skolem form is justified by the
+   * definition of its (fresh) Skolem variables. For example, this rule may
+   * justify the conclusion :math:`k = t` where :math:`k` is the purification Skolem for :math:`t`,
+   * e.g. where the original form of :math:`k` is :math:`t`.
+   *
+   * Furthermore, notice that the rewriting and substitution is applied only
+   * within the side condition, meaning the rewritten form of the original form
+   * of :math:`F` does not escape this rule.
+   * \endverbatim
+   */
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
   //
