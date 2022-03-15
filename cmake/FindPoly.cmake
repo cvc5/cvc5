@@ -49,11 +49,11 @@ if(NOT Poly_FOUND_SYSTEM)
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
-    set(patchcmd COMMAND
+    set(POLY_PATCH_CMD COMMAND
       ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
   else()
-    unset(patchcmd)
+    unset(POLY_PATCH_CMD)
   endif()
 
   get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
@@ -112,13 +112,25 @@ if(NOT Poly_FOUND_SYSTEM)
     set(POLY_TARGETS static_pic_poly static_pic_polyxx)
     set(POLY_INSTALL_CMD
       INSTALL_COMMAND 
+        ${CMAKE_MAKE_PROGRAM} install ${POLY_TARGETS}
+      COMMAND
         ${CMAKE_COMMAND} -E copy
           src/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
-          <INSTALL_DIR>/lib
+          <INSTALL_DIR>/lib/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
       COMMAND
         ${CMAKE_COMMAND} -E copy
           src/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
-          <INSTALL_DIR>/lib
+          <INSTALL_DIR>/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+    # We only want to install the headers and the position-independent version
+    # of the static libraries, so remove the installation targets for the other
+    # versions of LibPoly
+    set(POLY_PATCH_CMD ${POLY_PATCH_CMD}
+      COMMAND
+        sed -ri.orig
+          "/TARGETS (poly|polyxx|static_poly|static_polyxx) /d"
+          <SOURCE_DIR>/src/CMakeLists.txt
     )
 
     set(POLY_BYPRODUCTS
@@ -143,7 +155,8 @@ if(NOT Poly_FOUND_SYSTEM)
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
-      <SOURCE_DIR>/CMakeLists.txt ${patchcmd}
+      <SOURCE_DIR>/CMakeLists.txt
+    ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
