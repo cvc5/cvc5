@@ -32,9 +32,6 @@ def test_is_null(solver):
     assert not res_null.isSat()
     assert not res_null.isUnsat()
     assert not res_null.isSatUnknown()
-    assert not res_null.isEntailed()
-    assert not res_null.isNotEntailed()
-    assert not res_null.isEntailmentUnknown()
     u_sort = solver.mkUninterpretedSort("u")
     x = solver.mkConst(u_sort, "x")
     solver.assertFormula(x.eqTerm(x))
@@ -81,34 +78,3 @@ def test_is_sat_unknown(solver):
     res = solver.checkSat()
     assert not res.isSat()
     assert res.isSatUnknown()
-
-
-def test_is_entailed(solver):
-    solver.setOption("incremental", "true")
-    u_sort = solver.mkUninterpretedSort("u")
-    x = solver.mkConst(u_sort, "x")
-    y = solver.mkConst(u_sort, "y")
-    a = x.eqTerm(y).notTerm()
-    b = x.eqTerm(y)
-    solver.assertFormula(a)
-    entailed = solver.checkEntailed(a)
-    assert entailed.isEntailed()
-    assert not entailed.isEntailmentUnknown()
-    not_entailed = solver.checkEntailed(b)
-    assert not_entailed.isNotEntailed()
-    assert not not_entailed.isEntailmentUnknown()
-
-
-def test_is_entailment_unknown(solver):
-    solver.setLogic("QF_NIA")
-    solver.setOption("incremental", "false")
-    solver.setOption("solve-int-as-bv", "32")
-    int_sort = solver.getIntegerSort()
-    x = solver.mkConst(int_sort, "x")
-    solver.assertFormula(x.eqTerm(x).notTerm())
-    res = solver.checkEntailed(x.eqTerm(x))
-    assert not res.isEntailed()
-    assert res.isEntailmentUnknown()
-    print(type(cvc5.RoundTowardZero))
-    print(type(cvc5.UnknownReason))
-    assert res.getUnknownExplanation() == cvc5.UnknownReason

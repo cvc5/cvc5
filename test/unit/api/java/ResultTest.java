@@ -43,9 +43,6 @@ class ResultTest
     assertFalse(res_null.isSat());
     assertFalse(res_null.isUnsat());
     assertFalse(res_null.isSatUnknown());
-    assertFalse(res_null.isEntailed());
-    assertFalse(res_null.isNotEntailed());
-    assertFalse(res_null.isEntailmentUnknown());
     Sort u_sort = d_solver.mkUninterpretedSort("u");
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
@@ -97,36 +94,5 @@ class ResultTest
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
     assertTrue(res.isSatUnknown());
-  }
-
-  @Test void isEntailed()
-  {
-    d_solver.setOption("incremental", "true");
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkConst(u_sort, "x");
-    Term y = d_solver.mkConst(u_sort, "y");
-    Term a = x.eqTerm(y).notTerm();
-    Term b = x.eqTerm(y);
-    d_solver.assertFormula(a);
-    Result entailed = d_solver.checkEntailed(a);
-    assertTrue(entailed.isEntailed());
-    assertFalse(entailed.isEntailmentUnknown());
-    Result not_entailed = d_solver.checkEntailed(b);
-    assertTrue(not_entailed.isNotEntailed());
-    assertFalse(not_entailed.isEntailmentUnknown());
-  }
-
-  @Test void isEntailmentUnknown() throws CVC5ApiException
-  {
-    d_solver.setLogic("QF_NIA");
-    d_solver.setOption("incremental", "false");
-    d_solver.setOption("solve-int-as-bv", "32");
-    Sort int_sort = d_solver.getIntegerSort();
-    Term x = d_solver.mkConst(int_sort, "x");
-    d_solver.assertFormula(x.eqTerm(x).notTerm());
-    Result res = d_solver.checkEntailed(x.eqTerm(x));
-    assertFalse(res.isEntailed());
-    assertTrue(res.isEntailmentUnknown());
-    assertEquals(res.getUnknownExplanation(), Result.UnknownExplanation.UNKNOWN_REASON);
   }
 }

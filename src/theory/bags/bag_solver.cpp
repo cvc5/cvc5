@@ -246,9 +246,9 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
 void BagSolver::checkDisequalBagTerms()
 {
-  for (const Node& n : d_state.getDisequalBagTerms())
+  for (const auto& [equality, witness] : d_state.getDisequalBagTerms())
   {
-    InferInfo info = d_ig.bagDisequality(n);
+    InferInfo info = d_ig.bagDisequality(equality, witness);
     d_im.lemmaTheoryInference(&info);
   }
 }
@@ -295,7 +295,7 @@ void BagSolver::checkFilter(Node n)
 
   set<Node> elements;
   const set<Node>& downwards = d_state.getElements(n);
-  const set<Node>& upwards = d_state.getElements(n[0]);
+  const set<Node>& upwards = d_state.getElements(n[1]);
   elements.insert(downwards.begin(), downwards.end());
   elements.insert(upwards.begin(), upwards.end());
 
@@ -316,6 +316,7 @@ void BagSolver::checkProduct(Node n)
   Assert(n.getKind() == TABLE_PRODUCT);
   const set<Node>& elementsA = d_state.getElements(n[0]);
   const set<Node>& elementsB = d_state.getElements(n[1]);
+
   for (const Node& e1 : elementsA)
   {
     for (const Node& e2 : elementsB)
