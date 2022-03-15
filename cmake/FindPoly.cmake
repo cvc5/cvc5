@@ -66,7 +66,10 @@ if(NOT Poly_FOUND_SYSTEM)
   if(BUILD_SHARED_LIBS)
     set(POLY_BUILD_STATIC OFF)
     set(POLY_TARGETS poly polyxx)
-    set(POLY_INSTALL_CMD ${CMAKE_MAKE_PROGRAM} install ${POLY_TARGETS})
+    set(POLY_INSTALL_CMD
+      INSTALL_COMMAND 
+        ${CMAKE_MAKE_PROGRAM} install ${POLY_TARGETS}
+    )
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       set(POLY_BYPRODUCTS
@@ -108,10 +111,13 @@ if(NOT Poly_FOUND_SYSTEM)
     set(POLY_BUILD_STATIC ON)
     set(POLY_TARGETS static_pic_poly static_pic_polyxx)
     set(POLY_INSTALL_CMD
-      ${CMAKE_PROGRAM} -E copy
-        src/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
-        src/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
-        "${DEPS_BASE}/lib"
+      INSTALL_COMMAND 
+        ${CMAKE_COMMAND} -E copy
+          src/libpicpoly${CMAKE_STATIC_LIBRARY_SUFFIX}
+      COMMAND
+        ${CMAKE_COMMAND} -E copy
+          src/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}
+          <INSTALL_DIR>/lib
     )
 
     set(POLY_BYPRODUCTS
@@ -146,7 +152,7 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
-    INSTALL_COMMAND ${POLY_INSTALL_CMD}
+    ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
   )
   ExternalProject_Add_Step(
