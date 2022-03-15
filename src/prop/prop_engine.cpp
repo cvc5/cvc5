@@ -267,15 +267,11 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
-  // assert to decision engine
+  // Assert to decision engine. Notice this must come before the calls to
+  // assertTrustedLemmaInternal below, since the decision engine requires
+  // setting up information about the relevance of skolems before literals
+  // are potentially asserted to the theory engine, which it listens to for
+  // tracking active skolem definitions.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -288,6 +284,14 @@ void PropEngine::assertLemmasInternal(
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
+  }
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
 }
 

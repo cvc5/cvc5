@@ -504,8 +504,8 @@ name   = "Arithmetic Theory"
   category   = "regular"
   long       = "nl-cov-var-elim"
   type       = "bool"
-  default    = "false"
-  help       = "whether to eliminate variables using equalities before going into the cylindrical algebraic coverings solver"
+  default    = "true"
+  help       = "whether to eliminate variables using equalities before going into the cylindrical algebraic coverings solver. It can not be used when producing proofs right now."
 
 [[option]]
   name       = "nlCovPrune"

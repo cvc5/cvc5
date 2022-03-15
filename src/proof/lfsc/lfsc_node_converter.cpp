@@ -839,11 +839,12 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
          || k == INT_TO_BITVECTOR || k == IAND
-         || k == FLOATINGPOINT_TO_FP_FLOATINGPOINT
-         || k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-         || k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-         || k == FLOATINGPOINT_TO_FP_REAL || k == FLOATINGPOINT_TO_FP_GENERIC
-         || k == APPLY_UPDATER || k == APPLY_TESTER;
+         || k == FLOATINGPOINT_TO_FP_FROM_FP
+         || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+         || k == FLOATINGPOINT_TO_FP_FROM_SBV
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL
+         || k == FLOATINGPOINT_TO_FP_GENERIC || k == APPLY_UPDATER
+         || k == APPLY_TESTER;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
@@ -893,7 +894,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
     case IAND:
       indices.push_back(nm->mkConstInt(Rational(n.getConst<IntAnd>().d_size)));
       break;
-    case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    case FLOATINGPOINT_TO_FP_FROM_FP:
     {
       const FloatingPointToFPFloatingPoint& ffp =
           n.getConst<FloatingPointToFPFloatingPoint>();
@@ -901,7 +902,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
     {
       const FloatingPointToFPIEEEBitVector& fbv =
           n.getConst<FloatingPointToFPIEEEBitVector>();
@@ -909,7 +910,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_SBV:
     {
       const FloatingPointToFPSignedBitVector& fsbv =
           n.getConst<FloatingPointToFPSignedBitVector>();
@@ -917,7 +918,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_REAL:
+    case FLOATINGPOINT_TO_FP_FROM_REAL:
     {
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
@@ -1057,19 +1058,19 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         }
       }
       // must avoid overloading for to_fp variants
-      if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+      if (k == FLOATINGPOINT_TO_FP_FROM_FP)
       {
         opName << "to_fp_fp";
       }
-      else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
+      else if (k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
       {
         opName << "to_fp_ieee_bv";
       }
-      else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
+      else if (k == FLOATINGPOINT_TO_FP_FROM_SBV)
       {
         opName << "to_fp_sbv";
       }
-      else if (k == FLOATINGPOINT_TO_FP_REAL)
+      else if (k == FLOATINGPOINT_TO_FP_FROM_REAL)
       {
         opName << "to_fp_real";
       }

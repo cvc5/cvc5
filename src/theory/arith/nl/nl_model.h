@@ -176,6 +176,9 @@ class NlModel : protected EnvObj
    */
   void getModelValueRepair(std::map<Node, Node>& arithModel);
 
+  /** Return the substituted form of s */
+  Node getSubstitutedForm(TNode s) const;
+
  private:
   /** Cache for concrete model values */
   std::map<Node, Node> d_concreteModelCache;

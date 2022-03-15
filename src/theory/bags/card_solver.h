@@ -61,28 +61,6 @@ class CardSolver : protected EnvObj
   std::set<Node> getChildren(Node bag);
 
  private:
-  /**
-   * Generate all cardinality terms needed in the cardinality graph.
-   * suppose (bag.card bag) is a term, and r is the representative of bag.
-   * Suppose A, B are bag terms and r in {A, B}.
-   * - If (bag.union_disjoint A B) is a term, add the following terms:
-   *   (bag.card A)
-   *   (bag.card B)
-   *   (bag.card (bag.union_disjoint A B))
-   * - If (bag.union_max A B) is a term, add the following terms:
-   *   (bag.card A)
-   *   (bag.card B)
-   *   (bag.card (bag.difference_subtract A B))
-   *   (bag.card (bag.inter_min A B))
-   *   (bag.card (bag.difference_subtract B A))
-   * - If (bag.difference_subtract A B) is a term, add the following terms:
-   *   (bag.card A)
-   *   (bag.card B)
-   *   (bag.card (bag.inter_min A B))
-   *   (bag.card (bag.difference_subtract A B))
-   */
-  void generateRelatedCardinalityTerms();
-
   /** apply inference rules for empty bags */
   void checkEmpty(const std::pair<Node, Node>& pair, const Node& n);
   /** apply inference rules for bag make */
