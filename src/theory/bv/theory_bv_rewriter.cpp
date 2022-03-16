@@ -225,16 +225,14 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
   Node resultNode = node;
-  
-  // // if(RewriteRule<NotXor>::applies(node)) {
-  // //   resultNode = RewriteRule<NotXor>::run<false>(node);
-  // //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  // // }
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalNot>,
-      RewriteRule<NotIdemp>
-    >::apply(node);
-  
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<NotIdemp>, RewriteRule<EvalNot>>::apply(
+          node);
+
+  // It is is safe to return REWRITE_DONE here, because `NotIdemp` removes all
+  // pairs of `bvnot` and then `EvalNot` evaluates the remaining `bvnot` if
+  // applicable.
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
