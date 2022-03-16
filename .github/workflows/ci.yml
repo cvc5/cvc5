@@ -33,7 +33,6 @@ jobs:
             cache-key: productionwin64
             store-to-release-binary: Win64
             binary-ext: .exe
-            build-shared: false
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
