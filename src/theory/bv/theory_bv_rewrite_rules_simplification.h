@@ -923,7 +923,13 @@ bool RewriteRule<NotIdemp>::applies(TNode node) {
 template<> inline
 Node RewriteRule<NotIdemp>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<NotIdemp>(" << node << ")" << std::endl;
-  return node[0][0];
+  TNode ret = node[0][0];
+  while (ret.getKind() == kind::BITVECTOR_NOT
+         && ret[0].getKind() == kind::BITVECTOR_NOT)
+  {
+    ret = ret[0][0];
+  }
+  return ret;
 }
 
 /* -------------------------------------------------------------------------- */
