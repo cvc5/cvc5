@@ -220,8 +220,7 @@ void SolverEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
-  if (d_env->getOptions().smt.produceInterpols
-      != options::ProduceInterpols::NONE)
+  if (d_env->getOptions().smt.interpols)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }

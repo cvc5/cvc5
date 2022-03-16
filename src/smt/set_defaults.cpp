@@ -857,7 +857,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   if (!d_isInternalSubsolver)
   {
     if (opts.smt.produceAbducts
-        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
+        || opts.smt.interpols
         || opts.quantifiers.sygusInference
         || opts.quantifiers.sygusRewSynthInput)
     {

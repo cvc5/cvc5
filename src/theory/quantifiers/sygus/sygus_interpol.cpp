@@ -99,22 +99,22 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.produceInterpols != options::ProduceInterpols::NONE);
+  Assert(options().smt.interpols);
   // ASSUMPTIONS
-  if (options().smt.produceInterpols == options::ProduceInterpols::ASSUMPTIONS)
+  if (options().smt.interpolsMode == options::InterpolsMode::ASSUMPTIONS)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (options().smt.produceInterpols
-           == options::ProduceInterpols::CONJECTURE)
+  else if (options().smt.interpolsMode
+           == options::InterpolsMode::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
   // SHARED
-  else if (options().smt.produceInterpols == options::ProduceInterpols::SHARED)
+  else if (options().smt.interpolsMode == options::InterpolsMode::SHARED)
   {
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node>> include_cons_axioms;
@@ -154,7 +154,7 @@ void SygusInterpol::getIncludeCons(
     }
   }
   // ALL
-  else if (options().smt.produceInterpols == options::ProduceInterpols::ALL)
+  else if (options().smt.interpolsMode == options::InterpolsMode::ALL)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
