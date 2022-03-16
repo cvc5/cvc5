@@ -129,6 +129,7 @@ set(regress_0_tests
   regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/issue8103-1-weak-equiv-models.smt2
+  regress0/arrays/issue8276-arith-getModelValue.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -449,6 +450,7 @@ set(regress_0_tests
   regress0/bv/issue3621.smt2
   regress0/bv/issue5396.smt2
   regress0/bv/issue8159-1-rewrite-bvneg.smt2
+  regress0/bv/issue8240-rewrite-bvnot.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -949,6 +951,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
   regress0/proofs/proj-issue430-coverings-double-negation.smt2
   regress0/proofs/proj-issue462-sat-proof-option.smt2
+  regress0/proofs/proj-issue492-skolem-lemma-pf.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1763,6 +1766,7 @@ set(regress_1_tests
   regress1/bags/murxla3.smt2
   regress1/bags/murxla4.smt2
   regress1/bags/murxla5.smt2
+  regress1/bags/murxla6.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2

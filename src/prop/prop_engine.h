@@ -108,11 +108,9 @@ class PropEngine : protected EnvObj
    * @param skolemMap a map which says which skolem (if any) each assertion
    * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
    * assertion, then skolemMap may contain the entry { i -> k }.
-   * @param ppl the list of preprocessed learned literals
    */
   void assertInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap,
-                           const std::vector<Node>& ppl);
+                           std::unordered_map<size_t, Node>& skolemMap);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.

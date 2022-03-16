@@ -523,20 +523,6 @@ class CVC5_EXPORT Sort
   bool isSortConstructor() const;
 
   /**
-   * Is this a first-class sort?
-   * First-class sorts are sorts for which:
-   * 1. we handle equalities between terms of that type, and
-   * 2. they are allowed to be parameters of parametric sorts (e.g. index or
-   * element sorts of arrays).
-   *
-   * Examples of sorts that are not first-class include sort constructor sorts
-   * and regular expression sorts.
-   *
-   * @return true if this is a first-class sort
-   */
-  bool isFirstClass() const;
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -3732,7 +3718,7 @@ class CVC5_EXPORT Solver
    * @return the DatatypeDecl
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
-                              Sort param,
+                              const Sort& param,
                               bool isCoDatatype = false);
 
   /**
