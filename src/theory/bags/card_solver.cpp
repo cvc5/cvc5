@@ -70,7 +70,12 @@ void CardSolver::checkCardinalityGraph()
     Trace("bags-card") << "CardSolver::checkCardinalityGraph cardTerm: " << pair
                        << std::endl;
     Assert(pair.first.getKind() == BAG_CARD);
-    Assert(d_state.hasTerm(pair.first[0]));
+    if (!d_state.hasTerm(pair.first[0]))
+    {
+      // new bag terms might be added in previous iterations of this loop.
+      // so add to equality engine to proceed.
+      d_state.addTerm(pair.first[0]);
+    }
     Node bag = d_state.getRepresentative(pair.first[0]);
     Trace("bags-card") << "CardSolver::checkCardinalityGraph bag rep: " << bag
                        << std::endl;
