@@ -108,8 +108,7 @@ void SygusInterpol::getIncludeCons(
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (options().smt.interpolsMode
-           == options::InterpolsMode::CONJECTURE)
+  else if (options().smt.interpolsMode == options::InterpolsMode::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
