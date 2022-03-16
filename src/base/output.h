@@ -52,7 +52,7 @@ class null_streambuf : public std::streambuf
 }; /* class null_streambuf */
 
 /** A null stream-buffer singleton */
-extern null_streambuf null_sb CVC5_EXPORT;
+extern null_streambuf null_sb;
 /** A null output stream singleton */
 extern std::ostream null_os CVC5_EXPORT;
 
@@ -120,7 +120,7 @@ class Cvc5ostream
           d_os = &(*d_os << s_tab);
         }
       }
-      d_os = &(*d_os << t);
+      *d_os << t;
     }
     return *this;
   }

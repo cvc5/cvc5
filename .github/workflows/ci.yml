@@ -13,7 +13,7 @@ jobs:
             python-bindings: true
             build-documentation: true
             check-examples: true
-            store-to-release-binary: Linux
+            store-to-release-binary: cvc5-Linux
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -23,7 +23,7 @@ jobs:
             cache-key: production
             python-bindings: true
             check-examples: true
-            store-to-release-binary: macOS
+            store-to-release-binary: cvc5-macOS
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -31,7 +31,7 @@ jobs:
             os: ubuntu-latest
             config: production --auto-download --win64
             cache-key: productionwin64
-            store-to-release-binary: Win64
+            store-to-release-binary: cvc5-Win64.exe
             binary-ext: .exe
 
           - name: ubuntu:production-clang
@@ -119,9 +119,8 @@ jobs:
       if: matrix.store-to-release-binary && startsWith(github.ref, 'refs/tags/')
       uses: ./.github/actions/add-to-release
       with:
-        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
-        binary-ext: ${{ matrix.binary-ext }}
-        binary-name: ${{ matrix.store-to-release-binary }}
+        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
+        release-name: ${{ matrix.store-to-release-binary }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
 
