@@ -13,7 +13,7 @@ jobs:
             python-bindings: true
             build-documentation: true
             check-examples: true
-            store-to-release: true
+            store-to-release-binary: Linux
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -23,9 +23,17 @@ jobs:
             cache-key: production
             python-bindings: true
             check-examples: true
-            store-to-release: true
+            store-to-release-binary: macOS
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: win64:production
+            os: ubuntu-latest
+            config: production --auto-download --win64
+            cache-key: productionwin64
+            store-to-release-binary: Win64
+            binary-ext: .exe
+            build-shared: false
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
@@ -82,6 +90,7 @@ jobs:
       run: ccache -s
 
     - name: Run tests
+      if: matrix.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
@@ -91,6 +100,7 @@ jobs:
         regressions-exclude: ${{ matrix.exclude_regress }}
   
     - name: Run tests
+      if: matrix.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
@@ -107,10 +117,12 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Add binary to release
-      if: matrix.store-to-release && startsWith(github.ref, 'refs/tags/')
+      if: matrix.store-to-release-binary && startsWith(github.ref, 'refs/tags/')
       uses: ./.github/actions/add-to-release
       with:
         binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
+        binary-ext: ${{ matrix.binary-ext }}
+        binary-name: ${{ matrix.store-to-release-binary }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
 

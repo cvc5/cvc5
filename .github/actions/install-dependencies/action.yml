@@ -27,7 +27,8 @@ runs:
           libtinfo-dev \
           flex \
           libfl-dev \
-          flexc++
+          flexc++ \
+          mingw-w64
         python3 -m pip install pexpect setuptools toml
         cd /usr/src/googletest
         sudo cmake .
