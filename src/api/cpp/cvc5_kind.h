@@ -66,7 +66,9 @@ enum Kind : int32_t
   /**
    * The value of an uninterpreted constant.
    *
-   * May be exposed, but must not be created via the API.
+   * @note May be returned as the result of an API call, but terms of this kind
+   *       must not be created explicitly via the API. Terms of this kind may
+   *       further not appear in assertions.
    */
   UNINTERPRETED_SORT_VALUE,
 #if 0
