@@ -50,7 +50,7 @@ runs:
     - name: Install software for cross-compiling for Windows
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
-      if: inputs.install-windows-tools == 'true'
+      if: inputs.windows-build == 'true'
       shell: bash
       run: |
         echo "::group::Install software for cross-compiling for Windows"
