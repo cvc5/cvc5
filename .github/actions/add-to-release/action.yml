@@ -3,6 +3,8 @@ description: Add cvc5 binary to the current release
 inputs:
   binary:
     description: file name of binary
+  release-name:
+    description: name of binary in release
   github-token:
     description: token to upload binary
 runs:
@@ -11,10 +13,10 @@ runs:
     - name: Rename binaries for release
       shell: bash
       run: |
-        cp ${{ inputs.binary }} cvc5-${{ runner.os }}
+        cp ${{ inputs.binary }} ${{ inputs.release-name }}
 
     - name: Add binaries to release
       uses: softprops/action-gh-release@v1
       with:
         token: ${{ inputs.github-token }}
-        files: cvc5-*
+        files: ${{ inputs.release-name }}

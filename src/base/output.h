@@ -30,10 +30,6 @@
 namespace cvc5 {
 
 template <class T, class U>
-std::ostream& operator<<(std::ostream& out,
-                         const std::pair<T, U>& p) CVC5_EXPORT;
-
-template <class T, class U>
 std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
   return out << "[" << p.first << "," << p.second << "]";
 }
@@ -60,10 +56,10 @@ extern null_streambuf null_sb;
 /** A null output stream singleton */
 extern std::ostream null_os CVC5_EXPORT;
 
-class CVC5_EXPORT Cvc5ostream
+class Cvc5ostream
 {
-  static const std::string s_tab;
-  static const int s_indentIosIndex;
+  static const std::string s_tab CVC5_EXPORT;
+  static const int s_indentIosIndex CVC5_EXPORT;
 
   /** The underlying ostream */
   std::ostream* d_os;
@@ -111,7 +107,23 @@ class CVC5_EXPORT Cvc5ostream
   std::ostream* getStreamPointer() const { return d_os; }
 
   template <class T>
-  Cvc5ostream& operator<<(T const& t) CVC5_EXPORT;
+  Cvc5ostream& operator<<(T const& t)
+  {
+    if (d_os != nullptr)
+    {
+      if (d_firstColumn)
+      {
+        d_firstColumn = false;
+        long indent = d_os->iword(s_indentIosIndex);
+        for (long i = 0; i < indent; ++i)
+        {
+          d_os = &(*d_os << s_tab);
+        }
+      }
+      *d_os << t;
+    }
+    return *this;
+  }
 
   // support manipulators, endl, etc..
   Cvc5ostream& operator<<(std::ostream& (*pf)(std::ostream&))
@@ -155,22 +167,6 @@ inline Cvc5ostream& pop(Cvc5ostream& stream)
 {
   stream.popIndent();
   return stream;
-}
-
-template <class T>
-Cvc5ostream& Cvc5ostream::operator<<(T const& t)
-{
-  if(d_os != NULL) {
-    if(d_firstColumn) {
-      d_firstColumn = false;
-      long indent = d_os->iword(s_indentIosIndex);
-      for(long i = 0; i < indent; ++i) {
-        d_os = &(*d_os << s_tab);
-      }
-    }
-    d_os = &(*d_os << t);
-  }
-  return *this;
 }
 
 /**
