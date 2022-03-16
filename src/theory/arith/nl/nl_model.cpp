@@ -173,12 +173,15 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
                          unsigned d,
                          std::vector<NlLemma>& lemmas)
 {
-  Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
+  Trace("nl-ext-cm-debug") << "NlModel::checkModel: solve for equalities..."
+                           << std::endl;
   for (const Node& atom : assertions)
   {
+    Trace("nl-ext-cm-debug") << "- assertion: " << atom << std::endl;
     // see if it corresponds to a univariate polynomial equation of degree two
     if (atom.getKind() == EQUAL)
     {
+      // we substitute inside of solve equality simple
       if (!solveEqualitySimple(atom, d, lemmas))
       {
         // no chance we will satisfy this equality
@@ -227,10 +230,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             }
           }
         }
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     } while (!visit.empty());
   }
@@ -241,12 +241,10 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
   {
     if (d_check_model_solved.find(a) == d_check_model_solved.end())
     {
-      Node av = a;
       // apply the substitution to a
-      if (!d_substitutions.empty())
-      {
-        av = rewrite(arithSubstitute(av, d_substitutions));
-      }
+      Node av = getSubstitutedForm(a);
+      Trace("nl-ext-cm") << "simpleCheckModelLit " << av << " (from " << a
+                         << ")" << std::endl;
       // simple check literal
       if (!simpleCheckModelLit(av))
       {
@@ -271,18 +269,25 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
 
 bool NlModel::addSubstitution(TNode v, TNode s)
 {
-  // should not substitute the same variable twice
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
+  Assert(getSubstitutedForm(s) == s)
+      << "Added a substitution whose range is not in substituted form " << s;
+  // should not substitute the same variable twice
   // should not set exact bound more than once
   if (d_substitutions.contains(v))
   {
     Node cur = d_substitutions.getSubs(v);
     if (cur != s)
     {
-      Trace("nl-ext-model") << "...ERROR: already has value: " << cur << std::endl;
-      // this should never happen since substitutions should be applied eagerly
-      Assert(false);
+      Trace("nl-ext-model")
+          << "...warning: already has value: " << cur << std::endl;
+      // We set two different substitutions for a variable v. If both are
+      // constant, then we throw an error. Otherwise, we ignore the newer
+      // substitution and return false here.
+      Assert(!cur.isConst() || !s.isConst())
+          << "Conflicting exact bounds given for a variable (" << cur << " and "
+          << s << ") for " << v;
       return false;
     }
   }
@@ -292,11 +297,14 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       d_check_model_bounds.find(v);
   if (itb != d_check_model_bounds.end())
   {
-    if (s.getConst<Rational>() >= itb->second.first.getConst<Rational>()
-        || s.getConst<Rational>() <= itb->second.second.getConst<Rational>())
+    Assert(s.isConst());
+    if (s.getConst<Rational>() <= itb->second.first.getConst<Rational>()
+        || s.getConst<Rational>() >= itb->second.second.getConst<Rational>())
     {
       Trace("nl-ext-model")
           << "...ERROR: already has bound which is out of range." << std::endl;
+      Assert(false) << "Out of bounds exact bound given for a variable with an "
+                       "approximate bound";
       return false;
     }
   }
@@ -329,7 +337,7 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
         << std::endl;
-    Assert(false);
+    Assert(false) << "Setting bound for variable that already has exact value.";
     return false;
   }
   Assert(l.isConst());
@@ -358,8 +366,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   Node seq = eq;
   if (!d_substitutions.empty())
   {
-    seq = arithSubstitute(eq, d_substitutions);
-    seq = rewrite(seq);
+    seq = getSubstitutedForm(eq);
     if (seq.isConst())
     {
       if (seq.getConst<bool>())
@@ -383,7 +390,6 @@ bool NlModel::solveEqualitySimple(Node eq,
   bool is_valid = true;
   // the variable we will solve a quadratic equation for
   Node var;
-  Node a = d_zero;
   Node b = d_zero;
   Node c = d_zero;
   NodeManager* nm = NodeManager::currentNM();
@@ -403,23 +409,13 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     else if (v.getKind() == NONLINEAR_MULT)
     {
-      if (v.getNumChildren() == 2 && v[0].isVar() && v[0] == v[1]
-          && (var.isNull() || var == v[0]))
+      is_valid = false;
+      Trace("nl-ext-cms-debug")
+          << "...invalid due to non-linear monomial " << v << std::endl;
+      // may wish to set an exact bound for a factor and repeat
+      for (const Node& vc : v)
       {
-        // may solve quadratic
-        a = coeff;
-        var = v[0];
-      }
-      else
-      {
-        is_valid = false;
-        Trace("nl-ext-cms-debug")
-            << "...invalid due to non-linear monomial " << v << std::endl;
-        // may wish to set an exact bound for a factor and repeat
-        for (const Node& vc : v)
-        {
-          unc_vars_factor.insert(vc);
-        }
+        unc_vars_factor.insert(vc);
       }
     }
     else if (!v.isVar() || (!var.isNull() && var != v))
@@ -462,6 +458,8 @@ bool NlModel::solveEqualitySimple(Node eq,
         if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
         {
           Assert(!slv.isNull());
+          // must rewrite here to be in substituted form
+          slv = rewrite(slv);
           // Currently do not support substitution-with-coefficients.
           // We also ensure types are correct here, which avoids substituting
           // a term of non-integer type for a variable of integer type.
@@ -513,31 +511,27 @@ bool NlModel::solveEqualitySimple(Node eq,
   }
 
   // we are linear, it is simple
-  if (a == d_zero)
+  if (b == d_zero)
   {
-    if (b == d_zero)
-    {
-      Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
-      Assert(false);
-      return false;
-    }
-    Node val = nm->mkConst(CONST_RATIONAL,
-                           -c.getConst<Rational>() / b.getConst<Rational>());
-    if (Trace.isOn("nl-ext-cm"))
-    {
-      Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
-      printRationalApprox("nl-ext-cm", val);
-      Trace("nl-ext-cm") << std::endl;
-    }
-    bool ret = addSubstitution(var, val);
-    if (ret)
-    {
-      Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
-      d_check_model_solved[eq] = var;
-    }
-    return ret;
+    Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
+    Assert(false);
+    return false;
   }
-  return false;
+  Node val = nm->mkConst(CONST_RATIONAL,
+                         -c.getConst<Rational>() / b.getConst<Rational>());
+  if (Trace.isOn("nl-ext-cm"))
+  {
+    Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
+    printRationalApprox("nl-ext-cm", val);
+    Trace("nl-ext-cm") << std::endl;
+  }
+  bool ret = addSubstitution(var, val);
+  if (ret)
+  {
+    Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+    d_check_model_solved[eq] = var;
+  }
+  return ret;
 }
 
 bool NlModel::simpleCheckModelLit(Node lit)
@@ -870,7 +864,8 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          Assert(false);
+          Assert(false) << "A variable " << vc
+                        << " is missing a bound/value in the model";
           return false;
         }
       }
@@ -1111,6 +1106,16 @@ bool NlModel::hasLinearModelValue(TNode v, Node& val) const
     return true;
   }
   return false;
+}
+
+Node NlModel::getSubstitutedForm(TNode s) const
+{
+  if (d_substitutions.empty())
+  {
+    // no substitutions, just return s
+    return s;
+  }
+  return rewrite(arithSubstitute(s, d_substitutions));
 }
 
 }  // namespace nl

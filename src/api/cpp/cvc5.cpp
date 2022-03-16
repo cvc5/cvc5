@@ -104,286 +104,299 @@ struct APIStatistics
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
+#define KIND_ENUM(external_name, internal_name)                  \
+  {                                                              \
+    external_name, std::make_pair(internal_name, #external_name) \
+  }
+
 /* Mapping from external (API) kind to internal kind. */
-const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
-    {INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND},
-    {UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND},
-    {NULL_EXPR, cvc5::Kind::NULL_EXPR},
-    /* Builtin ------------------------------------------------------------- */
-    {UNINTERPRETED_SORT_VALUE, cvc5::Kind::UNINTERPRETED_SORT_VALUE},
-    {EQUAL, cvc5::Kind::EQUAL},
-    {DISTINCT, cvc5::Kind::DISTINCT},
-    {CONSTANT, cvc5::Kind::VARIABLE},
-    {VARIABLE, cvc5::Kind::BOUND_VARIABLE},
-    {SEXPR, cvc5::Kind::SEXPR},
-    {LAMBDA, cvc5::Kind::LAMBDA},
-    {WITNESS, cvc5::Kind::WITNESS},
-    /* Boolean ------------------------------------------------------------- */
-    {CONST_BOOLEAN, cvc5::Kind::CONST_BOOLEAN},
-    {NOT, cvc5::Kind::NOT},
-    {AND, cvc5::Kind::AND},
-    {IMPLIES, cvc5::Kind::IMPLIES},
-    {OR, cvc5::Kind::OR},
-    {XOR, cvc5::Kind::XOR},
-    {ITE, cvc5::Kind::ITE},
-    /* UF ------------------------------------------------------------------ */
-    {APPLY_UF, cvc5::Kind::APPLY_UF},
-    {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
-    {HO_APPLY, cvc5::Kind::HO_APPLY},
-    /* Arithmetic ---------------------------------------------------------- */
-    {ADD, cvc5::Kind::ADD},
-    {MULT, cvc5::Kind::MULT},
-    {IAND, cvc5::Kind::IAND},
-    {POW2, cvc5::Kind::POW2},
-    {SUB, cvc5::Kind::SUB},
-    {NEG, cvc5::Kind::NEG},
-    {DIVISION, cvc5::Kind::DIVISION},
-    {INTS_DIVISION, cvc5::Kind::INTS_DIVISION},
-    {INTS_MODULUS, cvc5::Kind::INTS_MODULUS},
-    {ABS, cvc5::Kind::ABS},
-    {DIVISIBLE, cvc5::Kind::DIVISIBLE},
-    {POW, cvc5::Kind::POW},
-    {EXPONENTIAL, cvc5::Kind::EXPONENTIAL},
-    {SINE, cvc5::Kind::SINE},
-    {COSINE, cvc5::Kind::COSINE},
-    {TANGENT, cvc5::Kind::TANGENT},
-    {COSECANT, cvc5::Kind::COSECANT},
-    {SECANT, cvc5::Kind::SECANT},
-    {COTANGENT, cvc5::Kind::COTANGENT},
-    {ARCSINE, cvc5::Kind::ARCSINE},
-    {ARCCOSINE, cvc5::Kind::ARCCOSINE},
-    {ARCTANGENT, cvc5::Kind::ARCTANGENT},
-    {ARCCOSECANT, cvc5::Kind::ARCCOSECANT},
-    {ARCSECANT, cvc5::Kind::ARCSECANT},
-    {ARCCOTANGENT, cvc5::Kind::ARCCOTANGENT},
-    {SQRT, cvc5::Kind::SQRT},
-    {CONST_RATIONAL, cvc5::Kind::CONST_RATIONAL},
-    {LT, cvc5::Kind::LT},
-    {LEQ, cvc5::Kind::LEQ},
-    {GT, cvc5::Kind::GT},
-    {GEQ, cvc5::Kind::GEQ},
-    {IS_INTEGER, cvc5::Kind::IS_INTEGER},
-    {TO_INTEGER, cvc5::Kind::TO_INTEGER},
-    {TO_REAL, cvc5::Kind::TO_REAL},
-    {PI, cvc5::Kind::PI},
-    /* BV ------------------------------------------------------------------ */
-    {CONST_BITVECTOR, cvc5::Kind::CONST_BITVECTOR},
-    {BITVECTOR_CONCAT, cvc5::Kind::BITVECTOR_CONCAT},
-    {BITVECTOR_AND, cvc5::Kind::BITVECTOR_AND},
-    {BITVECTOR_OR, cvc5::Kind::BITVECTOR_OR},
-    {BITVECTOR_XOR, cvc5::Kind::BITVECTOR_XOR},
-    {BITVECTOR_NOT, cvc5::Kind::BITVECTOR_NOT},
-    {BITVECTOR_NAND, cvc5::Kind::BITVECTOR_NAND},
-    {BITVECTOR_NOR, cvc5::Kind::BITVECTOR_NOR},
-    {BITVECTOR_XNOR, cvc5::Kind::BITVECTOR_XNOR},
-    {BITVECTOR_COMP, cvc5::Kind::BITVECTOR_COMP},
-    {BITVECTOR_MULT, cvc5::Kind::BITVECTOR_MULT},
-    {BITVECTOR_ADD, cvc5::Kind::BITVECTOR_ADD},
-    {BITVECTOR_SUB, cvc5::Kind::BITVECTOR_SUB},
-    {BITVECTOR_NEG, cvc5::Kind::BITVECTOR_NEG},
-    {BITVECTOR_UDIV, cvc5::Kind::BITVECTOR_UDIV},
-    {BITVECTOR_UREM, cvc5::Kind::BITVECTOR_UREM},
-    {BITVECTOR_SDIV, cvc5::Kind::BITVECTOR_SDIV},
-    {BITVECTOR_SREM, cvc5::Kind::BITVECTOR_SREM},
-    {BITVECTOR_SMOD, cvc5::Kind::BITVECTOR_SMOD},
-    {BITVECTOR_SHL, cvc5::Kind::BITVECTOR_SHL},
-    {BITVECTOR_LSHR, cvc5::Kind::BITVECTOR_LSHR},
-    {BITVECTOR_ASHR, cvc5::Kind::BITVECTOR_ASHR},
-    {BITVECTOR_ULT, cvc5::Kind::BITVECTOR_ULT},
-    {BITVECTOR_ULE, cvc5::Kind::BITVECTOR_ULE},
-    {BITVECTOR_UGT, cvc5::Kind::BITVECTOR_UGT},
-    {BITVECTOR_UGE, cvc5::Kind::BITVECTOR_UGE},
-    {BITVECTOR_SLT, cvc5::Kind::BITVECTOR_SLT},
-    {BITVECTOR_SLE, cvc5::Kind::BITVECTOR_SLE},
-    {BITVECTOR_SGT, cvc5::Kind::BITVECTOR_SGT},
-    {BITVECTOR_SGE, cvc5::Kind::BITVECTOR_SGE},
-    {BITVECTOR_ULTBV, cvc5::Kind::BITVECTOR_ULTBV},
-    {BITVECTOR_SLTBV, cvc5::Kind::BITVECTOR_SLTBV},
-    {BITVECTOR_ITE, cvc5::Kind::BITVECTOR_ITE},
-    {BITVECTOR_REDOR, cvc5::Kind::BITVECTOR_REDOR},
-    {BITVECTOR_REDAND, cvc5::Kind::BITVECTOR_REDAND},
-    {BITVECTOR_EXTRACT, cvc5::Kind::BITVECTOR_EXTRACT},
-    {BITVECTOR_REPEAT, cvc5::Kind::BITVECTOR_REPEAT},
-    {BITVECTOR_ZERO_EXTEND, cvc5::Kind::BITVECTOR_ZERO_EXTEND},
-    {BITVECTOR_SIGN_EXTEND, cvc5::Kind::BITVECTOR_SIGN_EXTEND},
-    {BITVECTOR_ROTATE_LEFT, cvc5::Kind::BITVECTOR_ROTATE_LEFT},
-    {BITVECTOR_ROTATE_RIGHT, cvc5::Kind::BITVECTOR_ROTATE_RIGHT},
-    {INT_TO_BITVECTOR, cvc5::Kind::INT_TO_BITVECTOR},
-    {BITVECTOR_TO_NAT, cvc5::Kind::BITVECTOR_TO_NAT},
-    /* FP ------------------------------------------------------------------ */
-    {CONST_FLOATINGPOINT, cvc5::Kind::CONST_FLOATINGPOINT},
-    {CONST_ROUNDINGMODE, cvc5::Kind::CONST_ROUNDINGMODE},
-    {FLOATINGPOINT_FP, cvc5::Kind::FLOATINGPOINT_FP},
-    {FLOATINGPOINT_EQ, cvc5::Kind::FLOATINGPOINT_EQ},
-    {FLOATINGPOINT_ABS, cvc5::Kind::FLOATINGPOINT_ABS},
-    {FLOATINGPOINT_NEG, cvc5::Kind::FLOATINGPOINT_NEG},
-    {FLOATINGPOINT_ADD, cvc5::Kind::FLOATINGPOINT_ADD},
-    {FLOATINGPOINT_SUB, cvc5::Kind::FLOATINGPOINT_SUB},
-    {FLOATINGPOINT_MULT, cvc5::Kind::FLOATINGPOINT_MULT},
-    {FLOATINGPOINT_DIV, cvc5::Kind::FLOATINGPOINT_DIV},
-    {FLOATINGPOINT_FMA, cvc5::Kind::FLOATINGPOINT_FMA},
-    {FLOATINGPOINT_SQRT, cvc5::Kind::FLOATINGPOINT_SQRT},
-    {FLOATINGPOINT_REM, cvc5::Kind::FLOATINGPOINT_REM},
-    {FLOATINGPOINT_RTI, cvc5::Kind::FLOATINGPOINT_RTI},
-    {FLOATINGPOINT_MIN, cvc5::Kind::FLOATINGPOINT_MIN},
-    {FLOATINGPOINT_MAX, cvc5::Kind::FLOATINGPOINT_MAX},
-    {FLOATINGPOINT_LEQ, cvc5::Kind::FLOATINGPOINT_LEQ},
-    {FLOATINGPOINT_LT, cvc5::Kind::FLOATINGPOINT_LT},
-    {FLOATINGPOINT_GEQ, cvc5::Kind::FLOATINGPOINT_GEQ},
-    {FLOATINGPOINT_GT, cvc5::Kind::FLOATINGPOINT_GT},
-    {FLOATINGPOINT_IS_NORMAL, cvc5::Kind::FLOATINGPOINT_IS_NORMAL},
-    {FLOATINGPOINT_IS_SUBNORMAL, cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL},
-    {FLOATINGPOINT_IS_ZERO, cvc5::Kind::FLOATINGPOINT_IS_ZERO},
-    {FLOATINGPOINT_IS_INF, cvc5::Kind::FLOATINGPOINT_IS_INF},
-    {FLOATINGPOINT_IS_NAN, cvc5::Kind::FLOATINGPOINT_IS_NAN},
-    {FLOATINGPOINT_IS_NEG, cvc5::Kind::FLOATINGPOINT_IS_NEG},
-    {FLOATINGPOINT_IS_POS, cvc5::Kind::FLOATINGPOINT_IS_POS},
-    {FLOATINGPOINT_TO_FP_FROM_FP, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP},
-    {FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-     cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
-    {FLOATINGPOINT_TO_FP_FROM_REAL, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
-    {FLOATINGPOINT_TO_FP_FROM_SBV, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
-    {FLOATINGPOINT_TO_FP_FROM_UBV, cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
-    {FLOATINGPOINT_TO_FP_GENERIC, cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC},
-    {FLOATINGPOINT_TO_UBV, cvc5::Kind::FLOATINGPOINT_TO_UBV},
-    {FLOATINGPOINT_TO_SBV, cvc5::Kind::FLOATINGPOINT_TO_SBV},
-    {FLOATINGPOINT_TO_REAL, cvc5::Kind::FLOATINGPOINT_TO_REAL},
-    /* Arrays -------------------------------------------------------------- */
-    {SELECT, cvc5::Kind::SELECT},
-    {STORE, cvc5::Kind::STORE},
-    {CONST_ARRAY, cvc5::Kind::STORE_ALL},
-    {EQ_RANGE, cvc5::Kind::EQ_RANGE},
-    /* Datatypes ----------------------------------------------------------- */
-    {APPLY_SELECTOR, cvc5::Kind::APPLY_SELECTOR},
-    {APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR},
-    {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
-    {APPLY_UPDATER, cvc5::Kind::APPLY_UPDATER},
-    {DT_SIZE, cvc5::Kind::DT_SIZE},
-    {MATCH, cvc5::Kind::MATCH},
-    {MATCH_CASE, cvc5::Kind::MATCH_CASE},
-    {MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE},
-    {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
-    /* Separation Logic ---------------------------------------------------- */
-    {SEP_NIL, cvc5::Kind::SEP_NIL},
-    {SEP_EMP, cvc5::Kind::SEP_EMP},
-    {SEP_PTO, cvc5::Kind::SEP_PTO},
-    {SEP_STAR, cvc5::Kind::SEP_STAR},
-    {SEP_WAND, cvc5::Kind::SEP_WAND},
-    /* Sets ---------------------------------------------------------------- */
-    {SET_EMPTY, cvc5::Kind::SET_EMPTY},
-    {SET_UNION, cvc5::Kind::SET_UNION},
-    {SET_INTER, cvc5::Kind::SET_INTER},
-    {SET_MINUS, cvc5::Kind::SET_MINUS},
-    {SET_SUBSET, cvc5::Kind::SET_SUBSET},
-    {SET_MEMBER, cvc5::Kind::SET_MEMBER},
-    {SET_SINGLETON, cvc5::Kind::SET_SINGLETON},
-    {SET_INSERT, cvc5::Kind::SET_INSERT},
-    {SET_CARD, cvc5::Kind::SET_CARD},
-    {SET_COMPLEMENT, cvc5::Kind::SET_COMPLEMENT},
-    {SET_UNIVERSE, cvc5::Kind::SET_UNIVERSE},
-    {SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION},
-    {SET_CHOOSE, cvc5::Kind::SET_CHOOSE},
-    {SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON},
-    {SET_MAP, cvc5::Kind::SET_MAP},
-    /* Relations ----------------------------------------------------------- */
-    {RELATION_JOIN, cvc5::Kind::RELATION_JOIN},
-    {RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT},
-    {RELATION_TRANSPOSE, cvc5::Kind::RELATION_TRANSPOSE},
-    {RELATION_TCLOSURE, cvc5::Kind::RELATION_TCLOSURE},
-    {RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE},
-    {RELATION_IDEN, cvc5::Kind::RELATION_IDEN},
-    /* Bags ---------------------------------------------------------------- */
-    {BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX},
-    {BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT},
-    {BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN},
-    {BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT},
-    {BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE},
-    {BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG},
-    {BAG_COUNT, cvc5::Kind::BAG_COUNT},
-    {BAG_MEMBER, cvc5::Kind::BAG_MEMBER},
-    {BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL},
-    {BAG_MAKE, cvc5::Kind::BAG_MAKE},
-    {BAG_EMPTY, cvc5::Kind::BAG_EMPTY},
-    {BAG_CARD, cvc5::Kind::BAG_CARD},
-    {BAG_CHOOSE, cvc5::Kind::BAG_CHOOSE},
-    {BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON},
-    {BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET},
-    {BAG_TO_SET, cvc5::Kind::BAG_TO_SET},
-    {BAG_MAP, cvc5::Kind::BAG_MAP},
-    {BAG_FILTER, cvc5::Kind::BAG_FILTER},
-    {BAG_FOLD, cvc5::Kind::BAG_FOLD},
-    {TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT},
-    /* Strings ------------------------------------------------------------- */
-    {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
-    {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
-    {STRING_LENGTH, cvc5::Kind::STRING_LENGTH},
-    {STRING_SUBSTR, cvc5::Kind::STRING_SUBSTR},
-    {STRING_UPDATE, cvc5::Kind::STRING_UPDATE},
-    {STRING_CHARAT, cvc5::Kind::STRING_CHARAT},
-    {STRING_CONTAINS, cvc5::Kind::STRING_CONTAINS},
-    {STRING_INDEXOF, cvc5::Kind::STRING_INDEXOF},
-    {STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE},
-    {STRING_REPLACE, cvc5::Kind::STRING_REPLACE},
-    {STRING_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL},
-    {STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE},
-    {STRING_REPLACE_RE_ALL, cvc5::Kind::STRING_REPLACE_RE_ALL},
-    {STRING_TOLOWER, cvc5::Kind::STRING_TOLOWER},
-    {STRING_TOUPPER, cvc5::Kind::STRING_TOUPPER},
-    {STRING_REV, cvc5::Kind::STRING_REV},
-    {STRING_FROM_CODE, cvc5::Kind::STRING_FROM_CODE},
-    {STRING_TO_CODE, cvc5::Kind::STRING_TO_CODE},
-    {STRING_LT, cvc5::Kind::STRING_LT},
-    {STRING_LEQ, cvc5::Kind::STRING_LEQ},
-    {STRING_PREFIX, cvc5::Kind::STRING_PREFIX},
-    {STRING_SUFFIX, cvc5::Kind::STRING_SUFFIX},
-    {STRING_IS_DIGIT, cvc5::Kind::STRING_IS_DIGIT},
-    {STRING_FROM_INT, cvc5::Kind::STRING_ITOS},
-    {STRING_TO_INT, cvc5::Kind::STRING_STOI},
-    {CONST_STRING, cvc5::Kind::CONST_STRING},
-    {STRING_TO_REGEXP, cvc5::Kind::STRING_TO_REGEXP},
-    {REGEXP_CONCAT, cvc5::Kind::REGEXP_CONCAT},
-    {REGEXP_UNION, cvc5::Kind::REGEXP_UNION},
-    {REGEXP_INTER, cvc5::Kind::REGEXP_INTER},
-    {REGEXP_DIFF, cvc5::Kind::REGEXP_DIFF},
-    {REGEXP_STAR, cvc5::Kind::REGEXP_STAR},
-    {REGEXP_PLUS, cvc5::Kind::REGEXP_PLUS},
-    {REGEXP_OPT, cvc5::Kind::REGEXP_OPT},
-    {REGEXP_RANGE, cvc5::Kind::REGEXP_RANGE},
-    {REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT},
-    {REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP},
-    {REGEXP_NONE, cvc5::Kind::REGEXP_NONE},
-    {REGEXP_ALL, cvc5::Kind::REGEXP_ALL},
-    {REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR},
-    {REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT},
-    // maps to the same kind as the string versions
-    {SEQ_CONCAT, cvc5::Kind::STRING_CONCAT},
-    {SEQ_LENGTH, cvc5::Kind::STRING_LENGTH},
-    {SEQ_EXTRACT, cvc5::Kind::STRING_SUBSTR},
-    {SEQ_UPDATE, cvc5::Kind::STRING_UPDATE},
-    {SEQ_AT, cvc5::Kind::STRING_CHARAT},
-    {SEQ_CONTAINS, cvc5::Kind::STRING_CONTAINS},
-    {SEQ_INDEXOF, cvc5::Kind::STRING_INDEXOF},
-    {SEQ_REPLACE, cvc5::Kind::STRING_REPLACE},
-    {SEQ_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL},
-    {SEQ_REV, cvc5::Kind::STRING_REV},
-    {SEQ_PREFIX, cvc5::Kind::STRING_PREFIX},
-    {SEQ_SUFFIX, cvc5::Kind::STRING_SUFFIX},
-    {CONST_SEQUENCE, cvc5::Kind::CONST_SEQUENCE},
-    {SEQ_UNIT, cvc5::Kind::SEQ_UNIT},
-    {SEQ_NTH, cvc5::Kind::SEQ_NTH},
-    /* Quantifiers --------------------------------------------------------- */
-    {FORALL, cvc5::Kind::FORALL},
-    {EXISTS, cvc5::Kind::EXISTS},
-    {VARIABLE_LIST, cvc5::Kind::BOUND_VAR_LIST},
-    {INST_PATTERN, cvc5::Kind::INST_PATTERN},
-    {INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN},
-    {INST_POOL, cvc5::Kind::INST_POOL},
-    {INST_ADD_TO_POOL, cvc5::Kind::INST_ADD_TO_POOL},
-    {SKOLEM_ADD_TO_POOL, cvc5::Kind::SKOLEM_ADD_TO_POOL},
-    {INST_ATTRIBUTE, cvc5::Kind::INST_ATTRIBUTE},
-    {INST_PATTERN_LIST, cvc5::Kind::INST_PATTERN_LIST},
-    {LAST_KIND, cvc5::Kind::LAST_KIND},
-};
+const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
+    s_kinds{
+        KIND_ENUM(INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND),
+        KIND_ENUM(UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND),
+        KIND_ENUM(NULL_EXPR, cvc5::Kind::NULL_EXPR),
+        /* Builtin ---------------------------------------------------------- */
+        KIND_ENUM(UNINTERPRETED_SORT_VALUE,
+                  cvc5::Kind::UNINTERPRETED_SORT_VALUE),
+        KIND_ENUM(EQUAL, cvc5::Kind::EQUAL),
+        KIND_ENUM(DISTINCT, cvc5::Kind::DISTINCT),
+        KIND_ENUM(CONSTANT, cvc5::Kind::VARIABLE),
+        KIND_ENUM(VARIABLE, cvc5::Kind::BOUND_VARIABLE),
+        KIND_ENUM(SEXPR, cvc5::Kind::SEXPR),
+        KIND_ENUM(LAMBDA, cvc5::Kind::LAMBDA),
+        KIND_ENUM(WITNESS, cvc5::Kind::WITNESS),
+        /* Boolean ---------------------------------------------------------- */
+        KIND_ENUM(CONST_BOOLEAN, cvc5::Kind::CONST_BOOLEAN),
+        KIND_ENUM(NOT, cvc5::Kind::NOT),
+        KIND_ENUM(AND, cvc5::Kind::AND),
+        KIND_ENUM(IMPLIES, cvc5::Kind::IMPLIES),
+        KIND_ENUM(OR, cvc5::Kind::OR),
+        KIND_ENUM(XOR, cvc5::Kind::XOR),
+        KIND_ENUM(ITE, cvc5::Kind::ITE),
+        /* UF --------------------------------------------------------------- */
+        KIND_ENUM(APPLY_UF, cvc5::Kind::APPLY_UF),
+        KIND_ENUM(CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT),
+        KIND_ENUM(HO_APPLY, cvc5::Kind::HO_APPLY),
+        /* Arithmetic ------------------------------------------------------- */
+        KIND_ENUM(ADD, cvc5::Kind::ADD),
+        KIND_ENUM(MULT, cvc5::Kind::MULT),
+        KIND_ENUM(IAND, cvc5::Kind::IAND),
+        KIND_ENUM(POW2, cvc5::Kind::POW2),
+        KIND_ENUM(SUB, cvc5::Kind::SUB),
+        KIND_ENUM(NEG, cvc5::Kind::NEG),
+        KIND_ENUM(DIVISION, cvc5::Kind::DIVISION),
+        KIND_ENUM(INTS_DIVISION, cvc5::Kind::INTS_DIVISION),
+        KIND_ENUM(INTS_MODULUS, cvc5::Kind::INTS_MODULUS),
+        KIND_ENUM(ABS, cvc5::Kind::ABS),
+        KIND_ENUM(DIVISIBLE, cvc5::Kind::DIVISIBLE),
+        KIND_ENUM(POW, cvc5::Kind::POW),
+        KIND_ENUM(EXPONENTIAL, cvc5::Kind::EXPONENTIAL),
+        KIND_ENUM(SINE, cvc5::Kind::SINE),
+        KIND_ENUM(COSINE, cvc5::Kind::COSINE),
+        KIND_ENUM(TANGENT, cvc5::Kind::TANGENT),
+        KIND_ENUM(COSECANT, cvc5::Kind::COSECANT),
+        KIND_ENUM(SECANT, cvc5::Kind::SECANT),
+        KIND_ENUM(COTANGENT, cvc5::Kind::COTANGENT),
+        KIND_ENUM(ARCSINE, cvc5::Kind::ARCSINE),
+        KIND_ENUM(ARCCOSINE, cvc5::Kind::ARCCOSINE),
+        KIND_ENUM(ARCTANGENT, cvc5::Kind::ARCTANGENT),
+        KIND_ENUM(ARCCOSECANT, cvc5::Kind::ARCCOSECANT),
+        KIND_ENUM(ARCSECANT, cvc5::Kind::ARCSECANT),
+        KIND_ENUM(ARCCOTANGENT, cvc5::Kind::ARCCOTANGENT),
+        KIND_ENUM(SQRT, cvc5::Kind::SQRT),
+        KIND_ENUM(CONST_RATIONAL, cvc5::Kind::CONST_RATIONAL),
+        KIND_ENUM(LT, cvc5::Kind::LT),
+        KIND_ENUM(LEQ, cvc5::Kind::LEQ),
+        KIND_ENUM(GT, cvc5::Kind::GT),
+        KIND_ENUM(GEQ, cvc5::Kind::GEQ),
+        KIND_ENUM(IS_INTEGER, cvc5::Kind::IS_INTEGER),
+        KIND_ENUM(TO_INTEGER, cvc5::Kind::TO_INTEGER),
+        KIND_ENUM(TO_REAL, cvc5::Kind::TO_REAL),
+        KIND_ENUM(PI, cvc5::Kind::PI),
+        /* BV --------------------------------------------------------------- */
+        KIND_ENUM(CONST_BITVECTOR, cvc5::Kind::CONST_BITVECTOR),
+        KIND_ENUM(BITVECTOR_CONCAT, cvc5::Kind::BITVECTOR_CONCAT),
+        KIND_ENUM(BITVECTOR_AND, cvc5::Kind::BITVECTOR_AND),
+        KIND_ENUM(BITVECTOR_OR, cvc5::Kind::BITVECTOR_OR),
+        KIND_ENUM(BITVECTOR_XOR, cvc5::Kind::BITVECTOR_XOR),
+        KIND_ENUM(BITVECTOR_NOT, cvc5::Kind::BITVECTOR_NOT),
+        KIND_ENUM(BITVECTOR_NAND, cvc5::Kind::BITVECTOR_NAND),
+        KIND_ENUM(BITVECTOR_NOR, cvc5::Kind::BITVECTOR_NOR),
+        KIND_ENUM(BITVECTOR_XNOR, cvc5::Kind::BITVECTOR_XNOR),
+        KIND_ENUM(BITVECTOR_COMP, cvc5::Kind::BITVECTOR_COMP),
+        KIND_ENUM(BITVECTOR_MULT, cvc5::Kind::BITVECTOR_MULT),
+        KIND_ENUM(BITVECTOR_ADD, cvc5::Kind::BITVECTOR_ADD),
+        KIND_ENUM(BITVECTOR_SUB, cvc5::Kind::BITVECTOR_SUB),
+        KIND_ENUM(BITVECTOR_NEG, cvc5::Kind::BITVECTOR_NEG),
+        KIND_ENUM(BITVECTOR_UDIV, cvc5::Kind::BITVECTOR_UDIV),
+        KIND_ENUM(BITVECTOR_UREM, cvc5::Kind::BITVECTOR_UREM),
+        KIND_ENUM(BITVECTOR_SDIV, cvc5::Kind::BITVECTOR_SDIV),
+        KIND_ENUM(BITVECTOR_SREM, cvc5::Kind::BITVECTOR_SREM),
+        KIND_ENUM(BITVECTOR_SMOD, cvc5::Kind::BITVECTOR_SMOD),
+        KIND_ENUM(BITVECTOR_SHL, cvc5::Kind::BITVECTOR_SHL),
+        KIND_ENUM(BITVECTOR_LSHR, cvc5::Kind::BITVECTOR_LSHR),
+        KIND_ENUM(BITVECTOR_ASHR, cvc5::Kind::BITVECTOR_ASHR),
+        KIND_ENUM(BITVECTOR_ULT, cvc5::Kind::BITVECTOR_ULT),
+        KIND_ENUM(BITVECTOR_ULE, cvc5::Kind::BITVECTOR_ULE),
+        KIND_ENUM(BITVECTOR_UGT, cvc5::Kind::BITVECTOR_UGT),
+        KIND_ENUM(BITVECTOR_UGE, cvc5::Kind::BITVECTOR_UGE),
+        KIND_ENUM(BITVECTOR_SLT, cvc5::Kind::BITVECTOR_SLT),
+        KIND_ENUM(BITVECTOR_SLE, cvc5::Kind::BITVECTOR_SLE),
+        KIND_ENUM(BITVECTOR_SGT, cvc5::Kind::BITVECTOR_SGT),
+        KIND_ENUM(BITVECTOR_SGE, cvc5::Kind::BITVECTOR_SGE),
+        KIND_ENUM(BITVECTOR_ULTBV, cvc5::Kind::BITVECTOR_ULTBV),
+        KIND_ENUM(BITVECTOR_SLTBV, cvc5::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(BITVECTOR_ITE, cvc5::Kind::BITVECTOR_ITE),
+        KIND_ENUM(BITVECTOR_REDOR, cvc5::Kind::BITVECTOR_REDOR),
+        KIND_ENUM(BITVECTOR_REDAND, cvc5::Kind::BITVECTOR_REDAND),
+        KIND_ENUM(BITVECTOR_EXTRACT, cvc5::Kind::BITVECTOR_EXTRACT),
+        KIND_ENUM(BITVECTOR_REPEAT, cvc5::Kind::BITVECTOR_REPEAT),
+        KIND_ENUM(BITVECTOR_ZERO_EXTEND, cvc5::Kind::BITVECTOR_ZERO_EXTEND),
+        KIND_ENUM(BITVECTOR_SIGN_EXTEND, cvc5::Kind::BITVECTOR_SIGN_EXTEND),
+        KIND_ENUM(BITVECTOR_ROTATE_LEFT, cvc5::Kind::BITVECTOR_ROTATE_LEFT),
+        KIND_ENUM(BITVECTOR_ROTATE_RIGHT, cvc5::Kind::BITVECTOR_ROTATE_RIGHT),
+        KIND_ENUM(INT_TO_BITVECTOR, cvc5::Kind::INT_TO_BITVECTOR),
+        KIND_ENUM(BITVECTOR_TO_NAT, cvc5::Kind::BITVECTOR_TO_NAT),
+        /* FP --------------------------------------------------------------- */
+        KIND_ENUM(CONST_FLOATINGPOINT, cvc5::Kind::CONST_FLOATINGPOINT),
+        KIND_ENUM(CONST_ROUNDINGMODE, cvc5::Kind::CONST_ROUNDINGMODE),
+        KIND_ENUM(FLOATINGPOINT_FP, cvc5::Kind::FLOATINGPOINT_FP),
+        KIND_ENUM(FLOATINGPOINT_EQ, cvc5::Kind::FLOATINGPOINT_EQ),
+        KIND_ENUM(FLOATINGPOINT_ABS, cvc5::Kind::FLOATINGPOINT_ABS),
+        KIND_ENUM(FLOATINGPOINT_NEG, cvc5::Kind::FLOATINGPOINT_NEG),
+        KIND_ENUM(FLOATINGPOINT_ADD, cvc5::Kind::FLOATINGPOINT_ADD),
+        KIND_ENUM(FLOATINGPOINT_SUB, cvc5::Kind::FLOATINGPOINT_SUB),
+        KIND_ENUM(FLOATINGPOINT_MULT, cvc5::Kind::FLOATINGPOINT_MULT),
+        KIND_ENUM(FLOATINGPOINT_DIV, cvc5::Kind::FLOATINGPOINT_DIV),
+        KIND_ENUM(FLOATINGPOINT_FMA, cvc5::Kind::FLOATINGPOINT_FMA),
+        KIND_ENUM(FLOATINGPOINT_SQRT, cvc5::Kind::FLOATINGPOINT_SQRT),
+        KIND_ENUM(FLOATINGPOINT_REM, cvc5::Kind::FLOATINGPOINT_REM),
+        KIND_ENUM(FLOATINGPOINT_RTI, cvc5::Kind::FLOATINGPOINT_RTI),
+        KIND_ENUM(FLOATINGPOINT_MIN, cvc5::Kind::FLOATINGPOINT_MIN),
+        KIND_ENUM(FLOATINGPOINT_MAX, cvc5::Kind::FLOATINGPOINT_MAX),
+        KIND_ENUM(FLOATINGPOINT_LEQ, cvc5::Kind::FLOATINGPOINT_LEQ),
+        KIND_ENUM(FLOATINGPOINT_LT, cvc5::Kind::FLOATINGPOINT_LT),
+        KIND_ENUM(FLOATINGPOINT_GEQ, cvc5::Kind::FLOATINGPOINT_GEQ),
+        KIND_ENUM(FLOATINGPOINT_GT, cvc5::Kind::FLOATINGPOINT_GT),
+        KIND_ENUM(FLOATINGPOINT_IS_NORMAL, cvc5::Kind::FLOATINGPOINT_IS_NORMAL),
+        KIND_ENUM(FLOATINGPOINT_IS_SUBNORMAL,
+                  cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL),
+        KIND_ENUM(FLOATINGPOINT_IS_ZERO, cvc5::Kind::FLOATINGPOINT_IS_ZERO),
+        KIND_ENUM(FLOATINGPOINT_IS_INF, cvc5::Kind::FLOATINGPOINT_IS_INF),
+        KIND_ENUM(FLOATINGPOINT_IS_NAN, cvc5::Kind::FLOATINGPOINT_IS_NAN),
+        KIND_ENUM(FLOATINGPOINT_IS_NEG, cvc5::Kind::FLOATINGPOINT_IS_NEG),
+        KIND_ENUM(FLOATINGPOINT_IS_POS, cvc5::Kind::FLOATINGPOINT_IS_POS),
+        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_FP,
+                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP),
+        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV),
+        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_REAL,
+                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL),
+        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_SBV,
+                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV),
+        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_UBV,
+                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV),
+        KIND_ENUM(FLOATINGPOINT_TO_FP_GENERIC,
+                  cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC),
+        KIND_ENUM(FLOATINGPOINT_TO_UBV, cvc5::Kind::FLOATINGPOINT_TO_UBV),
+        KIND_ENUM(FLOATINGPOINT_TO_SBV, cvc5::Kind::FLOATINGPOINT_TO_SBV),
+        KIND_ENUM(FLOATINGPOINT_TO_REAL, cvc5::Kind::FLOATINGPOINT_TO_REAL),
+        /* Arrays ----------------------------------------------------------- */
+        KIND_ENUM(SELECT, cvc5::Kind::SELECT),
+        KIND_ENUM(STORE, cvc5::Kind::STORE),
+        KIND_ENUM(CONST_ARRAY, cvc5::Kind::STORE_ALL),
+        KIND_ENUM(EQ_RANGE, cvc5::Kind::EQ_RANGE),
+        /* Datatypes -------------------------------------------------------- */
+        KIND_ENUM(APPLY_SELECTOR, cvc5::Kind::APPLY_SELECTOR),
+        KIND_ENUM(APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR),
+        KIND_ENUM(APPLY_TESTER, cvc5::Kind::APPLY_TESTER),
+        KIND_ENUM(APPLY_UPDATER, cvc5::Kind::APPLY_UPDATER),
+        KIND_ENUM(DT_SIZE, cvc5::Kind::DT_SIZE),
+        KIND_ENUM(MATCH, cvc5::Kind::MATCH),
+        KIND_ENUM(MATCH_CASE, cvc5::Kind::MATCH_CASE),
+        KIND_ENUM(MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE),
+        KIND_ENUM(TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT),
+        /* Separation Logic ------------------------------------------------- */
+        KIND_ENUM(SEP_NIL, cvc5::Kind::SEP_NIL),
+        KIND_ENUM(SEP_EMP, cvc5::Kind::SEP_EMP),
+        KIND_ENUM(SEP_PTO, cvc5::Kind::SEP_PTO),
+        KIND_ENUM(SEP_STAR, cvc5::Kind::SEP_STAR),
+        KIND_ENUM(SEP_WAND, cvc5::Kind::SEP_WAND),
+        /* Sets ------------------------------------------------------------- */
+        KIND_ENUM(SET_EMPTY, cvc5::Kind::SET_EMPTY),
+        KIND_ENUM(SET_UNION, cvc5::Kind::SET_UNION),
+        KIND_ENUM(SET_INTER, cvc5::Kind::SET_INTER),
+        KIND_ENUM(SET_MINUS, cvc5::Kind::SET_MINUS),
+        KIND_ENUM(SET_SUBSET, cvc5::Kind::SET_SUBSET),
+        KIND_ENUM(SET_MEMBER, cvc5::Kind::SET_MEMBER),
+        KIND_ENUM(SET_SINGLETON, cvc5::Kind::SET_SINGLETON),
+        KIND_ENUM(SET_INSERT, cvc5::Kind::SET_INSERT),
+        KIND_ENUM(SET_CARD, cvc5::Kind::SET_CARD),
+        KIND_ENUM(SET_COMPLEMENT, cvc5::Kind::SET_COMPLEMENT),
+        KIND_ENUM(SET_UNIVERSE, cvc5::Kind::SET_UNIVERSE),
+        KIND_ENUM(SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION),
+        KIND_ENUM(SET_CHOOSE, cvc5::Kind::SET_CHOOSE),
+        KIND_ENUM(SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON),
+        KIND_ENUM(SET_MAP, cvc5::Kind::SET_MAP),
+        /* Relations -------------------------------------------------------- */
+        KIND_ENUM(RELATION_JOIN, cvc5::Kind::RELATION_JOIN),
+        KIND_ENUM(RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT),
+        KIND_ENUM(RELATION_TRANSPOSE, cvc5::Kind::RELATION_TRANSPOSE),
+        KIND_ENUM(RELATION_TCLOSURE, cvc5::Kind::RELATION_TCLOSURE),
+        KIND_ENUM(RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE),
+        KIND_ENUM(RELATION_IDEN, cvc5::Kind::RELATION_IDEN),
+        /* Bags ------------------------------------------------------------- */
+        KIND_ENUM(BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX),
+        KIND_ENUM(BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT),
+        KIND_ENUM(BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN),
+        KIND_ENUM(BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT),
+        KIND_ENUM(BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE),
+        KIND_ENUM(BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG),
+        KIND_ENUM(BAG_COUNT, cvc5::Kind::BAG_COUNT),
+        KIND_ENUM(BAG_MEMBER, cvc5::Kind::BAG_MEMBER),
+        KIND_ENUM(BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL),
+        KIND_ENUM(BAG_MAKE, cvc5::Kind::BAG_MAKE),
+        KIND_ENUM(BAG_EMPTY, cvc5::Kind::BAG_EMPTY),
+        KIND_ENUM(BAG_CARD, cvc5::Kind::BAG_CARD),
+        KIND_ENUM(BAG_CHOOSE, cvc5::Kind::BAG_CHOOSE),
+        KIND_ENUM(BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON),
+        KIND_ENUM(BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET),
+        KIND_ENUM(BAG_TO_SET, cvc5::Kind::BAG_TO_SET),
+        KIND_ENUM(BAG_MAP, cvc5::Kind::BAG_MAP),
+        KIND_ENUM(BAG_FILTER, cvc5::Kind::BAG_FILTER),
+        KIND_ENUM(BAG_FOLD, cvc5::Kind::BAG_FOLD),
+        KIND_ENUM(TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT),
+        /* Strings ---------------------------------------------------------- */
+        KIND_ENUM(STRING_CONCAT, cvc5::Kind::STRING_CONCAT),
+        KIND_ENUM(STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP),
+        KIND_ENUM(STRING_LENGTH, cvc5::Kind::STRING_LENGTH),
+        KIND_ENUM(STRING_SUBSTR, cvc5::Kind::STRING_SUBSTR),
+        KIND_ENUM(STRING_UPDATE, cvc5::Kind::STRING_UPDATE),
+        KIND_ENUM(STRING_CHARAT, cvc5::Kind::STRING_CHARAT),
+        KIND_ENUM(STRING_CONTAINS, cvc5::Kind::STRING_CONTAINS),
+        KIND_ENUM(STRING_INDEXOF, cvc5::Kind::STRING_INDEXOF),
+        KIND_ENUM(STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE),
+        KIND_ENUM(STRING_REPLACE, cvc5::Kind::STRING_REPLACE),
+        KIND_ENUM(STRING_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL),
+        KIND_ENUM(STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE),
+        KIND_ENUM(STRING_REPLACE_RE_ALL, cvc5::Kind::STRING_REPLACE_RE_ALL),
+        KIND_ENUM(STRING_TOLOWER, cvc5::Kind::STRING_TOLOWER),
+        KIND_ENUM(STRING_TOUPPER, cvc5::Kind::STRING_TOUPPER),
+        KIND_ENUM(STRING_REV, cvc5::Kind::STRING_REV),
+        KIND_ENUM(STRING_FROM_CODE, cvc5::Kind::STRING_FROM_CODE),
+        KIND_ENUM(STRING_TO_CODE, cvc5::Kind::STRING_TO_CODE),
+        KIND_ENUM(STRING_LT, cvc5::Kind::STRING_LT),
+        KIND_ENUM(STRING_LEQ, cvc5::Kind::STRING_LEQ),
+        KIND_ENUM(STRING_PREFIX, cvc5::Kind::STRING_PREFIX),
+        KIND_ENUM(STRING_SUFFIX, cvc5::Kind::STRING_SUFFIX),
+        KIND_ENUM(STRING_IS_DIGIT, cvc5::Kind::STRING_IS_DIGIT),
+        KIND_ENUM(STRING_FROM_INT, cvc5::Kind::STRING_ITOS),
+        KIND_ENUM(STRING_TO_INT, cvc5::Kind::STRING_STOI),
+        KIND_ENUM(CONST_STRING, cvc5::Kind::CONST_STRING),
+        KIND_ENUM(STRING_TO_REGEXP, cvc5::Kind::STRING_TO_REGEXP),
+        KIND_ENUM(REGEXP_CONCAT, cvc5::Kind::REGEXP_CONCAT),
+        KIND_ENUM(REGEXP_UNION, cvc5::Kind::REGEXP_UNION),
+        KIND_ENUM(REGEXP_INTER, cvc5::Kind::REGEXP_INTER),
+        KIND_ENUM(REGEXP_DIFF, cvc5::Kind::REGEXP_DIFF),
+        KIND_ENUM(REGEXP_STAR, cvc5::Kind::REGEXP_STAR),
+        KIND_ENUM(REGEXP_PLUS, cvc5::Kind::REGEXP_PLUS),
+        KIND_ENUM(REGEXP_OPT, cvc5::Kind::REGEXP_OPT),
+        KIND_ENUM(REGEXP_RANGE, cvc5::Kind::REGEXP_RANGE),
+        KIND_ENUM(REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT),
+        KIND_ENUM(REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP),
+        KIND_ENUM(REGEXP_NONE, cvc5::Kind::REGEXP_NONE),
+        KIND_ENUM(REGEXP_ALL, cvc5::Kind::REGEXP_ALL),
+        KIND_ENUM(REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR),
+        KIND_ENUM(REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT),
+        // maps to the same kind as the string versions
+        KIND_ENUM(SEQ_CONCAT, cvc5::Kind::STRING_CONCAT),
+        KIND_ENUM(SEQ_LENGTH, cvc5::Kind::STRING_LENGTH),
+        KIND_ENUM(SEQ_EXTRACT, cvc5::Kind::STRING_SUBSTR),
+        KIND_ENUM(SEQ_UPDATE, cvc5::Kind::STRING_UPDATE),
+        KIND_ENUM(SEQ_AT, cvc5::Kind::STRING_CHARAT),
+        KIND_ENUM(SEQ_CONTAINS, cvc5::Kind::STRING_CONTAINS),
+        KIND_ENUM(SEQ_INDEXOF, cvc5::Kind::STRING_INDEXOF),
+        KIND_ENUM(SEQ_REPLACE, cvc5::Kind::STRING_REPLACE),
+        KIND_ENUM(SEQ_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL),
+        KIND_ENUM(SEQ_REV, cvc5::Kind::STRING_REV),
+        KIND_ENUM(SEQ_PREFIX, cvc5::Kind::STRING_PREFIX),
+        KIND_ENUM(SEQ_SUFFIX, cvc5::Kind::STRING_SUFFIX),
+        KIND_ENUM(CONST_SEQUENCE, cvc5::Kind::CONST_SEQUENCE),
+        KIND_ENUM(SEQ_UNIT, cvc5::Kind::SEQ_UNIT),
+        KIND_ENUM(SEQ_NTH, cvc5::Kind::SEQ_NTH),
+        /* Quantifiers ------------------------------------------------------ */
+        KIND_ENUM(FORALL, cvc5::Kind::FORALL),
+        KIND_ENUM(EXISTS, cvc5::Kind::EXISTS),
+        KIND_ENUM(VARIABLE_LIST, cvc5::Kind::BOUND_VAR_LIST),
+        KIND_ENUM(INST_PATTERN, cvc5::Kind::INST_PATTERN),
+        KIND_ENUM(INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN),
+        KIND_ENUM(INST_POOL, cvc5::Kind::INST_POOL),
+        KIND_ENUM(INST_ADD_TO_POOL, cvc5::Kind::INST_ADD_TO_POOL),
+        KIND_ENUM(SKOLEM_ADD_TO_POOL, cvc5::Kind::SKOLEM_ADD_TO_POOL),
+        KIND_ENUM(INST_ATTRIBUTE, cvc5::Kind::INST_ATTRIBUTE),
+        KIND_ENUM(INST_PATTERN_LIST, cvc5::Kind::INST_PATTERN_LIST),
+        KIND_ENUM(LAST_KIND, cvc5::Kind::LAST_KIND),
+    };
 
 /* Mapping from internal kind to external (API) kind. */
 const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
@@ -731,7 +744,7 @@ cvc5::Kind extToIntKind(cvc5::api::Kind k)
   {
     return cvc5::Kind::UNDEFINED_KIND;
   }
-  return it->second;
+  return it->second.first;
 }
 
 /** Return true if given kind is a defined external kind. */
@@ -797,24 +810,17 @@ uint32_t maxArity(Kind k)
 
 std::string kindToString(Kind k)
 {
-  return k == INTERNAL_KIND ? "INTERNAL_KIND"
-                            : cvc5::kind::kindToString(extToIntKind(k));
-}
-
-const char* toString(Kind k)
-{
-  return k == INTERNAL_KIND ? "INTERNAL_KIND"
-                            : cvc5::kind::toString(extToIntKind(k));
+  auto it = s_kinds.find(k);
+  if (it == s_kinds.end())
+  {
+    return "UNDEFINED_KIND";
+  }
+  return it->second.second;
 }
 
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
-  switch (k)
-  {
-    case INTERNAL_KIND: out << "INTERNAL_KIND"; break;
-    default: out << extToIntKind(k);
-  }
-  return out;
+  return out << kindToString(k);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1346,15 +1352,6 @@ bool Sort::isSortConstructor() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isFirstClass() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_type->isFirstClass();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1373,9 +1370,12 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_CHECK_DOMAIN_SORTS(params);
   CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
-  CVC5_API_CHECK(isSortConstructor()
+  CVC5_API_CHECK(!isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
       << "Arity mismatch for instantiated parametric datatype";
+  CVC5_API_CHECK(!isSortConstructor()
+                 || d_type->getSortConstructorArity() == params.size())
+      << "Arity mismatch for instantiated sort constructor";
   //////// all checks before this line
   std::vector<cvc5::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
@@ -6188,7 +6188,7 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
 }
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
-                                    Sort param,
+                                    const Sort& param,
                                     bool isCoDatatype)
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7252,7 +7252,7 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot get value unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_RECOVERABLE_CHECK(term.getSort().isFirstClass())
+  CVC5_API_RECOVERABLE_CHECK(term.getSort().getTypeNode().isFirstClass())
       << "Cannot get value of a term that is not first class.";
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
@@ -7274,7 +7274,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
       << "Cannot get value unless after a SAT or UNKNOWN response.";
   for (const Term& t : terms)
   {
-    CVC5_API_RECOVERABLE_CHECK(t.getSort().isFirstClass())
+    CVC5_API_RECOVERABLE_CHECK(t.getSort().getTypeNode().isFirstClass())
         << "Cannot get value of a term that is not first class.";
     CVC5_API_RECOVERABLE_CHECK(!t.getSort().isDatatype()
                                || t.getSort().getDatatype().isWellFounded())
