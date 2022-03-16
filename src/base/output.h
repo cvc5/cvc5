@@ -109,7 +109,7 @@ class Cvc5ostream
   template <class T>
   Cvc5ostream& operator<<(T const& t)
   {
-    if (d_os != NULL)
+    if (d_os != nullptr)
     {
       if (d_firstColumn)
       {
