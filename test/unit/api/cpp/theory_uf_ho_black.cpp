@@ -13,8 +13,8 @@
  * Blackbox tests using the API targeting UF + higher-order.
  */
 
-#include "test_api.h"
 #include "base/configuration.h"
+#include "test_api.h"
 
 namespace cvc5 {
 

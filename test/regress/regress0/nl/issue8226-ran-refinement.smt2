@@ -1,4 +1,5 @@
 ;; needs --check-models, as --debug-check-models does not trigger the issue
+; REQUIRES: poly
 ; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic QF_NRA)

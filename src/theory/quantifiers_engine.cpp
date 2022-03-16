@@ -507,6 +507,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     //output debug stats
     d_qim.getInstantiate()->debugPrintModel();
   }
+  d_qim.clearPending();
 }
 
 void QuantifiersEngine::notifyCombineTheories() {

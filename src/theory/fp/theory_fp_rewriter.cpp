@@ -389,7 +389,7 @@ namespace rewrite {
   RewriteResponse toFPSignedBV(TNode node, bool isPreRewrite)
   {
     Assert(!isPreRewrite);
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
     /* symFPU does not allow conversions from signed bit-vector of size 1 */
     if (node[1].getType().getBitVectorSize() == 1)
@@ -778,7 +778,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromIEEEBitVectorLiteral(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
 
     TNode op = node.getOperator();
     const FloatingPointToFPIEEEBitVector &param = op.getConst<FloatingPointToFPIEEEBitVector>();
@@ -794,7 +794,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse constantConvert(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_FP);
     Assert(node.getNumChildren() == 2);
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -808,7 +808,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromRealLiteral(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -826,7 +826,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromSBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -854,7 +854,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromUBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_UBV);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -1174,15 +1174,11 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_preRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
 
   /******** Conversions ********/
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
-      rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
@@ -1265,15 +1261,13 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_postRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
 
   /******** Conversions ********/
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
       rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
-      rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
       rewrite::toFPSignedBV;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
-      rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] =
       rewrite::removeToFPGeneric;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
@@ -1352,15 +1346,15 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_constantFoldTable[kind::FLOATINGPOINT_IS_POS] = constantFold::isPositive;
 
   /******** Conversions ********/
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
       constantFold::convertFromIEEEBitVectorLiteral;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] =
       constantFold::constantConvert;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_REAL] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] =
       constantFold::convertFromRealLiteral;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
       constantFold::convertFromSBV;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] =
       constantFold::convertFromUBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;

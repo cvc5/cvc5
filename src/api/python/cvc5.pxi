@@ -603,24 +603,6 @@ cdef class Result:
         """
         return self.cr.isSatUnknown()
 
-    def isEntailed(self):
-        """
-            :return: True if corresponding query was an entailed :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query.
-        """
-        return self.cr.isEntailed()
-
-    def isNotEntailed(self):
-        """
-            :return: True if corresponding query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query that is not entailed.
-        """
-        return self.cr.isNotEntailed()
-
-    def isEntailmentUnknown(self):
-        """
-            :return: True if query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query  query and cvc5 was not able to determine if it is entailed.
-        """
-        return self.cr.isEntailmentUnknown()
-
     def getUnknownExplanation(self):
         """
             :return: an explanation for an unknown query result.
@@ -1761,21 +1743,6 @@ cdef class Solver:
         r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
         return r
 
-    @expand_list_arg(num_req_args=0)
-    def checkEntailed(self, *assumptions):
-        """Check entailment of the given formula w.r.t. the current set of assertions.
-
-        :param terms: the formulas to check entailment for, as a list or as distinct arguments
-        :return: the result of the entailment check.
-        """
-        cdef Result r = Result()
-        # used if assumptions is a list of terms
-        cdef vector[c_Term] v
-        for a in assumptions:
-            v.push_back((<Term?> a).cterm)
-        r.cr = self.csolver.checkEntailed(<const vector[c_Term]&> v)
-        return r
-
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         """
@@ -1943,6 +1910,23 @@ cdef class Solver:
         for t in terms:
             vf.push_back((<Term?> t).cterm)
 
+    def getProof(self):
+        """Get the refutation proof
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
+        
+           (get-proof)
+
+        Requires to enable option
+        :ref:`produce-proofs <lbl-option-produce-proofs>`.
+
+        :return: a string representing the proof, according to the value of
+                 proof-format-mode.
+        """
+        return self.csolver.getProof()
+
     def getLearnedLiterals(self):
         """Get a list of literals that are entailed by the current set of assertions
 
@@ -2100,6 +2084,36 @@ cdef class Solver:
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
+    def getModel(self, sorts, consts):
+        """Get the model
+
+        SMT-LIB:
+
+        .. code:: smtlib
+        
+            (get-model)
+
+        Requires to enable option
+        :ref:`produce-models <lbl-option-produce-models>`.
+   
+        :param sorts: The list of uninterpreted sorts that should be printed in
+                      the model.
+        :param vars: The list of free constants that should be printed in the
+                     model. A subset of these may be printed based on
+                     isModelCoreSymbol.
+        :return: a string representing the model.
+        """
+
+        cdef vector[c_Sort] csorts
+        for sort in sorts:
+            csorts.push_back((<Sort?> sort).csort)
+
+        cdef vector[c_Term] cconsts
+        for const in consts:
+            cconsts.push_back((<Term?> const).cterm)
+
+        return self.csolver.getModel(csorts, cconsts)
+
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
@@ -2229,6 +2243,7 @@ cdef class Solver:
         """
         self.csolver.setOption(option.encode(), value.encode())
 
+
     def getInterpolant(self, Term conj, *args):
         """Get an interpolant.
 
@@ -2243,27 +2258,25 @@ cdef class Solver:
 
         Supports the following variants:
 
-        - ``bool getInteprolant(Term conj, Term output)``
-        - ``bool getInteprolant(Term conj, Grammar grammar, Term output)``
+        - ``Term getInteprolant(Term conj)``
+        - ``Term getInteprolant(Term conj, Grammar grammar)``
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
         :param grammar: a grammar for the inteprolant
         :return: True iff an interpolant was found
         """
-        result = False
-        if len(args) == 1:
-            assert isinstance(args[0], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Term ?> args[0]).cterm)
+        cdef Term result = Term(self)
+        if len(args) == 0:
+            result.cterm = self.csolver.getInterpolant(conj.cterm)
         else:
-            assert len(args) == 2
+            assert len(args) == 1
             assert isinstance(args[0], Grammar)
-            assert isinstance(args[1], Term)
-            result = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+            result.cterm = self.csolver.getInterpolant(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
 
-    def getInterpolantNext(self, Term output):
+    def getInterpolantNext(self):
         """
         Get the next interpolant. Can only be called immediately after
         a succesful call to get-interpol or get-interpol-next. 
@@ -2282,7 +2295,8 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found
         """
-        result = self.csolver.getInterpolantNext(output.cterm)
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.getInterpolantNext()
         return result
         
     def getAbduct(self, Term conj, *args):
@@ -2299,26 +2313,24 @@ cdef class Solver:
 
         Supports the following variants:
 
-        - ``bool getAbduct(Term conj, Term output)``
-        - ``bool getAbduct(Term conj, Grammar grammar, Term output)``
+        - ``Term getAbduct(Term conj)``
+        - ``Term getAbduct(Term conj, Grammar grammar)``
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
         :param grammar: a grammar for the abduct 
         :return: True iff an abduct was found
         """
-        result = False
-        if len(args) == 1:
-            assert isinstance(args[0], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Term ?> args[0]).cterm)
+        cdef Term result = Term(self)
+        if len(args) == 0:
+            result.cterm  = self.csolver.getAbduct(conj.cterm)
         else:
-            assert len(args) == 2
+            assert len(args) == 1
             assert isinstance(args[0], Grammar)
-            assert isinstance(args[1], Term)
-            result = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar, (<Term ?> args[1]).cterm)
+            result.cterm = self.csolver.getAbduct(conj.cterm, (<Grammar ?> args[0]).cgrammar)
         return result
 
-    def getAbductNext(self, Term output):
+    def getAbductNext(self):
         """
         Get the next abduct. Can only be called immediately after
         a succesful call to get-abduct or get-abduct-next. 
@@ -2336,7 +2348,8 @@ cdef class Solver:
         :param output: the term where the result will be stored
         :return: True iff an abduct was found
         """
-        result = self.csolver.getAbductNext(output.cterm)
+        cdef Term result = Term(self)
+        result.cterm  = self.csolver.getAbductNext()
         return result
 
     def blockModel(self):
@@ -2376,6 +2389,13 @@ cdef class Solver:
         for t in terms:
             nts.push_back((<Term?> t).cterm)
         self.csolver.blockModelValues(nts)
+
+    def getInstantiations(self):
+        """
+        Return a string that contains information about all instantiations made
+        by the quantifiers module.
+        """
+        return self.csolver.getInstantiations()
 
 
 cdef class Sort:
@@ -2625,45 +2645,6 @@ cdef class Sort:
         """
         return self.csort.isSortConstructor()
 
-    def isFirstClass(self):
-        """
-            Is this a first-class sort?
-            First-class sorts are sorts for which:
-
-            1. we handle equalities between terms of that type, and
-            2. they are allowed to be parameters of parametric sorts
-               (e.g. index or element sorts of arrays).
-
-            Examples of sorts that are not first-class include sort constructor
-            sorts and regular expression sorts.
-
-            :return: True if the sort is a first-class sort.
-        """
-        return self.csort.isFirstClass()
-
-    def isFunctionLike(self):
-        """
-        Is this a function-LIKE sort?
-
-        Anything function-like except arrays (e.g., datatype selectors) is
-        considered a function here. Function-like terms can not be the argument
-        or return value for any term that is function-like.
-        This is mainly to avoid higher order.
-
-        .. note:: Arrays are explicitly not considered function-like here.
-
-        :return: True if this is a function-like sort
-        """
-        return self.csort.isFunctionLike()
-
-    def isSubsortOf(self, Sort sort):
-        """
-            Is this sort a subsort of the given sort?
-
-	    :return: True if this sort is a subsort of s
-        """
-        return self.csort.isSubsortOf(sort.csort)
-
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort
@@ -2855,12 +2836,6 @@ cdef class Sort:
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
-    def getUninterpretedSortName(self):
-        """
-            :return: the name of an uninterpreted sort
-        """
-        return self.csort.getUninterpretedSortName().decode()
-
     def isUninterpretedSortParameterized(self):
         """
             :return: True if an uninterpreted sort is parameterized
@@ -2877,12 +2852,6 @@ cdef class Sort:
             sort.csort = s
             param_sorts.append(sort)
         return param_sorts
-
-    def getSortConstructorName(self):
-        """
-            :return: the name of a sort constructor sort
-        """
-        return self.csort.getSortConstructorName().decode()
 
     def getSortConstructorArity(self):
         """

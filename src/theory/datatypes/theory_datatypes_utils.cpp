@@ -36,8 +36,8 @@ Node getInstCons(Node n, const DType& dt, size_t index)
   TypeNode tn = n.getType();
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
-    Node nc = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal(tn, i), n);
+    Node nc =
+        nm->mkNode(APPLY_SELECTOR, dt[index].getSelectorInternal(tn, i), n);
     children.push_back(nc);
   }
   Node n_ic = mkApplyCons(tn, dt, index, children);
@@ -77,7 +77,7 @@ int isInstCons(Node t, Node n, const DType& dt)
     TypeNode tn = n.getType();
     for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
-      if (n[i].getKind() != APPLY_SELECTOR_TOTAL
+      if (n[i].getKind() != APPLY_SELECTOR
           || n[i].getOperator() != c.getSelectorInternal(tn, i) || n[i][0] != t)
       {
         return -1;

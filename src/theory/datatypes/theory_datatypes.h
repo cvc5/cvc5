@@ -149,8 +149,6 @@ private:
   BoolMap d_collectTermsCacheU;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionTerms;
-  /** counter for forcing assignments (ensures fairness) */
-  unsigned d_dtfCounter;
   /** uninterpreted constant to variable map */
   std::map< Node, Node > d_uc_to_fresh_var;
 private:

@@ -79,6 +79,9 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
     {
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
+      Trace("model-builder-debug")
+          << "...return " << normalized
+          << ", isValue=" << m->isValue(normalized) << std::endl;
       if (m->isValue(normalized))
       {
         return normalized;
@@ -127,7 +130,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL
+  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR
       || n.getKind() == kind::SEQ_NTH_TOTAL || n.getKind() == kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
@@ -801,9 +804,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             Assert(assertedReps.find(*i) != assertedReps.end());
             Node rep = assertedReps[*i];
             Node normalized = normalize(tm, rep, false);
-            Trace("model-builder") << "    Normalizing rep (" << rep
-                                   << "), normalized to (" << normalized << ")"
-                                   << endl;
+            Trace("model-builder")
+                << "    Normalizing rep (" << rep << "), normalized to ("
+                << normalized << ")"
+                << ", isValue=" << tm->isValue(normalized) << std::endl;
             if (tm->isValue(normalized))
             {
               changed = true;
@@ -1200,8 +1204,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     {
       children.push_back(r.getOperator());
     }
-    bool childrenConst = true;
-    for (size_t i = 0; i < r.getNumChildren(); ++i)
+    for (size_t i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
       Node ri = r[i];
       bool recurse = true;
@@ -1231,18 +1234,11 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
         {
           ri = normalize(m, ri, evalOnly);
         }
-        if (!m->isValue(ri))
-        {
-          childrenConst = false;
-        }
       }
       children.push_back(ri);
     }
     retNode = NodeManager::currentNM()->mkNode(r.getKind(), children);
-    if (childrenConst)
-    {
-      retNode = rewrite(retNode);
-    }
+    retNode = rewrite(retNode);
   }
   d_normalizedCache[r] = retNode;
   return retNode;

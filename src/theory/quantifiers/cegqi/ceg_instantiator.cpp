@@ -232,7 +232,7 @@ void CegInstantiator::computeProgVars( Node n ){
       d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
     }
     // selectors applied to program variables are also variables
-    if (n.getKind() == APPLY_SELECTOR_TOTAL
+    if (n.getKind() == APPLY_SELECTOR
         && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
     {
       d_prog_var[n].insert(n);
@@ -680,12 +680,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
-  Node pv_value;
-  if (options().quantifiers.cegqiModel)
-  {
-    pv_value = getModelValue(pv);
-    Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
-  }
+  Node pv_value = getModelValue(pv);
+  Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv
@@ -873,7 +869,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         {
           lits.insert(lit);
           Node plit;
-          if (options().quantifiers.cegqiRepeatLit || !isSolvedAssertion(lit))
+          if (!isSolvedAssertion(lit))
           {
             plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
           }

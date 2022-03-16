@@ -291,7 +291,7 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
   for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {
     Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(d_mpat_type, i), curr);
+        APPLY_SELECTOR, dt[0].getSelectorInternal(d_mpat_type, i), curr);
     children.push_back(sel);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, children);
@@ -316,12 +316,12 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
   if (mpatExp.getKind() == ITE)
   {
-    Assert(mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
+    Assert(mpatExp[1].getKind() == APPLY_SELECTOR);
     Assert(mpatExp[2].getKind() == APPLY_UF);
     d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[1]);
     d_ufOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[2]);
   }
-  else if (mpatExp.getKind() == APPLY_SELECTOR_TOTAL)
+  else if (mpatExp.getKind() == APPLY_SELECTOR)
   {
     // corner case of datatype with one constructor
     d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);

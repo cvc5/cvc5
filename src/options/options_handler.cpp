@@ -203,7 +203,7 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
   {
     d_options->base.statisticsAll = false;
     d_options->base.statisticsEveryQuery = false;
-    d_options->base.statisticsExpert = false;
+    d_options->base.statisticsInternal = false;
   }
 }
 

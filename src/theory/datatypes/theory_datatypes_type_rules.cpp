@@ -118,8 +118,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check)
 {
-  Assert(n.getKind() == kind::APPLY_SELECTOR
-         || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
+  Assert(n.getKind() == kind::APPLY_SELECTOR);
   TypeNode selType = n.getOperator().getType(check);
   TypeNode t = selType[0];
   Assert(t.isDatatype());
