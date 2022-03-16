@@ -64,14 +64,9 @@ enum Kind : int32_t
   /* Builtin --------------------------------------------------------------- */
 
   /**
-   * Abstract value.
+   * The value of an uninterpreted constant.
    *
-   * Parameters:
-   *   - 1: Index of the abstract value
-   *
-   * Create with:
-   *   - `Solver::mkUninterpretedSortValue(const std::string& index) const`
-   *   - `Solver::mkUninterpretedSortValue(uint64_t index) const`
+   * May be exposed, but must not be created via the API.
    */
   UNINTERPRETED_SORT_VALUE,
 #if 0
