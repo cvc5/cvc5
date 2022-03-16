@@ -233,37 +233,6 @@ def test_is_sort_constructor(solver):
     Sort(solver).isSortConstructor()
 
 
-def test_is_first_class(solver):
-    fun_sort = solver.mkFunctionSort(solver.getRealSort(),
-                                     solver.getIntegerSort())
-    assert solver.getIntegerSort().isFirstClass()
-    assert fun_sort.isFirstClass()
-    reSort = solver.getRegExpSort()
-    assert not reSort.isFirstClass()
-    Sort(solver).isFirstClass()
-
-
-def test_is_function_like(solver):
-    fun_sort = solver.mkFunctionSort(solver.getRealSort(),
-                                     solver.getIntegerSort())
-    assert not solver.getIntegerSort().isFunctionLike()
-    assert fun_sort.isFunctionLike()
-
-    dt_sort = create_datatype_sort(solver)
-    dt = dt_sort.getDatatype()
-    cons_sort = dt[0][1].getSelectorTerm().getSort()
-    assert cons_sort.isFunctionLike()
-
-    Sort(solver).isFunctionLike()
-
-
-def test_is_subsort_of(solver):
-    assert solver.getIntegerSort().isSubsortOf(solver.getIntegerSort())
-    assert solver.getIntegerSort().isSubsortOf(solver.getRealSort())
-    assert not solver.getIntegerSort().isSubsortOf(solver.getBooleanSort())
-    Sort(solver).isSubsortOf(Sort(solver))
-
-
 def test_get_datatype(solver):
     dtypeSort = create_datatype_sort(solver)
     dtypeSort.getDatatype()
@@ -415,10 +384,10 @@ def test_get_sequence_element_sort(solver):
 
 def test_get_uninterpreted_sort_name(solver):
     uSort = solver.mkUninterpretedSort("u")
-    uSort.getUninterpretedSortName()
+    uSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getUninterpretedSortName()
+        bvSort.getSymbol()
 
 
 def test_is_uninterpreted_sort_parameterized(solver):
@@ -445,10 +414,10 @@ def test_get_uninterpreted_sort_paramsorts(solver):
 
 def test_get_uninterpreted_sort_constructor_name(solver):
     sSort = solver.mkSortConstructorSort("s", 2)
-    sSort.getSortConstructorName()
+    sSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getSortConstructorName()
+        bvSort.getSymbol()
 
 
 def test_get_uninterpreted_sort_constructor_arity(solver):
@@ -551,22 +520,6 @@ def test_sort_compare(solver):
     assert bvSort <= bvSort2
     assert (intSort > boolSort) != (intSort < boolSort)
     assert (intSort > bvSort or intSort == bvSort) == (intSort >= bvSort)
-
-
-def test_sort_subtyping(solver):
-    intSort = solver.getIntegerSort()
-    realSort = solver.getRealSort()
-    assert intSort.isSubsortOf(realSort)
-    assert not realSort.isSubsortOf(intSort)
-
-    arraySortII = solver.mkArraySort(intSort, intSort)
-    arraySortIR = solver.mkArraySort(intSort, realSort)
-
-    setSortI = solver.mkSetSort(intSort)
-    setSortR = solver.mkSetSort(realSort)
-    # we don't support subtyping for sets
-    assert not setSortI.isSubsortOf(setSortR)
-    assert not setSortR.isSubsortOf(setSortI)
 
 
 def test_sort_scoped_tostring(solver):

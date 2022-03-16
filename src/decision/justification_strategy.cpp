@@ -508,6 +508,7 @@ bool JustificationStrategy::needsActiveSkolemDefs() const
 
 void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
+  Trace("jh-assert") << "notifyActiveSkolemDefs: " << defs << std::endl;
   Assert(d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT);
   // assertion processed makes all skolems in assertion active,
   // which triggers their definitions to becoming relevant

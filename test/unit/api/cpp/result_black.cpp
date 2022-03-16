@@ -32,9 +32,6 @@ TEST_F(TestApiBlackResult, isNull)
   ASSERT_FALSE(res_null.isSat());
   ASSERT_FALSE(res_null.isUnsat());
   ASSERT_FALSE(res_null.isSatUnknown());
-  ASSERT_FALSE(res_null.isEntailed());
-  ASSERT_FALSE(res_null.isNotEntailed());
-  ASSERT_FALSE(res_null.isEntailmentUnknown());
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
@@ -88,35 +85,5 @@ TEST_F(TestApiBlackResult, isSatUnknown)
   ASSERT_TRUE(res.isSatUnknown());
 }
 
-TEST_F(TestApiBlackResult, isEntailed)
-{
-  d_solver.setOption("incremental", "true");
-  Sort u_sort = d_solver.mkUninterpretedSort("u");
-  Term x = d_solver.mkConst(u_sort, "x");
-  Term y = d_solver.mkConst(u_sort, "y");
-  Term a = x.eqTerm(y).notTerm();
-  Term b = x.eqTerm(y);
-  d_solver.assertFormula(a);
-  cvc5::api::Result entailed = d_solver.checkEntailed(a);
-  ASSERT_TRUE(entailed.isEntailed());
-  ASSERT_FALSE(entailed.isEntailmentUnknown());
-  cvc5::api::Result not_entailed = d_solver.checkEntailed(b);
-  ASSERT_TRUE(not_entailed.isNotEntailed());
-  ASSERT_FALSE(not_entailed.isEntailmentUnknown());
-}
-
-TEST_F(TestApiBlackResult, isEntailmentUnknown)
-{
-  d_solver.setLogic("QF_NIA");
-  d_solver.setOption("incremental", "false");
-  d_solver.setOption("solve-int-as-bv", "32");
-  Sort int_sort = d_solver.getIntegerSort();
-  Term x = d_solver.mkConst(int_sort, "x");
-  d_solver.assertFormula(x.eqTerm(x).notTerm());
-  cvc5::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
-  ASSERT_FALSE(res.isEntailed());
-  ASSERT_TRUE(res.isEntailmentUnknown());
-  ASSERT_EQ(res.getUnknownExplanation(), api::Result::UNKNOWN_REASON);
-}
 }  // namespace test
 }  // namespace cvc5

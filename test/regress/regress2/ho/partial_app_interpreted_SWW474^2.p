@@ -1,5 +1,5 @@
 % COMMAND-LINE: --full-saturate-quant --ho-elim
-% EXPECT: % SZS status Theorem for partial_app_interpreted_SWW474^2
+% EXPECT: % SZS status Unsatisfiable for partial_app_interpreted_SWW474^2
 
 %------------------------------------------------------------------------------
 % File     : SWW474^2 : TPTP v7.2.0. Released v5.3.0.

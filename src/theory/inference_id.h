@@ -185,7 +185,7 @@ enum class InferenceId
   BAGS_NON_NEGATIVE_COUNT,
   BAGS_BAG_MAKE,
   BAGS_BAG_MAKE_SPLIT,
-  BAGS_COUNT_SKOLEM,
+  BAGS_SKOLEM,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
@@ -201,6 +201,7 @@ enum class InferenceId
   BAGS_FILTER_UP,
   BAGS_FOLD,
   BAGS_CARD,
+  BAGS_CARD_EMPTY,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
   // ---------------------------------- end bags theory
@@ -481,6 +482,8 @@ enum class InferenceId
   //-------------------- sets cardinality solver
   // split on emptyset
   SETS_CARD_SPLIT_EMPTY,
+  // split on equality between two distinct Venn regions
+  SETS_CARD_SPLIT_EQ,
   // cycle of cardinalities, hence all sets have the same
   SETS_CARD_CYCLE,
   // two sets have the same cardinality

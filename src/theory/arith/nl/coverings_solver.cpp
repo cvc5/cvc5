@@ -244,9 +244,13 @@ bool CoveringsSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 
 void CoveringsSolver::addToModel(TNode var, TNode value) const
 {
-  Trace("nl-cov") << "-> " << var << " = " << value << std::endl;
   Assert(value.getType().isRealOrInt());
-  d_model.addSubstitution(var, value);
+  // we must take its substituted form here, since other solvers (e.g. the
+  // reductions inference of the sine solver) may have introduced substitutions
+  // internally during check.
+  Node svalue = d_model.getSubstitutedForm(value);
+  Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
+  d_model.addSubstitution(var, svalue);
 }
 
 }  // namespace nl

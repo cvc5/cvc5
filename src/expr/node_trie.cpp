@@ -16,7 +16,6 @@
 #include "expr/node_trie.h"
 
 namespace cvc5 {
-namespace theory {
 
 template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(
@@ -92,5 +91,4 @@ template void NodeTemplateTrie<false>::debugPrint(const char* c,
 template void NodeTemplateTrie<true>::debugPrint(const char* c,
                                                  unsigned depth) const;
 
-}  // namespace theory
 }  // namespace cvc5

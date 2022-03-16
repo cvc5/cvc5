@@ -957,6 +957,15 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   }
   else if (node[0].getKind() == REGEXP_UNION)
   {
+    for (const Node& nc : node[0])
+    {
+      if (nc.getKind() == REGEXP_ALLCHAR)
+      {
+        // (re.* (re.union ... re.allchar ...)) ---> (re.* re.allchar)
+        retNode = nm->mkNode(REGEXP_STAR, nc);
+        return returnRewrite(node, retNode, Rewrite::RE_STAR_UNION_CHAR);
+      }
+    }
     // simplification of unions under star
     if (RegExpEntail::hasEpsilonNode(node[0]))
     {

@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "decision/decision_engine_old.h"
 #include "decision/justification_strategy.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
@@ -87,11 +86,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(env));
-  }
-  else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
-           || dmode == options::DecisionMode::STOPONLY_OLD)
-  {
-    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {
@@ -172,11 +166,10 @@ TrustNode PropEngine::removeItes(TNode node,
 
 void PropEngine::assertInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
+    std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  d_theoryProxy->notifyInputFormulas(assertions, skolemMap, ppl);
+  d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
   for (const Node& node : assertions)
   {
     Debug("prop") << "assertFormula(" << node << ")" << std::endl;
@@ -273,15 +266,11 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
-  // assert to decision engine
+  // Assert to decision engine. Notice this must come before the calls to
+  // assertTrustedLemmaInternal below, since the decision engine requires
+  // setting up information about the relevance of skolems before literals
+  // are potentially asserted to the theory engine, which it listens to for
+  // tracking active skolem definitions.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -294,6 +283,14 @@ void PropEngine::assertLemmasInternal(
     {
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
+  }
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
 }
 

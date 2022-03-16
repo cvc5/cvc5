@@ -353,6 +353,11 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryArith::getModelValue(TNode var) {
+  std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
+  if (it != d_arithModelCache.end())
+  {
+    return it->second;
+  }
   return d_internal->getModelValue( var );
 }
 

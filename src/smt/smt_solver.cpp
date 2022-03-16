@@ -117,15 +117,14 @@ void SmtSolver::interrupt()
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
-                                      const std::vector<Node>& assumptions,
-                                      bool isEntailmentCheck)
+                                      const std::vector<Node>& assumptions)
 {
   Result result;
   try
   {
 
     // then, initialize the assertions
-    as.initializeCheckSat(assumptions, isEntailmentCheck);
+    as.initializeCheckSat(assumptions);
 
     // make the check, where notice smt engine should be fully inited by now
 
@@ -233,10 +232,12 @@ void SmtSolver::processAssertions(Assertions& as)
   {
     d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
-    const std::vector<Node>& ppl = d_pp.getLearnedLiterals();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter
-    // specially.
+    // specially. Note that we don't pass the preprocess learned literals
+    // d_pp.getLearnedLiterals() here, since they may not exactly correspond
+    // to the actual preprocessed learned literals, as the input may have
+    // undergone further preprocessing.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
     if (options().smt.deepRestart)
     {
@@ -263,7 +264,7 @@ void SmtSolver::processAssertions(Assertions& as)
       d_ppAssertions = assertions;
       d_ppSkolemMap = ism;
     }
-    d_propEngine->assertInputFormulas(assertions, ism, ppl);
+    d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions
