@@ -2645,22 +2645,6 @@ cdef class Sort:
         """
         return self.csort.isSortConstructor()
 
-    def isFirstClass(self):
-        """
-            Is this a first-class sort?
-            First-class sorts are sorts for which:
-
-            1. we handle equalities between terms of that type, and
-            2. they are allowed to be parameters of parametric sorts
-               (e.g. index or element sorts of arrays).
-
-            Examples of sorts that are not first-class include sort constructor
-            sorts and regular expression sorts.
-
-            :return: True if the sort is a first-class sort.
-        """
-        return self.csort.isFirstClass()
-
     def getDatatype(self):
         """
             :return: the underlying datatype of a datatype sort

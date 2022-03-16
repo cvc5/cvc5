@@ -110,17 +110,14 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 {
   Assert(node.getKind() == BAG_CHOOSE);
 
-  // (bag.choose A) is expanded as
-  // (witness ((x elementType))
-  //    (ite
-  //      (= A (as bag.empty (Bag E)))
-  //      (= x (uf A))
-  //      (and (>= (bag.count x A) 1) (= x (uf A)))
+  // (bag.choose A) is eliminated to k, with lemma
+  // (and (= k (uf A)) (or (= A (as bag.empty (Bag E))) (>= (bag.count k A) 1)))
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
   // of A
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  Node x = sm->mkPurifySkolem(node, "bagChoose");
   Node A = node[0];
   TypeNode bagType = A.getType();
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
@@ -128,21 +125,69 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, ufType, Node());
   Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
 
-  Node x = nm->mkBoundVar(bagType.getBagElementType());
-
   Node equal = x.eqNode(ufA);
   Node emptyBag = nm->mkConst(EmptyBag(bagType));
   Node isEmpty = A.eqNode(emptyBag);
   Node count = nm->mkNode(BAG_COUNT, x, A);
   Node one = nm->mkConstInt(Rational(1));
   Node geqOne = nm->mkNode(GEQ, count, one);
-  Node geqOneAndEqual = geqOne.andNode(equal);
-  Node ite = nm->mkNode(ITE, isEmpty, equal, geqOneAndEqual);
-  Node ret = sm->mkSkolem(x, ite, "kBagChoose");
-  lems.push_back(SkolemLemma(ret, nullptr));
+  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, geqOne));
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  lems.push_back(SkolemLemma(tlem, x));
   Trace("TheoryBags::ppRewrite")
-      << "ppRewrite(" << node << ") = " << ret << std::endl;
-  return TrustNode::mkTrustRewrite(node, ret, nullptr);
+      << "ppRewrite(" << node << ") = " << x << std::endl;
+  return TrustNode::mkTrustRewrite(node, x, nullptr);
+}
+
+void TheoryBags::initialize()
+{
+  d_state.reset();
+  d_state.collectDisequalBagTerms();
+  collectBagsAndCountTerms();
+}
+
+void TheoryBags::collectBagsAndCountTerms()
+{
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  eq::EqClassesIterator repIt = eq::EqClassesIterator(ee);
+  while (!repIt.isFinished())
+  {
+    Node eqc = (*repIt);
+    Trace("bags-eqc") << "Eqc [ " << eqc << " ] = { ";
+
+    if (eqc.getType().isBag())
+    {
+      d_state.registerBag(eqc);
+    }
+
+    eq::EqClassIterator it = eq::EqClassIterator(eqc, ee);
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      Trace("bags-eqc") << (*it) << " ";
+      Kind k = n.getKind();
+      if (k == BAG_MAKE)
+      {
+        // for terms (bag x c) we need to store x by registering the count term
+        // (bag.count x (bag x c))
+        NodeManager* nm = NodeManager::currentNM();
+        Node count = nm->mkNode(BAG_COUNT, n[0], n);
+        d_ig.registerCountTerm(count);
+      }
+      if (k == BAG_COUNT)
+      {
+        // this takes care of all count terms in each equivalent class
+        d_ig.registerCountTerm(n);
+      }
+      if (k == BAG_CARD)
+      {
+        d_ig.registerCardinalityTerm(n);
+      }
+      ++it;
+    }
+    Trace("bags-eqc") << " } " << std::endl;
+    ++repIt;
+  }
 }
 
 void TheoryBags::postCheck(Effort effort)
@@ -163,12 +208,8 @@ void TheoryBags::postCheck(Effort effort)
       d_im.reset();
       // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
-      std::vector<Node> lemmas = d_state.initialize();
+      initialize();
       d_cardSolver.reset();
-      for (Node lemma : lemmas)
-      {
-        d_im.lemma(lemma, InferenceId::BAGS_COUNT_SKOLEM);
-      }
       runStrategy(effort);
 
       // remember if we had pending facts or lemmas
@@ -281,7 +322,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
-  std::set<Node> processedBags;
+  // a map from bag representatives to their constructed values
+  std::map<Node, Node> processedBags;
 
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
@@ -293,13 +335,12 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
     Node r = d_state.getRepresentative(n);
+
     if (processedBags.find(r) != processedBags.end())
     {
       // skip bags whose representatives are already processed
       continue;
     }
-
-    processedBags.insert(r);
 
     const std::vector<std::pair<Node, Node>>& solverElements =
         d_state.getElementCountPairs(r);
@@ -323,8 +364,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
     constructedBag = rewrite(constructedBag);
-    Trace("bags-model") << "constructed bag for " << n
-                        << " is: " << constructedBag << std::endl;
     NodeManager* nm = NodeManager::currentNM();
     if (d_state.hasCardinalityTerms())
     {
@@ -361,8 +400,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
             constructedBag =
                 nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
             constructedBag = rewrite(constructedBag);
-            Trace("bags-model") << "constructed bag for " << n
-                                << " is: " << constructedBag << std::endl;
           }
         }
       }
@@ -385,7 +422,10 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     m->assertEquality(constructedBag, n, true);
     m->assertSkeleton(constructedBag);
+    processedBags[r] = constructedBag;
   }
+
+  Trace("bags-model") << "processedBags:  " << processedBags << std::endl;
   return true;
 }
 
