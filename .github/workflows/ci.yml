@@ -31,6 +31,7 @@ jobs:
             os: ubuntu-latest
             config: production --auto-download --win64
             cache-key: productionwin64
+            windows-build: true
             store-to-release-binary: cvc5-Win64.exe
             binary-ext: .exe
 
@@ -70,6 +71,7 @@ jobs:
       with:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
+        windows-build: ${{ matrix.windows-build }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
