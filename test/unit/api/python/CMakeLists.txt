@@ -26,7 +26,7 @@ macro(cvc5_add_python_api_unit_test name filename)
             -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
     # directory for importing the python bindings
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
-    set_tests_properties(${test_name} PROPERTIES LABELS "unit python")
+    set_tests_properties(${test_name} PROPERTIES LABELS "unit;python")
 endmacro()
 
 # add specific test files
