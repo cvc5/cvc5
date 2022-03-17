@@ -91,8 +91,8 @@ class Smt2 : public Parser
   /**
    * Checks whether an indexed operator is enabled.
    *
-   * @param name The name of the indexed operator
-   * @return true if the indexed operator is enabled
+   * @param name The name of the indexed operator.
+   * @return true if the indexed operator is enabled.
    */
   bool isIndexedOperatorEnabled(const std::string& name) const;
 
