@@ -1736,27 +1736,6 @@ enum Kind : int32_t
    */
   FLOATINGPOINT_TO_FP_FROM_UBV,
   /**
-   * Operator for a generic to_fp.
-   *
-   * Parameters:
-   *   - 1: exponent size
-   *   - 2: Significand size
-   *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
-   *
-   * Generic conversion to floating-point, used in parsing only.
-   *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_GENERIC
-   *   - 2: Term of sort FloatingPoint
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
-   */
-  FLOATINGPOINT_TO_FP_GENERIC,
-  /**
    * Operator for to_ubv.
    *
    * Parameters:

@@ -142,11 +142,6 @@ class OpTest
     int[] floatingpoint_to_fp_unsigned_bitvector_indices =
         floatingpoint_to_fp_unsigned_bitvector_ot.getIntegerIndices();
     assertArrayEquals(floatingpoint_to_fp_unsigned_bitvector_indices, new int[] {4, 25});
-
-    Op floatingpoint_to_fp_generic_ot = d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
-    int[] floatingpoint_to_fp_generic_indices = floatingpoint_to_fp_generic_ot.getIntegerIndices();
-    assertArrayEquals(floatingpoint_to_fp_generic_indices, new int[] {4, 25});
-    assertThrows(CVC5ApiException.class, () -> floatingpoint_to_fp_generic_ot.getStringIndices());
   }
 
   @Test void opScopingToString() throws CVC5ApiException

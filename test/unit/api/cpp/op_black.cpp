@@ -69,8 +69,6 @@ TEST_F(TestApiBlackOp, getNumIndices)
       d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 4, 25);
   Op floatingpoint_to_fp_unsigned_bitvector =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 4, 25);
-  Op floatingpoint_to_fp_generic =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
   Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 2, 3);
 
   ASSERT_EQ(0, plus.getNumIndices());
@@ -89,7 +87,6 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(2, floatingpoint_to_fp_real.getNumIndices());
   ASSERT_EQ(2, floatingpoint_to_fp_signed_bitvector.getNumIndices());
   ASSERT_EQ(2, floatingpoint_to_fp_unsigned_bitvector.getNumIndices());
-  ASSERT_EQ(2, floatingpoint_to_fp_generic.getNumIndices());
   ASSERT_EQ(2, regexp_loop.getNumIndices());
 }
 
@@ -116,8 +113,6 @@ TEST_F(TestApiBlackOp, subscriptOperator)
       d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 4, 5);
   Op floatingpoint_to_fp_unsigned_bitvector =
       d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 4, 5);
-  Op floatingpoint_to_fp_generic =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 5);
   Op regexp_loop = d_solver.mkOp(REGEXP_LOOP, 4, 5);
 
   ASSERT_THROW(plus[0], CVC5ApiException);
@@ -136,7 +131,6 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_EQ(4, floatingpoint_to_fp_real[0].getUInt32Value());
   ASSERT_EQ(4, floatingpoint_to_fp_signed_bitvector[0].getUInt32Value());
   ASSERT_EQ(4, floatingpoint_to_fp_unsigned_bitvector[0].getUInt32Value());
-  ASSERT_EQ(4, floatingpoint_to_fp_generic[0].getUInt32Value());
   ASSERT_EQ(4, regexp_loop[0].getUInt32Value());
 }
 
@@ -243,16 +237,6 @@ TEST_F(TestApiBlackOp, getIndicesPairUint)
           .getIndices<std::pair<uint32_t, uint32_t>>();
   ASSERT_TRUE((floatingpoint_to_fp_unsigned_bitvector_indices
                == std::pair<uint32_t, uint32_t>{4, 25}));
-
-  Op floatingpoint_to_fp_generic_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 4, 25);
-  std::pair<uint32_t, uint32_t> floatingpoint_to_fp_generic_indices =
-      floatingpoint_to_fp_generic_ot
-          .getIndices<std::pair<uint32_t, uint32_t>>();
-  ASSERT_TRUE((floatingpoint_to_fp_generic_indices
-               == std::pair<uint32_t, uint32_t>{4, 25}));
-  ASSERT_THROW(floatingpoint_to_fp_generic_ot.getIndices<std::string>(),
-               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackOp, getIndicesVector)

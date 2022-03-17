@@ -88,6 +88,13 @@ class Smt2 : public Parser
    */
   void addIndexedOperator(api::Kind tKind,
                           const std::string& name);
+  /**
+   * Checks whether an indexed operator is enabled.
+   *
+   * @param name The name of the indexed operator
+   * @return true if the indexed operator is enabled
+   */
+  bool isIndexedOperatorEnabled(const std::string& name) const;
 
   api::Kind getOperatorKind(const std::string& name) const;
 
