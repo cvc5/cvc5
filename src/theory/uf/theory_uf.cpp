@@ -263,7 +263,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 
 void TheoryUF::preRegisterTerm(TNode node)
 {
-  Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
+  Trace("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
 
   if (d_thss != nullptr)
   {
@@ -338,7 +338,7 @@ void TheoryUF::preRegisterTerm(TNode node)
 
 void TheoryUF::explain(TNode literal, Node& exp)
 {
-  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
+  Trace("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
@@ -370,14 +370,14 @@ bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
     }
   }
 
-  Debug("uf") << "UF : finish collectModelInfo " << std::endl;
+  Trace("uf") << "UF : finish collectModelInfo " << std::endl;
   return true;
 }
 
 void TheoryUF::presolve() {
   // TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
-  Debug("uf") << "uf: begin presolve()" << endl;
+  Trace("uf") << "uf: begin presolve()" << endl;
   if (options().uf.ufSymmetryBreaker)
   {
     vector<Node> newClauses;
@@ -385,7 +385,7 @@ void TheoryUF::presolve() {
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
-      Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
+      Trace("uf") << "uf: generating a lemma: " << *i << std::endl;
       // no proof generator provided
       d_im.lemma(*i, InferenceId::UF_BREAK_SYMMETRY);
     }
@@ -393,7 +393,7 @@ void TheoryUF::presolve() {
   if( d_thss ){
     d_thss->presolve();
   }
-  Debug("uf") << "uf: end presolve()" << endl;
+  Trace("uf") << "uf: end presolve()" << endl;
 }
 
 void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
@@ -437,7 +437,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
 
     // == DIAMONDS ==
 
-    Debug("diamonds") << "===================== looking at" << endl
+    Trace("diamonds") << "===================== looking at" << endl
                       << n << endl;
 
     // binary OR of binary ANDs of EQUALities
@@ -450,7 +450,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
        (n[1][1].getKind() == kind::EQUAL)) {
       // now we have (a = b && c = d) || (e = f && g = h)
 
-      Debug("diamonds") << "has form of a diamond!" << endl;
+      Trace("diamonds") << "has form of a diamond!" << endl;
 
       TNode
         a = n[0][0][0], b = n[0][0][1],
@@ -473,11 +473,11 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
         d = c;
       } else {
         // condition not satisfied
-        Debug("diamonds") << "+ A fails" << endl;
+        Trace("diamonds") << "+ A fails" << endl;
         continue;
       }
 
-      Debug("diamonds") << "+ A holds" << endl;
+      Trace("diamonds") << "+ A holds" << endl;
 
       // same: one of {e, f} = one of {g, h}, and make "f" the
       // shared node (i.e. put in the form (e = f && f = h))
@@ -492,23 +492,23 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
         h = g;
       } else {
         // condition not satisfied
-        Debug("diamonds") << "+ B fails" << endl;
+        Trace("diamonds") << "+ B fails" << endl;
         continue;
       }
 
-      Debug("diamonds") << "+ B holds" << endl;
+      Trace("diamonds") << "+ B holds" << endl;
 
       // now we have (a = b && b = d) || (e = f && f = h)
       // test that {a, d} == {e, h}
       if( (a == e && d == h) ||
           (a == h && d == e) ) {
         // learn: n implies a == d
-        Debug("diamonds") << "+ C holds" << endl;
+        Trace("diamonds") << "+ C holds" << endl;
         Node newEquality = a.eqNode(d);
-        Debug("diamonds") << "  ==> " << newEquality << endl;
+        Trace("diamonds") << "  ==> " << newEquality << endl;
         learned << n.impNode(newEquality);
       } else {
-        Debug("diamonds") << "+ C fails" << endl;
+        Trace("diamonds") << "+ C fails" << endl;
       }
     }
   }
@@ -583,7 +583,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
       Node f2 = t2->getData();
       if (!d_state.areEqual(f1, f2))
       {
-        Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
+        Trace("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
         for (size_t k = 0, nchildren = f1.getNumChildren(); k < nchildren; ++k)
         {
@@ -605,7 +605,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
           }
         }
         for (unsigned c = 0; c < currentPairs.size(); ++ c) {
-          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
+          Trace("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
           addCarePair(currentPairs[c].first, currentPairs[c].second);
         }
       }
@@ -663,7 +663,7 @@ void TheoryUF::computeCareGraph() {
   // Use term indexing. We build separate indices for APPLY_UF and HO_APPLY.
   // We maintain indices per operator for the former, and indices per
   // function type for the latter.
-  Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
+  Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
@@ -720,19 +720,19 @@ void TheoryUF::computeCareGraph() {
   // for each index
   for (std::pair<const Node, TNodeTrie>& tt : index)
   {
-    Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
                          << tt.first << "..." << std::endl;
     Assert(arity.find(tt.first) != arity.end());
     addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
   }
   for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
   {
-    Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
+    Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
     addCarePairs(&tt.second, nullptr, 2, 0);
   }
-  Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
+  Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 

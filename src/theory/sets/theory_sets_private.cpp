@@ -335,7 +335,7 @@ void TheorySetsPrivate::fullEffortCheck()
 
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
 
-    if (Trace.isOn("sets-state"))
+    if (TraceIsOn("sets-state"))
     {
       Trace("sets-state") << "Equivalence class counters:" << std::endl;
       for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
@@ -351,7 +351,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
-    if (Trace.isOn("sets-mem"))
+    if (TraceIsOn("sets-mem"))
     {
       const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)
@@ -1254,7 +1254,7 @@ bool TheorySetsPrivate::isEntailed(Node n, bool pol)
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
-  Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
+  Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
 
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -1270,7 +1270,7 @@ Node TheorySetsPrivate::explain(TNode literal)
   }
   else
   {
-    Debug("sets") << "unhandled: " << literal << "; (" << atom << ", "
+    Trace("sets") << "unhandled: " << literal << "; (" << atom << ", "
                   << polarity << "); kind" << atom.getKind() << std::endl;
     Unhandled();
   }
@@ -1280,7 +1280,7 @@ Node TheorySetsPrivate::explain(TNode literal)
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
-  Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
+  Trace("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
   TypeNode tn = node.getType();
   if (tn.isSet())
@@ -1324,7 +1324,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 TrustNode TheorySetsPrivate::ppRewrite(Node node,
                                        std::vector<SkolemLemma>& lems)
 {
-  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
+  Trace("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {

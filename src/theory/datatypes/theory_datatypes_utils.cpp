@@ -61,7 +61,7 @@ Node mkApplyCons(TypeNode tn,
   if (dt.isParametric())
   {
     // add type ascription for ambiguous constructor types
-    Debug("datatypes-parametric")
+    Trace("datatypes-parametric")
         << "Constructor is " << dt[index] << std::endl;
     cchildren[0] = dt[index].getInstantiatedConstructor(tn);
   }

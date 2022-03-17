@@ -586,7 +586,7 @@ inline bool Solver::isPropagatedBy(Var x, const Clause& c) const
 
 inline bool Solver::isDecision(Var x) const
 {
-  Debug("minisat") << "var " << x << " is a decision iff "
+  Trace("minisat") << "var " << x << " is a decision iff "
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;
