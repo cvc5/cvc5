@@ -12,7 +12,7 @@ function, or printed using the following options:
 
 Statistics collection is only available if the ``ENABLE_STATISTICS`` cmake option
 is set to true, which is the case for all but competition builds.
-Statistics, whether they are printed or obtained via :cpp:func:`Solver::getStatistics() <cvc5::api::Solver::getStatistics()>`,
+Statistics, obtained via :cpp:func:`Solver::getStatistics() <cvc5::api::Solver::getStatistics()>`,
 are always a snapshot of the statistics values that is decoupled from the
 solver object and will not change when the solver is used again or deallocated.
 Individual statistics values can be obtained via the API either by iterating over the 
