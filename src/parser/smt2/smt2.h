@@ -83,14 +83,10 @@ class Smt2 : public Parser
    * Registers an indexed function symbol.
    *
    * @param tKind The kind of the term that uses the operator kind (e.g.
-   *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
-   *              because that is what we use to create expressions. Eventually
-   *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
+   *              BITVECTOR_EXTRACT).
    * @param name The name of the symbol (e.g. "extract")
    */
   void addIndexedOperator(api::Kind tKind,
-                          api::Kind opKind,
                           const std::string& name);
 
   api::Kind getOperatorKind(const std::string& name) const;
