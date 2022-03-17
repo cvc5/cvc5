@@ -70,7 +70,7 @@ bool ProofPostprocessCallback::update(Node res,
     // get proof from proof cnf stream
     pfn = d_proofCnfStream->getProofFor(f);
     Assert(pfn != nullptr && pfn->getResult() == f);
-    if (Trace.isOn("prop-proof-pp"))
+    if (TraceIsOn("prop-proof-pp"))
     {
       Trace("prop-proof-pp") << "=== Connect CNF proof for: " << f << "\n";
       Trace("prop-proof-pp") << *pfn.get() << "\n";

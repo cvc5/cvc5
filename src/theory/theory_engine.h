@@ -262,7 +262,7 @@ class TheoryEngine : protected EnvObj
     for (; d_propagatedLiteralsIndex < d_propagatedLiterals.size();
          d_propagatedLiteralsIndex = d_propagatedLiteralsIndex + 1)
     {
-      Debug("getPropagatedLiterals")
+      Trace("getPropagatedLiterals")
           << "TheoryEngine::getPropagatedLiterals: propagating: "
           << d_propagatedLiterals[d_propagatedLiteralsIndex] << std::endl;
       literals.push_back(d_propagatedLiterals[d_propagatedLiteralsIndex]);

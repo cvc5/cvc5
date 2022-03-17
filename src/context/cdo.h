@@ -56,10 +56,7 @@ protected:
    */
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
-    Debug("context") << "save cdo " << this;
-    ContextObj* p = new(pCMM) CDO<T>(*this);
-    Debug("context") << " to " << p << std::endl;
-    return p;
+    return new (pCMM) CDO<T>(*this);
   }
 
   /**
@@ -68,10 +65,8 @@ protected:
    */
   void restore(ContextObj* pContextObj) override
   {
-    //Debug("context") << "restore cdo " << this;
     CDO<T>* p = static_cast<CDO<T>*>(pContextObj);
     d_data = p->d_data;
-    //Debug("context") << " to " << get() << std::endl;
     // Explicitly call destructor as it will not otherwise get called.
     p->d_data.~T();
   }

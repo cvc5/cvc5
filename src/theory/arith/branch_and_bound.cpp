@@ -81,11 +81,11 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
       Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
       Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
-      Debug("integers::pf") << "less: " << less << std::endl;
-      Debug("integers::pf") << "greater: " << greater << std::endl;
-      Debug("integers::pf") << "literal: " << literal << std::endl;
-      Debug("integers::pf") << "eq: " << eq << std::endl;
-      Debug("integers::pf") << "rawEq: " << rawEq << std::endl;
+      Trace("integers::pf") << "less: " << less << std::endl;
+      Trace("integers::pf") << "greater: " << greater << std::endl;
+      Trace("integers::pf") << "literal: " << literal << std::endl;
+      Trace("integers::pf") << "eq: " << eq << std::endl;
+      Trace("integers::pf") << "rawEq: " << rawEq << std::endl;
       Pf pfNotLit = d_pnm->mkAssume(literal.negate());
       // rewrite notLiteral to notRawEq, using teq.
       Pf pfNotRawEq =

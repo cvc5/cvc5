@@ -632,6 +632,8 @@ libcvc5_add_sources(
   theory/bv/theory_bv_utils.h
   theory/bv/type_enumerator.h
   theory/care_graph.h
+  theory/care_pair_argument_callback.cpp
+  theory/care_pair_argument_callback.cpp
   theory/combination_care_graph.cpp
   theory/combination_care_graph.h
   theory/combination_engine.cpp

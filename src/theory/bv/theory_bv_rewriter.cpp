@@ -36,8 +36,8 @@ RewriteResponse TheoryBVRewriter::preRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, true);
   if (res.d_node != node)
   {
-    Debug("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite")
+    Trace("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
+    Trace("bitvector-rewrite")
         << "TheoryBV::preRewrite to " << res.d_node << std::endl;
   }
   return res; 
@@ -47,8 +47,8 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, false);
   if (res.d_node != node)
   {
-    Debug("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite")
+    Trace("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
+    Trace("bitvector-rewrite")
         << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
@@ -56,7 +56,7 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
 
 TrustNode TheoryBVRewriter::expandDefinition(Node node)
 {
-  Debug("bitvector-expandDefinition")
+  Trace("bitvector-expandDefinition")
       << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
   Node ret;
   switch (node.getKind())
@@ -711,7 +711,7 @@ RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite) {
 }
 
 RewriteResponse TheoryBVRewriter::UndefinedRewrite(TNode node, bool prerewrite) {
-  Debug("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
+  Trace("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
   Unimplemented(); 
 } 
 
