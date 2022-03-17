@@ -125,38 +125,6 @@ public class Result extends AbstractPointer
   private native boolean isSatUnknown(long pointer);
 
   /**
-   * Return true if corresponding query was an entailed checkEntailed() query.
-   */
-  public boolean isEntailed()
-  {
-    return isEntailed(pointer);
-  }
-
-  private native boolean isEntailed(long pointer);
-
-  /**
-   * Return true if corresponding query was a checkEntailed() query that is
-   * not entailed.
-   */
-  public boolean isNotEntailed()
-  {
-    return isNotEntailed(pointer);
-  }
-
-  private native boolean isNotEntailed(long pointer);
-
-  /**
-   * Return true if query was a checkEntailed() query and cvc5 was not able to
-   * determine if it is entailed.
-   */
-  public boolean isEntailmentUnknown()
-  {
-    return isEntailmentUnknown(pointer);
-  }
-
-  private native boolean isEntailmentUnknown(long pointer);
-
-  /**
    * Operator overloading for equality of two results.
    * @param r the result to compare to for equality
    * @return true if the results are equal

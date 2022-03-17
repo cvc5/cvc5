@@ -165,7 +165,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
-  Debug("sets-proc") << "ppAssert : " << in << std::endl;
+  Trace("sets-proc") << "ppAssert : " << in << std::endl;
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
   // this is based off of Theory::ppAssert
@@ -235,21 +235,21 @@ void TheorySets::processCarePairArgs(TNode a, TNode b)
 
 void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:"
+  Trace("sets-eq") << "[sets-eq] eqNotifyNewClass:"
                    << " t = " << t << std::endl;
   d_theory.eqNotifyNewClass(t);
 }
 
 void TheorySets::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyMerge:"
+  Trace("sets-eq") << "[sets-eq] eqNotifyMerge:"
                    << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.eqNotifyMerge(t1, t2);
 }
 
 void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:"
+  Trace("sets-eq") << "[sets-eq] eqNotifyDisequal:"
                    << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
                    << std::endl;
   d_theory.eqNotifyDisequal(t1, t2, reason);

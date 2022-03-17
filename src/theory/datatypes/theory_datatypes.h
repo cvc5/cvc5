@@ -59,12 +59,12 @@ class TheoryDatatypes : public Theory {
    }
    void eqNotifyNewClass(TNode t) override
    {
-     Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+     Trace("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
      d_dt.eqNotifyNewClass(t);
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+      Trace("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
                   << std::endl;
       d_dt.eqNotifyMerge(t1, t2);
     }

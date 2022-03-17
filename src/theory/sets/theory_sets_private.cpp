@@ -317,7 +317,7 @@ void TheorySetsPrivate::fullEffortCheck()
 
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
 
-    if (Trace.isOn("sets-state"))
+    if (TraceIsOn("sets-state"))
     {
       Trace("sets-state") << "Equivalence class counters:" << std::endl;
       for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
@@ -333,7 +333,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
-    if (Trace.isOn("sets-mem"))
+    if (TraceIsOn("sets-mem"))
     {
       const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)
@@ -1127,7 +1127,7 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
-  Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
+  Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
 
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -1143,7 +1143,7 @@ Node TheorySetsPrivate::explain(TNode literal)
   }
   else
   {
-    Debug("sets") << "unhandled: " << literal << "; (" << atom << ", "
+    Trace("sets") << "unhandled: " << literal << "; (" << atom << ", "
                   << polarity << "); kind" << atom.getKind() << std::endl;
     Unhandled();
   }
@@ -1153,7 +1153,7 @@ Node TheorySetsPrivate::explain(TNode literal)
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
-  Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
+  Trace("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
   TypeNode tn = node.getType();
   if (tn.isSet())
@@ -1197,7 +1197,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 TrustNode TheorySetsPrivate::ppRewrite(Node node,
                                        std::vector<SkolemLemma>& lems)
 {
-  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
+  Trace("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {
@@ -1239,17 +1239,14 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 {
   Assert(node.getKind() == SET_CHOOSE);
 
-  // (choose A) is expanded as
-  // (witness ((x elementType))
-  //    (ite
-  //      (= A (as emptyset (Set E)))
-  //      (= x (uf A))
-  //      (and (member x A) (= x uf(A)))
+  // (choose A) is eliminated to k, with lemma
+  //   (and (= k (uf A)) (or (= A (as set.empty (Set E))) (set.member k A)))
   // where uf: (Set E) -> E is a skolem function, and E is the type of elements
   // of A
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  Node x = sm->mkPurifySkolem(node, "setChoose");
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);
@@ -1258,17 +1255,14 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, Node());
   Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
 
-  Node x = nm->mkBoundVar(setType.getSetElementType());
-
   Node equal = x.eqNode(ufA);
   Node emptySet = nm->mkConst(EmptySet(setType));
   Node isEmpty = A.eqNode(emptySet);
   Node member = nm->mkNode(SET_MEMBER, x, A);
-  Node memberAndEqual = member.andNode(equal);
-  Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
-  Node ret = sm->mkSkolem(x, ite, "kSetChoose");
-  lems.push_back(SkolemLemma(ret, nullptr));
-  return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, member));
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  lems.push_back(SkolemLemma(tlem, x));
+  return TrustNode::mkTrustRewrite(node, x, nullptr);
 }
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)

@@ -132,13 +132,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   {
     d_result = res = csa->getResult();
   }
-  const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
-  if(q != nullptr) {
-    d_result = res = q->getResult();
-  }
 
-  bool isResultUnsat = res.isUnsat() || res.isEntailed();
-  bool isResultSat = res.isSat() || res.isNotEntailed();
+  bool isResultUnsat = res.isUnsat();
+  bool isResultSat = res.isSat();
 
   // dump the model/proof/unsat core if option is set
   if (status) {

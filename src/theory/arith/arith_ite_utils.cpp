@@ -283,7 +283,7 @@ unsigned ArithIteUtils::getSubCount() const{
 }
 
 void ArithIteUtils::addSubstitution(TNode f, TNode t){
-  Debug("arith::ite") << "adding " << f << " -> " << t << endl;
+  Trace("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
   d_subs.addSubstitution(f, t);
 }
@@ -418,7 +418,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   Assert(l.getKind() == kind::EQUAL);
   Assert(r.getKind() == kind::EQUAL);
 
-  Debug("arith::ite") << "bin or " << n << endl;
+  Trace("arith::ite") << "bin or " << n << endl;
 
   bool lArithEq = l.getKind() == kind::EQUAL && l[0].getType().isInteger();
   bool rArithEq = r.getKind() == kind::EQUAL && r[0].getType().isInteger();
@@ -436,10 +436,10 @@ bool ArithIteUtils::solveBinOr(TNode binor){
     }else if(l[1] == r[1]){
       sel = l[1]; otherL = l[0]; otherR = r[0];
     }
-    Debug("arith::ite") << "selected " << sel << endl;
+    Trace("arith::ite") << "selected " << sel << endl;
     if(sel.isVar() && sel.getKind() != kind::SKOLEM){
 
-      Debug("arith::ite") << "others l:" << otherL << " r " << otherR << endl;
+      Trace("arith::ite") << "others l:" << otherL << " r " << otherR << endl;
       Node useForCmpL = selectForCmp(otherL);
       Node useForCmpR = selectForCmp(otherR);
 
@@ -450,7 +450,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       Polynomial rside = Polynomial::parsePolynomial( useForCmpR );
       Polynomial diff = lside-rside;
 
-      Debug("arith::ite") << "diff: " << diff.getNode() << endl;
+      Trace("arith::ite") << "diff: " << diff.getNode() << endl;
       if(diff.isConstant()){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 

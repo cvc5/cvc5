@@ -142,9 +142,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isSat() except +
         bint isUnsat() except +
         bint isSatUnknown() except +
-        bint isEntailed() except +
-        bint isNotEntailed() except +
-        bint isEntailmentUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
         UnknownExplanation getUnknownExplanation() except +
@@ -250,8 +247,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, Sort param) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, Sort param, bint isCoDatatype) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h
@@ -260,7 +257,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void assertFormula(Term term) except +
         Result checkSat() except +
         Result checkSatAssuming(const vector[Term]& assumptions) except +
-        Result checkEntailed(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
         Term declareFun(const string& symbol, Sort sort) except +
         Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +
@@ -350,9 +346,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isSortConstructor() except +
-        bint isFirstClass() except +
-        bint isFunctionLike() except +
-        bint isSubsortOf(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
@@ -371,10 +364,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSetElementSort() except +
         Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
-        string getUninterpretedSortName() except +
         bint isUninterpretedSortParameterized() except +
         vector[Sort] getUninterpretedSortParamSorts() except +
-        string getSortConstructorName() except +
         size_t getSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
         uint32_t getFloatingPointExponentSize() except +

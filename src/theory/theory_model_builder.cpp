@@ -1437,7 +1437,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     std::sort(funcs_to_assign.begin(), funcs_to_assign.end(), sts);
   }
 
-  if (Trace.isOn("model-builder"))
+  if (TraceIsOn("model-builder"))
   {
     Trace("model-builder") << "...have " << funcs_to_assign.size()
                            << " functions to assign:" << std::endl;

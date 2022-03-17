@@ -49,7 +49,7 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
     return false;
   }
 
-  if (Trace.isOn("ex-infer"))
+  if (TraceIsOn("ex-infer"))
   {
     for (unsigned i = 0; i < candidates.size(); i++)
     {

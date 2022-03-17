@@ -226,7 +226,7 @@ namespace api {
           this->d_solver == s.d_solver, "sort", sorts, i)                   \
           << "a sort associated with the solver this object is associated " \
              "with";                                                        \
-      CVC5_API_ARG_CHECK_EXPECTED(s.isFirstClass(), s)                      \
+      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)        \
           << "first-class sort as domain sort";                             \
       i += 1;                                                               \
     }                                                                       \
@@ -395,28 +395,6 @@ namespace api {
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
           this == s.d_solver, "sort", sorts, i)                   \
           << "a sort associated with this solver";                \
-      i += 1;                                                     \
-    }                                                             \
-  } while (0)
-
-/**
- * Sort checks for member functions of class Solver.
- * Check if each sort in the given container of sorts is not null, associated
- * with this solver, and not function-like.
- */
-#define CVC5_API_SOLVER_CHECK_SORTS_NOT_FUNCTION_LIKE(sorts)      \
-  do                                                              \
-  {                                                               \
-    size_t i = 0;                                                 \
-    for (const auto& s : sorts)                                   \
-    {                                                             \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sorts", s, sorts, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          this == s.d_solver, "sort", sorts, i)                   \
-          << "a sorts associated with this solver";               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          !s.getTypeNode().isFunctionLike(), "sort", sorts, i)    \
-          << "non-function-like sort";                            \
       i += 1;                                                     \
     }                                                             \
   } while (0)

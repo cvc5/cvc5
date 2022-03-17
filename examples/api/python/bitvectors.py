@@ -84,9 +84,9 @@ if __name__ == "__main__":
     slv.assertFormula(assignment1)
     new_x_eq_new_x_ = slv.mkTerm(Kind.Equal, new_x, new_x_)
 
-    print("Checking entailment assuming:", new_x_eq_new_x_)
-    print("Expect ENTAILED.")
-    print("cvc5:", slv.checkEntailed(new_x_eq_new_x_))
+    print("Checking sat assuming:", new_x_eq_new_x_.notTerm())
+    print("Expect UNSAT.")
+    print("cvc5:", slv.checkSatAssuming(new_x_eq_new_x_.notTerm()))
     print("Popping context.")
     slv.pop()
 
@@ -100,16 +100,17 @@ if __name__ == "__main__":
     print("Asserting {} to cvc5".format(assignment2))
     slv.assertFormula(assignment2)
 
-    print("Checking entailment assuming:", new_x_eq_new_x_)
-    print("Expect ENTAILED.")
-    print("cvc5:", slv.checkEntailed(new_x_eq_new_x_))
+    print("Checking sat assuming:", new_x_eq_new_x_.notTerm())
+    print("Expect UNSAT.")
+    print("cvc5:", slv.checkSatAssuming(new_x_eq_new_x_.notTerm()))
 
 
     x_neq_x = slv.mkTerm(Kind.Equal, x, x).notTerm()
     v = [new_x_eq_new_x_, x_neq_x]
-    print("Check entailment assuming: ", v)
-    print("Expect NOT_ENTAILED.")
-    print("cvc5:", slv.checkEntailed(v))
+    query = slv.mkTerm(Kind.And, v)
+    print("Check sat assuming: ", query.notTerm())
+    print("Expect SAT.")
+    print("cvc5:", slv.checkSatAssuming(query.notTerm()))
 
     # Assert that a is odd
     extract_op = slv.mkOp(Kind.BVExtract, 0, 0)
