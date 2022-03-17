@@ -10,6 +10,7 @@ jobs:
             os: ubuntu-latest
             config: production --auto-download --all-bindings --editline --docs
             cache-key: production
+            strip-bin: strip
             python-bindings: true
             build-documentation: true
             check-examples: true
@@ -21,6 +22,7 @@ jobs:
             os: macos-11
             config: production --auto-download --python-bindings --editline
             cache-key: production
+            strip-bin: strip
             python-bindings: true
             check-examples: true
             store-to-release-name: cvc5-macOS
@@ -31,6 +33,7 @@ jobs:
             os: ubuntu-latest
             config: production --auto-download --win64
             cache-key: productionwin64
+            strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
             store-to-release-name: cvc5-Win64.exe
             binary-ext: .exe
@@ -91,6 +94,7 @@ jobs:
         configure-config: ${{ matrix.config }}
         build-shared: ${{ matrix.build-shared }}
         build-static: ${{ matrix.build-static }}
+        strip-bin: ${{ matrix.strip-bin }}
 
     - name: ccache Statistics
       run: ccache -s
