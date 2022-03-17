@@ -26,16 +26,11 @@ runs:
           libcln-dev \
           libedit-dev \
           libgmp-dev \
-          libgtest-dev \
           libtinfo-dev \
           flex \
           libfl-dev \
           flexc++
         python3 -m pip install pexpect setuptools toml
-        cd /usr/src/googletest
-        sudo cmake .
-        sudo cmake --build . --target install
-        cd -
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
