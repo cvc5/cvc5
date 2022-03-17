@@ -59,8 +59,8 @@ runs:
           mingw-w64
 
         # Use ccache for MinGW
-        ln -s /usr/lib/ccache $(which x86_64-w64-mingw32-gcc)
-        ln -s /usr/lib/ccache $(which x86_64-w64-mingw32-g++)
+        ln -s /usr/bin/ccache /usr/lib/ccache/x86_64-w64-mingw32-gcc
+        ln -s /usr/bin/ccache /usr/lib/ccache/x86_64-w64-mingw32-g++
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
