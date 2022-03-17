@@ -60,8 +60,8 @@ runs:
 
         # cvc5 requires the POSIX version of MinGW to implement the time limit
         # using threads
-        update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
-        update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+        sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
