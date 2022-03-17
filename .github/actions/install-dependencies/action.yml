@@ -56,7 +56,12 @@ runs:
         echo "::group::Install software for cross-compiling for Windows"
         sudo apt-get update
         sudo apt-get install -y \
-          mingw-w64-posix
+          mingw-w64
+
+        # cvc5 requires the POSIX version of MinGW to implement the time limit
+        # using threads
+        update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
