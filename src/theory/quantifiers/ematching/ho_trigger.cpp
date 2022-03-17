@@ -53,7 +53,7 @@ HigherOrderTrigger::HigherOrderTrigger(
     d_ho_var_list.push_back(n);
     TypeNode tn = n.getType();
     Assert(tn.isFunction());
-    if (Trace.isOn("ho-quant-trigger"))
+    if (TraceIsOn("ho-quant-trigger"))
     {
       Trace("ho-quant-trigger") << "  have " << as.second.size();
       Trace("ho-quant-trigger") << " patterns with variable operator " << n
@@ -300,7 +300,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
           }
         }
       }
-      if (Trace.isOn("ho-unif-debug"))
+      if (TraceIsOn("ho-unif-debug"))
       {
         for (std::map<unsigned, Node>::iterator itf = fixed_vals.begin();
              itf != fixed_vals.end();

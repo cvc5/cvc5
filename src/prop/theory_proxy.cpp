@@ -74,8 +74,7 @@ void TheoryProxy::presolve()
 
 void TheoryProxy::notifyInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
+    std::unordered_map<size_t, Node>& skolemMap)
 {
   // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
@@ -101,7 +100,7 @@ void TheoryProxy::notifyInputFormulas(
   // determine what is learnable
   if (d_zll != nullptr)
   {
-    d_zll->notifyInputFormulas(assertions, skolemMap, ppl);
+    d_zll->notifyInputFormulas(assertions, skolemMap);
   }
 }
 
@@ -155,14 +154,14 @@ void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
   std::vector<TNode> outputNodes;
   d_theoryEngine->getPropagatedLiterals(outputNodes);
   for (unsigned i = 0, i_end = outputNodes.size(); i < i_end; ++ i) {
-    Debug("prop-explain") << "theoryPropagate() => " << outputNodes[i] << std::endl;
+    Trace("prop-explain") << "theoryPropagate() => " << outputNodes[i] << std::endl;
     output.push_back(d_cnfStream->getLiteral(outputNodes[i]));
   }
 }
 
 void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
-  Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
+  Trace("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
@@ -172,7 +171,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
            || tte.getGenerator());
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
+  Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);
   if (theoryExplanation.getKind() == kind::AND)
@@ -186,7 +185,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::stringstream ss;
     ss << "TheoryProxy::explainPropagation: clause for lit is ";
@@ -201,7 +200,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
-  Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
+  Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
   d_queue.push(literalNode);
 }

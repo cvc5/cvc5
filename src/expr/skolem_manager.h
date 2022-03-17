@@ -148,6 +148,12 @@ enum class SkolemFunId
    */
   BAGS_MAP_PREIMAGE,
   /**
+   * A skolem variable for the size of the preimage of {y} that is unique per
+   * terms (map f A), y which might be an element in (map f A). (see the
+   * documentation for BAGS_MAP_PREIMAGE)
+   */
+  BAGS_MAP_PREIMAGE_SIZE,
+  /**
    * A skolem variable for the index that is unique per terms
    * (map f A), y, preImageSize, y, e which might be an element in A.
    * (see the documentation for BAGS_MAP_PREIMAGE)

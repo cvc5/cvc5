@@ -711,7 +711,7 @@ TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
 
 void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     std::stringstream ss;
     toStreamSygus(ss, n);
@@ -900,7 +900,7 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
                     argts.push_back(ntn);
                     argts.push_back(disj_types[r][d]);
                     argts.push_back(disj_types[1 - r][1 - dd]);
-                    if (Trace.isOn("sygus-cons-kind"))
+                    if (TraceIsOn("sygus-cons-kind"))
                     {
                       Trace("sygus-cons-kind")
                           << "Can construct kind " << k << " in " << tn

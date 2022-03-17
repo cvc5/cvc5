@@ -129,7 +129,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
       << " and type " << r_best.getType() << std::endl;
   Assert(r_best.getType().isSubtypeOf(v_tn));
   v_int_rep[r] = r_best;
-  if (Trace.isOn("internal-rep-debug"))
+  if (TraceIsOn("internal-rep-debug"))
   {
     if (r_best != a)
     {

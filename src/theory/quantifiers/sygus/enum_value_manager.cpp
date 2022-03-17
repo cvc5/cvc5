@@ -147,7 +147,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   {
     // None currently exist. The next abstract value is the model value for e.
     absE = getModelValue(e);
-    if (Trace.isOn("sygus-active-gen"))
+    if (TraceIsOn("sygus-active-gen"))
     {
       Trace("sygus-active-gen") << "Active-gen: new abstract value : ";
       TermDbSygus::toStreamSygus("sygus-active-gen", e);
@@ -207,7 +207,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                          << lem << std::endl;
-    if (Trace.isOn("sygus-active-gen-debug"))
+    if (TraceIsOn("sygus-active-gen-debug"))
     {
       Trace("sygus-active-gen-debug") << "Active-gen: block ";
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
@@ -226,7 +226,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     {
       d_evActiveGenWaiting = v;
     }
-    if (Trace.isOn("sygus-active-gen"))
+    if (TraceIsOn("sygus-active-gen"))
     {
       Trace("sygus-active-gen") << "Active-gen : " << e << " : ";
       TermDbSygus::toStreamSygus("sygus-active-gen", absE);

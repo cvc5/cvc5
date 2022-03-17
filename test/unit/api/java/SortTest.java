@@ -252,16 +252,6 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getNullSort().isSortConstructor());
   }
 
-  @Test void isFirstClass()
-  {
-    Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(), d_solver.getIntegerSort());
-    assertTrue(d_solver.getIntegerSort().isFirstClass());
-    assertTrue(fun_sort.isFirstClass());
-    Sort reSort = d_solver.getRegExpSort();
-    assertFalse(reSort.isFirstClass());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isFirstClass());
-  }
-
   @Test void getDatatype() throws CVC5ApiException
   {
     Sort dtypeSort = create_datatype_sort();

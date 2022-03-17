@@ -226,7 +226,7 @@ namespace api {
           this->d_solver == s.d_solver, "sort", sorts, i)                   \
           << "a sort associated with the solver this object is associated " \
              "with";                                                        \
-      CVC5_API_ARG_CHECK_EXPECTED(s.isFirstClass(), s)                      \
+      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)        \
           << "first-class sort as domain sort";                             \
       i += 1;                                                               \
     }                                                                       \

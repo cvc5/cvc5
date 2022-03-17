@@ -800,7 +800,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       opts.arith.nlCov = true;
-      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -817,7 +816,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       opts.arith.nlCov = true;
-      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -938,6 +936,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     verbose(1) << "Forcing internal bit-vector solver due to proof production."
                << std::endl;
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
+  }
+  if (opts.arith.nlCovVarElim && !opts.arith.nlCovVarElimWasSetByUser)
+  {
+    verbose(1)
+        << "Disabling nl-cov-var-elim since it is incompatible with proofs."
+        << std::endl;
+    opts.arith.nlCovVarElim = false;
   }
   return false;
 }

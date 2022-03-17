@@ -71,7 +71,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
       << "PropPfManager::getProof: Getting resolution proof of false\n";
   std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(conflictProof.get(), fassumps);
@@ -88,7 +88,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   }
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(conflictProof.get(), fassumps);

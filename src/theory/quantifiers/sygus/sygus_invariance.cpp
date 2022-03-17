@@ -228,7 +228,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       }
       else if (contr.getConst<bool>() == d_isUniversal)
       {
-        if (Trace.isOn("sygus-pbe-cterm"))
+        if (TraceIsOn("sygus-pbe-cterm"))
         {
           Trace("sygus-pbe-cterm")
               << "PBE-cterm : enumerator : do not consider ";

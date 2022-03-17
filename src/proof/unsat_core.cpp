@@ -26,13 +26,13 @@ namespace cvc5 {
 UnsatCore::UnsatCore(const std::vector<Node>& core)
     : d_useNames(false), d_core(core), d_names()
 {
-  Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
+  Trace("core") << "UnsatCore size " << d_core.size() << std::endl;
 }
 
 UnsatCore::UnsatCore(std::vector<std::string>& names)
     : d_useNames(true), d_core(), d_names(names)
 {
-  Debug("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
+  Trace("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
 }
 
 const std::vector<Node>& UnsatCore::getCore() const { return d_core; }

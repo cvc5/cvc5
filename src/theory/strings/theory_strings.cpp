@@ -193,12 +193,12 @@ bool TheoryStrings::propagateLit(TNode literal)
 
 TrustNode TheoryStrings::explain(TNode literal)
 {
-  Debug("strings-explain") << "explain called on " << literal << std::endl;
+  Trace("strings-explain") << "explain called on " << literal << std::endl;
   return d_im.explainLit(literal);
 }
 
 void TheoryStrings::presolve() {
-  Debug("strings-presolve")
+  Trace("strings-presolve")
       << "TheoryStrings::Presolving : get fmf options "
       << (options().strings.stringFMF ? "true" : "false") << std::endl;
   d_strat.initializeStrategy();
@@ -214,7 +214,7 @@ void TheoryStrings::presolve() {
         d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
   }
-  Debug("strings-presolve") << "Finished presolve" << std::endl;
+  Trace("strings-presolve") << "Finished presolve" << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -224,7 +224,7 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
-  if (Trace.isOn("strings-debug-model"))
+  if (TraceIsOn("strings-debug-model"))
   {
     Trace("strings-debug-model")
         << "TheoryStrings::collectModelValues" << std::endl;
@@ -704,7 +704,7 @@ bool TheoryStrings::collectModelInfoType(
     if (processed.find(rn) == processed.end())
     {
       NormalForm& nf = d_csolver.getNormalForm(rn);
-      if (Trace.isOn("strings-model"))
+      if (TraceIsOn("strings-model"))
       {
         Trace("strings-model")
             << "Construct model for " << rn << " based on normal form ";
@@ -878,7 +878,7 @@ void TheoryStrings::postCheck(Effort e)
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
-    if (Trace.isOn("strings-eqc"))
+    if (TraceIsOn("strings-eqc"))
     {
       Trace("strings-eqc") << debugPrintStringsEqc() << std::endl;
     }
@@ -903,7 +903,7 @@ void TheoryStrings::postCheck(Effort e)
       // (2) unsuccessfully processed pending lemmas.
       // In either case, we repeat the strategy if we are not in conflict.
       sentLemma = d_im.hasSentLemma();
-      if (Trace.isOn("strings-check"))
+      if (TraceIsOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
         Trace("strings-check") << (hadPending ? "hadPending " : "");
