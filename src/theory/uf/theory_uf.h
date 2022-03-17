@@ -49,21 +49,21 @@ class TheoryUF : public Theory {
 
     void eqNotifyNewClass(TNode t) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
+      Trace("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")"
                          << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+      Trace("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
                          << ")" << std::endl;
       d_uf.eqNotifyMerge(t1, t2);
     }
 
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
+      Trace("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
 

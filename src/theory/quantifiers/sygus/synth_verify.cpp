@@ -114,7 +114,7 @@ Result SynthVerify::verify(Node query,
   Trace("sygus-engine") << "  ...got " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
-    if (Trace.isOn("sygus-engine"))
+    if (TraceIsOn("sygus-engine"))
     {
       Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
       for (unsigned i = 0, size = vars.size(); i < size; i++)

@@ -136,7 +136,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
       temp_indices->push_back(i);
     }
   }
-  if(Trace.isOn("arrays-ind")) {
+  if(TraceIsOn("arrays-ind")) {
     printList((*(info_map.find(a))).second->indices);
   }
 
@@ -425,12 +425,12 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
   if(ita != info_map.end()) {
     Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<a<<"\n";
-    if(Trace.isOn("arrays-mergei"))
+    if(TraceIsOn("arrays-mergei"))
       (*ita).second->print();
 
     if(itb != info_map.end()) {
       Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<b<<"\n";
-      if(Trace.isOn("arrays-mergei"))
+      if(TraceIsOn("arrays-mergei"))
         (*itb).second->print();
 
       CTNodeList* lista_i = (*ita).second->indices;

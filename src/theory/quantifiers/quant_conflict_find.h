@@ -52,7 +52,7 @@ class MatchGen {
     typ_tconstraint,
     typ_tsym,
   };
-  void debugPrintType( const char * c, short typ, bool isTrace = false );
+  void debugPrintType( const char * c, short typ);
 
   bool d_tgt;
   bool d_tgt_orig;

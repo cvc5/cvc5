@@ -367,25 +367,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isSortConstructor(long pointer);
 
   /**
-   * Is this a first-class sort?
-   * First-class sorts are sorts for which:
-   * (1) we handle equalities between terms of that type, and
-   * (2) they are allowed to be parameters of parametric sorts (e.g. index or
-   *     element sorts of arrays).
-   *
-   * Examples of sorts that are not first-class include sort constructor sorts
-   * and regular expression sorts.
-   *
-   * @return true if this is a first-class sort
-   */
-  public boolean isFirstClass()
-  {
-    return isFirstClass(pointer);
-  }
-
-  private native boolean isFirstClass(long pointer);
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   public Datatype getDatatype()

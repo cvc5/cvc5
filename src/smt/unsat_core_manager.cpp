@@ -42,7 +42,7 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
       core.push_back(a);
     }
   }
-  if (Trace.isOn("unsat-core"))
+  if (TraceIsOn("unsat-core"))
   {
     Trace("unsat-core") << "UCManager::getUnsatCore():\n";
     for (const Node& n : core)
