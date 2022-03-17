@@ -21,7 +21,7 @@ The usage of such options is documented as part of the documentation for the cor
 
 On the command line, a Boolean option can be set to true by ``--<name>`` or ``-<short>``.
 Most Boolean options can also be set to false by ``--no-<name>``.
-In the different APIs, this is done via ``setOption("<name>", "true | false")``.
+In the different APIs, this is done via ``setOption("<name>", "true" | "false")``.
 For all other types, values can be given on the command line using ``--<name>=<value>`` or ``--<name> <value>`` and ``setOption("<name>", "<value>")`` in the different APIs.
 The given value must be convertible to the appropriate type, in particular for numeric and enumeration types.
 
