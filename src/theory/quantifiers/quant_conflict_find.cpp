@@ -236,9 +236,6 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
         bool newHasPol;
         bool newPol;
         QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-        // QcfNode * cbqic = new QcfNode( d_c );
-        // cbqic->d_parent = cbqi;
-        // cbqi->d_child[i] = cbqic;
         registerNode( n[i], newHasPol, newPol, beneathQuant );
       }
     }
@@ -701,7 +698,7 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
         Trace("qcf-instance-check") << "...spurious." << std::endl;
         return true;
       }else{
-        if (Configuration::isTraceBuild())
+        if (Configuration::isDebugBuild())
         {
           if (!d_parent->isPropagatingInstance(inst_eval))
           {
@@ -1582,9 +1579,6 @@ void MatchGen::reset(bool tgt)
       success = addc!=-1;
       //if successful and non-redundant, store that we need to cleanup this
       if( addc==1 ){
-        // Trace("qcf-explain") << "       reset: " << d_n << " add constraint
-        // " << vn[0] << " -> " << nn[1] << " (vn=" << vn[1] << ")" << ", d_tgt
-        // = " << d_tgt << std::endl;
         for (size_t i = 0; i < 2; i++)
         {
           if( vn[i]!=-1 && std::find( d_qni_bound_except.begin(), d_qni_bound_except.end(), i )==d_qni_bound_except.end() ){
