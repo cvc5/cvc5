@@ -1859,13 +1859,13 @@ bool SolverEngine::deepRestart()
 
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
-  // push the state to maintain global context around everything
-  d_state->setup();
 
   if (!d_smtSolver->deepRestart(*d_asserts.get(), zll))
   {
     return false;
   }
+  // push the state to maintain global context around everything
+  d_state->setup();
   return true;
 }
 

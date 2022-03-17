@@ -77,8 +77,17 @@ void ZeroLevelLearner::notifyInputFormulas(
   // e.g. circuit propagation that is not trivially a top level assertion will
   // be considered an ordinary learned literal.
   // Note that d_pplAtoms and d_ppnAtoms are disjoint
-  for (const Node& lit : assertions)
+  std::vector<Node> toProcess = assertions;
+  size_t index=0;
+  while (index<toProcess.size())
   {
+    TNode lit = toProcess[index];
+    index++;
+    if (lit.getKind()==kind::AND)
+    {
+      toProcess.insert(toProcess.end(), lit.begin(), lit.end());
+      continue;
+    }
     TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
     if (expr::isBooleanConnective(atom))
     {

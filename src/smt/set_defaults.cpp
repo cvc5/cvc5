@@ -440,16 +440,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
-      opts.smt.simplificationMode = (qf_sat && !opts.smt.deepRestart)
+      opts.smt.simplificationMode = qf_sat
                                         ? options::SimplificationMode::NONE
                                         : options::SimplificationMode::BATCH;
-    }
-    if (opts.smt.deepRestart
-        && opts.smt.simplificationMode == options::SimplificationMode::NONE)
-    {
-      std::stringstream ss;
-      ss << "Deep restart requires non-clausal simplification";
-      throw OptionException(ss.str());
     }
   }
 
@@ -1214,8 +1207,10 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   }
   if (opts.smt.deepRestart)
   {
-    reason << "deep-restart";
-    return true;
+    verbose(1) << "SolverEngine: turning off deep restarts to support "
+                  "sygus"
+               << std::endl;
+    opts.smt.deepRestart = false;
   }
   return false;
 }
