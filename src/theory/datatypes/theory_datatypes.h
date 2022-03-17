@@ -24,6 +24,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/proof_checker.h"
@@ -272,7 +273,6 @@ private:
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );
   bool areDisequal( TNode a, TNode b );
-  bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -298,6 +298,8 @@ private:
   NotifyClass d_notify;
   /** Proof checker for datatypes */
   DatatypesProofRuleChecker d_checker;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryDatatypes */
 
 }  // namespace datatypes
