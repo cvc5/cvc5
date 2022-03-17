@@ -16,7 +16,8 @@ Also, options can be set and inspected using the respective commands of the inpu
   :py:func:`getOptionInfo() <cvc5.Solver.getOptionInfo()>`
 
 Generally, all options are identified by a name, and they can additionally have one or more aliases (that can be used instead of their name anywhere) and a short name (a single letter).
-Internally, options are strongly typed and most be either Boolean, (signed or unsigned) integers, floating-point numbers, strings or an enumeration type. Values for options with a numeric type may be subject to additional restrictions. A few options have custom types (for example :ref:`err <lbl-option-err>`) that require special treatment internally, but their usage should be properly documented.
+Internally, options are strongly typed and must be either Boolean, (signed or unsigned) integers, floating-point numbers, strings, or an enumeration type. Values for options with a numeric type may be restricted to an interval. A few options have custom types (for example :ref:`err <lbl-option-err>`) that require special treatment internally.
+The usage of such options is documented as part of the documentation for the corresponding options.
 
 On the command line, a Boolean option can be set to true by ``--<name>`` or ``-<short>``.
 Most Boolean options can also be set to false by ``--no-<name>``.
