@@ -51,7 +51,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
 {
   if (d_debugFreeAssumps)
   {
-    if (Trace.isOn("pfnu-debug"))
+    if (TraceIsOn("pfnu-debug"))
     {
       Trace("pfnu-debug2") << "Initial proof: " << *pf.get() << std::endl;
       Trace("pfnu-debug") << "ProofNodeUpdater::process" << std::endl;

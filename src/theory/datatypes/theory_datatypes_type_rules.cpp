@@ -53,7 +53,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
   }
   if (t.isParametricDatatype())
   {
-    Debug("typecheck-idt") << "typecheck parameterized datatype " << n
+    Trace("typecheck-idt") << "typecheck parameterized datatype " << n
                            << std::endl;
     TypeMatcher m(t);
     for (; child_it != child_it_end; ++child_it, ++tchild_it)
@@ -68,21 +68,21 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> instTypes;
     m.getMatches(instTypes);
     TypeNode range = t.instantiateParametricDatatype(instTypes);
-    Debug("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return " << range << std::endl;
     return range;
   }
   else
   {
     if (check)
     {
-      Debug("typecheck-idt")
+      Trace("typecheck-idt")
           << "typecheck cons: " << n << " " << n.getNumChildren() << std::endl;
-      Debug("typecheck-idt") << "cons type: " << consType << " "
+      Trace("typecheck-idt") << "cons type: " << consType << " "
                              << consType.getNumChildren() << std::endl;
       for (; child_it != child_it_end; ++child_it, ++tchild_it)
       {
         TypeNode childType = (*child_it).getType(check);
-        Debug("typecheck-idt") << "typecheck cons arg: " << childType << " "
+        Trace("typecheck-idt") << "typecheck cons arg: " << childType << " "
                                << (*tchild_it) << std::endl;
         TypeNode argumentType = *tchild_it;
         if (!childType.isSubtypeOf(argumentType))
@@ -129,7 +129,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
   }
   if (t.isParametricDatatype())
   {
-    Debug("typecheck-idt") << "typecheck parameterized sel: " << n << std::endl;
+    Trace("typecheck-idt") << "typecheck parameterized sel: " << n << std::endl;
     TypeMatcher m(t);
     TypeNode childType = n[0].getType(check);
     if (!childType.isInstantiatedDatatype())
@@ -148,19 +148,19 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
     TypeNode range = selType[1];
     range = range.substitute(
         types.begin(), types.end(), matches.begin(), matches.end());
-    Debug("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return " << range << std::endl;
     return range;
   }
   else
   {
     if (check)
     {
-      Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
-      Debug("typecheck-idt") << "sel type: " << selType << std::endl;
+      Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
+      Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getType(check);
       if (!selType[0].isComparableTo(childType))
       {
-        Debug("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
+        Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
                                << childType.getKind() << std::endl;
         throw TypeCheckingExceptionPrivate(n, "bad type for selector argument");
       }
@@ -187,7 +187,7 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
     Assert(t.isDatatype());
     if (t.isParametricDatatype())
     {
-      Debug("typecheck-idt")
+      Trace("typecheck-idt")
           << "typecheck parameterized tester: " << n << std::endl;
       TypeMatcher m(t);
       if (!m.doMatching(testType[0], childType))
@@ -198,8 +198,8 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
     }
     else
     {
-      Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
-      Debug("typecheck-idt") << "test type: " << testType << std::endl;
+      Trace("typecheck-idt") << "typecheck test: " << n << std::endl;
+      Trace("typecheck-idt") << "test type: " << testType << std::endl;
       if (!testType[0].isComparableTo(childType))
       {
         throw TypeCheckingExceptionPrivate(n, "bad type for tester argument");
@@ -252,7 +252,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
 {
-  Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
+  Trace("typecheck-idt") << "typechecking ascription: " << n << std::endl;
   Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
   TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
   if (check)

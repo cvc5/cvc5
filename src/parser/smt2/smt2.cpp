@@ -273,7 +273,7 @@ void Smt2::addCoreSymbols()
 
 void Smt2::addOperator(api::Kind kind, const std::string& name)
 {
-  Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
+  Trace("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
   Parser::addOperator(kind);
   d_operatorKindMap[name] = kind;
@@ -424,8 +424,8 @@ std::unique_ptr<Command> Smt2::invConstraint(
     const std::vector<std::string>& names)
 {
   checkThatLogicIsSet();
-  Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
-  Debug("parser-sygus") << "Sygus : read inv-constraint..." << std::endl;
+  Trace("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
+  Trace("parser-sygus") << "Sygus : read inv-constraint..." << std::endl;
 
   if (names.size() != 4)
   {
@@ -749,7 +749,7 @@ void Smt2::checkLogicAllowsFunctions()
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
 static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
-  Debug("parser") << "Including " << filename << std::endl;
+  Trace("parser") << "Including " << filename << std::endl;
   // Create a new input stream and take advantage of built in stream stacking
   // in C target runtime.
   //
@@ -760,7 +760,7 @@ static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
   in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
 #endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if( in == NULL ) {
-    Debug("parser") << "Can't open " << filename << std::endl;
+    Trace("parser") << "Can't open " << filename << std::endl;
     return false;
   }
   // Same thing as the predefined PUSHSTREAM(in);
@@ -812,7 +812,7 @@ bool Smt2::isAbstractValue(const std::string& name)
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
-  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
+  Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
   if (p.d_kind == api::CONST_ARRAY)
@@ -887,13 +887,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // the builtin kind of the overall return expression
   api::Kind kind = api::NULL_EXPR;
   // First phase: process the operator
-  if (Debug.isOn("parser"))
+  if (TraceIsOn("parser"))
   {
-    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
          ++i)
     {
-      Debug("parser") << "++ " << *i << std::endl;
+      Trace("parser") << "++ " << *i << std::endl;
     }
   }
   api::Op op;
@@ -912,7 +912,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
       kind = fkind;
-      Debug("parser") << "Got function kind " << kind << " for expression "
+      Trace("parser") << "Got function kind " << kind << " for expression "
                       << std::endl;
     }
     args.insert(args.begin(), p.d_expr);
@@ -929,7 +929,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
-      Debug("parser") << "Got builtin kind " << kind << " for name"
+      Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;
     }
     else
@@ -991,7 +991,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     api::Term ret = d_solver->mkConstArray(p.d_type, constVal);
-    Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
   else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
@@ -1032,13 +1032,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       ret = d_solver->mkTerm(
           api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
     }
-    Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind == api::TUPLE_PROJECT)
   {
     api::Term ret = d_solver->mkTerm(p.d_op, args);
-    Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != api::NULL_EXPR)
@@ -1073,7 +1073,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
-      Debug("parser") << "applyParseOp: return unary " << args[0] << std::endl;
+      Trace("parser") << "applyParseOp: return unary " << args[0] << std::endl;
       return args[0];
     }
     else if (kind == api::SUB && args.size() == 1)
@@ -1084,12 +1084,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         std::stringstream suminus;
         suminus << "-" << args[0].getIntegerValue();
         api::Term ret = d_solver->mkInteger(suminus.str());
-        Debug("parser") << "applyParseOp: return negative constant " << ret
+        Trace("parser") << "applyParseOp: return negative constant " << ret
                         << std::endl;
         return ret;
       }
       api::Term ret = d_solver->mkTerm(api::NEG, args[0]);
-      Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
+      Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
     else if (kind == api::DIVISION && args.size() == 2 && isConstInt(args[0])
@@ -1099,14 +1099,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       std::stringstream sdiv;
       sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
       api::Term ret = d_solver->mkReal(sdiv.str());
-      Debug("parser") << "applyParseOp: return rational constant " << ret
+      Trace("parser") << "applyParseOp: return rational constant " << ret
                       << std::endl;
       return ret;
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
     {
       api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
-      Debug("parser") << "applyParseOp: return set.singleton " << ret
+      Trace("parser") << "applyParseOp: return set.singleton " << ret
                       << std::endl;
       return ret;
     }
@@ -1126,7 +1126,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);
-    Debug("parser") << "applyParseOp: return default builtin " << ret
+    Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
     return ret;
   }
@@ -1146,11 +1146,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
               "Cannot partially apply functions unless logic is prefixed by "
               "HO_.");
         }
-        Debug("parser") << "Partial application of " << args[0];
-        Debug("parser") << " : #argTypes = " << arity;
-        Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
+        Trace("parser") << "Partial application of " << args[0];
+        Trace("parser") << " : #argTypes = " << arity;
+        Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
         api::Term ret = d_solver->mkTerm(api::HO_APPLY, args);
-        Debug("parser") << "applyParseOp: return curry higher order " << ret
+        Trace("parser") << "applyParseOp: return curry higher order " << ret
                         << std::endl;
         // must curry the partial application
         return ret;
@@ -1160,7 +1160,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (!op.isNull())
   {
     api::Term ret = d_solver->mkTerm(op, args);
-    Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return op : " << ret << std::endl;
     return ret;
   }
   if (kind == api::NULL_EXPR)
@@ -1168,10 +1168,10 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // should never happen in the new API
     parseError("do not know how to process parse op");
   }
-  Debug("parser") << "Try default term construction for kind " << kind
+  Trace("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
   api::Term ret = d_solver->mkTerm(kind, args);
-  Debug("parser") << "applyParseOp: return : " << ret << std::endl;
+  Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
 }
 

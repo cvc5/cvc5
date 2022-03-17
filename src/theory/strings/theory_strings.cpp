@@ -85,7 +85,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg),
       d_strat(d_env),
-      d_absModelCounter(0)
+      d_absModelCounter(0),
+      d_cpacb(*this)
 {
   d_termReg.finishInit(&d_im);
 
@@ -165,24 +166,6 @@ std::string TheoryStrings::identify() const
   return std::string("TheoryStrings");
 }
 
-bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
-  Assert(d_equalityEngine->hasTerm(x));
-  Assert(d_equalityEngine->hasTerm(y));
-  if (d_equalityEngine->isTriggerTerm(x, THEORY_STRINGS)
-      && d_equalityEngine->isTriggerTerm(y, THEORY_STRINGS))
-  {
-    TNode x_shared =
-        d_equalityEngine->getTriggerTermRepresentative(x, THEORY_STRINGS);
-    TNode y_shared =
-        d_equalityEngine->getTriggerTermRepresentative(y, THEORY_STRINGS);
-    EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-      return true;
-    }
-  }
-  return false;
-}
-
 bool TheoryStrings::propagateLit(TNode literal)
 {
   return d_im.propagateLit(literal);
@@ -190,12 +173,12 @@ bool TheoryStrings::propagateLit(TNode literal)
 
 TrustNode TheoryStrings::explain(TNode literal)
 {
-  Debug("strings-explain") << "explain called on " << literal << std::endl;
+  Trace("strings-explain") << "explain called on " << literal << std::endl;
   return d_im.explainLit(literal);
 }
 
 void TheoryStrings::presolve() {
-  Debug("strings-presolve")
+  Trace("strings-presolve")
       << "TheoryStrings::Presolving : get fmf options "
       << (options().strings.stringFMF ? "true" : "false") << std::endl;
   d_strat.initializeStrategy();
@@ -211,7 +194,7 @@ void TheoryStrings::presolve() {
         d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
   }
-  Debug("strings-presolve") << "Finished presolve" << std::endl;
+  Trace("strings-presolve") << "Finished presolve" << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -221,7 +204,7 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
-  if (Trace.isOn("strings-debug-model"))
+  if (TraceIsOn("strings-debug-model"))
   {
     Trace("strings-debug-model")
         << "TheoryStrings::collectModelValues" << std::endl;
@@ -701,7 +684,7 @@ bool TheoryStrings::collectModelInfoType(
     if (processed.find(rn) == processed.end())
     {
       NormalForm& nf = d_csolver.getNormalForm(rn);
-      if (Trace.isOn("strings-model"))
+      if (TraceIsOn("strings-model"))
       {
         Trace("strings-model")
             << "Construct model for " << rn << " based on normal form ";
@@ -875,7 +858,7 @@ void TheoryStrings::postCheck(Effort e)
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
-    if (Trace.isOn("strings-eqc"))
+    if (TraceIsOn("strings-eqc"))
     {
       Trace("strings-eqc") << debugPrintStringsEqc() << std::endl;
     }
@@ -900,7 +883,7 @@ void TheoryStrings::postCheck(Effort e)
       // (2) unsuccessfully processed pending lemmas.
       // In either case, we repeat the strategy if we are not in conflict.
       sentLemma = d_im.hasSentLemma();
-      if (Trace.isOn("strings-check"))
+      if (TraceIsOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
         Trace("strings-check") << (hadPending ? "hadPending " : "");
@@ -1004,89 +987,6 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-void TheoryStrings::addCarePairs(TNodeTrie* t1,
-                                 TNodeTrie* t2,
-                                 unsigned arity,
-                                 unsigned depth)
-{
-  if( depth==arity ){
-    if( t2!=NULL ){
-      Node f1 = t1->getData();
-      Node f2 = t2->getData();
-      if (!d_equalityEngine->areEqual(f1, f2))
-      {
-        Trace("strings-cg-debug") << "TheoryStrings::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
-        vector< pair<TNode, TNode> > currentPairs;
-        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
-          TNode x = f1[k];
-          TNode y = f2[k];
-          Assert(d_equalityEngine->hasTerm(x));
-          Assert(d_equalityEngine->hasTerm(y));
-          Assert(!d_equalityEngine->areDisequal(x, y, false));
-          Assert(!areCareDisequal(x, y));
-          if (!d_equalityEngine->areEqual(x, y))
-          {
-            if (d_equalityEngine->isTriggerTerm(x, THEORY_STRINGS)
-                && d_equalityEngine->isTriggerTerm(y, THEORY_STRINGS))
-            {
-              TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(
-                  x, THEORY_STRINGS);
-              TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(
-                  y, THEORY_STRINGS);
-              currentPairs.push_back(make_pair(x_shared, y_shared));
-            }
-          }
-        }
-        for (unsigned c = 0; c < currentPairs.size(); ++ c) {
-          Trace("strings-cg-pair") << "TheoryStrings::computeCareGraph(): pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
-          addCarePair(currentPairs[c].first, currentPairs[c].second);
-        }
-      }
-    }
-  }else{
-    if( t2==NULL ){
-      if( depth<(arity-1) ){
-        //add care pairs internal to each child
-        for (std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
-        {
-          addCarePairs(&tt.second, nullptr, arity, depth + 1);
-        }
-      }
-      //add care pairs based on each pair of non-disequal arguments
-      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
-           it != t1->d_data.end();
-           ++it)
-      {
-        std::map<TNode, TNodeTrie>::iterator it2 = it;
-        ++it2;
-        for( ; it2 != t1->d_data.end(); ++it2 ){
-          if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
-          {
-            if( !areCareDisequal(it->first, it2->first) ){
-              addCarePairs( &it->second, &it2->second, arity, depth+1 );
-            }
-          }
-        }
-      }
-    }else{
-      //add care pairs based on product of indices, non-disequal arguments
-      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
-      {
-        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
-        {
-          if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
-          {
-            if (!areCareDisequal(tt1.first, tt2.first))
-            {
-              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 void TheoryStrings::computeCareGraph(){
   //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
   Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
@@ -1122,7 +1022,7 @@ void TheoryStrings::computeCareGraph(){
     Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
                         << ti.first << "..." << std::endl;
     Node op = ti.first.second;
-    addCarePairs(&ti.second, nullptr, arity[op], 0);
+    nodeTriePathPairProcess(&ti.second, arity[op], d_cpacb);
   }
 }
 

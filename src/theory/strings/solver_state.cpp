@@ -95,7 +95,7 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
   {
     lengthTerm = lengthTerm[0];
   }
-  Debug("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
+  Trace("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
                    << std::endl;
   if (te != lengthTerm)
   {

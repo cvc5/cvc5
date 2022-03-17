@@ -18,12 +18,14 @@
 #ifndef CVC5__OUTPUT_H
 #define CVC5__OUTPUT_H
 
+#include <algorithm>
 #include <cstdio>
 #include <ios>
 #include <iostream>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "cvc5_export.h"
 
@@ -37,7 +39,7 @@ std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
 /**
  * A utility class to provide (essentially) a "/dev/null" streambuf.
  * If debugging support is compiled in, but debugging for
- * e.g. "parser" is off, then Debug("parser") returns a stream
+ * e.g. "parser" is off, then Trace("parser") returns a stream
  * attached to a null_streambuf instance so that output is directed to
  * the bit bucket.
  */
@@ -184,46 +186,6 @@ class NullC
 
 extern NullC nullStream CVC5_EXPORT;
 
-/** The debug output class */
-class DebugC
-{
-  std::set<std::string> d_tags;
-  std::ostream* d_os;
-
-public:
-  explicit DebugC(std::ostream* os) : d_os(os) {}
-
-  Cvc5ostream operator()(const std::string& tag) const
-  {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return Cvc5ostream(d_os);
-    } else {
-      return Cvc5ostream();
-    }
-  }
-
-  bool on(const std::string& tag)
-  {
-    d_tags.insert(tag);
-    return true;
-  }
-  bool off(const std::string& tag)
-  {
-    d_tags.erase(tag);
-    return false;
-  }
-  bool off()                { d_tags.clear(); return false; }
-
-  bool isOn(const std::string& tag) const
-  {
-    return d_tags.find(tag) != d_tags.end();
-  }
-
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *os; }
-  std::ostream& getStream() const { return *d_os; }
-  std::ostream* getStreamPointer() const { return d_os; }
-}; /* class DebugC */
-
 /** The warning output class */
 class WarningC
 {
@@ -263,14 +225,18 @@ public:
 class TraceC
 {
   std::ostream* d_os;
-  std::set<std::string> d_tags;
+  std::vector<std::string> d_tags;
 
 public:
   explicit TraceC(std::ostream* os) : d_os(os) {}
 
-  Cvc5ostream operator()(std::string tag) const
+  Cvc5ostream operator()() const
   {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
+    return Cvc5ostream(d_os);
+  }
+  Cvc5ostream operator()(const std::string& tag) const
+  {
+    if (isOn(tag)) {
       return Cvc5ostream(d_os);
     } else {
       return Cvc5ostream();
@@ -279,19 +245,25 @@ public:
 
   bool on(const std::string& tag)
   {
-    d_tags.insert(tag);
+    d_tags.emplace_back(tag);
     return true;
   }
   bool off(const std::string& tag)
   {
-    d_tags.erase(tag);
+    auto it = std::find(d_tags.begin(), d_tags.end(), tag);
+    if (it != d_tags.end())
+    {
+      *it = d_tags.back();
+      d_tags.pop_back();
+    }
     return false;
   }
-  bool off()                { d_tags.clear(); return false; }
 
   bool isOn(const std::string& tag) const
   {
-    return d_tags.find(tag) != d_tags.end();
+    // This is faster than using std::set::find() or sorting the vector and
+    // using std::lower_bound.
+    return !d_tags.empty() && std::find(d_tags.begin(), d_tags.end(), tag) != d_tags.end();
   }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
@@ -300,8 +272,6 @@ public:
 
 }; /* class TraceC */
 
-/** The debug output singleton */
-extern DebugC DebugChannel CVC5_EXPORT;
 /** The warning output singleton */
 extern WarningC WarningChannel CVC5_EXPORT;
 /** The trace output singleton */
@@ -309,20 +279,15 @@ extern TraceC TraceChannel CVC5_EXPORT;
 
 #ifdef CVC5_MUZZLE
 
-#define Debug ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DebugChannel
 #define Warning \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define WarningOnce \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
-#define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
+#define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
+#define Trace(tag) ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel()
 
 #else /* CVC5_MUZZLE */
 
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-#define Debug ::cvc5::DebugChannel
-#else /* CVC5_DEBUG && CVC5_TRACING */
-#define Debug ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DebugChannel
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 #define Warning \
   (!::cvc5::WarningChannel.isOn()) ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define WarningOnce                                         \
@@ -331,17 +296,19 @@ extern TraceC TraceChannel CVC5_EXPORT;
       ? ::cvc5::nullStream                                  \
       : ::cvc5::WarningChannel
 #ifdef CVC5_TRACING
-#define Trace ::cvc5::TraceChannel
+#define TraceIsOn ::cvc5::TraceChannel.isOn
+#define Trace(tag) !::cvc5::TraceChannel.isOn(tag) ? ::cvc5::nullStream : ::cvc5::TraceChannel()
 #else /* CVC5_TRACING */
-#define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
+#define TraceIsOn ::cvc5::__cvc5_true() ? false : ::cvc5::TraceChannel.isOn
+#define Trace(tag) ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel()
 #endif /* CVC5_TRACING */
 
 #endif /* CVC5_MUZZLE */
 
-// Disallow e.g. !Debug("foo").isOn() forms
+// Disallow e.g. !Trace("foo").isOn() forms
 // because the ! will apply before the ? .
 // If a compiler error has directed you here,
-// just parenthesize it e.g. !(Debug("foo").isOn())
+// just parenthesize it e.g. !(Trace("foo").isOn())
 class __cvc5_true
 {
   CVC5_UNUSED void operator!();
