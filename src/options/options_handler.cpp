@@ -361,20 +361,6 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
   }
 }
 
-void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
-{
-  if(arg) {
-    if (d_options->bv.bitblastModeWasSetByUser) {
-      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
-      {
-        throw OptionException("bitblast-aig must be used with eager bitblaster");
-      }
-    } else {
-      d_options->bv.bitblastMode = options::BitblastMode::EAGER;
-    }
-  }
-}
-
 void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
   ioutils::setDefaultNodeDepth(depth);
