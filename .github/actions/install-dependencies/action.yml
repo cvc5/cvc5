@@ -57,6 +57,10 @@ runs:
         sudo apt-get update
         sudo apt-get install -y \
           mingw-w64
+
+        # Use ccache for MinGW
+        ln -s /usr/bin/ccache /usr/lib64/ccache/x86_64-w64-mingw32-gcc
+        ln -s /usr/bin/ccache /usr/lib64/ccache/x86_64-w64-mingw32-g++
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
