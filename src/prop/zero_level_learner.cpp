@@ -89,6 +89,11 @@ void ZeroLevelLearner::notifyInputFormulas(
       toProcess.insert(toProcess.end(), lit.begin(), lit.end());
       continue;
     }
+    TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
+    if (expr::isBooleanConnective(atom))
+    {
+      continue;
+    }
     visited.insert(atom);
     d_pplAtoms.insert(atom);
   }
