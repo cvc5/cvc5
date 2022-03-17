@@ -86,7 +86,7 @@ PreRegisterVisitor::PreRegisterVisitor(Env& env, TheoryEngine* engine)
 
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
-  Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
+  Trace("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
   if ((parent.isClosure()
        || parent.getKind() == kind::SEP_STAR
@@ -95,7 +95,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
        )
       && current != parent)
   {
-    Debug("register::internal") << "quantifier:true" << std::endl;
+    Trace("register::internal") << "quantifier:true" << std::endl;
     return true;
   }
   
@@ -112,9 +112,9 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
 
-  Debug("register") << "PreRegisterVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  if (Debug.isOn("register::internal")) {
-    Debug("register::internal") << toString() << std::endl;
+  Trace("register") << "PreRegisterVisitor::visit(" << current << "," << parent << ")" << std::endl;
+  if (TraceIsOn("register::internal")) {
+    Trace("register::internal") << toString() << std::endl;
   }
 
   // get the theories we already preregistered with
@@ -126,7 +126,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   preRegister(
       d_env, d_engine, visitedTheories, current, parent, visitedTheories);
 
-  Debug("register::internal")
+  Trace("register::internal")
       << "PreRegisterVisitor::visit(" << current << "," << parent
       << "): now registered with "
       << TheoryIdSetUtil::setToString(visitedTheories) << std::endl;
@@ -187,7 +187,7 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
   }
   if (Configuration::isAssertionBuild())
   {
-    Debug("register::internal")
+    Trace("register::internal")
         << "PreRegisterVisitor::visit(" << current << "," << parent
         << "): adding " << id << std::endl;
     // This should never throw an exception, since theories should be
@@ -236,7 +236,7 @@ std::string SharedTermsVisitor::toString() const {
 
 bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
-  Debug("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
+  Trace("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
   if ((parent.isClosure()
        || parent.getKind() == kind::SEP_STAR
@@ -245,13 +245,13 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
        )
       && current != parent)
   {
-    Debug("register::internal") << "quantifier:true" << std::endl;
+    Trace("register::internal") << "quantifier:true" << std::endl;
     return true;
   }
   TNodeVisitedMap::const_iterator find = d_visited.find(current);
   // If node is not visited at all, just return false
   if (find == d_visited.end()) {
-    Debug("register::internal") << "1:false" << std::endl;
+    Trace("register::internal") << "1:false" << std::endl;
     return false;
   }
 
@@ -261,9 +261,9 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
 void SharedTermsVisitor::visit(TNode current, TNode parent) {
 
-  Debug("register") << "SharedTermsVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  if (Debug.isOn("register::internal")) {
-    Debug("register::internal") << toString() << std::endl;
+  Trace("register") << "SharedTermsVisitor::visit(" << current << "," << parent << ")" << std::endl;
+  if (TraceIsOn("register::internal")) {
+    Trace("register::internal") << toString() << std::endl;
   }
   TheoryIdSet visitedTheories = d_visited[current];
   TheoryIdSet preregTheories = d_preregistered[current];

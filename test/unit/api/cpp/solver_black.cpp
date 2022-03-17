@@ -3041,7 +3041,7 @@ TEST_F(TestApiBlackSolver, proj_issue434)
   // the query has free variables, and should throw an exception
   ASSERT_THROW(slv.checkSatAssuming({t1073, t510}), CVC5ApiException);
 }
-  
+
 TEST_F(TestApiBlackSolver, proj_issue436)
 {
   Solver slv;
@@ -3058,7 +3058,7 @@ TEST_F(TestApiBlackSolver, proj_issue436)
   // solve-bv-as-int is incompatible with get-abduct
   ASSERT_THROW(slv.getAbduct(t33), CVC5ApiException);
 }
-  
+
 TEST_F(TestApiBlackSolver, proj_issue431)
 {
   Solver slv;
@@ -3190,6 +3190,14 @@ TEST_F(TestApiBlackSolver, projIssue431)
   slv.assertFormula({t488});
   Term abduct;
   abduct = slv.getAbduct(t488);
+}
+
+TEST_F(TestApiBlackSolver, projIssue337)
+{
+  Term t =
+      d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal("3416574625719121610379268"));
+  Term tt = d_solver.simplify(t);
+  ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
 }  // namespace test

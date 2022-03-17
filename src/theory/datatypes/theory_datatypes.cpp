@@ -379,7 +379,7 @@ void TheoryDatatypes::postCheck(Effort level)
   }
 
   Trace("datatypes-check") << "Finished check effort " << level << std::endl;
-  Debug("datatypes") << "TheoryDatatypes::check(): done" << std::endl;
+  Trace("datatypes") << "TheoryDatatypes::check(): done" << std::endl;
 }
 
 bool TheoryDatatypes::needsCheckLastEffort() {
@@ -482,7 +482,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 
 TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
-  Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+  Trace("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
@@ -768,7 +768,7 @@ void TheoryDatatypes::addTester(
     unsigned ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg)
 {
   Trace("datatypes-debug") << "Add tester : " << t << " to eqc(" << n << ")" << std::endl;
-  Debug("datatypes-labels") << "Add tester " << t << " " << n << " " << eqc << std::endl;
+  Trace("datatypes-labels") << "Add tester " << t << " " << n << " " << eqc << std::endl;
   bool tpolarity = t.getKind()!=NOT;
   Assert((tpolarity ? t : t[0]).getKind() == APPLY_TESTER);
   Node j, jt;
@@ -822,7 +822,7 @@ void TheoryDatatypes::addTester(
       }
     }
     if( !makeConflict ){
-      Debug("datatypes-labels") << "Add to labels " << t << std::endl;
+      Trace("datatypes-labels") << "Add to labels " << t << std::endl;
       d_labels[n] = n_lbl + 1;
       if (n_lbl < d_labels_data[n].size())
       {
@@ -838,7 +838,7 @@ void TheoryDatatypes::addTester(
       n_lbl++;
 
       const DType& dt = t_arg.getType().getDType();
-      Debug("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
+      Trace("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
         instantiate(eqc, n);
         // We could propagate is-C1(x) => not is-C2(x) here for all other
@@ -887,7 +887,7 @@ void TheoryDatatypes::addTester(
     }
   }
   if( makeConflict ){
-    Debug("datatypes-labels") << "Explain " << j << " " << t << std::endl;
+    Trace("datatypes-labels") << "Explain " << j << " " << t << std::endl;
     std::vector<Node> conf;
     conf.push_back(j);
     conf.push_back(t);
@@ -1364,7 +1364,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
   Kind nk = n.getKind();
   if (nk == APPLY_CONSTRUCTOR)
   {
-    Debug("datatypes") << "  Found constructor " << n << endl;
+    Trace("datatypes") << "  Found constructor " << n << endl;
     if (n.getNumChildren() > 0)
     {
       d_functionTerms.push_back(n);
@@ -1443,7 +1443,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   // it may be a new term, so we collect terms and add it to the equality engine
   collectTerms( n_ic );
   d_equalityEngine->addTerm(n_ic);
-  Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
+  Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
 }
 
@@ -1832,7 +1832,7 @@ TNode TheoryDatatypes::getRepresentative( TNode a ){
 }
 
 void TheoryDatatypes::printModelDebug( const char* c ){
-  if(! (Trace.isOn(c))) {
+  if(! (TraceIsOn(c))) {
     return;
   }
 

@@ -162,7 +162,7 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
       TrustNode newLem;
       bool inQuant, inTerm;
       RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
-      Debug("ite") << "removeITEs(" << node << ")"
+      Trace("ite") << "removeITEs(" << node << ")"
                    << " " << inQuant << " " << inTerm << std::endl;
       Assert(!inQuant);
       Node currt =
