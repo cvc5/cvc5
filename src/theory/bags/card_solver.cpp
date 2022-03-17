@@ -73,8 +73,9 @@ void CardSolver::checkCardinalityGraph()
     if (!d_state.hasTerm(pair.first[0]))
     {
       // new bag terms might be added in previous iterations of this loop.
-      // so add to equality engine to proceed.
-      d_state.addTerm(pair.first[0]);
+      // so we can skip them until they are added in the equality engine after
+      // processing pending lemmas
+      continue;
     }
     Node bag = d_state.getRepresentative(pair.first[0]);
     Trace("bags-card") << "CardSolver::checkCardinalityGraph bag rep: " << bag
