@@ -115,16 +115,12 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_REDOR, "bvredor");
   addOperator(api::BITVECTOR_REDAND, "bvredand");
 
-  addIndexedOperator(api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
-  addIndexedOperator(api::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
-  addIndexedOperator(
-      api::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
-  addIndexedOperator(
-      api::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
-  addIndexedOperator(
-      api::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
-  addIndexedOperator(
-      api::BITVECTOR_ROTATE_RIGHT, api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
+  addIndexedOperator(api::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(api::BITVECTOR_REPEAT, "repeat");
+  addIndexedOperator(api::BITVECTOR_ZERO_EXTEND, "zero_extend");
+  addIndexedOperator(api::BITVECTOR_SIGN_EXTEND, "sign_extend");
+  addIndexedOperator(api::BITVECTOR_ROTATE_LEFT, "rotate_left");
+  addIndexedOperator(api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
 void Smt2::addDatatypesOperators()
@@ -140,9 +136,8 @@ void Smt2::addDatatypesOperators()
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(
-        api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
-    addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
+    addIndexedOperator(api::APPLY_SELECTOR, "tuple_select");
+    addIndexedOperator(api::APPLY_UPDATER, "tuple_update");
   }
 }
 
@@ -197,8 +192,8 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_STAR, "re.*");
   addOperator(api::REGEXP_PLUS, "re.+");
   addOperator(api::REGEXP_OPT, "re.opt");
-  addIndexedOperator(api::REGEXP_REPEAT, api::REGEXP_REPEAT, "re.^");
-  addIndexedOperator(api::REGEXP_LOOP, api::REGEXP_LOOP, "re.loop");
+  addIndexedOperator(api::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_RANGE, "re.range");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::REGEXP_DIFF, "re.diff");
@@ -234,31 +229,17 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,
-                     api::FLOATINGPOINT_TO_FP_GENERIC,
-                     "to_fp");
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV,
-                     api::FLOATINGPOINT_TO_FP_FROM_UBV,
-                     "to_fp_unsigned");
-  addIndexedOperator(
-      api::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
-  addIndexedOperator(
-      api::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC, "to_fp");
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
+  addIndexedOperator(api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
+  addIndexedOperator(api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                       api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                       "to_fp_bv");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP,
-                       api::FLOATINGPOINT_TO_FP_FROM_FP,
-                       "to_fp_fp");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL,
-                       api::FLOATINGPOINT_TO_FP_FROM_REAL,
-                       "to_fp_real");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV,
-                       api::FLOATINGPOINT_TO_FP_FROM_SBV,
-                       "to_fp_signed");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, "to_fp_bv");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP, "to_fp_fp");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL, "to_fp_real");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV, "to_fp_signed");
   }
 }
 
@@ -299,11 +280,10 @@ void Smt2::addOperator(api::Kind kind, const std::string& name)
 }
 
 void Smt2::addIndexedOperator(api::Kind tKind,
-                              api::Kind opKind,
                               const std::string& name)
 {
   Parser::addOperator(tKind);
-  d_indexedOpKindMap[name] = opKind;
+  d_indexedOpKindMap[name] = tKind;
 }
 
 api::Kind Smt2::getOperatorKind(const std::string& name) const
@@ -521,7 +501,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
         addOperator(api::INTS_MODULUS, "mod");
         addOperator(api::ABS, "abs");
       }
-      addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
+      addIndexedOperator(api::DIVISIBLE, "divisible");
     }
 
     if (d_logic.areRealsUsed())
@@ -550,7 +530,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if (!strictModeEnabled())
     {
       // integer version of AND
-      addIndexedOperator(api::IAND, api::IAND, "iand");
+      addIndexedOperator(api::IAND, "iand");
       // pow2
       addOperator(api::POW2, "int.pow2");
     }
@@ -570,8 +550,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       // Conversions between bit-vectors and integers
       addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
-      addIndexedOperator(
-          api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
+      addIndexedOperator(api::INT_TO_BITVECTOR, "int2bv");
     }
   }
 
