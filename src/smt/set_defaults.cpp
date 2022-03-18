@@ -945,6 +945,14 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
         << std::endl;
     opts.arith.nlCovVarElim = false;
   }
+  if (opts.smt.deepRestart)
+  {
+    // TODO: will be exception here
+    verbose(1) << "SolverEngine: turning off deep restarts to support "
+                  "proofs"
+               << std::endl;
+    opts.smt.deepRestart = false;
+  }
   return false;
 }
 
@@ -1186,6 +1194,14 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     notifyModifyOption("unconstrainedSimp", "false", "unsat cores");
     opts.smt.unconstrainedSimp = false;
   }
+  if (opts.smt.deepRestart)
+  {
+    // TODO: will be exception here
+    verbose(1) << "SolverEngine: turning off deep restarts to support "
+                  "unsat cores"
+               << std::endl;
+    opts.smt.deepRestart = false;
+  }
   return false;
 }
 
@@ -1207,6 +1223,7 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   }
   if (opts.smt.deepRestart)
   {
+    // TODO: will be exception here
     verbose(1) << "SolverEngine: turning off deep restarts to support "
                   "sygus"
                << std::endl;
