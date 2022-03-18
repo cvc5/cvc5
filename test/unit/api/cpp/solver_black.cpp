@@ -1530,6 +1530,24 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ("verbose", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ verbose | void }");
+  }
+  {
+    // bool type with default
+    api::OptionInfo info = d_solver.getOptionInfo("print-success");
+    EXPECT_EQ("print-success", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<bool>>(
+        info.valueInfo));
+    auto valInfo = std::get<OptionInfo::ValueInfo<bool>>(info.valueInfo);
+    EXPECT_EQ(false, valInfo.defaultValue);
+    EXPECT_EQ(false, valInfo.currentValue);
+    ASSERT_EQ(info.boolValue(), false);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ print-success | bool | false | default false }");
   }
   {
     // int64 type with default
@@ -1543,6 +1561,25 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ(0, numInfo.currentValue);
     EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
     ASSERT_EQ(info.intValue(), 0);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ verbosity | int64_t | 0 | default 0 }");
+  }
+  {
+    // uint64 type with default
+    api::OptionInfo info = d_solver.getOptionInfo("rlimit");
+    EXPECT_EQ("rlimit", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
+        info.valueInfo));
+    auto numInfo = std::get<OptionInfo::NumberInfo<uint64_t>>(info.valueInfo);
+    EXPECT_EQ(0, numInfo.defaultValue);
+    EXPECT_EQ(0, numInfo.currentValue);
+    EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+    ASSERT_EQ(info.uintValue(), 0);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ rlimit | uint64_t | 0 | default 0 }");
   }
   {
     auto info = d_solver.getOptionInfo("random-freq");
@@ -1557,6 +1594,24 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     ASSERT_EQ(*ni.minimum, 0.0);
     ASSERT_EQ(*ni.maximum, 1.0);
     ASSERT_EQ(info.doubleValue(), 0.0);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ random-freq, random-frequency | double | 0 | default 0 | 0 <= x <= 1 }");
+  }
+  {
+    // string type with default
+    api::OptionInfo info = d_solver.getOptionInfo("force-logic");
+    EXPECT_EQ("force-logic", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
+        info.valueInfo));
+    auto valInfo = std::get<OptionInfo::ValueInfo<std::string>>(info.valueInfo);
+    EXPECT_EQ("", valInfo.defaultValue);
+    EXPECT_EQ("", valInfo.currentValue);
+    ASSERT_EQ(info.stringValue(), "");
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ force-logic | string | \"\" | default \"\" }");
   }
   {
     // mode option
@@ -1572,7 +1627,18 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
                 != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
   }
+}
+
+TEST_F(TestApiBlackSolver, getDriverOptions)
+{
+  auto dopts = d_solver.getDriverOptions();
+  EXPECT_EQ(dopts.err().rdbuf(), std::cerr.rdbuf());
+  EXPECT_EQ(dopts.in().rdbuf(), std::cin.rdbuf());
+  EXPECT_EQ(dopts.out().rdbuf(), std::cout.rdbuf());
 }
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
