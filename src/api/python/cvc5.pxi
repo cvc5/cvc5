@@ -1996,7 +1996,7 @@ cdef class Solver:
 
         :return: all option names
         """
-        return [s.encode() for s in self.csolver.getOptionNames()]
+        return [s.decode() for s in self.csolver.getOptionNames()]
 
     def getUnsatAssumptions(self):
         """
