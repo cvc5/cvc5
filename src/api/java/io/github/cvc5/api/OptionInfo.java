@@ -71,7 +71,7 @@ public class OptionInfo extends AbstractPointer
   }
 
   /** Has the current and the default value */
-  public abstract class ValueInfo<T> extends BaseInfo
+  public class ValueInfo<T> extends BaseInfo
   {
     private final T defaultValue;
     private final T currentValue;
