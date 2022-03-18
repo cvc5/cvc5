@@ -1181,6 +1181,13 @@ def test_get_option(solver):
         solver.getOption("asdf")
 
 
+def test_get_option_names(solver):
+    opts = solver.getOptionNames()
+    assert len(opts) > 100
+    assert "verbose" in opts
+    assert "foobar" not in opts
+
+
 def test_get_unsat_assumptions1(solver):
     solver.setOption("incremental", "false")
     solver.checkSatAssuming(solver.mkFalse())
