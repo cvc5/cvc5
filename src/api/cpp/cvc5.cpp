@@ -7042,12 +7042,12 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
   std::visit(overloaded{
                  [&os](const OptionInfo::VoidInfo& vi) { os << " | void"; },
                  [&os](const OptionInfo::ValueInfo<bool>& vi) {
-                   os << " | bool | " << vi.currentValue << " | default "
-                      << vi.defaultValue;
+                   os << std::boolalpha << " | bool | " << vi.currentValue << " | default "
+                      << vi.defaultValue << std::noboolalpha;
                  },
                  [&os](const OptionInfo::ValueInfo<std::string>& vi) {
-                   os << " | string | " << vi.currentValue << " | default "
-                      << vi.defaultValue;
+                   os << " | string | \"" << vi.currentValue << "\" | default \""
+                      << vi.defaultValue << "\"";
                  },
                  [&printNum](const OptionInfo::NumberInfo<int64_t>& vi) {
                    printNum("int64_t", vi);
