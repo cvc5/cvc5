@@ -323,9 +323,22 @@ Java_io_github_cvc5_api_OptionInfo_intValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
-  std::int64_t value = current->intValue();
-  jobject ret = getBigIntegerObject<std::int64_t>(env, value);
-  return ret;
+  if (std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
+          current->valueInfo))
+  {
+    std::uint64_t value = current->uintValue();
+    jobject ret = getBigIntegerObject<std::uint64_t>(env, value);
+    return ret;
+  }
+  if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
+          current->valueInfo))
+  {
+    std::int64_t value = current->intValue();
+    jobject ret = getBigIntegerObject<std::int64_t>(env, value);
+    return ret;
+  }
+  throw CVC5ApiRecoverableException("Option is neither int64_t nor uint64_t");
+  return jobject();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
