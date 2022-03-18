@@ -175,6 +175,20 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             NumberInfo[double], ModeInfo
         ] valueInfo
 
+cdef extern from "<variant>" namespace "std":
+    bint holds "std::holds_alternative"[T](variant[OptionInfo.VoidInfo,
+        OptionInfo.ValueInfo[bint], OptionInfo.ValueInfo[string],
+        OptionInfo.NumberInfo[int64_t], OptionInfo.NumberInfo[uint64_t],
+        OptionInfo.NumberInfo[double], OptionInfo.ModeInfo
+        ] & v) except +
+
+    T getVariant "std::get"[T](variant[OptionInfo.VoidInfo,
+        OptionInfo.ValueInfo[bint], OptionInfo.ValueInfo[string],
+        OptionInfo.NumberInfo[int64_t], OptionInfo.NumberInfo[uint64_t],
+        OptionInfo.NumberInfo[double], OptionInfo.ModeInfo
+        ] & v) except +
+
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
