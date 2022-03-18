@@ -20,6 +20,12 @@ cdef extern from "<functional>" namespace "std" nogil:
         hash()
         size_t operator()(T t)
 
+cdef extern from "<optional>" namespace "std" nogil:
+    # available in newer cython versions from cpplib.optional
+    cdef cppclass optional[T]:
+        bint has_value()
+        T& value()
+
 cdef extern from "<string>" namespace "std":
     cdef cppclass wstring:
         wstring() except +
