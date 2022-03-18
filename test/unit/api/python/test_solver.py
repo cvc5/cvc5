@@ -1188,6 +1188,69 @@ def test_get_option_names(solver):
     assert "foobar" not in opts
 
 
+def test_get_option_info(solver):
+    with pytest.raises(RuntimeError):
+        solver.getOptionInfo("asdf-invalid")
+    
+    info = solver.getOptionInfo("verbose")
+    assert info['name'] == "verbose"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is None
+    
+    info = solver.getOptionInfo("print-success")
+    assert info['name'] == "print-success"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is bool
+    assert info['current'] == False
+    assert info['default'] == False
+
+    info = solver.getOptionInfo("verbosity")
+    assert info['name'] == "verbosity"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is int
+    assert info['current'] == 0
+    assert info['default'] == 0
+    assert info['minimum'] is None and info['maximum'] is None
+
+    info = solver.getOptionInfo("rlimit")
+    assert info['name'] == "rlimit"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is int
+    assert info['current'] == 0
+    assert info['default'] == 0
+    assert info['minimum'] is None and info['maximum'] is None
+
+    info = solver.getOptionInfo("random-freq")
+    assert info['name'] == "random-freq"
+    assert info['aliases'] == ["random-frequency"]
+    assert not info['setByUser']
+    assert info['type'] is float
+    assert info['current'] == 0.0
+    assert info['default'] == 0.0
+    assert info['minimum'] == 0.0 and info['maximum'] == 1.0
+
+    info = solver.getOptionInfo("force-logic")
+    assert info['name'] == "force-logic"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is str
+    assert info['current'] == ""
+    assert info['default'] == ""
+
+    info = solver.getOptionInfo("simplification")
+    assert info['name'] == "simplification"
+    assert info['aliases'] == ["simplification-mode"]
+    assert not info['setByUser']
+    assert info['type'] == 'mode'
+    assert info['current'] == 'batch'
+    assert info['default'] == 'batch'
+    assert info['modes'] == ['batch', 'none']
+
+
 def test_get_unsat_assumptions1(solver):
     solver.setOption("incremental", "false")
     solver.checkSatAssuming(solver.mkFalse())
