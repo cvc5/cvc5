@@ -243,7 +243,7 @@ class SygusEnumerator : public EnumValGenerator
     TermEnum();
     virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
-    unsigned getCurrentSize();
+    unsigned getCurrentSize() const;
     /** get the current term of the enumerator */
     virtual Node getCurrent() = 0;
     /** increment the enumerator, return false if the enumerator is finished */

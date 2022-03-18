@@ -391,7 +391,7 @@ unsigned SygusEnumerator::TermCache::getNumTerms() const
 
 bool SygusEnumerator::TermCache::isComplete() const { return d_isComplete; }
 void SygusEnumerator::TermCache::setComplete() { d_isComplete = true; }
-unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
+unsigned SygusEnumerator::TermEnum::getCurrentSize() const { return d_currSize; }
 SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
     : TermEnum(),
@@ -975,6 +975,8 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   Assert(d_ccWeight <= d_currSize);
   Assert(d_currChildSize + d_ccWeight <= d_currSize);
   unsigned sizeMax = (d_currSize - d_ccWeight) - d_currChildSize;
+  // size should be bound by the size of the top-level enumerator
+  Assert (sizeMax<=d_se->d_tlEnum->getCurrentSize());
   Trace("sygus-enum-debug2") << "master(" << d_tn << "): initializeChild " << i
                              << " (" << d_currSize << ", " << d_ccWeight << ", "
                              << d_currChildSize << ")\n";
