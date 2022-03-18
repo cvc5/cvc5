@@ -517,7 +517,8 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
       d_index--;
       // The master may have incremented successfully but did not add any
       // terms to the database, in the case it returns null and breaks. In
-      // this case, we break as well.
+      // this case, we break as well. We return "true" with d_indexValid false
+      // to indicate that we are done, but will return the null term.
       return true;
     }
   }
