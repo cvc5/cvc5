@@ -176,6 +176,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         ] valueInfo
 
 cdef extern from "<variant>" namespace "std":
+    # not sure whether / how we could make them more generic.
     bint holds "std::holds_alternative"[T](variant[OptionInfo.VoidInfo,
         OptionInfo.ValueInfo[bint], OptionInfo.ValueInfo[string],
         OptionInfo.NumberInfo[int64_t], OptionInfo.NumberInfo[uint64_t],
