@@ -53,6 +53,11 @@ public class OptionInfo extends AbstractPointer
     return pointer;
   }
 
+  public String toString()
+  {
+    return toString(pointer);
+  }
+
   /**
    * @return a string representation of this optionInfo.
    */

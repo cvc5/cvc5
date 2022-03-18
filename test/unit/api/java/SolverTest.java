@@ -1502,6 +1502,22 @@ class SolverTest
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
+      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ verbose | void }"));
+    }
+    {
+      // bool type with default
+      OptionInfo info = d_solver.getOptionInfo("print-success");
+      assertions.add(() -> assertEquals("print-success", info.getName()));
+      assertions.add(
+          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+      assertions.add(
+          () -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class));
+      OptionInfo.ValueInfo<Boolean> valInfo =
+          (OptionInfo.ValueInfo<Boolean>) info.getBaseInfo();
+      assertions.add(() -> assertEquals(false, valInfo.getDefaultValue().booleanValue()));
+      assertions.add(() -> assertEquals(false, valInfo.getCurrentValue().booleanValue()));
+      assertions.add(() -> assertEquals(info.booleanValue(), false));
+      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ print-success | bool | false | default false }"));
     }
     {
       // int64 type with default
