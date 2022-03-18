@@ -328,6 +328,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getInfo(const string& flag) except +
         string getOption(const string& option) except +
         vector[string] getOptionNames() except +
+        OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
