@@ -326,7 +326,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getLearnedLiterals() except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
-        string getOption(string& option) except +
+        string getOption(const string& option) except +
         vector[string] getOptionNames() except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
