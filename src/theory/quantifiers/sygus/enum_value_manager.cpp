@@ -55,7 +55,8 @@ EnumValueManager::~EnumValueManager() {}
 
 Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
 {
-  Trace("sygus-engine-debug2") << "get enumerated value " << d_enum << " " << d_enum.getType() << std::endl;
+  Trace("sygus-engine-debug2") << "get enumerated value " << d_enum << " "
+                               << d_enum.getType() << std::endl;
   Node e = d_enum;
   bool isEnum = d_tds->isEnumerator(e);
 
@@ -65,8 +66,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     // sygus solver, or was excluded by symmetry breaking, then it does not
     // have a proper model value that we should consider, thus we return null.
     Trace("sygus-engine-debug2")
-        << "...does not have proper model value."
-        << std::endl;
+        << "...does not have proper model value." << std::endl;
     return Node::null();
   }
 

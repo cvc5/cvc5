@@ -351,8 +351,8 @@ bool SynthConjecture::doCheck()
 
   Assert(!d_candidates.empty());
 
-  Trace("sygus-engine-debug") << "CegConjuncture : check, build candidates..."
-                       << std::endl;
+  Trace("sygus-engine-debug")
+      << "CegConjuncture : check, build candidates..." << std::endl;
   std::vector<Node> candidate_values;
   bool constructed_cand = false;
 
@@ -495,12 +495,13 @@ bool SynthConjecture::doCheck()
   {
     if (TraceIsOn("sygus-engine-debug"))
     {
-      Trace("sygus-engine-debug") << "CegConjuncture : check candidate : "
-                           << std::endl;
+      Trace("sygus-engine-debug")
+          << "CegConjuncture : check candidate : " << std::endl;
       for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
       {
-        Trace("sygus-engine-debug") << "  " << i << " : " << d_candidates[i] << " -> "
-                             << candidate_values[i] << std::endl;
+        Trace("sygus-engine-debug")
+            << "  " << i << " : " << d_candidates[i] << " -> "
+            << candidate_values[i] << std::endl;
       }
     }
     Assert(candidate_values.size() == d_candidates.size());
