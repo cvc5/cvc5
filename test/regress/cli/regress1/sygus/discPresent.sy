@@ -142,11 +142,4 @@
 (constraint (= (next prev_dw.is_c4_modelIN_DiscPresent prev_dw.is_c1_modelIN_ModeManager prev_dw.is_ModeManagerIN_ON prev_dw.was_ModeManagerIN_ON prev_dw.is_ONIN_CDMode prev_dw.was_ONIN_CDMode 101 prev_dw.RadioReq_startAM true rtU.RadioReqCD false rtY.MechCmdPLAY ) 0))
 ;c2
 (constraint (= (next prev_dw.is_c4_modelIN_DiscPresent prev_dw.is_c1_modelIN_ModeManager prev_dw.is_ModeManagerIN_ON prev_dw.was_ModeManagerIN_ON prev_dw.is_ONIN_CDMode prev_dw.was_ONIN_CDMode 101 prev_dw.RadioReq_startAM true rtU.RadioReqFM false rtY.MechCmdSTOP ) 1))
-
-
-;uncomment c3 to see fast results
-
-;c3
-;(constraint (= (next prev_dw.is_c4_modelIN_DiscPresent prev_dw.is_c1_modelIN_ModeManager prev_dw.is_ModeManagerIN_ON prev_dw.was_ModeManagerIN_ON prev_dw.is_ONIN_CDMode prev_dw.was_ONIN_CDMode 101 prev_dw.RadioReq_startAM true rtU.RadioReqCD true rtY.MechCmdPLAY ) 0))
-
 (check-synth)
