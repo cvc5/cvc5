@@ -283,7 +283,7 @@ struct LazardEvaluationState
   void addR(const poly::Variable& var)
   {
     d_variables.emplace_back(var);
-    if (Trace.isOn("nl-cov::lazard"))
+    if (TraceIsOn("nl-cov::lazard"))
     {
       std::string vname = lp_variable_db_get_name(
           poly::Context::get_context().get_variable_db(), var.get_internal());

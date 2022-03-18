@@ -11,6 +11,8 @@ inputs:
   build-static:
     default: true
     type: boolean
+  strip-bin:
+    default: ""
 outputs:
   shared-build-dir:
     description: build directory of the shared build
@@ -56,6 +58,10 @@ runs:
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
 
         make -j${{ env.num_proc }}
+
+        if [[ "${{ inputs.strip-bin }}" != "" ]]; then
+          ${{ inputs.strip-bin }} bin/cvc5*
+        fi
 
         echo "::set-output name=build-dir::$pwd"
         echo "::endgroup::"

@@ -104,14 +104,8 @@ class OptionsHandler
 
   /******************************* bv options *******************************/
 
-  /** Check that abc is enabled */
-  void abcEnabledBuild(const std::string& flag, bool value);
-  /** Check that abc is enabled */
-  void abcEnabledBuild(const std::string& flag, const std::string& value);
   /** Check that the sat solver mode is compatible with other bv options */
   void checkBvSatSolver(const std::string& flag, SatSolverMode m);
-  /** Check that we use eager bitblasting for aig */
-  void setBitblastAig(const std::string& flag, bool arg);
 
   /******************************* expr options *******************************/
   /** Set ExprSetDepth on all output streams */

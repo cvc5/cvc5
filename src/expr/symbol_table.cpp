@@ -441,15 +441,15 @@ void SymbolTable::Implementation::bindType(const string& name,
                                            const vector<api::Sort>& params,
                                            api::Sort t)
 {
-  if (Debug.isOn("sort")) {
-    Debug("sort") << "bindType(" << name << ", [";
+  if (TraceIsOn("sort")) {
+    Trace("sort") << "bindType(" << name << ", [";
     if (params.size() > 0) {
       copy(params.begin(),
            params.end() - 1,
-           ostream_iterator<api::Sort>(Debug("sort"), ", "));
-      Debug("sort") << params.back();
+           ostream_iterator<api::Sort>(Trace("sort"), ", "));
+      Trace("sort") << params.back();
     }
-    Debug("sort") << "], " << t << ")" << endl;
+    Trace("sort") << "], " << t << ")" << endl;
   }
 
     d_typeMap.insert(name, make_pair(params, t));
@@ -490,20 +490,20 @@ api::Sort SymbolTable::Implementation::lookupType(
     return p.second.instantiate(params);
   }
   bool isSortConstructor = p.second.isSortConstructor();
-  if (Debug.isOn("sort"))
+  if (TraceIsOn("sort"))
   {
-    Debug("sort") << "instantiating using a sort "
+    Trace("sort") << "instantiating using a sort "
                   << (isSortConstructor ? "constructor" : "substitution")
                   << std::endl;
-    Debug("sort") << "have formals [";
+    Trace("sort") << "have formals [";
     copy(p.first.begin(),
          p.first.end() - 1,
-         ostream_iterator<api::Sort>(Debug("sort"), ", "));
-    Debug("sort") << p.first.back() << "]" << std::endl << "parameters   [";
+         ostream_iterator<api::Sort>(Trace("sort"), ", "));
+    Trace("sort") << p.first.back() << "]" << std::endl << "parameters   [";
     copy(params.begin(),
          params.end() - 1,
-         ostream_iterator<api::Sort>(Debug("sort"), ", "));
-    Debug("sort") << params.back() << "]" << endl
+         ostream_iterator<api::Sort>(Trace("sort"), ", "));
+    Trace("sort") << params.back() << "]" << endl
                   << "type ctor    " << name << std::endl
                   << "type is      " << p.second << std::endl;
   }
@@ -511,7 +511,7 @@ api::Sort SymbolTable::Implementation::lookupType(
                                 ? p.second.instantiate(params)
                                 : p.second.substitute(p.first, params);
 
-  Debug("sort") << "instance is  " << instantiation << std::endl;
+  Trace("sort") << "instance is  " << instantiation << std::endl;
 
   return instantiation;
 }

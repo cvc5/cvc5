@@ -151,7 +151,7 @@ void TranscendentalState::init(const std::vector<Node>& xts,
     getCurrentPiBounds();
   }
 
-  if (Trace.isOn("nl-ext-mv"))
+  if (TraceIsOn("nl-ext-mv"))
   {
     Trace("nl-ext-mv") << "Arguments of trancendental functions : "
                        << std::endl;

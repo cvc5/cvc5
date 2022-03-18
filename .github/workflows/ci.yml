@@ -10,10 +10,11 @@ jobs:
             os: ubuntu-latest
             config: production --auto-download --all-bindings --editline --docs
             cache-key: production
+            strip-bin: strip
             python-bindings: true
             build-documentation: true
             check-examples: true
-            store-to-release: true
+            store-to-release-name: cvc5-Linux
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -21,11 +22,21 @@ jobs:
             os: macos-11
             config: production --auto-download --python-bindings --editline
             cache-key: production
+            strip-bin: strip
             python-bindings: true
             check-examples: true
-            store-to-release: true
+            store-to-release-name: cvc5-macOS
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: win64:production
+            os: ubuntu-latest
+            config: production --auto-download --win64
+            cache-key: productionwin64
+            strip-bin: x86_64-w64-mingw32-strip
+            windows-build: true
+            store-to-release-name: cvc5-Win64.exe
+            binary-ext: .exe
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
@@ -54,6 +65,11 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
+    # cancel already running jobs for the same branch/pr/tag
+    concurrency:
+      group: build-${{ github.ref }}-${{ matrix.name }}
+      cancel-in-progress: true
+
     steps:
 
     - uses: actions/checkout@v2
@@ -63,6 +79,7 @@ jobs:
       with:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
+        windows-build: ${{ matrix.windows-build }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
@@ -77,11 +94,13 @@ jobs:
         configure-config: ${{ matrix.config }}
         build-shared: ${{ matrix.build-shared }}
         build-static: ${{ matrix.build-static }}
+        strip-bin: ${{ matrix.strip-bin }}
 
     - name: ccache Statistics
       run: ccache -s
 
     - name: Run tests
+      if: matrix.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
@@ -91,6 +110,7 @@ jobs:
         regressions-exclude: ${{ matrix.exclude_regress }}
   
     - name: Run tests
+      if: matrix.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
@@ -107,10 +127,11 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Add binary to release
-      if: matrix.store-to-release && startsWith(github.ref, 'refs/tags/')
+      if: matrix.store-to-release-binary && startsWith(github.ref, 'refs/tags/')
       uses: ./.github/actions/add-to-release
       with:
-        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
+        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
+        release-name: ${{ matrix.store-to-release-name }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
 

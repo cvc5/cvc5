@@ -77,7 +77,7 @@ void MonomialCheck::checkSign()
     if (d_ms_proc.find(a) == d_ms_proc.end())
     {
       std::vector<Node> exp;
-      if (Trace.isOn("nl-ext-debug"))
+      if (TraceIsOn("nl-ext-debug"))
       {
         Node cmva = d_data->d_model.computeConcreteModelValue(a);
         Trace("nl-ext-debug")
