@@ -14,6 +14,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 
 #include "base/output.h"
 #include "test_api.h"
@@ -1572,6 +1573,72 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
                 != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
+  }
+}
+
+TEST_F(TestApiBlackSolver, getStatistics)
+{
+  // do some array reasoning to make sure we have a double statistics
+  {
+    Sort s1 = d_solver.getIntegerSort();
+    Sort s2 = d_solver.mkArraySort(s1, s1);
+    Term t1 = d_solver.mkConst(s1, "i");
+    Term t2 = d_solver.mkVar(s2, "a");
+    Term t3 = d_solver.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver.checkSat();
+  }
+  cvc5::api::Statistics stats = d_solver.getStatistics();
+  {
+    std::stringstream ss;
+    ss << stats;
+  }
+  {
+    auto s = stats.get("global::totalTime");
+    EXPECT_FALSE(s.isInternal());
+    EXPECT_FALSE(s.isDefault());
+    EXPECT_TRUE(s.isString());
+    EXPECT_TRUE(s.getString().back() == 's');  // ends with "ms"
+    EXPECT_FALSE(s.isDouble());
+    s = stats.get("resource::resourceUnitsUsed");
+    EXPECT_TRUE(s.isInternal());
+    EXPECT_FALSE(s.isDefault());
+    EXPECT_TRUE(s.isInt());
+    EXPECT_TRUE(s.getInt() >= 0);
+  }
+  for (auto it = stats.begin(true, true); it != stats.end(); ++it)
+  {
+    {
+      auto tmp1 = it, tmp2 = it;
+      ++tmp1;
+      tmp2++;
+      EXPECT_EQ(tmp1, tmp2);
+      --tmp1;
+      tmp2--;
+      EXPECT_EQ(tmp1, tmp2);
+      EXPECT_EQ(tmp1, it);
+      EXPECT_EQ(it, tmp2);
+    }
+    const auto& s = *it;
+    // check some basic utility methods
+    EXPECT_TRUE(!(it == stats.end()));
+    EXPECT_EQ(s.first, it->first);
+    if (s.first == "api::CONSTANT")
+    {
+      EXPECT_FALSE(s.second.isInternal());
+      EXPECT_FALSE(s.second.isDefault());
+      EXPECT_TRUE(s.second.isHistogram());
+      auto hist = s.second.getHistogram();
+      EXPECT_FALSE(hist.empty());
+      std::stringstream ss;
+      ss << s.second;
+      EXPECT_EQ(ss.str(), "{ integer type: 1 }");
+    }
+    else if (s.first == "theory::arrays::avgIndexListLength")
+    {
+      EXPECT_TRUE(s.second.isInternal());
+      EXPECT_TRUE(s.second.isDouble());
+      EXPECT_TRUE(std::isnan(s.second.getDouble()));
+    }
   }
 }
 
