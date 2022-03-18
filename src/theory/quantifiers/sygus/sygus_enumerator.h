@@ -300,6 +300,8 @@ class SygusEnumerator : public EnumValGenerator
    private:
     /** the maximum size of terms this enumerator should enumerate */
     unsigned d_sizeLim;
+    /** is the index valid? */
+    bool d_indexValid;
     /** the current index in the term cache we are considering */
     unsigned d_index;
     /** the index in the term cache where terms of the current size end */

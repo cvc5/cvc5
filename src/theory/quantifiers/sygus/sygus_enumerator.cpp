@@ -396,6 +396,7 @@ SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
     : TermEnum(),
       d_sizeLim(0),
+      d_indexValid(false),
       d_index(0),
       d_indexNextEnd(0),
       d_hasIndexNextEnd(false),
@@ -436,6 +437,7 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
     Trace("sygus-enum-debug2") << "slave(" << d_tn
                                << "): ...success init force master\n";
   }
+  d_indexValid = false;
   d_index = tc.getIndexForSize(d_currSize);
   Trace("sygus-enum-debug2") << "slave(" << d_tn << "): validate indices...\n";
   // initialize the next end index (marks where size increments)
@@ -454,6 +456,10 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnumSlave::getCurrent()
 {
+  if (!d_indexValid)
+  {
+    return Node::null();
+  }
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   Node curr = tc.getTerm(d_index);
   Trace("sygus-enum-debug2")
@@ -478,6 +484,7 @@ bool SygusEnumerator::TermEnumSlave::increment()
 
 bool SygusEnumerator::TermEnumSlave::validateIndex()
 {
+  d_indexValid = false;
   Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : validate index...\n";
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // ensure that index is in the range
@@ -503,10 +510,12 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
                                << ") : ...success force master\n";
     if (d_index >= tc.getNumTerms())
     {
+      // will try this index again
+      d_index--;
       // The master may have incremented successfully but did not add any
       // terms to the database, in the case it returns null and breaks. In
       // this case, we break as well.
-      return false;
+      return true;
     }
   }
   // always validate the next index end here
@@ -528,6 +537,7 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
     validateIndexNextEnd();
   }
   Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : finished\n";
+  d_indexValid = true;
   return true;
 }
 
