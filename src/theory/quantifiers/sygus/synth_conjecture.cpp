@@ -351,7 +351,7 @@ bool SynthConjecture::doCheck()
 
   Assert(!d_candidates.empty());
 
-  Trace("cegqi-check") << "CegConjuncture : check, build candidates..."
+  Trace("sygus-engine-debug") << "CegConjuncture : check, build candidates..."
                        << std::endl;
   std::vector<Node> candidate_values;
   bool constructed_cand = false;
@@ -493,13 +493,13 @@ bool SynthConjecture::doCheck()
   Node query;
   if (constructed_cand)
   {
-    if (TraceIsOn("cegqi-check"))
+    if (TraceIsOn("sygus-engine-debug"))
     {
-      Trace("cegqi-check") << "CegConjuncture : check candidate : "
+      Trace("sygus-engine-debug") << "CegConjuncture : check candidate : "
                            << std::endl;
       for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
       {
-        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> "
+        Trace("sygus-engine-debug") << "  " << i << " : " << d_candidates[i] << " -> "
                              << candidate_values[i] << std::endl;
       }
     }
@@ -676,6 +676,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
                                           std::vector<Node>& v,
                                           bool& activeIncomplete)
 {
+  Trace("sygus-engine-debug") << "getEnumeratedValues" << std::endl;
   std::vector<Node> ncheck = n;
   n.clear();
   bool ret = true;
@@ -695,7 +696,9 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
       }
     }
     EnumValueManager* eman = getEnumValueManagerFor(e);
+    Trace("sygus-engine-debug2") << "- get value for " << e << std::endl;
     Node nv = eman->getEnumeratedValue(activeIncomplete);
+    Trace("sygus-engine-debug2") << "  ...return " << nv << std::endl;
     n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
