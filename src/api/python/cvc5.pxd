@@ -42,6 +42,11 @@ cdef extern from "<tuple>" namespace "std":
     uint32_t get1 "std::get<1>"(tuple[uint32_t,uint32_t,Term]) except +
     Term get2 "std::get<2>"(tuple[uint32_t,uint32_t,Term]) except +
 
+cdef extern from "<variant>" namespace "std":
+    # no variadic templates in cython, define all we need here
+    cdef cppclass variant[V1,V2,V3,V4,V5,V6,V7]:
+        pass
+
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
         pass
