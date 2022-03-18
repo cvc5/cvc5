@@ -85,8 +85,8 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferruleSC{F\neq\bot \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n)
-   *   \Rightarrow F}{if $F\neq\bot$} \textrm{ or } \inferruleSC{F=\bot \mid F_1
+   *   \inferruleSC{F \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n)
+   *   \Rightarrow F}{if $F\neq\bot$} \textrm{ or } \inferruleSC{F \mid F_1
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
    * This rule has a dual purpose with :cpp:enumerator:`ASSUME
