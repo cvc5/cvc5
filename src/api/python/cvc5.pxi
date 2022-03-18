@@ -1991,6 +1991,13 @@ cdef class Solver:
         """
         return self.csolver.getOption(option.encode())
 
+    def getOptionNames(self):
+        """Get all option names that can be used with `setOption`, `getOption` and `getOptionInfo`.
+
+        :return: all option names
+        """
+        return self.csolver.getOptionNames()
+
     def getUnsatAssumptions(self):
         """
         Get the set of unsat ("failed") assumptions.
