@@ -21,6 +21,9 @@ from cvc5 cimport Result as c_Result
 from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
+from cvc5 cimport OptionInfo as c_OptionInfo
+from cvc5 cimport holds as c_holds
+from cvc5 cimport getVariant as c_getVariant
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
@@ -1997,6 +2000,67 @@ cdef class Solver:
         :return: all option names
         """
         return [s.decode() for s in self.csolver.getOptionNames()]
+
+    def getOptionInfo(self, str option):
+        """Get some information about the given option. Check the `OptionInfo`
+        class for more details on which information is available.
+
+        :return: information about the given option
+        """
+        cdef c_OptionInfo.ValueInfo[bint] vib
+        cdef c_OptionInfo.ValueInfo[string] vis
+        cdef c_OptionInfo.NumberInfo[int64_t] nii
+        cdef c_OptionInfo.NumberInfo[uint64_t] niu
+        cdef c_OptionInfo.NumberInfo[double] nid
+        cdef c_OptionInfo.ModeInfo mi
+
+        oi = self.csolver.getOptionInfo(option.encode())
+        res = {
+            'name': oi.name.decode(),
+            'aliases': [s.decode() for s in oi.aliases],
+            'setByUser': oi.setByUser,
+        }
+
+        if c_holds[c_OptionInfo.VoidInfo](oi.valueInfo):
+            res['type'] = None
+        elif c_holds[c_OptionInfo.ValueInfo[bint]](oi.valueInfo):
+            res['type'] = bool
+            vib = c_getVariant[c_OptionInfo.ValueInfo[bint]](oi.valueInfo)
+            res['current'] = vib.currentValue
+            res['default'] = vib.defaultValue
+        elif c_holds[c_OptionInfo.ValueInfo[string]](oi.valueInfo):
+            res['type'] = str
+            vis = c_getVariant[c_OptionInfo.ValueInfo[string]](oi.valueInfo)
+            res['current'] = vis.currentValue.decode()
+            res['default'] = vis.defaultValue.decode()
+        elif c_holds[c_OptionInfo.NumberInfo[int64_t]](oi.valueInfo):
+            res['type'] = int
+            nii = c_getVariant[c_OptionInfo.NumberInfo[int64_t]](oi.valueInfo)
+            res['current'] = nii.currentValue
+            res['default'] = nii.defaultValue
+            res['minimum'] = nii.minimum.value() if nii.minimum.has_value() else None
+            res['maximum'] = nii.maximum.value() if nii.maximum.has_value() else None
+        elif c_holds[c_OptionInfo.NumberInfo[uint64_t]](oi.valueInfo):
+            res['type'] = int
+            niu = c_getVariant[c_OptionInfo.NumberInfo[uint64_t]](oi.valueInfo)
+            res['current'] = niu.currentValue
+            res['default'] = niu.defaultValue
+            res['minimum'] = niu.minimum.value() if niu.minimum.has_value() else None
+            res['maximum'] = niu.maximum.value() if niu.maximum.has_value() else None
+        elif c_holds[c_OptionInfo.NumberInfo[double]](oi.valueInfo):
+            res['type'] = float
+            nid = c_getVariant[c_OptionInfo.NumberInfo[double]](oi.valueInfo)
+            res['current'] = nid.currentValue
+            res['default'] = nid.defaultValue
+            res['minimum'] = nid.minimum.value() if nid.minimum.has_value() else None
+            res['maximum'] = nid.maximum.value() if nid.maximum.has_value() else None
+        elif c_holds[c_OptionInfo.ModeInfo](oi.valueInfo):
+            res['type'] = 'mode'
+            mi = c_getVariant[c_OptionInfo.ModeInfo](oi.valueInfo)
+            res['current'] = mi.currentValue.decode()
+            res['default'] = mi.defaultValue.decode()
+            res['modes'] = [s.decode() for s in mi.modes]
+        return res
 
     def getUnsatAssumptions(self):
         """
