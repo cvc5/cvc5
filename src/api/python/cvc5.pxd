@@ -146,6 +146,34 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         OpHashFunction() except +
         size_t operator()(const Op & o) except +
 
+    cdef cppclass OptionInfo:
+        string name
+        vector[string] aliases
+        bint setByUser
+        bint boolValue() except +
+        string stringValue() except +
+        int intValue() except +
+        int uintValue() except +
+        float doubleValue() except +
+        cppclass VoidInfo:
+            pass
+        cppclass ValueInfo[T]:
+            T defaultValue
+            T currentValue
+        cppclass NumberInfo[T]:
+            T defaultValue
+            T currentValue
+            optional[T] minimum
+            optional[T] maximum
+        cppclass ModeInfo:
+            string defaultValue
+            string currentValue
+            vector[string] modes
+        variant[VoidInfo,
+            ValueInfo[bint], ValueInfo[string],
+            NumberInfo[int64_t], NumberInfo[uint64_t],
+            NumberInfo[double], ModeInfo
+        ] valueInfo
 
     cdef cppclass Result:
         Result() except+
