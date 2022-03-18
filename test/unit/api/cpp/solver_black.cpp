@@ -1539,15 +1539,16 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     api::OptionInfo info = d_solver.getOptionInfo("print-success");
     EXPECT_EQ("print-success", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<bool>>(
-        info.valueInfo));
+    EXPECT_TRUE(
+        std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo));
     auto valInfo = std::get<OptionInfo::ValueInfo<bool>>(info.valueInfo);
     EXPECT_EQ(false, valInfo.defaultValue);
     EXPECT_EQ(false, valInfo.currentValue);
     ASSERT_EQ(info.boolValue(), false);
     std::stringstream ss;
     ss << info;
-    ASSERT_EQ(ss.str(), "OptionInfo{ print-success | bool | false | default false }");
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ print-success | bool | false | default false }");
   }
   {
     // int64 type with default
@@ -1596,7 +1597,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     ASSERT_EQ(info.doubleValue(), 0.0);
     std::stringstream ss;
     ss << info;
-    ASSERT_EQ(ss.str(), "OptionInfo{ random-freq, random-frequency | double | 0 | default 0 | 0 <= x <= 1 }");
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ random-freq, random-frequency | double | 0 | "
+              "default 0 | 0 <= x <= 1 }");
   }
   {
     // string type with default
@@ -1611,7 +1614,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     ASSERT_EQ(info.stringValue(), "");
     std::stringstream ss;
     ss << info;
-    ASSERT_EQ(ss.str(), "OptionInfo{ force-logic | string | \"\" | default \"\" }");
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ force-logic | string | \"\" | default \"\" }");
   }
   {
     // mode option
@@ -1629,7 +1633,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
                 != modeInfo.modes.end());
     std::stringstream ss;
     ss << info;
-    ASSERT_EQ(ss.str(), "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ simplification, simplification-mode | mode | batch "
+              "| default batch | modes: batch, none }");
   }
 }
 
