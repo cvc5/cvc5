@@ -481,7 +481,7 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : validate index...\n";
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // ensure that index is in the range
-  while (d_index >= tc.getNumTerms())
+  if (d_index >= tc.getNumTerms())
   {
     Assert(d_index == tc.getNumTerms());
     Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
@@ -501,6 +501,13 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
     }
     Trace("sygus-enum-debug2") << "slave(" << d_tn
                                << ") : ...success force master\n";
+    if (d_index >= tc.getNumTerms())
+    {
+      // The master may have incremented successfully but did not add any
+      // terms to the database, in the case it returns null and breaks. In
+      // this case, we break as well.
+      return false;
+    }
   }
   // always validate the next index end here
   validateIndexNextEnd();
