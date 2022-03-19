@@ -2841,9 +2841,9 @@ class CVC5_EXPORT Stat
   /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
   /**
-   * Create an empty statistics object. None of the ``isX()``and ``getX()``
-   * methods is safe to call on a default-constructed object. It solely exists
-   * because it makes implementing bindings for other languages much easier.
+   * Create an empty statistics object. On such an object all ``isX()`` return
+   * false and all ``getX()`` throw an API exception. It solely exists because
+   * it makes implementing bindings for other languages much easier.
    */
   Stat();
   /** Copy constructor */
