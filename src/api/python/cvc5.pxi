@@ -6,6 +6,7 @@ import sys
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
 
+from libcpp cimport bool as c_bool
 from libcpp.pair cimport pair
 from libcpp.set cimport set as c_set
 from libcpp.string cimport string
@@ -2007,7 +2008,7 @@ cdef class Solver:
 
         :return: information about the given option
         """
-        cdef c_OptionInfo.ValueInfo[bint] vib
+        cdef c_OptionInfo.ValueInfo[c_bool] vib
         cdef c_OptionInfo.ValueInfo[string] vis
         cdef c_OptionInfo.NumberInfo[int64_t] nii
         cdef c_OptionInfo.NumberInfo[uint64_t] niu
@@ -2023,9 +2024,9 @@ cdef class Solver:
 
         if c_holds[c_OptionInfo.VoidInfo](oi.valueInfo):
             res['type'] = None
-        elif c_holds[c_OptionInfo.ValueInfo[bint]](oi.valueInfo):
+        elif c_holds[c_OptionInfo.ValueInfo[c_bool]](oi.valueInfo):
             res['type'] = bool
-            vib = c_getVariant[c_OptionInfo.ValueInfo[bint]](oi.valueInfo)
+            vib = c_getVariant[c_OptionInfo.ValueInfo[c_bool]](oi.valueInfo)
             res['current'] = vib.currentValue
             res['default'] = vib.defaultValue
         elif c_holds[c_OptionInfo.ValueInfo[string]](oi.valueInfo):
