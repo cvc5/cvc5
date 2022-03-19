@@ -303,6 +303,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
+        Statistics getStatistics() except +
 
     cdef cppclass Grammar:
         Grammar() except +
