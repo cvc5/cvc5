@@ -4751,6 +4751,7 @@ struct Stat::StatData
   StatData() : data() {}
 };
 
+Stat::Stat() {}
 Stat::~Stat() {}
 Stat::Stat(const Stat& s)
     : d_internal(s.d_internal),
