@@ -2788,14 +2788,14 @@ struct CVC5_EXPORT OptionInfo
   /** Whether the option was explicitly set by the user */
   bool setByUser;
   /** The option value information */
-  std::variant<VoidInfo,
-               ValueInfo<bool>,
-               ValueInfo<std::string>,
-               NumberInfo<int64_t>,
-               NumberInfo<uint64_t>,
-               NumberInfo<double>,
-               ModeInfo>
-      valueInfo;
+  using OptionInfoVariant = std::variant<VoidInfo,
+                                         ValueInfo<bool>,
+                                         ValueInfo<std::string>,
+                                         NumberInfo<int64_t>,
+                                         NumberInfo<uint64_t>,
+                                         NumberInfo<double>,
+                                         ModeInfo>;
+  OptionInfoVariant valueInfo;
   /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
    */
   bool boolValue() const;
