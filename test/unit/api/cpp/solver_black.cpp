@@ -3041,7 +3041,7 @@ TEST_F(TestApiBlackSolver, proj_issue434)
   // the query has free variables, and should throw an exception
   ASSERT_THROW(slv.checkSatAssuming({t1073, t510}), CVC5ApiException);
 }
-  
+
 TEST_F(TestApiBlackSolver, proj_issue436)
 {
   Solver slv;
@@ -3058,7 +3058,7 @@ TEST_F(TestApiBlackSolver, proj_issue436)
   // solve-bv-as-int is incompatible with get-abduct
   ASSERT_THROW(slv.getAbduct(t33), CVC5ApiException);
 }
-  
+
 TEST_F(TestApiBlackSolver, proj_issue431)
 {
   Solver slv;
@@ -3146,6 +3146,25 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   slv.push(4);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue423)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+  slv.setOption("produce-difficulty", "true");
+  Sort s2 = slv.getRealSort();
+  Sort s3 = slv.mkSequenceSort(s2);
+  Term t2;
+  {
+    t2 = slv.mkEmptySequence(s3.getSequenceElementSort());
+  }
+  Term t22 = slv.mkReal("119605652059157009");
+  Term t32 = slv.mkTerm(Kind::SEQ_UNIT, {t22});
+  Term t43 = slv.mkTerm(Kind::SEQ_CONCAT, {t2, t32});
+  Term t51 = slv.mkTerm(Kind::DISTINCT, {t32, t32});
+  slv.checkSat();
+  slv.blockModelValues({t51, t43});
+}
+
 TEST_F(TestApiBlackSolver, projIssue431)
 {
   Solver slv;
@@ -3171,6 +3190,14 @@ TEST_F(TestApiBlackSolver, projIssue431)
   slv.assertFormula({t488});
   Term abduct;
   abduct = slv.getAbduct(t488);
+}
+
+TEST_F(TestApiBlackSolver, projIssue337)
+{
+  Term t =
+      d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal("3416574625719121610379268"));
+  Term tt = d_solver.simplify(t);
+  ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
 }  // namespace test

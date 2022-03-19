@@ -281,6 +281,29 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory preprocessing**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality of the form :math:`t =
+   * \texttt{Theory::ppRewrite}(t)` for some theory. \endverbatim
+   */
+  THEORY_PREPROCESS,
+    /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory preprocessing**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` was added as a new assertion by theory preprocessing from
+   * the theory with identifier tid.
+   * \endverbatim
+   */
+  THEORY_PREPROCESS_LEMMA,
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Preprocessing**
    *
    * .. math::
@@ -303,28 +326,6 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   PREPROCESS_LEMMA,
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Trusted rules -- Theory preprocessing**
-   *
-   * .. math::
-   *   \inferrule{- \mid F}{F}
-   *
-   * where :math:`F` is an equality of the form :math:`t =
-   * \texttt{Theory::ppRewrite}(t)` for some theory. \endverbatim
-   */
-  THEORY_PREPROCESS,
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Trusted rules -- Theory preprocessing**
-   *
-   * .. math::
-   *   \inferrule{- \mid F}{F}
-   *
-   * where :math:`F` was added as a new assertion by theory preprocessing.
-   * \endverbatim
-   */
-  THEORY_PREPROCESS_LEMMA,
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory expand definitions**

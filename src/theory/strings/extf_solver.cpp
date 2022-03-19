@@ -474,7 +474,7 @@ void ExtfSolver::checkExtfEval(int effort)
       {
         checkExtfInference(n, to_reduce, einfo, effort);
       }
-      if (Trace.isOn("strings-extf-list"))
+      if (TraceIsOn("strings-extf-list"))
       {
         Trace("strings-extf-list") << "  * " << to_reduce;
         if (!einfo.d_const.isNull())
