@@ -42,11 +42,6 @@ cdef extern from "<tuple>" namespace "std":
     uint32_t get1 "std::get<1>"(tuple[uint32_t,uint32_t,Term]) except +
     Term get2 "std::get<2>"(tuple[uint32_t,uint32_t,Term]) except +
 
-cdef extern from "<variant>" namespace "std":
-    # no variadic templates in cython, define all we need here
-    cdef cppclass variant[V1,V2,V3,V4,V5,V6,V7]:
-        pass
-
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
     cdef cppclass Options:
         pass
@@ -169,25 +164,18 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
             string defaultValue
             string currentValue
             vector[string] modes
-        variant[VoidInfo,
-            ValueInfo[bint], ValueInfo[string],
-            NumberInfo[int64_t], NumberInfo[uint64_t],
-            NumberInfo[double], ModeInfo
-        ] valueInfo
+        
+        cppclass OptionInfoVariant:
+            pass
+        
+        OptionInfoVariant valueInfo
+        string toString() except +
+
 
 cdef extern from "<variant>" namespace "std":
     # not sure whether / how we could make them more generic.
-    bint holds "std::holds_alternative"[T](variant[OptionInfo.VoidInfo,
-        OptionInfo.ValueInfo[bint], OptionInfo.ValueInfo[string],
-        OptionInfo.NumberInfo[int64_t], OptionInfo.NumberInfo[uint64_t],
-        OptionInfo.NumberInfo[double], OptionInfo.ModeInfo
-        ] & v) except +
-
-    T getVariant "std::get"[T](variant[OptionInfo.VoidInfo,
-        OptionInfo.ValueInfo[bint], OptionInfo.ValueInfo[string],
-        OptionInfo.NumberInfo[int64_t], OptionInfo.NumberInfo[uint64_t],
-        OptionInfo.NumberInfo[double], OptionInfo.ModeInfo
-        ] & v) except +
+    bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
+    T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
 
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass Result:
