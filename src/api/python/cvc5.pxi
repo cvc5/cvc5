@@ -499,31 +499,6 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def getIndices(self):
-        """
-            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
-        """
-        indices = None
-        try:
-            indices = self.cop.getIndices[string]().decode()
-        except:
-            pass
-
-        try:
-            indices = self.cop.getIndices[uint32_t]()
-        except:
-            pass
-
-        try:
-            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
-        except:
-            pass
-
-        if indices is None:
-            raise RuntimeError("Unable to retrieve indices from {}".format(self))
-
-        return indices
-
 cdef class Grammar:
     """
         A Sygus Grammar.

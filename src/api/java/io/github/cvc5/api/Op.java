@@ -100,32 +100,6 @@ public class Op extends AbstractPointer
   private native int getNumIndices(long pointer);
 
   /**
-   * Get the indices used to create this Op.
-   * Check the Op Kind with getKind() to determine which argument to use.
-   *
-   * @return the indices used to create this Op
-   */
-  public int[] getIntegerIndices()
-  {
-    return getIntegerIndices(pointer);
-  }
-
-  private native int[] getIntegerIndices(long pointer);
-
-  /**
-   * Get the indices used to create this Op.
-   * Check the Op Kind with getKind() to determine which argument to use.
-   *
-   * @return the indices used to create this Op
-   */
-  public String[] getStringIndices()
-  {
-    return getStringIndices(pointer);
-  }
-
-  private native String[] getStringIndices(long pointer);
-
-  /**
    * @return a string representation of this operator
    */
   protected native String toString(long pointer);

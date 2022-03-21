@@ -879,21 +879,7 @@ class CVC5_EXPORT Op
    * @param i the position of the index to return
    * @return the index at position i
    */
-
   Term operator[](size_t i) const;
-
-  /**
-   * Get the indices used to create this Op.
-   * Supports the following template arguments:
-   *   - string
-   *   - Kind
-   *   - uint32_t
-   *   - pair<uint32_t, uint32_t>
-   * Check the Op Kind with getKind() to determine which argument to use.
-   * @return the indices used to create this Op
-   */
-  template <typename T>
-  T getIndices() const;
 
   /**
    * @return a string representation of this operator
