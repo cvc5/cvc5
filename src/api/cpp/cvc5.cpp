@@ -6223,56 +6223,6 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
 /* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkTerm(Kind kind) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  //////// all checks before this line
-  return mkTermFromKind(kind);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(Kind kind, const Term& child) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  CVC5_API_SOLVER_CHECK_TERM(child);
-  //////// all checks before this line
-  return mkTermHelper(kind, std::vector<Term>{child});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  CVC5_API_SOLVER_CHECK_TERM(child1);
-  CVC5_API_SOLVER_CHECK_TERM(child2);
-  //////// all checks before this line
-  return mkTermHelper(kind, std::vector<Term>{child1, child2});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(Kind kind,
-                    const Term& child1,
-                    const Term& child2,
-                    const Term& child3) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  CVC5_API_SOLVER_CHECK_TERM(child1);
-  CVC5_API_SOLVER_CHECK_TERM(child2);
-  CVC5_API_SOLVER_CHECK_TERM(child3);
-  //////// all checks before this line
-  // need to use internal term call to check e.g. associative construction
-  return mkTermHelper(kind, std::vector<Term>{child1, child2, child3});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -6280,64 +6230,6 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
   CVC5_API_SOLVER_CHECK_TERMS(children);
   //////// all checks before this line
   return mkTermHelper(kind, children);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(const Op& op) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_OP(op);
-  if (!op.isIndexedHelper())
-  {
-    return mkTermFromKind(op.d_kind);
-  }
-  checkMkTerm(op.d_kind, 0);
-  //////// all checks before this line
-  const cvc5::Kind int_kind = extToIntKind(op.d_kind);
-  Term res = Term(this, getNodeManager()->mkNode(int_kind, *op.d_node));
-
-  (void)res.d_node->getType(true); /* kick off type checking */
-  return res;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(const Op& op, const Term& child) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_OP(op);
-  CVC5_API_SOLVER_CHECK_TERM(child);
-  //////// all checks before this line
-  return mkTermHelper(op, std::vector<Term>{child});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_OP(op);
-  CVC5_API_SOLVER_CHECK_TERM(child1);
-  CVC5_API_SOLVER_CHECK_TERM(child2);
-  //////// all checks before this line
-  return mkTermHelper(op, std::vector<Term>{child1, child2});
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkTerm(const Op& op,
-                    const Term& child1,
-                    const Term& child2,
-                    const Term& child3) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_OP(op);
-  CVC5_API_SOLVER_CHECK_TERM(child1);
-  CVC5_API_SOLVER_CHECK_TERM(child2);
-  CVC5_API_SOLVER_CHECK_TERM(child3);
-  //////// all checks before this line
-  return mkTermHelper(op, std::vector<Term>{child1, child2, child3});
   ////////
   CVC5_API_TRY_CATCH_END;
 }

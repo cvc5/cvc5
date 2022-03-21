@@ -3245,90 +3245,11 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create 0-ary term of given kind.
-   * @param kind the kind of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind) const;
-
-  /**
-   * Create a unary term of given kind.
-   * @param kind the kind of the term
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const Term& child) const;
-
-  /**
-   * Create binary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const Term& child1, const Term& child2) const;
-
-  /**
-   * Create ternary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind,
-              const Term& child1,
-              const Term& child2,
-              const Term& child3) const;
-
-  /**
    * Create n-ary term of given kind.
    * @param kind the kind of the term
    * @param children the children of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const std::vector<Term>& children) const;
-
-  /**
-   * Create nullary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @return the Term
-   */
-  Term mkTerm(const Op& op) const;
-
-  /**
-   * Create unary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op, const Term& child) const;
-
-  /**
-   * Create binary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op, const Term& child1, const Term& child2) const;
-
-  /**
-   * Create ternary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op,
-              const Term& child1,
-              const Term& child2,
-              const Term& child3) const;
+   * @return the Term */
+  Term mkTerm(Kind kind, const std::vector<Term>& children = {}) const;
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -3337,7 +3258,7 @@ class CVC5_EXPORT Solver
    * @param children the children of the term
    * @return the Term
    */
-  Term mkTerm(const Op& op, const std::vector<Term>& children) const;
+  Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
