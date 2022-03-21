@@ -7,6 +7,7 @@ name   = "Driver"
   short      = "V"
   long       = "version"
   type       = "bool"
+  default    = "false"
   predicates = ["showVersion"]
   alternate  = false
   help       = "identify this cvc5 binary"
@@ -17,6 +18,7 @@ name   = "Driver"
   short      = "h"
   long       = "help"
   type       = "bool"
+  default    = "false"
   alternate  = false
   help       = "full command line reference"
 
@@ -25,6 +27,7 @@ name   = "Driver"
   category   = "common"
   long       = "show-config"
   type       = "bool"
+  default    = "false"
   predicates = ["showConfiguration"]
   alternate  = false
   help       = "show cvc5 static configuration"
@@ -34,6 +37,7 @@ name   = "Driver"
   category   = "common"
   long       = "copyright"
   type       = "bool"
+  default    = "false"
   predicates = ["showCopyright"]
   alternate  = false
   help       = "show cvc5 copyright information"
@@ -52,6 +56,7 @@ name   = "Driver"
   category   = "regular"
   long       = "show-debug-tags"
   type       = "bool"
+  default    = "false"
   predicates = ["showDebugTags"]
   alternate  = false
   help       = "show all available tags for debugging"
@@ -61,6 +66,7 @@ name   = "Driver"
   category   = "regular"
   long       = "show-trace-tags"
   type       = "bool"
+  default    = "false"
   predicates = ["showTraceTags"]
   alternate  = false
   help       = "show all available tags for tracing"
@@ -78,6 +84,7 @@ name   = "Driver"
   category   = "regular"
   long       = "interactive"
   type       = "bool"
+  default    = "false"
   help       = "force interactive shell/non-interactive mode"
 
 [[option]]
@@ -85,6 +92,7 @@ name   = "Driver"
   category   = "undocumented"
   long       = "filename=FILENAME"
   type       = "std::string"
+  default    = '""'
   help       = "filename of the input"
 
 [[option]]
