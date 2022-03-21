@@ -1560,7 +1560,7 @@ class SolverTest
       Sort s2 = d_solver.mkArraySort(s1, s1);
       Term t1 = d_solver.mkConst(s1, "i");
       Term t2 = d_solver.mkVar(s2, "a");
-      Term t3 = d_solver.mkTerm(Kind::SELECT, {t2, t1});
+      Term t3 = d_solver.mkTerm(Kind::SELECT, t2, t1);
       d_solver.checkSat();
     }
     Statistics stats = d_solver.getStatistics();
@@ -1581,19 +1581,19 @@ class SolverTest
     for (Statistics.ConstIterator it = stats.getIterator(true, true); it.hasNext();)
     {
       Pair<String, Stat> elem = it.next();
-      if (s.getKey() == "api::CONSTANT")
+      if (elem.getKey() == "api::CONSTANT")
       {
-        assertFalse(s.getValue().isInternal());
-        assertFalse(s.getValue().isDefault());
-        assertTrue(s.getValue().isHistogram());
-        Map<String, Long> hist = s.getValue().getHistogram();
+        assertFalse(elem.getValue().isInternal());
+        assertFalse(elem.getValue().isDefault());
+        assertTrue(elem.getValue().isHistogram());
+        Map<String, Long> hist = elem.getValue().getHistogram();
         assertFalse(hist.isEmpty());
-        assertEquals(s.getValue().toString(), "{ integer type: 1 }");
+        assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
       }
-      else if (s.getKey() == "theory::arrays::avgIndexListLength")
+      else if (elem.getKey() == "theory::arrays::avgIndexListLength")
       {
-        assertTrue(s.getValue().isInternal());
-        assertTrue(s.getValue().isDefault());
+        assertTrue(elem.getValue().isInternal());
+        assertTrue(elem.getValue().isDefault());
       }
     }
   }
