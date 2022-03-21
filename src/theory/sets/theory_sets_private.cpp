@@ -714,8 +714,8 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = sm->mkSkolemFunction(SkolemFunId::SETS_DEQ_DIFF,
-        elementType, {deq[0], deq[1]});
+    Node x = sm->mkSkolemFunction(
+        SkolemFunId::SETS_DEQ_DIFF, elementType, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(SET_MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
