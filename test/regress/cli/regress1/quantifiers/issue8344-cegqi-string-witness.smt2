@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun a () String)
