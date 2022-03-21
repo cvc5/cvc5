@@ -66,7 +66,7 @@ class SynthResult
   /** The status */
   Status d_status;
   /** The unknown explanation */
-  UnknownExplanation d_unknownExplanation;
+  Result::UnknownExplanation d_unknownExplanation;
   /** The solution */
   std::vector<Node> d_solution;
 };
