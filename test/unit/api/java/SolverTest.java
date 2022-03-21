@@ -1560,7 +1560,7 @@ class SolverTest
       Sort s2 = d_solver.mkArraySort(s1, s1);
       Term t1 = d_solver.mkConst(s1, "i");
       Term t2 = d_solver.mkVar(s2, "a");
-      Term t3 = d_solver.mkTerm(Kind::SELECT, t2, t1);
+      Term t3 = d_solver.mkTerm(Kind.SELECT, t2, t1);
       d_solver.checkSat();
     }
     Statistics stats = d_solver.getStatistics();
