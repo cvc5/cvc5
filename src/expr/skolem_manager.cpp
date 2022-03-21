@@ -132,16 +132,12 @@ Node SkolemManager::mkSkolem(Node v,
     // matter since either should be able to prove q.
     d_gens[q] = pg;
   }
-  Node k = mkPurifySkolem(w, prefix, comment, flags);
+  Node k = mkSkolemInternal(w, prefix, comment, flags);
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
   Trace("sk-manager-skolem")
       << "skolem: " << k << " witness " << w << std::endl;
-  // override the original form so that witness terms don't appear in original
-  // forms.
-  OriginalFormAttribute ofa;
-  k.setAttribute(ofa, k);
   return k;
 }
 
