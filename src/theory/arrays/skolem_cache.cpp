@@ -44,7 +44,7 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
   Assert(a.getType().isArray());
   Assert(b.getType() == a.getType());
 
-  // make the skolem that witnesses the above axiom
+  // make the skolem, which is deterministic for a,b.
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   return sm->mkSkolemFunction(
       SkolemFunId::ARRAY_DEQ_DIFF, a.getType().getArrayIndexType(), {a, b});
