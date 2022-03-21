@@ -26,6 +26,9 @@ namespace cvc5 {
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects.
+ * This documentation is target for the online documentation that can be found
+ * at https://cvc5.github.io/docs/master/proofs/proof_rules.html.
+ * 
  * All proof rules are given as inference rules, presented in the following
  * form:
  *
