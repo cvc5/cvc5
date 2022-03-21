@@ -36,7 +36,7 @@ enum class SmtMode
   // immediately after a check-sat returning "sat"
   SAT,
   // immediately after a check-sat returning "unknown"
-  UNKNOWN,
+  SAT_UNKNOWN,
   // immediately after a check-sat returning "unsat"
   UNSAT,
   // immediately after a successful call to get-abduct

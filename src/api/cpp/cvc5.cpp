@@ -7199,7 +7199,7 @@ std::map<Term, Term> Solver::getDifficulty() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT
                              || d_slv->getSmtMode() == SmtMode::SAT
-                             || d_slv->getSmtMode() == SmtMode::UNKNOWN)
+                             || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
       << "Cannot get difficulty unless after a UNSAT, SAT or UNKNOWN response.";
   //////// all checks before this line
   std::map<Term, Term> res;
@@ -7233,7 +7233,7 @@ std::vector<Term> Solver::getLearnedLiterals(void) const
          "--produce-learned-literals)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT
                              || d_slv->getSmtMode() == SmtMode::SAT
-                             || d_slv->getSmtMode() == SmtMode::UNKNOWN)
+                             || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
       << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
          "response.";
   //////// all checks before this line

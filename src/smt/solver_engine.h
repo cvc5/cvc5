@@ -159,7 +159,7 @@ class CVC5_EXPORT SolverEngine
   /**
    * Whether the SmtMode allows for get-value, get-model, get-assignment, etc.
    * This is equivalent to:
-   * getSmtMode()==SmtMode::SAT || getSmtMode()==SmtMode::UNKNOWN
+   * getSmtMode()==SmtMode::SAT || getSmtMode()==SmtMode::SAT_UNKNOWN
    */
   bool isSmtModeSat() const;
   /**

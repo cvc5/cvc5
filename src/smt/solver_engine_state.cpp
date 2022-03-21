@@ -114,7 +114,7 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   {
     case Result::UNSAT: d_smtMode = SmtMode::UNSAT; break;
     case Result::SAT: d_smtMode = SmtMode::SAT; break;
-    default: d_smtMode = SmtMode::UNKNOWN;
+    default: d_smtMode = SmtMode::SAT_UNKNOWN;
   }
 }
 
