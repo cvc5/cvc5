@@ -262,6 +262,10 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }
+      if (!verified)
+      {
+        eq_sol = sol;
+      }
     }
     // We count this as a rewrite if we did not explicitly rule it out.
     // The value of is_unique_term is false iff this call resulted in a rewrite.
