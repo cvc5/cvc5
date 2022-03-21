@@ -33,7 +33,7 @@ class SynthResult
   {
     // the status has not been set
     NONE,
-    // the 
+    // the
     SUCCESS,
     // the status is "sat"
     FAIL,
@@ -43,19 +43,23 @@ class SynthResult
 
  public:
   /** Default constructor */
-   SynthResult();
+  SynthResult();
   /** Constructor when the solution is successful */
   SynthResult(const std::vector<Node>& sol);
   /** Constructor when the solution is not successful */
-  SynthResult(Status s,
-              Result::UnknownExplanation unknownExplanation = Result::UNKNOWN_REASON);
-  
+  SynthResult(
+      Status s,
+      Result::UnknownExplanation unknownExplanation = Result::UNKNOWN_REASON);
+
   /** Get the status */
   Status getStatus() const { return d_status; }
-  
+
   /** Get the unknown explanation */
-  Result::UnknownExplanation getUnknownExplanation() const { return d_unknownExplanation; }
-  
+  Result::UnknownExplanation getUnknownExplanation() const
+  {
+    return d_unknownExplanation;
+  }
+
   /** Get the solution */
   const std::vector<Node>& getSolution() const { return d_solution; }
 

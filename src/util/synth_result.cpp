@@ -38,29 +38,28 @@ SynthResult::SynthResult(const std::vector<Node>& sol)
 }
 
 SynthResult::SynthResult(Status s,
-               Result::UnknownExplanation unknownExplanation)
-    : d_status(s),
-      d_unknownExplanation(unknownExplanation)
+                         Result::UnknownExplanation unknownExplanation)
+    : d_status(s), d_unknownExplanation(unknownExplanation)
 {
   PrettyCheckArgument(s == UNKNOWN,
                       "improper use of unknown-result constructor");
 }
 Status SynthResult::getStatus() const { return d_status; }
 
-Result::UnknownExplanation SynthResult::getUnknownExplanation() const { return d_unknownExplanation; }
+Result::UnknownExplanation SynthResult::getUnknownExplanation() const
+{
+  return d_unknownExplanation;
+}
 
 const std::vector<Node>& SynthResult::getSolution() const { return d_solution; }
 
 ostream& operator<<(ostream& out, SynthResult::Status s)
 {
-  switch (s) {
+  switch (s)
+  {
     case SynthResult::NONE: out << "NONE"; break;
-    case SynthResult::SUCCESS:
-      out << "SUCCESS";
-      break;
-    case SynthResult::FAIL:
-      out << "FAIL";
-      break;
+    case SynthResult::SUCCESS: out << "SUCCESS"; break;
+    case SynthResult::FAIL: out << "FAIL"; break;
     case SynthResult::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;
   }
@@ -86,9 +85,11 @@ ostream& operator<<(ostream& out, enum SynthResult::UnknownExplanation e)
   return out;
 }
 
-ostream& operator<<(ostream& out, const SynthResult& r) {
+ostream& operator<<(ostream& out, const SynthResult& r)
+{
   Language language = options::ioutils::getOutputLang(out);
-  switch (language) {
+  switch (language)
+  {
     case Language::LANG_SYGUS_V2: r.toStreamSmt2(out); break;
     case Language::LANG_TPTP: r.toStreamTptp(out); break;
     default:
