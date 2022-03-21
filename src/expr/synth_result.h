@@ -22,12 +22,12 @@
 #include <string>
 #include <vector>
 
-#include "util/result.h"
 #include "expr/node.h"
+#include "util/result.h"
 
 namespace cvc5 {
 
-/** 
+/**
  * A result for a synthesis query. This can be used for synthesis, abduction,
  * interpolation, and quantifier elimination.
  */
