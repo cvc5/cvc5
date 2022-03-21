@@ -74,7 +74,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_get(JNIEnv* env,
  * Method:    getIterator
  * Signature: (JZZ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_getIterator(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_getIteratorOpts(
     JNIEnv* env, jobject, jlong pointer, jboolean internal, jboolean defaulted)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;

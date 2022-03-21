@@ -65,7 +65,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
 
-  private native long getIterator(long pointer, boolean internal, boolean defaulted);
+  private native long getIteratorOpts(long pointer, boolean internal, boolean defaulted);
   private native long getIterator(long pointer);
 
   private native boolean hasNext(long pointer, long iteratorPointer);
@@ -83,7 +83,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
 
     public ConstIterator(boolean internal, boolean defaulted)
     {
-      iteratorPointer = getIterator(pointer, internal, defaulted);
+      iteratorPointer = getIteratorOpts(pointer, internal, defaulted);
     }
     public ConstIterator()
     {
