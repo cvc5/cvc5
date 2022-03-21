@@ -21,7 +21,9 @@ cdef extern from "<functional>" namespace "std" nogil:
         size_t operator()(T t)
 
 cdef extern from "<optional>" namespace "std" nogil:
-    # available from cpplib.optional since cython 3.0.0a10 (Jan 2022).
+    # The std::optional wrapper would be available as cpplib.optional with
+    # cython 3.0.0a10 (Jan 2022). Until this version is widely available, we
+    # wrap it manually.
     cdef cppclass optional[T]:
         bint has_value()
         T& value()
