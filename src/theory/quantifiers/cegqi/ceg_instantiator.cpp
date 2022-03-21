@@ -647,8 +647,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
       Node mv = getModelValue( pv );
-      AnnotationElimNodeConverter aenc;
-      mv = aenc.convert(mv);
       TermProperties pv_prop_m;
       Trace("cegqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
       d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
@@ -1466,7 +1464,12 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_treg.getModel()->getValue(n);
+  Node mv = d_treg.getModel()->getValue(n);
+  // Witness terms with identifiers may appear in the model. We require
+  // dropping their annotations here.
+  AnnotationElimNodeConverter aenc;
+  mv = aenc.convert(mv);
+  return mv;
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)

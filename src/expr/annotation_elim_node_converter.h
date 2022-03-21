@@ -28,7 +28,8 @@ namespace cvc5 {
 
 /**
  * This converts a node into one that does not involve annotations for
- * quantified formulas.
+ * quantified formulas. In other words, the third child is dropped for all
+ * closure terms with 3 children.
  */
 class AnnotationElimNodeConverter : public NodeConverter
 {
