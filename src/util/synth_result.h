@@ -52,16 +52,13 @@ class SynthResult
       Result::UnknownExplanation unknownExplanation = Result::UNKNOWN_REASON);
 
   /** Get the status */
-  Status getStatus() const { return d_status; }
+  Status getStatus() const;
 
   /** Get the unknown explanation */
-  Result::UnknownExplanation getUnknownExplanation() const
-  {
-    return d_unknownExplanation;
-  }
+  Result::UnknownExplanation getUnknownExplanation() const;
 
   /** Get the solution */
-  const std::vector<Node>& getSolution() const { return d_solution; }
+  const std::vector<Node>& getSolution() const;
 
  private:
   /** The status */
