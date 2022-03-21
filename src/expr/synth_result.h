@@ -27,7 +27,10 @@
 
 namespace cvc5 {
 
-/** A result for a synthesis query. */
+/** 
+ * A result for a synthesis query. This can be used for synthesis, abduction,
+ * interpolation, and quantifier elimination.
+ */
 class SynthResult
 {
  public:
@@ -35,11 +38,12 @@ class SynthResult
   {
     // the status has not been set
     NONE,
-    // the
+    // the synthesis query was successful, i.e. there is a solution
     SUCCESS,
-    // the status is "sat"
+    // the synthesis query resulted in failure, i.e. there is no solution
     FAIL,
-    // the status is "unknown"
+    // the synthesis query is unknown, i.e. it is not know whether there is a
+    // solution.
     UNKNOWN
   };
 
