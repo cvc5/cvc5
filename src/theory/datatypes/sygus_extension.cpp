@@ -251,7 +251,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
       d_currTermSize[a].set( d_currTermSize[a].get() + ( lb_add - lb_rem ) );
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
-      if( Trace.isOn("sygus-sb-fair") ){
+      if( TraceIsOn("sygus-sb-fair") ){
         std::map< TypeNode, int > var_count;
         Node templ = getCurrentTemplate( a, var_count );
         Trace("sygus-sb-fair") << "FAIRNESS : we have " <<  d_currTermSize[a].get() << " at search size " << ssz << ", template is " << templ << std::endl;
@@ -1091,7 +1091,7 @@ Node SygusExtension::registerSearchValue(Node a,
             Assert(scasv.find(bvr_equiv) != scasv.end());
             Trace("sygus-sb-debug")
                 << "......search value was " << scasv[bvr_equiv] << std::endl;
-            if( Trace.isOn("sygus-sb-exc") ){
+            if( TraceIsOn("sygus-sb-exc") ){
               Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
               Trace("sygus-sb-exc") << "  ......programs " << prev << " and " << bv << " are equivalent up to examples." << std::endl;
             }
@@ -1106,7 +1106,7 @@ Node SygusExtension::registerSearchValue(Node a,
       else
       {
         bad_val_bvr = bvr;
-        if( Trace.isOn("sygus-sb-exc") ){
+        if( TraceIsOn("sygus-sb-exc") ){
           Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
         }
@@ -1146,7 +1146,7 @@ Node SygusExtension::registerSearchValue(Node a,
           scasvs[bad_val_bvr] = sz;
           bad_val = scasv[bad_val_bvr];
           bad_val_o = nv;
-          if (Trace.isOn("sygus-sb-exc"))
+          if (TraceIsOn("sygus-sb-exc"))
           {
             Trace("sygus-sb-exc") << "Flip : exclude ";
             quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
@@ -1157,7 +1157,7 @@ Node SygusExtension::registerSearchValue(Node a,
           }
           sz = prev_sz;
         }
-        if( Trace.isOn("sygus-sb-exc") ){
+        if( TraceIsOn("sygus-sb-exc") ){
           Node bad_val_bv = d_tds->sygusToBuiltin( bad_val, tn );
           Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
           if( by_examples ){
@@ -1600,7 +1600,7 @@ void SygusExtension::check()
                               << std::endl;
       Assert(prog.getType().isDatatype());
       Node progv = d_state.getValuation().getModel()->getValue(prog);
-      if (Trace.isOn("dt-sygus"))
+      if (TraceIsOn("dt-sygus"))
       {
         Trace("dt-sygus") << "* DT model : " << prog << " -> ";
         std::stringstream ss;
@@ -1663,7 +1663,7 @@ void SygusExtension::check()
     return check();
   }
 
-  if (Trace.isOn("sygus-engine") && !d_szinfo.empty())
+  if (TraceIsOn("sygus-engine") && !d_szinfo.empty())
   {
     if (d_im.hasSentLemma())
     {
@@ -1693,7 +1693,7 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
     return true;
   }
   NodeManager* nm = NodeManager::currentNM();
-  if (Trace.isOn("sygus-sb-check-value"))
+  if (TraceIsOn("sygus-sb-check-value"))
   {
     Node prog_sz = nm->mkNode(DT_SIZE, n);
     Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);

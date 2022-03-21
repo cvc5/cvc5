@@ -256,7 +256,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         uires = is_upper ? CEG_TT_LOWER_STRICT : CEG_TT_UPPER_STRICT;
       }
     }
-    if (Trace.isOn("cegqi-arith-bound-inf"))
+    if (TraceIsOn("cegqi-arith-bound-inf"))
     {
       Node pvmod = pv_prop.getModifiedTerm(pv);
       Trace("cegqi-arith-bound-inf") << "From " << lit << ", got : ";
@@ -352,7 +352,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       for (unsigned j = 0, nbounds = d_mbp_bounds[rr].size(); j < nbounds; j++)
       {
         Node value[3];
-        if (Trace.isOn("cegqi-arith-bound"))
+        if (TraceIsOn("cegqi-arith-bound"))
         {
           Assert(!d_mbp_bounds[rr][j].isNull());
           Trace("cegqi-arith-bound")
@@ -672,7 +672,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
       std::find(sf.d_vars.begin(), sf.d_vars.end(), pv) - sf.d_vars.begin();
   Assert(!sf.d_props[index].isBasic());
   Node eq_lhs = sf.d_props[index].getModifiedTerm(sf.d_vars[index]);
-  if (Trace.isOn("cegqi-arith-debug"))
+  if (TraceIsOn("cegqi-arith-debug"))
   {
     Trace("cegqi-arith-debug") << "Normalize substitution for ";
     Trace("cegqi-arith-debug")
@@ -753,7 +753,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     return CEG_TT_INVALID;
   }
   Trace("cegqi-arith-debug") << "got monomial sum: " << std::endl;
-  if (Trace.isOn("cegqi-arith-debug"))
+  if (TraceIsOn("cegqi-arith-debug"))
   {
     ArithMSum::debugPrintMonomialSum(msum, "cegqi-arith-debug");
   }
@@ -811,7 +811,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     Trace("cegqi-arith-debug") << "fail : isolate" << std::endl;
     return CEG_TT_INVALID;
   }
-  if (Trace.isOn("cegqi-arith-debug"))
+  if (TraceIsOn("cegqi-arith-debug"))
   {
     Trace("cegqi-arith-debug") << "Isolate : ";
     if (!veq_c.isNull())

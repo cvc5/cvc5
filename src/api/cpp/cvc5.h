@@ -523,20 +523,6 @@ class CVC5_EXPORT Sort
   bool isSortConstructor() const;
 
   /**
-   * Is this a first-class sort?
-   * First-class sorts are sorts for which:
-   * 1. we handle equalities between terms of that type, and
-   * 2. they are allowed to be parameters of parametric sorts (e.g. index or
-   * element sorts of arrays).
-   *
-   * Examples of sorts that are not first-class include sort constructor sorts
-   * and regular expression sorts.
-   *
-   * @return true if this is a first-class sort
-   */
-  bool isFirstClass() const;
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -2854,8 +2840,12 @@ class CVC5_EXPORT Stat
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
-  /** Can only be obtained from a `Statistics` object. */
-  Stat() = delete;
+  /**
+   * Create an empty statistics object. On such an object all ``isX()`` return
+   * false and all ``getX()`` throw an API exception. It solely exists because
+   * it makes implementing bindings for other languages much easier.
+   */
+  Stat();
   /** Copy constructor */
   Stat(const Stat& s);
   /** Destructor */
@@ -2951,6 +2941,7 @@ class CVC5_EXPORT Statistics
   {
    public:
     friend class Statistics;
+    iterator() = default;
     BaseType::const_reference operator*() const;
     BaseType::const_pointer operator->() const;
     iterator& operator++();
@@ -2972,6 +2963,9 @@ class CVC5_EXPORT Statistics
     bool d_showDefault = false;
   };
 
+  /** Creates an empty statistics object. */
+  Statistics() = default;
+
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
@@ -2992,7 +2986,6 @@ class CVC5_EXPORT Statistics
   iterator end() const;
 
  private:
-  Statistics() = default;
   Statistics(const StatisticsRegistry& reg);
   /** Internal data */
   BaseType d_stats;
@@ -3732,7 +3725,7 @@ class CVC5_EXPORT Solver
    * @return the DatatypeDecl
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
-                              Sort param,
+                              const Sort& param,
                               bool isCoDatatype = false);
 
   /**

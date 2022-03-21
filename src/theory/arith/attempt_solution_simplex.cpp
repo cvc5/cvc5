@@ -85,11 +85,11 @@ Result::Status AttemptSolutionSDP::attempt(
   d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   if(processSignals()){
-    Debug("arith::findModel") << "attemptSolution() early conflict" << endl;
+    Trace("arith::findModel") << "attemptSolution() early conflict" << endl;
     d_conflictVariables.purge();
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("arith::findModel") << "attemptSolution() fixed itself" << endl;
+    Trace("arith::findModel") << "attemptSolution() fixed itself" << endl;
     return Result::SAT;
   }
 

@@ -3,6 +3,8 @@ from fractions import Fraction
 from functools import wraps
 import sys
 
+from cython.operator cimport dereference, preincrement
+
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
 
@@ -22,6 +24,8 @@ from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport Solver as c_Solver
+from cvc5 cimport Statistics as c_Statistics
+from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
@@ -2397,6 +2401,16 @@ cdef class Solver:
         """
         return self.csolver.getInstantiations()
 
+    def getStatistics(self):
+        """
+        Returns a snapshot of the current state of the statistic values of this
+        solver. The returned object is completely decoupled from the solver and
+        will not change when the solver is used again.
+        """
+        res = Statistics()
+        res.cstats = self.csolver.getStatistics()
+        return res
+
 
 cdef class Sort:
     """
@@ -2644,22 +2658,6 @@ cdef class Sort:
             :return: True if this a sort constructor kind.
         """
         return self.csort.isSortConstructor()
-
-    def isFirstClass(self):
-        """
-            Is this a first-class sort?
-            First-class sorts are sorts for which:
-
-            1. we handle equalities between terms of that type, and
-            2. they are allowed to be parameters of parametric sorts
-               (e.g. index or element sorts of arrays).
-
-            Examples of sorts that are not first-class include sort constructor
-            sorts and regular expression sorts.
-
-            :return: True if the sort is a first-class sort.
-        """
-        return self.csort.isFirstClass()
 
     def getDatatype(self):
         """
@@ -2933,6 +2931,47 @@ cdef class Sort:
             sort.csort = s
             tuple_sorts.append(sort)
         return tuple_sorts
+
+
+cdef class Statistics:
+    """
+    The cvc5 Statistics.
+    Wrapper class for :cpp:class:`cvc5::api::Statistics`.
+    Obtain a single statistic value using ``stats["name"]`` and a dictionary
+    with all (visible) statistics using ``stats.get(internal=False, defaulted=False)``.
+    """
+    cdef c_Statistics cstats
+
+    cdef __stat_to_dict(self, const c_Stat& s):
+        res = None
+        if s.isInt():
+            res = s.getInt()
+        elif s.isDouble():
+            res = s.getDouble()
+        elif s.isString():
+            res = s.getString().decode()
+        elif s.isHistogram():
+            res = { h.first.decode(): h.second for h in s.getHistogram() }
+        return {
+            'defaulted': s.isDefault(),
+            'internal': s.isInternal(),
+            'value': res
+        }
+
+    def __getitem__(self, str name):
+        """Get the statistics information for the statistic called ``name``."""
+        return self.__stat_to_dict(self.cstats.get(name.encode()))
+
+    def get(self, bint internal = False, bint defaulted = False):
+        """Get all statistics. See :cpp:class:`cvc5::api::Statistics::begin()` for more information."""
+        cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
+        cdef pair[string,c_Stat]* s
+        res = {}
+        while it != self.cstats.end():
+            s = &dereference(it)
+            res[s.first.decode()] = self.__stat_to_dict(s.second)
+            preincrement(it)
+        return res
 
 
 cdef class Term:

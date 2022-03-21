@@ -140,7 +140,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           visited[cur] = true;
           continue;
         }
-        if (Trace.isOn("lazy-cdproofchain"))
+        if (TraceIsOn("lazy-cdproofchain"))
         {
           unsigned alreadyToVisit = 0;
           Trace("lazy-cdproofchain")
@@ -319,7 +319,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
     {
       allowedLeaves.push_back(link.first);
     }
-    if (Trace.isOn("lazy-cdproofchain"))
+    if (TraceIsOn("lazy-cdproofchain"))
     {
       Trace("lazy-cdproofchain") << "Checking relative to leaves...\n";
       for (const Node& n : allowedLeaves)
