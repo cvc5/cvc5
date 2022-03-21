@@ -929,52 +929,49 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isIndexedOperatorEnabled(p.d_name))
   {
-    // Special cases of indexed operators
-    if (p.d_name == "to_fp")
+    // Resolve indexed symbols that cannot be resolved without knowing the type
+    // of the arguments. This is currently limited to `to_fp`.
+    Assert(p.d_name == "to_fp");
+    size_t nchildren = args.size();
+    if (nchildren == 1)
     {
-      size_t nchildren = args.size();
-      if (nchildren == 1)
+      op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+                          p.d_indices[0],
+                          p.d_indices[1]);
+    }
+    else if (nchildren > 2)
+    {
+      std::stringstream ss;
+      ss << "Wrong number of arguments for indexed operator to_fp, expected "
+            "1 or 2, got "
+         << nchildren;
+      parseError(ss.str());
+    }
+    else if (!args[0].getSort().isRoundingMode())
+    {
+      std::stringstream ss;
+      ss << "Expected a rounding mode as the first argument, got "
+         << args[0].getSort();
+      parseError(ss.str());
+    }
+    else
+    {
+      api::Sort t = args[1].getSort();
+
+      if (t.isFloatingPoint())
       {
-        op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                            p.d_indices[0],
-                            p.d_indices[1]);
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices[0], p.d_indices[1]);
       }
-      else if (nchildren > 2)
+      else if (t.isInteger() || t.isReal())
       {
-        std::stringstream ss;
-        ss << "Wrong number of arguments for indexed operator to_fp, expected "
-              "1 or 2, got "
-           << nchildren;
-        parseError(ss.str());
-      }
-      else if (!args[0].getSort().isRoundingMode())
-      {
-        std::stringstream ss;
-        ss << "Expected a rounding mode as the first argument, got "
-           << args[0].getSort();
-        parseError(ss.str());
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_REAL, p.d_indices[0], p.d_indices[1]);
       }
       else
       {
-        api::Sort t = args[1].getSort();
-
-        if (t.isFloatingPoint())
-        {
-          op = d_solver->mkOp(
-              api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices[0], p.d_indices[1]);
-        }
-        else if (t.isInteger() || t.isReal())
-        {
-          op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_REAL,
-                              p.d_indices[0],
-                              p.d_indices[1]);
-        }
-        else
-        {
-          op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_SBV,
-                              p.d_indices[0],
-                              p.d_indices[1]);
-        }
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_SBV, p.d_indices[0], p.d_indices[1]);
       }
     }
   }

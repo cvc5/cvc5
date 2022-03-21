@@ -71,7 +71,10 @@ struct ParseOp
   /** The operator associated with the parsed operator, if it exists */
   api::Op d_op;
   /**
-   * The indices if the operator is indexed, but api::Op is the null operator
+   * The indices if the operator is indexed, but api::Op is the null operator.
+   * This is the case for operator symbols that cannot be resolved to a kind
+   * without parsing the arguments. This is currently only the case for
+   * `to_fp`.
    */
   std::vector<uint32_t> d_indices;
 
