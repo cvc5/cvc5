@@ -1577,6 +1577,25 @@ class SolverTest
       assertTrue(s.isInt());
       assertTrue(s.getInt() >= 0);
     }
+    for (Pair<String, Stat> s : stats) {}
+    for (Statistics.ConstIterator it = stats.getIterator(true, true); it.hasNext();)
+    {
+      Pair<String, Stat> elem = it.next();
+      if (s.getKey() == "api::CONSTANT")
+      {
+        assertFalse(s.getValue().isInternal());
+        assertFalse(s.getValue().isDefault());
+        assertTrue(s.getValue().isHistogram());
+        Map<String, Long> hist = s.getValue().getHistogram();
+        assertFalse(hist.isEmpty());
+        assertEquals(s.getValue().toString(), "{ integer type: 1 }");
+      }
+      else if (s.getKey() == "theory::arrays::avgIndexListLength")
+      {
+        assertTrue(s.getValue().isInternal());
+        assertTrue(s.getValue().isDefault());
+      }
+    }
   }
 
   @Test void getUnsatAssumptions1()
