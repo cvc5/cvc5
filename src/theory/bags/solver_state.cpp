@@ -119,9 +119,7 @@ void SolverState::collectDisequalBagTerms()
         TypeNode elementType = A.getType().getBagElementType();
         SkolemManager* sm = d_nm->getSkolemManager();
         Node skolem =
-            sm->mkSkolemFun(SkolemFun::BAG_DEQ_DIFF,
-                         elementType,
-                         {A, B});
+            sm->mkSkolemFun(SkolemFun::BAG_DEQ_DIFF, elementType, {A, B});
         d_deq[equal] = skolem;
       }
     }

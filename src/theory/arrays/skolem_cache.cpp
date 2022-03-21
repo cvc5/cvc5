@@ -46,9 +46,8 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
 
   // make the skolem that witnesses the above axiom
   SkolemManager* sm = nm->getSkolemManager();
-  return sm->mkSkolemFunction(SkolemFunId::SkolemFunId,
-                              a.getArrayIndexType(),
-                              {a,b});
+  return sm->mkSkolemFunction(
+      SkolemFunId::SkolemFunId, a.getArrayIndexType(), {a, b});
 }
 
 Node SkolemCache::getEqRangeVar(TNode eqr)
