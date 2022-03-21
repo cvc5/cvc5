@@ -3738,7 +3738,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
 DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
 {
-  AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
+  AlwaysAssert(d_qflraStatus != Result::UNKNOWN);
   Trace("arith::value") << term << std::endl;
 
   if (d_partialModel.hasArithVar(term)) {
