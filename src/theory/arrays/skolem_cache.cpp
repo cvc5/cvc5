@@ -45,7 +45,7 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
   Assert(b.getType() == a.getType());
 
   // make the skolem that witnesses the above axiom
-  SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   return sm->mkSkolemFunction(
       SkolemFunId::SkolemFunId, a.getArrayIndexType(), {a, b});
 }
