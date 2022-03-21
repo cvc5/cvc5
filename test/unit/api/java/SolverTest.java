@@ -1578,7 +1578,7 @@ class SolverTest
       assertTrue(s.getInt() >= 0);
     }
     for (Pair<String, Stat> s : stats) {}
-    for (Statistics.ConstIterator it = stats.getIterator(true, true); it.hasNext();)
+    for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Pair<String, Stat> elem = it.next();
       if (elem.getKey() == "api::CONSTANT")
