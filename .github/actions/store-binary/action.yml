@@ -49,23 +49,30 @@ runs:
           print('New `latest` release')
           rel = repo.create_git_release('latest', 'latest', 'Latest builds')
 
+        # generate new filename
+        binary = os.getenv('BINARY')
+        name,ext = os.path.splitext(binary)
+        curtime = repo.get_git_commit(sha).committer.date.strftime('%Y-%m-%d')
+        samedayprefix = '{}-{}-'.format(name, curtime)
+        filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
+
         # prune olds commits
         assets = list(rel.get_assets())
         assets.sort(key=lambda x: x.created_at, reverse=True)
 
         for cnt,asset in enumerate(assets):
+          delete = False
           if cnt >= 30:
-            asset.delete_asset()
-            continue
+            delete = True
+          if assert.name.startswith(samedayprefix):
+            delete = True
           age = datetime.datetime.now() - asset.created_at
-          if age.days > 3:
+          if age.days > 7:
+            delete = True
+          if delete:
             asset.delete_asset()
 
         # upload as asset with proper name
-        binary = os.getenv('BINARY')
-        name,ext = os.path.splitext(binary)
-        curtime = repo.get_git_commit(sha).committer.date.strftime('%m%d-%H%M')
-        filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
         rel.upload_asset(binary, name=filename)
  
     - name: store to release
