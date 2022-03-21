@@ -499,6 +499,17 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
+    def __getitem__(self, i):
+        """
+            Get the index at position i.
+            :param i: the position of the index to return
+            :return: the index at position i
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cop[i]
+        return term
+
+
 cdef class Grammar:
     """
         A Sygus Grammar.

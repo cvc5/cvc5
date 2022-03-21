@@ -109,6 +109,22 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getNumIndices(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
+/*
+ * Class:     io_github_cvc5_api_Op
+ * Method:    get
+ * Signature: (JI)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Op_get(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jint i)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* current = reinterpret_cast<Op*>(pointer);
+  Term* ret = new Term((*current)[static_cast<size_t>(i)]);
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
 
 /*
  * Class:     io_github_cvc5_api_Op
