@@ -2008,6 +2008,7 @@ cdef class Solver:
 
         :return: information about the given option
         """
+        # declare all the variables we may need later
         cdef c_OptionInfo.ValueInfo[c_bool] vib
         cdef c_OptionInfo.ValueInfo[string] vis
         cdef c_OptionInfo.NumberInfo[int64_t] nii
@@ -2016,25 +2017,31 @@ cdef class Solver:
         cdef c_OptionInfo.ModeInfo mi
 
         oi = self.csolver.getOptionInfo(option.encode())
+        # generic information
         res = {
             'name': oi.name.decode(),
             'aliases': [s.decode() for s in oi.aliases],
             'setByUser': oi.setByUser,
         }
 
+        # now check which type is actually in the variant
         if c_holds[c_OptionInfo.VoidInfo](oi.valueInfo):
+            # it's a void
             res['type'] = None
         elif c_holds[c_OptionInfo.ValueInfo[c_bool]](oi.valueInfo):
+            # it's a bool
             res['type'] = bool
             vib = c_getVariant[c_OptionInfo.ValueInfo[c_bool]](oi.valueInfo)
             res['current'] = vib.currentValue
             res['default'] = vib.defaultValue
         elif c_holds[c_OptionInfo.ValueInfo[string]](oi.valueInfo):
+            # it's a string
             res['type'] = str
             vis = c_getVariant[c_OptionInfo.ValueInfo[string]](oi.valueInfo)
             res['current'] = vis.currentValue.decode()
             res['default'] = vis.defaultValue.decode()
         elif c_holds[c_OptionInfo.NumberInfo[int64_t]](oi.valueInfo):
+            # it's an int64_t
             res['type'] = int
             nii = c_getVariant[c_OptionInfo.NumberInfo[int64_t]](oi.valueInfo)
             res['current'] = nii.currentValue
@@ -2042,6 +2049,7 @@ cdef class Solver:
             res['minimum'] = nii.minimum.value() if nii.minimum.has_value() else None
             res['maximum'] = nii.maximum.value() if nii.maximum.has_value() else None
         elif c_holds[c_OptionInfo.NumberInfo[uint64_t]](oi.valueInfo):
+            # it's a uint64_t
             res['type'] = int
             niu = c_getVariant[c_OptionInfo.NumberInfo[uint64_t]](oi.valueInfo)
             res['current'] = niu.currentValue
@@ -2049,6 +2057,7 @@ cdef class Solver:
             res['minimum'] = niu.minimum.value() if niu.minimum.has_value() else None
             res['maximum'] = niu.maximum.value() if niu.maximum.has_value() else None
         elif c_holds[c_OptionInfo.NumberInfo[double]](oi.valueInfo):
+            # it's a double
             res['type'] = float
             nid = c_getVariant[c_OptionInfo.NumberInfo[double]](oi.valueInfo)
             res['current'] = nid.currentValue
@@ -2056,6 +2065,7 @@ cdef class Solver:
             res['minimum'] = nid.minimum.value() if nid.minimum.has_value() else None
             res['maximum'] = nid.maximum.value() if nid.maximum.has_value() else None
         elif c_holds[c_OptionInfo.ModeInfo](oi.valueInfo):
+            # it's a mode
             res['type'] = 'mode'
             mi = c_getVariant[c_OptionInfo.ModeInfo](oi.valueInfo)
             res['current'] = mi.currentValue.decode()

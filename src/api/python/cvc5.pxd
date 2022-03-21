@@ -21,7 +21,7 @@ cdef extern from "<functional>" namespace "std" nogil:
         size_t operator()(T t)
 
 cdef extern from "<optional>" namespace "std" nogil:
-    # available in newer cython versions from cpplib.optional
+    # available from cpplib.optional since cython 3.0.0a10 (Jan 2022).
     cdef cppclass optional[T]:
         bint has_value()
         T& value()
@@ -173,7 +173,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
 
 
 cdef extern from "<variant>" namespace "std":
-    # not sure whether / how we could make them more generic.
+    # cython has no support for variadic templates yet, see
+    # https://github.com/cython/cython/issues/1611
     bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
     T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
 
