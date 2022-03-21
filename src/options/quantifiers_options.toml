@@ -1081,6 +1081,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1453,6 +1454,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 [[option]]
