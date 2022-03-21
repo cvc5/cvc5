@@ -63,6 +63,7 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
 
+  private native long getIterator(long pointer, boolean internal, boolean defaulted);
   private native long getIterator(long pointer);
 
   private native boolean hasNext(long pointer, long iteratorPointer);
@@ -78,6 +79,10 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
   {
     private long iteratorPointer = 0;
 
+    public ConstIterator(boolean internal, boolean defaulted)
+    {
+      iteratorPointer = getIterator(pointer, internal, defaulted);
+    }
     public ConstIterator()
     {
       iteratorPointer = getIterator(pointer);
@@ -109,6 +114,10 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
     }
   }
 
+  public Iterator<Pair<String, Stat>> iterator(boolean internal, boolean defaulted)
+  {
+    return new ConstIterator(internal, defaulted);
+  }
   @Override public Iterator<Pair<String, Stat>> iterator()
   {
     return new ConstIterator();
