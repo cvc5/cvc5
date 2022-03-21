@@ -111,9 +111,9 @@ std::string AletheProofPrinter::printInternal(
     // Print anchor
     std::string current_t =
         current_prefix + "t" + std::to_string(current_step_id);
-    Trace("alethe-printer")
-        << "... print anchor " << current_t << ": " << pfn->getResult() << " " << arule << " "
-        << " / " << args << std::endl;
+    Trace("alethe-printer") << "... print anchor " << current_t << ": "
+                            << pfn->getResult() << " " << arule << " "
+                            << " / " << args << std::endl;
     out << "(anchor :step " << current_t;
 
     // Append index of anchor to prefix so that all steps in the subproof use it
@@ -147,8 +147,8 @@ std::string AletheProofPrinter::printInternal(
       {
         std::string assumption_name =
             current_prefix + "a" + std::to_string(i - 3);
-        Trace("alethe-printer")
-            << "... print assumption " << assumption_name << ": " << args[i] << std::endl;
+        Trace("alethe-printer") << "... print assumption " << assumption_name
+                                << ": " << args[i] << std::endl;
         out << "(assume " << assumption_name << " " << args[i] << ")\n";
         assumptions[args[i]] = assumption_name;
         current_assumptions.push_back(assumption_name);
@@ -170,8 +170,9 @@ std::string AletheProofPrinter::printInternal(
   if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
   {
     current_prefix.pop_back();
-    Trace("alethe-printer") << "... print anchor node " << current_prefix << ": " << pfn->getResult()
-                            << " " << arule << " / " << args << std::endl;
+    Trace("alethe-printer")
+        << "... print anchor node " << current_prefix << ": "
+        << pfn->getResult() << " " << arule << " / " << args << std::endl;
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
 
     // Reset steps array to the steps before the subproof since steps inside the
