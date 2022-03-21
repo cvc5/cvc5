@@ -12,7 +12,7 @@
  *
  * Encapsulation of the result of a synthesis query.
  */
-#include "util/synth_result.h"
+#include "expr/synth_result.h"
 
 using namespace std;
 

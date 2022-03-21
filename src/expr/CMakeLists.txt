@@ -96,6 +96,8 @@ libcvc5_add_sources(
   subs.h
   sygus_datatype.cpp
   sygus_datatype.h
+  synth_result.cpp
+  synth_result.h
   variadic_trie.cpp
   variadic_trie.h
 )

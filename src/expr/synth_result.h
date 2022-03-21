@@ -15,14 +15,15 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__UTIL__SYNTH_RESULT_H
-#define CVC5__UTIL__SYNTH_RESULT_H
+#ifndef CVC5__EXPR__SYNTH_RESULT_H
+#define CVC5__EXPR__SYNTH_RESULT_H
 
 #include <iosfwd>
 #include <string>
 #include <vector>
 
 #include "util/result.h"
+#include "expr/node.h"
 
 namespace cvc5 {
 
