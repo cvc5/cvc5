@@ -411,9 +411,9 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
 
   if (wordBlasted != node)
   {
-    Debug("fp-wordBlastTerm")
+    Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
-    Debug("fp-wordBlastTerm")
+    Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): after  " << wordBlasted << std::endl;
   }
 
@@ -423,7 +423,7 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
   {
     Node addA = d_wordBlaster->d_additionalAssertions[oldSize];
 
-    Debug("fp-wordBlastTerm")
+    Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): additional assertion  " << addA
         << std::endl;
 
@@ -781,7 +781,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 {
   Trace("fp-collectModelInfo")
       << "TheoryFp::collectModelInfo(): begin" << std::endl;
-  if (Trace.isOn("fp-collectModelInfo")) {
+  if (TraceIsOn("fp-collectModelInfo")) {
     for (std::set<Node>::const_iterator i(relevantTerms.begin());
          i != relevantTerms.end(); ++i) {
       Trace("fp-collectModelInfo")
@@ -879,7 +879,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
                                                      bool value) {
-  Debug("fp-eq")
+  Trace("fp-eq")
       << "TheoryFp::eqNotifyTriggerPredicate(): call back as predicate "
       << predicate << " is " << value << std::endl;
 
@@ -891,7 +891,7 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
                                                         TNode t2, bool value) {
-  Debug("fp-eq") << "TheoryFp::eqNotifyTriggerTermEquality(): call back as "
+  Trace("fp-eq") << "TheoryFp::eqNotifyTriggerTermEquality(): call back as "
                  << t1 << (value ? " = " : " != ") << t2 << std::endl;
 
   if (value) {
@@ -901,7 +901,7 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
 }
 
 void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-  Debug("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
+  Trace("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
                  << " = " << t2 << std::endl;
   d_theorySolver.conflictEqConstantMerge(t1, t2);
 }

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Morgan Deters
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,26 +10,26 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Output utility classes and functions.
+ * The care pair argument callback.
  */
 
-#include "base/output.h"
-
-#include <iostream>
+#include "theory/care_pair_argument_callback.h"
 
 namespace cvc5 {
+namespace theory {
 
-/* Definitions of the declared globals from output.h... */
+CarePairArgumentCallback::CarePairArgumentCallback(Theory& t) : d_theory(t) {}
 
-null_streambuf null_sb;
-std::ostream null_os(&null_sb);
+bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
+{
+  // interested in finding pairs that are not disequal
+  return !d_theory.areCareDisequal(a, b);
+}
 
-NullC nullStream;
+void CarePairArgumentCallback::processData(TNode fa, TNode fb)
+{
+  d_theory.processCarePairArgs(fa, fb);
+}
 
-const std::string Cvc5ostream::s_tab = "  ";
-const int Cvc5ostream::s_indentIosIndex = std::ios_base::xalloc();
-
-WarningC WarningChannel(&std::cerr);
-TraceC TraceChannel(&std::cout);
-
+}  // namespace theory
 }  // namespace cvc5

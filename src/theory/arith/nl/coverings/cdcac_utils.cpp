@@ -175,7 +175,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   // Simplifies removal of redundancies later on.
   if (intervals.size() < 2) return;
 
-  if (Trace.isOn("cdcac"))
+  if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Before pruning:" << std::endl;
     for (const auto& i : intervals)
@@ -224,7 +224,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
       intervals.pop_back();
     }
   }
-  if (Trace.isOn("cdcac"))
+  if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "After pruning:" << std::endl;
     for (const auto& i : intervals)

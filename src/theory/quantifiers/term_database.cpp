@@ -398,7 +398,7 @@ void TermDb::computeUfTerms( TNode f ) {
           }
         }
         Node lem = nm->mkOr(lits);
-        if (Trace.isOn("term-db-lemma"))
+        if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                  << n << "!!!!" << std::endl;
@@ -418,7 +418,7 @@ void TermDb::computeUfTerms( TNode f ) {
       nonCongruentCount++;
       d_op_nonred_count[f]++;
     }
-    if (Trace.isOn("tdb"))
+    if (TraceIsOn("tdb"))
     {
       Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount
                    << " / ";

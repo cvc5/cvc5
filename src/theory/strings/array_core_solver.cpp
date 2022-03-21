@@ -218,7 +218,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
   NodeManager* nm = NodeManager::currentNM();
 
   Trace("seq-array-debug") << "NTH SIZE: " << nthTerms.size() << std::endl;
-  if (Trace.isOn("seq-array-terms"))
+  if (TraceIsOn("seq-array-terms"))
   {
     for (const Node& n : nthTerms)
     {
@@ -227,7 +227,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
   }
   Trace("seq-array-debug") << "UPDATE SIZE: " << updateTerms.size()
                            << std::endl;
-  if (Trace.isOn("seq-array-terms"))
+  if (TraceIsOn("seq-array-terms"))
   {
     for (const Node& n : updateTerms)
     {
@@ -320,7 +320,7 @@ void ArrayCoreSolver::computeConnected(const std::vector<Node>& updateTerms)
 
 const std::map<Node, Node>& ArrayCoreSolver::getWriteModel(Node eqc)
 {
-  if (Trace.isOn("seq-write-model"))
+  if (TraceIsOn("seq-write-model"))
   {
     Trace("seq-write-model") << "write model of " << eqc << ":" << std::endl;
     for (auto& x : d_writeModel[eqc])

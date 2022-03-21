@@ -22,6 +22,7 @@
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
 #include "smt/env_obj.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
@@ -49,8 +50,6 @@ class TheorySetsPrivate : protected EnvObj
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  private:
-  /** Are a and b trigger terms in the equality engine that may be disequal? */
-  bool areCareDisequal(Node a, Node b);
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -86,12 +85,6 @@ class TheorySetsPrivate : protected EnvObj
    * in the current context.
    */
   void checkReduceComprehensions();
-
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth,
-                    unsigned& n_pairs);
 
   Node d_true;
   Node d_false;
@@ -140,7 +133,8 @@ class TheorySetsPrivate : protected EnvObj
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
-                    ProofNodeManager* pnm);
+                    ProofNodeManager* pnm,
+                    CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();
 
@@ -181,6 +175,12 @@ class TheorySetsPrivate : protected EnvObj
   Valuation& getValuation();
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
+
+  /**
+   * Adds inferences for splitting on arguments of a and b that are not
+   * equal nor disequal and are sets.
+   */
+  void processCarePairArgs(TNode a, TNode b);
 
  private:
   TheorySets& d_external;
@@ -229,6 +229,8 @@ class TheorySetsPrivate : protected EnvObj
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */
   std::map<Node, Node> d_isSingletonNodes;
+  /** Reference to care pair argument callback, used for theory combination */
+  CarePairArgumentCallback& d_cpacb;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

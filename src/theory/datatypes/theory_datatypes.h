@@ -24,6 +24,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/proof_checker.h"
@@ -58,12 +59,12 @@ class TheoryDatatypes : public Theory {
    }
    void eqNotifyNewClass(TNode t) override
    {
-     Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
+     Trace("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
      d_dt.eqNotifyNewClass(t);
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+      Trace("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
                   << std::endl;
       d_dt.eqNotifyMerge(t1, t2);
     }
@@ -272,7 +273,6 @@ private:
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );
   bool areDisequal( TNode a, TNode b );
-  bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -298,6 +298,8 @@ private:
   NotifyClass d_notify;
   /** Proof checker for datatypes */
   DatatypesProofRuleChecker d_checker;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryDatatypes */
 
 }  // namespace datatypes

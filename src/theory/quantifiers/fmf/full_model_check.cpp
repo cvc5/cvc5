@@ -95,7 +95,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
 }
 
 int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index ) {
-  Debug("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
+  Trace("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
   if (index==(int)inst.size()) {
     return d_data;
   }else{
@@ -375,7 +375,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       for( size_t a=0; a<it->second.size(); a++ ){
         Node r = m->getRepresentative(it->second[a]);
-        if( Trace.isOn("fmc-model-debug") ){
+        if( TraceIsOn("fmc-model-debug") ){
           std::vector< Node > eqc;
           d_qstate.getEquivalenceClass(r, eqc);
           Trace("fmc-model-debug") << "   " << (it->second[a]==r);
@@ -697,7 +697,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       else
       {
         // for debugging
-        if (Trace.isOn("fmc-test-inst"))
+        if (TraceIsOn("fmc-test-inst"))
         {
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
           if (ev == d_true)
@@ -767,7 +767,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   std::vector<Node>& mcond = d_quant_models[f].d_cond;
   if (!d_star_insts[f].empty())
   {
-    if (Trace.isOn("fmc-exh"))
+    if (TraceIsOn("fmc-exh"))
     {
       Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
       Trace("fmc-exh") << "Definition was : " << std::endl;

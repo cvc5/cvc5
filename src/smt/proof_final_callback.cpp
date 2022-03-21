@@ -119,7 +119,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
   }
   // print for debugging
-  if (Trace.isOn("final-pf-hole"))
+  if (TraceIsOn("final-pf-hole"))
   {
     // currently only track theory rewrites
     if (r == PfRule::THEORY_REWRITE)

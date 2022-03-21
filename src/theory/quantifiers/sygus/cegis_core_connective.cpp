@@ -261,7 +261,7 @@ bool CegisCoreConnective::constructSolution(
   Assert(candidates.size() == candidate_values.size());
   Trace("sygus-ccore-summary")
       << "CegisCoreConnective: construct solution..." << std::endl;
-  if (Trace.isOn("sygus-ccore"))
+  if (TraceIsOn("sygus-ccore"))
   {
     Trace("sygus-ccore")
         << "CegisCoreConnective: Construct candidate solutions..." << std::endl;
@@ -338,7 +338,7 @@ bool CegisCoreConnective::constructSolution(
       Trace("sygus-ccore-summary") << "...success" << std::endl;
       return true;
     }
-    if (Trace.isOn("sygus-ccore-summary"))
+    if (TraceIsOn("sygus-ccore-summary"))
     {
       std::stringstream ss;
       ccheck.debugPrintSummary(ss);
