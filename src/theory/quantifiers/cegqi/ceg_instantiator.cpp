@@ -226,8 +226,9 @@ void CegInstantiator::computeProgVars( Node n ){
       return;
     }
     bool isClosure = n.isClosure();
-    for( size_t i=0, nchild = n.getNumChildren(); i<nchild; i++ ){
-      if (isClosure && i!=1)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      if (isClosure && i != 1)
       {
         // ignore the bound variable list and annotation
         continue;
@@ -240,8 +241,7 @@ void CegInstantiator::computeProgVars( Node n ){
       d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
     }
     // selectors applied to program variables are also variables
-    if (k == APPLY_SELECTOR
-        && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
+    if (k == APPLY_SELECTOR && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
     {
       d_prog_var[n].insert(n);
     }
