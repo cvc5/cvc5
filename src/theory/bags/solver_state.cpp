@@ -117,14 +117,11 @@ void SolverState::collectDisequalBagTerms()
       if (d_deq.find(equal) == d_deq.end())
       {
         TypeNode elementType = A.getType().getBagElementType();
-        BoundVarManager* bvm = d_nm->getBoundVarManager();
-        Node element = bvm->mkBoundVar<BagsDeqAttribute>(equal, elementType);
         SkolemManager* sm = d_nm->getSkolemManager();
         Node skolem =
-            sm->mkSkolem(element,
-                         n,
-                         "bag_disequal",
-                         "an extensional lemma for disequality of two bags");
+            sm->mkSkolemFun(SkolemFun::BAG_DEQ_DIFF,
+                         elementType,
+                         {A, B});
         d_deq[equal] = skolem;
       }
     }
