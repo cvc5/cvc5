@@ -64,7 +64,7 @@ runs:
           delete = False
           if cnt >= 30:
             delete = True
-          if assert.name.startswith(samedayprefix):
+          if asset.name.startswith(samedayprefix):
             delete = True
           age = datetime.datetime.now() - asset.created_at
           if age.days > 7:
