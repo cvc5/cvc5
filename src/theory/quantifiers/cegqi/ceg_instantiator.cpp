@@ -15,10 +15,10 @@
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
+#include "expr/annotation_elim_node_converter.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
-#include "expr/annotation_elim_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
