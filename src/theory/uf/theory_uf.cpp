@@ -55,7 +55,8 @@ TheoryUF::TheoryUF(Env& env,
       d_rewriter(logicInfo().isHigherOrder()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
-      d_notify(d_im, *this)
+      d_notify(d_im, *this),
+      d_cpacb(*this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   // indicate we are using the default theory state and inference managers
@@ -106,28 +107,6 @@ void TheoryUF::finishInit() {
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
 }
-
-static Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}/* mkAnd() */
 
 //--------------------------------- standard check
 
@@ -352,7 +331,7 @@ void TheoryUF::explain(TNode literal, Node& exp)
   {
     d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-  exp = mkAnd(assumptions);
+  exp = NodeManager::currentNM()->mkAnd(assumptions);
 }
 
 TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
@@ -569,89 +548,15 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y)
   return false;
 }
 
-void TheoryUF::addCarePairs(const TNodeTrie* t1,
-                            const TNodeTrie* t2,
-                            unsigned arity,
-                            unsigned depth)
+void TheoryUF::processCarePairArgs(TNode a, TNode b)
 {
-  // Note we use d_state instead of d_equalityEngine in this method in several
-  // places to be robust to cases where the tries have terms that do not
-  // exist in the equality engine, which can be the case if higher order.
-  if( depth==arity ){
-    if( t2!=NULL ){
-      Node f1 = t1->getData();
-      Node f2 = t2->getData();
-      if (!d_state.areEqual(f1, f2))
-      {
-        Trace("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
-        vector< pair<TNode, TNode> > currentPairs;
-        for (size_t k = 0, nchildren = f1.getNumChildren(); k < nchildren; ++k)
-        {
-          TNode x = f1[k];
-          TNode y = f2[k];
-          Assert(!d_state.areDisequal(x, y));
-          Assert(!areCareDisequal(x, y));
-          if (!d_state.areEqual(x, y))
-          {
-            if (d_equalityEngine->isTriggerTerm(x, THEORY_UF)
-                && d_equalityEngine->isTriggerTerm(y, THEORY_UF))
-            {
-              TNode x_shared =
-                  d_equalityEngine->getTriggerTermRepresentative(x, THEORY_UF);
-              TNode y_shared =
-                  d_equalityEngine->getTriggerTermRepresentative(y, THEORY_UF);
-              currentPairs.push_back(make_pair(x_shared, y_shared));
-            }
-          }
-        }
-        for (unsigned c = 0; c < currentPairs.size(); ++ c) {
-          Trace("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
-          addCarePair(currentPairs[c].first, currentPairs[c].second);
-        }
-      }
-    }
-  }else{
-    if( t2==NULL ){
-      if( depth<(arity-1) ){
-        //add care pairs internal to each child
-        for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
-        {
-          addCarePairs(&tt.second, NULL, arity, depth + 1);
-        }
-      }
-      //add care pairs based on each pair of non-disequal arguments
-      for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
-           it != t1->d_data.end();
-           ++it)
-      {
-        std::map<TNode, TNodeTrie>::const_iterator it2 = it;
-        ++it2;
-        for( ; it2 != t1->d_data.end(); ++it2 ){
-          if (!d_state.areDisequal(it->first, it2->first))
-          {
-            if( !areCareDisequal(it->first, it2->first) ){
-              addCarePairs( &it->second, &it2->second, arity, depth+1 );
-            }
-          }
-        }
-      }
-    }else{
-      //add care pairs based on product of indices, non-disequal arguments
-      for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
-      {
-        for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
-        {
-          if (!d_state.areDisequal(tt1.first, tt2.first))
-          {
-            if (!areCareDisequal(tt1.first, tt2.first))
-            {
-              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1);
-            }
-          }
-        }
-      }
-    }
+  // if a and b are already equal, we ignore this pair
+  if (d_state.areEqual(a, b))
+  {
+    return;
   }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
 }
 
 void TheoryUF::computeCareGraph() {
@@ -723,14 +628,14 @@ void TheoryUF::computeCareGraph() {
     Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
                          << tt.first << "..." << std::endl;
     Assert(arity.find(tt.first) != arity.end());
-    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+    nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
   for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
   {
     Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    addCarePairs(&tt.second, nullptr, 2, 0);
+    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
   }
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
