@@ -681,7 +681,7 @@ void TheorySetsPrivate::checkDisequalities()
   // disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   for (NodeBoolMap::const_iterator it = d_deq.begin(); it != d_deq.end(); ++it)
   {
     if (!(*it).second)
