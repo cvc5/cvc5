@@ -1605,7 +1605,10 @@ TEST_F(TestApiBlackSolver, getStatistics)
     EXPECT_TRUE(s.isInt());
     EXPECT_TRUE(s.getInt() >= 0);
   }
-  for (const auto& s: stats) {}
+  for (const auto& s: stats)
+  {
+    EXPECT_FALSE(s.first.empty());
+  }
   for (auto it = stats.begin(true, true); it != stats.end(); ++it)
   {
     {
