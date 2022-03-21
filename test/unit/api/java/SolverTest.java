@@ -1581,19 +1581,19 @@ class SolverTest
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Pair<String, Stat> elem = it.next();
-      if (elem.getKey() == "api::CONSTANT")
+      if (elem.first == "api::CONSTANT")
       {
-        assertFalse(elem.getValue().isInternal());
-        assertFalse(elem.getValue().isDefault());
-        assertTrue(elem.getValue().isHistogram());
-        Map<String, Long> hist = elem.getValue().getHistogram();
+        assertFalse(elem.second.isInternal());
+        assertFalse(elem.second.isDefault());
+        assertTrue(elem.second.isHistogram());
+        Map<String, Long> hist = elem.second.getHistogram();
         assertFalse(hist.isEmpty());
-        assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
+        assertEquals(elem.second.toString(), "{ integer type: 1 }");
       }
-      else if (elem.getKey() == "theory::arrays::avgIndexListLength")
+      else if (elem.first == "theory::arrays::avgIndexListLength")
       {
-        assertTrue(elem.getValue().isInternal());
-        assertTrue(elem.getValue().isDefault());
+        assertTrue(elem.second.isInternal());
+        assertTrue(elem.second.isDefault());
       }
     }
   }

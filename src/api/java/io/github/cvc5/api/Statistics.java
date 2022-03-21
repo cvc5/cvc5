@@ -114,11 +114,11 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
     }
   }
 
-  public Iterator<Pair<String, Stat>> iterator(boolean internal, boolean defaulted)
+  public ConstIterator iterator(boolean internal, boolean defaulted)
   {
     return new ConstIterator(internal, defaulted);
   }
-  @Override public Iterator<Pair<String, Stat>> iterator()
+  @Override public ConstIterator iterator()
   {
     return new ConstIterator();
   }
