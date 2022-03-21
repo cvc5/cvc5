@@ -155,7 +155,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
 
 TrustNode BVSolverBitblastInternal::explain(TNode n)
 {
-  Debug("bv-bitblast-internal") << "explain called on " << n << std::endl;
+  Trace("bv-bitblast-internal") << "explain called on " << n << std::endl;
   return d_im.explainLit(n);
 }
 

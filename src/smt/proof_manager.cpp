@@ -122,7 +122,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SolverEngine::setFinalProof(): get proof body...\n";
 
-  if (Trace.isOn("smt-proof-debug"))
+  if (TraceIsOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
         << "SolverEngine::setFinalProof(): Proof node for false:\n";
@@ -133,7 +133,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   std::vector<Node> assertions;
   getAssertions(as, assertions);
 
-  if (Trace.isOn("smt-proof"))
+  if (TraceIsOn("smt-proof"))
   {
     Trace("smt-proof")
         << "SolverEngine::setFinalProof(): get free assumptions..."

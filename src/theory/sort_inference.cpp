@@ -277,7 +277,7 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
           }
         }
       }
-      if (Trace.isOn("sort-inference-rewrite"))
+      if (TraceIsOn("sort-inference-rewrite"))
       {
         Trace("sort-inference-rewrite")
             << "Add the following injections for " << tss.first

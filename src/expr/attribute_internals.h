@@ -289,7 +289,7 @@ public:
       return BitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
@@ -313,7 +313,7 @@ public:
       return ConstBitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
