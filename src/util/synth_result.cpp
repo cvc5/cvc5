@@ -24,7 +24,7 @@ SynthResult::SynthResult()
 }
 
 SynthResult::SynthResult(const std::vector<Node>& sol)
-    : d_status(SUCCESS), d_unknownExplanation(UNKNOWN_REASON), d_solution(sol)
+    : d_status(SUCCESS), d_unknownExplanation(Result::UNKNOWN_REASON), d_solution(sol)
 {
 }
 
