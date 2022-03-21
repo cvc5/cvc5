@@ -79,12 +79,12 @@ void ZeroLevelLearner::notifyInputFormulas(
   // be considered an ordinary learned literal.
   // Note that d_pplAtoms and d_ppnAtoms are disjoint
   std::vector<Node> toProcess = assertions;
-  size_t index=0;
-  while (index<toProcess.size())
-   {
+  size_t index = 0;
+  while (index < toProcess.size())
+  {
     TNode lit = toProcess[index];
     index++;
-    if (lit.getKind()==kind::AND)
+    if (lit.getKind() == kind::AND)
     {
       toProcess.insert(toProcess.end(), lit.begin(), lit.end());
       continue;
