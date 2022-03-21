@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/annotation_elim_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -646,6 +647,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
       Node mv = getModelValue( pv );
+      AnnotationElimNodeConverter aenc;
+      mv = aenc.convert(mv);
       TermProperties pv_prop_m;
       Trace("cegqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
       d_curr_iphase[pv] = CEG_INST_PHASE_MVALUE;
