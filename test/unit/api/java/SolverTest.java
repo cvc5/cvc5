@@ -1577,23 +1577,23 @@ class SolverTest
       assertTrue(s.isInt());
       assertTrue(s.getInt() >= 0);
     }
-    for (Pair<String, Stat> s : stats) {}
+    for (Map.Entry<String, Stat> s : stats) {}
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
-      Pair<String, Stat> elem = it.next();
-      if (elem.first == "api::CONSTANT")
+      Map.Entry<String, Stat> elem = it.next();
+      if (elem.getKey() == "api::CONSTANT")
       {
-        assertFalse(elem.second.isInternal());
-        assertFalse(elem.second.isDefault());
-        assertTrue(elem.second.isHistogram());
-        Map<String, Long> hist = elem.second.getHistogram();
+        assertFalse(elem.getValue().isInternal());
+        assertFalse(elem.getValue().isDefault());
+        assertTrue(elem.getValue().isHistogram());
+        Map<String, Long> hist = elem.getValue().getHistogram();
         assertFalse(hist.isEmpty());
-        assertEquals(elem.second.toString(), "{ integer type: 1 }");
+        assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
       }
-      else if (elem.first == "theory::arrays::avgIndexListLength")
+      else if (elem.getKey() == "theory::arrays::avgIndexListLength")
       {
-        assertTrue(elem.second.isInternal());
-        assertTrue(elem.second.isDefault());
+        assertTrue(elem.getValue().isInternal());
+        assertTrue(elem.getValue().isDefault());
       }
     }
   }
