@@ -360,7 +360,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
             minLastInc;
       }
     }
-    if (Trace.isOn("smt-proof-pp-debug2"))
+    if (TraceIsOn("smt-proof-pp-debug2"))
     {
       Trace("smt-proof-pp-debug2") << "crowding lits last inclusion:\n";
       for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
@@ -497,7 +497,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       std::sort(eliminators.begin(), eliminators.end());
     }
   }
-  if (Trace.isOn("smt-proof-pp-debug2"))
+  if (TraceIsOn("smt-proof-pp-debug2"))
   {
     Trace("smt-proof-pp-debug2") << "crowding lits last inclusion:\n";
     for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)

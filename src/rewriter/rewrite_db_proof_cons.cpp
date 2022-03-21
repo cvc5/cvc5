@@ -422,7 +422,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     }
   }
   // successfully found instance of rule
-  if (Trace.isOn("rpc-infer"))
+  if (TraceIsOn("rpc-infer"))
   {
     Trace("rpc-infer") << "INFER " << target << " by " << id
                        << (transEq.isNull() ? "" : " + TRANS") << std::endl;
