@@ -3,7 +3,7 @@ Proof format: LFSC
 
 Using the flag :ref:`proof-format-mode=lfsc <lbl-option-proof-format-mode>`, cvc5 outputs proofs in the LFSC proof format.
 
-The LFSC proof format is based on the LF logical framework extended with computational side conditions, as described `this journal article <https://homepage.divms.uiowa.edu/~ajreynol/fmsd12.pdf>`. A high performance C++ proof checker for LFSC is available `here <https://github.com/cvc5/LFSC>`.
+The LFSC proof format is based on the LF logical framework extended with computational side conditions, as described in :cite:`DBLP:journals/fmsd/StumpORHT13`. A high performance C++ proof checker for LFSC is available `here <https://github.com/cvc5/LFSC>`.
 
 For a quick start, the cvc5 repository contains a :cvc5repo:`script <contrib/get-lfsc-checker>` which will download and install the LFSC proof checker, and create scripts for generating proofs with cvc5 and checking them with the LFSC proof checker.
 
