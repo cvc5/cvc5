@@ -45,6 +45,27 @@ Result::UnknownExplanation SynthResult::getUnknownExplanation() const
 
 const std::vector<Node>& SynthResult::getSolution() const { return d_solution; }
 
+std::string SynthResult::toString() const
+{
+  std::stringstream ss;
+  ss << "(" << d_status;
+  if (d_unknownExplanation!=Result::UNKNOWN_REASON)
+  {
+    ss << " :unknown-explanation " << d_unknownExplanation;
+  }
+  if (!d_solution.empty())
+  {
+    ss << " :solution " << d_solution;
+  }
+  ss << ")";
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const SynthResult& r)
+{
+  out << r.toString();
+  return out;
+}
 ostream& operator<<(ostream& out, SynthResult::Status s)
 {
   switch (s)
