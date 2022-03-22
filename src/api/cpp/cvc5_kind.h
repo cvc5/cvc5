@@ -2343,38 +2343,45 @@ enum Kind : int32_t
   /**
    * Constant array.
    *
-   * Parameters:
-   *   - 1: Array sort
-   *   - 2: Term representing a constant
+   * - Arity: `2`
+   *   - `1:` Term of array Sort
+   *   - `2`: Term of array element Sort (value)
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const Term&, const Term&) const
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const Term&, const Term&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
-   * @note We currently support the creation of constant arrays, but under some
-   * conditions when there is a chain of equalities connecting two constant
-   * arrays, the solver doesn't know what to do and aborts (Issue <a
-   * href="https://github.com/cvc5/cvc5/issues/1667">#1667</a>).
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind) const
    */
   CONST_ARRAY,
   /**
-   * Equality over arrays a and b over a given range [i,j], i.e.,
+   * Equality over arrays `a` and `b` over a given range `[i,j]`, i.e.,
    * @f[
    *   \forall k . i \leq k \leq j \Rightarrow a[k] = b[k]
    * @f]
    *
-   * Parameters:
-   *   - 1: First array
-   *   - 2: Second array
-   *   - 3: Lower bound of range (inclusive)
-   *   - 4: Uppper bound of range (inclusive)
+   * @note We currently support the creation of array equalities over index
+   *       types bit-vector, floating-point, integer and real.
+   *       \verbatim embed:rst:leading-asterisk
+   *       Requires to enable option :ref:`arrays-exp<lbl-option-arrays-exp>`.
+   *       \endverbatim
    *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
+   * - Arity: `4`
+   *   - `1:` Term of array Sort (first array)
+   *   - `2:` Term of array Sort (second array)
+   *   - `3:` Term of array index Sort (lower bound of range, inclusive)
+   *   - `4:` Term of array index Sort (upper bound of range, inclusive)
    *
-   * Note: We currently support the creation of array equalities over index
-   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
-   * required to support this operator.
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind) const
+   *
    */
   EQ_RANGE,
 #if 0
