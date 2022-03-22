@@ -776,7 +776,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
     {
       Trace("deep-restart")
           << "Deep restart (result " << r << ")?" << std::endl;
-      if (r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
+      if (r.getStatus() == Result::UNKNOWN)
       {
         checkAgain = deepRestart();
         Trace("deep-restart")
