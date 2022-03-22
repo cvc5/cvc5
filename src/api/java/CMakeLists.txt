@@ -122,6 +122,7 @@ add_library(cvc5jni
   jni/sort.cpp
   jni/stat.cpp
   jni/statistics.cpp
+  jni/synth_result.cpp
   jni/term.cpp)
 
 add_dependencies(cvc5jni generate-jni-headers)
