@@ -3361,7 +3361,7 @@ class CVC5_EXPORT Solver
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
    *   - TUPLE_PROJECT
-   * See enum Kind for a description of the parameters.
+   * See :cpp:enum:`Kind <cvc5::api::Kind>` for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    *
