@@ -56,7 +56,7 @@ runs:
         samedayprefix = '{}-{}-'.format(name, curtime)
         filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
 
-        # prune olds commits
+        # prune old commits
         assets = list(rel.get_assets())
         assets.sort(key=lambda x: x.created_at, reverse=True)
 
