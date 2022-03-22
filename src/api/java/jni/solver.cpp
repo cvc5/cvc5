@@ -2714,7 +2714,7 @@ JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_api_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Result* ret = new SynthResult();
+  SynthResult* ret = new SynthResult();
   return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
