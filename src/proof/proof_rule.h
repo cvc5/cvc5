@@ -115,7 +115,7 @@ enum class PfRule : uint32_t
    * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
    * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
    * determines how to convert the formulas :math:`F_1 \dots F_n` into
-   * substitutions. \endverbatim
+   * substitutions. It is an optional argument, where by default the premises are equalities of the form `(= x y)` and converted into substitutions :math:`x\mapsto y`. \endverbatim
    */
   SUBS,
   /**
