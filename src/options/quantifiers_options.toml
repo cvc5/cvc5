@@ -1323,6 +1323,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-verify-timeout=N"
   type       = "int64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
 
 # Internal uses of sygus
