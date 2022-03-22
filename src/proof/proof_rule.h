@@ -413,7 +413,7 @@ enum class PfRule : uint32_t
    * **SAT Refutation for assumption-based unsat cores**
    *
    * .. math::
-   *   \inferrule{F_1 \dots F_n \mid -}{false}
+   *   \inferrule{F_1 \dots F_n \mid -}{\bot}
    *
    * where :math:`F_1 \dots F_n` correspond to the unsat core determined by the
    * SAT solver. \endverbatim
