@@ -1512,9 +1512,9 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       api::Term request = d_terms[i];
       api::Term value = result[i];
-      result[i] = solver->mkTerm(api::SEXPR, request, value);
+      result[i] = solver->mkTerm(api::SEXPR, {request, value});
     }
-    d_result = solver->mkTerm(api::SEXPR, result);
+    d_result = solver->mkTerm(api::SEXPR, {result});
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiRecoverableException& e)
@@ -1587,7 +1587,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
       // Treat the expression name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name.
       api::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
-      sexprs.push_back(solver->mkTerm(api::SEXPR, name, values[i]));
+      sexprs.push_back(solver->mkTerm(api::SEXPR, {name, values[i]}));
     }
     d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
@@ -2713,7 +2713,7 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     std::vector<api::Term> v;
     v.push_back(solver->mkString(":" + d_flag));
     v.push_back(solver->mkString(solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
+    d_result = sexprToString(solver->mkTerm(api::SEXPR, {v}));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiUnsupportedException&)

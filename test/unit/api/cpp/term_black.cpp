@@ -76,22 +76,22 @@ TEST_F(TestApiBlackTerm, getKind)
   Term zero = d_solver.mkInteger(0);
   ASSERT_NO_THROW(zero.getKind());
 
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_NO_THROW(f_x.getKind());
-  Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
+  Term f_y = d_solver.mkTerm(APPLY_UF, {f, y});
   ASSERT_NO_THROW(f_y.getKind());
-  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_y});
   ASSERT_NO_THROW(sum.getKind());
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.getKind());
-  Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+  Term p_f_y = d_solver.mkTerm(APPLY_UF, {p, f_y});
   ASSERT_NO_THROW(p_f_y.getKind());
 
   // Sequence kinds do not exist internally, test that the API properly
   // converts them back.
   Sort seqSort = d_solver.mkSequenceSort(intSort);
   Term s = d_solver.mkConst(seqSort, "s");
-  Term ss = d_solver.mkTerm(SEQ_CONCAT, s, s);
+  Term ss = d_solver.mkTerm(SEQ_CONCAT, {s, s});
   ASSERT_EQ(ss.getKind(), SEQ_CONCAT);
 }
 
@@ -123,19 +123,19 @@ TEST_F(TestApiBlackTerm, getSort)
   ASSERT_NO_THROW(zero.getSort());
   ASSERT_EQ(zero.getSort(), intSort);
 
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_NO_THROW(f_x.getSort());
   ASSERT_EQ(f_x.getSort(), intSort);
-  Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
+  Term f_y = d_solver.mkTerm(APPLY_UF, {f, y});
   ASSERT_NO_THROW(f_y.getSort());
   ASSERT_EQ(f_y.getSort(), intSort);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_y);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_y});
   ASSERT_NO_THROW(sum.getSort());
   ASSERT_EQ(sum.getSort(), intSort);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.getSort());
   ASSERT_EQ(p_0.getSort(), boolSort);
-  Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+  Term p_f_y = d_solver.mkTerm(APPLY_UF, {p, f_y});
   ASSERT_NO_THROW(p_f_y.getSort());
   ASSERT_EQ(p_f_y.getSort(), boolSort);
 }
@@ -154,9 +154,9 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_FALSE(x.hasOp());
   ASSERT_THROW(x.getOp(), CVC5ApiException);
 
-  Term ab = d_solver.mkTerm(SELECT, a, b);
+  Term ab = d_solver.mkTerm(SELECT, {a, b});
   Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
-  Term extb = d_solver.mkTerm(ext, b);
+  Term extb = d_solver.mkTerm(ext, {b});
 
   ASSERT_TRUE(ab.hasOp());
   ASSERT_FALSE(ab.getOp().isIndexed());
@@ -166,7 +166,7 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_EQ(extb.getOp(), ext);
 
   Term f = d_solver.mkConst(funsort, "f");
-  Term fx = d_solver.mkTerm(APPLY_UF, f, x);
+  Term fx = d_solver.mkTerm(APPLY_UF, {f, x});
 
   ASSERT_FALSE(f.hasOp());
   ASSERT_THROW(f.getOp(), CVC5ApiException);
@@ -195,11 +195,11 @@ TEST_F(TestApiBlackTerm, getOp)
   Term headOpTerm = list["cons"].getSelectorTerm("head");
   Term tailOpTerm = list["cons"].getSelectorTerm("tail");
 
-  Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, nilOpTerm);
-  Term consTerm = d_solver.mkTerm(
-      APPLY_CONSTRUCTOR, consOpTerm, d_solver.mkInteger(0), nilTerm);
-  Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, headOpTerm, consTerm);
-  Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR, tailOpTerm, consTerm);
+  Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilOpTerm});
+  Term consTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR,
+                                  {consOpTerm, d_solver.mkInteger(0), nilTerm});
+  Term headTerm = d_solver.mkTerm(APPLY_SELECTOR, {headOpTerm, consTerm});
+  Term tailTerm = d_solver.mkTerm(APPLY_SELECTOR, {tailOpTerm, consTerm});
 
   ASSERT_TRUE(nilTerm.hasOp());
   ASSERT_TRUE(consTerm.hasOp());
@@ -254,13 +254,13 @@ TEST_F(TestApiBlackTerm, notTerm)
   ASSERT_THROW(p.notTerm(), CVC5ApiException);
   Term zero = d_solver.mkInteger(0);
   ASSERT_THROW(zero.notTerm(), CVC5ApiException);
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.notTerm(), CVC5ApiException);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.notTerm(), CVC5ApiException);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.notTerm());
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.notTerm());
 }
 
@@ -294,14 +294,14 @@ TEST_F(TestApiBlackTerm, andTerm)
   ASSERT_THROW(zero.andTerm(f), CVC5ApiException);
   ASSERT_THROW(zero.andTerm(p), CVC5ApiException);
   ASSERT_THROW(zero.andTerm(zero), CVC5ApiException);
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.andTerm(b), CVC5ApiException);
   ASSERT_THROW(f_x.andTerm(x), CVC5ApiException);
   ASSERT_THROW(f_x.andTerm(f), CVC5ApiException);
   ASSERT_THROW(f_x.andTerm(p), CVC5ApiException);
   ASSERT_THROW(f_x.andTerm(zero), CVC5ApiException);
   ASSERT_THROW(f_x.andTerm(f_x), CVC5ApiException);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.andTerm(b), CVC5ApiException);
   ASSERT_THROW(sum.andTerm(x), CVC5ApiException);
   ASSERT_THROW(sum.andTerm(f), CVC5ApiException);
@@ -309,7 +309,7 @@ TEST_F(TestApiBlackTerm, andTerm)
   ASSERT_THROW(sum.andTerm(zero), CVC5ApiException);
   ASSERT_THROW(sum.andTerm(f_x), CVC5ApiException);
   ASSERT_THROW(sum.andTerm(sum), CVC5ApiException);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.andTerm(b));
   ASSERT_THROW(p_0.andTerm(x), CVC5ApiException);
   ASSERT_THROW(p_0.andTerm(f), CVC5ApiException);
@@ -318,7 +318,7 @@ TEST_F(TestApiBlackTerm, andTerm)
   ASSERT_THROW(p_0.andTerm(f_x), CVC5ApiException);
   ASSERT_THROW(p_0.andTerm(sum), CVC5ApiException);
   ASSERT_NO_THROW(p_0.andTerm(p_0));
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.andTerm(b));
   ASSERT_THROW(p_f_x.andTerm(x), CVC5ApiException);
   ASSERT_THROW(p_f_x.andTerm(f), CVC5ApiException);
@@ -360,14 +360,14 @@ TEST_F(TestApiBlackTerm, orTerm)
   ASSERT_THROW(zero.orTerm(f), CVC5ApiException);
   ASSERT_THROW(zero.orTerm(p), CVC5ApiException);
   ASSERT_THROW(zero.orTerm(zero), CVC5ApiException);
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.orTerm(b), CVC5ApiException);
   ASSERT_THROW(f_x.orTerm(x), CVC5ApiException);
   ASSERT_THROW(f_x.orTerm(f), CVC5ApiException);
   ASSERT_THROW(f_x.orTerm(p), CVC5ApiException);
   ASSERT_THROW(f_x.orTerm(zero), CVC5ApiException);
   ASSERT_THROW(f_x.orTerm(f_x), CVC5ApiException);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.orTerm(b), CVC5ApiException);
   ASSERT_THROW(sum.orTerm(x), CVC5ApiException);
   ASSERT_THROW(sum.orTerm(f), CVC5ApiException);
@@ -375,7 +375,7 @@ TEST_F(TestApiBlackTerm, orTerm)
   ASSERT_THROW(sum.orTerm(zero), CVC5ApiException);
   ASSERT_THROW(sum.orTerm(f_x), CVC5ApiException);
   ASSERT_THROW(sum.orTerm(sum), CVC5ApiException);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.orTerm(b));
   ASSERT_THROW(p_0.orTerm(x), CVC5ApiException);
   ASSERT_THROW(p_0.orTerm(f), CVC5ApiException);
@@ -384,7 +384,7 @@ TEST_F(TestApiBlackTerm, orTerm)
   ASSERT_THROW(p_0.orTerm(f_x), CVC5ApiException);
   ASSERT_THROW(p_0.orTerm(sum), CVC5ApiException);
   ASSERT_NO_THROW(p_0.orTerm(p_0));
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.orTerm(b));
   ASSERT_THROW(p_f_x.orTerm(x), CVC5ApiException);
   ASSERT_THROW(p_f_x.orTerm(f), CVC5ApiException);
@@ -426,14 +426,14 @@ TEST_F(TestApiBlackTerm, xorTerm)
   ASSERT_THROW(zero.xorTerm(f), CVC5ApiException);
   ASSERT_THROW(zero.xorTerm(p), CVC5ApiException);
   ASSERT_THROW(zero.xorTerm(zero), CVC5ApiException);
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.xorTerm(b), CVC5ApiException);
   ASSERT_THROW(f_x.xorTerm(x), CVC5ApiException);
   ASSERT_THROW(f_x.xorTerm(f), CVC5ApiException);
   ASSERT_THROW(f_x.xorTerm(p), CVC5ApiException);
   ASSERT_THROW(f_x.xorTerm(zero), CVC5ApiException);
   ASSERT_THROW(f_x.xorTerm(f_x), CVC5ApiException);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.xorTerm(b), CVC5ApiException);
   ASSERT_THROW(sum.xorTerm(x), CVC5ApiException);
   ASSERT_THROW(sum.xorTerm(f), CVC5ApiException);
@@ -441,7 +441,7 @@ TEST_F(TestApiBlackTerm, xorTerm)
   ASSERT_THROW(sum.xorTerm(zero), CVC5ApiException);
   ASSERT_THROW(sum.xorTerm(f_x), CVC5ApiException);
   ASSERT_THROW(sum.xorTerm(sum), CVC5ApiException);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.xorTerm(b));
   ASSERT_THROW(p_0.xorTerm(x), CVC5ApiException);
   ASSERT_THROW(p_0.xorTerm(f), CVC5ApiException);
@@ -450,7 +450,7 @@ TEST_F(TestApiBlackTerm, xorTerm)
   ASSERT_THROW(p_0.xorTerm(f_x), CVC5ApiException);
   ASSERT_THROW(p_0.xorTerm(sum), CVC5ApiException);
   ASSERT_NO_THROW(p_0.xorTerm(p_0));
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.xorTerm(b));
   ASSERT_THROW(p_f_x.xorTerm(x), CVC5ApiException);
   ASSERT_THROW(p_f_x.xorTerm(f), CVC5ApiException);
@@ -492,14 +492,14 @@ TEST_F(TestApiBlackTerm, eqTerm)
   ASSERT_THROW(zero.eqTerm(f), CVC5ApiException);
   ASSERT_THROW(zero.eqTerm(p), CVC5ApiException);
   ASSERT_NO_THROW(zero.eqTerm(zero));
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.eqTerm(b), CVC5ApiException);
   ASSERT_THROW(f_x.eqTerm(x), CVC5ApiException);
   ASSERT_THROW(f_x.eqTerm(f), CVC5ApiException);
   ASSERT_THROW(f_x.eqTerm(p), CVC5ApiException);
   ASSERT_NO_THROW(f_x.eqTerm(zero));
   ASSERT_NO_THROW(f_x.eqTerm(f_x));
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.eqTerm(b), CVC5ApiException);
   ASSERT_THROW(sum.eqTerm(x), CVC5ApiException);
   ASSERT_THROW(sum.eqTerm(f), CVC5ApiException);
@@ -507,7 +507,7 @@ TEST_F(TestApiBlackTerm, eqTerm)
   ASSERT_NO_THROW(sum.eqTerm(zero));
   ASSERT_NO_THROW(sum.eqTerm(f_x));
   ASSERT_NO_THROW(sum.eqTerm(sum));
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.eqTerm(b));
   ASSERT_THROW(p_0.eqTerm(x), CVC5ApiException);
   ASSERT_THROW(p_0.eqTerm(f), CVC5ApiException);
@@ -516,7 +516,7 @@ TEST_F(TestApiBlackTerm, eqTerm)
   ASSERT_THROW(p_0.eqTerm(f_x), CVC5ApiException);
   ASSERT_THROW(p_0.eqTerm(sum), CVC5ApiException);
   ASSERT_NO_THROW(p_0.eqTerm(p_0));
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.eqTerm(b));
   ASSERT_THROW(p_f_x.eqTerm(x), CVC5ApiException);
   ASSERT_THROW(p_f_x.eqTerm(f), CVC5ApiException);
@@ -558,14 +558,14 @@ TEST_F(TestApiBlackTerm, impTerm)
   ASSERT_THROW(zero.impTerm(f), CVC5ApiException);
   ASSERT_THROW(zero.impTerm(p), CVC5ApiException);
   ASSERT_THROW(zero.impTerm(zero), CVC5ApiException);
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.impTerm(b), CVC5ApiException);
   ASSERT_THROW(f_x.impTerm(x), CVC5ApiException);
   ASSERT_THROW(f_x.impTerm(f), CVC5ApiException);
   ASSERT_THROW(f_x.impTerm(p), CVC5ApiException);
   ASSERT_THROW(f_x.impTerm(zero), CVC5ApiException);
   ASSERT_THROW(f_x.impTerm(f_x), CVC5ApiException);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.impTerm(b), CVC5ApiException);
   ASSERT_THROW(sum.impTerm(x), CVC5ApiException);
   ASSERT_THROW(sum.impTerm(f), CVC5ApiException);
@@ -573,7 +573,7 @@ TEST_F(TestApiBlackTerm, impTerm)
   ASSERT_THROW(sum.impTerm(zero), CVC5ApiException);
   ASSERT_THROW(sum.impTerm(f_x), CVC5ApiException);
   ASSERT_THROW(sum.impTerm(sum), CVC5ApiException);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.impTerm(b));
   ASSERT_THROW(p_0.impTerm(x), CVC5ApiException);
   ASSERT_THROW(p_0.impTerm(f), CVC5ApiException);
@@ -582,7 +582,7 @@ TEST_F(TestApiBlackTerm, impTerm)
   ASSERT_THROW(p_0.impTerm(f_x), CVC5ApiException);
   ASSERT_THROW(p_0.impTerm(sum), CVC5ApiException);
   ASSERT_NO_THROW(p_0.impTerm(p_0));
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.impTerm(b));
   ASSERT_THROW(p_f_x.impTerm(x), CVC5ApiException);
   ASSERT_THROW(p_f_x.impTerm(f), CVC5ApiException);
@@ -622,17 +622,17 @@ TEST_F(TestApiBlackTerm, iteTerm)
   Term zero = d_solver.mkInteger(0);
   ASSERT_THROW(zero.iteTerm(x, x), CVC5ApiException);
   ASSERT_THROW(zero.iteTerm(x, b), CVC5ApiException);
-  Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
+  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
   ASSERT_THROW(f_x.iteTerm(b, b), CVC5ApiException);
   ASSERT_THROW(f_x.iteTerm(b, x), CVC5ApiException);
-  Term sum = d_solver.mkTerm(ADD, f_x, f_x);
+  Term sum = d_solver.mkTerm(ADD, {f_x, f_x});
   ASSERT_THROW(sum.iteTerm(x, x), CVC5ApiException);
   ASSERT_THROW(sum.iteTerm(b, x), CVC5ApiException);
-  Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
   ASSERT_NO_THROW(p_0.iteTerm(b, b));
   ASSERT_NO_THROW(p_0.iteTerm(x, x));
   ASSERT_THROW(p_0.iteTerm(x, b), CVC5ApiException);
-  Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
+  Term p_f_x = d_solver.mkTerm(APPLY_UF, {p, f_x});
   ASSERT_NO_THROW(p_f_x.iteTerm(b, b));
   ASSERT_NO_THROW(p_f_x.iteTerm(x, x));
   ASSERT_THROW(p_f_x.iteTerm(x, b), CVC5ApiException);
@@ -649,8 +649,10 @@ TEST_F(TestApiBlackTerm, termAssignment)
 TEST_F(TestApiBlackTerm, termCompare)
 {
   Term t1 = d_solver.mkInteger(1);
-  Term t2 = d_solver.mkTerm(ADD, d_solver.mkInteger(2), d_solver.mkInteger(2));
-  Term t3 = d_solver.mkTerm(ADD, d_solver.mkInteger(2), d_solver.mkInteger(2));
+  Term t2 =
+      d_solver.mkTerm(ADD, {d_solver.mkInteger(2), d_solver.mkInteger(2)});
+  Term t3 =
+      d_solver.mkTerm(ADD, {d_solver.mkInteger(2), d_solver.mkInteger(2)});
   ASSERT_TRUE(t2 >= t3);
   ASSERT_TRUE(t2 <= t3);
   ASSERT_TRUE((t1 > t2) != (t1 < t2));
@@ -661,7 +663,7 @@ TEST_F(TestApiBlackTerm, termChildren)
 {
   // simple term 2+3
   Term two = d_solver.mkInteger(2);
-  Term t1 = d_solver.mkTerm(ADD, two, d_solver.mkInteger(3));
+  Term t1 = d_solver.mkTerm(ADD, {two, d_solver.mkInteger(3)});
   ASSERT_EQ(t1[0], two);
   ASSERT_EQ(t1.getNumChildren(), 2);
   Term tnull;
@@ -671,7 +673,7 @@ TEST_F(TestApiBlackTerm, termChildren)
   Sort intSort = d_solver.getIntegerSort();
   Sort fsort = d_solver.mkFunctionSort(intSort, intSort);
   Term f = d_solver.mkConst(fsort, "f");
-  Term t2 = d_solver.mkTerm(APPLY_UF, f, two);
+  Term t2 = d_solver.mkTerm(APPLY_UF, {f, two});
   // due to our higher-order view of terms, we treat f as a child of APPLY_UF
   ASSERT_EQ(t2.getNumChildren(), 2);
   ASSERT_EQ(t2[0], f);
@@ -909,7 +911,7 @@ TEST_F(TestApiBlackTerm, getUninterpretedSortValue)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(uSort, "x");
   Term y = d_solver.mkConst(uSort, "y");
-  d_solver.assertFormula(d_solver.mkTerm(EQUAL, x, y));
+  d_solver.assertFormula(d_solver.mkTerm(EQUAL, {x, y}));
   ASSERT_TRUE(d_solver.checkSat().isSat());
   Term vx = d_solver.getValue(x);
   Term vy = d_solver.getValue(y);
@@ -962,11 +964,11 @@ TEST_F(TestApiBlackTerm, getSet)
   Term i2 = d_solver.mkInteger(7);
 
   Term s1 = d_solver.mkEmptySet(s);
-  Term s2 = d_solver.mkTerm(Kind::SET_SINGLETON, i1);
-  Term s3 = d_solver.mkTerm(Kind::SET_SINGLETON, i1);
-  Term s4 = d_solver.mkTerm(Kind::SET_SINGLETON, i2);
-  Term s5 = d_solver.mkTerm(
-      Kind::SET_UNION, s2, d_solver.mkTerm(Kind::SET_UNION, s3, s4));
+  Term s2 = d_solver.mkTerm(Kind::SET_SINGLETON, {i1});
+  Term s3 = d_solver.mkTerm(Kind::SET_SINGLETON, {i1});
+  Term s4 = d_solver.mkTerm(Kind::SET_SINGLETON, {i2});
+  Term s5 = d_solver.mkTerm(Kind::SET_UNION,
+                            {s2, d_solver.mkTerm(Kind::SET_UNION, {s3, s4})});
 
   ASSERT_TRUE(s1.isSetValue());
   ASSERT_TRUE(s2.isSetValue());
@@ -991,11 +993,11 @@ TEST_F(TestApiBlackTerm, getSequence)
   Term i2 = d_solver.mkInteger(7);
 
   Term s1 = d_solver.mkEmptySequence(s);
-  Term s2 = d_solver.mkTerm(Kind::SEQ_UNIT, i1);
-  Term s3 = d_solver.mkTerm(Kind::SEQ_UNIT, i1);
-  Term s4 = d_solver.mkTerm(Kind::SEQ_UNIT, i2);
-  Term s5 = d_solver.mkTerm(
-      Kind::SEQ_CONCAT, s2, d_solver.mkTerm(Kind::SEQ_CONCAT, s3, s4));
+  Term s2 = d_solver.mkTerm(Kind::SEQ_UNIT, {i1});
+  Term s3 = d_solver.mkTerm(Kind::SEQ_UNIT, {i1});
+  Term s4 = d_solver.mkTerm(Kind::SEQ_UNIT, {i2});
+  Term s5 = d_solver.mkTerm(Kind::SEQ_CONCAT,
+                            {s2, d_solver.mkTerm(Kind::SEQ_CONCAT, {s3, s4})});
 
   ASSERT_TRUE(s1.isSequenceValue());
   ASSERT_TRUE(!s2.isSequenceValue());
@@ -1020,8 +1022,8 @@ TEST_F(TestApiBlackTerm, substitute)
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
   Term one = d_solver.mkInteger(1);
   Term ttrue = d_solver.mkTrue();
-  Term xpx = d_solver.mkTerm(ADD, x, x);
-  Term onepone = d_solver.mkTerm(ADD, one, one);
+  Term xpx = d_solver.mkTerm(ADD, {x, x});
+  Term onepone = d_solver.mkTerm(ADD, {one, one});
 
   ASSERT_EQ(xpx.substitute(x, one), onepone);
   ASSERT_EQ(onepone.substitute(one, x), xpx);
@@ -1030,8 +1032,8 @@ TEST_F(TestApiBlackTerm, substitute)
 
   // simultaneous substitution
   Term y = d_solver.mkConst(d_solver.getIntegerSort(), "y");
-  Term xpy = d_solver.mkTerm(ADD, x, y);
-  Term xpone = d_solver.mkTerm(ADD, y, one);
+  Term xpy = d_solver.mkTerm(ADD, {x, y});
+  Term xpone = d_solver.mkTerm(ADD, {y, one});
   std::vector<Term> es;
   std::vector<Term> rs;
   es.push_back(x);
@@ -1082,11 +1084,11 @@ TEST_F(TestApiBlackTerm, constArray)
       d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
   Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
   Term stores = d_solver.mkTerm(
-      STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
+      STORE, {zero_array, d_solver.mkReal(1), d_solver.mkReal(2)});
   stores =
-      d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
+      d_solver.mkTerm(STORE, {stores, d_solver.mkReal(2), d_solver.mkReal(3)});
   stores =
-      d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
+      d_solver.mkTerm(STORE, {stores, d_solver.mkReal(4), d_solver.mkReal(5)});
 }
 
 TEST_F(TestApiBlackTerm, getSequenceValue)
@@ -1102,7 +1104,7 @@ TEST_F(TestApiBlackTerm, getSequenceValue)
 
   // A seq.unit app is not a constant sequence (regardless of whether it is
   // applied to a constant).
-  Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
+  Term su = d_solver.mkTerm(SEQ_UNIT, {d_solver.mkReal(1)});
   ASSERT_THROW(su.getSequenceValue(), CVC5ApiException);
 }
 
