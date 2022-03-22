@@ -28,7 +28,7 @@ namespace cvc5 {
  * Node objects.
  * This documentation is target for the online documentation that can be found
  * at https://cvc5.github.io/docs/master/proofs/proof_rules.html.
- * 
+ *
  * All proof rules are given as inference rules, presented in the following
  * form:
  *
@@ -462,12 +462,12 @@ enum class PfRule : uint32_t
    * where
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined above
-   * - let :math:`C_1 \stackrel{L,pol}{\bowtie} C_2` represent the resolution of
+   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined above
    * - let :math:`C_1' = C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \stackrel{L_{i-1},
-   *   pol_{i-1}}{\bowtie} C_i'`
+   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
+   *   \mathit{pol}_{i-1}} C_i'`
    *
    * The result of the chain resolution is :math:`C = C_n'`
    * \endverbatim
@@ -509,14 +509,13 @@ enum class PfRule : uint32_t
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
-   * - let :math:`C_1 \stackrel{L,pol}{\bowtie} C_2` represent the resolution of
+   * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
-   *   representation, to :math:`C_{i-1} \stackrel{L_{i-1}, pol_{i-1}}{\bowtie}
-   *   C_i'`
+   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}} C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
    * representation, to :math:`C_n'`
