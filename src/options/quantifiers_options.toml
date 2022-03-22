@@ -1318,6 +1318,13 @@ name   = "Quantifiers"
   default    = "3"
   help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
 
+[[option]]
+  name       = "sygusVerifyTimeout"
+  category   = "regular"
+  long       = "sygus-verify-timeout=N"
+  type       = "int64_t"
+  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
+
 # Internal uses of sygus
 
 [[option]]
