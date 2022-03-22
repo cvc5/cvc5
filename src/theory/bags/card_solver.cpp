@@ -65,7 +65,6 @@ std::set<Node> CardSolver::getChildren(Node bag)
 
 void CardSolver::checkCardinalityGraph()
 {
-  d_hasNewPendingLemmas = false;
   const std::map<Node, Node>& cardinalityTerms = d_state.getCardinalityTerms();
   for (const auto& pair : cardinalityTerms)
   {
@@ -98,7 +97,7 @@ void CardSolver::checkCardinalityGraph()
         case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
         default: break;
       }
-      if (d_hasNewPendingLemmas)
+      if (d_im.hasSentLemma())
       {
         // exit with each new pending lemma
         return;
@@ -109,7 +108,7 @@ void CardSolver::checkCardinalityGraph()
     checkLeafBag(pair, bag);
     // cardinality term is non-negative
     InferInfo i = d_ig.nonNegativeCardinality(pair.second);
-    sendInferInfo(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -117,14 +116,14 @@ void CardSolver::checkEmpty(const std::pair<Node, Node>& pair, const Node& n)
 {
   Assert(n.getKind() == BAG_EMPTY);
   InferInfo i = d_ig.cardEmpty(pair, n);
-  sendInferInfo(i);
+  d_im.lemmaTheoryInference(&i);
 }
 
 void CardSolver::checkBagMake(const std::pair<Node, Node>& pair, const Node& n)
 {
   Assert(n.getKind() == BAG_MAKE);
   InferInfo i = d_ig.cardBagMake(pair, n);
-  sendInferInfo(i);
+  d_im.lemmaTheoryInference(&i);
 }
 
 void CardSolver::checkUnionDisjoint(const std::pair<Node, Node>& pair,
@@ -190,14 +189,12 @@ void CardSolver::addChildren(const Node& premise,
       i.d_conclusion = d_nm->mkNode(AND, emptyBags);
     }
     Trace("bags-card") << "CardSolver::addChildren info: " << i << std::endl;
-    sendInferInfo(i);
-    Trace("bags-card") << "d_hasNewPendingLemmas: " << d_hasNewPendingLemmas
-                       << std::endl;
+    d_im.lemmaTheoryInference(&i);
     return;
   }
   // add inferences
   InferInfo i = d_ig.cardUnionDisjoint(premise, parent, children);
-  sendInferInfo(i);
+  d_im.lemmaTheoryInference(&i);
 
   // make sure parent is in the graph
   if (d_cardGraph.count(parent) == 0)
@@ -246,7 +243,7 @@ void CardSolver::addChildren(const Node& premise,
       InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       inferInfo.d_premises.push_back(premise);
       inferInfo.d_conclusion = d_nm->mkNode(AND, asserts);
-      sendInferInfo(inferInfo);
+      d_im.lemmaTheoryInference(&inferInfo);
     }
   }
 }
@@ -307,7 +304,7 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
       bags::InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       Node leq = d_nm->mkNode(LEQ, pairs[i].second, pair.second);
       inferInfo.d_conclusion = leq;
-      sendInferInfo(inferInfo);
+      d_im.lemmaTheoryInference(&inferInfo);
       for (size_t j = i + 1; j < pairs.size(); j++)
       {
         std::vector<Node> distinct;
@@ -331,18 +328,9 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
         bags::InferInfo sumInfo(&d_im, InferenceId::BAGS_CARD);
         Node sumLEQ = d_nm->mkNode(LEQ, sum, pair.second);
         sumInfo.d_conclusion = premise.negate().orNode(sumLEQ);
-        sendInferInfo(sumInfo);
+        d_im.lemmaTheoryInference(&sumInfo);
       }
     }
-  }
-}
-
-void CardSolver::sendInferInfo(InferInfo& inferInfo)
-{
-  if (!inferInfo.isCachedLemma())
-  {
-    d_hasNewPendingLemmas = true;
-    d_im.lemmaTheoryInference(&inferInfo);
   }
 }
 
