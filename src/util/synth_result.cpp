@@ -12,7 +12,7 @@
  *
  * Encapsulation of the result of a synthesis query.
  */
-#include "expr/synth_result.h"
+#include "util/synth_result.h"
 
 #include <sstream>
 
@@ -22,13 +22,6 @@ namespace cvc5 {
 
 SynthResult::SynthResult()
     : d_status(NONE), d_unknownExplanation(Result::UNKNOWN_REASON)
-{
-}
-
-SynthResult::SynthResult(const std::vector<Node>& sol)
-    : d_status(FOUND_SOLUTION),
-      d_unknownExplanation(Result::UNKNOWN_REASON),
-      d_solution(sol)
 {
 }
 
@@ -45,8 +38,6 @@ Result::UnknownExplanation SynthResult::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
-const std::vector<Node>& SynthResult::getSolution() const { return d_solution; }
-
 std::string SynthResult::toString() const
 {
   std::stringstream ss;
@@ -54,10 +45,6 @@ std::string SynthResult::toString() const
   if (d_unknownExplanation != Result::UNKNOWN_REASON)
   {
     ss << " :unknown-explanation " << d_unknownExplanation;
-  }
-  if (!d_solution.empty())
-  {
-    ss << " :solution " << d_solution;
   }
   ss << ")";
   return ss.str();
@@ -68,12 +55,13 @@ std::ostream& operator<<(std::ostream& out, const SynthResult& r)
   out << r.toString();
   return out;
 }
+
 ostream& operator<<(ostream& out, SynthResult::Status s)
 {
   switch (s)
   {
     case SynthResult::NONE: out << "NONE"; break;
-    case SynthResult::FOUND_SOLUTION: out << "FOUND_SOLUTION"; break;
+    case SynthResult::SOLUTION: out << "SOLUTION"; break;
     case SynthResult::NO_SOLUTION: out << "NO_SOLUTION"; break;
     case SynthResult::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;

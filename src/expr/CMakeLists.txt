@@ -15,6 +15,8 @@
 
 libcvc5_add_sources(
   algorithm/flatten.h
+  annotation_elim_node_converter.cpp
+  annotation_elim_node_converter.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp
@@ -69,8 +71,6 @@ libcvc5_add_sources(
   symbol_manager.h
   symbol_table.cpp
   symbol_table.h
-  synth_result.cpp
-  synth_result.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp
