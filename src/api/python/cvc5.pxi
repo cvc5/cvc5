@@ -658,27 +658,14 @@ cdef class SynthResult:
         """
             :return: True if this SynthResult is for a synthesis query that had no solution. 
             If this is true, then it was determined there was no solution.
-            If neither hasSolution or hasNoSolution is true, then it is unknown whether there is a solution.
         """
         return self.cr.hasNoSolution()
 
-    def isSatUnknown(self):
+    def isUnknown(self):
         """
-            :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
+            :return: True if result of the synthesis query could not be determined.
         """
-        return self.cr.isSatUnknown()
-
-    def getUnknownExplanation(self):
-        """
-            :return: an explanation for an unknown query result.
-        """
-        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
-
-    def __eq__(self, Result other):
-        return self.cr == other.cr
-
-    def __ne__(self, Result other):
-        return self.cr != other.cr
+        return self.cr.isUnknown()
 
     def __str__(self):
         return self.cr.toString().decode()

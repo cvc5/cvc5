@@ -1015,30 +1015,9 @@ bool SynthResult::hasNoSolution() const
   return d_result->getStatus() == cvc5::SynthResult::NO_SOLUTION;
 }
 
-Term SynthResult::getSolution() const
+bool SynthResult::isUnknown() const
 {
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  CVC5_API_CHECK(d_result->getStatus() == cvc5::SynthResult::FOUND_SOLUTION)
-      << "Cannot call getSolution for SynthResult with no solution.";
-  std::vector<Node> sol = d_result->getSolution();
-  CVC5_API_CHECK(sol.size() == 1)
-      << "Cannot call getSolution for SynthResult whose solution is a list, "
-         "use getSolutionList instead.";
-  return Term(d_solver, sol[0]);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-std::vector<Term> SynthResult::getSolutionList() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  CVC5_API_CHECK(d_result->getStatus() == cvc5::SynthResult::FOUND_SOLUTION)
-      << "Cannot call getSolutionList for SynthResult with no solution.";
-  return Term::nodeVectorToTerms(d_solver, d_result->getSolution());
-  ////////
-  CVC5_API_TRY_CATCH_END;
+  return d_result->getStatus() == cvc5::SynthResult::UNKNOWN;
 }
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }

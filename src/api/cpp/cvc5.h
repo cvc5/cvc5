@@ -325,23 +325,13 @@ class CVC5_EXPORT SynthResult
   /**
    * Return true if this SynthResult is for a synthesis query that had no
    * solution. If this is true, then it was determined there was no solution.
-   * If neither hasSolution or hasNoSolution is true, then it is unknown
-   * whether there is a solution.
    */
   bool hasNoSolution() const;
 
   /**
-   * Get the solution of this synthesis query. Should only be called if
-   * hasSolution is true.
+   * Return true if result of the synthesis query could not be determined.
    */
-  Term getSolution() const;
-
-  /**
-   * Get solutions for functions. Should only be called if hasSolution is true.
-   * Must be called on a SynthResult returned by a call to checkSynth or
-   * checkSynthNext only.
-   */
-  std::vector<Term> getSolutionsFor(const std::vector<Term>& funs) const;
+  bool isUnknown() const;
 
   /**
    * @return a string representation of this result.
@@ -351,17 +341,11 @@ class CVC5_EXPORT SynthResult
  private:
   /**
    * Constructor.
-   * @param s the solver this synthesis result is for
    * @param r the internal synth result that is to be wrapped by this synth
    * result
    * @return the SynthResult
    */
-  SynthResult(const Solver* s, const cvc5::SynthResult& r);
-
-  /**
-   * The associated solver object.
-   */
-  const Solver* d_solver;
+  SynthResult(const cvc5::SynthResult& r);
   /**
    * The internal result wrapped by this result.
    *
