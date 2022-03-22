@@ -25,7 +25,7 @@ SynthResult::SynthResult()
 {
 }
 
-SynthResult::SynthResult(const std::vector<Node>& sol)
+SynthResult::SynthResult(const std::map<Node, Node>& sol)
     : d_status(FOUND_SOLUTION),
       d_unknownExplanation(Result::UNKNOWN_REASON),
       d_solution(sol)
@@ -45,7 +45,7 @@ Result::UnknownExplanation SynthResult::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
-const std::vector<Node>& SynthResult::getSolution() const { return d_solution; }
+const std::map<Node, Node>& SynthResult::getSolution() const { return d_solution; }
 
 std::string SynthResult::toString() const
 {
@@ -57,7 +57,12 @@ std::string SynthResult::toString() const
   }
   if (!d_solution.empty())
   {
-    ss << " :solution " << d_solution;
+    ss << " :solution (";
+    for (const std::pair<const Node, Node>& s : d_solution)
+    {
+      ss << "(" << s.first << " " << s.second << ")";
+    }
+    ss << ")";
   }
   ss << ")";
   return ss.str();

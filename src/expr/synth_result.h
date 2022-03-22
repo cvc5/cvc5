@@ -51,7 +51,7 @@ class SynthResult
   /** Default constructor */
   SynthResult();
   /** Constructor when the solution is successful */
-  SynthResult(const std::vector<Node>& sol);
+  SynthResult(const std::map<Node, Node>& sol);
   /** Constructor when the solution is not successful */
   SynthResult(
       Status s,
@@ -64,7 +64,10 @@ class SynthResult
   Result::UnknownExplanation getUnknownExplanation() const;
 
   /** Get the solution */
-  const std::vector<Node>& getSolution() const;
+  Node getSolution() const;
+  
+  /** Get the solution, which maps functions-to-synthesize to their solutions */
+  const std::map<Node, Node>& getSolutionMap() const;
 
   /** Get the string representation */
   std::string toString() const;
@@ -74,8 +77,8 @@ class SynthResult
   Status d_status;
   /** The unknown explanation */
   Result::UnknownExplanation d_unknownExplanation;
-  /** The solution */
-  std::vector<Node> d_solution;
+  /** The solution map */
+  std::map<Node, Node> d_solution;
 };
 
 std::ostream& operator<<(std::ostream& out, const SynthResult& r);
