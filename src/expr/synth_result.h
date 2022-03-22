@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "expr/node.h"
 #include "util/result.h"
 
 namespace cvc5 {
@@ -39,7 +38,7 @@ class SynthResult
     // the status has not been set
     NONE,
     // the synthesis query was successful, i.e. there is a solution
-    FOUND_SOLUTION,
+    SOLUTION,
     // the synthesis query resulted in failure, i.e. there is no solution
     NO_SOLUTION,
     // the synthesis query is unknown, i.e. it is not known whether there is a
@@ -50,8 +49,6 @@ class SynthResult
  public:
   /** Default constructor */
   SynthResult();
-  /** Constructor when the solution is successful */
-  SynthResult(const std::map<Node, Node>& sol);
   /** Constructor when the solution is not successful */
   SynthResult(
       Status s,
@@ -63,12 +60,6 @@ class SynthResult
   /** Get the unknown explanation */
   Result::UnknownExplanation getUnknownExplanation() const;
 
-  /** Get the solution */
-  Node getSolution() const;
-
-  /** Get the solution, which maps functions-to-synthesize to their solutions */
-  const std::map<Node, Node>& getSolutionMap() const;
-
   /** Get the string representation */
   std::string toString() const;
 
@@ -77,8 +68,6 @@ class SynthResult
   Status d_status;
   /** The unknown explanation */
   Result::UnknownExplanation d_unknownExplanation;
-  /** The solution map */
-  std::map<Node, Node> d_solution;
 };
 
 std::ostream& operator<<(std::ostream& out, const SynthResult& r);

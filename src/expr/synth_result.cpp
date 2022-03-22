@@ -25,13 +25,6 @@ SynthResult::SynthResult()
 {
 }
 
-SynthResult::SynthResult(const std::map<Node, Node>& sol)
-    : d_status(FOUND_SOLUTION),
-      d_unknownExplanation(Result::UNKNOWN_REASON),
-      d_solution(sol)
-{
-}
-
 SynthResult::SynthResult(Status s,
                          Result::UnknownExplanation unknownExplanation)
     : d_status(s), d_unknownExplanation(unknownExplanation)
@@ -45,11 +38,6 @@ Result::UnknownExplanation SynthResult::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
-const std::map<Node, Node>& SynthResult::getSolutionMap() const
-{
-  return d_solution;
-}
-
 std::string SynthResult::toString() const
 {
   std::stringstream ss;
@@ -57,15 +45,6 @@ std::string SynthResult::toString() const
   if (d_unknownExplanation != Result::UNKNOWN_REASON)
   {
     ss << " :unknown-explanation " << d_unknownExplanation;
-  }
-  if (!d_solution.empty())
-  {
-    ss << " :solution (";
-    for (const std::pair<const Node, Node>& s : d_solution)
-    {
-      ss << "(" << s.first << " " << s.second << ")";
-    }
-    ss << ")";
   }
   ss << ")";
   return ss.str();
@@ -76,12 +55,13 @@ std::ostream& operator<<(std::ostream& out, const SynthResult& r)
   out << r.toString();
   return out;
 }
+
 ostream& operator<<(ostream& out, SynthResult::Status s)
 {
   switch (s)
   {
     case SynthResult::NONE: out << "NONE"; break;
-    case SynthResult::FOUND_SOLUTION: out << "FOUND_SOLUTION"; break;
+    case SynthResult::SOLUTION: out << "SOLUTION"; break;
     case SynthResult::NO_SOLUTION: out << "NO_SOLUTION"; break;
     case SynthResult::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;
