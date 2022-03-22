@@ -31,7 +31,7 @@ def test_is_null(solver):
     assert res_null.isNull()
     assert not res_null.isSat()
     assert not res_null.isUnsat()
-    assert not res_null.isSatUnknown()
+    assert not res_null.isUnknown()
     u_sort = solver.mkUninterpretedSort("u")
     x = solver.mkConst(u_sort, "x")
     solver.assertFormula(x.eqTerm(x))
@@ -56,7 +56,7 @@ def test_is_sat(solver):
     solver.assertFormula(x.eqTerm(x))
     res = solver.checkSat()
     assert res.isSat()
-    assert not res.isSatUnknown()
+    assert not res.isUnknown()
 
 
 def test_is_unsat(solver):
@@ -65,7 +65,7 @@ def test_is_unsat(solver):
     solver.assertFormula(x.eqTerm(x).notTerm())
     res = solver.checkSat()
     assert res.isUnsat()
-    assert not res.isSatUnknown()
+    assert not res.isUnknown()
 
 
 def test_is_sat_unknown(solver):
@@ -77,4 +77,4 @@ def test_is_sat_unknown(solver):
     solver.assertFormula(x.eqTerm(x).notTerm())
     res = solver.checkSat()
     assert not res.isSat()
-    assert res.isSatUnknown()
+    assert res.isUnknown()
