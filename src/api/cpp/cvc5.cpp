@@ -998,7 +998,10 @@ SynthResult::SynthResult(const Solver* s, const cvc5::SynthResult& r)
 {
 }
 
-SynthResult::SynthResult() : d_solver(nullptr), d_result(new cvc5::SynthResult()) {}
+SynthResult::SynthResult()
+    : d_solver(nullptr), d_result(new cvc5::SynthResult())
+{
+}
 
 bool SynthResult::isNull() const
 {
