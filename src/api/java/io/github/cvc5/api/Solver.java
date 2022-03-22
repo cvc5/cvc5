@@ -2700,6 +2700,17 @@ public class Solver implements IPointer, AutoCloseable
   private native long getNullResult(long pointer);
 
   /**
+   * @return null synth result
+   */
+  public Result getNullSynthResult()
+  {
+    long resultPointer = getNullSynthResult(pointer);
+    return new SynthResult(this, resultPointer);
+  }
+
+  private native long getNullSynthResult(long pointer);
+
+  /**
    * @return null op
    */
   public Op getNullOp()
