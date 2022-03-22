@@ -47,13 +47,13 @@ Node mkBounds(TNode t, TNode lb, TNode ub)
 Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(Kind::PLUS,
+  return nm->mkNode(Kind::ADD,
                     evall,
                     nm->mkNode(Kind::MULT,
                                nm->mkNode(Kind::DIVISION,
-                                          nm->mkNode(Kind::MINUS, evall, evalu),
-                                          nm->mkNode(Kind::MINUS, l, u)),
-                               nm->mkNode(Kind::MINUS, t, l)));
+                                          nm->mkNode(Kind::SUB, evall, evalu),
+                                          nm->mkNode(Kind::SUB, l, u)),
+                               nm->mkNode(Kind::SUB, t, l)));
 }
 
 }  // namespace
@@ -83,11 +83,11 @@ Node TranscendentalProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
-  auto one = nm->mkConst<Rational>(CONST_RATIONAL, 1);
-  auto mone = nm->mkConst<Rational>(CONST_RATIONAL, -1);
-  auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-  auto mpi = nm->mkNode(Kind::MULT, mone, pi);
+  Node zero = nm->mkConstReal(Rational(0));
+  Node one = nm->mkConstReal(Rational(1));
+  Node mone = nm->mkConstReal(Rational(-1));
+  Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
+  Node mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-trans-checker") << "Checking " << id << std::endl;
   Trace("nl-trans-checker") << "Children:" << std::endl;
   for (const auto& c : children)
@@ -128,7 +128,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
     return nm->mkNode(OR,
                       nm->mkNode(LEQ, args[0], zero),
-                      nm->mkNode(GT, e, nm->mkNode(PLUS, args[0], one)));
+                      nm->mkNode(GT, e, nm->mkNode(ADD, args[0], one)));
   }
   else if (id == PfRule::ARITH_TRANS_EXP_ZERO)
   {
@@ -141,11 +141,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 4);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
-    Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
-    Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[2].isConst() && args[2].getType().isRealOrInt());
+    Assert(args[3].isConst() && args[3].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -168,11 +167,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 4);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
-    Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
-    Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[2].isConst() && args[2].getType().isRealOrInt());
+    Assert(args[3].isConst() && args[3].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -195,8 +193,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 2);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
@@ -235,13 +232,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
                 nm->mkNode(Kind::LEQ, x, pi),
             }),
             x.eqNode(y),
-            x.eqNode(
-                nm->mkNode(Kind::PLUS,
-                           y,
-                           nm->mkNode(Kind::MULT,
-                                      nm->mkConst<Rational>(CONST_RATIONAL, 2),
-                                      s,
-                                      pi)))),
+            x.eqNode(nm->mkNode(
+                Kind::ADD,
+                y,
+                nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
         nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
   }
   else if (id == PfRule::ARITH_TRANS_SINE_SYMMETRY)
@@ -251,7 +245,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args[0].getType().isReal());
     Node s1 = nm->mkNode(Kind::SINE, args[0]);
     Node s2 = nm->mkNode(Kind::SINE, nm->mkNode(Kind::MULT, mone, args[0]));
-    return nm->mkNode(PLUS, s1, s2).eqNode(zero);
+    return nm->mkNode(ADD, s1, s2).eqNode(zero);
   }
   else if (id == PfRule::ARITH_TRANS_SINE_TANGENT_ZERO)
   {
@@ -277,22 +271,21 @@ Node TranscendentalProofRuleChecker::checkInternal(
         AND,
         nm->mkNode(IMPLIES,
                    nm->mkNode(GT, args[0], mpi),
-                   nm->mkNode(GT, s, nm->mkNode(MINUS, mpi, args[0]))),
+                   nm->mkNode(GT, s, nm->mkNode(SUB, mpi, args[0]))),
         nm->mkNode(IMPLIES,
                    nm->mkNode(LT, args[0], pi),
-                   nm->mkNode(LT, s, nm->mkNode(MINUS, pi, args[0]))));
+                   nm->mkNode(LT, s, nm->mkNode(SUB, pi, args[0]))));
   }
   else if (id == PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 6);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
     Assert(args[2].getType().isReal());
     Assert(args[3].getType().isReal());
-    Assert(args[4].isConst() && args[4].getKind() == Kind::CONST_RATIONAL);
-    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[4].isConst() && args[4].getType().isRealOrInt());
+    Assert(args[5].isConst() && args[5].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -317,8 +310,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 5);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
     Assert(args[2].getType().isReal());
     Assert(args[3].getType().isReal());
@@ -341,13 +333,12 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 6);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
     Assert(args[2].getType().isReal());
     Assert(args[3].getType().isReal());
-    Assert(args[4].isConst() && args[4].getKind() == Kind::CONST_RATIONAL);
-    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[4].isConst() && args[4].getType().isRealOrInt());
+    Assert(args[5].isConst() && args[5].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -372,8 +363,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 5);
-    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
-           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].getType().isReal());
     Assert(args[2].getType().isReal());
     Assert(args[3].getType().isReal());

@@ -505,44 +505,52 @@ name   = "Quantifiers"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
+  help       = "resort to full effort techniques instead of answering unknown due to limited quantifier reasoning. Currently enables enumerative instantiation"
+
+[[option]]
+  name       = "enumInst"
+  category   = "regular"
+  long       = "enum-inst"
+  type       = "bool"
+  default    = "false"
   help       = "enumerative instantiation: instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown"
 
 [[option]]
-  name       = "fullSaturateQuantRd"
+  name       = "enumInstRd"
   category   = "regular"
-  long       = "full-saturate-quant-rd"
+  long       = "enum-inst-rd"
   type       = "bool"
   default    = "true"
   help       = "whether to use relevant domain first for enumerative instantiation strategy"
 
 [[option]]
-  name       = "fullSaturateLimit"
+  name       = "enumInstLimit"
   category   = "regular"
-  long       = "full-saturate-quant-limit=N"
+  long       = "enum-inst-limit=N"
   type       = "int64_t"
   default    = "-1"
   help       = "maximum number of rounds of enumerative instantiation to apply (-1 means no limit)"
   
 [[option]]
-  name       = "fullSaturateInterleave"
+  name       = "enumInstInterleave"
   category   = "regular"
-  long       = "fs-interleave"
+  long       = "enum-inst-interleave"
   type       = "bool"
   default    = "false"
   help       = "interleave enumerative instantiation with other techniques"
 
 [[option]]
-  name       = "fullSaturateStratify"
+  name       = "enumInstStratify"
   category   = "regular"
-  long       = "fs-stratify"
+  long       = "enum-inst-stratify"
   type       = "bool"
   default    = "false"
   help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
 
 [[option]]
-  name       = "fullSaturateSum"
+  name       = "enumInstSum"
   category   = "regular"
-  long       = "fs-sum"
+  long       = "enum-inst-sum"
   type       = "bool"
   default    = "false"
   help       = "enumerating tuples of quantifiers by increasing the sum of indices, rather than the maximum"
@@ -956,7 +964,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-si-rcons=MODE"
   type       = "CegqiSingleInvRconsMode"
-  default    = "ALL_LIMIT"
+  default    = "ALL"
   help       = "policy for reconstructing solutions for single invocation conjectures"
   help_mode  = "Modes for reconstruction solutions while using single invocation techniques."
 [[option.mode.NONE]]
@@ -967,7 +975,7 @@ name   = "Quantifiers"
   help = "Try to reconstruct solutions in the original grammar when using single invocation techniques in an incomplete (fail-fast) manner."
 [[option.mode.ALL_LIMIT]]
   name = "all-limit"
-  help = "Try to reconstruct solutions in the original grammar, but termintate if a maximum number of rounds for reconstruction is exceeded."
+  help = "Try to reconstruct solutions in the original grammar, but terminate if a maximum number of rounds for reconstruction is exceeded."
 [[option.mode.ALL]]
   name = "all"
   help = "Try to reconstruct solutions in the original grammar. In this mode, we do not terminate until a solution is successfully reconstructed."
@@ -1073,25 +1081,26 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
-  name       = "sygusActiveGenMode"
+  name       = "sygusEnumMode"
   category   = "regular"
-  long       = "sygus-active-gen=MODE"
-  type       = "SygusActiveGenMode"
+  long       = "sygus-enum=MODE"
+  type       = "SygusEnumMode"
   default    = "AUTO"
-  help       = "mode for actively-generated sygus enumerators"
-  help_mode  = "Modes for actively-generated sygus enumerators."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not use actively-generated sygus enumerators."
-[[option.mode.ENUM_BASIC]]
-  name = "basic"
-  help = "Use basic type enumerator for actively-generated sygus enumerators."
-[[option.mode.ENUM]]
-  name = "enum"
-  help = "Use optimized enumerator for actively-generated sygus enumerators."
+  help       = "mode for sygus enumeration"
+  help_mode  = "Modes for sygus enumeration."
+[[option.mode.SMART]]
+  name = "smart"
+  help = "Use smart enumeration based on datatype constraints."
+[[option.mode.FAST]]
+  name = "fast"
+  help = "Use optimized enumerator for sygus enumeration."
+[[option.mode.RANDOM]]
+  name = "random"
+  help = "Use basic random enumerator for sygus enumeration."
 [[option.mode.VAR_AGNOSTIC]]
   name = "var-agnostic"
   help = "Use sygus solver to enumerate terms that are agnostic to variables."
@@ -1100,12 +1109,22 @@ name   = "Quantifiers"
   help = "Internally decide the best policy for each enumerator."
 
 [[option]]
-  name       = "sygusActiveGenEnumConsts"
+  name       = "sygusEnumRandomP"
   category   = "regular"
-  long       = "sygus-active-gen-cfactor=N"
+  long       = "sygus-enum-random-p=P"
+  type       = "double"
+  default    = "0.5"
+  minimum    = "0.0"
+  maximum    = "1.0"
+  help       = "the parameter of the geometric distribution used to determine the size of terms generated by --sygus-enum=random"
+
+[[option]]
+  name       = "sygusEnumFastNumConsts"
+  category   = "regular"
+  long       = "sygus-enum-fast-num-consts=N"
   type       = "uint64_t"
   default    = "5"
-  help       = "the branching factor for the number of interpreted constants to consider for each size when using --sygus-active-gen=enum"
+  help       = "the branching factor for the number of interpreted constants to consider for each size when using --sygus-enum=fast"
 
 [[option]]
   name       = "sygusMinGrammar"
@@ -1243,14 +1262,6 @@ name   = "Quantifiers"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
-  name       = "sygusExtRew"
-  category   = "regular"
-  long       = "sygus-ext-rew"
-  type       = "bool"
-  default    = "true"
-  help       = "use extended rewriter for sygus"
-
-[[option]]
   name       = "cegisSample"
   category   = "regular"
   long       = "cegis-sample=MODE"
@@ -1307,6 +1318,14 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "3"
   help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
+
+[[option]]
+  name       = "sygusVerifyTimeout"
+  category   = "regular"
+  long       = "sygus-verify-timeout=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
 
 # Internal uses of sygus
 
@@ -1411,7 +1430,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-rr-synth-check"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
@@ -1443,6 +1462,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 [[option]]
@@ -1464,9 +1484,12 @@ name   = "Quantifiers"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not generate queries with SyGuS."
-[[option.mode.SAT]]
-  name = "sat"
-  help = "Generate interesting SAT queries, for e.g. soundness testing."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Generate all queries using SyGuS enumeration of the given grammar"
+[[option.mode.SAMPLE_SAT]]
+  name = "sample-sat"
+  help = "Generate interesting SAT queries based on sampling, for e.g. soundness testing."
 [[option.mode.UNSAT]]
   name = "unsat"
   help = "Generate interesting UNSAT queries, for e.g. proof testing."
@@ -1478,14 +1501,6 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
-
-[[option]]
-  name       = "sygusQueryGenCheck"
-  category   = "regular"
-  long       = "sygus-query-gen-check"
-  type       = "bool"
-  default    = "true"
-  help       = "use interesting satisfiability queries to check soundness of cvc5"
 
 [[option]]
   name       = "sygusQueryGenDumpFiles"
@@ -1548,22 +1563,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
-
-[[option]]
-  name       = "cegqiSat"
-  category   = "regular"
-  long       = "cegqi-sat"
-  type       = "bool"
-  default    = "true"
-  help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
-
-[[option]]
-  name       = "cegqiModel"
-  category   = "regular"
-  long       = "cegqi-model"
-  type       = "bool"
-  default    = "true"
-  help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cegqiAll"

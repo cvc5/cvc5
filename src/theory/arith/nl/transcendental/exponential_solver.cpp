@@ -44,11 +44,11 @@ ExponentialSolver::ExponentialSolver(Env& env, TranscendentalState* tstate)
 
 ExponentialSolver::~ExponentialSolver() {}
 
-void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
+void ExponentialSolver::doPurification(TNode a, TNode new_a)
 {
   NodeManager* nm = NodeManager::currentNM();
   // do both equalities to ensure that new_a becomes a preregistered term
-  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
+  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
@@ -120,7 +120,7 @@ void ExponentialSolver::checkInitialRefine()
               Kind::OR,
               nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
-                  Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
+                  Kind::GT, t, nm->mkNode(Kind::ADD, t[0], d_data->d_one)));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -230,7 +230,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
     proof->addStep(lem,
                    PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
-                   {nm->mkConst(CONST_RATIONAL, Rational(d)), e[0]});
+                   {nm->mkConstInt(Rational(d)), e[0]});
   }
   d_data->d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
@@ -264,13 +264,13 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   {
     // pick c-1
     bounds.first = rewrite(
-        NodeManager::currentNM()->mkNode(Kind::MINUS, center, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::SUB, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
     bounds.second = rewrite(
-        NodeManager::currentNM()->mkNode(Kind::PLUS, center, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::ADD, center, d_data->d_one));
   }
   return bounds;
 }

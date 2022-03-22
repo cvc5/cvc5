@@ -50,6 +50,12 @@ class SubstitutionMap
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;
 
+  struct ShouldTraverseCallback
+  {
+    virtual bool operator()(TNode n) const = 0;
+    virtual ~ShouldTraverseCallback() {}
+  };
+
  private:
   typedef std::unordered_map<Node, Node> NodeCache;
   /** A dummy context used by this class if none is provided */
@@ -65,7 +71,10 @@ class SubstitutionMap
   bool d_cacheInvalidated;
 
   /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeCache& cache);
+  Node internalSubstitute(TNode t,
+                          NodeCache& cache,
+                          std::set<TNode>* tracker,
+                          const ShouldTraverseCallback* stc);
 
   /** Helper class to invalidate cache on user pop */
   class CacheInvalidator : public context::ContextNotifyObj
@@ -93,6 +102,8 @@ class SubstitutionMap
  public:
   SubstitutionMap(context::Context* context = nullptr);
 
+  /** Get substitutions in this object as a raw map */
+  std::unordered_map<Node, Node> getSubstitutions();
   /**
    * Adds a substitution from x to t.
    */
@@ -103,6 +114,8 @@ class SubstitutionMap
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
+  /** Size of the substitutions */
+  size_t size() const { return d_substitutions.size(); }
   /**
    * Returns true iff x is in the substitution map
    */
@@ -130,7 +143,10 @@ class SubstitutionMap
    * Apply the substitutions to the node, optionally rewrite if a non-null
    * Rewriter pointer is passed.
    */
-  Node apply(TNode t, Rewriter* r = nullptr);
+  Node apply(TNode t,
+             Rewriter* r = nullptr,
+             std::set<TNode>* tracker = nullptr,
+             const ShouldTraverseCallback* stc = nullptr);
 
   /**
    * Apply the substitutions to the node.
@@ -154,6 +170,10 @@ class SubstitutionMap
    * Print to the output stream
    */
   void print(std::ostream& out) const;
+
+  void invalidateCache() {
+    d_cacheInvalidated = true;
+  }
 
 }; /* class SubstitutionMap */
 

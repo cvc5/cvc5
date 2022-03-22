@@ -31,7 +31,6 @@ namespace quantifiers {
 VtsTermCache::VtsTermCache(Env& env, QuantifiersInferenceManager& qim)
     : EnvObj(env), d_qim(qim)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 void VtsTermCache::getVtsTerms(std::vector<Node>& t,
@@ -71,7 +70,8 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
           sm->mkDummySkolem("delta_free",
                             nm->realType(),
                             "free delta for virtual term substitution");
-      Node delta_lem = nm->mkNode(GT, d_vts_delta_free, d_zero);
+      Node zero = nm->mkConstReal(Rational(0));
+      Node delta_lem = nm->mkNode(GT, d_vts_delta_free, zero);
       d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
     }
     if (d_vts_delta.isNull())
@@ -177,7 +177,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
       std::map<Node, Node> msum;
       if (ArithMSum::getMonomialSumLit(n, msum))
       {
-        if (Trace.isOn("quant-vts-debug"))
+        if (TraceIsOn("quant-vts-debug"))
         {
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
           ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
@@ -216,13 +216,17 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
               {
                 nlit = nm->mkConst(false);
               }
-              else if (res == 1)
-              {
-                nlit = nm->mkNode(GEQ, d_zero, slv);
-              }
               else
               {
-                nlit = nm->mkNode(GT, slv, d_zero);
+                Node zero = nm->mkConstRealOrInt(slv.getType(), Rational(0));
+                if (res == 1)
+                {
+                  nlit = nm->mkNode(GEQ, zero, slv);
+                }
+                else
+                {
+                  nlit = nm->mkNode(GT, slv, zero);
+                }
               }
             }
           }

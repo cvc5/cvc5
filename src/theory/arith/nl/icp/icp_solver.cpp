@@ -66,7 +66,7 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 }  // namespace
 
 ICPSolver::ICPSolver(Env& env, InferenceManager& im)
-    : EnvObj(env), d_im(im), d_state(d_mapper)
+    : EnvObj(env), d_im(im), d_state(env, d_mapper)
 {
 }
 
@@ -127,13 +127,12 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
-      rhsmult = poly::Rational(1) / rhsmult;
       // only correct up to a constant (denominator is thrown away!)
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, rhsmult, n, collectVariables(val)};
+      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -153,12 +152,11 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
-      rhsmult = poly::Rational(1) / rhsmult;
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, rhsmult, n, collectVariables(val)};
+      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -357,9 +355,7 @@ void ICPSolver::check()
         }
         d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
                              InferenceId::ARITH_NL_ICP_CONFLICT);
-        did_progress = true;
-        progress = false;
-        break;
+        return;
     }
   } while (progress);
   if (did_progress)

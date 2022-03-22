@@ -165,6 +165,9 @@ class Printer
   /** Print check-synth command */
   virtual void toStreamCmdCheckSynth(std::ostream& out) const;
 
+  /** Print check-synth-next command */
+  virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
+
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
 
@@ -197,11 +200,17 @@ class Printer
                                       Node conj,
                                       TypeNode sygusType) const;
 
+  /** Print get-interpol-next command */
+  virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
+
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
                                     const std::string& name,
                                     Node conj,
                                     TypeNode sygusType) const;
+
+  /** Print get-abduct-next command */
+  virtual void toStreamCmdGetAbductNext(std::ostream& out) const;
 
   /** Print get-quantifier-elimination command */
   virtual void toStreamCmdGetQuantifierElimination(std::ostream& out,
@@ -216,6 +225,9 @@ class Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-learned-literals command */
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;

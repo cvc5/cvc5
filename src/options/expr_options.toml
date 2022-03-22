@@ -28,3 +28,11 @@ name   = "Expression"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   help       = "type check expressions"
+
+[[option]]
+  name       = "wellFormedChecking"
+  category   = "regular"
+  long       = "wf-checking"
+  type       = "bool"
+  default    = "true"
+  help       = "check that terms passed to API methods are well formed (default false for text interface)"

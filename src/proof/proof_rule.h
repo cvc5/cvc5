@@ -225,6 +225,22 @@ enum class PfRule : uint32_t
   // the quantifiers rewriter involves constructing new bound variables that are
   // not guaranteed to be consistent on each call.
   THEORY_REWRITE,
+  // ======== Theory Preprocess
+  // Children: none
+  // Arguments: (F, tid)
+  // ----------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = Theory::ppRewrite(t) for the theory
+  // with identifier tid. Notice this is a "trusted" rule.
+  THEORY_PREPROCESS,
+  // ======== Theory Preprocess
+  // Children: none
+  // Arguments: (F, tid)
+  // ----------------------------------------
+  // Conclusion: F
+  // where F was added as a new assertion by theory preprocessing from the
+  // theory with identifier tid.
+  THEORY_PREPROCESS_LEMMA,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
   // Children: ?
@@ -240,11 +256,6 @@ enum class PfRule : uint32_t
   PREPROCESS,
   // where F was added as a new assertion by some preprocessing pass.
   PREPROCESS_LEMMA,
-  // where F is an equality of the form t = Theory::ppRewrite(t) for some
-  // theory. Notice this is a "trusted" rule.
-  THEORY_PREPROCESS,
-  // where F was added as a new assertion by theory preprocessing.
-  THEORY_PREPROCESS_LEMMA,
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on theory expand definitions.
   THEORY_EXPAND_DEF,
@@ -1379,7 +1390,7 @@ enum class PfRule : uint32_t
   // secant of p from l to u.
   ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
-  // ================ CAD Lemmas
+  // ================ Coverings Lemmas
   // We use IRP for IndexedRootPredicate.
   //
   // A formula "Interval" describes that a variable (xn is none is given) is
@@ -1396,7 +1407,7 @@ enum class PfRule : uint32_t
   // A formula "Covering" is a set of Intervals, implying that xn can be in
   // neither of these intervals. To be a covering (of the real line), the union
   // of these intervals should be the real numbers.
-  // ======== CAD direct conflict
+  // ======== Coverings direct conflict
   // Children (Cell, A)
   // ---------------------
   // Conclusion: (false)
@@ -1404,15 +1415,15 @@ enum class PfRule : uint32_t
   // over a Cell (in variables x1...xn). It derives that A evaluates to false
   // over the Cell. In the actual algorithm, it means that xn can not be in the
   // topmost interval of the Cell.
-  ARITH_NL_CAD_DIRECT,
-  // ======== CAD recursive interval
+  ARITH_NL_COVERING_DIRECT,
+  // ======== Coverings recursive interval
   // Children (Cell, Covering)
   // ---------------------
   // Conclusion: (false)
   // A recursive interval is generated from a Covering (for xn) over a Cell
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
-  ARITH_NL_CAD_RECURSIVE,
+  ARITH_NL_COVERING_RECURSIVE,
 
   //================================================ Place holder for Lfsc rules
   // ======== Lfsc rule

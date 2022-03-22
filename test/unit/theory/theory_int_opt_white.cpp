@@ -64,7 +64,7 @@ TEST_F(TestTheoryWhiteIntOpt, max)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -95,7 +95,7 @@ TEST_F(TestTheoryWhiteIntOpt, min)
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
@@ -128,7 +128,7 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   Result r = d_optslv->checkOpt();
 
   // We expect our check to have returned UNSAT
-  ASSERT_EQ(r.isSat(), Result::UNSAT);
+  ASSERT_EQ(r.getStatus(), Result::UNSAT);
   d_slvEngine->resetAssertions();
 }
 
@@ -153,13 +153,13 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   /* Optimization objective:
       cost1 + cost2
   */
-  Node cost3 = d_nodeManager->mkNode(kind::PLUS, cost1, cost2);
+  Node cost3 = d_nodeManager->mkNode(kind::ADD, cost1, cost2);
 
   d_optslv->addObjective(cost3, OptimizationObjective::MINIMIZE);
 
   Result r = d_optslv->checkOpt();
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),

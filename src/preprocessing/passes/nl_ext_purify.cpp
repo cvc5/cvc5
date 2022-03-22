@@ -60,8 +60,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
   Node ret = n;
   if (n.getNumChildren() > 0)
   {
-    if (beneathMult
-        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
+    if (beneathMult && (n.getKind() == kind::ADD || n.getKind() == kind::SUB))
     {
       // don't do it if it rewrites to a constant
       Node nr = rewrite(n);

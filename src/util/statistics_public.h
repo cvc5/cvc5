@@ -23,7 +23,7 @@ namespace cvc5 {
 class StatisticsRegistry;
 
 /**
- * Preregisters all public (non-expert) statistics.
+ * Preregisters all public statistics.
  */
 void registerPublicStatistics(StatisticsRegistry& reg);
 

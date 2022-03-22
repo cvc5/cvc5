@@ -16,11 +16,11 @@
 # Darulova. This requires building cvc5 with symfpu.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     slv.setOption("produce-models", "true")
     slv.setLogic("QF_FP")
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     fp32 = slv.mkFloatingPointSort(8, 24)
 
     # the standard rounding mode
-    rm = slv.mkRoundingMode(pycvc5.RoundNearestTiesToEven)
+    rm = slv.mkRoundingMode(cvc5.RoundNearestTiesToEven)
 
     # create a few single-precision variables
     x = slv.mkConst(fp32, 'x')

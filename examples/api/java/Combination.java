@@ -68,7 +68,7 @@ public class Combination
       // Terms
       Term f_x = slv.mkTerm(Kind.APPLY_UF, f, x);
       Term f_y = slv.mkTerm(Kind.APPLY_UF, f, y);
-      Term sum = slv.mkTerm(Kind.PLUS, f_x, f_y);
+      Term sum = slv.mkTerm(Kind.ADD, f_x, f_y);
       Term p_0 = slv.mkTerm(Kind.APPLY_UF, p, zero);
       Term p_f_y = slv.mkTerm(Kind.APPLY_UF, p, f_y);
 
@@ -86,7 +86,8 @@ public class Combination
       System.out.println("Given the following assertions:\n" + assertions + "\n");
 
       System.out.println("Prove x /= y is entailed. \n"
-          + "cvc5: " + slv.checkEntailed(slv.mkTerm(Kind.DISTINCT, x, y)) + ".\n");
+          + "cvc5: " + slv.checkSatAssuming(slv.mkTerm(Kind.EQUAL, x, y))
+          + ".\n");
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
           + "cvc5: " + slv.checkSat() + ".\n");

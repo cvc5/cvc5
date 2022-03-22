@@ -70,6 +70,27 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int compareTo(long pointer1, long pointer2);
 
   /**
+   * @return true if the sort has a symbol.
+   */
+  public boolean hasSymbol()
+  {
+    return hasSymbol(pointer);
+  }
+
+  private native boolean hasSymbol(long pointer);
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the symbol.
+   */
+  public String getSymbol()
+  {
+    return getSymbol(pointer);
+  }
+
+  private native String getSymbol(long pointer);
+
+  /**
    * @return true if this Sort is a null sort.
    */
   public boolean isNull()
@@ -346,67 +367,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isSortConstructor(long pointer);
 
   /**
-   * Is this a first-class sort?
-   * First-class sorts are sorts for which:
-   * (1) we handle equalities between terms of that type, and
-   * (2) they are allowed to be parameters of parametric sorts (e.g. index or
-   *     element sorts of arrays).
-   *
-   * Examples of sorts that are not first-class include sort constructor sorts
-   * and regular expression sorts.
-   *
-   * @return true if this is a first-class sort
-   */
-  public boolean isFirstClass()
-  {
-    return isFirstClass(pointer);
-  }
-
-  private native boolean isFirstClass(long pointer);
-
-  /**
-   * Is this a function-LIKE sort?
-   *
-   * Anything function-like except arrays (e.g., datatype selectors) is
-   * considered a function here. Function-like terms can not be the argument
-   * or return value for any term that is function-like.
-   * This is mainly to avoid higher order.
-   *
-   * Note that arrays are explicitly not considered function-like here.
-   *
-   * @return true if this is a function-like sort
-   */
-  public boolean isFunctionLike()
-  {
-    return isFunctionLike(pointer);
-  }
-
-  private native boolean isFunctionLike(long pointer);
-
-  /**
-   * Is this sort a subsort of the given sort?
-   * @return true if this sort is a subsort of s
-   */
-  public boolean isSubsortOf(Sort s)
-  {
-    return isSubsortOf(pointer, s.getPointer());
-  }
-
-  private native boolean isSubsortOf(long pointer, long sortPointer);
-
-  /**
-   * Is this sort comparable to the given sort (i.e., do they share
-   * a common ancestor in the subsort tree)?
-   * @return true if this sort is comparable to s
-   */
-  public boolean isComparableTo(Sort s)
-  {
-    return isComparableTo(pointer, s.getPointer());
-  }
-
-  private native boolean isComparableTo(long pointer, long sortPointer);
-
-  /**
    * @return the underlying datatype of a datatype sort
    */
   public Datatype getDatatype()
@@ -445,6 +405,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Substitution of Sorts.
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point.
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
@@ -458,6 +421,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Simultaneous substitution of Sorts.
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the sort. It is not run until fix point. In the case that
+   * sorts contains duplicates, the replacement earliest in the list takes
+   * priority.
+   *
+   * For example,
+   * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
+   * return (Array (Array C D) B).
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
@@ -663,16 +635,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Uninterpreted sort -------------------------------------------------- */
 
   /**
-   * @return the name of an uninterpreted sort
-   */
-  public String getUninterpretedSortName()
-  {
-    return getUninterpretedSortName(pointer);
-  }
-
-  private native String getUninterpretedSortName(long pointer);
-
-  /**
    * @return true if an uninterpreted sort is parameterezied
    */
   public boolean isUninterpretedSortParameterized()
@@ -694,16 +656,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long[] getUninterpretedSortParamSorts(long pointer);
 
   /* Sort constructor sort ----------------------------------------------- */
-
-  /**
-   * @return the name of a sort constructor sort
-   */
-  public String getSortConstructorName()
-  {
-    return getSortConstructorName(pointer);
-  }
-
-  private native String getSortConstructorName(long pointer);
 
   /**
    * @return the arity of a sort constructor sort

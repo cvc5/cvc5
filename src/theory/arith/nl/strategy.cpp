@@ -31,8 +31,8 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
   {
     case InferStep::BREAK: return os << "BREAK";
     case InferStep::FLUSH_WAITING_LEMMAS: return os << "FLUSH_WAITING_LEMMAS";
-    case InferStep::CAD_INIT: return os << "CAD_INIT";
-    case InferStep::CAD_FULL: return os << "CAD_FULL";
+    case InferStep::COVERINGS_INIT: return os << "COVERINGS_INIT";
+    case InferStep::COVERINGS_FULL: return os << "COVERINGS_FULL";
     case InferStep::NL_FACTORING: return os << "NL_FACTORING";
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";
@@ -170,13 +170,10 @@ void Strategy::initializeStrategy(const Options& options)
   }
   one << InferStep::IAND_FULL << InferStep::BREAK;
   one << InferStep::POW2_FULL << InferStep::BREAK;
-  if (options.arith.nlCad)
+  if (options.arith.nlCov)
   {
-    one << InferStep::CAD_INIT;
-  }
-  if (options.arith.nlCad)
-  {
-    one << InferStep::CAD_FULL << InferStep::BREAK;
+    one << InferStep::COVERINGS_INIT << InferStep::BREAK;
+    one << InferStep::COVERINGS_FULL << InferStep::BREAK;
   }
 
   d_interleaving.add(one);

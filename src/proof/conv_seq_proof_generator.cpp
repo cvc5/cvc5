@@ -102,7 +102,7 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
     serr << "expected after conversions: " << f[1] << std::endl;
     serr << "  actual after conversions: " << curr << std::endl;
 
-    if (Trace.isOn("tconv-seq-pf-gen-debug"))
+    if (TraceIsOn("tconv-seq-pf-gen-debug"))
     {
       Trace("tconv-pf-gen-debug")
           << "Printing conversion steps..." << std::endl;

@@ -43,42 +43,55 @@ class ArithRewriter : public TheoryRewriter
   TrustNode expandDefinition(Node node) override;
 
  private:
-  static Node makeSubtractionNode(TNode l, TNode r);
-  static Node makeUnaryMinusNode(TNode n);
-
-  static RewriteResponse preRewriteTerm(TNode t);
-  static RewriteResponse postRewriteTerm(TNode t);
-
-  static RewriteResponse rewriteVariable(TNode t);
-  static RewriteResponse rewriteConstant(TNode t);
-  static RewriteResponse rewriteMinus(TNode t, bool pre);
-  static RewriteResponse rewriteUMinus(TNode t, bool pre);
-  static RewriteResponse rewriteDiv(TNode t, bool pre);
-  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
-  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
-  /** Entry for applications of to_int and is_int */
-  static RewriteResponse rewriteExtIntegerOp(TNode t);
-
-  static RewriteResponse preRewritePlus(TNode t);
-  static RewriteResponse postRewritePlus(TNode t);
-
-  static RewriteResponse preRewriteMult(TNode t);
-  static RewriteResponse postRewriteMult(TNode t);
-
-  static RewriteResponse postRewriteIAnd(TNode t);
-  static RewriteResponse postRewritePow2(TNode t);
-
-  static RewriteResponse preRewriteTranscendental(TNode t);
-  static RewriteResponse postRewriteTranscendental(TNode t);
-
+  /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
+  /** postRewrite for atoms */
   static RewriteResponse postRewriteAtom(TNode t);
 
-  static bool isAtom(TNode n);
+  /** preRewrite for terms */
+  static RewriteResponse preRewriteTerm(TNode t);
+  /** postRewrite for terms */
+  static RewriteResponse postRewriteTerm(TNode t);
 
-  static inline bool isTerm(TNode n) {
-    return !isAtom(n);
-  }
+  /** rewrite real algebraic numbers */
+  static RewriteResponse rewriteRAN(TNode t);
+  /** rewrite variables */
+  static RewriteResponse rewriteVariable(TNode t);
+
+  /** rewrite unary minus */
+  static RewriteResponse rewriteNeg(TNode t, bool pre);
+  /** rewrite binary minus */
+  static RewriteResponse rewriteSub(TNode t);
+  /** preRewrite addition */
+  static RewriteResponse preRewritePlus(TNode t);
+  /** postRewrite addition */
+  static RewriteResponse postRewritePlus(TNode t);
+  /** preRewrite multiplication */
+  static RewriteResponse preRewriteMult(TNode t);
+  /** postRewrite multiplication */
+  static RewriteResponse postRewriteMult(TNode t);
+
+  /** rewrite division */
+  static RewriteResponse rewriteDiv(TNode t, bool pre);
+  /** rewrite absolute */
+  static RewriteResponse rewriteAbs(TNode t);
+  /** rewrite integer division and modulus */
+  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
+  /** rewrite integer total division and total modulus */
+  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
+  /** rewrite to_int and is_int */
+  static RewriteResponse rewriteExtIntegerOp(TNode t);
+
+  /** postRewrite IAND */
+  static RewriteResponse postRewriteIAnd(TNode t);
+  /** postRewrite POW2 */
+  static RewriteResponse postRewritePow2(TNode t);
+
+  /** preRewrite transcendental functions */
+  static RewriteResponse preRewriteTranscendental(TNode t);
+  /** postRewrite transcendental functions */
+  static RewriteResponse postRewriteTranscendental(TNode t);
+
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
   /** The operator elimination utility */

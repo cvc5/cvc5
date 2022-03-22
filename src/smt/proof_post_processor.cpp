@@ -122,7 +122,7 @@ bool ProofPostprocessCallback::update(Node res,
       else
       {
         Assert(pfn->getResult() == f);
-        if (Trace.isOn("smt-proof-pp"))
+        if (TraceIsOn("smt-proof-pp"))
         {
           Trace("smt-proof-pp")
               << "=== Connect proof for preprocessing: " << f << std::endl;
@@ -261,7 +261,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
   // order eliminators
   std::sort(eliminators.begin(), eliminators.end());
-  if (Trace.isOn("smt-proof-pp-debug"))
+  if (TraceIsOn("smt-proof-pp-debug"))
   {
     Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
     for (const auto& pair : lastInclusion)
@@ -422,6 +422,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // not eliminated
     return Node::null();
   }
+  Trace("smt-proof-pp-debug") << "Expand macro " << id << std::endl;
   // macro elimination
   if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
@@ -855,7 +856,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         for (size_t j = 0, nchildi = children[i].getNumChildren(); j < nchildi;
              j++)
         {
-          Node nodej = nm->mkConst(CONST_RATIONAL, Rational(j));
+          Node nodej = nm->mkConstInt(Rational(j));
           cdp->addStep(
               children[i][j], PfRule::AND_ELIM, {children[i]}, {nodej});
         }
@@ -975,7 +976,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
-    TheoryId theoryId = Theory::theoryOf(args[0]);
+    TheoryId theoryId = d_env.theoryOf(args[0]);
     if (args.size() >= 2)
     {
       getMethodId(args[1], idr);
@@ -1066,14 +1067,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Debug("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (Debug.isOn("macro::arith"))
+    Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
+    if (TraceIsOn("macro::arith"))
     {
       for (const auto& child : children)
       {
-        Debug("macro::arith") << "  child: " << child << std::endl;
+        Trace("macro::arith") << "  child: " << child << std::endl;
       }
-      Debug("macro::arith") << "   args: " << args << std::endl;
+      Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
     NodeManager* nm = NodeManager::currentNM();
@@ -1086,8 +1087,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp = nm->mkNode(
-          isPos ? GT : LT, scalar, nm->mkConst(CONST_RATIONAL, Rational(0)));
+      Node scalarCmp =
+          nm->mkNode(isPos ? GT : LT,
+                     scalar,
+                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());
@@ -1112,7 +1115,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
     Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
     cdp->addSteps(steps);
-    Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
+    Trace("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
   }

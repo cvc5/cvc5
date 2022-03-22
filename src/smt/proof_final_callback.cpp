@@ -109,11 +109,17 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       if (getInferenceId(args[0], id))
       {
         d_annotationRuleIds << id;
+        // Use e.g. `--check-proofs --proof-annotate -t im-pf` to see a list of
+        // inference that appear in the final proof.
+        Trace("im-pf") << "(inference-pf " << id << " " << pn->getResult()
+                       << ")" << std::endl;
+        Trace("im-pf-assert")
+            << "(assert " << pn->getResult() << ") ; " << id << std::endl;
       }
     }
   }
   // print for debugging
-  if (Trace.isOn("final-pf-hole"))
+  if (TraceIsOn("final-pf-hole"))
   {
     // currently only track theory rewrites
     if (r == PfRule::THEORY_REWRITE)

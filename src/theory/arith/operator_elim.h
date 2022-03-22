@@ -105,14 +105,15 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
    */
   Node getArithSkolem(SkolemFunId asi);
   /**
-   * Make the witness term, which creates a witness term based on the skolem
-   * manager with this class as a proof generator.
+   * Get the skolem lemma for lem, based on whether we are proof producing.
+   * A skolem lemma is a wrapper around lem that also tracks its associated
+   * skolem k.
+   *
+   * @param lem The lemma that axiomatizes the behavior of k
+   * @param k The skolem
+   * @return the skolem lemma corresponding to lem, annotated with k.
    */
-  Node mkWitnessTerm(Node v,
-                     Node pred,
-                     const std::string& prefix,
-                     const std::string& comment,
-                     std::vector<SkolemLemma>& lems);
+  SkolemLemma mkSkolemLemma(Node lem, Node k);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
@@ -128,6 +129,9 @@ class OperatorElim : protected EnvObj, public EagerProofGenerator
    * if the logic is linear.
    */
   void checkNonLinearLogic(Node term);
+
+  /** Whether we should use a partial function for the given id */
+  bool usePartialFunction(SkolemFunId id) const;
 };
 
 }  // namespace arith

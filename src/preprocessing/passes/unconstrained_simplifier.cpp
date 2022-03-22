@@ -310,7 +310,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::NOT:
         case kind::BITVECTOR_NOT:
         case kind::BITVECTOR_NEG:
-        case kind::UMINUS:
+        case kind::NEG:
           ++d_numUnconstrainedElim;
           Assert(parent[0] == current);
           if (currentSub.isNull())
@@ -447,8 +447,8 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // N-ary operators returning same type requiring at least one child to
         // be unconstrained
-        case kind::PLUS:
-        case kind::MINUS:
+        case kind::ADD:
+        case kind::SUB:
           if (current.getType().isInteger() && !parent.getType().isInteger())
           {
             break;
@@ -515,9 +515,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (current.getType().isInteger())
             {
               // div/mult by 1 should have been simplified
-              Assert(other != nm->mkConst(CONST_RATIONAL, Rational(1)));
+              Assert(other != nm->mkConstInt(Rational(1)));
               // div by -1 should have been simplified
-              if (other != nm->mkConst(CONST_RATIONAL, Rational(-1)))
+              if (other != nm->mkConstInt(Rational(-1)))
               {
                 break;
               }
@@ -530,8 +530,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test =
-                  other.eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)));
+              Node test = other.eqNode(nm->mkConstReal(Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;

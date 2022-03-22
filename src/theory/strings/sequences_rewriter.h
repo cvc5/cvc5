@@ -40,6 +40,12 @@ class SequencesRewriter : public TheoryRewriter
   StringsEntail& getStringsEntail();
 
  protected:
+  /** rewrite regular expression all
+   *
+   * This is the entry point for post-rewriting applications of re.all.
+   * Returns the rewritten form of node.
+   */
+  Node rewriteAllRegExp(TNode node);
   /** rewrite regular expression concatenation
    *
    * This is the entry point for post-rewriting applications of re.++.
@@ -284,7 +290,7 @@ class SequencesRewriter : public TheoryRewriter
    * We apply certain normalizations to n', such as replacing all constants
    * that are not relevant to length by "A".
    */
-  static Node lengthPreserveRewrite(Node n);
+  Node lengthPreserveRewrite(Node n);
 
   /**
    * Given a symbolic length n, returns the canonical string (of type stype)
@@ -305,6 +311,11 @@ class SequencesRewriter : public TheoryRewriter
   Node postProcessRewrite(Node node, Node ret);
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
+  /**
+   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
+   * be removed.
+   */
+  Rewriter* d_rr;
   /** The arithmetic entailment module */
   ArithEntail d_arithEntail;
   /** Instance of the entailment checker for strings. */

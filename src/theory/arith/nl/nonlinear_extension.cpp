@@ -20,7 +20,10 @@
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -48,15 +51,15 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_model(),
-      d_trSlv(d_env, d_im, d_model),
+      d_model(env),
+      d_trSlv(d_env, d_astate, d_im, d_model),
       d_extState(d_im, d_model, d_env),
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
       d_monomialSlv(d_env, &d_extState),
       d_splitZeroSlv(d_env, &d_extState),
       d_tangentPlaneSlv(d_env, &d_extState),
-      d_cadSlv(d_env, d_im, d_model),
+      d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
@@ -86,6 +89,19 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
   d_extTheory.registerTerm(n);
+  // logic exceptions based on the configuration of nl-ext: if we are a
+  // transcendental function, we require nl-ext=full.
+  Kind k = n.getKind();
+  if (isTranscendentalKind(k))
+  {
+    if (options().arith.nlExt != options::NlExtMode::FULL)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+         << " requires nl-ext mode to be set to value 'full'";
+      throw LogicException(ss.str());
+    }
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -122,7 +138,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   }
   Valuation v = d_containing.getValuation();
 
-  BoundInference bounds;
+  BoundInference bounds(d_env);
 
   std::unordered_set<Node> init_assertions;
 
@@ -223,9 +239,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
       return false;
     }
   }
-  if (options().arith.nlCad)
+  if (options().arith.nlCov)
   {
-    d_cadSlv.constructModelIfAvailable(passertions);
+    d_covSlv.constructModelIfAvailable(passertions);
   }
 
   Trace("nl-ext-cm") << "-----" << std::endl;
@@ -272,42 +288,21 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Sat res = modelBasedRefinement(termSet);
-  if (res == Result::Sat::SAT)
+  Result::Status res = modelBasedRefinement(termSet);
+  if (res == Result::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
-    d_approximations.clear();
-    d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel,
-                                d_approximations,
-                                d_witnesses,
-                                options().smt.modelWitnessValue);
+    d_model.getModelValueRepair(arithModel);
   }
+  // must post-process model with transcendental solver, to ensure we don't
+  // assign values for equivalence classes with transcendental function
+  // applications
+  d_trSlv.postProcessModel(arithModel, termSet);
 }
 
-void NonlinearExtension::finalizeModel(TheoryModel* tm)
-{
-  Trace("nl-ext") << "NonlinearExtension::finalizeModel" << std::endl;
-
-  for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
-  {
-    if (a.second.second.isNull())
-    {
-      tm->recordApproximation(a.first, a.second.first);
-    }
-    else
-    {
-      tm->recordApproximation(a.first, a.second.first, a.second.second);
-    }
-  }
-  for (const auto& vw : d_witnesses)
-  {
-    tm->recordApproximation(vw.first, vw.second);
-  }
-}
-
-Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
+Result::Status NonlinearExtension::modelBasedRefinement(
+    const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -336,7 +331,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
     }
   }
 
-  if (Trace.isOn("nl-ext-debug"))
+  if (TraceIsOn("nl-ext-debug"))
   {
     Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
                           << std::endl;
@@ -353,45 +348,6 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
   }
 
   // compute whether shared terms have correct values
-  unsigned num_shared_wrong_value = 0;
-  std::vector<Node> shared_term_value_splits;
-  // must ensure that shared terms are equal to their concrete value
-  Trace("nl-ext-mv") << "Shared terms : " << std::endl;
-  for (context::CDList<TNode>::const_iterator its =
-           d_containing.shared_terms_begin();
-       its != d_containing.shared_terms_end();
-       ++its)
-  {
-    TNode shared_term = *its;
-    // compute its value in the model, and its evaluation in the model
-    Node stv0 = d_model.computeConcreteModelValue(shared_term);
-    Node stv1 = d_model.computeAbstractModelValue(shared_term);
-    d_model.printModelValue("nl-ext-mv", shared_term);
-    if (stv0 != stv1)
-    {
-      num_shared_wrong_value++;
-      Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
-                         << std::endl;
-      if (shared_term != stv0)
-      {
-        // split on the value, this is non-terminating in general, TODO :
-        // improve this
-        Node eq = shared_term.eqNode(stv0);
-        shared_term_value_splits.push_back(eq);
-      }
-      else
-      {
-        // this can happen for transcendental functions
-        // the problem is that we cannot evaluate transcendental functions
-        // (they don't have a rewriter that returns constants)
-        // thus, the actual value in their model can be themselves, hence we
-        // have no reference point to rule out the current model.  In this
-        // case, we may set incomplete below.
-      }
-    }
-  }
-  Trace("nl-ext-debug") << "     " << num_shared_wrong_value
-                        << " shared terms with wrong model value." << std::endl;
   bool needsRecheck;
   do
   {
@@ -402,14 +358,14 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
     int complete_status = 1;
     // We require a check either if an assertion is false or a shared term has
     // a wrong value
-    if (!false_asserts.empty() || num_shared_wrong_value > 0)
+    if (!false_asserts.empty())
     {
-      complete_status = num_shared_wrong_value > 0 ? -1 : 0;
+      complete_status = 0;
       runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
         d_im.clearWaitingLemmas();
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
     }
     Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -430,7 +386,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
       if (d_im.hasUsed())
       {
         d_im.clearWaitingLemmas();
-        return Result::Sat::UNSAT;
+        return Result::UNSAT;
       }
     }
 
@@ -444,41 +400,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         d_im.flushWaitingLemmas();
         Trace("nl-ext") << "...added " << count << " waiting lemmas."
                         << std::endl;
-        return Result::Sat::UNSAT;
-      }
-      // resort to splitting on shared terms with their model value
-      // if we did not add any lemmas
-      if (num_shared_wrong_value > 0)
-      {
-        complete_status = -1;
-        if (!shared_term_value_splits.empty())
-        {
-          for (const Node& eq : shared_term_value_splits)
-          {
-            Node req = rewrite(eq);
-            Node literal = d_containing.getValuation().ensureLiteral(req);
-            d_containing.getOutputChannel().requirePhase(literal, true);
-            Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
-            Node split = literal.orNode(literal.negate());
-            d_im.addPendingLemma(split,
-                                 InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT,
-                                 nullptr,
-                                 true);
-          }
-          if (d_im.hasWaitingLemma())
-          {
-            d_im.flushWaitingLemmas();
-            Trace("nl-ext") << "...added " << d_im.numPendingLemmas()
-                            << " shared term value split lemmas." << std::endl;
-            return Result::Sat::UNSAT;
-          }
-        }
-        else
-        {
-          // this can happen if we are trying to do theory combination with
-          // trancendental functions
-          // since their model value cannot even be computed exactly
-        }
+        return Result::UNSAT;
       }
 
       // we are incomplete
@@ -498,14 +420,14 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
                            "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
-        return Result::Sat::SAT_UNKNOWN;
+        return Result::UNKNOWN;
       }
     }
     d_im.clearWaitingLemmas();
   } while (needsRecheck);
 
   // did not add lemmas
-  return Result::Sat::SAT;
+  return Result::SAT;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
@@ -515,7 +437,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 {
   ++(d_stats.d_checkRuns);
 
-  if (Trace.isOn("nl-strategy"))
+  if (TraceIsOn("nl-strategy"))
   {
     for (const auto& a : assertions)
     {
@@ -537,8 +459,8 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     {
       case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
       case InferStep::FLUSH_WAITING_LEMMAS: d_im.flushWaitingLemmas(); break;
-      case InferStep::CAD_FULL: d_cadSlv.checkFull(); break;
-      case InferStep::CAD_INIT: d_cadSlv.initLastCall(assertions); break;
+      case InferStep::COVERINGS_FULL: d_covSlv.checkFull(); break;
+      case InferStep::COVERINGS_INIT: d_covSlv.initLastCall(assertions); break;
       case InferStep::NL_FACTORING:
         d_factoringSlv.check(assertions, false_asserts);
         break;

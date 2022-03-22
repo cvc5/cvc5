@@ -42,9 +42,9 @@ Pow2Solver::Pow2Solver(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
-  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
-  d_two = nm->mkConst(CONST_RATIONAL, Rational(2));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_two = nm->mkConstInt(Rational(2));
 }
 
 Pow2Solver::~Pow2Solver() {}
@@ -120,7 +120,7 @@ void Pow2Solver::checkFullRefine()
     Node valPow2xAbstract = d_model.computeAbstractModelValue(n);
     Node valPow2xConcrete = d_model.computeConcreteModelValue(n);
     Node valXConcrete = d_model.computeConcreteModelValue(n[0]);
-    if (Trace.isOn("pow2-check"))
+    if (TraceIsOn("pow2-check"))
     {
       Trace("pow2-check") << "* " << i << ", value = " << valPow2xAbstract
                           << std::endl;

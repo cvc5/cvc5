@@ -1,6 +1,8 @@
 Theory Reference: Datatypes
 ===========================
 
+cvc5 implements some extensions to the support for datatypes in SMT-LIB 2.
+
 Logic
 -----
 
@@ -143,8 +145,8 @@ For example:
 .. code:: smtlib
 
   (declare-const t (Tuple Int Int))
-  (assert (= ((_ tupSel 0) t) 3))
-  (assert (not (= t (mkTuple 3 4))))
+  (assert (= ((_ tuple_select 0) t) 3))
+  (assert (not (= t (tuple 3 4))))
 
 
 Codatatypes
@@ -181,11 +183,11 @@ a `cvc5::api::Solver solver` object.
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 |                    | ``(declare-const t (Tuple Int Int))``  | ``Sort s_int = solver.getIntegerSort();``                                                                                       |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Sort s = solver.mkTypleSort({s_int, s_int});``                                                                                |
+|                    |                                        | ``Sort s = solver.mkTupleSort({s_int, s_int});``                                                                                |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term t = solver.mkConst(s, "t");``                                                                                            |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Constructor  | ``(mkTuple <Term_1>, ..., <Term_n>)``  | ``Sort s = solver.mkTypleSort(sorts);``                                                                                         |
+| Tuple Constructor  | ``(mkTuple <Term_1>, ..., <Term_n>)``  | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
@@ -193,7 +195,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term t = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Selector     | ``((_ tupSel i) t)``                   | ``Sort s = solver.mkTypleSort(sorts);``                                                                                         |
+| Tuple Selector     | ``((_ tuple_select i) t)``             | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |

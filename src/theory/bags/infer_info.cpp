@@ -14,14 +14,14 @@
  */
 
 #include "theory/bags/infer_info.h"
-
+#include "theory/inference_manager_buffered.h"
 #include "theory/bags/inference_manager.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo(TheoryInferenceManager* im, InferenceId id)
+InferInfo::InferInfo(InferenceManagerBuffered* im, InferenceId id)
     : TheoryInference(id), d_im(im)
 {
 }
@@ -36,12 +36,11 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
   for (const auto& pair : d_skolems)
   {
     Node n = pair.first.eqNode(pair.second);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    d_im->trustedLemma(trustedLemma, getId(), p);
+    d_im->addPendingLemma(n, InferenceId::BAGS_SKOLEM);
   }
 
   Trace("bags::InferInfo::process") << (*this) << std::endl;
-
+  d_im->addPendingLemma(lemma, getId());
   return TrustNode::mkTrustLemma(lemma, nullptr);
 }
 
@@ -67,13 +66,13 @@ bool InferInfo::isFact() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer :id " << ii.getId() << std::endl;
-  out << ":conclusion " << ii.d_conclusion << std::endl;
+  out << "(infer ;id " << std::endl << ii.getId() << std::endl;
+  out << ";conclusion " << std::endl << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {
-    out << " :premise (" << ii.d_premises << ")" << std::endl;
+    out << " ;premise" << std::endl << ii.d_premises << std::endl;
   }
-  out << ":skolems " << ii.d_skolems << std::endl;
+  out << ";skolems " << ii.d_skolems << std::endl;
   out << ")";
   return out;
 }

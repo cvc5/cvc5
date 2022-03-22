@@ -54,6 +54,7 @@ metakind_ubchildren=
 metakind_lbchildren=
 metakind_operatorKinds=
 metakind_mkConst=
+metakind_mkConstDelete=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -295,8 +296,23 @@ TypeNode NodeManager::mkTypeConst<${class}>(const ${class}& val)
 }
 "
     metakind_mkConst="${metakind_mkConst}
-template
-Node NodeManager::mkConst(Kind k, const ${class}& val);
+template<>
+Node NodeManager::mkConst(Kind k, const ${class}& val)
+{
+  return mkConstInternal<Node, ${class}>(k, val);
+}
+"
+  elif [[ "${payload_seen}" != true ]]; then
+    metakind_mkConstDelete="${metakind_mkConstDelete}
+template<>
+Node NodeManager::mkConst<${class}>(const ${class}& val) = delete;
+"
+    metakind_mkConst="${metakind_mkConst}
+template<>
+Node NodeManager::mkConst(Kind k, const ${class}& val)
+{
+  return mkConstInternal<Node, ${class}>(k, val);
+}
 "
   fi
 
@@ -442,6 +458,7 @@ for var in \
     metakind_lbchildren \
     metakind_operatorKinds \
     metakind_mkConst \
+    metakind_mkConstDelete \
     template \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"

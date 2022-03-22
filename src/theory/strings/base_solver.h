@@ -44,7 +44,7 @@ class BaseSolver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(Env& env, SolverState& s, InferenceManager& im);
+  BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BaseSolver();
 
   //-----------------------inference steps
@@ -217,6 +217,8 @@ class BaseSolver : protected EnvObj
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager& d_im;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
   /** Commonly used constants */
   Node d_emptyString;
   Node d_false;

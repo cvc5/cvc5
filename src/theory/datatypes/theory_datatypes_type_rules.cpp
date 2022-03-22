@@ -53,7 +53,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
   }
   if (t.isParametricDatatype())
   {
-    Debug("typecheck-idt") << "typecheck parameterized datatype " << n
+    Trace("typecheck-idt") << "typecheck parameterized datatype " << n
                            << std::endl;
     TypeMatcher m(t);
     for (; child_it != child_it_end; ++child_it, ++tchild_it)
@@ -68,21 +68,21 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> instTypes;
     m.getMatches(instTypes);
     TypeNode range = t.instantiateParametricDatatype(instTypes);
-    Debug("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return " << range << std::endl;
     return range;
   }
   else
   {
     if (check)
     {
-      Debug("typecheck-idt")
+      Trace("typecheck-idt")
           << "typecheck cons: " << n << " " << n.getNumChildren() << std::endl;
-      Debug("typecheck-idt") << "cons type: " << consType << " "
+      Trace("typecheck-idt") << "cons type: " << consType << " "
                              << consType.getNumChildren() << std::endl;
       for (; child_it != child_it_end; ++child_it, ++tchild_it)
       {
         TypeNode childType = (*child_it).getType(check);
-        Debug("typecheck-idt") << "typecheck cons arg: " << childType << " "
+        Trace("typecheck-idt") << "typecheck cons arg: " << childType << " "
                                << (*tchild_it) << std::endl;
         TypeNode argumentType = *tchild_it;
         if (!childType.isSubtypeOf(argumentType))
@@ -118,8 +118,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check)
 {
-  Assert(n.getKind() == kind::APPLY_SELECTOR
-         || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
+  Assert(n.getKind() == kind::APPLY_SELECTOR);
   TypeNode selType = n.getOperator().getType(check);
   TypeNode t = selType[0];
   Assert(t.isDatatype());
@@ -130,7 +129,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
   }
   if (t.isParametricDatatype())
   {
-    Debug("typecheck-idt") << "typecheck parameterized sel: " << n << std::endl;
+    Trace("typecheck-idt") << "typecheck parameterized sel: " << n << std::endl;
     TypeMatcher m(t);
     TypeNode childType = n[0].getType(check);
     if (!childType.isInstantiatedDatatype())
@@ -149,19 +148,19 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
     TypeNode range = selType[1];
     range = range.substitute(
         types.begin(), types.end(), matches.begin(), matches.end());
-    Debug("typecheck-idt") << "Return " << range << std::endl;
+    Trace("typecheck-idt") << "Return " << range << std::endl;
     return range;
   }
   else
   {
     if (check)
     {
-      Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
-      Debug("typecheck-idt") << "sel type: " << selType << std::endl;
+      Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
+      Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getType(check);
       if (!selType[0].isComparableTo(childType))
       {
-        Debug("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
+        Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
                                << childType.getKind() << std::endl;
         throw TypeCheckingExceptionPrivate(n, "bad type for selector argument");
       }
@@ -188,7 +187,7 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
     Assert(t.isDatatype());
     if (t.isParametricDatatype())
     {
-      Debug("typecheck-idt")
+      Trace("typecheck-idt")
           << "typecheck parameterized tester: " << n << std::endl;
       TypeMatcher m(t);
       if (!m.doMatching(testType[0], childType))
@@ -199,8 +198,8 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
     }
     else
     {
-      Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
-      Debug("typecheck-idt") << "test type: " << testType << std::endl;
+      Trace("typecheck-idt") << "typecheck test: " << n << std::endl;
+      Trace("typecheck-idt") << "test type: " << testType << std::endl;
       if (!testType[0].isComparableTo(childType))
       {
         throw TypeCheckingExceptionPrivate(n, "bad type for tester argument");
@@ -253,7 +252,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
 {
-  Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
+  Trace("typecheck-idt") << "typechecking ascription: " << n << std::endl;
   Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
   TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
   if (check)
@@ -322,10 +321,10 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(
           n, "expecting datatype bound term to have datatype argument.");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
+    if (!n[1].isConst() || !n[1].getType().isInteger())
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "datatype bound must be a constant");
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype bound must be a constant integer");
     }
     if (n[1].getConst<Rational>().getNumerator().sgn() == -1)
     {
@@ -336,34 +335,9 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DtSygusBoundTypeRule::computeType(NodeManager* nodeManager,
-                                           TNode n,
-                                           bool check)
-{
-  if (check)
-  {
-    if (!n[0].getType().isDatatype())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound takes a datatype");
-    }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound must be a constant");
-    }
-    if (n[1].getConst<Rational>().getNumerator().sgn() == -1)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound must be non-negative");
-    }
-  }
-  return nodeManager->booleanType();
-}
-
-TypeNode DtSyguEvalTypeRule::computeType(NodeManager* nodeManager,
-                                         TNode n,
-                                         bool check)
+TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
+                                          TNode n,
+                                          bool check)
 {
   TypeNode headType = n[0].getType(check);
   if (!headType.isDatatype())
@@ -423,67 +397,64 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
   for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
   {
     Node nc = n[i];
-    if (check)
+    Kind nck = nc.getKind();
+    std::unordered_set<Node> bvs;
+    if (nck == kind::MATCH_BIND_CASE)
     {
-      Kind nck = nc.getKind();
-      std::unordered_set<Node> bvs;
-      if (nck == kind::MATCH_BIND_CASE)
+      for (const Node& v : nc[0])
       {
-        for (const Node& v : nc[0])
+        Assert(v.getKind() == kind::BOUND_VARIABLE);
+        bvs.insert(v);
+      }
+    }
+    else if (nck != kind::MATCH_CASE)
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expected a match case in match expression");
+    }
+    // get the pattern type
+    uint32_t pindex = nck == kind::MATCH_CASE ? 0 : 1;
+    TypeNode patType = nc[pindex].getType();
+    // should be caught in the above call
+    if (!patType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting datatype pattern in match");
+    }
+    Kind ncpk = nc[pindex].getKind();
+    if (ncpk == kind::APPLY_CONSTRUCTOR)
+    {
+      for (const Node& arg : nc[pindex])
+      {
+        if (bvs.find(arg) == bvs.end())
         {
-          Assert(v.getKind() == kind::BOUND_VARIABLE);
-          bvs.insert(v);
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "expecting distinct bound variable as argument to "
+              "constructor in pattern of match");
         }
+        bvs.erase(arg);
       }
-      else if (nck != kind::MATCH_CASE)
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expected a match case in match expression");
-      }
-      // get the pattern type
-      unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
-      TypeNode patType = nc[pindex].getType();
-      // should be caught in the above call
-      if (!patType.isDatatype())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expecting datatype pattern in match");
-      }
-      Kind ncpk = nc[pindex].getKind();
-      if (ncpk == kind::APPLY_CONSTRUCTOR)
-      {
-        for (const Node& arg : nc[pindex])
-        {
-          if (bvs.find(arg) == bvs.end())
-          {
-            throw TypeCheckingExceptionPrivate(
-                n,
-                "expecting distinct bound variable as argument to "
-                "constructor in pattern of match");
-          }
-          bvs.erase(arg);
-        }
-        unsigned ci = utils::indexOf(nc[pindex].getOperator());
-        patIndices.insert(ci);
-      }
-      else if (ncpk == kind::BOUND_VARIABLE)
-      {
-        patHasVariable = true;
-      }
-      else
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "unexpected kind of term in pattern in match");
-      }
-      const DType& pdt = patType.getDType();
-      // compare datatypes instead of the types to catch parametric case,
-      // where the pattern has parametric type.
-      if (hdt.getTypeNode() != pdt.getTypeNode())
-      {
-        std::stringstream ss;
-        ss << "pattern of a match case does not match the head type in match";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
+      size_t ci = utils::indexOf(nc[pindex].getOperator());
+      patIndices.insert(ci);
+    }
+    else if (ncpk == kind::BOUND_VARIABLE)
+    {
+      patHasVariable = true;
+    }
+    else
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "unexpected kind of term in pattern in match");
+    }
+    const DType& pdt = patType.getDType();
+    // compare datatypes instead of the types to catch parametric case,
+    // where the pattern has parametric type.
+    if (hdt.getTypeNode() != pdt.getTypeNode())
+    {
+      std::stringstream ss;
+      ss << "pattern of a match case does not match the head type in match";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     TypeNode currType = nc.getType(check);
     if (i == 1)
@@ -500,13 +471,11 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
       }
     }
   }
-  if (check)
+  // it is mandatory to check this here to ensure the match is exhaustive
+  if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
   {
-    if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "cases for match term are not exhaustive");
-    }
+    throw TypeCheckingExceptionPrivate(
+        n, "cases for match term are not exhaustive");
   }
   return retType;
 }

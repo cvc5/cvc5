@@ -323,170 +323,14 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
-    // The rule is translated according to the theory id tid and the outermost
-    // connective of the first term in the conclusion F, since F always has the
-    // form (= t1 t2) where t1 is the term being rewritten. This is not an exact
-    // translation but should work in most cases.
-    //
-    // E.g. if F is (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
-    // is correctly guessed as the rule.
     case PfRule::THEORY_REWRITE:
-    {
-      AletheRule vrule = AletheRule::UNDEFINED;
-      Node t = res[0];
-
-      theory::TheoryId tid;
-      if (!theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid))
-      {
-        return addAletheStep(
-            vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
-      }
-      switch (tid)
-      {
-        case theory::TheoryId::THEORY_BUILTIN:
-        {
-          switch (t.getKind())
-          {
-            case kind::ITE:
-            {
-              vrule = AletheRule::ITE_SIMPLIFY;
-              break;
-            }
-            case kind::EQUAL:
-            {
-              vrule = AletheRule::EQ_SIMPLIFY;
-              break;
-            }
-            case kind::AND:
-            {
-              vrule = AletheRule::AND_SIMPLIFY;
-              break;
-            }
-            case kind::OR:
-            {
-              vrule = AletheRule::OR_SIMPLIFY;
-              break;
-            }
-            case kind::NOT:
-            {
-              vrule = AletheRule::NOT_SIMPLIFY;
-              break;
-            }
-            case kind::IMPLIES:
-            {
-              vrule = AletheRule::IMPLIES_SIMPLIFY;
-              break;
-            }
-            case kind::WITNESS:
-            {
-              vrule = AletheRule::QNT_SIMPLIFY;
-              break;
-            }
-            default:
-            {
-              // In this case the rule is undefined
-            }
-          }
-          break;
-        }
-        case theory::TheoryId::THEORY_BOOL:
-        {
-          vrule = AletheRule::BOOL_SIMPLIFY;
-          break;
-        }
-        case theory::TheoryId::THEORY_UF:
-        {
-          if (t.getKind() == kind::EQUAL)
-          {
-            // A lot of these seem to be symmetry rules but not all...
-            vrule = AletheRule::EQUIV_SIMPLIFY;
-          }
-          break;
-        }
-        case theory::TheoryId::THEORY_ARITH:
-        {
-          switch (t.getKind())
-          {
-            case kind::DIVISION:
-            {
-              vrule = AletheRule::DIV_SIMPLIFY;
-              break;
-            }
-            case kind::RELATION_PRODUCT:
-            {
-              vrule = AletheRule::PROD_SIMPLIFY;
-              break;
-            }
-            case kind::MINUS:
-            {
-              vrule = AletheRule::MINUS_SIMPLIFY;
-              break;
-            }
-            case kind::UMINUS:
-            {
-              vrule = AletheRule::UNARY_MINUS_SIMPLIFY;
-              break;
-            }
-            case kind::PLUS:
-            {
-              vrule = AletheRule::SUM_SIMPLIFY;
-              break;
-            }
-            case kind::MULT:
-            {
-              vrule = AletheRule::PROD_SIMPLIFY;
-              break;
-            }
-            case kind::EQUAL:
-            {
-              vrule = AletheRule::EQUIV_SIMPLIFY;
-              break;
-            }
-            case kind::LT:
-            {
-              [[fallthrough]];
-            }
-            case kind::GT:
-            {
-              [[fallthrough]];
-            }
-            case kind::GEQ:
-            {
-              [[fallthrough]];
-            }
-            case kind::LEQ:
-            {
-              vrule = AletheRule::COMP_SIMPLIFY;
-              break;
-            }
-            case kind::CAST_TO_REAL:
-            {
-              return addAletheStep(AletheRule::LA_GENERIC,
-                                   res,
-                                   nm->mkNode(kind::SEXPR, d_cl, res),
-                                   children,
-                                   {nm->mkConst(CONST_RATIONAL, Rational(1))},
-                                   *cdp);
-            }
-            default:
-            {
-              // In this case the rule is undefined
-            }
-          }
-          break;
-        }
-        case theory::TheoryId::THEORY_QUANTIFIERS:
-        {
-          vrule = AletheRule::QUANTIFIER_SIMPLIFY;
-          break;
-        }
-        default:
-        {
-          // In this case the rule is undefined
-        };
-      }
-      return addAletheStep(
-          vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
+    { 
+       return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     // ======== Resolution and N-ary Resolution
     // See proof_rule.h for documentation on the RESOLUTION and CHAIN_RESOLUTION
@@ -1352,7 +1196,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
+      new_args.push_back(nm->mkConstInt(Rational(1)));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1375,7 +1219,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
+      new_args.push_back(nm->mkConstInt(Rational(1)));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1874,10 +1718,7 @@ bool AletheProofPostprocessCallback::finalStep(
   if (id != PfRule::ALETHE_RULE)
   {
     std::vector<Node> sanitized_args{
-        res,
-        res,
-        nm->mkConst<Rational>(CONST_RATIONAL,
-                              static_cast<unsigned>(AletheRule::ASSUME))};
+        res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
     for (const Node& arg : args)
     {
       sanitized_args.push_back(d_anc.convert(arg));
@@ -1940,8 +1781,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   }
 
   std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(NodeManager::currentNM()->mkConst(
-      CONST_RATIONAL, Rational(static_cast<unsigned>(rule))));
+  new_args.push_back(NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(rule))));
   new_args.push_back(res);
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());

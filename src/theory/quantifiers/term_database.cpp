@@ -168,7 +168,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, options::outputLanguage());
+    options::ioutils::applyOutputLang(ss, options().base.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
@@ -188,9 +188,8 @@ Node TermDb::getMatchOperator( Node n ) {
   //datatype operators may be parametric, always assume they are
   if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
       || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
-      || k == SET_SINGLETON || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR
-      || k == APPLY_TESTER || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH
-      || k == STRING_LENGTH)
+      || k == SET_SINGLETON || k == APPLY_SELECTOR || k == APPLY_TESTER
+      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
@@ -399,7 +398,7 @@ void TermDb::computeUfTerms( TNode f ) {
           }
         }
         Node lem = nm->mkOr(lits);
-        if (Trace.isOn("term-db-lemma"))
+        if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                  << n << "!!!!" << std::endl;
@@ -419,7 +418,7 @@ void TermDb::computeUfTerms( TNode f ) {
       nonCongruentCount++;
       d_op_nonred_count[f]++;
     }
-    if (Trace.isOn("tdb"))
+    if (TraceIsOn("tdb"))
     {
       Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount
                    << " / ";

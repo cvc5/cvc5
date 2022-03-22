@@ -25,6 +25,7 @@ set(EXAMPLES_API_PYTHON
   id
   linear_arith
   quickstart
+  relations
   sequences
   sets
   strings
