@@ -338,7 +338,7 @@ InferInfo InferenceGenerator::cardEmpty(const std::pair<Node, Node>& pair,
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD_EMPTY);
   Node premise = pair.first[0].eqNode(n);
   Node conclusion = pair.second.eqNode(d_zero);
-  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  inferInfo.d_conclusion = premise.eqNode(conclusion);
   return inferInfo;
 }
 
