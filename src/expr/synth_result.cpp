@@ -34,8 +34,6 @@ SynthResult::SynthResult(Status s,
                          Result::UnknownExplanation unknownExplanation)
     : d_status(s), d_unknownExplanation(unknownExplanation)
 {
-  PrettyCheckArgument(s == UNKNOWN,
-                      "improper use of unknown-result constructor");
 }
 
 SynthResult::Status SynthResult::getStatus() const { return d_status; }
