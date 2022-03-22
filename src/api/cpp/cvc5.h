@@ -343,13 +343,13 @@ class CVC5_EXPORT SynthResult
    * The internal result wrapped by this result.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::Result`` is not ref counted.
+   *       since ``cvc5::SynthResult`` is not ref counted.
    */
   std::shared_ptr<cvc5::SynthResult> d_result;
 };
 
 /**
- * Serialize a Result to given stream.
+ * Serialize a SynthResult to given stream.
  * @param out the output stream
  * @param r the result to be serialized to the given output stream
  * @return the output stream

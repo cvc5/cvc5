@@ -40,8 +40,8 @@ class SynthResultTest
   {
     SynthResult res_null = d_solver.getNullSynthResult();
     assertTrue(res_null.isNull());
-    assertFalse(res_null.isSat());
-    assertFalse(res_null.isUnsat());
+    assertFalse(res_null.hasSolution());
+    assertFalse(res_null.hasNoSolution());
     assertFalse(res_null.isUnknown());
   }
 }

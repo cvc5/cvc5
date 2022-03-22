@@ -28,6 +28,6 @@ def solver():
 def test_is_null(solver):
     res_null = SynthResult(solver)
     assert res_null.isNull()
-    assert not res_null.isSat()
-    assert not res_null.isUnsat()
+    assert not res_null.hasSolution()
+    assert not res_null.hasNoSolution()
     assert not res_null.isUnknown()
