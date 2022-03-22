@@ -60,8 +60,7 @@ namespace cvc5 {
  * Rewriter::rewrite.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
- * rules. These exist for convenience. We provide their definition in the line
- * "Macro:".
+ * rules. These exist for convenience and can be replaced by their definition in post-processing.
  * \endverbatim
  */
 enum class PfRule : uint32_t
