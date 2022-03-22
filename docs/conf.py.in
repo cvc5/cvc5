@@ -103,6 +103,7 @@ autosectionlabel_prefix_document = True
 
 extlinks = {
         'cvc5src': ('https://github.com/cvc5/cvc5/blob/master/src/%s', '%s'),
+        'cvc5repo': ('https://github.com/cvc5/cvc5/blob/master/%s', '%s'),
 }
 
 
