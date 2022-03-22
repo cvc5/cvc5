@@ -68,6 +68,7 @@ class SynthResult
 
   /** Get the string representation */
   std::string toString() const;
+
  private:
   /** The status */
   Status d_status;

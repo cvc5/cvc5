@@ -51,7 +51,7 @@ std::string SynthResult::toString() const
 {
   std::stringstream ss;
   ss << "(" << d_status;
-  if (d_unknownExplanation!=Result::UNKNOWN_REASON)
+  if (d_unknownExplanation != Result::UNKNOWN_REASON)
   {
     ss << " :unknown-explanation " << d_unknownExplanation;
   }
