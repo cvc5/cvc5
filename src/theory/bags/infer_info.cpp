@@ -25,7 +25,6 @@ namespace bags {
 InferInfo::InferInfo(InferenceManagerBuffered* im, InferenceId id)
     : TheoryInference(id), d_im(im)
 {
-  d_lemmaProperty = LemmaProperty::NONE;
 }
 
 TrustNode InferInfo::processLemma(LemmaProperty& p)
@@ -55,11 +54,6 @@ Node InferInfo::getLemma() const
     return lemma;
   }
   return nm->mkNode(kind::AND, nodes);
-}
-
-bool InferInfo::isCachedLemma() const
-{
-  return d_im->hasCachedLemma(getLemma(), d_lemmaProperty);
 }
 
 bool InferInfo::isTrivial() const
