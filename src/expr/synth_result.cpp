@@ -14,6 +14,8 @@
  */
 #include "expr/synth_result.h"
 
+#include <sstream>
+
 using namespace std;
 
 namespace cvc5 {
