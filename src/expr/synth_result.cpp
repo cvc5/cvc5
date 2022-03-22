@@ -26,7 +26,7 @@ SynthResult::SynthResult()
 }
 
 SynthResult::SynthResult(const std::vector<Node>& sol)
-    : d_status(SUCCESS),
+    : d_status(FOUND_SOLUTION),
       d_unknownExplanation(Result::UNKNOWN_REASON),
       d_solution(sol)
 {
@@ -73,8 +73,8 @@ ostream& operator<<(ostream& out, SynthResult::Status s)
   switch (s)
   {
     case SynthResult::NONE: out << "NONE"; break;
-    case SynthResult::SUCCESS: out << "SUCCESS"; break;
-    case SynthResult::FAIL: out << "FAIL"; break;
+    case SynthResult::FOUND_SOLUTION: out << "FOUND_SOLUTION"; break;
+    case SynthResult::NO_SOLUTION: out << "NO_SOLUTION"; break;
     case SynthResult::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;
   }

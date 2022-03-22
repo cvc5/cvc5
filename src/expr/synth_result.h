@@ -39,9 +39,9 @@ class SynthResult
     // the status has not been set
     NONE,
     // the synthesis query was successful, i.e. there is a solution
-    SUCCESS,
+    FOUND_SOLUTION,
     // the synthesis query resulted in failure, i.e. there is no solution
-    FAIL,
+    NO_SOLUTION,
     // the synthesis query is unknown, i.e. it is not known whether there is a
     // solution.
     UNKNOWN
