@@ -88,7 +88,8 @@ class CandidateRewriteDatabase : public ExprMiner
    * @param out The stream to output rewrite rules on.
    * @param rew_print Set to true if this class printed a rewrite involving sol.
    * @return A previous term eq_sol added to this class, such that sol is
-   * equivalent to eq_sol based on the criteria used by this class.
+   * equivalent to eq_sol based on the criteria used by this class. We return
+   * only terms that are verified to be equivalent to sol.
    */
   Node addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
   Node addTerm(Node sol, bool rec, std::ostream& out);

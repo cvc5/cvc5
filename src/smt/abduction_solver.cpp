@@ -181,7 +181,7 @@ void AbductionSolver::checkAbduct(Node a)
     bool isError = false;
     if (j == 0)
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      if (r.getStatus() != Result::SAT)
       {
         isError = true;
         serr
@@ -197,7 +197,7 @@ void AbductionSolver::checkAbduct(Node a)
     }
     else
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         isError = true;
         serr << "SolverEngine::checkAbduct(): negated goal cannot be shown "

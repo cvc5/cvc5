@@ -129,7 +129,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isIndexed() except +
         size_t getNumIndices() except +
-        T getIndices[T]() except +
+        Term operator[](size_t i) except +
         string toString() except +
 
     cdef cppclass OpHashFunction:
@@ -142,7 +142,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isSat() except +
         bint isUnsat() except +
-        bint isSatUnknown() except +
+        bint isUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
         UnknownExplanation getUnknownExplanation() except +

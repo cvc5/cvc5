@@ -499,30 +499,16 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def getIndices(self):
+    def __getitem__(self, i):
         """
-            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
+            Get the index at position i.
+            :param i: the position of the index to return
+            :return: the index at position i
         """
-        indices = None
-        try:
-            indices = self.cop.getIndices[string]().decode()
-        except:
-            pass
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cop[i]
+        return term
 
-        try:
-            indices = self.cop.getIndices[uint32_t]()
-        except:
-            pass
-
-        try:
-            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
-        except:
-            pass
-
-        if indices is None:
-            raise RuntimeError("Unable to retrieve indices from {}".format(self))
-
-        return indices
 
 cdef class Grammar:
     """
@@ -601,11 +587,11 @@ cdef class Result:
         """
         return self.cr.isUnsat()
 
-    def isSatUnknown(self):
+    def isUnknown(self):
         """
             :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
-        return self.cr.isSatUnknown()
+        return self.cr.isUnknown()
 
     def getUnknownExplanation(self):
         """
