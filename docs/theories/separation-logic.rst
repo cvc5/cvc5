@@ -65,7 +65,7 @@ Separation logic in cvc5 requires the ``QF_ALL`` logic, and for the types of the
 
   (declare-heap (T1 T2))
 
-This command must be executed when the solver is in its Start mode (see page 52 of the SMT 2.6 :cite:`BarFT-RR-17`). This command sets the location type of the heap :math:`Loc` to :math:`T1` and the data type :math:`Data` to :math:`T2`, where :math:`T1` and :math:`T2` are any defined types. This command can only be executed once in any context, and is reset only via a `reset` command.
+This command must be executed when the solver is in its Start mode (see page 52 of the SMT-LIB 2.6 standard :cite:`BarFT-RR-17`). This command sets the location type of the heap :math:`Loc` to :math:`T1` and the data type :math:`Data` to :math:`T2`, where :math:`T1` and :math:`T2` are any defined types. This command can only be executed once in any context, and is reset only via a `reset` command.
 
 The syntax for the operators of separation logic is summarized in the following
 table. For the C++ API examples in this table, we assume that we have created
