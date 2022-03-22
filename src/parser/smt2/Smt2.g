@@ -1597,7 +1597,7 @@ identifier[cvc5::ParseOp& p]
 @init {
   cvc5::api::Term f;
   cvc5::api::Term f2;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
 }
 : functionName[p.d_name, CHECK_NONE]
 
@@ -1644,13 +1644,7 @@ identifier[cvc5::ParseOp& p]
         // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
         // i_1, ..., i_n are numerals
         p.d_kind = api::TUPLE_PROJECT;
-        std::vector<uint32_t> indices(numerals.size());
-        for(size_t i = 0; i < numerals.size(); ++i)
-        {
-          // convert uint64_t to uint32_t
-          indices[i] = numerals[i];
-        }
-        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
+        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, numerals);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -1661,7 +1655,6 @@ identifier[cvc5::ParseOp& p]
           // We don't know which kind to use until we know the type of the
           // arguments
           p.d_name = opName;
-          // convert uint64_t to uint32_t
           for(uint32_t numeral : numerals)
           {
             p.d_indices.push_back(numeral);
@@ -1682,13 +1675,9 @@ identifier[cvc5::ParseOp& p]
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
-        else if (numerals.size() == 1)
+        else if (numerals.size() == 1 || numerals.size() == 2)
         {
-          p.d_op = SOLVER->mkOp(k, numerals[0]);
-        }
-        else if (numerals.size() == 2)
-        {
-          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+          p.d_op = SOLVER->mkOp(k, numerals);
         }
         else
         {
@@ -1708,7 +1697,7 @@ termAtomic[cvc5::api::Term& atomTerm]
 @init {
   cvc5::api::Sort t;
   std::string s;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
 }
     /* constants */
   : INTEGER_LITERAL
@@ -1974,7 +1963,7 @@ sortSymbol[cvc5::api::Sort& t, cvc5::parser::DeclarationCheck check]
 @declarations {
   std::string name;
   std::vector<cvc5::api::Sort> args;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
   bool indexed = false;
 }
   : sortName[name,CHECK_NONE]
@@ -2141,7 +2130,7 @@ symbol[std::string& id,
  * Matches a nonempty list of numerals.
  * @param numerals the (empty) vector to house the numerals.
  */
-nonemptyNumeralList[std::vector<uint64_t>& numerals]
+nonemptyNumeralList[std::vector<uint32_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
     )+

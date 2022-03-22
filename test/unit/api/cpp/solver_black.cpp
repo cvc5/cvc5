@@ -69,7 +69,7 @@ TEST_F(TestApiBlackSolver, pow2Large3)
   Sort s4 = d_solver.getIntegerSort();
   Term t203 = d_solver.mkInteger("6135470354240554220207");
   Term t262 = d_solver.mkTerm(POW2, {t203});
-  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, 49), {t262});
+  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, {49}), {t262});
   ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
 }
 
@@ -545,26 +545,20 @@ TEST_F(TestApiBlackSolver, mkFloatingPointPosZero)
 
 TEST_F(TestApiBlackSolver, mkOp)
 {
-  // mkOp(Kind kind, Kind k)
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, EQUAL), CVC5ApiException);
-
   // mkOp(Kind kind, const std::string& arg)
   ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, "2147483648"));
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, "asdf"), CVC5ApiException);
 
-  // mkOp(Kind kind, uint32_t arg)
-  ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, 1));
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 1));
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 1));
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, 1), CVC5ApiException);
-
-  // mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, 1, 1));
-  ASSERT_THROW(d_solver.mkOp(DIVISIBLE, 1, 2), CVC5ApiException);
-
   // mkOp(Kind kind, std::vector<uint32_t> args)
-  std::vector<uint32_t> args = {1, 2, 2};
-  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, args));
+  ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, {1}));
+  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {1}));
+  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {1}));
+  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, {1}), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, {1, 1}));
+  ASSERT_THROW(d_solver.mkOp(DIVISIBLE, {1, 2}), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, {1, 2, 2}));
 }
 
 TEST_F(TestApiBlackSolver, mkPi) { ASSERT_NO_THROW(d_solver.mkPi()); }
@@ -828,8 +822,8 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
   Solver slv;
 
   // simple operator terms
-  Op opterm1 = d_solver.mkOp(BITVECTOR_EXTRACT, 2, 1);
-  Op opterm2 = d_solver.mkOp(DIVISIBLE, 1);
+  Op opterm1 = d_solver.mkOp(BITVECTOR_EXTRACT, {2, 1});
+  Op opterm2 = d_solver.mkOp(DIVISIBLE, {1});
 
   // list datatype
   Sort sort = d_solver.mkParamSort("T");
@@ -1479,7 +1473,7 @@ TEST_F(TestApiBlackSolver, getOp)
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);
   Term a = d_solver.mkConst(bv32, "a");
-  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 2, 1);
+  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, {2, 1});
   Term exta = d_solver.mkTerm(ext, {a});
 
   ASSERT_FALSE(a.hasOp());
@@ -3226,7 +3220,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t60 = slv.mkTerm(Kind::SET_SINGLETON, {t1});
   Term t66 = slv.mkTerm(Kind::BITVECTOR_COMP, {t2, t11});
   Term t92 = slv.mkRegexpAll();
-  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 51), {t66});
+  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {51}), {t66});
   Term t105 = slv.mkTerm(Kind::BITVECTOR_ADD, {t96, t96});
   Term t113 = slv.mkTerm(Kind::BITVECTOR_SUB, {t105, t105});
   Term t137 = slv.mkTerm(Kind::BITVECTOR_XOR, {t113, t105});
@@ -3237,7 +3231,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t259 = slv.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
   Term t263 = slv.mkTerm(Kind::STRING_TOLOWER, {t259});
   Term t272 = slv.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
-  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 71), {t272});
+  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {71}), {t272});
   Term t288 = slv.mkTerm(Kind::EQUAL, {t263, t1});
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});

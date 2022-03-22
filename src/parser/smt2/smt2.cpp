@@ -329,7 +329,7 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
 }
 
 api::Term Smt2::mkIndexedConstant(const std::string& name,
-                                  const std::vector<uint64_t>& numerals)
+                                  const std::vector<uint32_t>& numerals)
 {
   if (d_logic.isTheoryEnabled(theory::THEORY_FP))
   {
@@ -935,9 +935,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     size_t nchildren = args.size();
     if (nchildren == 1)
     {
-      op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                          p.d_indices[0],
-                          p.d_indices[1]);
+      op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, p.d_indices);
     }
     else if (nchildren > 2)
     {
@@ -960,18 +958,15 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 
       if (t.isFloatingPoint())
       {
-        op = d_solver->mkOp(
-            api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices[0], p.d_indices[1]);
+        op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices);
       }
       else if (t.isInteger() || t.isReal())
       {
-        op = d_solver->mkOp(
-            api::FLOATINGPOINT_TO_FP_FROM_REAL, p.d_indices[0], p.d_indices[1]);
+        op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_REAL, p.d_indices);
       }
       else
       {
-        op = d_solver->mkOp(
-            api::FLOATINGPOINT_TO_FP_FROM_SBV, p.d_indices[0], p.d_indices[1]);
+        op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_SBV, p.d_indices);
       }
     }
   }

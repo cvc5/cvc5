@@ -3341,28 +3341,7 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create an operator for a builtin Kind.
-   *
-   * The Kind may not be the Kind for an indexed operator
-   * (e.g. BITVECTOR_EXTRACT).
-   *
-   * @note In this case, the ``Op`` simply wraps the ``Kind``.  The Kind can be
-   *       used in ``Solver::mkTerm`` directly without creating an ``Op`` first.
-   * @param kind the kind to wrap
-   */
-  Op mkOp(Kind kind) const;
-
-  /**
-   * Create operator of kind:
-   *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the string argument to this operator
-   */
-  Op mkOp(Kind kind, const std::string& arg) const;
-
-  /**
-   * Create operator of kind:
+   * Create operator of Kind:
    *   - DIVISIBLE
    *   - BITVECTOR_REPEAT
    *   - BITVECTOR_ZERO_EXTEND
@@ -3375,35 +3354,32 @@ class CVC5_EXPORT Solver
    *   - FLOATINGPOINT_TO_SBV
    *   - FLOATINGPOINT_TO_SBV_TOTAL
    *   - TUPLE_UPDATE
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg) const;
-
-  /**
-   * Create operator of Kind:
    *   - BITVECTOR_EXTRACT
    *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
    *   - FLOATINGPOINT_TO_FP_FROM_FP
    *   - FLOATINGPOINT_TO_FP_FROM_REAL
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg1 the first uint32_t argument to this operator
-   * @param arg2 the second uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
-
-  /**
-   * Create operator of Kind:
    *   - TUPLE_PROJECT
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
+   *
+   * @note If ``args`` is empty, the ``Op`` simply wraps the ``Kind``.  The
+   * Kind can be used in ``Solver::mkTerm`` directly without creating an ``Op``
+   * first.
    */
-  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args = {}) const;
+  Op mkOp(Kind kind, const std::initializer_list<uint32_t>& args) const;
+
+  /**
+   * Create operator of kind:
+   *   - DIVISIBLE (to support arbitrary precision integers)
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param arg the string argument to this operator
+   */
+  Op mkOp(Kind kind, const std::string& arg) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */

@@ -6140,16 +6140,189 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 /* Create operators                                                           */
 /* -------------------------------------------------------------------------- */
 
-Op Solver::mkOp(Kind kind) const
+Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_CHECK(s_indexed_kinds.find(kind) == s_indexed_kinds.end())
-      << "Expected a kind for a non-indexed operator.";
   //////// all checks before this line
-  return Op(this, kind);
+  size_t nargs = args.size();
+
+  if (nargs == 0)
+  {
+    CVC5_API_CHECK(s_indexed_kinds.find(kind) == s_indexed_kinds.end())
+        << "Expected a kind for a non-indexed operator.";
+    return Op(this, kind);
+  }
+
+  Op res;
+  switch (kind)
+  {
+    // operator kinds with arity 1
+    case DIVISIBLE:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::Divisible>(cvc5::Divisible(args[0])).d_node);
+      break;
+    case BITVECTOR_REPEAT:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res =
+          Op(this,
+             kind,
+             *mkValHelper<cvc5::BitVectorRepeat>(cvc5::BitVectorRepeat(args[0]))
+                  .d_node);
+      break;
+    case BITVECTOR_ZERO_EXTEND:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::BitVectorZeroExtend>(
+                    cvc5::BitVectorZeroExtend(args[0]))
+                    .d_node);
+      break;
+    case BITVECTOR_SIGN_EXTEND:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::BitVectorSignExtend>(
+                    cvc5::BitVectorSignExtend(args[0]))
+                    .d_node);
+      break;
+    case BITVECTOR_ROTATE_LEFT:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::BitVectorRotateLeft>(
+                    cvc5::BitVectorRotateLeft(args[0]))
+                    .d_node);
+      break;
+    case BITVECTOR_ROTATE_RIGHT:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::BitVectorRotateRight>(
+                    cvc5::BitVectorRotateRight(args[0]))
+                    .d_node);
+      break;
+    case INT_TO_BITVECTOR:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::IntToBitVector>(cvc5::IntToBitVector(args[0]))
+                    .d_node);
+      break;
+    case IAND:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(
+          this, kind, *mkValHelper<cvc5::IntAnd>(cvc5::IntAnd(args[0])).d_node);
+      break;
+    case FLOATINGPOINT_TO_UBV:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToUBV>(
+                    cvc5::FloatingPointToUBV(args[0]))
+                    .d_node);
+      break;
+    case FLOATINGPOINT_TO_SBV:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToSBV>(
+                    cvc5::FloatingPointToSBV(args[0]))
+                    .d_node);
+      break;
+    case REGEXP_REPEAT:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = Op(
+          this,
+          kind,
+          *mkValHelper<cvc5::RegExpRepeat>(cvc5::RegExpRepeat(args[0])).d_node);
+      break;
+
+      // operator kinds with arity 2
+
+    case BITVECTOR_EXTRACT:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::BitVectorExtract>(
+                    cvc5::BitVectorExtract(args[0], args[1]))
+                    .d_node);
+      break;
+    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToFPIEEEBitVector>(
+                    cvc5::FloatingPointToFPIEEEBitVector(args[0], args[1]))
+                    .d_node);
+      break;
+    case FLOATINGPOINT_TO_FP_FROM_FP:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToFPFloatingPoint>(
+                    cvc5::FloatingPointToFPFloatingPoint(args[0], args[1]))
+                    .d_node);
+      break;
+    case FLOATINGPOINT_TO_FP_FROM_REAL:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToFPReal>(
+                    cvc5::FloatingPointToFPReal(args[0], args[1]))
+                    .d_node);
+      break;
+    case FLOATINGPOINT_TO_FP_FROM_SBV:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToFPSignedBitVector>(
+                    cvc5::FloatingPointToFPSignedBitVector(args[0], args[1]))
+                    .d_node);
+      break;
+    case FLOATINGPOINT_TO_FP_FROM_UBV:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::FloatingPointToFPUnsignedBitVector>(
+                    cvc5::FloatingPointToFPUnsignedBitVector(args[0], args[1]))
+                    .d_node);
+      break;
+    case REGEXP_LOOP:
+      CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      res =
+          Op(this,
+             kind,
+             *mkValHelper<cvc5::RegExpLoop>(cvc5::RegExpLoop(args[0], args[1]))
+                  .d_node);
+      break;
+
+      // operator kinds with arity > 2
+
+    case TUPLE_PROJECT:
+      CVC5_API_CHECK(nargs >= 2)
+          << "Invalid number of indices for operator " << kind
+          << ". Expected at least 2 but got " << nargs << ".";
+      res = Op(this,
+               kind,
+               *mkValHelper<cvc5::TupleProjectOp>(cvc5::TupleProjectOp(args))
+                    .d_node);
+      break;
+    default:
+      CVC5_API_KIND_CHECK_EXPECTED(false, kind)
+          << "operator kind with " << nargs << " uint32_t arguments";
+  }
+  Assert(!res.isNull());
+  return res;
   ////////
-  CVC5_API_TRY_CATCH_END
+  CVC5_API_TRY_CATCH_END;
+}
+
+Op Solver::mkOp(Kind kind, const std::initializer_list<uint32_t>& args) const
+{
+  return mkOp(kind, std::vector<uint32_t>(args));
 }
 
 Op Solver::mkOp(Kind kind, const std::string& arg) const
@@ -6168,190 +6341,6 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
            kind,
            *mkValHelper<cvc5::Divisible>(cvc5::Divisible(cvc5::Integer(arg)))
                 .d_node);
-  return res;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Op Solver::mkOp(Kind kind, uint32_t arg) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  //////// all checks before this line
-  Op res;
-  switch (kind)
-  {
-    case DIVISIBLE:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::Divisible>(cvc5::Divisible(arg)).d_node);
-      break;
-    case BITVECTOR_REPEAT:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::BitVectorRepeat>(cvc5::BitVectorRepeat(arg))
-                    .d_node);
-      break;
-    case BITVECTOR_ZERO_EXTEND:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::BitVectorZeroExtend>(
-                    cvc5::BitVectorZeroExtend(arg))
-                    .d_node);
-      break;
-    case BITVECTOR_SIGN_EXTEND:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::BitVectorSignExtend>(
-                    cvc5::BitVectorSignExtend(arg))
-                    .d_node);
-      break;
-    case BITVECTOR_ROTATE_LEFT:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::BitVectorRotateLeft>(
-                    cvc5::BitVectorRotateLeft(arg))
-                    .d_node);
-      break;
-    case BITVECTOR_ROTATE_RIGHT:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::BitVectorRotateRight>(
-                    cvc5::BitVectorRotateRight(arg))
-                    .d_node);
-      break;
-    case INT_TO_BITVECTOR:
-      res = Op(
-          this,
-          kind,
-          *mkValHelper<cvc5::IntToBitVector>(cvc5::IntToBitVector(arg)).d_node);
-      break;
-    case IAND:
-      res =
-          Op(this, kind, *mkValHelper<cvc5::IntAnd>(cvc5::IntAnd(arg)).d_node);
-      break;
-    case FLOATINGPOINT_TO_UBV:
-      res = Op(
-          this,
-          kind,
-          *mkValHelper<cvc5::FloatingPointToUBV>(cvc5::FloatingPointToUBV(arg))
-               .d_node);
-      break;
-    case FLOATINGPOINT_TO_SBV:
-      res = Op(
-          this,
-          kind,
-          *mkValHelper<cvc5::FloatingPointToSBV>(cvc5::FloatingPointToSBV(arg))
-               .d_node);
-      break;
-    case REGEXP_REPEAT:
-      res =
-          Op(this,
-             kind,
-             *mkValHelper<cvc5::RegExpRepeat>(cvc5::RegExpRepeat(arg)).d_node);
-      break;
-    default:
-      CVC5_API_KIND_CHECK_EXPECTED(false, kind)
-          << "operator kind with uint32_t argument";
-  }
-  Assert(!res.isNull());
-  return res;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  //////// all checks before this line
-
-  Op res;
-  switch (kind)
-  {
-    case BITVECTOR_EXTRACT:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::BitVectorExtract>(
-                    cvc5::BitVectorExtract(arg1, arg2))
-                    .d_node);
-      break;
-    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::FloatingPointToFPIEEEBitVector>(
-                    cvc5::FloatingPointToFPIEEEBitVector(arg1, arg2))
-                    .d_node);
-      break;
-    case FLOATINGPOINT_TO_FP_FROM_FP:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::FloatingPointToFPFloatingPoint>(
-                    cvc5::FloatingPointToFPFloatingPoint(arg1, arg2))
-                    .d_node);
-      break;
-    case FLOATINGPOINT_TO_FP_FROM_REAL:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::FloatingPointToFPReal>(
-                    cvc5::FloatingPointToFPReal(arg1, arg2))
-                    .d_node);
-      break;
-    case FLOATINGPOINT_TO_FP_FROM_SBV:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::FloatingPointToFPSignedBitVector>(
-                    cvc5::FloatingPointToFPSignedBitVector(arg1, arg2))
-                    .d_node);
-      break;
-    case FLOATINGPOINT_TO_FP_FROM_UBV:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::FloatingPointToFPUnsignedBitVector>(
-                    cvc5::FloatingPointToFPUnsignedBitVector(arg1, arg2))
-                    .d_node);
-      break;
-    case REGEXP_LOOP:
-      res = Op(
-          this,
-          kind,
-          *mkValHelper<cvc5::RegExpLoop>(cvc5::RegExpLoop(arg1, arg2)).d_node);
-      break;
-    default:
-      CVC5_API_KIND_CHECK_EXPECTED(false, kind)
-          << "operator kind with two uint32_t arguments";
-  }
-  Assert(!res.isNull());
-  return res;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_KIND_CHECK(kind);
-  //////// all checks before this line
-
-  Op res;
-  switch (kind)
-  {
-    case TUPLE_PROJECT:
-    {
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::TupleProjectOp>(cvc5::TupleProjectOp(args))
-                    .d_node);
-    }
-    break;
-    default:
-    {
-      std::string message = "operator kind with " + std::to_string(args.size())
-                            + " uint32_t arguments";
-      CVC5_API_KIND_CHECK_EXPECTED(false, kind) << message;
-    }
-  }
-  Assert(!res.isNull());
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
