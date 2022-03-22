@@ -256,8 +256,6 @@ const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
                   cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV),
         KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_UBV,
                   cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV),
-        KIND_ENUM(FLOATINGPOINT_TO_FP_GENERIC,
-                  cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC),
         KIND_ENUM(FLOATINGPOINT_TO_UBV, cvc5::Kind::FLOATINGPOINT_TO_UBV),
         KIND_ENUM(FLOATINGPOINT_TO_SBV, cvc5::Kind::FLOATINGPOINT_TO_SBV),
         KIND_ENUM(FLOATINGPOINT_TO_REAL, cvc5::Kind::FLOATINGPOINT_TO_REAL),
@@ -563,9 +561,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
          FLOATINGPOINT_TO_FP_FROM_UBV},
         {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
          FLOATINGPOINT_TO_FP_FROM_UBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC_OP,
-         FLOATINGPOINT_TO_FP_GENERIC},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_GENERIC, FLOATINGPOINT_TO_FP_GENERIC},
         {cvc5::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV},
         {cvc5::Kind::FLOATINGPOINT_TO_UBV, FLOATINGPOINT_TO_UBV},
         {cvc5::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, INTERNAL_KIND},
@@ -720,8 +715,7 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      FLOATINGPOINT_TO_FP_FROM_FP,
      FLOATINGPOINT_TO_FP_FROM_REAL,
      FLOATINGPOINT_TO_FP_FROM_SBV,
-     FLOATINGPOINT_TO_FP_FROM_UBV,
-     FLOATINGPOINT_TO_FP_GENERIC});
+     FLOATINGPOINT_TO_FP_FROM_UBV});
 
 namespace {
 
@@ -920,25 +914,22 @@ Result::Result() : d_result(new cvc5::Result()) {}
 
 bool Result::isNull() const
 {
-  return d_result->getType() == cvc5::Result::TYPE_NONE;
+  return d_result->getStatus() == cvc5::Result::NONE;
 }
 
 bool Result::isSat(void) const
 {
-  return d_result->getType() == cvc5::Result::TYPE_SAT
-         && d_result->isSat() == cvc5::Result::SAT;
+  return d_result->getStatus() == cvc5::Result::SAT;
 }
 
 bool Result::isUnsat(void) const
 {
-  return d_result->getType() == cvc5::Result::TYPE_SAT
-         && d_result->isSat() == cvc5::Result::UNSAT;
+  return d_result->getStatus() == cvc5::Result::UNSAT;
 }
 
-bool Result::isSatUnknown(void) const
+bool Result::isUnknown(void) const
 {
-  return d_result->getType() == cvc5::Result::TYPE_SAT
-         && d_result->isSat() == cvc5::Result::SAT_UNKNOWN;
+  return d_result->getStatus() == cvc5::Result::UNKNOWN;
 }
 
 bool Result::operator==(const Result& r) const
@@ -953,7 +944,7 @@ bool Result::operator!=(const Result& r) const
 
 Result::UnknownExplanation Result::getUnknownExplanation(void) const
 {
-  cvc5::Result::UnknownExplanation expl = d_result->whyUnknown();
+  cvc5::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
   switch (expl)
   {
     case cvc5::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
@@ -1880,7 +1871,6 @@ size_t Op::getNumIndicesHelper() const
     case FLOATINGPOINT_TO_FP_FROM_REAL: size = 2; break;
     case FLOATINGPOINT_TO_FP_FROM_SBV: size = 2; break;
     case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
-    case FLOATINGPOINT_TO_FP_GENERIC: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
       size = d_node->getConst<TupleProjectOp>().getIndices().size();
@@ -2020,15 +2010,6 @@ Term Op::getIndexHelper(size_t index) const
     {
       cvc5::FloatingPointToFPUnsignedBitVector ext =
           d_node->getConst<FloatingPointToFPUnsignedBitVector>();
-      t = index == 0
-              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
-              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
-      break;
-    }
-    case FLOATINGPOINT_TO_FP_GENERIC:
-    {
-      cvc5::FloatingPointToFPGeneric ext =
-          d_node->getConst<FloatingPointToFPGeneric>();
       t = index == 0
               ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
               : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
@@ -6287,13 +6268,6 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
                kind,
                *mkValHelper<cvc5::FloatingPointToFPUnsignedBitVector>(
                     cvc5::FloatingPointToFPUnsignedBitVector(arg1, arg2))
-                    .d_node);
-      break;
-    case FLOATINGPOINT_TO_FP_GENERIC:
-      res = Op(this,
-               kind,
-               *mkValHelper<cvc5::FloatingPointToFPGeneric>(
-                    cvc5::FloatingPointToFPGeneric(arg1, arg2))
                     .d_node);
       break;
     case REGEXP_LOOP:

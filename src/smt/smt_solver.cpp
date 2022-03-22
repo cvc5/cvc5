@@ -136,7 +136,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     {
       Result::UnknownExplanation why =
           rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
-      result = Result(Result::ENTAILMENT_UNKNOWN, why);
+      result = Result(Result::UNKNOWN, why);
     }
     else
     {
@@ -161,20 +161,20 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
       if ((d_env.getOptions().smt.solveRealAsInt
            || d_env.getOptions().smt.solveIntAsBV > 0)
-          && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
+          && result.getStatus() == Result::UNSAT)
       {
-        result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+        result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
       }
       // flipped if we did a global negation
       if (as.isGlobalNegated())
       {
         Trace("smt") << "SmtSolver::process global negate " << result
                      << std::endl;
-        if (result.asSatisfiabilityResult().isSat() == Result::UNSAT)
+        if (result.getStatus() == Result::UNSAT)
         {
           result = Result(Result::SAT);
         }
-        else if (result.asSatisfiabilityResult().isSat() == Result::SAT)
+        else if (result.getStatus() == Result::SAT)
         {
           // Only can answer unsat if the theory is satisfaction complete. This
           // includes linear arithmetic and bitvectors, which are the primary
@@ -188,7 +188,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
           }
           else
           {
-            result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+            result = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
           }
         }
         Trace("smt") << "SmtSolver::global negate returned " << result

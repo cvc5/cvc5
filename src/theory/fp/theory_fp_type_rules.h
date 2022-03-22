@@ -138,13 +138,6 @@ class FloatingPointToFPUnsignedBitVectorTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-/** Generic type rule for floating-point to_fp conversion. */
-class FloatingPointToFPGenericTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 /** Type rule for conversion from floating-point to unsigned bit-vector. */
 class FloatingPointToUBVTypeRule
 {
