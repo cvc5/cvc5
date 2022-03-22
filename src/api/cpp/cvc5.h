@@ -293,12 +293,6 @@ std::ostream& operator<<(std::ostream& out,
  * methods:
  *   checkSynth,
  *   checkSynthNext,
- *   getAbduct,
- *   getAbductNext,
- *   getInterpolant,
- *   getInterpolantNext,
- *   getQuantifierElimination,
- *   getQuantifierEliminationDisjunct,
  * which we call synthesis queries. This class indicates whether the call was
  * successful, whether there was a solution, and if so what that solution is.
  */
