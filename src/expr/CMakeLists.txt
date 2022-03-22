@@ -15,6 +15,8 @@
 
 libcvc5_add_sources(
   algorithm/flatten.h
+  annotation_elim_node_converter.cpp
+  annotation_elim_node_converter.h
   array_store_all.cpp
   array_store_all.h
   ascription_type.cpp

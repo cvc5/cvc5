@@ -42,7 +42,7 @@ class ResultTest
     assertTrue(res_null.isNull());
     assertFalse(res_null.isSat());
     assertFalse(res_null.isUnsat());
-    assertFalse(res_null.isSatUnknown());
+    assertFalse(res_null.isUnknown());
     Sort u_sort = d_solver.mkUninterpretedSort("u");
     Term x = d_solver.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
@@ -70,7 +70,7 @@ class ResultTest
     d_solver.assertFormula(x.eqTerm(x));
     Result res = d_solver.checkSat();
     assertTrue(res.isSat());
-    assertFalse(res.isSatUnknown());
+    assertFalse(res.isUnknown());
   }
 
   @Test void isUnsat()
@@ -80,11 +80,11 @@ class ResultTest
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
     assertTrue(res.isUnsat());
-    assertFalse(res.isSatUnknown());
+    assertFalse(res.isUnknown());
   }
 
-  @Test void isSatUnknown() throws CVC5ApiException
-  {
+  @Test
+  void isUnknown() throws CVC5ApiException {
     d_solver.setLogic("QF_NIA");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("solve-int-as-bv", "32");
@@ -93,6 +93,6 @@ class ResultTest
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
-    assertTrue(res.isSatUnknown());
+    assertTrue(res.isUnknown());
   }
 }
