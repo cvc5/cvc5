@@ -1993,7 +1993,7 @@ cdef class Solver:
         :param option: the option for which the value is queried
         :return: a string representation of the option value
         """
-        return self.csolver.getOption(option.encode())
+        return self.csolver.getOption(option.encode()).decode()
 
     def getOptionNames(self):
         """Get all option names that can be used with `setOption`, `getOption` and `getOptionInfo`.

@@ -1176,7 +1176,8 @@ def test_get_op(solver):
 
 
 def test_get_option(solver):
-    solver.getOption("incremental")
+    solver.setOption("incremental", "true")
+    assert solver.getOption("incremental") == "true"
     with pytest.raises(RuntimeError):
         solver.getOption("asdf")
 
