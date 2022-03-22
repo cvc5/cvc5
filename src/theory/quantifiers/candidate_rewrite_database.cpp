@@ -262,6 +262,17 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }
+      // If we failed to verify, then we return the original term. This is done
+      // so that the user of this method is not told of a rewrite rule that
+      // may not hold. Furthermore, note that the term is not added to the lazy
+      // trie in the sygus sampler. This means that the set of rewrites is not
+      // complete, as we are discarding the current solution. Ideally, we would
+      // store a list of terms (that are pairwise unknown to be equal) at each
+      // leaf of the lazy trie.
+      if (!verified)
+      {
+        eq_sol = sol;
+      }
     }
     // We count this as a rewrite if we did not explicitly rule it out.
     // The value of is_unique_term is false iff this call resulted in a rewrite.

@@ -1024,13 +1024,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     api::Term ret;
     if (p.d_kind == api::APPLY_SELECTOR)
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+      ret = d_solver->mkTerm(api::APPLY_SELECTOR,
+                             {dt[0][n].getSelectorTerm(), args[0]});
     }
     else
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+      ret = d_solver->mkTerm(api::APPLY_UPDATER,
+                             {dt[0][n].getUpdaterTerm(), args[0], args[1]});
     }
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
@@ -1088,7 +1088,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                         << std::endl;
         return ret;
       }
-      api::Term ret = d_solver->mkTerm(api::NEG, args[0]);
+      api::Term ret = d_solver->mkTerm(api::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
@@ -1105,7 +1105,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
+      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, {args[0]});
       Trace("parser") << "applyParseOp: return set.singleton " << ret
                       << std::endl;
       return ret;
