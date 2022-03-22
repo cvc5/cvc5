@@ -13,15 +13,15 @@ Except for the overall time limit (see below), the limits are checked by cvc5 it
 Due to the way cvc5 checks these limits (see below), cvc5 may not precisely honor per-call time limits: if a subroutine requires a long time to finish without spending resources itself, cvc5 only realizes afterwards that the timeout has (long) passed.
 
 
-Overall time limit (:ref:`--tlimit <lbl-option-tlimit>`)
---------------------------------------------------------
+Overall time limit (:ref:`tlimit <lbl-option-tlimit>` option)
+-------------------------------------------------------------
 
 The :ref:`tlimit <lbl-option-tlimit>` option limits the overall running time of the cvc5 solver binary.
-It is implemented using an asynchronous interrupt that is usually managed by the operating system (using `setitimer`).
-When this interrupt occurs, cvc5 outputs a corresponding message, prints the current statistics and immediately terminates its process. The same is done when an external resource limiting mechanism is in place, for example `ulimit`.
+It is implemented using an asynchronous interrupt that is usually managed by the operating system (using ``setitimer``).
+When this interrupt occurs, cvc5 outputs a corresponding message, prints the current statistics and immediately terminates its process. The same is done when an external resource limiting mechanism is in place, for example ``ulimit``.
 
 This mechanism is inherently unsuited when cvc5 is used within another application process via one of its APIs: therefore, it is only honored when running as a standalone binary.
-Setting :ref:`tlimit <lbl-option-tlimit>` via the API or the `(set-option)` SMT-LIB command has thus no effect.
+Setting :ref:`tlimit <lbl-option-tlimit>` via the API or the ``(set-option)`` SMT-LIB command has thus no effect.
 
 
 Resource manager and resource spending
@@ -35,4 +35,4 @@ Then, it returns `unknown` (with an :cpp:enum:`explanation <cvc5::api::Result::U
 
 The intention of a resource limit is to be a deterministic measure that grows (linearly, if possible) with actual running time.
 Resources are spent when lemmas are generated and during a few select events like preprocessing, rewriting, decisions and restarts in the SAT solver, or theory checks.
-In case the resource spending does not properly reflect the running time, the weights of the individual resources can be modified using the :ref:`rweight <lbl-option-rweight>` option, for example with `--rweight=RestartStep=5`.
+In case the resource spending does not properly reflect the running time, the weights of the individual resources can be modified using the :ref:`rweight <lbl-option-rweight>` option, for example with ``--rweight=RestartStep=5``.
