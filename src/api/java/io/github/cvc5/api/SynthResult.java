@@ -57,7 +57,8 @@ public class SynthResult extends AbstractPointer
   private native boolean hasSolution(long pointer);
 
   /**
-   * Return true if the synthesis query has no solution. In this case, it was determined there was no solution.
+   * Return true if the synthesis query has no solution. In this case, it was determined there was
+   * no solution.
    */
   public boolean hasNoSolution()
   {
@@ -69,7 +70,8 @@ public class SynthResult extends AbstractPointer
   /**
    * Return true if result of the synthesis query could not be determined.
    */
-  public boolean isUnknown() {
+  public boolean isUnknown()
+  {
     return isUnknown(pointer);
   }
 

@@ -322,7 +322,8 @@ class CVC5_EXPORT SynthResult
   bool hasSolution() const;
 
   /**
-   * Return true if the synthesis query has no solution. In this case, then it was determined there was no solution.
+   * Return true if the synthesis query has no solution. In this case, then it
+   * was determined there was no solution.
    */
   bool hasNoSolution() const;
 

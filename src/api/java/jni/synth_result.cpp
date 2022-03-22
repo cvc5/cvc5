@@ -24,8 +24,8 @@ using namespace cvc5::api;
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_SynthResult_deletePointer(JNIEnv*, jobject, jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_SynthResult_deletePointer(
+    JNIEnv*, jobject, jlong pointer)
 {
   delete ((SynthResult*)pointer);
 }
@@ -35,9 +35,8 @@ Java_io_github_cvc5_api_SynthResult_deletePointer(JNIEnv*, jobject, jlong pointe
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_isNull(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_SynthResult_isNull(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* current = (SynthResult*)pointer;
@@ -50,9 +49,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_isNull(JNIEnv* en
  * Method:    hasSolution
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_hasSolution(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_hasSolution(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* current = (SynthResult*)pointer;
@@ -65,9 +63,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_hasSolution(JNIEn
  * Method:    hasNoSolution
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_hasNoSolution(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_hasNoSolution(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* current = (SynthResult*)pointer;
@@ -80,8 +77,8 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_hasNoSolution(JNI
  * Method:    isUnknown
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_SynthResult_isUnknown(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_SynthResult_isUnknown(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* current = (SynthResult*)pointer;
@@ -94,9 +91,8 @@ Java_io_github_cvc5_api_SynthResult_isUnknown(JNIEnv* env, jobject, jlong pointe
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_SynthResult_toString(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_SynthResult_toString(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* current = (SynthResult*)pointer;

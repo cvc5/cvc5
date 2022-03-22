@@ -55,7 +55,6 @@
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
-#include "util/synth_result.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
@@ -84,6 +83,7 @@
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 #include "util/string.h"
+#include "util/synth_result.h"
 #include "util/uninterpreted_sort_value.h"
 #include "util/utility.h"
 
@@ -998,10 +998,7 @@ SynthResult::SynthResult(const cvc5::SynthResult& r)
 {
 }
 
-SynthResult::SynthResult()
-    : d_result(new cvc5::SynthResult())
-{
-}
+SynthResult::SynthResult() : d_result(new cvc5::SynthResult()) {}
 
 bool SynthResult::isNull() const
 {
