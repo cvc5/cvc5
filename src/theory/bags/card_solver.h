@@ -111,6 +111,9 @@ class CardSolver : protected EnvObj
                    const Node& parent,
                    const std::set<Node>& children);
 
+  /** Send a lemma and update d_hasNewPendingLemmas if inferInfo is new. */
+  void sendInferInfo(InferInfo& inferInfo);
+
   /** The solver state object */
   SolverState& d_state;
   /** The inference generator object*/
@@ -133,7 +136,8 @@ class CardSolver : protected EnvObj
    * This map needs to cleared before each full effort check.
    */
   std::map<Node, std::set<std::set<Node>>> d_cardGraph;
-
+  /** does this solver have new pending lemmas? */
+  bool d_hasNewPendingLemmas;
   /** Commonly used constants */
   Node d_true;
   Node d_false;

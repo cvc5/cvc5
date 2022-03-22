@@ -65,18 +65,14 @@ std::set<Node> CardSolver::getChildren(Node bag)
 
 void CardSolver::checkCardinalityGraph()
 {
-  for (const auto& pair : d_state.getCardinalityTerms())
+  d_hasNewPendingLemmas = false;
+  const std::map<Node, Node>& cardinalityTerms = d_state.getCardinalityTerms();
+  for (const auto& pair : cardinalityTerms)
   {
     Trace("bags-card") << "CardSolver::checkCardinalityGraph cardTerm: " << pair
                        << std::endl;
     Assert(pair.first.getKind() == BAG_CARD);
-    if (!d_state.hasTerm(pair.first[0]))
-    {
-      // new bag terms might be added in previous iterations of this loop.
-      // so we can skip them until they are added in the equality engine after
-      // processing pending lemmas
-      continue;
-    }
+    Assert(d_state.hasTerm(pair.first[0]));
     Node bag = d_state.getRepresentative(pair.first[0]);
     Trace("bags-card") << "CardSolver::checkCardinalityGraph bag rep: " << bag
                        << std::endl;
@@ -102,16 +98,18 @@ void CardSolver::checkCardinalityGraph()
         case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
         default: break;
       }
+      if (d_hasNewPendingLemmas)
+      {
+        // exit with each new pending lemma
+        return;
+      }
       it++;
     }
     // if the bag is a leaf in the graph, then we reduce its cardinality
     checkLeafBag(pair, bag);
-  }
-
-  for (const auto& pair : d_state.getCardinalityTerms())
-  {
+    // cardinality term is non-negative
     InferInfo i = d_ig.nonNegativeCardinality(pair.second);
-    d_im.lemmaTheoryInference(&i);
+    sendInferInfo(i);
   }
 }
 
@@ -119,14 +117,14 @@ void CardSolver::checkEmpty(const std::pair<Node, Node>& pair, const Node& n)
 {
   Assert(n.getKind() == BAG_EMPTY);
   InferInfo i = d_ig.cardEmpty(pair, n);
-  d_im.lemmaTheoryInference(&i);
+  sendInferInfo(i);
 }
 
 void CardSolver::checkBagMake(const std::pair<Node, Node>& pair, const Node& n)
 {
   Assert(n.getKind() == BAG_MAKE);
   InferInfo i = d_ig.cardBagMake(pair, n);
-  d_im.lemmaTheoryInference(&i);
+  sendInferInfo(i);
 }
 
 void CardSolver::checkUnionDisjoint(const std::pair<Node, Node>& pair,
@@ -192,12 +190,14 @@ void CardSolver::addChildren(const Node& premise,
       i.d_conclusion = d_nm->mkNode(AND, emptyBags);
     }
     Trace("bags-card") << "CardSolver::addChildren info: " << i << std::endl;
-    d_im.lemmaTheoryInference(&i);
+    sendInferInfo(i);
+    Trace("bags-card") << "d_hasNewPendingLemmas: " << d_hasNewPendingLemmas
+                       << std::endl;
     return;
   }
   // add inferences
   InferInfo i = d_ig.cardUnionDisjoint(premise, parent, children);
-  d_im.lemmaTheoryInference(&i);
+  sendInferInfo(i);
 
   // make sure parent is in the graph
   if (d_cardGraph.count(parent) == 0)
@@ -246,7 +246,7 @@ void CardSolver::addChildren(const Node& premise,
       InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       inferInfo.d_premises.push_back(premise);
       inferInfo.d_conclusion = d_nm->mkNode(AND, asserts);
-      d_im.lemmaTheoryInference(&inferInfo);
+      sendInferInfo(inferInfo);
     }
   }
 }
@@ -307,7 +307,7 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
       bags::InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       Node leq = d_nm->mkNode(LEQ, pairs[i].second, pair.second);
       inferInfo.d_conclusion = leq;
-      d_im.lemmaTheoryInference(&inferInfo);
+      sendInferInfo(inferInfo);
       for (size_t j = i + 1; j < pairs.size(); j++)
       {
         std::vector<Node> distinct;
@@ -331,9 +331,18 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
         bags::InferInfo sumInfo(&d_im, InferenceId::BAGS_CARD);
         Node sumLEQ = d_nm->mkNode(LEQ, sum, pair.second);
         sumInfo.d_conclusion = premise.negate().orNode(sumLEQ);
-        d_im.lemmaTheoryInference(&sumInfo);
+        sendInferInfo(sumInfo);
       }
     }
+  }
+}
+
+void CardSolver::sendInferInfo(InferInfo& inferInfo)
+{
+  if (!inferInfo.isCachedLemma())
+  {
+    d_hasNewPendingLemmas = true;
+    d_im.lemmaTheoryInference(&inferInfo);
   }
 }
 

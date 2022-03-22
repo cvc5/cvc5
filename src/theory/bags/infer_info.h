@@ -46,6 +46,8 @@ class InferInfo : public TheoryInference
   TrustNode processLemma(LemmaProperty& p) override;
   /** Pointer to the class used for processing this info */
   InferenceManagerBuffered* d_im;
+  /** default lemmaProperty for bags */
+  LemmaProperty d_lemmaProperty;
   /** The conclusion */
   Node d_conclusion;
   /**
@@ -72,6 +74,14 @@ class InferInfo : public TheoryInference
    * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
+  /**
+   * @return the lemma for this InferInfo.
+   */
+  Node getLemma() const;
+  /**
+   * @return whether this InferInfo represents a cached lemma.
+   */
+  bool isCachedLemma() const;
 };
 
 /**
