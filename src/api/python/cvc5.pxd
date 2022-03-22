@@ -124,6 +124,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Op() except +
         bint operator==(const Op&) except +
         bint operator!=(const Op&) except +
+        Term operator[](size_t idx) except +
         Kind getKind() except +
         Sort getSort() except +
         bint isNull() except +

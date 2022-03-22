@@ -499,6 +499,14 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
+    def __getitem__(self, size_t i):
+        """
+            :return: the ``i``th index of this operator, as a Term
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cop[i]
+        return term
+
 cdef class Grammar:
     """
         A Sygus Grammar.
