@@ -41,7 +41,7 @@ namespace cvc5 {
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
  * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments). 
  * Note that premises are sometimes given as proofs, i.e., application of
- * proof rules, instead of formulas.
+ * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably. 
  *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
