@@ -332,13 +332,14 @@ class CVC5_EXPORT SynthResult
 
   /**
    * Get the solution of this synthesis query. Should only be called if
-   * hasSolution is true and the number of solution terms for this result is
-   * one.
+   * hasSolution is true.
    */
   Term getSolution() const;
 
   /**
-   * Get solutions for. Should only be called if hasSolution is true.
+   * Get solutions for functions. Should only be called if hasSolution is true.
+   * Must be called on a SynthResult returned by a call to checkSynth or
+   * checkSynthNext only.
    */
   std::vector<Term> getSolutionsFor(const std::vector<Term>& funs) const;
 
