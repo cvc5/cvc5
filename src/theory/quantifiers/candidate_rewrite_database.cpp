@@ -147,7 +147,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
-        if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+        if (r.getStatus() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
           NodeManager* nm = NodeManager::currentNM();
@@ -191,7 +191,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         }
         else
         {
-          verified = !r.asSatisfiabilityResult().isUnknown();
+          verified = !r.isUnknown();
         }
       }
       else

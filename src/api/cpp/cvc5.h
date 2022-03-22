@@ -222,7 +222,7 @@ class CVC5_EXPORT Result
    * Return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  bool isSatUnknown() const;
+  bool isUnknown() const;
 
   /**
    * Operator overloading for equality of two results.

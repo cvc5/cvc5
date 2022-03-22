@@ -920,25 +920,22 @@ Result::Result() : d_result(new cvc5::Result()) {}
 
 bool Result::isNull() const
 {
-  return d_result->getType() == cvc5::Result::TYPE_NONE;
+  return d_result->getStatus() == cvc5::Result::NONE;
 }
 
 bool Result::isSat(void) const
 {
-  return d_result->getType() == cvc5::Result::TYPE_SAT
-         && d_result->isSat() == cvc5::Result::SAT;
+  return d_result->getStatus() == cvc5::Result::SAT;
 }
 
 bool Result::isUnsat(void) const
 {
-  return d_result->getType() == cvc5::Result::TYPE_SAT
-         && d_result->isSat() == cvc5::Result::UNSAT;
+  return d_result->getStatus() == cvc5::Result::UNSAT;
 }
 
-bool Result::isSatUnknown(void) const
+bool Result::isUnknown(void) const
 {
-  return d_result->getType() == cvc5::Result::TYPE_SAT
-         && d_result->isSat() == cvc5::Result::SAT_UNKNOWN;
+  return d_result->getStatus() == cvc5::Result::UNKNOWN;
 }
 
 bool Result::operator==(const Result& r) const
@@ -953,7 +950,7 @@ bool Result::operator!=(const Result& r) const
 
 Result::UnknownExplanation Result::getUnknownExplanation(void) const
 {
-  cvc5::Result::UnknownExplanation expl = d_result->whyUnknown();
+  cvc5::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
   switch (expl)
   {
     case cvc5::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
