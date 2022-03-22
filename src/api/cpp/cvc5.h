@@ -50,6 +50,7 @@ class Options;
 class Random;
 class Rational;
 class Result;
+class SynthResult;
 class StatisticsRegistry;
 
 namespace main {
@@ -257,7 +258,7 @@ class CVC5_EXPORT Result
   Result(const cvc5::Result& r);
 
   /**
-   * The interal result wrapped by this result.
+   * The internal result wrapped by this result.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
    *       since ``cvc5::Result`` is not ref counted.
@@ -281,6 +282,94 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC5_EXPORT;
+
+/* -------------------------------------------------------------------------- */
+/* Result                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Encapsulation of a solver synth result.
+ */
+class CVC5_EXPORT SynthResult
+{
+  friend class Solver;
+
+ public:
+
+  /** Constructor. */
+  SynthResult();
+
+  /**
+   * Return true if Result is empty, i.e., a nullary Result, and not an actual
+   * result returned from a checkSat() (and friends) query.
+   */
+  bool isSuccess() const;
+
+  /**
+   * Return true if query was a satisfiable checkSat() or checkSatAssuming()
+   * query.
+   */
+  bool hasSolution() const;
+  
+  /**
+   * Get the solution of this synthesis query. Should only be called if
+   * the number of solution terms for this result is one.
+   */
+  Term getSolution() const;
+
+  /**
+   * Get solution list.
+   */
+  std::vector<Term> getSolutionList() const;
+
+  /**
+   * Operator overloading for equality of two results.
+   * @param r the result to compare to for equality
+   * @return true if the results are equal
+   */
+  bool operator==(const SynthResult& r) const;
+
+  /**
+   * Operator overloading for disequality of two results.
+   * @param r the result to compare to for disequality
+   * @return true if the results are disequal
+   */
+  bool operator!=(const SynthResult& r) const;
+
+  /**
+   * @return an explanation for an unknown query result.
+   */
+  UnknownExplanation getUnknownExplanation() const;
+
+  /**
+   * @return a string representation of this result.
+   */
+  std::string toString() const;
+
+ private:
+  /**
+   * Constructor.
+   * @param r the internal synth result that is to be wrapped by this synth result
+   * @return the SynthResult
+   */
+  SynthResult(const cvc5::SynthResult& r);
+
+  /**
+   * The internal result wrapped by this result.
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::Result`` is not ref counted.
+   */
+  std::shared_ptr<cvc5::SynthResult> d_result;
+};
+
+/**
+ * Serialize a Result to given stream.
+ * @param out the output stream
+ * @param r the result to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const SynthResult& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
