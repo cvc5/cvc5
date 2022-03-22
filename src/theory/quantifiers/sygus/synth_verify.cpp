@@ -111,7 +111,7 @@ Result SynthVerify::verify(Node query,
   Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
   query = rewrite(query);
   Result r;
-  if (options().quantifiers.sygusVerifyTimeoutWasSetByUser)
+  if (options().quantifiers.sygusVerifyTimeout != 0)
   {
     u_int64_t timeout = options().quantifiers.sygusVerifyTimeout;
     r = checkWithSubsolver(

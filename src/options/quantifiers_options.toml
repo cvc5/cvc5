@@ -1322,7 +1322,7 @@ name   = "Quantifiers"
   name       = "sygusVerifyTimeout"
   category   = "regular"
   long       = "sygus-verify-timeout=N"
-  type       = "int64_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
 
