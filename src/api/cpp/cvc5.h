@@ -62,6 +62,7 @@ namespace api {
 class Solver;
 class Statistics;
 struct APIStatistics;
+class Term;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -346,11 +347,16 @@ class CVC5_EXPORT SynthResult
  private:
   /**
    * Constructor.
+   * @param s the solver this synthesis result is for
    * @param r the internal synth result that is to be wrapped by this synth result
    * @return the SynthResult
    */
-  SynthResult(const cvc5::SynthResult& r);
+  SynthResult(const Solver* s, const cvc5::SynthResult& r);
 
+  /**
+   * The associated solver object.
+   */
+  const Solver* d_solver;
   /**
    * The internal result wrapped by this result.
    *
