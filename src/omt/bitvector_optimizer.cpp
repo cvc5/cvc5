@@ -54,7 +54,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
   // Model-value of objective (used in optimization loop)
   Node value;
   if (intermediateSatResult.isUnknown()
-      || intermediateSatResult.isSat() == Result::UNSAT)
+      || intermediateSatResult.getStatus() == Result::UNSAT)
   {
     return OptimizationResult(intermediateSatResult, value);
   }
@@ -102,9 +102,9 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
                      nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
     }
     intermediateSatResult = optChecker->checkSat();
-    switch (intermediateSatResult.isSat())
+    switch (intermediateSatResult.getStatus())
     {
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         optChecker->pop();
         return OptimizationResult(intermediateSatResult, value);
       case Result::SAT:
@@ -143,7 +143,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
   // Model-value of objective (used in optimization loop)
   Node value;
   if (intermediateSatResult.isUnknown()
-      || intermediateSatResult.isSat() == Result::UNSAT)
+      || intermediateSatResult.getStatus() == Result::UNSAT)
   {
     return OptimizationResult(intermediateSatResult, value);
   }
@@ -188,9 +188,9 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
                    nm->mkNode(GTOperator, target, nm->mkConst(pivot)),
                    nm->mkNode(LEOperator, target, nm->mkConst(upperBound))));
     intermediateSatResult = optChecker->checkSat();
-    switch (intermediateSatResult.isSat())
+    switch (intermediateSatResult.getStatus())
     {
-      case Result::SAT_UNKNOWN:
+      case Result::UNKNOWN:
         optChecker->pop();
         return OptimizationResult(intermediateSatResult, value);
       case Result::SAT:

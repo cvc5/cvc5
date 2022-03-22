@@ -83,15 +83,22 @@ class Smt2 : public Parser
    * Registers an indexed function symbol.
    *
    * @param tKind The kind of the term that uses the operator kind (e.g.
-   *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
-   *              because that is what we use to create expressions. Eventually
-   *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
+   *              BITVECTOR_EXTRACT). If an indexed function symbol is
+   *              overloaded (e.g., `to_fp`), this argument should
+   *              be`UNDEFINED_KIND`.
    * @param name The name of the symbol (e.g. "extract")
    */
   void addIndexedOperator(api::Kind tKind,
-                          api::Kind opKind,
                           const std::string& name);
+  /**
+   * Checks whether an indexed operator is enabled. All indexed operators in
+   * the current logic are considered to be enabled. This includes operators
+   * such as `to_fp`, which do not correspond to a single kind.
+   *
+   * @param name The name of the indexed operator.
+   * @return true if the indexed operator is enabled.
+   */
+  bool isIndexedOperatorEnabled(const std::string& name) const;
 
   api::Kind getOperatorKind(const std::string& name) const;
 
