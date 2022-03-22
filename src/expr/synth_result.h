@@ -42,7 +42,7 @@ class SynthResult
     SUCCESS,
     // the synthesis query resulted in failure, i.e. there is no solution
     FAIL,
-    // the synthesis query is unknown, i.e. it is not know whether there is a
+    // the synthesis query is unknown, i.e. it is not known whether there is a
     // solution.
     UNKNOWN
   };
