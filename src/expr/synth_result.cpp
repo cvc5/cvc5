@@ -45,7 +45,10 @@ Result::UnknownExplanation SynthResult::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
-const std::map<Node, Node>& SynthResult::getSolution() const { return d_solution; }
+const std::map<Node, Node>& SynthResult::getSolution() const
+{
+  return d_solution;
+}
 
 std::string SynthResult::toString() const
 {

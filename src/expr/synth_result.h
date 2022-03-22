@@ -65,7 +65,7 @@ class SynthResult
 
   /** Get the solution */
   Node getSolution() const;
-  
+
   /** Get the solution, which maps functions-to-synthesize to their solutions */
   const std::map<Node, Node>& getSolutionMap() const;
 
