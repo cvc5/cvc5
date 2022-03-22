@@ -37,9 +37,9 @@ void test(Solver& slv, Sort& consListSort)
   // APPLY_CONSTRUCTOR, even though it has no arguments.
   Term t = slv.mkTerm(
       APPLY_CONSTRUCTOR,
-      consList.getConstructorTerm("cons"),
-      slv.mkInteger(0),
-      slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
+      {consList.getConstructorTerm("cons"),
+       slv.mkInteger(0),
+       slv.mkTerm(APPLY_CONSTRUCTOR, {consList.getConstructorTerm("nil")})});
 
   std::cout << "t is " << t << std::endl
             << "sort of cons is "
@@ -53,7 +53,7 @@ void test(Solver& slv, Sort& consListSort)
   // consList["cons"]) in order to get the "head" selector symbol
   // to apply.
   Term t2 =
-      slv.mkTerm(APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t);
+      slv.mkTerm(APPLY_SELECTOR, {consList["cons"].getSelectorTerm("head"), t});
 
   std::cout << "t2 is " << t2 << std::endl
             << "simplify(t2) is " << slv.simplify(t2) << std::endl
@@ -85,16 +85,15 @@ void test(Solver& slv, Sort& consListSort)
 
   // You can also define a tester term for constructor 'cons': (_ is cons)
   Term t_is_cons =
-      slv.mkTerm(APPLY_TESTER, consList["cons"].getTesterTerm(), t);
+      slv.mkTerm(APPLY_TESTER, {consList["cons"].getTesterTerm(), t});
   std::cout << "t_is_cons is " << t_is_cons << std::endl << std::endl;
   slv.assertFormula(t_is_cons);
   // Updating t at 'head' with value 1 is defined as follows:
-  Term t_updated = slv.mkTerm(APPLY_UPDATER,
-                              consList["cons"]["head"].getUpdaterTerm(),
-                              t,
-                              slv.mkInteger(1));
+  Term t_updated = slv.mkTerm(
+      APPLY_UPDATER,
+      {consList["cons"]["head"].getUpdaterTerm(), t, slv.mkInteger(1)});
   std::cout << "t_updated is " << t_updated << std::endl << std::endl;
-  slv.assertFormula(slv.mkTerm(DISTINCT, t, t_updated));
+  slv.assertFormula(slv.mkTerm(DISTINCT, {t, t_updated}));
 
   // You can also define parameterized datatypes.
   // This example builds a simple parameterized list of sort T, with one
@@ -129,15 +128,15 @@ void test(Solver& slv, Sort& consListSort)
   Term a = slv.mkConst(paramConsIntListSort, "a");
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
-  Term head_a = slv.mkTerm(
-      APPLY_SELECTOR, paramConsList["cons"].getSelectorTerm("head"), a);
+  Term head_a = slv.mkTerm(APPLY_SELECTOR,
+                           {paramConsList["cons"].getSelectorTerm("head"), a});
   std::cout << "head_a is " << head_a << " of sort " << head_a.getSort()
             << std::endl
             << "sort of cons is "
             << paramConsList.getConstructorTerm("cons").getSort() << std::endl
             << std::endl;
 
-  Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
+  Term assertion = slv.mkTerm(GT, {head_a, slv.mkInteger(50)});
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;

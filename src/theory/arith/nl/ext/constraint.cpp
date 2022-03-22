@@ -41,7 +41,7 @@ void ConstraintDb::registerConstraint(Node atom)
   if (ArithMSum::getMonomialSumLit(atom, msum))
   {
     Trace("nl-ext-debug") << "got monomial sum: " << std::endl;
-    if (Trace.isOn("nl-ext-debug"))
+    if (TraceIsOn("nl-ext-debug"))
     {
       ArithMSum::debugPrintMonomialSum(msum, "nl-ext-debug");
     }

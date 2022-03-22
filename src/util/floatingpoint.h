@@ -438,20 +438,6 @@ class FloatingPointToFPUnsignedBitVector : public FloatingPointConvertSort
   }
 };
 
-class FloatingPointToFPGeneric : public FloatingPointConvertSort
-{
- public:
-  /** Constructors. */
-  FloatingPointToFPGeneric(uint32_t _e, uint32_t _s)
-      : FloatingPointConvertSort(_e, _s)
-  {
-  }
-  FloatingPointToFPGeneric(const FloatingPointConvertSort& old)
-      : FloatingPointConvertSort(old)
-  {
-  }
-};
-
 /**
  * Base type for floating-point to bit-vector conversion.
  */

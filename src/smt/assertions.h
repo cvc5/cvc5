@@ -69,11 +69,8 @@ class Assertions : protected EnvObj
    * upcoming check-sat call.
    *
    * @param assumptions The assumptions of the upcoming check-sat call.
-   * @param isEntailmentCheck Whether we are checking entailment of assumptions
-   * in the upcoming check-sat call.
    */
-  void initializeCheckSat(const std::vector<Node>& assumptions,
-                          bool isEntailmentCheck);
+  void initializeCheckSat(const std::vector<Node>& assumptions);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for

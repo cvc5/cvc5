@@ -33,7 +33,7 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
   TypeNode tn = tuple.getType();
   const DType& dt = tn.getDType();
   return NodeManager::currentNM()->mkNode(
-      APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
+      APPLY_SELECTOR, dt[0].getSelectorInternal(tn, n_th), tuple);
 }
 
 std::vector<Node> TupleUtils::getTupleElements(Node tuple)

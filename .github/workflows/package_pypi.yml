@@ -13,6 +13,7 @@ jobs:
         os: [ ubuntu-latest, macos-latest ]
 
     runs-on: ${{ matrix.os }}
+    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
 
     steps:
     - uses: actions/checkout@v2
