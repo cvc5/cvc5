@@ -82,7 +82,6 @@ def test_get_num_indices(solver):
     floatingpoint_to_fp_from_real = solver.mkOp(Kind.FPToFpFromReal, 4, 25)
     floatingpoint_to_fp_from_sbv = solver.mkOp(Kind.FPToFpFromSbv, 4, 25)
     floatingpoint_to_fp_from_ubv = solver.mkOp(Kind.FPToFpFromUbv, 4, 25)
-    floatingpoint_to_fp_generic = solver.mkOp(Kind.FPToFpGeneric, 4, 25)
     regexp_loop = solver.mkOp(Kind.RegexpLoop, 2, 3)
 
     assert 2 == bitvector_extract.getNumIndices()
@@ -91,7 +90,6 @@ def test_get_num_indices(solver):
     assert 2 == floatingpoint_to_fp_from_real.getNumIndices()
     assert 2 == floatingpoint_to_fp_from_sbv.getNumIndices()
     assert 2 == floatingpoint_to_fp_from_ubv.getNumIndices()
-    assert 2 == floatingpoint_to_fp_generic.getNumIndices()
     assert 2 == regexp_loop.getNumIndices()
 
     # Operators with n indices
@@ -137,7 +135,6 @@ def test_subscript_operator(solver):
     floatingpoint_to_fp_from_real = solver.mkOp(Kind.FPToFpFromReal, 7, 6)
     floatingpoint_to_fp_from_sbv = solver.mkOp(Kind.FPToFpFromSbv, 9, 8)
     floatingpoint_to_fp_from_ubv = solver.mkOp(Kind.FPToFpFromUbv, 11, 10)
-    floatingpoint_to_fp_generic = solver.mkOp(Kind.FPToFpGeneric, 13, 12)
     regexp_loop = solver.mkOp(Kind.RegexpLoop, 15, 14)
 
     assert 1 == bitvector_extract[0].getIntegerValue()
@@ -152,8 +149,6 @@ def test_subscript_operator(solver):
     assert 8 == floatingpoint_to_fp_from_sbv[1].getIntegerValue()
     assert 11 == floatingpoint_to_fp_from_ubv[0].getIntegerValue()
     assert 10 == floatingpoint_to_fp_from_ubv[1].getIntegerValue()
-    assert 13 == floatingpoint_to_fp_generic[0].getIntegerValue()
-    assert 12 == floatingpoint_to_fp_generic[1].getIntegerValue()
     assert 15 == regexp_loop[0].getIntegerValue()
     assert 14 == regexp_loop[1].getIntegerValue()
 

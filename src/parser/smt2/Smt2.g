@@ -1656,7 +1656,18 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
+        if (k == api::UNDEFINED_KIND)
+        {
+          // We don't know which kind to use until we know the type of the
+          // arguments
+          p.d_name = opName;
+          // convert uint64_t to uint32_t
+          for(uint32_t numeral : numerals)
+          {
+            p.d_indices.push_back(numeral);
+          }
+        }
+        else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
           // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
           // for tuple selectors and updaters
