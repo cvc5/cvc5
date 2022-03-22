@@ -457,7 +457,7 @@ enum class PfRule : uint32_t
    * **Boolean -- N-ary Resolution**
    *
    * .. math::
-   *   \inferrule{C_1 \dots C_2 \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *   \inferrule{C_1 \dots C_n \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
    *
    * where
    *
