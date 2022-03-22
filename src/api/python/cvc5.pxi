@@ -650,20 +650,20 @@ cdef class SynthResult:
 
     def hasSolution(self):
         """
-            :return: True if query was an usatisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
+            :return: True if the synthesis query has a solution.
         """
         return self.cr.hasSolution()
 
     def hasNoSolution(self):
         """
-            :return: True if this SynthResult is for a synthesis query that had no solution. 
+            :return: True if the synthesis query has no solution.
             If this is true, then it was determined there was no solution.
         """
         return self.cr.hasNoSolution()
 
     def isUnknown(self):
         """
-            :return: True if result of the synthesis query could not be determined.
+            :return: True if the result of the synthesis query could not be determined.
         """
         return self.cr.isUnknown()
 

@@ -317,14 +317,12 @@ class CVC5_EXPORT SynthResult
   bool isNull() const;
 
   /**
-   * Return true if this SynthResult is for a synthesis query that has a
-   * solution.
+   * Return true if the synthesis query that has a solution.
    */
   bool hasSolution() const;
 
   /**
-   * Return true if this SynthResult is for a synthesis query that had no
-   * solution. If this is true, then it was determined there was no solution.
+   * Return true if the synthesis query has no solution. If this is true, then it was determined there was no solution.
    */
   bool hasNoSolution() const;
 

@@ -55,7 +55,7 @@
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
-#include "expr/synth_result.h"
+#include "util/synth_result.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
@@ -993,13 +993,13 @@ std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
 /* SynthResult */
 /* -------------------------------------------------------------------------- */
 
-SynthResult::SynthResult(const Solver* s, const cvc5::SynthResult& r)
-    : d_solver(s), d_result(new cvc5::SynthResult(r))
+SynthResult::SynthResult(const cvc5::SynthResult& r)
+    : d_result(new cvc5::SynthResult(r))
 {
 }
 
 SynthResult::SynthResult()
-    : d_solver(nullptr), d_result(new cvc5::SynthResult())
+    : d_result(new cvc5::SynthResult())
 {
 }
 
@@ -1010,7 +1010,7 @@ bool SynthResult::isNull() const
 
 bool SynthResult::hasSolution(void) const
 {
-  return d_result->getStatus() == cvc5::SynthResult::FOUND_SOLUTION;
+  return d_result->getStatus() == cvc5::SynthResult::SOLUTION;
 }
 
 bool SynthResult::hasNoSolution() const
