@@ -38,9 +38,6 @@ if __name__ == "__main__":
     ext_0_0 = slv.mkOp(Kind.BVExtract, 0, 0)
     x_0_0 = slv.mkTerm(ext_0_0, x)
 
-    # test getting indices
-    assert ext_30_0.getIndices() == (30, 0)
-
     eq = slv.mkTerm(Kind.Equal, x_31_1, x_30_0)
     print("Asserting:", eq)
     slv.assertFormula(eq)

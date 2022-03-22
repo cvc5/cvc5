@@ -53,6 +53,7 @@ extensions = [
         'autoenum',
         'examples',
         'include_build_file',
+        'run_command',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -193,3 +194,8 @@ examples_file_patterns = {
 
 # where to look for include-build-file
 ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
+
+
+# -- custom extension:: run_command ------------------------------------------
+
+runcmd_build = '/' + os.path.relpath('${CMAKE_BINARY_DIR}', '${CMAKE_CURRENT_SOURCE_DIR}')

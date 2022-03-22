@@ -1572,6 +1572,21 @@ def test_block_model_values5(solver):
     solver.checkSat()
     solver.blockModelValues([x])
 
+def test_get_statistics(solver):
+    intSort = solver.getIntegerSort()
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    zero = solver.mkInteger(0)
+    ten = solver.mkInteger(10)
+    f0 = solver.mkTerm(Kind.Geq, x, ten)
+    f1 = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Geq, zero, x), solver.mkTerm(Kind.Geq, y, zero))
+    solver.assertFormula(f0)
+    solver.assertFormula(f1)
+    solver.checkSat()
+    s = solver.getStatistics()
+    assert s['api::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s.get(True, False) != {}
+
 def test_set_info(solver):
     with pytest.raises(RuntimeError):
         solver.setInfo("cvc5-lagic", "QF_BV")

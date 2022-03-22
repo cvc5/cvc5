@@ -122,7 +122,7 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
   if (te.isConstructor() && te.getConstructorArity() == 0)
   {
     // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, expr);
+    expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, {expr});
   }
   return expr;
 }
@@ -513,7 +513,7 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
-    expr = d_solver->mkTerm(api::HO_APPLY, expr, args[i]);
+    expr = d_solver->mkTerm(api::HO_APPLY, {expr, args[i]});
   }
   return expr;
 }

@@ -75,9 +75,7 @@ using namespace cvc5::parser;
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
-#undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* @lexer::postinclude */
@@ -117,7 +115,7 @@ using namespace cvc5::parser;
 #undef SYM_MAN
 #define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
