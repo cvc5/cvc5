@@ -436,7 +436,7 @@ enum class PfRule : uint32_t
    *   pivot on the first clause
    * - :math:`L` is the pivot of the resolution, which occurs as is (resp. under
    *   a ``NOT``) in :math:`C_1` and negatively (as is) in :math:`C_2` if
-   *   :math:`pol = true` (:math:`pol = false`).
+   *   :math:`pol = \top` (:math:`pol = \bot`).
    *
    * :math:`C` is a clause resulting from collecting all the literals in
    * :math:`C_1`, minus the first occurrence of the pivot or its negation, and
@@ -583,7 +583,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Contradiction**
    *
    * .. math::
-   *   \inferrule{F, \neg F \mid -}{false}
+   *   \inferrule{F, \neg F \mid -}{\bot}
    *
    * \endverbatim
    */
