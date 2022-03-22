@@ -297,7 +297,7 @@ std::ostream& operator<<(std::ostream& out,
  *   getAbductNext,
  *   getInterpolant,
  *   getInterpolantNext,
- *   getQuantifierElimination, 
+ *   getQuantifierElimination,
  *   getQuantifierEliminationDisjunct,
  * which we call synthesis queries. This class indicates whether the call was
  * successful, whether there was a solution, and if so what that solution is.
@@ -307,7 +307,6 @@ class CVC5_EXPORT SynthResult
   friend class Solver;
 
  public:
-
   /** Constructor. */
   SynthResult();
 
@@ -316,7 +315,7 @@ class CVC5_EXPORT SynthResult
    * from a synthesis query.
    */
   bool isNull() const;
-  
+
   /**
    * Return true if the query
    */
@@ -327,10 +326,11 @@ class CVC5_EXPORT SynthResult
    * query.
    */
   bool hasSolution() const;
-  
+
   /**
    * Get the solution of this synthesis query. Should only be called if
-   * hasSolution is true and the number of solution terms for this result is one.
+   * hasSolution is true and the number of solution terms for this result is
+   * one.
    */
   Term getSolution() const;
 
@@ -348,7 +348,8 @@ class CVC5_EXPORT SynthResult
   /**
    * Constructor.
    * @param s the solver this synthesis result is for
-   * @param r the internal synth result that is to be wrapped by this synth result
+   * @param r the internal synth result that is to be wrapped by this synth
+   * result
    * @return the SynthResult
    */
   SynthResult(const Solver* s, const cvc5::SynthResult& r);

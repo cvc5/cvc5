@@ -55,8 +55,8 @@
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
-#include "expr/type_node.h"
 #include "expr/synth_result.h"
+#include "expr/type_node.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/main_options.h"
@@ -989,12 +989,14 @@ std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
   return out;
 }
 
-
 /* -------------------------------------------------------------------------- */
-/* SynthResult                                                                     */
+/* SynthResult */
 /* -------------------------------------------------------------------------- */
 
-SynthResult::SynthResult(const Solver* s, const cvc5::SynthResult& r) : d_solver(s), d_result(new cvc5::SynthResult(r)) {}
+SynthResult::SynthResult(const Solver* s, const cvc5::SynthResult& r)
+    : d_solver(s), d_result(new cvc5::SynthResult(r))
+{
+}
 
 SynthResult::SynthResult() : d_solver(s), d_result(new cvc5::SynthResult()) {}
 
@@ -1006,7 +1008,8 @@ bool SynthResult::isNull() const
 bool SynthResult::isSuccess() const
 {
   cvc5::SynthResult::Status s = d_result->getStatus();
-  return s == cvc5::SynthResult::FOUND_SOLUTION || s == cvc5::SynthResult::NO_SOLUTION;
+  return s == cvc5::SynthResult::FOUND_SOLUTION
+         || s == cvc5::SynthResult::NO_SOLUTION;
 }
 
 bool SynthResult::hasSolution(void) const
@@ -1021,8 +1024,9 @@ Term SynthResult::getSolution() const
   CVC5_API_CHECK(d_result->getStatus() == cvc5::SynthResult::FOUND_SOLUTION)
       << "Cannot call getSolution for SynthResult with no solution.";
   std::vector<Node> sol = d_result->getSolution();
-  CVC5_API_CHECK(sol.size()==1)
-      << "Cannot call getSolution for SynthResult whose solution is a list, use getSolutionList instead.";
+  CVC5_API_CHECK(sol.size() == 1)
+      << "Cannot call getSolution for SynthResult whose solution is a list, "
+         "use getSolutionList instead.";
   return Term(d_solver, sol[0]);
   ////////
   CVC5_API_TRY_CATCH_END;
