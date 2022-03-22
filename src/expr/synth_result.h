@@ -66,6 +66,9 @@ class SynthResult
   /** Get the solution */
   const std::vector<Node>& getSolution() const;
 
+  /** Get the string representation */
+  std::string toString() const;
+
  private:
   /** The status */
   Status d_status;
@@ -75,6 +78,7 @@ class SynthResult
   std::vector<Node> d_solution;
 };
 
+std::ostream& operator<<(std::ostream& out, const SynthResult& r);
 std::ostream& operator<<(std::ostream& out, SynthResult::Status s);
 
 }  // namespace cvc5
