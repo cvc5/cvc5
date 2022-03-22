@@ -40,7 +40,7 @@ namespace cvc5 {
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
  * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments). 
- * Note that premises are sometimes given as proofs, or rather application of
+ * Note that premises are sometimes given as proofs, i.e., application of
  * proof rules, instead of formulas.
  *
  * Conceptually, the following proof rules form a calculus whose target
