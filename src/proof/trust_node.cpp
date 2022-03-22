@@ -104,6 +104,7 @@ Node TrustNode::getNode() const
 
 Node TrustNode::getProven() const { return d_proven; }
 
+void TrustNode::setGenerator(ProofGenerator* g) { d_gen = g; }
 ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
 bool TrustNode::isNull() const { return d_proven.isNull(); }
