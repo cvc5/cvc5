@@ -55,7 +55,7 @@ namespace cvc5 {
  * The "core rules" include two distinguished rules which have special status:
  * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open
  * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which
- * closes the scope of assumptions. The core rules additionally correspond to
+ * encloses a scope (a subproof) with a set of scoped assumptions. The core rules additionally correspond to
  * generic operations that are done internally on nodes, e.g. calling
  * Rewriter::rewrite.
  *
