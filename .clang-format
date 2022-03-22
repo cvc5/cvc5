@@ -36,5 +36,4 @@ BraceWrapping:
   BeforeElse: true
 BreakBeforeBraces: Custom
 DerivePointerAlignment: false
-ColumnLimit: 80
 ...

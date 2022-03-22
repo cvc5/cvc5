@@ -31,10 +31,9 @@ jobs:
 
           - name: win64:production
             os: ubuntu-latest
-            config: production --auto-download --win64 --python-bindings
+            config: production --auto-download --win64
             cache-key: productionwin64
             strip-bin: x86_64-w64-mingw32-strip
-            python-bindings: true
             windows-build: true
             store-to-release-name: cvc5-Win64.exe
             binary-ext: .exe

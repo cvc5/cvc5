@@ -98,6 +98,7 @@ class OpTest
     Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
     Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
     Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
+    Op toFpGen = d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 13, 12);
     Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
 
     assertEquals(2, bvExtract.getNumIndices());
@@ -106,6 +107,7 @@ class OpTest
     assertEquals(2, toFpFromReal.getNumIndices());
     assertEquals(2, toFpFromSbv.getNumIndices());
     assertEquals(2, toFpFromUbv.getNumIndices());
+    assertEquals(2, toFpGen.getNumIndices());
     assertEquals(2, regexpLoop.getNumIndices());
 
     // Operators with n indices
