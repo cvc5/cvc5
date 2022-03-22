@@ -288,7 +288,18 @@ std::ostream& operator<<(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 /**
- * Encapsulation of a solver synth result.
+ * Encapsulation of a solver synth result. This is the return value of the API
+ * methods:
+ *   checkSynth,
+ *   checkSynthNext,
+ *   getAbduct,
+ *   getAbductNext,
+ *   getInterpolant,
+ *   getInterpolantNext,
+ *   getQuantifierElimination, 
+ *   getQuantifierEliminationDisjunct,
+ * which we call synthesis queries. This class indicates whether the call was
+ * successful, whether there was a solution, and if so what that solution is.
  */
 class CVC5_EXPORT SynthResult
 {
@@ -300,8 +311,13 @@ class CVC5_EXPORT SynthResult
   SynthResult();
 
   /**
-   * Return true if Result is empty, i.e., a nullary Result, and not an actual
-   * result returned from a checkSat() (and friends) query.
+   * Return true if SynthResult is null, i.e. not a SynthResult returned
+   * from a synthesis query.
+   */
+  bool isNull() const;
+  
+  /**
+   * Return true if the query
    */
   bool isSuccess() const;
 
@@ -313,33 +329,14 @@ class CVC5_EXPORT SynthResult
   
   /**
    * Get the solution of this synthesis query. Should only be called if
-   * the number of solution terms for this result is one.
+   * hasSolution is true and the number of solution terms for this result is one.
    */
   Term getSolution() const;
 
   /**
-   * Get solution list.
+   * Get solution list. Should only be called if hasSolution is true.
    */
   std::vector<Term> getSolutionList() const;
-
-  /**
-   * Operator overloading for equality of two results.
-   * @param r the result to compare to for equality
-   * @return true if the results are equal
-   */
-  bool operator==(const SynthResult& r) const;
-
-  /**
-   * Operator overloading for disequality of two results.
-   * @param r the result to compare to for disequality
-   * @return true if the results are disequal
-   */
-  bool operator!=(const SynthResult& r) const;
-
-  /**
-   * @return an explanation for an unknown query result.
-   */
-  UnknownExplanation getUnknownExplanation() const;
 
   /**
    * @return a string representation of this result.

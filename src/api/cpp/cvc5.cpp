@@ -1002,48 +1002,19 @@ bool SynthResult::isNull() const
   return d_result->getStatus() == cvc5::Result::NONE;
 }
 
-bool SynthResult::isSat(void) const
+bool SynthResult::hasSolution(void) const
 {
-  return d_result->getStatus() == cvc5::Result::SAT;
+  return d_result->getStatus() == cvc5::SynthResult::SUCCESS;
 }
 
 bool SynthResult::isUnsat(void) const
 {
-  return d_result->getStatus() == cvc5::Result::UNSAT;
+  return d_result->getStatus() == cvc5::SynthResult::UNKNOWN;
 }
 
 bool Result::isUnknown(void) const
 {
   return d_result->getStatus() == cvc5::Result::UNKNOWN;
-}
-
-bool SynthResult::operator==(const SynthResult& r) const
-{
-  return *d_result == *r.d_result;
-}
-
-bool SynthResult::operator!=(const SynthResult& r) const
-{
-  return *d_result != *r.d_result;
-}
-
-Result::UnknownExplanation Result::getUnknownExplanation(void) const
-{
-  cvc5::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
-  switch (expl)
-  {
-    case cvc5::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
-    case cvc5::Result::INCOMPLETE: return INCOMPLETE;
-    case cvc5::Result::TIMEOUT: return TIMEOUT;
-    case cvc5::Result::RESOURCEOUT: return RESOURCEOUT;
-    case cvc5::Result::MEMOUT: return MEMOUT;
-    case cvc5::Result::INTERRUPTED: return INTERRUPTED;
-    case cvc5::Result::NO_STATUS: return NO_STATUS;
-    case cvc5::Result::UNSUPPORTED: return UNSUPPORTED;
-    case cvc5::Result::OTHER: return OTHER;
-    default: return UNKNOWN_REASON;
-  }
-  return UNKNOWN_REASON;
 }
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
