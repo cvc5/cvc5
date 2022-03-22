@@ -1963,7 +1963,7 @@ class CVC5_EXPORT DatatypeConstructor
    * ``(List Int)``.
    *
    * @note the returned constructor term ``t`` is an operator, while
-   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
+   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, {t})`` is used to construct the
    *       above (nullary) application of nil.
    *
    * @param retSort the desired return sort of the constructor
