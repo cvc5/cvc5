@@ -627,13 +627,7 @@ cdef class SynthResult:
       Encapsulation of a solver synth result. This is the return value of the API
       methods:
         checkSynth,
-        checkSynthNext,
-        getAbduct,
-        getAbductNext,
-        getInterpolant,
-        getInterpolantNext,
-        getQuantifierElimination,
-        getQuantifierEliminationDisjunct,
+        checkSynthNext.
       which we call synthesis queries. This class indicates whether the call was
       successful, whether there was a solution, and if so what that solution is.
     """
@@ -657,7 +651,7 @@ cdef class SynthResult:
     def hasNoSolution(self):
         """
             :return: True if the synthesis query has no solution.
-            If this is true, then it was determined there was no solution.
+            In this case, then it was determined there was no solution.
         """
         return self.cr.hasNoSolution()
 

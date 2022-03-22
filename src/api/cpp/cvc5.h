@@ -322,7 +322,7 @@ class CVC5_EXPORT SynthResult
   bool hasSolution() const;
 
   /**
-   * Return true if the synthesis query has no solution. If this is true, then it was determined there was no solution.
+   * Return true if the synthesis query has no solution. In this case, then it was determined there was no solution.
    */
   bool hasNoSolution() const;
 
@@ -332,7 +332,7 @@ class CVC5_EXPORT SynthResult
   bool isUnknown() const;
 
   /**
-   * @return a string representation of this result.
+   * @return a string representation of this synthesis result.
    */
   std::string toString() const;
 
