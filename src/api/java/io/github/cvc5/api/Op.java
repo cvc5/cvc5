@@ -100,6 +100,20 @@ public class Op extends AbstractPointer
   private native int getNumIndices(long pointer);
 
   /**
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
+   */
+  public Term get(int i) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(i, "index");
+    long termPointer = get(pointer, i);
+    return new Term(solver, termPointer);
+  }
+
+  private native long get(long pointer, int i);
+
+  /**
    * @return a string representation of this operator
    */
   protected native String toString(long pointer);
