@@ -2,6 +2,7 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
+from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -128,7 +129,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isIndexed() except +
         size_t getNumIndices() except +
-        T getIndices[T]() except +
+        Term operator[](size_t i) except +
         string toString() except +
 
     cdef cppclass OpHashFunction:
@@ -141,7 +142,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isSat() except +
         bint isUnsat() except +
-        bint isSatUnknown() except +
+        bint isUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
         UnknownExplanation getUnknownExplanation() except +
@@ -302,6 +303,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
+        Statistics getStatistics() except +
 
     cdef cppclass Grammar:
         Grammar() except +
@@ -379,6 +381,29 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass SortHashFunction:
         SortHashFunction() except +
         size_t operator()(const Sort & s) except +
+
+    cdef cppclass Stat:
+        bint isInternal() except +
+        bint isDefault() except +
+        bint isInt() except +
+        int64_t getInt() except +
+        bint isDouble() except +
+        double getDouble() except +
+        bint isString() except +
+        string getString() except +
+        bint isHistogram() except +
+        c_map[string,uint64_t] getHistogram() except +
+
+    cdef cppclass Statistics:
+        Statistics() except +
+        cppclass iterator:
+            iterator() except +
+            bint operator!=(const iterator& it) except +
+            iterator& operator++() except +
+            pair[string, Stat]& operator*() except +;
+        iterator begin(bint internal, bint defaulted) except +
+        iterator end() except +
+        Stat get(string name) except +
 
     cdef cppclass Term:
         Term()

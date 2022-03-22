@@ -100,30 +100,18 @@ public class Op extends AbstractPointer
   private native int getNumIndices(long pointer);
 
   /**
-   * Get the indices used to create this Op.
-   * Check the Op Kind with getKind() to determine which argument to use.
-   *
-   * @return the indices used to create this Op
+   * Get the index at position i.
+   * @param i the position of the index to return
+   * @return the index at position i
    */
-  public int[] getIntegerIndices()
+  public Term get(int i) throws CVC5ApiException
   {
-    return getIntegerIndices(pointer);
+    Utils.validateUnsigned(i, "index");
+    long termPointer = get(pointer, i);
+    return new Term(solver, termPointer);
   }
 
-  private native int[] getIntegerIndices(long pointer);
-
-  /**
-   * Get the indices used to create this Op.
-   * Check the Op Kind with getKind() to determine which argument to use.
-   *
-   * @return the indices used to create this Op
-   */
-  public String[] getStringIndices()
-  {
-    return getStringIndices(pointer);
-  }
-
-  private native String[] getStringIndices(long pointer);
+  private native long get(long pointer, int i);
 
   /**
    * @return a string representation of this operator

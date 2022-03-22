@@ -229,7 +229,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC, "to_fp");
+  addIndexedOperator(api::UNDEFINED_KIND, "to_fp");
   addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
   addIndexedOperator(api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
   addIndexedOperator(api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
@@ -284,6 +284,11 @@ void Smt2::addIndexedOperator(api::Kind tKind,
 {
   Parser::addOperator(tKind);
   d_indexedOpKindMap[name] = tKind;
+}
+
+bool Smt2::isIndexedOperatorEnabled(const std::string& name) const
+{
+  return d_indexedOpKindMap.find(name) != d_indexedOpKindMap.end();
 }
 
 api::Kind Smt2::getOperatorKind(const std::string& name) const
@@ -922,6 +927,54 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // it was given an operator
     op = p.d_op;
   }
+  else if (isIndexedOperatorEnabled(p.d_name))
+  {
+    // Resolve indexed symbols that cannot be resolved without knowing the type
+    // of the arguments. This is currently limited to `to_fp`.
+    Assert(p.d_name == "to_fp");
+    size_t nchildren = args.size();
+    if (nchildren == 1)
+    {
+      op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+                          p.d_indices[0],
+                          p.d_indices[1]);
+    }
+    else if (nchildren > 2)
+    {
+      std::stringstream ss;
+      ss << "Wrong number of arguments for indexed operator to_fp, expected "
+            "1 or 2, got "
+         << nchildren;
+      parseError(ss.str());
+    }
+    else if (!args[0].getSort().isRoundingMode())
+    {
+      std::stringstream ss;
+      ss << "Expected a rounding mode as the first argument, got "
+         << args[0].getSort();
+      parseError(ss.str());
+    }
+    else
+    {
+      api::Sort t = args[1].getSort();
+
+      if (t.isFloatingPoint())
+      {
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices[0], p.d_indices[1]);
+      }
+      else if (t.isInteger() || t.isReal())
+      {
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_REAL, p.d_indices[0], p.d_indices[1]);
+      }
+      else
+      {
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_SBV, p.d_indices[0], p.d_indices[1]);
+      }
+    }
+  }
   else
   {
     isBuiltinOperator = isOperatorEnabled(p.d_name);
@@ -1024,13 +1077,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     api::Term ret;
     if (p.d_kind == api::APPLY_SELECTOR)
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+      ret = d_solver->mkTerm(api::APPLY_SELECTOR,
+                             {dt[0][n].getSelectorTerm(), args[0]});
     }
     else
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+      ret = d_solver->mkTerm(api::APPLY_UPDATER,
+                             {dt[0][n].getUpdaterTerm(), args[0], args[1]});
     }
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
@@ -1088,7 +1141,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                         << std::endl;
         return ret;
       }
-      api::Term ret = d_solver->mkTerm(api::NEG, args[0]);
+      api::Term ret = d_solver->mkTerm(api::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
@@ -1105,7 +1158,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
+      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, {args[0]});
       Trace("parser") << "applyParseOp: return set.singleton " << ret
                       << std::endl;
       return ret;

@@ -3,6 +3,7 @@
 import json
 import re
 import subprocess
+import sys
 
 
 def demangle(name):
@@ -42,3 +43,6 @@ if __name__ == "__main__":
         print('starting in {filename}:{startline}'.format(**nc))
         print('function {function}'.format(**nc))
         print('')
+    if notcovered:
+        sys.exit(1)
+    sys.exit(0)

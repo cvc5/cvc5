@@ -41,6 +41,21 @@ std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   {
     out << " :name " << p.d_name;
   }
+  if (!p.d_indices.empty())
+  {
+    out << " :indices [";
+    bool first = true;
+    for (uint32_t index : p.d_indices)
+    {
+      if (!first)
+      {
+        out << ", ";
+      }
+      first = false;
+      out << index;
+    }
+    out << "]";
+  }
   out << ")";
   return os << out.str();
 }

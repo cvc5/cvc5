@@ -70,7 +70,7 @@ public:
                               RaiseConflict conflictChannel,
                               TempVarMalloc tvmalloc);
 
- Result::Sat findModel(bool exactResult) override
+ Result::Status findModel(bool exactResult) override
  {
    return dualFindModel(exactResult);
   }
@@ -83,7 +83,7 @@ private:
    */
   DenseMultiset d_pivotsInRound;
 
-  Result::Sat dualFindModel(bool exactResult);
+  Result::Status dualFindModel(bool exactResult);
 
   /**
    * This is the main simplex for DPLL(T) loop.

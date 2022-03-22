@@ -121,7 +121,7 @@ using namespace cvc5::parser;
 #undef SYM_MAN
 #define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
@@ -1504,7 +1504,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
   {
     std::vector<uint32_t> indices;
     api::Op op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, expr);
+    expr = SOLVER->mkTerm(op, {expr});
   }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
@@ -1656,7 +1656,18 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
+        if (k == api::UNDEFINED_KIND)
+        {
+          // We don't know which kind to use until we know the type of the
+          // arguments
+          p.d_name = opName;
+          // convert uint64_t to uint32_t
+          for(uint32_t numeral : numerals)
+          {
+            p.d_indices.push_back(numeral);
+          }
+        }
+        else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
           // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
           // for tuple selectors and updaters
