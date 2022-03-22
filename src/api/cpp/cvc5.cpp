@@ -1002,19 +1002,15 @@ bool SynthResult::isNull() const
   return d_result->getStatus() == cvc5::Result::NONE;
 }
 
+bool SynthResult::isSuccess() const
+{
+  cvc5::SynthResult::Status s = d_result->getStatus();
+  return s == cvc5::SynthResult::FOUND_SOLUTION || s == cvc5::SynthResult::NO_SOLUTION;
+}
+
 bool SynthResult::hasSolution(void) const
 {
-  return d_result->getStatus() == cvc5::SynthResult::SUCCESS;
-}
-
-bool SynthResult::isUnsat(void) const
-{
-  return d_result->getStatus() == cvc5::SynthResult::UNKNOWN;
-}
-
-bool Result::isUnknown(void) const
-{
-  return d_result->getStatus() == cvc5::Result::UNKNOWN;
+  return d_result->getStatus() == cvc5::SynthResult::FOUND_SOLUTION;
 }
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
