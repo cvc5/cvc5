@@ -75,8 +75,8 @@ int main()
 
   // define the rules
   Term zero = slv.mkInteger(0);
-  Term neg_x = slv.mkTerm(NEG, x);
-  Term plus = slv.mkTerm(ADD, x, start);
+  Term neg_x = slv.mkTerm(NEG, {x});
+  Term plus = slv.mkTerm(ADD, {x, start});
 
   // create the grammar object
   Grammar g1 = slv.mkSygusGrammar({x}, {start});
@@ -105,14 +105,15 @@ int main()
   // declare universal variables.
   Term varX = slv.mkSygusVar(integer, "x");
 
-  Term id1_x = slv.mkTerm(APPLY_UF, id1, varX);
-  Term id2_x = slv.mkTerm(APPLY_UF, id2, varX);
-  Term id3_x = slv.mkTerm(APPLY_UF, id3, varX);
-  Term id4_x = slv.mkTerm(APPLY_UF, id4, varX);
+  Term id1_x = slv.mkTerm(APPLY_UF, {id1, varX});
+  Term id2_x = slv.mkTerm(APPLY_UF, {id2, varX});
+  Term id3_x = slv.mkTerm(APPLY_UF, {id3, varX});
+  Term id4_x = slv.mkTerm(APPLY_UF, {id4, varX});
 
   // add semantic constraints
   // (constraint (= (id1 x) (id2 x) (id3 x) (id4 x) x))
-  slv.addSygusConstraint(slv.mkTerm(EQUAL, {id1_x, id2_x, id3_x, id4_x, varX}));
+  slv.addSygusConstraint(
+      slv.mkTerm(EQUAL, {{id1_x, id2_x, id3_x, id4_x, varX}}));
 
   // print solutions if available
   if (slv.checkSynth().isUnsat())

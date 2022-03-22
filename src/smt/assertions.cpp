@@ -77,7 +77,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions)
   /* Assume: BIGAND assumptions  */
   d_assumptions = assumptions;
 
-  Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+  Result r(Result::UNKNOWN, Result::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.

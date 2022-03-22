@@ -560,12 +560,12 @@ bool SynthConjecture::doCheck()
   std::vector<Node> skModel;
   Result r = d_verify.verify(query, d_innerSks, skModel);
 
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  if (r.getStatus() == Result::SAT)
   {
     // we have a counterexample
     return processCounterexample(skModel);
   }
-  else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  else if (r.getStatus() != Result::UNSAT)
   {
     // In the rare case that the subcall is unknown, we simply exclude the
     // solution, without adding a counterexample point. This should only
