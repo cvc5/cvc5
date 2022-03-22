@@ -3,8 +3,6 @@ from fractions import Fraction
 from functools import wraps
 import sys
 
-from cython.operator cimport dereference, preincrement
-
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
 
@@ -20,12 +18,11 @@ from cvc5 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
 from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
+from cvc5 cimport SynthResult as c_SynthResult
 from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport Solver as c_Solver
-from cvc5 cimport Statistics as c_Statistics
-from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
@@ -499,16 +496,30 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def __getitem__(self, i):
+    def getIndices(self):
         """
-            Get the index at position i.
-            :param i: the position of the index to return
-            :return: the index at position i
+            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
         """
-        cdef Term term = Term(self.solver)
-        term.cterm = self.cop[i]
-        return term
+        indices = None
+        try:
+            indices = self.cop.getIndices[string]().decode()
+        except:
+            pass
 
+        try:
+            indices = self.cop.getIndices[uint32_t]()
+        except:
+            pass
+
+        try:
+            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
+        except:
+            pass
+
+        if indices is None:
+            raise RuntimeError("Unable to retrieve indices from {}".format(self))
+
+        return indices
 
 cdef class Grammar:
     """
@@ -587,11 +598,75 @@ cdef class Result:
         """
         return self.cr.isUnsat()
 
-    def isUnknown(self):
+    def isSatUnknown(self):
         """
             :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
-        return self.cr.isUnknown()
+        return self.cr.isSatUnknown()
+
+    def getUnknownExplanation(self):
+        """
+            :return: an explanation for an unknown query result.
+        """
+        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
+
+    def __eq__(self, Result other):
+        return self.cr == other.cr
+
+    def __ne__(self, Result other):
+        return self.cr != other.cr
+
+    def __str__(self):
+        return self.cr.toString().decode()
+
+    def __repr__(self):
+        return self.cr.toString().decode()
+
+cdef class SynthResult:
+    """
+      Encapsulation of a solver synth result. This is the return value of the API
+      methods:
+        checkSynth,
+        checkSynthNext,
+        getAbduct,
+        getAbductNext,
+        getInterpolant,
+        getInterpolantNext,
+        getQuantifierElimination,
+        getQuantifierEliminationDisjunct,
+      which we call synthesis queries. This class indicates whether the call was
+      successful, whether there was a solution, and if so what that solution is.
+    """
+    cdef c_SynthResult cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_SynthResult()
+
+    def isNull(self):
+        """
+            :return: True if SynthResult is null, i.e. not a SynthResult returned from a synthesis query.
+        """
+        return self.cr.isNull()
+
+    def hasSolution(self):
+        """
+            :return: True if query was an usatisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
+        """
+        return self.cr.hasSolution()
+
+    def hasNoSolution(self):
+        """
+            :return: True if this SynthResult is for a synthesis query that had no solution. 
+            If this is true, then it was determined there was no solution.
+            If neither hasSolution or hasNoSolution is true, then it is unknown whether there is a solution.
+        """
+        return self.cr.hasNoSolution()
+
+    def isSatUnknown(self):
+        """
+            :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
+        """
+        return self.cr.isSatUnknown()
 
     def getUnknownExplanation(self):
         """
@@ -2387,16 +2462,6 @@ cdef class Solver:
         """
         return self.csolver.getInstantiations()
 
-    def getStatistics(self):
-        """
-        Returns a snapshot of the current state of the statistic values of this
-        solver. The returned object is completely decoupled from the solver and
-        will not change when the solver is used again.
-        """
-        res = Statistics()
-        res.cstats = self.csolver.getStatistics()
-        return res
-
 
 cdef class Sort:
     """
@@ -2644,6 +2709,22 @@ cdef class Sort:
             :return: True if this a sort constructor kind.
         """
         return self.csort.isSortConstructor()
+
+    def isFirstClass(self):
+        """
+            Is this a first-class sort?
+            First-class sorts are sorts for which:
+
+            1. we handle equalities between terms of that type, and
+            2. they are allowed to be parameters of parametric sorts
+               (e.g. index or element sorts of arrays).
+
+            Examples of sorts that are not first-class include sort constructor
+            sorts and regular expression sorts.
+
+            :return: True if the sort is a first-class sort.
+        """
+        return self.csort.isFirstClass()
 
     def getDatatype(self):
         """
@@ -2917,47 +2998,6 @@ cdef class Sort:
             sort.csort = s
             tuple_sorts.append(sort)
         return tuple_sorts
-
-
-cdef class Statistics:
-    """
-    The cvc5 Statistics.
-    Wrapper class for :cpp:class:`cvc5::api::Statistics`.
-    Obtain a single statistic value using ``stats["name"]`` and a dictionary
-    with all (visible) statistics using ``stats.get(internal=False, defaulted=False)``.
-    """
-    cdef c_Statistics cstats
-
-    cdef __stat_to_dict(self, const c_Stat& s):
-        res = None
-        if s.isInt():
-            res = s.getInt()
-        elif s.isDouble():
-            res = s.getDouble()
-        elif s.isString():
-            res = s.getString().decode()
-        elif s.isHistogram():
-            res = { h.first.decode(): h.second for h in s.getHistogram() }
-        return {
-            'defaulted': s.isDefault(),
-            'internal': s.isInternal(),
-            'value': res
-        }
-
-    def __getitem__(self, str name):
-        """Get the statistics information for the statistic called ``name``."""
-        return self.__stat_to_dict(self.cstats.get(name.encode()))
-
-    def get(self, bint internal = False, bint defaulted = False):
-        """Get all statistics. See :cpp:class:`cvc5::api::Statistics::begin()` for more information."""
-        cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
-        cdef pair[string,c_Stat]* s
-        res = {}
-        while it != self.cstats.end():
-            s = &dereference(it)
-            res[s.first.decode()] = self.__stat_to_dict(s.second)
-            preincrement(it)
-        return res
 
 
 cdef class Term:

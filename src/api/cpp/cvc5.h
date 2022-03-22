@@ -317,15 +317,18 @@ class CVC5_EXPORT SynthResult
   bool isNull() const;
 
   /**
-   * Return true if the query
-   */
-  bool isSuccess() const;
-
-  /**
-   * Return true if query was a satisfiable checkSat() or checkSatAssuming()
-   * query.
+   * Return true if this SynthResult is for a synthesis query that has a
+   * solution.
    */
   bool hasSolution() const;
+
+  /**
+   * Return true if this SynthResult is for a synthesis query that had no
+   * solution. If this is true, then it was determined there was no solution.
+   * If neither hasSolution or hasNoSolution is true, then it is unknown
+   * whether there is a solution.
+   */
+  bool hasNoSolution() const;
 
   /**
    * Get the solution of this synthesis query. Should only be called if
@@ -335,9 +338,9 @@ class CVC5_EXPORT SynthResult
   Term getSolution() const;
 
   /**
-   * Get solution list. Should only be called if hasSolution is true.
+   * Get solutions for. Should only be called if hasSolution is true.
    */
-  std::vector<Term> getSolutionList() const;
+  std::vector<Term> getSolutionsFor(const std::vector<Term>& funs) const;
 
   /**
    * @return a string representation of this result.
@@ -1080,6 +1083,7 @@ class CVC5_EXPORT Term
   friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
+  friend class SynthResult;
   friend struct std::hash<Term>;
 
  public:

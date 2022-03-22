@@ -998,23 +998,21 @@ SynthResult::SynthResult(const Solver* s, const cvc5::SynthResult& r)
 {
 }
 
-SynthResult::SynthResult() : d_solver(s), d_result(new cvc5::SynthResult()) {}
+SynthResult::SynthResult() : d_solver(nullptr), d_result(new cvc5::SynthResult()) {}
 
 bool SynthResult::isNull() const
 {
-  return d_result->getStatus() == cvc5::Result::NONE;
-}
-
-bool SynthResult::isSuccess() const
-{
-  cvc5::SynthResult::Status s = d_result->getStatus();
-  return s == cvc5::SynthResult::FOUND_SOLUTION
-         || s == cvc5::SynthResult::NO_SOLUTION;
+  return d_result->getStatus() == cvc5::SynthResult::NONE;
 }
 
 bool SynthResult::hasSolution(void) const
 {
   return d_result->getStatus() == cvc5::SynthResult::FOUND_SOLUTION;
+}
+
+bool SynthResult::hasNoSolution() const
+{
+  return d_result->getStatus() == cvc5::SynthResult::NO_SOLUTION;
 }
 
 Term SynthResult::getSolution() const

@@ -2,7 +2,6 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
-from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -129,7 +128,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isIndexed() except +
         size_t getNumIndices() except +
-        Term operator[](size_t i) except +
+        T getIndices[T]() except +
         string toString() except +
 
     cdef cppclass OpHashFunction:
@@ -142,12 +141,20 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isSat() except +
         bint isUnsat() except +
-        bint isUnknown() except +
+        bint isSatUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
         UnknownExplanation getUnknownExplanation() except +
         string toString() except +
 
+    cdef cppclass SynthResult:
+        SynthResult() except+
+        bint isNull() except +
+        bint hasSolution() except +
+        bint hasNoSolution() except +
+        string toString() except +
+        Term getSolution() except +
+        vector[Term] getSolutionsFor(const vector[Term]& terms) except +
 
     cdef cppclass RoundingMode:
         pass
@@ -248,8 +255,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, const Sort& param, bint isCoDatatype) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, Sort param) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, Sort param, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h
@@ -303,7 +310,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
-        Statistics getStatistics() except +
 
     cdef cppclass Grammar:
         Grammar() except +
@@ -348,6 +354,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isSortConstructor() except +
+        bint isFirstClass() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
@@ -381,29 +388,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass SortHashFunction:
         SortHashFunction() except +
         size_t operator()(const Sort & s) except +
-
-    cdef cppclass Stat:
-        bint isInternal() except +
-        bint isDefault() except +
-        bint isInt() except +
-        int64_t getInt() except +
-        bint isDouble() except +
-        double getDouble() except +
-        bint isString() except +
-        string getString() except +
-        bint isHistogram() except +
-        c_map[string,uint64_t] getHistogram() except +
-
-    cdef cppclass Statistics:
-        Statistics() except +
-        cppclass iterator:
-            iterator() except +
-            bint operator!=(const iterator& it) except +
-            iterator& operator++() except +
-            pair[string, Stat]& operator*() except +;
-        iterator begin(bint internal, bint defaulted) except +
-        iterator end() except +
-        Stat get(string name) except +
 
     cdef cppclass Term:
         Term()
