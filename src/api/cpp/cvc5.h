@@ -293,8 +293,8 @@ std::ostream& operator<<(std::ostream& out,
  * methods:
  *   checkSynth,
  *   checkSynthNext,
- * which we call synthesis queries. This class indicates whether the call was
- * successful, whether there was a solution, and if so what that solution is.
+ * which we call synthesis queries.  This class indicates whether the
+ * synthesis query has a solution, has no solution, or is unknown.
  */
 class CVC5_EXPORT SynthResult
 {

@@ -37,7 +37,7 @@ public class SynthResult extends AbstractPointer
 
   /**
    * Return true if SynthResult is empty, i.e., a nullary SynthResult, and not an actual
-   * result returned from a checkSat() (and friends) query.
+   * result returned from a synthesis query.
    */
   public boolean isNull()
   {
