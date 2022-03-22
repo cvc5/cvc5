@@ -153,9 +153,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint hasSolution() except +
         bint hasNoSolution() except +
+        bint isUnknown() except +
         string toString() except +
-        Term getSolution() except +
-        vector[Term] getSolutionsFor(const vector[Term]& terms) except +
 
     cdef cppclass RoundingMode:
         pass
