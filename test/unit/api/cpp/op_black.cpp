@@ -83,7 +83,6 @@ TEST_F(TestApiBlackOp, getNumIndices)
   Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
   Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
   Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
-  Op toFpGen = d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 13, 12);
   Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
 
   ASSERT_EQ(2, bvExtract.getNumIndices());
@@ -92,7 +91,6 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(2, toFpFromReal.getNumIndices());
   ASSERT_EQ(2, toFpFromSbv.getNumIndices());
   ASSERT_EQ(2, toFpFromUbv.getNumIndices());
-  ASSERT_EQ(2, toFpGen.getNumIndices());
   ASSERT_EQ(2, regexpLoop.getNumIndices());
 
   // Operators with n indices
@@ -138,7 +136,6 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
   Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
   Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
-  Op toFpGen = d_solver.mkOp(FLOATINGPOINT_TO_FP_GENERIC, 13, 12);
   Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
 
   ASSERT_EQ(1, bvExtract[0].getUInt32Value());
@@ -153,8 +150,6 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_EQ(8, toFpFromSbv[1].getUInt32Value());
   ASSERT_EQ(11, toFpFromUbv[0].getUInt32Value());
   ASSERT_EQ(10, toFpFromUbv[1].getUInt32Value());
-  ASSERT_EQ(13, toFpGen[0].getUInt32Value());
-  ASSERT_EQ(12, toFpGen[1].getUInt32Value());
   ASSERT_EQ(15, regexpLoop[0].getUInt32Value());
   ASSERT_EQ(14, regexpLoop[1].getUInt32Value());
 
