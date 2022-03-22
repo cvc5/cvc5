@@ -560,7 +560,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Modus Ponens**
    *
    * .. math::
-   *   \inferrule{F_1, (F_1 \implies F_2) \mid -}{F_2}
+   *   \inferrule{F_1, (F_1 \rightarrow F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
    * :cpp:enumerator:`IMPLIES_ELIM <cvc5::PfRule::IMPLIES_ELIM>` +
@@ -623,7 +623,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Implication elimination**
    *
    * .. math::
-   *   \inferrule{F_1 \implies F_2 \mid -}{\neg F_1 \lor F_2}
+   *   \inferrule{F_1 \rightarrow F_2 \mid -}{\neg F_1 \lor F_2}
    *
    * \endverbatim
    */
@@ -633,7 +633,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Not Implication elimination version 1**
    *
    * .. math::
-   *   \inferrule{\neg(F_1 \implies F_2) \mid -}{F_1}
+   *   \inferrule{\neg(F_1 \rightarrow F_2) \mid -}{F_1}
    *
    * \endverbatim
    */
@@ -643,7 +643,7 @@ enum class PfRule : uint32_t
    * **Boolean -- Not Implication elimination version 2**
    *
    * .. math::
-   *   \inferrule{\neg(F_1 \implies F_2) \mid -}{\neg F_2}
+   *   \inferrule{\neg(F_1 \rightarrow F_2) \mid -}{\neg F_2}
    *
    * \endverbatim
    */
@@ -829,7 +829,7 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Implies Positive**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \implies F_2}{\neg(F_1 \implies F_2) \lor \neg F_1
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{\neg(F_1 \rightarrow F_2) \lor \neg F_1
    *   \lor F_2}
    *
    * \endverbatim
@@ -840,7 +840,7 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Implies Negative 1**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \implies F_2}{(F_1 \implies F_2) \lor F_1}
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor F_1}
    *
    * \endverbatim
    */
@@ -850,7 +850,7 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Implies Negative 2**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \implies F_2}{(F_1 \implies F_2) \lor \neg F_2}
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor \neg F_2}
    *
    * \endverbatim
    */
