@@ -138,7 +138,6 @@ jobs:
   update-pr:
     runs-on: ubuntu-latest
     if: github.repository == 'cvc5/cvc5' && github.event_name == 'push'
-    needs: build
     steps:
       - name: Automatically update PR
         uses: adRise/update-pr-branch@v0.5.1
