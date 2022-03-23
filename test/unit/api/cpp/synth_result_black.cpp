@@ -46,7 +46,7 @@ TEST_F(TestApiBlackSynthResult, hasSolution)
   ASSERT_FALSE(res.isUnknown());
 }
 
-TEST_F(TestApiBlackSynthResult, isNull)
+TEST_F(TestApiBlackSynthResult, hasNoSolution)
 {
   // note that we never return synth result for which hasNoSolution is true
   // currently
