@@ -442,9 +442,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
       // quantifiers ? options::SimplificationMode::NONE :
       // options::SimplificationMode::BATCH);
-      opts.smt.simplificationMode = qf_sat
-                                        ? options::SimplificationMode::NONE
-                                        : options::SimplificationMode::BATCH;
+      opts.smt.simplificationMode = qf_sat ? options::SimplificationMode::NONE
+                                           : options::SimplificationMode::BATCH;
     }
   }
 

@@ -763,13 +763,11 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   {
     if (checkAgain)
     {
-      r = d_smtSolver->checkSatisfiability(
-          *d_asserts.get(), {});
+      r = d_smtSolver->checkSatisfiability(*d_asserts.get(), {});
     }
     else
     {
-      r = d_smtSolver->checkSatisfiability(
-          *d_asserts.get(), assumptions);
+      r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions);
     }
     checkAgain = false;
     if (options().smt.deepRestart)
@@ -1846,7 +1844,7 @@ bool SolverEngine::deepRestart()
 
   // get the zero-level learned literals now, before resetting the context
   std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiterals();
-  
+
   if (zll.empty())
   {
     Trace("deep-restart") << "No learned literals" << std::endl;
@@ -1855,7 +1853,7 @@ bool SolverEngine::deepRestart()
 
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
-  
+
   d_smtSolver->deepRestart(*d_asserts.get(), zll);
   // push the state to maintain global context around everything
   d_state->setup();
