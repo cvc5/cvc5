@@ -50,7 +50,7 @@ class ITESimp : public PreprocessingPass
 
   Statistics d_statistics;
 
-  static const zombieHuntThreshold = 524288;
+  static const uint32_t zombieHuntThreshold = 524288;
 };
 
 }  // namespace passes
