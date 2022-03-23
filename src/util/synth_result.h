@@ -20,7 +20,6 @@
 
 #include <iosfwd>
 #include <string>
-#include <vector>
 
 #include "util/result.h"
 
