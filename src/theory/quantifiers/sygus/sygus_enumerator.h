@@ -243,7 +243,7 @@ class SygusEnumerator : public EnumValGenerator
     TermEnum();
     virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
-    unsigned getCurrentSize();
+    unsigned getCurrentSize() const;
     /** get the current term of the enumerator */
     virtual Node getCurrent() = 0;
     /** increment the enumerator, return false if the enumerator is finished */
@@ -300,6 +300,8 @@ class SygusEnumerator : public EnumValGenerator
    private:
     /** the maximum size of terms this enumerator should enumerate */
     unsigned d_sizeLim;
+    /** is the index valid? */
+    bool d_indexValid;
     /** the current index in the term cache we are considering */
     unsigned d_index;
     /** the index in the term cache where terms of the current size end */

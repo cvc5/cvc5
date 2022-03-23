@@ -23,9 +23,25 @@
 namespace cvc5 {
 
 /**
+ * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
- * Node objects. In the documentation below, P:F denotes a ProofNode that
- * proves formula F.
+ * Node objects.
+ * This documentation is target for the online documentation that can be found
+ * at https://cvc5.github.io/docs/master/proofs/proof_rules.html.
+ *
+ * All proof rules are given as inference rules, presented in the following
+ * form:
+ *
+ * .. math::
+ *
+ *   \texttt{RULENAME}:
+ *   \inferruleSC{\varphi_1 \dots \varphi_n \mid t_1 \dots t_m}{\psi}{if $C$}
+ *
+ * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
+ * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
+ * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments). 
+ * Note that premises are sometimes given as proofs, i.e., application of
+ * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably. 
  *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
@@ -37,606 +53,954 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) ASSUME, which represents an open leaf in a proof.
- * (2) SCOPE, which closes the scope of assumptions.
- * The core rules additionally correspond to generic operations that are done
- * internally on nodes, e.g. calling Rewriter::rewrite.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::PfRule::ASSUME>`, which represents an open
+ * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>`, which
+ * encloses a scope (a subproof) with a set of scoped assumptions. The core rules additionally correspond to
+ * generic operations that are done internally on nodes, e.g. calling
+ * Rewriter::rewrite.
  *
- * Rules with prefix MACRO_ are those that can be defined in terms of other
- * rules. These exist for convienience. We provide their definition in the line
- * "Macro:".
+ * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
+ * rules. These exist for convenience and can be replaced by their definition in post-processing.
+ * \endverbatim
  */
 enum class PfRule : uint32_t
 {
-  //================================================= Core rules
-  //======================== Assume and Scope
-  // ======== Assumption (a leaf)
-  // Children: none
-  // Arguments: (F)
-  // --------------
-  // Conclusion: F
-  //
-  // This rule has special status, in that an application of assume is an
-  // open leaf in a proof that is not (yet) justified. An assume leaf is
-  // analogous to a free variable in a term, where we say "F is a free
-  // assumption in proof P" if it contains an application of F that is not
-  // bound by SCOPE (see below).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Assumption (a leaf)**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid F}{F}
+   *
+   * This rule has special status, in that an application of assume is an
+   * open leaf in a proof that is not (yet) justified. An assume leaf is
+   * analogous to a free variable in a term, where we say "F is a free
+   * assumption in proof P" if it contains an application of F that is not
+   * bound by :cpp:enumerator:`SCOPE <cvc5::PfRule::SCOPE>` (see below).
+   * \endverbatim
+   */
   ASSUME,
-  // ======== Scope (a binder for assumptions)
-  // Children: (P:F)
-  // Arguments: (F1, ..., Fn)
-  // --------------
-  // Conclusion: (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) if F is false
-  //
-  // This rule has a dual purpose with ASSUME. It is a way to close
-  // assumptions in a proof. We require that F1 ... Fn are free assumptions in
-  // P and say that F1, ..., Fn are not free in (SCOPE P). In other words, they
-  // are bound by this application. For example, the proof node:
-  //   (SCOPE (ASSUME F) :args F)
-  // has the conclusion (=> F F) and has no free assumptions. More generally, a
-  // proof with no free assumptions always concludes a valid formula.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Scope (a binder for assumptions)**
+   *
+   * .. math::
+   *
+   *   \inferruleSC{F \mid F_1 \dots F_n}{(F_1 \land \dots \land F_n)
+   *   \Rightarrow F}{if $F\neq\bot$} \textrm{ or } \inferruleSC{F \mid F_1
+   *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
+   *
+   * This rule has a dual purpose with :cpp:enumerator:`ASSUME
+   * <cvc5::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
+   * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
+   * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
+   * are bound by this application. For example, the proof node:
+   * ``(SCOPE (ASSUME F) :args F)``
+   * has the conclusion :math:`F \Rightarrow F` and has no free assumptions.
+   * More generally, a proof with no free assumptions always concludes a valid
+   * formula. \endverbatim
+   */
   SCOPE,
 
-  //======================== Builtin theory (common node operations)
-  // ======== Substitution
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids)?)
-  // ---------------------------------------------------------------
-  // Conclusion: (= t t*sigma{ids}(Fn)*...*sigma{ids}(F1))
-  // where sigma{ids}(Fi) are substitutions, which notice are applied in
-  // reverse order.
-  // Notice that ids is a MethodId identifier, which determines how to convert
-  // the formulas F1, ..., Fn into substitutions.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution**
+   *
+   * .. math::
+   *
+   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n)
+   *   \circ \cdots \circ \sigma_{ids}(F_1)}
+   *
+   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
+   * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
+   * determines how to convert the formulas :math:`F_1 \dots F_n` into
+   * substitutions. It is an optional argument, where by default the premises are equalities of the form `(= x y)` and converted into substitutions :math:`x\mapsto y`. \endverbatim
+   */
   SUBS,
-  // ======== Rewrite
-  // Children: none
-  // Arguments: (t, (idr)?)
-  // ----------------------------------------
-  // Conclusion: (= t Rewriter{idr}(t))
-  // where idr is a MethodId identifier, which determines the kind of rewriter
-  // to apply, e.g. Rewriter::rewrite.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Rewrite**
+   *
+   * .. math::
+   *   \inferrule{- \mid t, idr}{t = \texttt{Rewriter}_{idr}(t)}
+   *
+   * where :math:`idr` is a MethodId identifier, which determines the kind of
+   * rewriter to apply, e.g. Rewriter::rewrite. \endverbatim
+   */
   REWRITE,
-  // ======== Evaluate
-  // Children: none
-  // Arguments: (t)
-  // ----------------------------------------
-  // Conclusion: (= t Evaluator::evaluate(t))
-  // Note this is equivalent to:
-  //   (REWRITE t MethodId::RW_EVALUATE)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Evaluate**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{t = \texttt{Evaluator::evaluate}(t)}
+   *
+   * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
+   * \endverbatim
+   */
   EVALUATE,
-  // ======== Substitution + Rewriting equality introduction
-  //
-  // In this rule, we provide a term t and conclude that it is equal to its
-  // rewritten form under a (proven) substitution.
-  //
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (t, (ids (ida (idr)?)?)?)
-  // ---------------------------------------------------------------
-  // Conclusion: (= t t')
-  // where
-  //   t' is
-  //   Rewriter{idr}(t*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
-  //
-  // In other words, from the point of view of Skolem forms, this rule
-  // transforms t to t' by standard substitution + rewriting.
-  //
-  // The arguments ids, ida and idr are optional and specify the identifier of
-  // the substitution, the substitution application and rewriter respectively to
-  // be used. For details, see theory/builtin/proof_checker.h.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting equality introduction**
+   *
+   * In this rule, we provide a term :math:`t` and conclude that it is equal to
+   * its rewritten form under a (proven) substitution.
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid t, (ids (ida (idr)?)?)?}{t =
+   *   \texttt{Rewriter}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ
+   *   \sigma_{ids, ida}(F_1))}
+   *
+   * In other words, from the point of view of Skolem forms, this rule
+   * transforms :math:`t` to :math:`t'` by standard substitution + rewriting.
+   *
+   * The arguments :math:`ids`, :math:`ida` and :math:`idr` are optional and
+   * specify the identifier of the substitution, the substitution application
+   * and rewriter respectively to be used. For details, see
+   * :cvc5src:`theory/builtin/proof_checker.h`. \endverbatim
+   */
   MACRO_SR_EQ_INTRO,
-  // ======== Substitution + Rewriting predicate introduction
-  //
-  // In this rule, we provide a formula F and conclude it, under the condition
-  // that it rewrites to true under a proven substitution.
-  //
-  // Children: (P1:F1, ..., Pn:Fn)
-  // Arguments: (F, (ids (ida (idr)?)?)?)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  // where
-  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) == true
-  // where ids and idr are method identifiers.
-  //
-  // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toOriginal(F')) == true
-  // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the original form of F', meaning that
-  // this rule may conclude an F whose Skolem form is justified by the
-  // definition of its (fresh) Skolem variables. For example, this rule may
-  // justify the conclusion (= k t) where k is the purification Skolem for t,
-  // e.g. where the original form of k is t.
-  //
-  // Furthermore, notice that the rewriting and substitution is applied only
-  // within the side condition, meaning the rewritten form of the original form
-  // of F does not escape this rule.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting predicate introduction**
+   *
+   * In this rule, we provide a formula :math:`F` and conclude it, under the
+   * condition that it rewrites to true under a proven substitution.
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid F, (ids (ida (idr)?)?)?}{F}
+   *
+   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   * \cdots \circ \sigma_{ids, ida}(F_1)) = \top` and :math:`ids` and
+   * :math:`idr` are method identifiers.
+   *
+   * More generally, this rule also holds when
+   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) = \top`
+   * where :math:`F'` is the result of the left hand side of the equality above.
+   * Here, notice that we apply rewriting on the original form of :math:`F'`,
+   * meaning that this rule may conclude an :math:`F` whose Skolem form is
+   * justified by the definition of its (fresh) Skolem variables. For example,
+   * this rule may justify the conclusion :math:`k = t` where :math:`k` is the
+   * purification Skolem for :math:`t`, e.g. where the original form of
+   * :math:`k` is :math:`t`.
+   *
+   * Furthermore, notice that the rewriting and substitution is applied only
+   * within the side condition, meaning the rewritten form of the original form
+   * of :math:`F` does not escape this rule.
+   * \endverbatim
+   */
   MACRO_SR_PRED_INTRO,
-  // ======== Substitution + Rewriting predicate elimination
-  //
-  // In this rule, if we have proven a formula F, then we may conclude its
-  // rewritten form under a proven substitution.
-  //
-  // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: ((ids (ida (idr)?)?)?)
-  // ----------------------------------------
-  // Conclusion: F'
-  // where
-  //   F' is
-  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)).
-  // where ids and idr are method identifiers.
-  //
-  // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting predicate elimination**
+   *
+   * .. math::
+   *   \inferrule{F, F_1 \dots F_n \mid (ids (ida
+   *   (idr)?)?)?}{\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   *   \cdots \circ \sigma_{ids, ida}(F_1))}
+   *
+   * where :math:`ids` and :math:`idr` are method identifiers.
+   *
+   * We rewrite only on the Skolem form of :math:`F`, similar to
+   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::PfRule::MACRO_SR_EQ_INTRO>`.
+   * \endverbatim
+   */
   MACRO_SR_PRED_ELIM,
-  // ======== Substitution + Rewriting predicate transform
-  //
-  // In this rule, if we have proven a formula F, then we may provide a formula
-  // G and conclude it if F and G are equivalent after rewriting under a proven
-  // substitution.
-  //
-  // Children: (P1:F, P2:F1, ..., P_{n+1}:Fn)
-  // Arguments: (G, (ids (ida (idr)?)?)?)
-  // ----------------------------------------
-  // Conclusion: G
-  // where
-  //   Rewriter{idr}(F*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1)) ==
-  //   Rewriter{idr}(G*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
-  //
-  // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
-  // where F' and G' are the result of each side of the equation above. Here,
-  // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Substitution + Rewriting predicate elimination**
+   *
+   * .. math::
+   *   \inferrule{F, F_1 \dots F_n \mid G, (ids (ida (idr)?)?)?}{G}
+   *
+   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   * \cdots \circ \sigma_{ids, ida}(F_1)) = \texttt{Rewriter}_{idr}(G \circ
+   * \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))`.
+   *
+   * More generally, this rule also holds when:
+   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) =
+   * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
+   * :math:`G'` are the result of each side of the equation above. Here,
+   * original forms are used in a similar manner to
+   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::PfRule::MACRO_SR_PRED_INTRO>`
+   * above. \endverbatim
+   */
   MACRO_SR_PRED_TRANSFORM,
-  // ======== Annotation
-  // Children: (P1:F)
-  // Arguments: (a1 ... an)
-  // ----------------------------------------
-  // Conclusion: F
-  // The terms a1 ... an can be anything used to annotate the proof node, one
-  // example is where a1 is a theory::InferenceId.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Annotation**
+   *
+   * .. math::
+   *   \inferrule{F \mid a_1 \dots a_n}{F}
+   *
+   * The terms :math:`a_1 \dots a_n` can be anything used to annotate the proof
+   * node, one example is where :math:`a_1` is a theory::InferenceId.
+   * \endverbatim
+   */
   ANNOTATION,
-  //================================================= Processing rules
-  // ======== Remove Term Formulas Axiom
-  // Children: none
-  // Arguments: (t)
-  // ---------------------------------------------------------------
-  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Processing rules -- Remove Term Formulas Axiom**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\texttt{RemoveTermFormulas::getAxiomFor}(t)}
+   *
+   * \endverbatim
+   */
   REMOVE_TERM_FORMULA_AXIOM,
 
-  //================================================= Trusted rules
-  // ======== Theory lemma
-  // Children: none
-  // Arguments: (F, tid)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  // where F is a (T-valid) theory lemma generated by theory with TheoryId tid.
-  // This is a "coarse-grained" rule that is used as a placeholder if a theory
-  // did not provide a proof for a lemma or conflict.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory lemma**
+   *
+   * .. math::
+   *   \inferrule{- \mid F, tid}{F}
+   *
+   * where :math:`F` is a (T-valid) theory lemma generated by theory with
+   * TheoryId :math:`tid`. This is a "coarse-grained" rule that is used as a
+   * placeholder if a theory did not provide a proof for a lemma or conflict.
+   * \endverbatim
+   */
   THEORY_LEMMA,
-  // ======== Theory Rewrite
-  // Children: none
-  // Arguments: (F, tid, rid)
-  // ----------------------------------------
-  // Conclusion: F
-  // where F is an equality of the form (= t t') where t' is obtained by
-  // applying the kind of rewriting given by the method identifier rid, which
-  // is one of:
-  //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
-  // Notice that the checker for this rule does not replay the rewrite to ensure
-  // correctness, since theory rewriter methods are not static. For example,
-  // the quantifiers rewriter involves constructing new bound variables that are
-  // not guaranteed to be consistent on each call.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory rewrite**
+   *
+   * .. math::
+   *   \inferrule{- \mid F, tid, rid}{F}
+   *
+   * where :math:`F` is an equality of the form :math:`t = t'` where :math:`t'`
+   * is obtained by applying the kind of rewriting given by the method
+   * identifier :math:`rid`, which is one of:
+   * ``RW_REWRITE_THEORY_PRE``, ``RW_REWRITE_THEORY_POST``,
+   * ``RW_REWRITE_EQ_EXT``. Notice that the checker for this rule does not
+   * replay the rewrite to ensure correctness, since theory rewriter methods are
+   * not static. For example, the quantifiers rewriter involves constructing new
+   * bound variables that are not guaranteed to be consistent on each call.
+   * \endverbatim
+   */
   THEORY_REWRITE,
-  // ======== Theory Preprocess
-  // Children: none
-  // Arguments: (F, tid)
-  // ----------------------------------------
-  // Conclusion: F
-  // where F is an equality of the form t = Theory::ppRewrite(t) for the theory
-  // with identifier tid. Notice this is a "trusted" rule.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory preprocessing**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality of the form :math:`t =
+   * \texttt{Theory::ppRewrite}(t)` for some theory. \endverbatim
+   */
   THEORY_PREPROCESS,
-  // ======== Theory Preprocess
-  // Children: none
-  // Arguments: (F, tid)
-  // ----------------------------------------
-  // Conclusion: F
-  // where F was added as a new assertion by theory preprocessing from the
-  // theory with identifier tid.
+    /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory preprocessing**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` was added as a new assertion by theory preprocessing from
+   * the theory with identifier tid.
+   * \endverbatim
+   */
   THEORY_PREPROCESS_LEMMA,
-  // The remaining rules in this section have the signature of a "trusted rule":
-  //
-  // Children: ?
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  //
-  // Unless stated below, the expected children vector of the rule is empty.
-  //
-  // where F is an equality of the form t = t' where t was replaced by t'
-  // based on some preprocessing pass, or otherwise F was added as a new
-  // assertion by some preprocessing pass.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Preprocessing**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality of the form :math:`t = t'` where :math:`t`
+   * was replaced by :math:`t'` based on some preprocessing pass, or otherwise
+   * :math:`F` was added as a new assertion by some preprocessing pass.
+   * \endverbatim
+   */
   PREPROCESS,
-  // where F was added as a new assertion by some preprocessing pass.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Preprocessing new assertion**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` was added as a new assertion by some preprocessing pass.
+   * \endverbatim
+   */
   PREPROCESS_LEMMA,
-  // where F is an equality of the form t = t' where t was replaced by t'
-  // based on theory expand definitions.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Theory expand definitions**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality of the form :math:`t = t'` where :math:`t`
+   * was replaced by :math:`t'` based on theory expand definitions. \endverbatim
+   */
   THEORY_EXPAND_DEF,
-  // where F is an existential (exists ((x T)) (P x)) used for introducing
-  // a witness term (witness ((x T)) (P x)).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Witness term axiom**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an existential ``(exists ((x T)) (P x))`` used for
+   * introducing a witness term ``(witness ((x T)) (P x))``. \endverbatim
+   */
   WITNESS_AXIOM,
-  // where F is an equality (= t t') that holds by a form of rewriting that
-  // could not be replayed during proof postprocessing.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-replayable rewriting**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality `t = t'` that holds by a form of rewriting
+   * that could not be replayed during proof postprocessing. \endverbatim
+   */
   TRUST_REWRITE,
-  // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be replayed during proof postprocessing.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-replayable substitution**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality :math:`t = t'` that holds by a form of
+   * substitution that could not be replayed during proof postprocessing.
+   * \endverbatim
+   */
   TRUST_SUBS,
-  // where F is an equality (= t t') that holds by a form of substitution that
-  // could not be determined by the TrustSubstitutionMap. This inference may
-  // contain possibly multiple children corresponding to the formulas used to
-  // derive the substitution.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-replayable substitution map**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality :math:`t = t'` that holds by a form of
+   * substitution that could not be determined by the TrustSubstitutionMap. This
+   * inference may contain possibly multiple children corresponding to the
+   * formulas used to derive the substitution. \endverbatim
+   */
   TRUST_SUBS_MAP,
-  // where F is a solved equality of the form (= x t) derived as the solved
-  // form of F', where F' is given as a child.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Solved equality**
+   *
+   * .. math::
+   *   \inferrule{F' \mid F}{F}
+   *
+   * where :math:`F` is a solved equality of the form :math:`x = t` derived as
+   * the solved form of :math:`F'`. \endverbatim
+   */
   TRUST_SUBS_EQ,
-  // where F is a fact derived by a theory-specific inference
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Theory-specific inference**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is a fact derived by a theory-specific inference.
+   * \endverbatim
+   */
   THEORY_INFERENCE,
-  // ========= SAT Refutation for assumption-based unsat cores
-  // Children: (P1, ..., Pn)
-  // Arguments: none
-  // ---------------------
-  // Conclusion: false
-  // Note: P1, ..., Pn correspond to the unsat core determined by the SAT
-  // solver.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **SAT Refutation for assumption-based unsat cores**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{\bot}
+   *
+   * where :math:`F_1 \dots F_n` correspond to the unsat core determined by the
+   * SAT solver. \endverbatim
+   */
   SAT_REFUTATION,
 
-  //================================================= Boolean rules
-  // ======== Resolution
-  // Children:
-  //  (P1:C1, P2:C2)
-  // Arguments: (pol, L)
-  // ---------------------
-  // Conclusion: C
-  // where
-  //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
-  //     each children viewed as a literal or a node viewed as a literal. Note
-  //     that an OR node could also be a literal.
-  //   - pol is either true or false, representing the polarity of the pivot on
-  //     the first clause
-  //   - L is the pivot of the resolution, which occurs as is (resp. under a
-  //     NOT) in C1 and negatively (as is) in C2 if pol = true (pol = false).
-  //   C is a clause resulting from collecting all the literals in C1, minus the
-  //   first occurrence of the pivot or its negation, and C2, minus the first
-  //   occurrence of the pivot or its negation, according to the policy above.
-  //   If the resulting clause has a single literal, that literal itself is the
-  //   result; if it has no literals, then the result is false; otherwise it's
-  //   an OR node of the resulting literals.
-  //
-  //   Note that it may be the case that the pivot does not occur in the
-  //   clauses. In this case the rule is not unsound, but it does not correspond
-  //   to resolution but rather to a weakening of the clause that did not have a
-  //   literal eliminated.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Resolution**
+   *
+   * .. math::
+   *   \inferrule{C_1, C_2 \mid pol, L}{C}
+   *
+   * where
+   *
+   * - :math:`C_1` and :math:`C_2` are nodes viewed as clauses, i.e., either an
+   *   ``OR`` node with each children viewed as a literal or a node viewed as a
+   *   literal. Note that an ``OR`` node could also be a literal.
+   * - :math:`pol` is either true or false, representing the polarity of the
+   *   pivot on the first clause
+   * - :math:`L` is the pivot of the resolution, which occurs as is (resp. under
+   *   a ``NOT``) in :math:`C_1` and negatively (as is) in :math:`C_2` if
+   *   :math:`pol = \top` (:math:`pol = \bot`).
+   *
+   * :math:`C` is a clause resulting from collecting all the literals in
+   * :math:`C_1`, minus the first occurrence of the pivot or its negation, and
+   * :math:`C_2`, minus the first occurrence of the pivot or its negation,
+   * according to the policy above. If the resulting clause has a single
+   * literal, that literal itself is the result; if it has no literals, then the
+   * result is false; otherwise it's an ``OR`` node of the resulting literals.
+   *
+   * Note that it may be the case that the pivot does not occur in the
+   * clauses. In this case the rule is not unsound, but it does not correspond
+   * to resolution but rather to a weakening of the clause that did not have a
+   * literal eliminated.
+   * \endverbatim
+   */
   RESOLUTION,
-  // ======== N-ary Resolution
-  // Children: (P1:C_1, ..., Pm:C_n)
-  // Arguments: (pol_1, L_1, ..., pol_{n-1}, L_{n-1})
-  // ---------------------
-  // Conclusion: C
-  // where
-  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
-  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
-  //     pivot L and polarity pol, as defined above
-  //   - let C_1' = C_1 (from P1),
-  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
-  //   The result of the chain resolution is C = C_n'
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- N-ary Resolution**
+   *
+   * .. math::
+   *   \inferrule{C_1 \dots C_n \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *
+   * where
+   *
+   * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined above
+   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
+   *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
+   *   :math:`pol`, as defined above
+   * - let :math:`C_1' = C_1`,
+   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
+   *   \mathit{pol}_{i-1}} C_i'`
+   *
+   * The result of the chain resolution is :math:`C = C_n'`
+   * \endverbatim
+   */
   CHAIN_RESOLUTION,
-  // ======== Factoring
-  // Children: (P:C1)
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: C2
-  // where
-  //  Set representations of C1 and C2 is the same and the number of literals in
-  //  C2 is smaller than that of C1
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Factoring**
+   *
+   * .. math::
+   *   \inferrule{C_1 \mid -}{C_2}
+   *
+   * where the set representations of :math:`C_1` and :math:`C_2` are the same
+   * and the number of literals in :math:`C_2` is smaller than that of
+   * :math:`C_1`. \endverbatim
+   */
   FACTORING,
-  // ======== Reordering
-  // Children: (P:C1)
-  // Arguments: (C2)
-  // ---------------------
-  // Conclusion: C2
-  // where
-  //  Set representations of C1 and C2 are the same and the number of literals
-  //  in C2 is the same of that of C1
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Reordering**
+   *
+   * .. math::
+   *   \inferrule{C_1 \mid C_2}{C_2}
+   *
+   * where
+   * the set representations of :math:`C_1` and :math:`C_2` are the same and the
+   * number of literals in :math:`C_2` is the same of that of :math:`C_1`.
+   * \endverbatim
+   */
   REORDERING,
-  // ======== N-ary Resolution + Factoring + Reordering
-  // Children: (P1:C_1, ..., Pm:C_n)
-  // Arguments: (C, pol_1, L_1, ..., pol_{n-1}, L_{n-1})
-  // ---------------------
-  // Conclusion: C
-  // where
-  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
-  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
-  //     pivot L and polarity pol, as defined in RESOLUTION
-  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
-  //   - for each i > 1, let C_i' be equal, it its set representation, to
-  //     C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
-  //   The result of the chain resolution is C, which is equal, in its set
-  //   representation, to C_n'
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- N-ary Resolution + Factoring + Reordering**
+   *
+   * .. math::
+   *   \inferrule{C_1 \dots C_n \mid C, pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *
+   * where
+   *
+   * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
+   *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
+   *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
+   *   :math:`pol`, as defined in
+   *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
+   * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
+   * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
+   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}} C_i'`
+   *
+   * The result of the chain resolution is :math:`C`, which is equal, in its set
+   * representation, to :math:`C_n'`
+   * \endverbatim
+   */
   MACRO_RESOLUTION,
-  // As above but not checked
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
+   *
+   * Same as :cpp:enumerator:`MACRO_RESOLUTION
+   * <cvc5::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
+   * checker. \endverbatim
+   */
   MACRO_RESOLUTION_TRUST,
 
-  // ======== Split
-  // Children: none
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: (or F (not F))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Split**
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F \lor \neg F}
+   *
+   * \endverbatim
+   */
   SPLIT,
-  // ======== Equality resolution
-  // Children: (P1:F1, P2:(= F1 F2))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (F2)
-  // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Equality resolution**
+   *
+   * .. math::
+   *   \inferrule{F_1, (F_1 = F_2) \mid -}{F_2}
+   *
+   * Note this can optionally be seen as a macro for
+   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::PfRule::EQUIV_ELIM1>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * \endverbatim
+   */
   EQ_RESOLVE,
-  // ======== Modus ponens
-  // Children: (P1:F1, P2:(=> F1 F2))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (F2)
-  // Note this can optionally be seen as a macro for IMPLIES_ELIM+RESOLUTION.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Modus Ponens**
+   *
+   * .. math::
+   *   \inferrule{F_1, (F_1 \rightarrow F_2) \mid -}{F_2}
+   *
+   * Note this can optionally be seen as a macro for
+   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::PfRule::IMPLIES_ELIM>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`.
+   * \endverbatim
+   */
   MODUS_PONENS,
-  // ======== Double negation elimination
-  // Children: (P:(not (not F)))
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (F)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Double negation elimination**
+   *
+   * .. math::
+   *   \inferrule{\neg (\neg F) \mid -}{F}
+   *
+   * \endverbatim
+   */
   NOT_NOT_ELIM,
-  // ======== Contradiction
-  // Children: (P1:F P2:(not F))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: false
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Contradiction**
+   *
+   * .. math::
+   *   \inferrule{F, \neg F \mid -}{\bot}
+   *
+   * \endverbatim
+   */
   CONTRA,
-  // ======== And elimination
-  // Children: (P:(and F1 ... Fn))
-  // Arguments: (i)
-  // ---------------------
-  // Conclusion: (Fi)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- And elimination**
+   *
+   * .. math::
+   *   \inferrule{(F_1 \land \dots \land F_n) \mid i}{F_i}
+   *
+   * \endverbatim
+   */
   AND_ELIM,
-  // ======== And introduction
-  // Children: (P1:F1 ... Pn:Fn))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (and P1 ... Pn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- And introduction**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{(F_1 \land \dots \land F_n)}
+   *
+   * \endverbatim
+   */
   AND_INTRO,
-  // ======== Not Or elimination
-  // Children: (P:(not (or F1 ... Fn)))
-  // Arguments: (i)
-  // ---------------------
-  // Conclusion: (not Fi)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Or elimination**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 \lor \dots \lor F_n) \mid i}{\neg F_i}
+   *
+   * \endverbatim
+   */
   NOT_OR_ELIM,
-  // ======== Implication elimination
-  // Children: (P:(=> F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Implication elimination**
+   *
+   * .. math::
+   *   \inferrule{F_1 \rightarrow F_2 \mid -}{\neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   IMPLIES_ELIM,
-  // ======== Not Implication elimination version 1
-  // Children: (P:(not (=> F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Implication elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 \rightarrow F_2) \mid -}{F_1}
+   *
+   * \endverbatim
+   */
   NOT_IMPLIES_ELIM1,
-  // ======== Not Implication elimination version 2
-  // Children: (P:(not (=> F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (not F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Implication elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 \rightarrow F_2) \mid -}{\neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_IMPLIES_ELIM2,
-  // ======== Equivalence elimination version 1
-  // Children: (P:(= F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Equivalence elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{F_1 = F_2 \mid -}{\neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   EQUIV_ELIM1,
-  // ======== Equivalence elimination version 2
-  // Children: (P:(= F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Equivalence elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{F_1 = F_2 \mid -}{F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   EQUIV_ELIM2,
-  // ======== Not Equivalence elimination version 1
-  // Children: (P:(not (= F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Equivalence elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 = F_2) \mid -}{F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   NOT_EQUIV_ELIM1,
-  // ======== Not Equivalence elimination version 2
-  // Children: (P:(not (= F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not Equivalence elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 = F_2) \mid -}{\neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_EQUIV_ELIM2,
-  // ======== XOR elimination version 1
-  // Children: (P:(xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- XOR elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{F_1 \xor F_2 \mid -}{F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   XOR_ELIM1,
-  // ======== XOR elimination version 2
-  // Children: (P:(xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- XOR elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{F_1 \xor F_2 \mid -}{\neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   XOR_ELIM2,
-  // ======== Not XOR elimination version 1
-  // Children: (P:(not (xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not XOR elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 \xor F_2) \mid -}{F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_XOR_ELIM1,
-  // ======== Not XOR elimination version 2
-  // Children: (P:(not (xor F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not XOR elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 \xor F_2) \mid -}{\neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   NOT_XOR_ELIM2,
-  // ======== ITE elimination version 1
-  // Children: (P:(ite C F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not C) F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- ITE elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{(\ite{C}{F_1}{F_2}) \mid -}{\neg C \lor F_1}
+   *
+   * \endverbatim
+   */
   ITE_ELIM1,
-  // ======== ITE elimination version 2
-  // Children: (P:(ite C F1 F2))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or C F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- ITE elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{(\ite{C}{F_1}{F_2}) \mid -}{C \lor F_2}
+   *
+   * \endverbatim
+   */
   ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P:(not (ite C F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not C) (not F1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not ITE elimination version 1**
+   *
+   * .. math::
+   *   \inferrule{\neg(\ite{C}{F_1}{F_2}) \mid -}{\neg C \lor \neg F_1}
+   *
+   * \endverbatim
+   */
   NOT_ITE_ELIM1,
-  // ======== Not ITE elimination version 1
-  // Children: (P:(not (ite C F1 F2)))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or C (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- Not ITE elimination version 2**
+   *
+   * .. math::
+   *   \inferrule{\neg(\ite{C}{F_1}{F_2}) \mid -}{C \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   NOT_ITE_ELIM2,
 
-  //================================================= De Morgan rules
-  // ======== Not And
-  // Children: (P:(not (and F1 ... Fn))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (or (not F1) ... (not Fn))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- De Morgan -- Not And**
+   *
+   * .. math::
+   *   \inferrule{\neg(F_1 \land \dots \land F_n) \mid -}{\neg F_1 \lor \dots
+   *   \lor \neg F_n}
+   *
+   * \endverbatim
+   */
   NOT_AND,
-  //================================================= CNF rules
-  // ======== CNF And Pos
-  // Children: ()
-  // Arguments: ((and F1 ... Fn), i)
-  // ---------------------
-  // Conclusion: (or (not (and F1 ... Fn)) Fi)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- And Positive**
+   *
+   * .. math::
+   *   \inferrule{- \mid (F_1 \land \dots \land F_n), i}{\neg (F_1 \land \dots
+   *   \land F_n) \lor F_i}
+   *
+   * \endverbatim
+   */
   CNF_AND_POS,
-  // ======== CNF And Neg
-  // Children: ()
-  // Arguments: ((and F1 ... Fn))
-  // ---------------------
-  // Conclusion: (or (and F1 ... Fn) (not F1) ... (not Fn))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- And Negative**
+   *
+   * .. math::
+   *   \inferrule{- \mid (F_1 \land \dots \land F_n)}{(F_1 \land \dots \land
+   *   F_n) \lor \neg F_1 \lor \dots \lor \neg F_n}
+   *
+   * \endverbatim
+   */
   CNF_AND_NEG,
-  // ======== CNF Or Pos
-  // Children: ()
-  // Arguments: ((or F1 ... Fn))
-  // ---------------------
-  // Conclusion: (or (not (or F1 ... Fn)) F1 ... Fn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Or Positive**
+   *
+   * .. math::
+   *   \inferrule{- \mid (F_1 \lor \dots \lor F_n)}{\neg(F_1 \lor \dots \lor
+   *   F_n) \lor F_1 \lor \dots \lor F_n}
+   *
+   * \endverbatim
+   */
   CNF_OR_POS,
-  // ======== CNF Or Neg
-  // Children: ()
-  // Arguments: ((or F1 ... Fn), i)
-  // ---------------------
-  // Conclusion: (or (or F1 ... Fn) (not Fi))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Or Negative**
+   *
+   * .. math::
+   *   \inferrule{- \mid (F_1 \lor \dots \lor F_n), i}{(F_1 \lor \dots \lor F_n)
+   *   \lor \neg F_i}
+   *
+   * \endverbatim
+   */
   CNF_OR_NEG,
-  // ======== CNF Implies Pos
-  // Children: ()
-  // Arguments: ((implies F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (implies F1 F2)) (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Implies Positive**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{\neg(F_1 \rightarrow F_2) \lor \neg F_1
+   *   \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_IMPLIES_POS,
-  // ======== CNF Implies Neg version 1
-  // Children: ()
-  // Arguments: ((implies F1 F2))
-  // ---------------------
-  // Conclusion: (or (implies F1 F2) F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Implies Negative 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor F_1}
+   *
+   * \endverbatim
+   */
   CNF_IMPLIES_NEG1,
-  // ======== CNF Implies Neg version 2
-  // Children: ()
-  // Arguments: ((implies F1 F2))
-  // ---------------------
-  // Conclusion: (or (implies F1 F2) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Implies Negative 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_IMPLIES_NEG2,
-  // ======== CNF Equiv Pos version 1
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (= F1 F2)) (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Positive 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{\neg(F_1 = F_2) \lor \neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_POS1,
-  // ======== CNF Equiv Pos version 2
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (= F1 F2)) F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Positive 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{\neg(F_1 = F_2) \lor F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_POS2,
-  // ======== CNF Equiv Neg version 1
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (= F1 F2) F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Negative 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{(F_1 = F_2) \lor F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_NEG1,
-  // ======== CNF Equiv Neg version 2
-  // Children: ()
-  // Arguments: ((= F1 F2))
-  // ---------------------
-  // Conclusion: (or (= F1 F2) (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- Equiv Negative 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 = F_2}{(F_1 = F_2) \lor \neg F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_EQUIV_NEG2,
-  // ======== CNF Xor Pos version 1
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (xor F1 F2)) F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Positive 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{\neg(F_1 \xor F_2) \lor F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_POS1,
-  // ======== CNF Xor Pos version 2
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (xor F1 F2)) (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Positive 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{\neg(F_1 \xor F_2) \lor \neg F_1 \lor
+   *   \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_POS2,
-  // ======== CNF Xor Neg version 1
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (xor F1 F2) (not F1) F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Negative 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{(F_1 \xor F_2) \lor \neg F_1 \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_NEG1,
-  // ======== CNF Xor Neg version 2
-  // Children: ()
-  // Arguments: ((xor F1 F2))
-  // ---------------------
-  // Conclusion: (or (xor F1 F2) F1 (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- XOR Negative 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid F_1 \xor F_2}{(F_1 \xor F_2) \lor F_1 \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_XOR_NEG2,
-  // ======== CNF ITE Pos version 1
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (ite C F1 F2)) (not C) F1)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Positive 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{\neg(\ite{C}{F_1}{F_2}) \lor \neg
+   *   C \lor F_1}
+   *
+   * \endverbatim
+   */
   CNF_ITE_POS1,
-  // ======== CNF ITE Pos version 2
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (ite C F1 F2)) C F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Positive 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{\neg(\ite{C}{F_1}{F_2}) \lor C
+   *   \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_POS2,
-  // ======== CNF ITE Pos version 3
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (not (ite C F1 F2)) F1 F2)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Positive 3**
+   *
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{\neg(\ite{C}{F_1}{F_2}) \lor F_1
+   *   \lor F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_POS3,
-  // ======== CNF ITE Neg version 1
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (ite C F1 F2) (not C) (not F1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Negative 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg C
+   *   \lor \not F_1}
+   *
+   * \endverbatim
+   */
   CNF_ITE_NEG1,
-  // ======== CNF ITE Neg version 2
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (ite C F1 F2) C (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Negative 2**
+   *
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor C \lor
+   *   \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_NEG2,
-  // ======== CNF ITE Neg version 3
-  // Children: ()
-  // Arguments: ((ite C F1 F2))
-  // ---------------------
-  // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- CNF -- ITE Negative 3**
+   *
+   * .. math::
+   *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg F_1
+   *   \lor \neg F_2}
+   *
+   * \endverbatim
+   */
   CNF_ITE_NEG3,
 
   //================================================= Equality rules
