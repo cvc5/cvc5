@@ -2604,13 +2604,15 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   * solution in which case solutions are available via getSynthSolutions,
+   * "no solution" if it was determined there is no solution, or "unknown"
+   * otherwise.
    */
-  public Result checkSynth()
+  public SynthResult checkSynth()
   {
     long resultPointer = checkSynth(pointer);
-    return new Result(this, resultPointer);
+    return new SynthResult(this, resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -2624,13 +2626,15 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth-next )
    * }
-   * @return the result of the check, which is UNSAT if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   * solution in which case solutions are available via getSynthSolutions,
+   * "no solution" if it was determined there is no solution, or "unknown"
+   * otherwise.
    */
-  public Result checkSynthNext()
+  public SynthResult checkSynthNext()
   {
     long resultPointer = checkSynthNext(pointer);
-    return new Result(this, resultPointer);
+    return new SynthResult(this, resultPointer);
   }
 
   private native long checkSynthNext(long pointer);
