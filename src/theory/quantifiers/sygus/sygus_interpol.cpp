@@ -346,10 +346,10 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
 
   Trace("sygus-interpol")
       << "  SygusInterpol::solveInterpolation check synth..." << std::endl;
-  Result r = d_subSolver->checkSynth();
+  SynthResult r = d_subSolver->checkSynth();
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolation result: " << r
                           << std::endl;
-  if (r.getStatus() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }

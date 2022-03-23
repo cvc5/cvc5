@@ -780,7 +780,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       if (d_result.hasSolution())
       {
-        d_solution << "success" << std::endl;
+        d_solution << "feasible" << std::endl;
       }
       else if (d_result.hasNoSolution())
       {

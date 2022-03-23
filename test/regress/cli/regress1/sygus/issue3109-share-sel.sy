@@ -1,4 +1,4 @@
-; EXPECT: success
+; EXPECT: feasible
 ; COMMAND-LINE: --sygus-out=status
 (set-logic ALL)
 
