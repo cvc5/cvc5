@@ -927,7 +927,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // it was given an operator
     op = p.d_op;
   }
-  else if (isIndexedOperatorEnabled(p.d_name))
+  else if (p.d_kind == api::UNDEFINED_KIND
+           && isIndexedOperatorEnabled(p.d_name))
   {
     // Resolve indexed symbols that cannot be resolved without knowing the type
     // of the arguments. This is currently limited to `to_fp`.
