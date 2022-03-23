@@ -614,10 +614,10 @@ cdef class Result:
 
 cdef class SynthResult:
     """
-      Encapsulation of a solver synth result. This is the return value of the API
-      methods:
-        checkSynth,
-        checkSynthNext.
+      Encapsulation of a solver synth result. This is the return value of the
+      API methods:
+        - :py:meth:`Solver.checkSynth()`
+        - :py:meth:`Solver.checkSynthNext()`
       which we call synthesis queries. This class indicates whether the
       synthesis query has a solution, has no solution, or is unknown.
     """

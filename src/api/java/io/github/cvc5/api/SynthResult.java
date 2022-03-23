@@ -36,8 +36,8 @@ public class SynthResult extends AbstractPointer
   // endregion
 
   /**
-   * Return true if SynthResult is empty, i.e., a nullary SynthResult, and not an actual
-   * result returned from a synthesis query.
+   * Return true if SynthResult is empty, i.e., a nullary SynthResult, and not
+   * an actual result returned from a synthesis query.
    */
   public boolean isNull()
   {
@@ -57,8 +57,8 @@ public class SynthResult extends AbstractPointer
   private native boolean hasSolution(long pointer);
 
   /**
-   * Return true if the synthesis query has no solution. In this case, it was determined there was
-   * no solution.
+   * Return true if the synthesis query has no solution. In this case, it was
+   * determined there was no solution.
    */
   public boolean hasNoSolution()
   {
