@@ -818,7 +818,7 @@ def generate_sphinx_output_tags(modules, src_dir, build_dir):
         res.append(info['description'])
         if 'example-file' in info:
             res.append('')
-            res.append('.. command-output:: bin/cvc5 -o {} ../test/regress/{}'.format(info['name'], info['example-file']))
+            res.append('.. command-output:: bin/cvc5 -o {} ../test/regress/cli/{}'.format(info['name'], info['example-file']))
             res.append('  :cwd: {}'.format(cwd))
         res.append('')
         res.append('')
