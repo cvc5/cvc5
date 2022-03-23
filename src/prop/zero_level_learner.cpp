@@ -125,8 +125,10 @@ void ZeroLevelLearner::notifyInputFormulas(
   // last learned literal is equal to the total number of literals in the
   // input problem times 3, i.e. each literal has been asserted on average 3
   // times.
-  d_deepRestartThreshold = static_cast<size_t>(static_cast<double>(d_ppnAtoms.size())*options().smt.deepRestartFactor);
-  Trace("level-zero") << "Restart threshold is " << d_deepRestartThreshold << std::endl;
+  d_deepRestartThreshold = static_cast<size_t>(
+      static_cast<double>(d_ppnAtoms.size()) * options().smt.deepRestartFactor);
+  Trace("level-zero") << "Restart threshold is " << d_deepRestartThreshold
+                      << std::endl;
 }
 
 bool ZeroLevelLearner::notifyAsserted(TNode assertion)
@@ -185,7 +187,8 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   // request a deep restart?
   if (!d_levelZeroAssertsLearned.empty())
   {
-    // if non-empty and non-learned atoms have been asserted beyond the threshold
+    // if non-empty and non-learned atoms have been asserted beyond the
+    // threshold
     if (d_assertNoLearnCount > d_deepRestartThreshold)
     {
       Trace("level-zero") << "DEEP RESTART with "
