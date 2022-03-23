@@ -31,7 +31,6 @@ endmacro()
 
 # add specific test files
 cvc5_add_python_api_unit_test(test_solver test_solver.py)
-cvc5_add_python_api_unit_test(test_solver test_solver.py)
 cvc5_add_python_api_unit_test(test_sort test_sort.py)
 cvc5_add_python_api_unit_test(test_term test_term.py)
 cvc5_add_python_api_unit_test(test_datatype_api test_datatype_api.py)
@@ -39,3 +38,4 @@ cvc5_add_python_api_unit_test(test_grammar test_grammar.py)
 cvc5_add_python_api_unit_test(test_to_python_obj test_to_python_obj.py)
 cvc5_add_python_api_unit_test(test_op test_op.py)
 cvc5_add_python_api_unit_test(test_result test_result.py)
+cvc5_add_python_api_unit_test(test_synth_result test_synth_result.py)
