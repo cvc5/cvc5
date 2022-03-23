@@ -273,14 +273,10 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
+void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 {
   Assert(options().smt.deepRestart);
-  if (zll.empty())
-  {
-    Trace("deep-restart") << "No learned literals" << std::endl;
-    return false;
-  }
+  Assert (!zll.empty());
   Trace("deep-restart") << "Have " << zll.size()
                         << " zero level learned literals" << std::endl;
 
@@ -329,9 +325,7 @@ bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
   if (hasSepHeap)
   {
     d_theoryEngine->declareSepHeap(sepLocType, sepDataType);
-  }  
-  
-  return true;
+  }
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

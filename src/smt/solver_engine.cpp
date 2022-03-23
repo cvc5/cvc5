@@ -1846,14 +1846,17 @@ bool SolverEngine::deepRestart()
 
   // get the zero-level learned literals now, before resetting the context
   std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiterals();
+  
+  if (zll.empty())
+  {
+    Trace("deep-restart") << "No learned literals" << std::endl;
+    return false;
+  }
 
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
   
-  if (!d_smtSolver->deepRestart(*d_asserts.get(), zll))
-  {
-    return false;
-  }
+  d_smtSolver->deepRestart(*d_asserts.get(), zll);
   // push the state to maintain global context around everything
   d_state->setup();
   return true;
