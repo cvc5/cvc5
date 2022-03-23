@@ -2589,7 +2589,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
 
   ASSERT_THROW(d_solver.getSynthSolution(f), CVC5ApiException);
 
-  SynthResult sr = d_solver.checkSynth();
+  cvc5::api::SynthResult sr = d_solver.checkSynth();
   ASSERT_EQ(sr.hasSolution(), true);
 
   ASSERT_NO_THROW(d_solver.getSynthSolution(f));
@@ -2633,7 +2633,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
-  SynthResult sr = d_solver.checkSynth();
+  cvc5::api::SynthResult sr = d_solver.checkSynth();
   ASSERT_EQ(sr.hasSolution(), true);
   ASSERT_NO_THROW(d_solver.getSynthSolutions({f}));
   sr = d_solver.checkSynthNext();
