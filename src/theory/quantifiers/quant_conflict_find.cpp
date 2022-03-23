@@ -95,8 +95,8 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
       d_mg->determineVariableOrder(bvars);
     }
   }else{
-    Trace("qcf-invalid")
-        << "QCF invalid : body of formula cannot be processed." << std::endl;
+    Trace("qcf-invalid") << "QCF invalid : body of formula cannot be processed."
+                         << std::endl;
   }
   Trace("qcf-qregister-summary")
       << "QCF register : " << (d_mg->isValid() ? "VALID " : "INVALID") << " : "
@@ -124,7 +124,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
       TNode f = p->getTermDatabase()->getMatchOperator( v );
       if( !f.isNull() ){
         Trace("qcf-opt") << "Record variable argument positions in " << v
-                          << ", op=" << f << "..." << std::endl;
+                         << ", op=" << f << "..." << std::endl;
         for (size_t k = 0, vnchild = v.getNumChildren(); k < vnchild; k++)
         {
           Node n = v[k];
@@ -180,7 +180,7 @@ void QuantInfo::getPropagateVars(std::vector<TNode>& vars,
       QuantPhaseReq::getEntailPolarity( n, 0, true, pol, rec, newPol );
     }
     Trace("qcf-opt-debug") << "getPropagateVars " << n << ", pol = " << pol
-                            << ", rec = " << rec << std::endl;
+                           << ", rec = " << rec << std::endl;
     if( rec ){
       for (const Node& nc : n)
       {
@@ -742,9 +742,8 @@ bool QuantInfo::entailmentTest(Node lit, bool chEnt)
   Node rew = rewrite(lit);
   if (rew.isConst())
   {
-    Trace("qcf-tconstraint-debug")
-        << "...constraint " << lit << " rewrites to " << rew << "."
-        << std::endl;
+    Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
+                                   << rew << "." << std::endl;
     return rew.getConst<bool>();
   }
   // if checking for conflicts, we must be sure that the (negation of)
@@ -918,7 +917,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
 
   if( !d_unassigned.empty() && ( success || doContinue ) ){
     Trace("qcf-check") << "Assign to unassigned (" << d_unassigned.size()
-                        << ")..." << std::endl;
+                       << ")..." << std::endl;
     do {
       if( doFail ){
         Trace("qcf-check-unassign") << "Failure, try again..." << std::endl;
@@ -956,7 +955,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               else if (d_var_mg[d_unassigned[d_una_index]]->getNextMatch())
               {
                 Trace("qcf-check-unassign") << "Succeeded match with mg at "
-                                             << d_una_index << std::endl;
+                                            << d_una_index << std::endl;
                 d_una_index++;
               }
               else
@@ -973,9 +972,8 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               {
                 int currIndex = d_una_eqc_count[d_una_index];
                 d_una_eqc_count[d_una_index]++;
-                Trace("qcf-check-unassign")
-                    << d_unassigned[d_una_index] << "->" << eqcs[currIndex]
-                    << std::endl;
+                Trace("qcf-check-unassign") << d_unassigned[d_una_index] << "->"
+                                            << eqcs[currIndex] << std::endl;
                 if (setMatch(
                         d_unassigned[d_una_index], eqcs[currIndex], true, true))
                 {
@@ -1043,7 +1041,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
         if (!d_match[ui].isNull())
         {
           Trace("qcf-check") << "  Assigned #" << ui << " : " << d_vars[ui]
-                              << " -> " << d_match[ui] << std::endl;
+                             << " -> " << d_match[ui] << std::endl;
         }
       }
     }
@@ -1259,7 +1257,7 @@ void MatchGen::collectBoundVar(Node n,
 void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
 {
   Trace("qcf-qregister-debug") << "Determine variable order " << d_n
-                                << ", #bvars = " << bvars.size() << std::endl;
+                               << ", #bvars = " << bvars.size() << std::endl;
   bool isComm = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==EQUAL );
   if( isComm ){
     std::map< int, std::vector< int > > c_to_vars;
@@ -1268,8 +1266,7 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
     std::map< int, int > vu_count;
     std::map< int, bool > has_nested;
     std::vector< bool > assigned;
-    Trace("qcf-qregister-debug")
-        << "Calculate bound variables..." << std::endl;
+    Trace("qcf-qregister-debug") << "Calculate bound variables..." << std::endl;
     for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
     {
       std::map< Node, bool > visited;
@@ -2079,17 +2076,17 @@ bool MatchGen::doMatching()
   return !d_qn.empty();
 }
 
-void MatchGen::debugPrintType( const char * c, short typ) 
+void MatchGen::debugPrintType(const char* c, short typ)
 {
   switch (typ)
   {
-  case typ_invalid: Trace(c) << "invalid";break;
-  case typ_ground: Trace(c) << "ground";break;
-  case typ_eq: Trace(c) << "eq";break;
-  case typ_pred: Trace(c) << "pred";break;
-  case typ_formula: Trace(c) << "formula";break;
-  case typ_var: Trace(c) << "var";break;
-  case typ_bool_var: Trace(c) << "bool_var";break;
+    case typ_invalid: Trace(c) << "invalid"; break;
+    case typ_ground: Trace(c) << "ground"; break;
+    case typ_eq: Trace(c) << "eq"; break;
+    case typ_pred: Trace(c) << "pred"; break;
+    case typ_formula: Trace(c) << "formula"; break;
+    case typ_var: Trace(c) << "var"; break;
+    case typ_bool_var: Trace(c) << "bool_var"; break;
   }
 }
 
@@ -2163,8 +2160,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
     Trace("qcf-qregister") << std::endl;
     if (qi->d_vars.size() > q[0].getNumChildren())
     {
-      Trace("qcf-qregister")
-          << "  with additional constraints : " << std::endl;
+      Trace("qcf-qregister") << "  with additional constraints : " << std::endl;
       for (size_t j = q[0].getNumChildren(), nvars = qi->d_vars.size();
            j < nvars;
            j++)
@@ -2248,7 +2244,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   if (d_conflict)
   {
     Trace("qcf-check2") << "QCF : finished check : already in conflict."
-                         << std::endl;
+                        << std::endl;
     if (level >= Theory::EFFORT_FULL)
     {
       Trace("qcf-warn") << "ALREADY IN CONFLICT? " << level << std::endl;
@@ -2264,7 +2260,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     prevEt = d_statistics.d_entailment_checks.get();
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "---Conflict Find Engine Round, effort = " << level
-                         << "---" << std::endl;
+                        << "---" << std::endl;
   }
 
   // reset the round-specific information
@@ -2286,7 +2282,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     // set the effort (data member for convienence of access)
     d_effort = static_cast<Effort>(e);
     Trace("qcf-check") << "Checking quantified formulas at effort " << e
-                        << "..." << std::endl;
+                       << "..." << std::endl;
     // for each quantified formula
     for (unsigned i = 0; i < nquant; i++)
     {
@@ -2319,14 +2315,14 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   {
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "Finished conflict find engine, time = "
-                         << (clSet2 - clSet);
+                        << (clSet2 - clSet);
     if (addedLemmas > 0)
     {
       Trace("qcf-engine") << ", effort = "
-                           << (d_effort == EFFORT_CONFLICT
-                                   ? "conflict"
-                                   : (d_effort == EFFORT_PROP_EQ ? "prop_eq"
-                                                                 : "mc"));
+                          << (d_effort == EFFORT_CONFLICT
+                                  ? "conflict"
+                                  : (d_effort == EFFORT_PROP_EQ ? "prop_eq"
+                                                                : "mc"));
       Trace("qcf-engine") << ", addedLemmas = " << addedLemmas;
     }
     Trace("qcf-engine") << std::endl;
@@ -2334,7 +2330,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     if (currEt != prevEt)
     {
       Trace("qcf-engine") << "  Entailment checks = " << (currEt - prevEt)
-                           << std::endl;
+                          << std::endl;
     }
   }
   Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
@@ -2374,14 +2370,14 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     {
       Trace("qcf-check") << "   ... Quantifiers engine discovered conflict, ";
       Trace("qcf-check") << "probably related to disequal congruent terms in "
-                             "master equality engine"
-                          << std::endl;
+                            "master equality engine"
+                         << std::endl;
       return;
     }
     if (TraceIsOn("qcf-inst"))
     {
       Trace("qcf-inst") << "*** Produced match at effort " << d_effort << " : "
-                         << std::endl;
+                        << std::endl;
       qi->debugPrintMatch("qcf-inst");
       Trace("qcf-inst") << std::endl;
     }
@@ -2389,7 +2385,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     if (qi->isMatchSpurious())
     {
       Trace("qcf-inst") << "   ... Spurious (match is inconsistent)"
-                         << std::endl;
+                        << std::endl;
       continue;
     }
     // check whether match can be completed
@@ -2397,7 +2393,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     if (!qi->completeMatch(assigned))
     {
       Trace("qcf-inst") << "   ... Spurious (cannot assign unassigned vars)"
-                         << std::endl;
+                        << std::endl;
       continue;
     }
     // check whether the match is spurious according to (T-)entailment checks
@@ -2407,7 +2403,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     if (tcs)
     {
       Trace("qcf-inst") << "   ... Spurious (match is T-inconsistent)"
-                         << std::endl;
+                        << std::endl;
     }
     else
     {
@@ -2439,7 +2435,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       if (TraceIsOn("qcf-inst"))
       {
         Trace("qcf-inst") << "*** Was from effort " << d_effort << " : "
-                           << std::endl;
+                          << std::endl;
         qi->debugPrintMatch("qcf-inst");
         Trace("qcf-inst") << std::endl;
       }
