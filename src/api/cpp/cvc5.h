@@ -3342,31 +3342,29 @@ class CVC5_EXPORT Solver
 
   /**
    * Create operator of Kind:
-   *   - DIVISIBLE
-   *   - BITVECTOR_REPEAT
-   *   - BITVECTOR_ZERO_EXTEND
-   *   - BITVECTOR_SIGN_EXTEND
-   *   - BITVECTOR_ROTATE_LEFT
-   *   - BITVECTOR_ROTATE_RIGHT
-   *   - INT_TO_BITVECTOR
-   *   - FLOATINGPOINT_TO_UBV
-   *   - FLOATINGPOINT_TO_UBV_TOTAL
-   *   - FLOATINGPOINT_TO_SBV
-   *   - FLOATINGPOINT_TO_SBV_TOTAL
-   *   - TUPLE_UPDATE
-   *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - FLOATINGPOINT_TO_FP_FROM_FP
-   *   - FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   *   - TUPLE_PROJECT
-   * See :cpp:enum:`Kind <cvc5::api::Kind>` for a description of the parameters.
+   *   - #BITVECTOR_EXTRACT
+   *   - #BITVECTOR_REPEAT
+   *   - #BITVECTOR_ROTATE_LEFT
+   *   - #BITVECTOR_ROTATE_RIGHT
+   *   - #BITVECTOR_SIGN_EXTEND
+   *   - #BITVECTOR_ZERO_EXTEND
+   *   - #DIVISIBLE
+   *   - #FLOATINGPOINT_TO_FP_FROM_FP
+   *   - #FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - #FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - #FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - #FLOATINGPOINT_TO_FP_FROM_UBV
+   *   - #FLOATINGPOINT_TO_SBV
+   *   - #FLOATINGPOINT_TO_UBV
+   *   - #INT_TO_BITVECTOR
+   *   - #TUPLE_PROJECT
+   *
+   * See cvc5::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    *
-   * @note If ``args`` is empty, the ``Op`` simply wraps the ``Kind``.  The
-   * Kind can be used in ``Solver::mkTerm`` directly without creating an ``Op``
+   * @note If ``args`` is empty, the Op simply wraps the cvc5::api::Kind.  The
+   * Kind can be used in Solver::mkTerm directly without creating an Op
    * first.
    */
   Op mkOp(Kind kind, const std::vector<uint32_t>& args = {}) const;
@@ -3375,7 +3373,7 @@ class CVC5_EXPORT Solver
   /**
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
+   * See cvc5::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
