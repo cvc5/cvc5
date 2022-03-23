@@ -141,7 +141,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
-            || (res.isSatUnknown()
+            || (res.isUnknown()
                 && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
@@ -165,7 +165,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     }
 
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
-        && (isResultUnsat || isResultSat || res.isSatUnknown()))
+        && (isResultUnsat || isResultSat || res.isUnknown()))
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }

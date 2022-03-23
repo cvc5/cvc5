@@ -75,9 +75,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Result r =
       d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne.notNode()});
   Trace("smt-qe") << "Query returned " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  if (r.getStatus() != Result::UNSAT)
   {
-    if (r.asSatisfiabilityResult().isSat() != Result::SAT && doFull)
+    if (r.getStatus() != Result::SAT && doFull)
     {
       verbose(1)
           << "While performing quantifier elimination, unexpected result : "

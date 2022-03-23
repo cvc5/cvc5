@@ -169,7 +169,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
   initializeChecker(queryChecker, qy);
   r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     std::stringstream ss;
     ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy

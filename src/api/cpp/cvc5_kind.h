@@ -1737,45 +1737,6 @@ enum Kind : int32_t
    */
   FLOATINGPOINT_TO_FP_FROM_UBV,
   /**
-   * Operator for a generic to_fp.
-   *
-   * Parameters:
-   *   - 1: exponent size
-   *   - 2: Significand size
-   *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
-   *
-   * Generic conversion to floating-point, used in parsing only.
-   *
-   * Parameters:
-   *
-   * For conversion from IEEE bit-vector:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_GENERIC
-   *   - 2: Term of bit-vector sort
-   *
-   * For conversion from floating-point:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_GENERIC
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of floating-point sort
-   *
-   * For conversion from Real:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_GENERIC
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of sort Real
-   *
-   * For conversion from (un)signed bit-vector:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_GENERIC
-   *   - 2: Term of sort RoundingMode
-   *   - 3: Term of bit-vector sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
-   */
-  FLOATINGPOINT_TO_FP_GENERIC,
-  /**
    * Operator for to_ubv.
    *
    * Parameters:
@@ -2247,8 +2208,8 @@ enum Kind : int32_t
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y )
-   * \Leftrightarrow (member y C)
+   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \wedge t[x_1...x_n] = y )
+   * \Leftrightarrow (set.member \; y \; C)
    * @f]
    * where y ranges over the element type of the (set) type of the
    * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to
