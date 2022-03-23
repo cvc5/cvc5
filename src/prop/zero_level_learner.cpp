@@ -120,6 +120,13 @@ void ZeroLevelLearner::notifyInputFormulas(
   Trace("level-zero") << "#Top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
+  // the threshold is by default d_ppnAtoms.size()*3.0, which means we restart
+  // if we have learned any literals, and the number of assertions since the
+  // last learned literal is equal to the total number of literals in the
+  // input problem times 3, i.e. each literal has been asserted on average 3
+  // times.
+  d_deepRestartThreshold = static_cast<size_t>(static_cast<double>(d_ppnAtoms.size())*options().smt.deepRestartFactor);
+  Trace("level-zero") << "Restart threshold is " << d_deepRestartThreshold << std::endl;
 }
 
 bool ZeroLevelLearner::notifyAsserted(TNode assertion)
@@ -164,19 +171,22 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
     }
     d_assertNoLearnCount++;
   }
-  if (d_assertNoLearnCount % 1000 == 0)
+  if (TraceIsOn("level-zero-assert"))
   {
-    Trace("level-zero-assert")
-        << "#asserts without learning = " << d_assertNoLearnCount
-        << " (#atoms is " << d_ppnAtoms.size()
-        << ", #learned = " << d_levelZeroAssertsLearned.size() << ")"
-        << std::endl;
+    if (d_assertNoLearnCount % 1000 == 0)
+    {
+      Trace("level-zero-assert")
+          << "#asserts without learning = " << d_assertNoLearnCount
+          << " (#atoms is " << d_ppnAtoms.size()
+          << ", #learned = " << d_levelZeroAssertsLearned.size() << ")"
+          << std::endl;
+    }
   }
   // request a deep restart?
   if (!d_levelZeroAssertsLearned.empty())
   {
-    // if non-empty and non-learned atoms have been asserted average >1.0
-    if (d_assertNoLearnCount > d_ppnAtoms.size())
+    // if non-empty and non-learned atoms have been asserted beyond the threshold
+    if (d_assertNoLearnCount > d_deepRestartThreshold)
     {
       Trace("level-zero") << "DEEP RESTART with "
                           << d_levelZeroAssertsLearned.size()

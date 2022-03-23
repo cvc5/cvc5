@@ -538,3 +538,13 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "use deep restart strategy"
+
+[[option]]
+  name       = "deepRestartFactor"
+  category   = "regular"
+  long       = "deep-restart-factor=F"
+  type       = "double"
+  default    = "3.0"
+  minimum    = "0.0"
+  maximum    = "1000.0"
+  help       = "sets the threshold for average assertions per literal before a deep restart"

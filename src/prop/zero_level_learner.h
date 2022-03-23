@@ -84,6 +84,8 @@ class ZeroLevelLearner : protected EnvObj
 
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;
+  /** The threshold */
+  size_t d_deepRestartThreshold;
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop
