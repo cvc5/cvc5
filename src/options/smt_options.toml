@@ -156,9 +156,6 @@ name   = "SMT Layer"
 [[option.mode.STATUS_AND_DEF]]
   name = "status-and-def"
   help = "Print status followed by definition corresponding to solution."
-[[option.mode.STATUS_OR_DEF]]
-  name = "status-or-def"
-  help = "Print status if infeasible, or definition corresponding to solution if feasible."
 [[option.mode.STANDARD]]
   name = "sygus-standard"
   help = "Print based on SyGuS standard."
