@@ -3,6 +3,8 @@ from fractions import Fraction
 from functools import wraps
 import sys
 
+from cython.operator cimport dereference, preincrement
+
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
 
@@ -26,6 +28,8 @@ from cvc5 cimport OptionInfo as c_OptionInfo
 from cvc5 cimport holds as c_holds
 from cvc5 cimport getVariant as c_getVariant
 from cvc5 cimport Solver as c_Solver
+from cvc5 cimport Statistics as c_Statistics
+from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
@@ -499,30 +503,16 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def getIndices(self):
+    def __getitem__(self, i):
         """
-            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
+            Get the index at position i.
+            :param i: the position of the index to return
+            :return: the index at position i
         """
-        indices = None
-        try:
-            indices = self.cop.getIndices[string]().decode()
-        except:
-            pass
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cop[i]
+        return term
 
-        try:
-            indices = self.cop.getIndices[uint32_t]()
-        except:
-            pass
-
-        try:
-            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
-        except:
-            pass
-
-        if indices is None:
-            raise RuntimeError("Unable to retrieve indices from {}".format(self))
-
-        return indices
 
 cdef class Grammar:
     """
@@ -601,11 +591,11 @@ cdef class Result:
         """
         return self.cr.isUnsat()
 
-    def isSatUnknown(self):
+    def isUnknown(self):
         """
             :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
-        return self.cr.isSatUnknown()
+        return self.cr.isUnknown()
 
     def getUnknownExplanation(self):
         """
@@ -2479,6 +2469,16 @@ cdef class Solver:
         """
         return self.csolver.getInstantiations()
 
+    def getStatistics(self):
+        """
+        Returns a snapshot of the current state of the statistic values of this
+        solver. The returned object is completely decoupled from the solver and
+        will not change when the solver is used again.
+        """
+        res = Statistics()
+        res.cstats = self.csolver.getStatistics()
+        return res
+
 
 cdef class Sort:
     """
@@ -2999,6 +2999,47 @@ cdef class Sort:
             sort.csort = s
             tuple_sorts.append(sort)
         return tuple_sorts
+
+
+cdef class Statistics:
+    """
+    The cvc5 Statistics.
+    Wrapper class for :cpp:class:`cvc5::api::Statistics`.
+    Obtain a single statistic value using ``stats["name"]`` and a dictionary
+    with all (visible) statistics using ``stats.get(internal=False, defaulted=False)``.
+    """
+    cdef c_Statistics cstats
+
+    cdef __stat_to_dict(self, const c_Stat& s):
+        res = None
+        if s.isInt():
+            res = s.getInt()
+        elif s.isDouble():
+            res = s.getDouble()
+        elif s.isString():
+            res = s.getString().decode()
+        elif s.isHistogram():
+            res = { h.first.decode(): h.second for h in s.getHistogram() }
+        return {
+            'defaulted': s.isDefault(),
+            'internal': s.isInternal(),
+            'value': res
+        }
+
+    def __getitem__(self, str name):
+        """Get the statistics information for the statistic called ``name``."""
+        return self.__stat_to_dict(self.cstats.get(name.encode()))
+
+    def get(self, bint internal = False, bint defaulted = False):
+        """Get all statistics. See :cpp:class:`cvc5::api::Statistics::begin()` for more information."""
+        cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
+        cdef pair[string,c_Stat]* s
+        res = {}
+        while it != self.cstats.end():
+            s = &dereference(it)
+            res[s.first.decode()] = self.__stat_to_dict(s.second)
+            preincrement(it)
+        return res
 
 
 cdef class Term:

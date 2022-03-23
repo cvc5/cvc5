@@ -55,6 +55,8 @@ EnumValueManager::~EnumValueManager() {}
 
 Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
 {
+  Trace("sygus-engine-debug2") << "get enumerated value " << d_enum << " "
+                               << d_enum.getType() << std::endl;
   Node e = d_enum;
   bool isEnum = d_tds->isEnumerator(e);
 
@@ -63,14 +65,14 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     // if the current model value of e was not registered by the datatypes
     // sygus solver, or was excluded by symmetry breaking, then it does not
     // have a proper model value that we should consider, thus we return null.
-    Trace("sygus-engine-debug")
-        << "Enumerator " << e << " does not have proper model value."
-        << std::endl;
+    Trace("sygus-engine-debug2")
+        << "...does not have proper model value." << std::endl;
     return Node::null();
   }
 
   if (!isEnum || d_tds->isPassiveEnumerator(e))
   {
+    Trace("sygus-engine-debug2") << "...take model value" << std::endl;
     return getModelValue(e);
   }
 
@@ -135,8 +137,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   // if we have a waiting value, return it
   if (!d_evActiveGenWaiting.isNull())
   {
-    Trace("sygus-active-gen-debug")
-        << "Active-gen: return waiting " << d_evActiveGenWaiting << std::endl;
+    Trace("sygus-engine-debug2")
+        << "...return waiting " << d_evActiveGenWaiting << std::endl;
     return d_evActiveGenWaiting;
   }
   // Check if there is an (abstract) value absE we were actively generating
@@ -162,7 +164,9 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   bool inc = true;
   if (!firstTime)
   {
+    Trace("sygus-engine-debug2") << "Increment enum" << std::endl;
     inc = d_evg->increment();
+    Trace("sygus-engine-debug2") << "...finish" << std::endl;
   }
   Node v;
   if (inc)
