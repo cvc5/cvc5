@@ -21,6 +21,7 @@ from cvc5 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
 from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
+from cvc5 cimport SynthResult as c_SynthResult
 from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
@@ -615,6 +616,50 @@ cdef class Result:
     def __repr__(self):
         return self.cr.toString().decode()
 
+cdef class SynthResult:
+    """
+      Encapsulation of a solver synth result. This is the return value of the
+      API methods:
+        - :py:meth:`Solver.checkSynth()`
+        - :py:meth:`Solver.checkSynthNext()`
+      which we call synthesis queries. This class indicates whether the
+      synthesis query has a solution, has no solution, or is unknown.
+    """
+    cdef c_SynthResult cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_SynthResult()
+
+    def isNull(self):
+        """
+            :return: True if SynthResult is null, i.e. not a SynthResult returned from a synthesis query.
+        """
+        return self.cr.isNull()
+
+    def hasSolution(self):
+        """
+            :return: True if the synthesis query has a solution.
+        """
+        return self.cr.hasSolution()
+
+    def hasNoSolution(self):
+        """
+            :return: True if the synthesis query has no solution.
+            In this case, then it was determined there was no solution.
+        """
+        return self.cr.hasNoSolution()
+
+    def isUnknown(self):
+        """
+            :return: True if the result of the synthesis query could not be determined.
+        """
+        return self.cr.isUnknown()
+
+    def __str__(self):
+        return self.cr.toString().decode()
+
+    def __repr__(self):
+        return self.cr.toString().decode()
 
 cdef class RoundingMode:
     """

@@ -50,6 +50,7 @@ class Options;
 class Random;
 class Rational;
 class Result;
+class SynthResult;
 class StatisticsRegistry;
 
 namespace main {
@@ -61,6 +62,7 @@ namespace api {
 class Solver;
 class Statistics;
 struct APIStatistics;
+class Term;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -257,7 +259,7 @@ class CVC5_EXPORT Result
   Result(const cvc5::Result& r);
 
   /**
-   * The interal result wrapped by this result.
+   * The internal result wrapped by this result.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
    *       since ``cvc5::Result`` is not ref counted.
@@ -281,6 +283,80 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC5_EXPORT;
+
+/* -------------------------------------------------------------------------- */
+/* Result                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Encapsulation of a solver synth result.
+ *
+ * This is the return value of the API methods:
+ *   - Solver::checkSynth()
+ *   - Solver::checkSynthNext()
+ *
+ * which we call synthesis queries.  This class indicates whether the
+ * synthesis query has a solution, has no solution, or is unknown.
+ */
+class CVC5_EXPORT SynthResult
+{
+  friend class Solver;
+
+ public:
+  /** Constructor. */
+  SynthResult();
+
+  /**
+   * @return true if SynthResult is null, i.e., not a SynthResult returned
+   * from a synthesis query.
+   */
+  bool isNull() const;
+
+  /**
+   * @return true if the synthesis query has a solution.
+   */
+  bool hasSolution() const;
+
+  /**
+   * @return true if the synthesis query has no solution. In this case, it
+   * was determined that there was no solution.
+   */
+  bool hasNoSolution() const;
+
+  /**
+   * @return true if the result of the synthesis query could not be determined.
+   */
+  bool isUnknown() const;
+
+  /**
+   * @return a string representation of this synthesis result.
+   */
+  std::string toString() const;
+
+ private:
+  /**
+   * Constructor.
+   * @param r the internal synth result that is to be wrapped by this synth
+   *          result
+   * @return the SynthResult
+   */
+  SynthResult(const cvc5::SynthResult& r);
+  /**
+   * The internal result wrapped by this result.
+   *
+   * @note This is a `std::shared_ptr` rather than a `std::unique_ptr`
+   *       since `cvc5::SynthResult` is not ref counted.
+   */
+  std::shared_ptr<cvc5::SynthResult> d_result;
+};
+
+/**
+ * Serialize a SynthResult to given stream.
+ * @param out the output stream
+ * @param r the result to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const SynthResult& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -987,6 +1063,7 @@ class CVC5_EXPORT Term
   friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
+  friend class SynthResult;
   friend struct std::hash<Term>;
 
  public:
