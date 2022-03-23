@@ -223,7 +223,7 @@ name   = "Strings Theory"
   long       = "strings-regexp-inclusion"
   type       = "bool"
   default    = "true"
-  help       = "use regular expression inclusion for finding conflicts and avoid regular expression unfolding"
+  help       = "use regular expression inclusion for finding conflicts and avoiding regular expression unfolding"
 
 [[option]]
   name       = "seqArray"
