@@ -21,6 +21,14 @@ cdef extern from "<functional>" namespace "std" nogil:
         hash()
         size_t operator()(T t)
 
+cdef extern from "<optional>" namespace "std" nogil:
+    # The std::optional wrapper would be available as cpplib.optional with
+    # cython 3.0.0a10 (Jan 2022). Until this version is widely available, we
+    # wrap it manually.
+    cdef cppclass optional[T]:
+        bint has_value()
+        T& value()
+
 cdef extern from "<string>" namespace "std":
     cdef cppclass wstring:
         wstring() except +
@@ -136,7 +144,44 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         OpHashFunction() except +
         size_t operator()(const Op & o) except +
 
+    cdef cppclass OptionInfo:
+        string name
+        vector[string] aliases
+        bint setByUser
+        bint boolValue() except +
+        string stringValue() except +
+        int intValue() except +
+        int uintValue() except +
+        float doubleValue() except +
+        cppclass VoidInfo:
+            pass
+        cppclass ValueInfo[T]:
+            T defaultValue
+            T currentValue
+        cppclass NumberInfo[T]:
+            T defaultValue
+            T currentValue
+            optional[T] minimum
+            optional[T] maximum
+        cppclass ModeInfo:
+            string defaultValue
+            string currentValue
+            vector[string] modes
+        
+        cppclass OptionInfoVariant:
+            pass
+        
+        OptionInfoVariant valueInfo
+        string toString() except +
 
+
+cdef extern from "<variant>" namespace "std":
+    # cython has no support for variadic templates yet, see
+    # https://github.com/cython/cython/issues/1611
+    bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
+    T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
+
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
@@ -274,7 +319,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getLearnedLiterals() except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
-        string getOption(string& option) except +
+        string getOption(const string& option) except +
+        vector[string] getOptionNames() except +
+        OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
