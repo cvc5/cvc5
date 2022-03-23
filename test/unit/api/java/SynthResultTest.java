@@ -63,7 +63,7 @@ class SynthResultTest
     assertFalse(res_null.hasSolution());
   }
 
-  @Test void hasSolution()
+  @Test void isUnknown()
   {
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
     Term boolTerm = d_solver.mkTrue();
