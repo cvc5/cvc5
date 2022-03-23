@@ -322,6 +322,8 @@ void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
   // we now finish init to reconstruct prop engine and theory engine
   finishInit();
 
+  // require carrying the separation logic heap, which is conceptually part of
+  // the logic info, but is stored in the theory engine. TODO: move it to Env.
   if (hasSepHeap)
   {
     d_theoryEngine->declareSepHeap(sepLocType, sepDataType);
