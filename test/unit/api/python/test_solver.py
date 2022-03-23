@@ -2036,7 +2036,8 @@ def test_get_synth_solution(solver):
     with pytest.raises(RuntimeError):
         solver.getSynthSolution(f)
 
-    solver.checkSynth()
+    res = solver.checkSynth()
+    assert res.hasSolution()
 
     solver.getSynthSolution(f)
     solver.getSynthSolution(f)
@@ -2055,10 +2056,12 @@ def test_check_synth_next(solver):
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
-    solver.checkSynth()
+    res = solver.checkSynth()
+    assert res.hasSolution()
     solver.getSynthSolutions([f])
 
-    solver.checkSynthNext()
+    res = solver.checkSynthNext()
+    assert res.hasSolution()
     solver.getSynthSolutions([f])
 
 def test_check_synth_next2(solver):
