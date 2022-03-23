@@ -307,24 +307,24 @@ class CVC5_EXPORT SynthResult
   SynthResult();
 
   /**
-   * Return true if SynthResult is null, i.e. not a SynthResult returned
+   * @return true if SynthResult is null, i.e., not a SynthResult returned
    * from a synthesis query.
    */
   bool isNull() const;
 
   /**
-   * Return true if the synthesis query that has a solution.
+   * @return true if the synthesis query has a solution.
    */
   bool hasSolution() const;
 
   /**
-   * Return true if the synthesis query has no solution. In this case, then it
-   * was determined there was no solution.
+   * @return true if the synthesis query has no solution. In this case, it
+   * was determined that there was no solution.
    */
   bool hasNoSolution() const;
 
   /**
-   * Return true if result of the synthesis query could not be determined.
+   * @return true if the result of the synthesis query could not be determined.
    */
   bool isUnknown() const;
 
@@ -337,15 +337,15 @@ class CVC5_EXPORT SynthResult
   /**
    * Constructor.
    * @param r the internal synth result that is to be wrapped by this synth
-   * result
+   *          result
    * @return the SynthResult
    */
   SynthResult(const cvc5::SynthResult& r);
   /**
    * The internal result wrapped by this result.
    *
-   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::SynthResult`` is not ref counted.
+   * @note This is a `std::shared_ptr` rather than a `std::unique_ptr`
+   *       since `cvc5::SynthResult` is not ref counted.
    */
   std::shared_ptr<cvc5::SynthResult> d_result;
 };
