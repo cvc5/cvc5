@@ -1771,6 +1771,7 @@ set(regress_1_tests
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
+  regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/union_disjoint.smt2
@@ -2639,6 +2640,7 @@ set(regress_1_tests
   regress1/sygus/crci-ssb-unk.sy
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
+  regress1/sygus/discPresent.sy
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
