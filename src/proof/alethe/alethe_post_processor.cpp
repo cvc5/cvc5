@@ -201,10 +201,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------------------------------- RESOLUTION
     //          (cl (not (and F1 ... Fn)))*
     //
-    // VP8: (cl (=> (and F1 ... Fn))) (cl (not (=> (and F1 ... Fn) false))
-    //      (not (and F1 ... Fn)))
+    // VP8: (cl (=> (and F1 ... Fn) false))
     // VP9: (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
-    //
+    // VP10: (cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn)))
     //
     // Otherwise,
     //                T1
@@ -447,13 +446,14 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = nm->mkNode(kind::SEXPR,
-                              d_cl,
-                              args[0].notNode().notNode().notNode().notNode(),
-                              args[0].notNode());
+                            d_cl,
+                            args[0].notNode().notNode().notNode().notNode(),
+                            args[0].notNode());
 
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
-          && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
-          && addAletheStepFromOr(AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
+             && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
+             && addAletheStepFromOr(
+                 AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // See proof_rule.h for documentation on the EQ_RESOLVE rule. This
@@ -644,7 +644,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (and F1 ... Fn)
     case PfRule::AND_INTRO:
     {
-      std::vector<Node> neg_Nodes = {d_cl,res};
+      std::vector<Node> neg_Nodes = {d_cl, res};
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
         neg_Nodes.push_back(children[i].notNode());
@@ -1813,9 +1813,10 @@ AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+{
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb,true,false);
+  ProofNodeUpdater updater(d_pnm, d_cb, true, false);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after
