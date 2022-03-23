@@ -67,6 +67,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Sort.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Stat.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Statistics.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/SynthResult.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Term.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Utils.java
@@ -121,6 +122,7 @@ add_library(cvc5jni
   jni/sort.cpp
   jni/stat.cpp
   jni/statistics.cpp
+  jni/synth_result.cpp
   jni/term.cpp)
 
 add_dependencies(cvc5jni generate-jni-headers)
