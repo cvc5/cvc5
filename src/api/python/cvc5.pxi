@@ -1065,7 +1065,6 @@ cdef class Solver:
         - ``Op mkOp(Kind kind)``
         - ``Op mkOp(Kind kind, const string& arg)``
         - ``Op mkOp(Kind kind, uint32_t arg0, ...)``
-        - ``Op mkOp(Kind kind, [uint32_t arg0, ...])``
         """
         cdef Op op = Op(self)
         cdef vector[uint32_t] v
@@ -1076,9 +1075,8 @@ cdef class Solver:
             op.cop = self.csolver.mkOp(<c_Kind> k.value,
                                        <const string &>
                                        args[0].encode())
-        elif len(args) >= 1:
-            lst = args[0] if isinstance(args[0], list) else args
-            for a in lst:
+        else:
+            for a in args:
                 if not isinstance(a, int):
                   raise ValueError(
                             "Expected uint32_t for argument {}".format(a))
@@ -1086,11 +1084,7 @@ cdef class Solver:
                     raise ValueError(
                             "Argument {} must fit in a uint32_t".format(a))
                 v.push_back((<uint32_t?> a))
-            op.cop = \
-              self.csolver.mkOp(<c_Kind> k.value, <const vector[uint32_t]&> v)
-        else:
-            raise ValueError("Unsupported signature"
-                             " mkOp: {}".format(" X ".join([k] + args)))
+            op.cop = self.csolver.mkOp(<c_Kind> k.value, v)
         return op
 
     def mkTrue(self):

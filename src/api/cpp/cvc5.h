@@ -4811,6 +4811,9 @@ class CVC5_EXPORT Solver
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+  /** Helper for creating operators. */
+  template <typename T>
+  Op mkOpHelper(Kind kind, const T& t) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(const T& t) const;

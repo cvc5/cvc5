@@ -1655,10 +1655,7 @@ identifier[cvc5::ParseOp& p]
           // We don't know which kind to use until we know the type of the
           // arguments
           p.d_name = opName;
-          for(uint32_t numeral : numerals)
-          {
-            p.d_indices.push_back(numeral);
-          }
+          p.d_indices = numerals;
         }
         else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
