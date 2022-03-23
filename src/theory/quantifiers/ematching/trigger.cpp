@@ -60,7 +60,7 @@ Trigger::Trigger(Env& env,
     Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
     d_nodes.push_back(np);
   }
-  if (Trace.isOn("trigger"))
+  if (TraceIsOn("trigger"))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
     Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
@@ -88,22 +88,23 @@ Trigger::Trigger(Env& env,
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
-      d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
+      d_mg = new InstMatchGeneratorSimple(env, this, q, d_nodes[0]);
       ++(stats.d_triggers);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator(env, this, q, d_nodes[0]);
       ++(stats.d_simple_triggers);
     }
   }else{
     if (options().quantifiers.multiTriggerCache)
     {
-      d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
+      d_mg = new InstMatchGeneratorMulti(env, this, q, d_nodes);
     }
     else
     {
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
+      d_mg =
+          InstMatchGenerator::mkInstMatchGeneratorMulti(env, this, q, d_nodes);
     }
-    if (Trace.isOn("multi-trigger"))
+    if (TraceIsOn("multi-trigger"))
     {
       Trace("multi-trigger") << "Trigger for " << q << ": " << std::endl;
       for (const Node& nc : d_nodes)
@@ -155,11 +156,11 @@ uint64_t Trigger::addInstantiations()
     }
   }
   uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
-  if (Debug.isOn("inst-trigger"))
+  if (TraceIsOn("inst-trigger"))
   {
     if (addedLemmas > 0)
     {
-      Debug("inst-trigger") << "Added " << addedLemmas
+      Trace("inst-trigger") << "Added " << addedLemmas
                             << " lemmas, trigger was " << d_nodes << std::endl;
     }
   }

@@ -174,7 +174,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
         {
           Assert(mvMap.find(eu) != mvMap.end());
           Node m_eu = mvMap[eu];
-          if (Trace.isOn("cegis-unif"))
+          if (TraceIsOn("cegis-unif"))
           {
             Trace("cegis-unif") << "    " << eu << " -> ";
             TermDbSygus::toStreamSygus("cegis-unif", m_eu);
@@ -293,7 +293,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     return Cegis::processConstructCandidates(
         enums, enum_values, candidates, candidate_values, satisfiedRl);
   }
-  if (Trace.isOn("cegis-unif"))
+  if (TraceIsOn("cegis-unif"))
   {
     for (const Node& c : d_unif_candidates)
     {
@@ -351,7 +351,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   if (d_sygus_unif.constructSolution(sols, lemmas))
   {
     candidate_values.insert(candidate_values.end(), sols.begin(), sols.end());
-    if (Trace.isOn("cegis-unif"))
+    if (TraceIsOn("cegis-unif"))
     {
       Trace("cegis-unif") << "* Candidate solutions are:\n";
       for (const Node& sol : sols)
@@ -485,7 +485,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::vector<TypeNode> cargsPlus;
       cargsPlus.push_back(u);
       cargsPlus.push_back(u);
-      sdt.addConstructor(PLUS, cargsPlus);
+      sdt.addConstructor(ADD, cargsPlus);
       sdt.initializeDatatype(nm->integerType(), bvl, false, false);
       std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());

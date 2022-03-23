@@ -964,7 +964,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-si-rcons=MODE"
   type       = "CegqiSingleInvRconsMode"
-  default    = "ALL_LIMIT"
+  default    = "ALL"
   help       = "policy for reconstructing solutions for single invocation conjectures"
   help_mode  = "Modes for reconstruction solutions while using single invocation techniques."
 [[option.mode.NONE]]
@@ -975,7 +975,7 @@ name   = "Quantifiers"
   help = "Try to reconstruct solutions in the original grammar when using single invocation techniques in an incomplete (fail-fast) manner."
 [[option.mode.ALL_LIMIT]]
   name = "all-limit"
-  help = "Try to reconstruct solutions in the original grammar, but termintate if a maximum number of rounds for reconstruction is exceeded."
+  help = "Try to reconstruct solutions in the original grammar, but terminate if a maximum number of rounds for reconstruction is exceeded."
 [[option.mode.ALL]]
   name = "all"
   help = "Try to reconstruct solutions in the original grammar. In this mode, we do not terminate until a solution is successfully reconstructed."
@@ -1081,6 +1081,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1318,6 +1319,14 @@ name   = "Quantifiers"
   default    = "3"
   help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
 
+[[option]]
+  name       = "sygusVerifyTimeout"
+  category   = "regular"
+  long       = "sygus-verify-timeout=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
+
 # Internal uses of sygus
 
 [[option]]
@@ -1421,7 +1430,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-rr-synth-check"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
@@ -1453,6 +1462,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 [[option]]
@@ -1474,9 +1484,12 @@ name   = "Quantifiers"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not generate queries with SyGuS."
-[[option.mode.SAT]]
-  name = "sat"
-  help = "Generate interesting SAT queries, for e.g. soundness testing."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Generate all queries using SyGuS enumeration of the given grammar"
+[[option.mode.SAMPLE_SAT]]
+  name = "sample-sat"
+  help = "Generate interesting SAT queries based on sampling, for e.g. soundness testing."
 [[option.mode.UNSAT]]
   name = "unsat"
   help = "Generate interesting UNSAT queries, for e.g. proof testing."
@@ -1488,14 +1501,6 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
-
-[[option]]
-  name       = "sygusQueryGenCheck"
-  category   = "regular"
-  long       = "sygus-query-gen-check"
-  type       = "bool"
-  default    = "true"
-  help       = "use interesting satisfiability queries to check soundness of cvc5"
 
 [[option]]
   name       = "sygusQueryGenDumpFiles"
@@ -1558,22 +1563,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
-
-[[option]]
-  name       = "cegqiSat"
-  category   = "regular"
-  long       = "cegqi-sat"
-  type       = "bool"
-  default    = "true"
-  help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
-
-[[option]]
-  name       = "cegqiModel"
-  category   = "regular"
-  long       = "cegqi-model"
-  type       = "bool"
-  default    = "true"
-  help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cegqiAll"

@@ -125,7 +125,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     return false;
   }
-  if (Trace.isOn("sygus-repair-const"))
+  if (TraceIsOn("sygus-repair-const"))
   {
     Trace("sygus-repair-const") << "Repair candidate solutions..." << std::endl;
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
@@ -147,7 +147,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(
         cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
-    if (Trace.isOn("sygus-repair-const"))
+    if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;
       TermDbSygus::toStreamSygus(ss, cv);
@@ -243,8 +243,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
-      || r.asSatisfiabilityResult().isUnknown())
+  if (r.getStatus() == Result::UNSAT || r.isUnknown())
   {
     Trace("sygus-engine") << "...failed" << std::endl;
     return false;
@@ -268,7 +267,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     Node scsk = csk.substitute(
         sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
     repair_cv.push_back(scsk);
-    if (Trace.isOn("sygus-repair-const") || Trace.isOn("sygus-engine"))
+    if (TraceIsOn("sygus-repair-const") || TraceIsOn("sygus-engine"))
     {
       std::stringstream sss;
       TermDbSygus::toStreamSygus(sss, repair_cv[i]);

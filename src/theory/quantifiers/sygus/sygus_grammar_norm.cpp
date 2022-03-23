@@ -146,7 +146,7 @@ void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
 bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
 {
   /* Checks whether operator occurs chainable for its type */
-  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == PLUS)
+  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == ADD)
   {
     return true;
   }
@@ -158,7 +158,7 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
    function should realize that it is chainable for integers */
 bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 {
-  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == PLUS
+  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == ADD
       && n == TermUtil::mkTypeValue(tn, 0))
   {
     return true;
@@ -186,7 +186,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                       claimed.end(),
                       std::back_inserter(difference));
   op_pos = difference;
-  if (Trace.isOn("sygus-grammar-normalize-chain"))
+  if (TraceIsOn("sygus-grammar-normalize-chain"))
   {
     Trace("sygus-grammar-normalize-chain")
         << "OP at " << d_chain_op_pos << "\n"
@@ -230,9 +230,9 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     std::vector<TypeNode> ctypesp;
     ctypesp.push_back(t);
     ctypesp.push_back(to.d_unres_tn);
-    to.d_sdt.addConstructor(nm->operatorOf(PLUS), kindToString(PLUS), ctypesp);
+    to.d_sdt.addConstructor(nm->operatorOf(ADD), kindToString(ADD), ctypesp);
     Trace("sygus-grammar-normalize-chain")
-        << "\tAdding PLUS to " << to.d_unres_tn << " with arg types "
+        << "\tAdding ADD to " << to.d_unres_tn << " with arg types "
         << to.d_unres_tn << " and " << t << "\n";
   }
   /* In the initial case if not all operators claimed always creates a next */
@@ -247,7 +247,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   /* Creates a type do be added to root representing next step in the chain */
   /* Add + to elems */
   d_elem_pos.push_back(d_chain_op_pos);
-  if (Trace.isOn("sygus-grammar-normalize-chain"))
+  if (TraceIsOn("sygus-grammar-normalize-chain"))
   {
     Trace("sygus-grammar-normalize-chain")
         << "\tCreating type for next entry with sygus_ops ";
@@ -316,10 +316,10 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   {
     Assert(op_pos[i] < dt.getNumConstructors());
     Node sop = dt[op_pos[i]].getSygusOp();
-    /* Collects a chainable operator such as PLUS */
+    /* Collects a chainable operator such as ADD */
     if (sop.getKind() == BUILTIN && TransfChain::isChainable(sygus_tn, sop))
     {
-      Assert(nm->operatorToKind(sop) == PLUS);
+      Assert(nm->operatorToKind(sop) == ADD);
       /* TODO #1304: be robust for this case */
       /* For now only transforms applications whose arguments have the same type
        * as the root */
@@ -337,7 +337,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
       if (!same_type_plus)
       {
         Trace("sygus-grammar-normalize-infer")
-            << "\tFor OP " << PLUS << " did not collecting sop " << sop
+            << "\tFor OP " << ADD << " did not collecting sop " << sop
             << " in position " << op_pos[i] << "\n";
         continue;
       }
@@ -349,8 +349,8 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
       continue;
     }
     /* TODO #1304: check this for each operator */
-    /* Collects elements that are not the identity (e.g. 0 is the id of PLUS) */
-    if (!TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), sop))
+    /* Collects elements that are not the identity (e.g. 0 is the id of ADD) */
+    if (!TransfChain::isId(sygus_tn, nm->operatorOf(ADD), sop))
     {
       Trace("sygus-grammar-normalize-infer")
           << "\tCollecting for NON_ID_ELEMS the sop " << sop
@@ -377,7 +377,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Corresponding type node to tn with the given operator positions. To be
    * retrieved (if cached) or defined (otherwise) */
   TypeNode unres_tn;
-  if (Trace.isOn("sygus-grammar-normalize-trie"))
+  if (TraceIsOn("sygus-grammar-normalize-trie"))
   {
     Trace("sygus-grammar-normalize-trie")
         << "\tRecursing on " << tn << " with op_positions ";
@@ -392,7 +392,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   std::sort(op_pos.begin(), op_pos.end());
   if (d_tries[tn].getOrMakeType(tn, unres_tn, op_pos))
   {
-    if (Trace.isOn("sygus-grammar-normalize-trie"))
+    if (TraceIsOn("sygus-grammar-normalize-trie"))
     {
       Trace("sygus-grammar-normalize-trie")
           << "\tTypenode " << tn << " has already been normalized with op_pos ";
@@ -404,7 +404,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     }
     return unres_tn;
   }
-  if (Trace.isOn("sygus-grammar-normalize-trie"))
+  if (TraceIsOn("sygus-grammar-normalize-trie"))
   {
     Trace("sygus-grammar-normalize-trie")
         << "\tTypenode " << tn << " not yet normalized with op_pos ";
@@ -471,7 +471,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     to.addConsInfo(this, dt[oi]);
   }
   /* Build normalize datatype */
-  if (Trace.isOn("sygus-grammar-normalize"))
+  if (TraceIsOn("sygus-grammar-normalize"))
   {
     Trace("sygus-grammar-normalize") << "\nFor positions ";
     for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
@@ -511,7 +511,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   normalizeSygusRec(tn);
   /* Resolve created types */
   Assert(!d_dt_all.empty() && !d_unres_t_all.empty());
-  if (Trace.isOn("sygus-grammar-normalize-build"))
+  if (TraceIsOn("sygus-grammar-normalize-build"))
   {
     Trace("sygus-grammar-normalize-build")
         << "making mutual datatyes with datatypes \n";

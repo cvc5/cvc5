@@ -194,7 +194,7 @@ void QuantifiersMacros::getMacroCandidates(Node n,
         candidates.push_back(n);
       }
     }
-    else if (n.getKind() == PLUS)
+    else if (n.getKind() == ADD)
     {
       for (size_t i = 0; i < n.getNumChildren(); i++)
       {

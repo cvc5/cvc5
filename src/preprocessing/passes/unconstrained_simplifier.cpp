@@ -310,7 +310,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::NOT:
         case kind::BITVECTOR_NOT:
         case kind::BITVECTOR_NEG:
-        case kind::UMINUS:
+        case kind::NEG:
           ++d_numUnconstrainedElim;
           Assert(parent[0] == current);
           if (currentSub.isNull())
@@ -447,8 +447,8 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // N-ary operators returning same type requiring at least one child to
         // be unconstrained
-        case kind::PLUS:
-        case kind::MINUS:
+        case kind::ADD:
+        case kind::SUB:
           if (current.getType().isInteger() && !parent.getType().isInteger())
           {
             break;

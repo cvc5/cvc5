@@ -47,11 +47,6 @@ class Assertions : protected EnvObj
   Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
   /**
-   * Finish initialization, called once after options are finalized. Sets up
-   * the required bookkeeping based on the options.
-   */
-  void finishInit();
-  /**
    * Clears out the non-context-dependent data in this class.  Necessary to
    * clear out our assertion vectors in case someone does a push-assert-pop
    * without a check-sat.
@@ -74,18 +69,15 @@ class Assertions : protected EnvObj
    * upcoming check-sat call.
    *
    * @param assumptions The assumptions of the upcoming check-sat call.
-   * @param isEntailmentCheck Whether we are checking entailment of assumptions
-   * in the upcoming check-sat call.
    */
-  void initializeCheckSat(const std::vector<Node>& assumptions,
-                          bool isEntailmentCheck);
+  void initializeCheckSat(const std::vector<Node>& assumptions);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
    * literals and conjunction of literals.  Returns false if
    * immediately determined to be inconsistent.
    *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   * @throw TypeCheckingException, LogicException
    */
   void assertFormula(const Node& n);
   /**
@@ -167,8 +159,6 @@ class Assertions : protected EnvObj
                   bool maybeHasFv);
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
-  /** Whether we are producing assertions */
-  bool d_produceAssertions;
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */
@@ -179,7 +169,7 @@ class Assertions : protected EnvObj
    * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.
    */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunLemmas;
+  std::vector<Node> d_globalDefineFunLemmas;
   /** The index of the above list that we have processed */
   context::CDO<size_t> d_globalDefineFunLemmasIndex;
   /**

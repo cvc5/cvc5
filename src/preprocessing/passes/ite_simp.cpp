@@ -241,12 +241,12 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
         {
           anyItes = true;
           Node res = aiteu.reduceVariablesInItes(curr);
-          Debug("arith::ite::red") << "@ " << i << " ... " << curr << endl
+          Trace("arith::ite::red") << "@ " << i << " ... " << curr << endl
                                    << "   ->" << res << endl;
           if (curr != res)
           {
             Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            Trace("arith::ite::red") << "  gcd->" << more << endl;
             Node morer = rewrite(more);
             assertionsToPreprocess->replace(i, morer);
           }
@@ -266,10 +266,10 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
             Node curr = (*assertionsToPreprocess)[i];
             Node next = rewrite(aiteu.applySubstitutions(curr));
             Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl
+            Trace("arith::ite::red") << "@ " << i << " ... " << next << endl
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            Trace("arith::ite::red") << "  gcd->" << more << endl;
             if (more != next)
             {
               anySuccess = true;
@@ -283,10 +283,10 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
             Node curr = (*assertionsToPreprocess)[i];
             Node next = rewrite(aiteu.applySubstitutions(curr));
             Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl
+            Trace("arith::ite::red") << "@ " << i << " ... " << next << endl
                                      << "   ->" << res << endl;
             Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            Trace("arith::ite::red") << "  gcd->" << more << endl;
             Node morer = rewrite(more);
             assertionsToPreprocess->replace(i, morer);
           }

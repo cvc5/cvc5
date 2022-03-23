@@ -54,7 +54,7 @@ void EqualitySubstitution::reset()
 std::vector<Node> EqualitySubstitution::eliminateEqualities(
     const std::vector<Node>& assertions)
 {
-  if (Trace.isOn("nl-eqs"))
+  if (TraceIsOn("nl-eqs"))
   {
     Trace("nl-eqs") << "Input:" << std::endl;
     for (const auto& a : assertions)
@@ -90,7 +90,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
         if (d_substitutions->hasSubstitution(l)) continue;
         if (expr::hasSubterm(r, l)) continue;
         d_substitutions->invalidateCache();
-        if (expr::hasSubterm(d_substitutions->apply(r), l)) continue;
+        if (expr::hasSubterm(d_substitutions->apply(r, nullptr, nullptr, &stc), l)) continue;
         Trace("nl-eqs") << "Found substitution " << l << " -> " << r
                         << std::endl
                         << " from " << o << " / " << orig << std::endl;
@@ -147,7 +147,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     asserts = std::move(next);
   }
   d_conflict.clear();
-  if (Trace.isOn("nl-eqs"))
+  if (TraceIsOn("nl-eqs"))
   {
     Trace("nl-eqs") << "Output:" << std::endl;
     for (const auto& a : asserts)

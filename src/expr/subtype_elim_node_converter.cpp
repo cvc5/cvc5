@@ -30,7 +30,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   bool convertToRealChildren = false;
-  if (k == PLUS || k == MULT || k == NONLINEAR_MULT)
+  if (k == ADD || k == MULT || k == NONLINEAR_MULT)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }

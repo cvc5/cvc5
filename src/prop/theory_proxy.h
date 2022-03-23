@@ -74,12 +74,9 @@ class TheoryProxy : protected EnvObj, public Registrar
    * @param assertion The preprocessed input assertions,
    * @param skolemMap Map from indices in assertion to the Skolem they are
    * the definition for
-   * @param ppl The preprocessed learned literals, that is, the literals that
-   * hold at top-level, as computed by the circuit propagator.
    */
   void notifyInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap,
-                           const std::vector<Node>& ppl);
+                           std::unordered_map<size_t, Node>& skolemMap);
   /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
    * definition.
@@ -154,7 +151,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  const std::unordered_set<Node>& getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals() const;
 
  private:
   /** The prop engine we are using. */

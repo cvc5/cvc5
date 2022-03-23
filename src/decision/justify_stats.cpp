@@ -22,17 +22,17 @@ namespace decision {
 
 JustifyStatistics::JustifyStatistics()
     : d_numStatusNoDecision(smtStatisticsRegistry().registerInt(
-          "JustifyStrategy::StatusNoDecision", 0)),
+          "JustifyStrategy::StatusNoDecision")),
       d_numStatusDecision(smtStatisticsRegistry().registerInt(
-          "JustifyStrategy::StatusDecision", 0)),
+          "JustifyStrategy::StatusDecision")),
       d_numStatusBacktrack(smtStatisticsRegistry().registerInt(
-          "JustifyStrategy::StatusBacktrack", 0)),
+          "JustifyStrategy::StatusBacktrack")),
       d_maxStackSize(smtStatisticsRegistry().registerInt(
-          "JustifyStrategy::MaxStackSize", 0)),
+          "JustifyStrategy::MaxStackSize")),
       d_maxAssertionsSize(smtStatisticsRegistry().registerInt(
-          "JustifyStrategy::MaxAssertionsSize", 0)),
+          "JustifyStrategy::MaxAssertionsSize")),
       d_maxSkolemDefsSize(smtStatisticsRegistry().registerInt(
-          "JustifyStrategy::MaxSkolemDefsSize", 0))
+          "JustifyStrategy::MaxSkolemDefsSize"))
 {
 }
 

@@ -82,13 +82,13 @@ int main()
   Term zero = slv.mkInteger(0);
   Term one = slv.mkInteger(1);
 
-  Term plus = slv.mkTerm(PLUS, start, start);
-  Term minus = slv.mkTerm(MINUS, start, start);
-  Term ite = slv.mkTerm(ITE, start_bool, start, start);
+  Term plus = slv.mkTerm(ADD, {start, start});
+  Term minus = slv.mkTerm(SUB, {start, start});
+  Term ite = slv.mkTerm(ITE, {start_bool, start, start});
 
-  Term And = slv.mkTerm(AND, start_bool, start_bool);
-  Term Not = slv.mkTerm(NOT, start_bool);
-  Term leq = slv.mkTerm(LEQ, start, start);
+  Term And = slv.mkTerm(AND, {start_bool, start_bool});
+  Term Not = slv.mkTerm(NOT, {start_bool});
+  Term leq = slv.mkTerm(LEQ, {start, start});
 
   // create the grammar object
   Grammar g = slv.mkSygusGrammar({x, y}, {start, start_bool});
@@ -106,25 +106,27 @@ int main()
   Term varX = slv.mkSygusVar(integer, "x");
   Term varY = slv.mkSygusVar(integer, "y");
 
-  Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
-  Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);
+  Term max_x_y = slv.mkTerm(APPLY_UF, {max, varX, varY});
+  Term min_x_y = slv.mkTerm(APPLY_UF, {min, varX, varY});
 
   // add semantic constraints
   // (constraint (>= (max x y) x))
-  slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varX));
+  slv.addSygusConstraint(slv.mkTerm(GEQ, {max_x_y, varX}));
 
   // (constraint (>= (max x y) y))
-  slv.addSygusConstraint(slv.mkTerm(GEQ, max_x_y, varY));
+  slv.addSygusConstraint(slv.mkTerm(GEQ, {max_x_y, varY}));
 
   // (constraint (or (= x (max x y))
   //                 (= y (max x y))))
-  slv.addSygusConstraint(slv.mkTerm(
-      OR, slv.mkTerm(EQUAL, max_x_y, varX), slv.mkTerm(EQUAL, max_x_y, varY)));
+  slv.addSygusConstraint(slv.mkTerm(OR,
+                                    {slv.mkTerm(EQUAL, {max_x_y, varX}),
+                                     slv.mkTerm(EQUAL, {max_x_y, varY})}));
 
   // (constraint (= (+ (max x y) (min x y))
   //                (+ x y)))
   slv.addSygusConstraint(slv.mkTerm(
-      EQUAL, slv.mkTerm(PLUS, max_x_y, min_x_y), slv.mkTerm(PLUS, varX, varY)));
+      EQUAL,
+      {slv.mkTerm(ADD, {max_x_y, min_x_y}), slv.mkTerm(ADD, {varX, varY})}));
 
   // print solutions if available
   if (slv.checkSynth().isUnsat())

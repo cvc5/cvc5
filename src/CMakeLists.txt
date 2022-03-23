@@ -21,14 +21,8 @@ libcvc5_add_sources(
   api/cpp/cvc5_kind.h
   decision/assertion_list.cpp
   decision/assertion_list.h
-  decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
-  decision/decision_engine_old.cpp
-  decision/decision_engine_old.h
-  decision/decision_strategy.h
-  decision/justification_heuristic.cpp
-  decision/justification_heuristic.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
   decision/justify_info.cpp
@@ -50,7 +44,6 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
-  options/decision_weight.h
   options/io_utils.cpp
   options/io_utils.h
   options/language.cpp
@@ -410,24 +403,26 @@ libcvc5_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
-  theory/arith/nl/cad_solver.cpp
-  theory/arith/nl/cad_solver.h
-  theory/arith/nl/cad/cdcac.cpp
-  theory/arith/nl/cad/cdcac.h
-  theory/arith/nl/cad/cdcac_utils.cpp
-  theory/arith/nl/cad/cdcac_utils.h
-  theory/arith/nl/cad/constraints.cpp
-  theory/arith/nl/cad/constraints.h
-  theory/arith/nl/cad/lazard_evaluation.cpp
-  theory/arith/nl/cad/lazard_evaluation.h
-  theory/arith/nl/cad/projections.cpp
-  theory/arith/nl/cad/projections.h
-  theory/arith/nl/cad/proof_checker.cpp
-  theory/arith/nl/cad/proof_checker.h
-  theory/arith/nl/cad/proof_generator.cpp
-  theory/arith/nl/cad/proof_generator.h
-  theory/arith/nl/cad/variable_ordering.cpp
-  theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/coverings_solver.cpp
+  theory/arith/nl/coverings_solver.h
+  theory/arith/nl/coverings/cdcac.cpp
+  theory/arith/nl/coverings/cdcac.h
+  theory/arith/nl/coverings/cdcac_utils.cpp
+  theory/arith/nl/coverings/cdcac_utils.h
+  theory/arith/nl/coverings/cocoa_converter.cpp
+  theory/arith/nl/coverings/cocoa_converter.h
+  theory/arith/nl/coverings/constraints.cpp
+  theory/arith/nl/coverings/constraints.h
+  theory/arith/nl/coverings/lazard_evaluation.cpp
+  theory/arith/nl/coverings/lazard_evaluation.h
+  theory/arith/nl/coverings/projections.cpp
+  theory/arith/nl/coverings/projections.h
+  theory/arith/nl/coverings/proof_checker.cpp
+  theory/arith/nl/coverings/proof_checker.h
+  theory/arith/nl/coverings/proof_generator.cpp
+  theory/arith/nl/coverings/proof_generator.h
+  theory/arith/nl/coverings/variable_ordering.cpp
+  theory/arith/nl/coverings/variable_ordering.h
   theory/arith/nl/equality_substitution.cpp
   theory/arith/nl/equality_substitution.h
   theory/arith/nl/ext/constraint.cpp
@@ -498,7 +493,13 @@ libcvc5_add_sources(
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
+  theory/arith/rewriter/addition.cpp
+  theory/arith/rewriter/addition.h
+  theory/arith/rewriter/node_utils.cpp
+  theory/arith/rewriter/node_utils.h
   theory/arith/rewriter/ordering.h
+  theory/arith/rewriter/rewrite_atom.cpp
+  theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp
@@ -631,6 +632,8 @@ libcvc5_add_sources(
   theory/bv/theory_bv_utils.h
   theory/bv/type_enumerator.h
   theory/care_graph.h
+  theory/care_pair_argument_callback.cpp
+  theory/care_pair_argument_callback.cpp
   theory/combination_care_graph.cpp
   theory/combination_care_graph.h
   theory/combination_engine.cpp
@@ -659,6 +662,8 @@ libcvc5_add_sources(
   theory/datatypes/theory_datatypes_utils.h
   theory/datatypes/tuple_project_op.cpp
   theory/datatypes/tuple_project_op.h
+  theory/datatypes/tuple_utils.cpp
+  theory/datatypes/tuple_utils.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp
@@ -854,6 +859,8 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
+  theory/quantifiers/query_generator_sample_sat.cpp
+  theory/quantifiers/query_generator_sample_sat.h
   theory/quantifiers/query_generator_unsat.cpp
   theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp
@@ -995,6 +1002,7 @@ libcvc5_add_sources(
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
   theory/sets/singleton_op.cpp
   theory/sets/singleton_op.h
@@ -1066,6 +1074,8 @@ libcvc5_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/rewrites.cpp
   theory/strings/rewrites.h
+  theory/strings/seq_unit_op.cpp
+  theory/strings/seq_unit_op.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp

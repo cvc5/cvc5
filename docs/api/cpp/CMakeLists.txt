@@ -18,7 +18,7 @@ find_package(Doxygen REQUIRED)
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/src/api/cpp)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INPUT
-    "${DOXYGEN_INPUT_DIR}/cvc5.h ${DOXYGEN_INPUT_DIR}/cvc5_kind.h"
+    "${DOXYGEN_INPUT_DIR}/cvc5.h ${DOXYGEN_INPUT_DIR}/cvc5_kind.h ${PROJECT_SOURCE_DIR}/src/proof/proof_rule.h"
 )
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
@@ -35,8 +35,10 @@ add_custom_command(
   OUTPUT ${DOXYGEN_INDEX_FILE}
   COMMAND Doxygen::doxygen ${DOXYFILE_OUT}
   MAIN_DEPENDENCY ${DOXYFILE_OUT}
-  DEPENDS ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5.h
-          ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h
+  DEPENDS
+    ${DOXYGEN_INPUT_DIR}/cvc5.h
+    ${DOXYGEN_INPUT_DIR}/cvc5_kind.h
+    ${PROJECT_SOURCE_DIR}/src/proof/proof_rule.h
   COMMENT "Generating doxygen API docs"
 )
 add_custom_target(docs-cpp DEPENDS ${DOXYGEN_INDEX_FILE})

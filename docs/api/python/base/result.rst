@@ -1,6 +1,6 @@
 Result
 ================
 
-.. autoclass:: pycvc5.Result
+.. autoclass:: cvc5.Result
     :members:
     :undoc-members:

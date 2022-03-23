@@ -112,11 +112,10 @@ class TestPropWhiteCnfStream : public TestSmt
     d_cnfContext.reset(new context::Context());
     d_cnfRegistrar.reset(new prop::NullRegistrar);
     d_cnfStream.reset(
-        new cvc5::prop::CnfStream(d_satSolver.get(),
+        new cvc5::prop::CnfStream(d_slvEngine->getEnv(),
+                                  d_satSolver.get(),
                                   d_cnfRegistrar.get(),
-                                  d_cnfContext.get(),
-                                  &d_slvEngine->getEnv(),
-                                  d_slvEngine->getResourceManager()));
+                                  d_cnfContext.get()));
   }
 
   void TearDown() override

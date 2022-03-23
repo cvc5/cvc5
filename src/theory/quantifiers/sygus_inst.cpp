@@ -490,11 +490,12 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
-  /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
-   * instantiation constant ic_i with type types[i] and wrap each ic_i in
-   * DT_SYGUS_EVAL(ic_i), which will be used to instantiate x_i. */
+  // For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
+  // instantiation constant ic_i with type types[i], and a Skolem eval_i whose
+  // type is is the same as x_i, and whose value will be used to instantiate x_i
   std::vector<Node> evals;
   std::vector<Node> inst_constants;
   for (size_t i = 0, size = types.size(); i < size; ++i)
@@ -517,9 +518,14 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
       args.insert(args.end(), svl.begin(), svl.end());
     }
     Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
+    // we use a Skolem constant here, instead of an application of an
+    // evaluation function, since we are not using the builtin support
+    // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
+    // skolem construction here is deterministic and reproducible.
+    Node k = sm->mkPurifySkolem(eval, "eval");
 
     inst_constants.push_back(ic);
-    evals.push_back(eval);
+    evals.push_back(k);
   }
 
   d_inst_constants.emplace(q, inst_constants);

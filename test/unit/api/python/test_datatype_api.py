@@ -12,18 +12,18 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Sort, Term 
-from pycvc5 import DatatypeDecl
-from pycvc5 import Datatype
-from pycvc5 import DatatypeConstructorDecl
-from pycvc5 import DatatypeConstructor
-from pycvc5 import DatatypeSelector
+import cvc5
+from cvc5 import Sort, Term 
+from cvc5 import DatatypeDecl
+from cvc5 import Datatype
+from cvc5 import DatatypeConstructorDecl
+from cvc5 import DatatypeConstructor
+from cvc5 import DatatypeSelector
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_mk_datatype_sort(solver):
@@ -299,23 +299,6 @@ def test_parametric_datatype(solver):
     assert pairIntInt != pairIntReal
     assert pairIntInt != pairRealInt
     assert pairIntReal != pairRealInt
-
-    assert pairRealReal.isSubsortOf(pairRealReal)
-    assert not pairIntReal.isSubsortOf(pairRealReal)
-    assert not pairRealInt.isSubsortOf(pairRealReal)
-    assert not pairIntInt.isSubsortOf(pairRealReal)
-    assert not pairRealReal.isSubsortOf(pairRealInt)
-    assert not pairIntReal.isSubsortOf(pairRealInt)
-    assert pairRealInt.isSubsortOf(pairRealInt)
-    assert not pairIntInt.isSubsortOf(pairRealInt)
-    assert not pairRealReal.isSubsortOf(pairIntReal)
-    assert pairIntReal.isSubsortOf(pairIntReal)
-    assert not pairRealInt.isSubsortOf(pairIntReal)
-    assert not pairIntInt.isSubsortOf(pairIntReal)
-    assert not pairRealReal.isSubsortOf(pairIntInt)
-    assert not pairIntReal.isSubsortOf(pairIntInt)
-    assert not pairRealInt.isSubsortOf(pairIntInt)
-    assert pairIntInt.isSubsortOf(pairIntInt)
 
 def test_is_finite(solver):
     dtypedecl = solver.mkDatatypeDecl("dt", [])

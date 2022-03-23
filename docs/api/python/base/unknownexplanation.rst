@@ -1,6 +1,6 @@
 UnknownExplanation
 ==================
 
-.. autoclass:: pycvc5.UnknownExplanation
+.. autoclass:: cvc5.UnknownExplanation
     :members:
     :undoc-members:

@@ -62,12 +62,6 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
-  // internal-only options
-  if (opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY)
-  {
-    throw OptionException(
-        std::string("Unsat core mode pp-only is for internal use only."));
-  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -86,13 +80,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     opts.smt.produceDifficulty = true;
   }
-  if (opts.smt.produceDifficulty)
-  {
-    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
-    {
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::PP_ONLY;
-    }
-  }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
@@ -104,44 +91,77 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.unsatCoresModeWasSetByUser)
     {
-      verbose(1)
-          << "Overriding OFF unsat-core mode since cores were requested.\n";
+      notifyModifyOption(
+          "unsatCoresMode", "assumptions", "enabling unsat cores");
     }
     opts.smt.unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
-
-  if (opts.smt.checkProofs || opts.driver.dumpProofs)
+  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
+  // enabled is implied
+  if (opts.smt.checkProofs || opts.driver.dumpProofs
+      || opts.smt.proofMode == options::ProofMode::FULL)
   {
     opts.smt.produceProofs = true;
   }
 
-  if (opts.smt.produceProofs
-      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
+  // this check assumes the user has requested *full* proofs
+  if (opts.smt.produceProofs)
   {
-    if (opts.smt.unsatCoresModeWasSetByUser)
+    // if the user requested proofs, proof mode is full
+    opts.smt.proofMode = options::ProofMode::FULL;
+    // unsat cores are available due to proofs being enabled
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
-      verbose(1) << "Forcing full-proof mode for unsat cores mode since proofs "
-                    "were requested.\n";
+      if (opts.smt.unsatCoresModeWasSetByUser)
+      {
+        notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
+      }
+      opts.smt.unsatCores = true;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
     }
-    // enable unsat cores, because they are available as a consequence of proofs
-    opts.smt.unsatCores = true;
-    opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
+  }
+  if (!opts.smt.produceProofs)
+  {
+    if (opts.smt.proofMode != options::ProofMode::OFF)
+    {
+      // if (expert) user set proof mode to something other than off, enable
+      // proofs
+      opts.smt.produceProofs = true;
+    }
+    // if proofs weren't enabled by user, and we are producing difficulty
+    if (opts.smt.produceDifficulty)
+    {
+      opts.smt.produceProofs = true;
+      // ensure at least preprocessing proofs are enabled
+      if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      }
+    }
+    // if proofs weren't enabled by user, and we are producing unsat cores
+    if (opts.smt.unsatCores)
+    {
+      opts.smt.produceProofs = true;
+      if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
+      {
+        // if requested to be based on proofs, we produce (preprocessing +) SAT
+        // proofs
+        opts.smt.proofMode = options::ProofMode::SAT;
+      }
+      else if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        // otherwise, we always produce preprocessing proofs
+        opts.smt.proofMode = options::ProofMode::PP_ONLY;
+      }
+    }
   }
 
-  // set proofs on if not yet set
-  if (opts.smt.unsatCores && !opts.smt.produceProofs)
-  {
-    if (opts.smt.produceProofsWasSetByUser)
-    {
-      verbose(1)
-          << "Forcing proof production since new unsat cores were requested.\n";
-    }
-    opts.smt.produceProofs = true;
-  }
-
-  // if unsat cores are disabled, then unsat cores mode should be OFF
+  // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
+  // for proof mode.
   Assert(opts.smt.unsatCores
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
+  Assert(opts.smt.produceProofs
+         == (opts.smt.proofMode != options::ProofMode::OFF));
 
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
@@ -149,12 +169,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
-      opts.smt.unsatCores = false;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      verbose(1) << "SolverEngine: turning off produce-proofs due to "
-                 << reasonNoProofs.str() << "." << std::endl;
-      opts.smt.produceProofs = false;
-      opts.smt.checkProofs = false;
+      std::stringstream ss;
+      ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
+      throw OptionException(ss.str());
     }
   }
   if (d_isInternalSubsolver)
@@ -200,9 +217,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
             "for the combination of bit-vectors with arrays or uinterpreted "
             "functions. Try --bitblast=lazy"));
       }
-      verbose(1)
-          << "SolverEngine: setting bit-blast mode to lazy to support model"
-          << "generation" << std::endl;
+      notifyModifyOption("bitblastMode", "lazy", "model generation");
       opts.bv.bitblastMode = options::BitblastMode::LAZY;
     }
     else if (!opts.base.incrementalSolving)
@@ -259,8 +274,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(std::string(
           "Ackermannization currently does not support model generation."));
     }
-    verbose(1) << "SolverEngine: turn off ackermannization to support model"
-               << "generation" << std::endl;
+    notifyModifyOption("ackermann", "false", "model generation");
     opts.smt.ackermann = false;
   }
 
@@ -352,15 +366,9 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-  if ((opts.smt.checkModels || opts.smt.checkSynthSol || opts.smt.produceAbducts
-       || opts.smt.produceInterpols != options::ProduceInterpols::NONE
-       || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
-       || opts.smt.blockModelsMode != options::BlockModelsMode::NONE
-       || opts.smt.produceProofs || isSygus(opts))
-      && !opts.smt.produceAssertions)
+  if (!opts.smt.produceAssertions)
   {
-    verbose(1) << "SolverEngine: turning on produce-assertions to support "
-               << "option requiring assertions." << std::endl;
+    verbose(1) << "SolverEngine: turning on produce-assertions." << std::endl;
     opts.smt.produceAssertions = true;
   }
 
@@ -456,8 +464,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // cases where we need produce models
   if (!opts.smt.produceModels
-      && (opts.smt.produceAssignments || opts.quantifiers.sygusRewSynthCheck
-          || usesSygus(opts)))
+      && (opts.smt.produceAssignments || usesSygus(opts)))
   {
     verbose(1) << "SolverEngine: turning on produce-models" << std::endl;
     opts.smt.produceModels = true;
@@ -507,11 +514,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       && (!logic.isQuantified()
           || (logic.isQuantified() && !logic.isTheoryEnabled(THEORY_UF))))
   {
-    Theory::setUninterpretedSortOwner(THEORY_ARRAYS);
+    d_env.setUninterpretedSortOwner(THEORY_ARRAYS);
   }
   else
   {
-    Theory::setUninterpretedSortOwner(THEORY_UF);
+    d_env.setUninterpretedSortOwner(THEORY_UF);
   }
 
   if (!opts.smt.simplifyWithCareEnabledWasSetByUser)
@@ -790,10 +797,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 #ifdef CVC5_USE_POLY
   if (logic == LogicInfo("QF_UFNRA"))
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -807,10 +813,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
            && logic.areRealsUsed() && !logic.areIntegersUsed())
   {
-    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
-      opts.arith.nlCad = true;
-      opts.arith.nlCadVarElim = true;
+      opts.arith.nlCov = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -818,22 +823,29 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 #else
-  if (opts.arith.nlCad)
+  if (opts.arith.nlCov)
   {
-    if (opts.arith.nlCadWasSetByUser)
+    if (opts.arith.nlCovWasSetByUser)
     {
       throw OptionException(
-          "Cannot use --nl-cad without configuring with --poly.");
+          "Cannot use --nl-cov without configuring with --poly.");
     }
     else
     {
-      verbose(1) << "Cannot use --nl-cad without configuring with --poly."
+      verbose(1) << "Cannot use --nl-cov without configuring with --poly."
                  << std::endl;
-      opts.arith.nlCad = false;
+      opts.arith.nlCov = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
   }
 #endif
+  if (logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areTranscendentalsUsed())
+  {
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::FULL;
+      }
+  }
 }
 
 bool SetDefaults::isSygus(const Options& opts) const
@@ -865,6 +877,27 @@ bool SetDefaults::usesSygus(const Options& opts) const
   if (!d_isInternalSubsolver && opts.quantifiers.sygusInst)
   {
     // sygus instantiation uses sygus, but it is not a sygus problem
+    return true;
+  }
+  return false;
+}
+
+bool SetDefaults::usesInputConversion(const Options& opts,
+                                      std::ostream& reason) const
+{
+  if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
+  {
+    reason << "solveBVAsInt";
+    return true;
+  }
+  if (opts.smt.solveIntAsBV > 0)
+  {
+    reason << "solveIntAsBV";
+    return true;
+  }
+  if (opts.smt.solveRealAsInt)
+  {
+    reason << "solveRealAsInt";
     return true;
   }
   return false;
@@ -904,6 +937,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
                << std::endl;
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
+  if (opts.arith.nlCovVarElim && !opts.arith.nlCovVarElimWasSetByUser)
+  {
+    verbose(1)
+        << "Disabling nl-cov-var-elim since it is incompatible with proofs."
+        << std::endl;
+    opts.arith.nlCovVarElim = false;
+  }
   return false;
 }
 
@@ -930,6 +970,11 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
     reason << "global-negate";
     return true;
   }
+  else if (opts.arrays.arraysWeakEquivalence)
+  {
+    reason << "arrays-weak-equiv";
+    return true;
+  }
   return false;
 }
 
@@ -950,9 +995,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "unconstrained simplification";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off unconstrained simplification to "
-                  "support incremental solving"
-               << std::endl;
+    notifyModifyOption("unconstrainedSimp", "false", "incremental solving");
     opts.smt.unconstrainedSimp = false;
   }
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
@@ -969,9 +1012,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "sygus inference";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off sygus inference to support "
-                  "incremental solving"
-               << std::endl;
+    notifyModifyOption("sygusInference", "false", "incremental solving");
     opts.quantifiers.sygusInference = false;
   }
   if (opts.quantifiers.sygusInst)
@@ -981,9 +1022,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "sygus inst";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off sygus inst to support "
-                  "incremental solving"
-               << std::endl;
+    notifyModifyOption("sygusInst", "false", "incremental solving");
     opts.quantifiers.sygusInst = false;
   }
   if (opts.smt.solveIntAsBV > 0)
@@ -993,9 +1032,12 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   }
 
   // disable modes not supported by incremental
+  notifyModifyOption("sortInference", "false", "incremental solving");
   opts.smt.sortInference = false;
   opts.uf.ufssFairnessMonotone = false;
+  notifyModifyOption("globalNegate", "false", "incremental solving");
   opts.quantifiers.globalNegate = false;
+  notifyModifyOption("cegqiNestedQE", "false", "incremental solving");
   opts.quantifiers.cegqiNestedQE = false;
   opts.arith.arithMLTrick = false;
 
@@ -1012,9 +1054,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "simplification";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off simplification to support unsat "
-                  "cores"
-               << std::endl;
+    notifyModifyOption("simplificationMode", "none", "unsat cores");
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
   }
 
@@ -1025,8 +1065,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "learned rewrites";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off learned rewrites to support "
-                  "unsat cores\n";
+    notifyModifyOption("learnedRewrite", "false", "unsat cores");
     opts.smt.learnedRewrite = false;
   }
 
@@ -1037,8 +1076,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "pseudoboolean rewrites";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off pseudoboolean rewrites to support "
-                  "unsat cores\n";
+    notifyModifyOption("pbRewrites", "false", "unsat cores");
     opts.arith.pbRewrites = false;
   }
 
@@ -1049,8 +1087,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "sort inference";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off sort inference to support unsat "
-                  "cores\n";
+    notifyModifyOption("sortInference", "false", "unsat cores");
     opts.smt.sortInference = false;
   }
 
@@ -1061,8 +1098,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "pre-skolemization";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off pre-skolemization to support "
-                  "unsat cores\n";
+    notifyModifyOption("preSkolemQuant", "false", "unsat cores");
     opts.quantifiers.preSkolemQuant = false;
   }
 
@@ -1073,8 +1109,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "bv-to-bool";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off bitvector-to-bool to support "
-                  "unsat cores\n";
+    notifyModifyOption("bitvectorToBool", "false", "unsat cores");
     opts.bv.bitvectorToBool = false;
   }
 
@@ -1085,8 +1120,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "bool-to-bv != off";
       return true;
     }
-    verbose(1)
-        << "SolverEngine: turning off bool-to-bv to support unsat cores\n";
+    notifyModifyOption("boolToBitvector", "off", "unsat cores");
     opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
   }
 
@@ -1097,8 +1131,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "bv-intro-pow2";
       return true;
     }
-    verbose(1)
-        << "SolverEngine: turning off bv-intro-pow2 to support unsat cores";
+    notifyModifyOption("bvIntroducePow2", "false", "unsat cores");
     opts.bv.bvIntroducePow2 = false;
   }
 
@@ -1109,8 +1142,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "repeat-simp";
       return true;
     }
-    verbose(1)
-        << "SolverEngine: turning off repeat-simp to support unsat cores\n";
+    notifyModifyOption("repeatSimp", "false", "unsat cores");
     opts.smt.repeatSimp = false;
   }
 
@@ -1121,8 +1153,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "global-negate";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off global-negate to support unsat "
-                  "cores\n";
+    notifyModifyOption("globalNegate", "false", "unsat cores");
     opts.quantifiers.globalNegate = false;
   }
 
@@ -1138,9 +1169,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "unconstrained simplification";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off unconstrained simplification to "
-                  "support unsat cores"
-               << std::endl;
+    notifyModifyOption("unconstrainedSimp", "false", "unsat cores");
     opts.smt.unconstrainedSimp = false;
   }
   return false;
@@ -1151,6 +1180,18 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
   // whether we want to force safe unsat cores, i.e., if we are in the default
   // ASSUMPTIONS mode, since other ones are experimental
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
+}
+
+bool SetDefaults::incompatibleWithSygus(Options& opts,
+                                        std::ostream& reason) const
+{
+  // sygus should not be combined with preprocessing passes that convert the
+  // input
+  if (usesInputConversion(opts, reason))
+  {
+    return true;
+  }
+  return false;
 }
 
 bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
@@ -1268,8 +1309,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // Allows to answer sat more often by default.
     if (!opts.quantifiers.fmfBoundWasSetByUser)
     {
+      notifyModifyOption("fmfBound", "true", "arrays-exp");
       opts.quantifiers.fmfBound = true;
-      Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
     }
   }
   if (logic.hasCardinalityConstraints())
@@ -1372,6 +1413,14 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // if we are attempting to rewrite everything to SyGuS, use sygus()
   if (usesSygus(opts))
   {
+    std::stringstream reasonNoSygus;
+    if (incompatibleWithSygus(opts, reasonNoSygus))
+    {
+      std::stringstream ss;
+      ss << reasonNoSygus.str() << " not supported in sygus.";
+      throw OptionException(ss.str());
+    }
+    // now, set defaults based on sygus
     setDefaultsSygus(opts);
   }
   // counterexample-guided instantiation for non-sygus
@@ -1408,8 +1457,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
       {
         opts.quantifiers.instNoEntail = false;
       }
-      if (!opts.quantifiers.instWhenModeWasSetByUser
-          && opts.quantifiers.cegqiModel)
+      if (!opts.quantifiers.instWhenModeWasSetByUser)
       {
         // only instantiation should happen at last call when model is avaiable
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;
@@ -1516,9 +1564,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
 {
   if (!opts.quantifiers.sygus)
   {
-    Trace("smt") << "turning on sygus" << std::endl;
+    notifyModifyOption("sygus", "true", "");
+    opts.quantifiers.sygus = true;
   }
-  opts.quantifiers.sygus = true;
   // must use Ferrante/Rackoff for real arithmetic
   if (!opts.quantifiers.cegqiMidpointWasSetByUser)
   {
@@ -1726,6 +1774,18 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
   }
   Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
                << std::endl;
+}
+
+void SetDefaults::notifyModifyOption(const std::string& x,
+                                     const std::string& val,
+                                     const std::string& reason) const
+{
+  verbose(1) << "SetDefaults: setting " << x << " to " << val;
+  if (!reason.empty())
+  {
+    verbose(1) << " due to " << reason;
+  }
+  verbose(1) << std::endl;
 }
 
 }  // namespace smt

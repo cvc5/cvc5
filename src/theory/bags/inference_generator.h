@@ -38,6 +38,20 @@ class InferenceGenerator
   InferenceGenerator(SolverState* state, InferenceManager* im);
 
   /**
+   * @param n a node of the form (bag.count e A)
+   * @return a skolem that equals (bag.count repE repA) where
+   * repE, repA are representatives of e, A respectively
+   */
+  Node registerCountTerm(Node n);
+
+  /**
+   * @param n a node of the form (bag.card A)
+   * @return a skolem that equals (bag.card repA) where repA is the
+   * representative of A
+   */
+  void registerCardinalityTerm(Node n);
+
+  /**
    * @param A is a bag of type (Bag E)
    * @param e is a node of type E
    * @return an inference that represents the following implication
@@ -73,15 +87,16 @@ class InferenceGenerator
    */
   InferInfo bagMake(Node n, Node e);
   /**
-   * @param n is (= A B) where A, B are bags of type (Bag E), and
+   * @param equality is (= A B) where A, B are bags of type (Bag E), and
    * (not (= A B)) is an assertion in the equality engine
+   * @param witness a skolem node that witnesses the disequality
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
-   *   (not (= (bag.count e A) (bag.count e B))))
-   *   where e is a fresh skolem of type E.
+   *   (not (= (bag.count witness A) (bag.count witness B))))
+   *   where witness is a skolem of type E.
    */
-  InferInfo bagDisequality(Node n);
+  InferInfo bagDisequality(Node equality, Node witness);
   /**
    * @param n is (as bag.empty (Bag E))
    * @param e is a node of Type E
@@ -180,7 +195,7 @@ class InferenceGenerator
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is (as bag.empty (Bag E))
    * @return an inference that represents the following implication
-   * (=> (= A (as bag.empty (Bag E)))
+   * (= (= A (as bag.empty (Bag E)))
    *     (= (bag.card A) 0))
    */
   InferInfo cardEmpty(const std::pair<Node, Node>& pair, Node n);
@@ -211,7 +226,7 @@ class InferenceGenerator
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
-   * @param e is a node of Type E
+   * @param e is a node of Type T
    * @return an inference that represents the following implication
    * (and
    *   (= (sum 0) 0)
@@ -239,7 +254,7 @@ class InferenceGenerator
    * preimage of e,
    * and skolem is a fresh variable equals (bag.map f A))
    */
-  std::tuple<InferInfo, Node, Node> mapDownwards(Node n, Node e);
+  std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
@@ -251,7 +266,7 @@ class InferenceGenerator
    * @param e is an element of type E
    * @return an inference that represents the following implication
    * (=>
-   *   (>= (bag.count x A) 1)
+   *   (bag.member x A)
    *   (or
    *     (not (= (f x) y)
    *     (and
@@ -260,7 +275,7 @@ class InferenceGenerator
    *       (= (uf skolem) x)))))
    * where skolem is a fresh variable
    */
-  InferInfo mapUpwards(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
@@ -271,7 +286,7 @@ class InferenceGenerator
    *   (bag.member e skolem)
    *   (and
    *     (p e)
-   *     (= (bag.count e skolem) (bag.count A)))
+   *     (= (bag.count e skolem) (bag.count e A)))
    * where skolem is a variable equals (bag.filter p A)
    */
   InferInfo filterDownwards(Node n, Node e);
@@ -291,6 +306,29 @@ class InferenceGenerator
   InferInfo filterUpwards(Node n, Node e);
 
   /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
+   * @return  an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productUp(Node n, Node e1, Node e2);
+
+  /**
+   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=
+   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * where skolem is a variable equals (bag.product A B)
+   */
+  InferInfo productDown(Node n, Node e);
+
+  /**
    * @param element of type T
    * @param bag of type (bag T)
    * @return  a count term (bag.count element bag)
@@ -298,8 +336,10 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
  private:
-  /** generate skolem variable for node n and add it to inferInfo */
-  Node getSkolem(Node& n, InferInfo& inferInfo);
+  /**
+   * generate skolem variable for node n and add pending lemma for the equality
+   */
+  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;

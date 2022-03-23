@@ -78,7 +78,7 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
                                      .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename, false));
+  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename));
   checkEmptyInput(parser.get());
 
   remove(filename);
@@ -96,7 +96,7 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
                                      .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename, false));
+  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename));
   checkInput(parser.get(), "(set-logic ALL)\n");
 
   remove(filename);

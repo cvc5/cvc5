@@ -266,10 +266,12 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
+      TypeNode type = n.getType();
+      TypeNode elemType = type.getSequenceElementType();
       if (snvec.empty())
       {
         out << "(as seq.empty ";
-        toStreamType(out, n.getType());
+        toStreamType(out, type);
         out << ")";
       }
       else if (snvec.size() > 1)
@@ -277,13 +279,17 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "(seq.++";
         for (const Node& snvc : snvec)
         {
-          out << " (seq.unit " << snvc << ")";
+          out << " (seq.unit ";
+          toStreamCastToType(out, snvc, toDepth, elemType);
+          out << ")";
         }
         out << ")";
       }
       else
       {
-        out << "(seq.unit " << snvec[0] << ")";
+        out << "(seq.unit ";
+        toStreamCastToType(out, snvec[0], toDepth, elemType);
+        out << ")";
       }
       break;
     }
@@ -378,7 +384,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::INT_TO_BITVECTOR_OP:
       out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>()
                  .getSize()
@@ -389,7 +395,7 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_FP_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>()
                  .getSize()
@@ -400,14 +406,14 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_REAL_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPReal>().getSize().exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPReal>().getSize().significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>()
                  .getSize()
@@ -418,7 +424,7 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP:
       out << "(_ to_fp_unsigned "
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
                  .getSize()
@@ -427,13 +433,6 @@ void Smt2Printer::toStream(std::ostream& out,
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
                  .getSize()
                  .significandWidth()
-          << ")";
-      break;
-    case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
-      out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().getSize().exponentWidth()
-          << ' '
-          << n.getConst<FloatingPointToFPGeneric>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
@@ -711,6 +710,18 @@ void Smt2Printer::toStream(std::ostream& out,
     stillNeedToPrintParams = false;
     break;
 
+  // strings
+  case kind::SEQ_UNIT:
+  {
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getSequenceElementType();
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << ")";
+    return;
+  }
+  break;
+
   // sets
   case kind::SET_SINGLETON:
   {
@@ -737,12 +748,11 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 
   // fp theory
-  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
-  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
-  case kind::FLOATINGPOINT_TO_FP_REAL:
-  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
-  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
-  case kind::FLOATINGPOINT_TO_FP_GENERIC:
+  case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+  case kind::FLOATINGPOINT_TO_FP_FROM_FP:
+  case kind::FLOATINGPOINT_TO_FP_FROM_REAL:
+  case kind::FLOATINGPOINT_TO_FP_FROM_SBV:
+  case kind::FLOATINGPOINT_TO_FP_FROM_UBV:
   case kind::FLOATINGPOINT_TO_UBV:
   case kind::FLOATINGPOINT_TO_SBV:
     out << n.getOperator() << ' ';
@@ -825,7 +835,6 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   break;
-  case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
@@ -858,19 +867,40 @@ void Smt2Printer::toStream(std::ostream& out,
       annot << " ";
       for (const Node& nc : n[2])
       {
-        if (nc.getKind() == kind::INST_PATTERN)
+        Kind nck = nc.getKind();
+        if (nck == kind::INST_PATTERN)
         {
           out << "(! ";
           annot << ":pattern ";
           toStream(annot, nc, toDepth, nullptr);
           annot << ") ";
         }
-        else if (nc.getKind() == kind::INST_NO_PATTERN)
+        else if (nck == kind::INST_NO_PATTERN)
         {
           out << "(! ";
           annot << ":no-pattern ";
           toStream(annot, nc[0], toDepth, nullptr);
           annot << ") ";
+        }
+        else if (nck == kind::INST_ATTRIBUTE)
+        {
+          // notice that INST_ATTRIBUTES either have an "internal" form,
+          // where the argument is a variable with an internal attribute set
+          // on it, or an "external" form where it is of the form
+          // (INST_ATTRIBUTE "keyword" [nodeValues]). We print the latter
+          // here only.
+          if (nc[0].getKind() == kind::CONST_STRING)
+          {
+            out << "(! ";
+            // print out as string to avoid quotes
+            annot << ":" << nc[0].getConst<String>().toString();
+            for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
+            {
+              annot << " ";
+              toStream(annot, nc[j], toDepth, nullptr);
+            }
+            annot << ") ";
+          }
         }
       }
     }
@@ -932,7 +962,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
         Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindString(n.getKind(), d_variant) << ' ';
+        out << " (" << smtKindStringOf(n, d_variant) << ' ';
         parens << ')';
         ++c;
       } else {
@@ -989,7 +1019,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::WITNESS: return "witness";
 
   // arith theory
-  case kind::PLUS: return "+";
+  case kind::ADD: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
@@ -1009,8 +1039,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::ARCCOTANGENT: return "arccot";
   case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
-  case kind::MINUS: return "-";
-  case kind::UMINUS: return "-";
+  case kind::SUB: return "-";
+  case kind::NEG: return "-";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";
@@ -1125,6 +1155,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_MAP: return "bag.map";
   case kind::BAG_FILTER: return "bag.filter";
   case kind::BAG_FOLD: return "bag.fold";
+  case kind::TABLE_PRODUCT: return "table.product";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1149,20 +1180,19 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_GEQ: return "fp.geq";
   case kind::FLOATINGPOINT_GT: return "fp.gt";
 
-  case kind::FLOATINGPOINT_ISN: return "fp.isNormal";
-  case kind::FLOATINGPOINT_ISSN: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_ISZ: return "fp.isZero";
-  case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
-  case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
-  case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
-  case kind::FLOATINGPOINT_ISPOS: return "fp.isPositive";
+  case kind::FLOATINGPOINT_IS_NORMAL: return "fp.isNormal";
+  case kind::FLOATINGPOINT_IS_SUBNORMAL: return "fp.isSubnormal";
+  case kind::FLOATINGPOINT_IS_ZERO: return "fp.isZero";
+  case kind::FLOATINGPOINT_IS_INF: return "fp.isInfinite";
+  case kind::FLOATINGPOINT_IS_NAN: return "fp.isNaN";
+  case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
+  case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
 
-  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_REAL: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: return "to_fp_unsigned";
-  case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
+  case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_FP: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_REAL: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_SBV: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_UBV: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
   case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
@@ -1207,6 +1237,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
   case kind::REGEXP_NONE: return "re.none";
+  case kind::REGEXP_ALL: return "re.all";
   case kind::REGEXP_ALLCHAR: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
@@ -1245,6 +1276,35 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   // output that support for the kind needs to be added here.
   // no SMT way to print these
   return kind::kindToString(k);
+}
+
+std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
+{
+  Kind k = n.getKind();
+  if (n.getNumChildren() > 0 && n[0].getType().isSequence())
+  {
+    // this method parallels api::Term::getKind
+    switch (k)
+    {
+      case kind::STRING_CONCAT: return "seq.concat";
+      case kind::STRING_LENGTH: return "seq.len";
+      case kind::STRING_SUBSTR: return "seq.extract";
+      case kind::STRING_UPDATE: return "seq.update";
+      case kind::STRING_CHARAT: return "seq.at";
+      case kind::STRING_CONTAINS: return "seq.contains";
+      case kind::STRING_INDEXOF: return "seq.indexof";
+      case kind::STRING_REPLACE: return "seq.replace";
+      case kind::STRING_REPLACE_ALL: return "seq.replace_all";
+      case kind::STRING_REV: return "seq.rev";
+      case kind::STRING_PREFIX: return "seq.prefixof";
+      case kind::STRING_SUFFIX: return "seq.suffixof";
+      default:
+        // fall through to conversion below
+        break;
+    }
+  }
+  // by default
+  return smtKindString(k, v);
 }
 
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
@@ -1673,6 +1733,11 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   out << "(get-difficulty)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  out << "(get-learned-literals)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,

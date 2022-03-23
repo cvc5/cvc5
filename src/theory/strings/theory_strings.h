@@ -24,6 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/array_solver.h"
 #include "theory/strings/base_solver.h"
@@ -109,8 +110,6 @@ class TheoryStrings : public Theory {
   void eqNotifyNewClass(TNode t);
   /** Called just after the merge of two equivalence classes */
   void eqNotifyMerge(TNode t1, TNode t2);
-  /** called a disequality is added */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -124,7 +123,7 @@ class TheoryStrings : public Theory {
    NotifyClass(TheoryStrings& ts) : d_str(ts) {}
    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
    {
-     Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
+     Trace("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
                       << ", " << (value ? "true" : "false") << ")" << std::endl;
      if (value)
      {
@@ -137,7 +136,7 @@ class TheoryStrings : public Theory {
                                      TNode t2,
                                      bool value) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
+      Trace("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
         return d_str.propagateLit(t1.eqNode(t2));
       }
@@ -145,24 +144,22 @@ class TheoryStrings : public Theory {
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Trace("strings") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_str.conflict(t1, t2);
     }
     void eqNotifyNewClass(TNode t) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
+      Trace("strings") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
       d_str.eqNotifyNewClass(t);
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+      Trace("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
                        << std::endl;
       d_str.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_str.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
@@ -171,16 +168,6 @@ class TheoryStrings : public Theory {
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;
-  /**
-   * Are x and y shared terms that are not equal? This is used for constructing
-   * the care graph in the above function.
-   */
-  bool areCareDisequal(TNode x, TNode y);
-  /** Add care pairs */
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth);
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
@@ -321,6 +308,13 @@ class TheoryStrings : public Theory {
   StringsFmf d_stringsFmf;
   /** The representation of the strategy */
   Strategy d_strat;
+  /**
+   * For model building, a counter on the number of abstract witness terms
+   * we have built, so that unique debug names can be assigned.
+   */
+  size_t d_absModelCounter;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryStrings */
 
 }  // namespace strings

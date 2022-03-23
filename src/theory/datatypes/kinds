@@ -41,7 +41,6 @@ cardinality UPDATER_TYPE \
 parameterized APPLY_CONSTRUCTOR APPLY_TYPE_ASCRIPTION 0: "constructor application; first parameter is the constructor, remaining parameters (if any) are parameters to the constructor"
 
 parameterized APPLY_SELECTOR SELECTOR_TYPE 1 "selector application; parameter is a datatype term (undefined if mis-applied)"
-parameterized APPLY_SELECTOR_TOTAL [SELECTOR_TYPE] 1 "selector application; parameter is a datatype term (defined rigidly if mis-applied)"
 
 parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is a tester, second is a datatype term"
 
@@ -89,7 +88,6 @@ constant ASCRIPTION_TYPE \
 
 typerule APPLY_CONSTRUCTOR ::cvc5::theory::datatypes::DatatypeConstructorTypeRule
 typerule APPLY_SELECTOR ::cvc5::theory::datatypes::DatatypeSelectorTypeRule
-typerule APPLY_SELECTOR_TOTAL ::cvc5::theory::datatypes::DatatypeSelectorTypeRule
 typerule APPLY_TESTER ::cvc5::theory::datatypes::DatatypeTesterTypeRule
 typerule APPLY_UPDATER ::cvc5::theory::datatypes::DatatypeUpdateTypeRule
 typerule APPLY_TYPE_ASCRIPTION ::cvc5::theory::datatypes::DatatypeAscriptionTypeRule

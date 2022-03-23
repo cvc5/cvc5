@@ -803,7 +803,7 @@ Node FpWordBlaster::sbvToNode(const sbv& s) const { return s; }
 FpWordBlaster::uf FpWordBlaster::buildComponents(TNode current)
 {
   Assert(Theory::isLeafOf(current, THEORY_FP)
-         || current.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
+         || current.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
   NodeManager* nm = NodeManager::currentNM();
   uf tmp(nm->mkNode(kind::FLOATINGPOINT_COMPONENT_NAN, current),
@@ -1050,7 +1050,7 @@ Node FpWordBlaster::wordBlast(TNode node)
               break;
 
             /* ---- Conversions ---- */
-            case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+            case kind::FLOATINGPOINT_TO_FP_FROM_FP:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(cur,
@@ -1073,12 +1073,12 @@ Node FpWordBlaster::wordBlast(TNode node)
             }
             break;
 
-            case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+            case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
               Assert(cur[0].getType().isBitVector());
               d_fpMap.insert(cur, symfpu::unpack<traits>(fpt(t), ubv(cur[0])));
               break;
 
-            case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+            case kind::FLOATINGPOINT_TO_FP_FROM_SBV:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               d_fpMap.insert(
                   cur,
@@ -1086,7 +1086,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                       fpt(t), (*d_rmMap.find(cur[0])).second, sbv(cur[1])));
               break;
 
-            case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
+            case kind::FLOATINGPOINT_TO_FP_FROM_UBV:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               d_fpMap.insert(
                   cur,
@@ -1094,7 +1094,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                       fpt(t), (*d_rmMap.find(cur[0])).second, ubv(cur[1])));
               break;
 
-            case kind::FLOATINGPOINT_TO_FP_REAL:
+            case kind::FLOATINGPOINT_TO_FP_FROM_REAL:
               d_fpMap.insert(cur, buildComponents(cur));
               // Rely on the real theory and theory combination
               // to handle the value
@@ -1156,7 +1156,7 @@ Node FpWordBlaster::wordBlast(TNode node)
             break;
 
           /* ---- Tester -------------------------------------------- */
-          case kind::FLOATINGPOINT_ISN:
+          case kind::FLOATINGPOINT_IS_NORMAL:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1164,7 +1164,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                          (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISSN:
+          case kind::FLOATINGPOINT_IS_SUBNORMAL:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1172,7 +1172,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                             (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISZ:
+          case kind::FLOATINGPOINT_IS_ZERO:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1180,7 +1180,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                        (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISINF:
+          case kind::FLOATINGPOINT_IS_INF:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1188,7 +1188,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISNAN:
+          case kind::FLOATINGPOINT_IS_NAN:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1196,7 +1196,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                       (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISNEG:
+          case kind::FLOATINGPOINT_IS_NEG:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1204,7 +1204,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_ISPOS:
+          case kind::FLOATINGPOINT_IS_POS:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
