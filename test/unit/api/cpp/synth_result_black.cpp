@@ -34,5 +34,40 @@ TEST_F(TestApiBlackSynthResult, isNull)
   ASSERT_FALSE(res_null.isUnknown());
 }
 
+TEST_F(TestApiBlackSynthResult, hasSolution)
+{
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+  Term boolTerm = d_solver.mkTrue();
+  d_solver.addSygusConstraint(boolTerm);
+  cvc5::api::SynthResult res = d_solver.checkSynth();
+  ASSERT_FALSE(res.isNull());
+  ASSERT_TRUE(res.hasSolution());
+  ASSERT_FALSE(res.hasNoSolution());
+  ASSERT_FALSE(res.isUnknown());
+}
+
+TEST_F(TestApiBlackSynthResult, isNull)
+{
+  // note that we never return synth result for which hasNoSolution is true
+  // currently
+  cvc5::api::SynthResult res_null;
+  ASSERT_FALSE(res_null.hasNoSolution());
+}
+
+TEST_F(TestApiBlackSynthResult, isUnknown)
+{
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+  Term boolTerm = d_solver.mkFalse();
+  d_solver.addSygusConstraint(boolTerm);
+  cvc5::api::SynthResult res = d_solver.checkSynth();
+  // currently isUnknown, could also return hasNoSolution when support for
+  // infeasibility of sygus conjectures is added.
+  ASSERT_FALSE(res.isNull());
+  ASSERT_FALSE(res.hasSolution());
+  ASSERT_FALSE(res.hasNoSolution());
+  ASSERT_TRUE(res.isUnknown());
+}
+
+
 }  // namespace test
 }  // namespace cvc5

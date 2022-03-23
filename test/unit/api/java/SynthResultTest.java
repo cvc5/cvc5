@@ -44,4 +44,34 @@ class SynthResultTest
     assertFalse(res_null.hasNoSolution());
     assertFalse(res_null.isUnknown());
   }
+
+  @Test void hasSolution()
+  {
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+    Term boolTerm = d_solver.mkTrue();
+    d_solver.addSygusConstraint(boolTerm);
+    SynthResult res = d_solver.checkSynth();
+    assertFalse(res.isNull());
+    assertTrue(res.hasSolution());
+    assertFalse(res.hasNoSolution());
+    assertFalse(res.isUnknown());
+  }
+
+  @Test void hasNoSolution()
+  {
+    SynthResult res_null = d_solver.getNullSynthResult();
+    assertFalse(res_null.hasSolution());
+  }
+
+  @Test void hasSolution()
+  {
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+    Term boolTerm = d_solver.mkTrue();
+    d_solver.addSygusConstraint(boolTerm);
+    SynthResult res = d_solver.checkSynth();
+    assertFalse(res.isNull());
+    assertTrue(res.hasSolution());
+    assertFalse(res.hasNoSolution());
+    assertFalse(res.isUnknown());
+  }
 }
