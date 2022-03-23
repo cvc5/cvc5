@@ -1610,17 +1610,6 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   ARITH_MULT_NEG,
-  //======== Multiplication tangent plane
-  // Children: none
-  // Arguments: (t, x, y, a, b, sgn)
-  // ---------------------
-  // Conclusion:
-  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
-  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
-  //   (>= y b)))
-  // Where x,y are real terms (variables or extended terms), t = (* x y)
-  // (possibly under rewriting), a,b are real constants, and sgn is either -1
-  // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication tangent plane**
