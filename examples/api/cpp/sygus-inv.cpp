@@ -85,7 +85,7 @@ int main()
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 
   // print solutions if available
-  if (slv.checkSynth().isUnsat())
+  if (slv.checkSynth().hasSolution())
   {
     // Output should be equivalent to:
     // (

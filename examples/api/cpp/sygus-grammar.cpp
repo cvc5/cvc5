@@ -116,7 +116,7 @@ int main()
       slv.mkTerm(EQUAL, {{id1_x, id2_x, id3_x, id4_x, varX}}));
 
   // print solutions if available
-  if (slv.checkSynth().isUnsat())
+  if (slv.checkSynth().hasSolution())
   {
     // Output should be equivalent to:
     // (

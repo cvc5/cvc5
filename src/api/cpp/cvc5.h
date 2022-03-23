@@ -4748,8 +4748,8 @@ class CVC5_EXPORT Solver
    *     (check-synth)
    * \endverbatim
    *
-   * @return the result of the check, which is "solution" if the check
-   * succeeded in which case solutions are available via getSynthSolutions,
+   * @return the result of the check, which is "solution" if the check found a
+   * solution in which case solutions are available via getSynthSolutions,
    * "no solution" if it was determined there is no solution, or "unknown"
    * otherwise.
    */
@@ -4769,8 +4769,8 @@ class CVC5_EXPORT Solver
    *     (check-synth-next)
    * \endverbatim
    *
-   * @return the result of the check, which is "solution" if the check
-   * succeeded in which case solutions are available via getSynthSolutions,
+   * @return the result of the check, which is "solution" if the check found a
+   * solution in which case solutions are available via getSynthSolutions,
    * "no solution" if it was determined there is no solution, or "unknown"
    * otherwise.
    */
