@@ -2079,8 +2079,10 @@ bool MatchGen::doMatching()
   return !d_qn.empty();
 }
 
-void MatchGen::debugPrintType( const char * c, short typ) {
-  switch( typ ){
+void MatchGen::debugPrintType( const char * c, short typ) 
+{
+  switch (typ)
+  {
   case typ_invalid: Trace(c) << "invalid";break;
   case typ_ground: Trace(c) << "ground";break;
   case typ_eq: Trace(c) << "eq";break;

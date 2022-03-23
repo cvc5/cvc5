@@ -49,6 +49,8 @@ class ITESimp : public PreprocessingPass
   util::ITEUtilities d_iteUtilities;
 
   Statistics d_statistics;
+  
+  static const zombieHuntThreshold = 524288;
 };
 
 }  // namespace passes

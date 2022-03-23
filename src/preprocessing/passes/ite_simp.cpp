@@ -208,7 +208,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
     {
       // if false, don't bother to reclaim memory here.
       NodeManager* nm = NodeManager::currentNM();
-      if (nm->poolSize() >= 524288)
+      if (nm->poolSize() >= zombieHuntThreshold)
       {
         verbose(2) << "..ite simplifier did quite a bit of work.. "
                << nm->poolSize() << endl;
@@ -216,7 +216,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
         d_env.getRewriter()->clearCaches();
-        nm->reclaimZombiesUntil(524288);
+        nm->reclaimZombiesUntil(zombieHuntThreshold);
         verbose(2) << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
       }
