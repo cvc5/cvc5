@@ -61,7 +61,7 @@ void InferenceGenerator::registerCardinalityTerm(Node n)
   Assert(n.getKind() == BAG_CARD);
   Node bag = d_state->getRepresentative(n[0]);
   Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
-  Node skolem = registerAndAssertSkolemLemma(cardTerm, "bag.card");
+  Node skolem = registerAndAssertSkolemLemma(cardTerm, "bagCard");
   d_state->registerCardinalityTerm(cardTerm, skolem);
   Node premise = n[0].eqNode(bag);
   Node conclusion = skolem.eqNode(n);
@@ -338,7 +338,7 @@ InferInfo InferenceGenerator::cardEmpty(const std::pair<Node, Node>& pair,
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD_EMPTY);
   Node premise = pair.first[0].eqNode(n);
   Node conclusion = pair.second.eqNode(d_zero);
-  inferInfo.d_conclusion = premise.notNode().orNode(conclusion);
+  inferInfo.d_conclusion = premise.eqNode(conclusion);
   return inferInfo;
 }
 
@@ -373,8 +373,7 @@ InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
   Node unionDisjoints = child;
   Node card = d_nm->mkNode(BAG_CARD, child);
   std::vector<Node> lemmas;
-  registerCardinalityTerm(card);
-  Node sum = d_state->getCardinalitySkolem(card);
+  Node sum = registerAndAssertSkolemLemma(card, "bagCard");
   ++it;
   while (it != children.end())
   {
@@ -383,14 +382,12 @@ InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
     unionDisjoints =
         d_nm->mkNode(kind::BAG_UNION_DISJOINT, unionDisjoints, child);
     card = d_nm->mkNode(BAG_CARD, child);
-    registerCardinalityTerm(card);
-    Node skolem = d_state->getCardinalitySkolem(card);
+    Node skolem = registerAndAssertSkolemLemma(card, "bagCard");
     sum = d_nm->mkNode(ADD, sum, skolem);
     ++it;
   }
   Node parentCard = d_nm->mkNode(BAG_CARD, parent);
-  registerCardinalityTerm(parentCard);
-  Node parentSkolem = d_state->getCardinalitySkolem(parentCard);
+  Node parentSkolem = registerAndAssertSkolemLemma(parentCard, "bagCard");
 
   Node bags = parent.eqNode(unionDisjoints);
   lemmas.push_back(bags);

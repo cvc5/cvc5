@@ -19,6 +19,7 @@
 #define CVC5__PARSER__PARSE_OP_H
 
 #include <string>
+#include <vector>
 
 #include "api/cpp/cvc5.h"
 
@@ -69,12 +70,19 @@ struct ParseOp
   api::Sort d_type;
   /** The operator associated with the parsed operator, if it exists */
   api::Op d_op;
+  /**
+   * The indices if the operator is indexed, but api::Op is the null operator.
+   * This is the case for operator symbols that cannot be resolved to a kind
+   * without parsing the arguments. This is currently only the case for
+   * `to_fp`.
+   */
+  std::vector<uint32_t> d_indices;
 
   /* Return true if this is equal to 'p'. */
   bool operator==(const ParseOp& p) const
   {
     return d_kind == p.d_kind && d_name == p.d_name && d_expr == p.d_expr
-           && d_type == p.d_type && d_op == p.d_op;
+           && d_type == p.d_type && d_op == p.d_op && d_indices == p.d_indices;
   }
 };
 

@@ -24,6 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/array_solver.h"
 #include "theory/strings/base_solver.h"
@@ -167,16 +168,6 @@ class TheoryStrings : public Theory {
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;
-  /**
-   * Are x and y shared terms that are not equal? This is used for constructing
-   * the care graph in the above function.
-   */
-  bool areCareDisequal(TNode x, TNode y);
-  /** Add care pairs */
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth);
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
@@ -322,6 +313,8 @@ class TheoryStrings : public Theory {
    * we have built, so that unique debug names can be assigned.
    */
   size_t d_absModelCounter;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
 };/* class TheoryStrings */
 
 }  // namespace strings

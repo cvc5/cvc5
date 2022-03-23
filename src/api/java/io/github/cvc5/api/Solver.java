@@ -737,7 +737,6 @@ public class Solver implements IPointer, AutoCloseable
    *   - FLOATINGPOINT_TO_FP_FROM_REAL
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first unsigned int argument to this operator
@@ -2699,6 +2698,17 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long getNullResult(long pointer);
+
+  /**
+   * @return null synth result
+   */
+  public SynthResult getNullSynthResult()
+  {
+    long resultPointer = getNullSynthResult(pointer);
+    return new SynthResult(this, resultPointer);
+  }
+
+  private native long getNullSynthResult(long pointer);
 
   /**
    * @return null op

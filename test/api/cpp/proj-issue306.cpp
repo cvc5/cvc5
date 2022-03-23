@@ -29,9 +29,9 @@ int main(void)
   Term t3 = slv.mkConst(s1, "_x2");
   Term t11 = slv.mkString("");
   Term t14 = slv.mkConst(s3, "_x11");
-  Term t42 = slv.mkTerm(Kind::ITE, t3, t14, t1);
-  Term t58 = slv.mkTerm(Kind::STRING_LEQ, t14, t11);
-  Term t95 = slv.mkTerm(Kind::EQUAL, t14, t42);
+  Term t42 = slv.mkTerm(Kind::ITE, {t3, t14, t1});
+  Term t58 = slv.mkTerm(Kind::STRING_LEQ, {t14, t11});
+  Term t95 = slv.mkTerm(Kind::EQUAL, {t14, t42});
   slv.assertFormula(t95);
   slv.checkSatAssuming({t58});
 }

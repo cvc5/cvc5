@@ -1002,6 +1002,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1231,6 +1232,14 @@ name   = "Quantifiers"
   default    = "3"
   help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
 
+[[option]]
+  name       = "sygusVerifyTimeout"
+  category   = "regular"
+  long       = "sygus-verify-timeout=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
+
 # Internal uses of sygus
 
 [[option]]
@@ -1350,6 +1359,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
+  default    = "0"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 [[option]]

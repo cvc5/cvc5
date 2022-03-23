@@ -224,22 +224,6 @@ typerule FLOATINGPOINT_TO_FP_FROM_UBV   ::cvc5::theory::fp::FloatingPointToFPUns
 
 
 
-constant FLOATINGPOINT_TO_FP_GENERIC_OP \
-    class \
-    FloatingPointToFPGeneric \
-    "::cvc5::FloatingPointConvertSortHashFunction<0x11>" \
-    "util/floatingpoint.h" \
-    "operator for a generic to_fp"
-typerule FLOATINGPOINT_TO_FP_GENERIC_OP ::cvc5::theory::fp::FloatingPointParametricOpTypeRule
-
-
-parameterized FLOATINGPOINT_TO_FP_GENERIC FLOATINGPOINT_TO_FP_GENERIC_OP 1:2 "a generic conversion to floating-point, used in parsing only"
-typerule FLOATINGPOINT_TO_FP_GENERIC   ::cvc5::theory::fp::FloatingPointToFPGenericTypeRule
-
-
-
-
-
 constant FLOATINGPOINT_TO_UBV_OP \
     class \
     FloatingPointToUBV \

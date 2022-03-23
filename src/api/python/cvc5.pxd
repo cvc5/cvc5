@@ -2,6 +2,7 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
+from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -19,6 +20,14 @@ cdef extern from "<functional>" namespace "std" nogil:
     cdef cppclass hash[T]:
         hash()
         size_t operator()(T t)
+
+cdef extern from "<optional>" namespace "std" nogil:
+    # The std::optional wrapper would be available as cpplib.optional with
+    # cython 3.0.0a10 (Jan 2022). Until this version is widely available, we
+    # wrap it manually.
+    cdef cppclass optional[T]:
+        bint has_value()
+        T& value()
 
 cdef extern from "<string>" namespace "std":
     cdef cppclass wstring:
@@ -128,25 +137,69 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isNull() except +
         bint isIndexed() except +
         size_t getNumIndices() except +
-        T getIndices[T]() except +
+        Term operator[](size_t i) except +
         string toString() except +
 
     cdef cppclass OpHashFunction:
         OpHashFunction() except +
         size_t operator()(const Op & o) except +
 
+    cdef cppclass OptionInfo:
+        string name
+        vector[string] aliases
+        bint setByUser
+        bint boolValue() except +
+        string stringValue() except +
+        int intValue() except +
+        int uintValue() except +
+        float doubleValue() except +
+        cppclass VoidInfo:
+            pass
+        cppclass ValueInfo[T]:
+            T defaultValue
+            T currentValue
+        cppclass NumberInfo[T]:
+            T defaultValue
+            T currentValue
+            optional[T] minimum
+            optional[T] maximum
+        cppclass ModeInfo:
+            string defaultValue
+            string currentValue
+            vector[string] modes
+        
+        cppclass OptionInfoVariant:
+            pass
+        
+        OptionInfoVariant valueInfo
+        string toString() except +
 
+
+cdef extern from "<variant>" namespace "std":
+    # cython has no support for variadic templates yet, see
+    # https://github.com/cython/cython/issues/1611
+    bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
+    T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
+
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
         bint isSat() except +
         bint isUnsat() except +
-        bint isSatUnknown() except +
+        bint isUnknown() except +
         bint operator==(const Result& r) except +
         bint operator!=(const Result& r) except +
         UnknownExplanation getUnknownExplanation() except +
         string toString() except +
 
+    cdef cppclass SynthResult:
+        SynthResult() except+
+        bint isNull() except +
+        bint hasSolution() except +
+        bint hasNoSolution() except +
+        bint isUnknown() except +
+        string toString() except +
 
     cdef cppclass RoundingMode:
         pass
@@ -273,7 +326,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getLearnedLiterals() except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
-        string getOption(string& option) except +
+        string getOption(const string& option) except +
+        vector[string] getOptionNames() except +
+        OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
@@ -302,6 +357,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void blockModel() except +
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
+        Statistics getStatistics() except +
 
     cdef cppclass Grammar:
         Grammar() except +
@@ -379,6 +435,29 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass SortHashFunction:
         SortHashFunction() except +
         size_t operator()(const Sort & s) except +
+
+    cdef cppclass Stat:
+        bint isInternal() except +
+        bint isDefault() except +
+        bint isInt() except +
+        int64_t getInt() except +
+        bint isDouble() except +
+        double getDouble() except +
+        bint isString() except +
+        string getString() except +
+        bint isHistogram() except +
+        c_map[string,uint64_t] getHistogram() except +
+
+    cdef cppclass Statistics:
+        Statistics() except +
+        cppclass iterator:
+            iterator() except +
+            bint operator!=(const iterator& it) except +
+            iterator& operator++() except +
+            pair[string, Stat]& operator*() except +;
+        iterator begin(bint internal, bint defaulted) except +
+        iterator end() except +
+        Stat get(string name) except +
 
     cdef cppclass Term:
         Term()

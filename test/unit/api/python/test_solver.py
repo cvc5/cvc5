@@ -1176,9 +1176,80 @@ def test_get_op(solver):
 
 
 def test_get_option(solver):
-    solver.getOption("incremental")
+    solver.setOption("incremental", "true")
+    assert solver.getOption("incremental") == "true"
     with pytest.raises(RuntimeError):
         solver.getOption("asdf")
+
+
+def test_get_option_names(solver):
+    opts = solver.getOptionNames()
+    assert len(opts) > 100
+    assert "verbose" in opts
+    assert "foobar" not in opts
+
+
+def test_get_option_info(solver):
+    with pytest.raises(RuntimeError):
+        solver.getOptionInfo("asdf-invalid")
+    
+    info = solver.getOptionInfo("verbose")
+    assert info['name'] == "verbose"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is None
+    
+    info = solver.getOptionInfo("print-success")
+    assert info['name'] == "print-success"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is bool
+    assert info['current'] == False
+    assert info['default'] == False
+
+    info = solver.getOptionInfo("verbosity")
+    assert info['name'] == "verbosity"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is int
+    assert info['current'] == 0
+    assert info['default'] == 0
+    assert info['minimum'] is None and info['maximum'] is None
+
+    info = solver.getOptionInfo("rlimit")
+    assert info['name'] == "rlimit"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is int
+    assert info['current'] == 0
+    assert info['default'] == 0
+    assert info['minimum'] is None and info['maximum'] is None
+
+    info = solver.getOptionInfo("random-freq")
+    assert info['name'] == "random-freq"
+    assert info['aliases'] == ["random-frequency"]
+    assert not info['setByUser']
+    assert info['type'] is float
+    assert info['current'] == 0.0
+    assert info['default'] == 0.0
+    assert info['minimum'] == 0.0 and info['maximum'] == 1.0
+
+    info = solver.getOptionInfo("force-logic")
+    assert info['name'] == "force-logic"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is str
+    assert info['current'] == ""
+    assert info['default'] == ""
+
+    info = solver.getOptionInfo("simplification")
+    assert info['name'] == "simplification"
+    assert info['aliases'] == ["simplification-mode"]
+    assert not info['setByUser']
+    assert info['type'] == 'mode'
+    assert info['current'] == 'batch'
+    assert info['default'] == 'batch'
+    assert info['modes'] == ['batch', 'none']
 
 
 def test_get_unsat_assumptions1(solver):
@@ -1571,6 +1642,21 @@ def test_block_model_values5(solver):
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModelValues([x])
+
+def test_get_statistics(solver):
+    intSort = solver.getIntegerSort()
+    x = solver.mkConst(intSort, "x")
+    y = solver.mkConst(intSort, "y")
+    zero = solver.mkInteger(0)
+    ten = solver.mkInteger(10)
+    f0 = solver.mkTerm(Kind.Geq, x, ten)
+    f1 = solver.mkTerm(Kind.Or, solver.mkTerm(Kind.Geq, zero, x), solver.mkTerm(Kind.Geq, y, zero))
+    solver.assertFormula(f0)
+    solver.assertFormula(f1)
+    solver.checkSat()
+    s = solver.getStatistics()
+    assert s['api::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s.get(True, False) != {}
 
 def test_set_info(solver):
     with pytest.raises(RuntimeError):

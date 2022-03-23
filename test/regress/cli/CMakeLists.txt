@@ -1370,6 +1370,7 @@ set(regress_0_tests
   regress0/strings/issue6834-str-eq-const-nhomog.smt2
   regress0/strings/issue7974-incomplete-neg-member.smt2
   regress0/strings/issue8295-star-union-char.smt2
+  regress0/strings/issue8346-idof-max.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1770,6 +1771,7 @@ set(regress_1_tests
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
+  regress1/bags/proj-issue497.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/union_disjoint.smt2
@@ -2204,6 +2206,7 @@ set(regress_1_tests
   regress1/quantifiers/issue7385-sygus-inst-i.smt2
   regress1/quantifiers/issue7537-cegqi-comp-types.smt2
   regress1/quantifiers/issue8157-duplicate-conflicts.smt2
+  regress1/quantifiers/issue8344-cegqi-string-witness.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -2637,6 +2640,7 @@ set(regress_1_tests
   regress1/sygus/crci-ssb-unk.sy
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
+  regress1/sygus/discPresent.sy
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy

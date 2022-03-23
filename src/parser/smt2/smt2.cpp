@@ -115,16 +115,12 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_REDOR, "bvredor");
   addOperator(api::BITVECTOR_REDAND, "bvredand");
 
-  addIndexedOperator(api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
-  addIndexedOperator(api::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
-  addIndexedOperator(
-      api::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
-  addIndexedOperator(
-      api::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
-  addIndexedOperator(
-      api::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
-  addIndexedOperator(
-      api::BITVECTOR_ROTATE_RIGHT, api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
+  addIndexedOperator(api::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(api::BITVECTOR_REPEAT, "repeat");
+  addIndexedOperator(api::BITVECTOR_ZERO_EXTEND, "zero_extend");
+  addIndexedOperator(api::BITVECTOR_SIGN_EXTEND, "sign_extend");
+  addIndexedOperator(api::BITVECTOR_ROTATE_LEFT, "rotate_left");
+  addIndexedOperator(api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
 void Smt2::addDatatypesOperators()
@@ -140,9 +136,8 @@ void Smt2::addDatatypesOperators()
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(
-        api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
-    addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
+    addIndexedOperator(api::APPLY_SELECTOR, "tuple_select");
+    addIndexedOperator(api::APPLY_UPDATER, "tuple_update");
   }
 }
 
@@ -197,8 +192,8 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_STAR, "re.*");
   addOperator(api::REGEXP_PLUS, "re.+");
   addOperator(api::REGEXP_OPT, "re.opt");
-  addIndexedOperator(api::REGEXP_REPEAT, api::REGEXP_REPEAT, "re.^");
-  addIndexedOperator(api::REGEXP_LOOP, api::REGEXP_LOOP, "re.loop");
+  addIndexedOperator(api::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_RANGE, "re.range");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::REGEXP_DIFF, "re.diff");
@@ -234,31 +229,17 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,
-                     api::FLOATINGPOINT_TO_FP_GENERIC,
-                     "to_fp");
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV,
-                     api::FLOATINGPOINT_TO_FP_FROM_UBV,
-                     "to_fp_unsigned");
-  addIndexedOperator(
-      api::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
-  addIndexedOperator(
-      api::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
+  addIndexedOperator(api::UNDEFINED_KIND, "to_fp");
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
+  addIndexedOperator(api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
+  addIndexedOperator(api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                       api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                       "to_fp_bv");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP,
-                       api::FLOATINGPOINT_TO_FP_FROM_FP,
-                       "to_fp_fp");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL,
-                       api::FLOATINGPOINT_TO_FP_FROM_REAL,
-                       "to_fp_real");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV,
-                       api::FLOATINGPOINT_TO_FP_FROM_SBV,
-                       "to_fp_signed");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, "to_fp_bv");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP, "to_fp_fp");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL, "to_fp_real");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV, "to_fp_signed");
   }
 }
 
@@ -299,11 +280,15 @@ void Smt2::addOperator(api::Kind kind, const std::string& name)
 }
 
 void Smt2::addIndexedOperator(api::Kind tKind,
-                              api::Kind opKind,
                               const std::string& name)
 {
   Parser::addOperator(tKind);
-  d_indexedOpKindMap[name] = opKind;
+  d_indexedOpKindMap[name] = tKind;
+}
+
+bool Smt2::isIndexedOperatorEnabled(const std::string& name) const
+{
+  return d_indexedOpKindMap.find(name) != d_indexedOpKindMap.end();
 }
 
 api::Kind Smt2::getOperatorKind(const std::string& name) const
@@ -521,7 +506,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
         addOperator(api::INTS_MODULUS, "mod");
         addOperator(api::ABS, "abs");
       }
-      addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
+      addIndexedOperator(api::DIVISIBLE, "divisible");
     }
 
     if (d_logic.areRealsUsed())
@@ -550,7 +535,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if (!strictModeEnabled())
     {
       // integer version of AND
-      addIndexedOperator(api::IAND, api::IAND, "iand");
+      addIndexedOperator(api::IAND, "iand");
       // pow2
       addOperator(api::POW2, "int.pow2");
     }
@@ -570,8 +555,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       // Conversions between bit-vectors and integers
       addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
-      addIndexedOperator(
-          api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
+      addIndexedOperator(api::INT_TO_BITVECTOR, "int2bv");
     }
   }
 
@@ -943,6 +927,54 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // it was given an operator
     op = p.d_op;
   }
+  else if (isIndexedOperatorEnabled(p.d_name))
+  {
+    // Resolve indexed symbols that cannot be resolved without knowing the type
+    // of the arguments. This is currently limited to `to_fp`.
+    Assert(p.d_name == "to_fp");
+    size_t nchildren = args.size();
+    if (nchildren == 1)
+    {
+      op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+                          p.d_indices[0],
+                          p.d_indices[1]);
+    }
+    else if (nchildren > 2)
+    {
+      std::stringstream ss;
+      ss << "Wrong number of arguments for indexed operator to_fp, expected "
+            "1 or 2, got "
+         << nchildren;
+      parseError(ss.str());
+    }
+    else if (!args[0].getSort().isRoundingMode())
+    {
+      std::stringstream ss;
+      ss << "Expected a rounding mode as the first argument, got "
+         << args[0].getSort();
+      parseError(ss.str());
+    }
+    else
+    {
+      api::Sort t = args[1].getSort();
+
+      if (t.isFloatingPoint())
+      {
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices[0], p.d_indices[1]);
+      }
+      else if (t.isInteger() || t.isReal())
+      {
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_REAL, p.d_indices[0], p.d_indices[1]);
+      }
+      else
+      {
+        op = d_solver->mkOp(
+            api::FLOATINGPOINT_TO_FP_FROM_SBV, p.d_indices[0], p.d_indices[1]);
+      }
+    }
+  }
   else
   {
     isBuiltinOperator = isOperatorEnabled(p.d_name);
@@ -1045,13 +1077,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     api::Term ret;
     if (p.d_kind == api::APPLY_SELECTOR)
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+      ret = d_solver->mkTerm(api::APPLY_SELECTOR,
+                             {dt[0][n].getSelectorTerm(), args[0]});
     }
     else
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+      ret = d_solver->mkTerm(api::APPLY_UPDATER,
+                             {dt[0][n].getUpdaterTerm(), args[0], args[1]});
     }
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
@@ -1109,7 +1141,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                         << std::endl;
         return ret;
       }
-      api::Term ret = d_solver->mkTerm(api::NEG, args[0]);
+      api::Term ret = d_solver->mkTerm(api::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
@@ -1126,7 +1158,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
+      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, {args[0]});
       Trace("parser") << "applyParseOp: return set.singleton " << ret
                       << std::endl;
       return ret;
