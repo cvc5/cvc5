@@ -1754,31 +1754,6 @@ enum class PfRule : uint32_t
   // secant of p from l to u.
   ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
-  // ================ Coverings Lemmas
-  // We use IRP for IndexedRootPredicate.
-  //
-  // A formula "Interval" describes that a variable (xn is none is given) is
-  // within a particular interval whose bounds are given as IRPs. It is either
-  // an open interval or a point interval:
-  //   (IRP k poly) < xn < (IRP k poly)
-  //   xn == (IRP k poly)
-  //
-  // A formula "Cell" describes a portion
-  // of the real space in the following form:
-  //   Interval(x1) and Interval(x2) and ...
-  // We implicitly assume a Cell to go up to n-1 (and can be empty).
-  //
-  // A formula "Covering" is a set of Intervals, implying that xn can be in
-  // neither of these intervals. To be a covering (of the real line), the union
-  // of these intervals should be the real numbers.
-  // ======== Coverings direct conflict
-  // Children (Cell, A)
-  // ---------------------
-  // Conclusion: (false)
-  // A direct interval is generated from an assumption A (in variables x1...xn)
-  // over a Cell (in variables x1...xn). It derives that A evaluates to false
-  // over the Cell. In the actual algorithm, it means that xn can not be in the
-  // topmost interval of the Cell.
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Coverings -- Direct conflict**
@@ -1820,13 +1795,6 @@ enum class PfRule : uint32_t
    * the cell. \endverbatim
    */
   ARITH_NL_COVERING_DIRECT,
-  // ======== Coverings recursive interval
-  // Children (Cell, Covering)
-  // ---------------------
-  // Conclusion: (false)
-  // A recursive interval is generated from a Covering (for xn) over a Cell
-  // (in variables x1...xn-1). It generates the conclusion that no xn exists
-  // that extends the Cell and satisfies all assumptions.
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Coverings -- Recursive interval**
