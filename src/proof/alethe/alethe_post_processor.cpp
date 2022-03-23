@@ -211,7 +211,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP9: (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
     // VP10: (cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn)))
     //
-    //
     // Otherwise,
     //                T1
     //  ------------------------------ CONTRACTION
@@ -721,7 +720,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (and F1 ... Fn)
     case PfRule::AND_INTRO:
     {
-      std::vector<Node> neg_Nodes = {d_cl,res};
+      std::vector<Node> neg_Nodes = {d_cl, res};
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
         neg_Nodes.push_back(children[i].notNode());
