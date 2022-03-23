@@ -1602,7 +1602,8 @@ TEST_F(TestApiBlackSolver, getStatistics)
     EXPECT_FALSE(s.isInternal());
     EXPECT_FALSE(s.isDefault());
     EXPECT_TRUE(s.isString());
-    EXPECT_TRUE(s.getString().back() == 's');  // ends with "ms"
+    std::string time = s.getString();
+    EXPECT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
     EXPECT_FALSE(s.isDouble());
     s = stats.get("resource::resourceUnitsUsed");
     EXPECT_TRUE(s.isInternal());
