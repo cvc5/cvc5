@@ -339,7 +339,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
             {
               arg_to_rep[r] = index;
               // function applied to single value, can either use variable or
-              // value at this argument position. We give priority to variable,
+              // value at this argument position. We give priority to variables,
               // although this order could be changed.
               d_arg_vector[vnum][index].push_back(bv_at_index);
               d_arg_vector[vnum][index].push_back(itf->second);
