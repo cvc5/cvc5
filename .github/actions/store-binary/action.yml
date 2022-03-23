@@ -35,10 +35,12 @@ runs:
 
         gh = Github(os.getenv('GITHUB_TOKEN'))
         repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
-        
+
         try:
-          # update "latest" to current commit
-          repo.get_git_ref('tags/latest').edit(sha)
+          ref = repo.get_git_ref('tags/latest')
+          # update "latest" to current commit if sha changed
+          if ref.object.sha != sha:
+            ref.edit(sha)
         except:
           print('tag `latest` does not exist.')
           exit
@@ -74,7 +76,7 @@ runs:
 
         # upload as asset with proper name
         rel.upload_asset(binary, name=filename)
- 
+
     - name: store to release
       if: startsWith(github.ref, 'refs/tags/')
       shell: 'python3 {0}'
