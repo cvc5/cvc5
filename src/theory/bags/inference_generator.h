@@ -195,7 +195,7 @@ class InferenceGenerator
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is (as bag.empty (Bag E))
    * @return an inference that represents the following implication
-   * (=> (= A (as bag.empty (Bag E)))
+   * (= (= A (as bag.empty (Bag E)))
    *     (= (bag.card A) 0))
    */
   InferInfo cardEmpty(const std::pair<Node, Node>& pair, Node n);

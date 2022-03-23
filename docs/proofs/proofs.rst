@@ -8,7 +8,7 @@ cvc5 can generate formal proofs and output it in the following formats:
    
    Alethe <output_alethe>
    Lean <output_lean>
-   LSFC <output_lsfc>
+   LFSC <output_lfsc>
 
 
 some other stuff: :doc:`proof rules <proof_rules>`.
