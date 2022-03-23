@@ -1826,7 +1826,7 @@ void SolverEngine::resetAssertions()
   d_state->setup();
 
   // reset SmtSolver, which will construct a new prop engine
-  d_smtSolver->finishInit();
+  d_smtSolver->resetAssertions();
 }
 
 bool SolverEngine::deepRestart()
@@ -1849,7 +1849,7 @@ bool SolverEngine::deepRestart()
 
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
-
+  
   if (!d_smtSolver->deepRestart(*d_asserts.get(), zll))
   {
     return false;

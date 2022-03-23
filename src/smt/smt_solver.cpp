@@ -241,6 +241,8 @@ void SmtSolver::processAssertions(Assertions& as)
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
     if (options().smt.deepRestart)
     {
+      // incompatible with global negation
+      Assert (!as.isGlobalNegated());
       theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
       std::vector<size_t> elimSkolems;
       for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
@@ -282,6 +284,10 @@ bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
   Trace("deep-restart") << "Have " << zll.size()
                         << " zero level learned literals" << std::endl;
 
+  // take into account separation logic heap
+  TypeNode sepLocType, sepDataType;
+  bool hasSepHeap = d_theoryEngine->getSepHeapTypes(sepLocType, sepDataType);  
+                        
   preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly
   for (const Node& a : d_ppAssertions)
@@ -319,7 +325,12 @@ bool SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 
   // we now finish init to reconstruct prop engine and theory engine
   finishInit();
-
+  
+  if (hasSepHeap)
+  {
+    d_theoryEngine->declareSepHeap(sepLocType, sepDataType);
+  }  
+  
   return true;
 }
 

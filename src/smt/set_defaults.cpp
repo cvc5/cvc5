@@ -180,6 +180,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // used by the user to rephrase the input.
     opts.quantifiers.sygusInference = false;
     opts.quantifiers.sygusRewSynthInput = false;
+    // deep restart does not work with internal subsolvers?
+    opts.smt.deepRestart = false;
   }
 }
 
@@ -1595,6 +1597,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (!logic.isTheoryEnabled(THEORY_DATATYPES))
   {
     opts.quantifiers.quantDynamicSplit = options::QuantDSplitMode::NONE;
+  }
+  if (opts.quantifiers.globalNegate)
+  {
+    notifyModifyOption("deep-restart", "false", "global-negate");
+    opts.smt.deepRestart = false;
   }
 }
 
