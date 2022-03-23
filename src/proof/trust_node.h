@@ -126,8 +126,6 @@ class TrustNode
    * provide a proof for this fact.
    */
   Node getProven() const;
-  /** set generator */
-  void setGenerator(ProofGenerator* g);
   /** get generator */
   ProofGenerator* getGenerator() const;
   /** is null? */

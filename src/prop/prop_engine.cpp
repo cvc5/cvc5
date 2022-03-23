@@ -228,7 +228,7 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
       && !trn.getGenerator())
   {
     d_theoryLemmaPg.addStep(node, PfRule::THEORY_LEMMA, {}, {node});
-    trn.setGenerator(&d_theoryLemmaPg);
+    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
 }
