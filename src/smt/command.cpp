@@ -774,21 +774,25 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
-    if (!d_result.isUnsat()
+    if (!d_result.hasSolution()
         || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
         || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
     {
-      if (options::sygusOut() == options::SygusSolutionOutMode::STANDARD)
+      if (d_result.hasSolution())
       {
-        d_solution << "fail" << endl;
+        d_solution << "success" << std::endl;
       }
-      else
+      else if (d_result.hasNoSolution())
       {
-        d_solution << d_result << endl;
+        d_solution << "infeasible" << std::endl;
+      }
+      else 
+      {
+        d_solution << "fail" << std::endl;
       }
     }
     // check whether we should print the solution
-    if (d_result.isUnsat()
+    if (d_result.hasSolution()
         && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
       std::vector<api::Term> synthFuns = sm->getFunctionsToSynthesize();
@@ -823,7 +827,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-api::Result CheckSynthCommand::getResult() const { return d_result; }
+api::SynthResult CheckSynthCommand::getResult() const { return d_result; }
 void CheckSynthCommand::printResult(std::ostream& out) const
 {
   if (!ok())
