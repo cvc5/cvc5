@@ -205,7 +205,7 @@ void ResourceManager::spendResource(uint64_t amount)
   ++d_statistics->d_spendResourceCalls;
   d_cumulativeResourceUsed += amount;
 
-  Debug("limit") << "ResourceManager::spendResource()" << std::endl;
+  Trace("limit") << "ResourceManager::spendResource()" << std::endl;
   d_thisCallResourceUsed += amount;
   if (out())
   {

@@ -77,7 +77,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
 {
-  Debug("prop") << "Constructing the PropEngine" << std::endl;
+  Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
 
@@ -145,7 +145,7 @@ void PropEngine::finishInit()
 }
 
 PropEngine::~PropEngine() {
-  Debug("prop") << "Destructing the PropEngine" << std::endl;
+  Trace("prop") << "Destructing the PropEngine" << std::endl;
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_satSolver;
@@ -172,7 +172,7 @@ void PropEngine::assertInputFormulas(
   d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
   for (const Node& node : assertions)
   {
-    Debug("prop") << "assertFormula(" << node << ")" << std::endl;
+    Trace("prop") << "assertFormula(" << node << ")" << std::endl;
     assertInternal(node, false, false, true);
   }
 }
@@ -199,7 +199,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
     }
   }
 
-  if (Trace.isOn("te-lemma"))
+  if (TraceIsOn("te-lemma"))
   {
     Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
     for (const theory::SkolemLemma& lem : ppLemmas)
@@ -216,7 +216,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
-  Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
+  Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
   Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
@@ -295,7 +295,7 @@ void PropEngine::assertLemmasInternal(
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
-  Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << std::endl;
+  Trace("prop") << "requirePhase(" << n << ", " << phase << ")" << std::endl;
 
   Assert(n.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(n);
@@ -324,7 +324,7 @@ int32_t PropEngine::getIntroLevel(Node lit) const
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::NodeToLiteralMap& transCache =
     d_cnfStream->getTranslationCache();
-  Debug("prop-value") << "Literal | Value | Expr" << std::endl
+  Trace("prop-value") << "Literal | Value | Expr" << std::endl
                       << "----------------------------------------"
                       << "-----------------" << std::endl;
   for(CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
@@ -336,14 +336,14 @@ void PropEngine::printSatisfyingAssignment(){
     if(!l.isNegated()) {
       Node n = curr.first;
       SatValue value = d_satSolver->modelValue(l);
-      Debug("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
+      Trace("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
     }
   }
 }
 
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "PropEngine::checkSat()" << std::endl;
+  Trace("prop") << "PropEngine::checkSat()" << std::endl;
 
   // Mark that we are in the checkSat
   ScopedBool scopedBool(d_inCheckSat);
@@ -354,7 +354,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
-    return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+    return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
 
   // Reset the interrupted flag
@@ -387,17 +387,17 @@ Result PropEngine::checkSat() {
     {
       why = Result::RESOURCEOUT;
     }
-    return Result(Result::SAT_UNKNOWN, why);
+    return Result(Result::UNKNOWN, why);
   }
 
-  if( result == SAT_VALUE_TRUE && Debug.isOn("prop") ) {
+  if( result == SAT_VALUE_TRUE && TraceIsOn("prop") ) {
     printSatisfyingAssignment();
   }
 
-  Debug("prop") << "PropEngine::checkSat() => " << result << std::endl;
+  Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
-    return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
+    return Result(Result::UNKNOWN, Result::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
@@ -525,20 +525,20 @@ void PropEngine::push()
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
-  Debug("prop") << "push()" << std::endl;
+  Trace("prop") << "push()" << std::endl;
 }
 
 void PropEngine::pop()
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
-  Debug("prop") << "pop()" << std::endl;
+  Trace("prop") << "pop()" << std::endl;
 }
 
 void PropEngine::resetTrail()
 {
   d_satSolver->resetTrail();
-  Debug("prop") << "resetTrail()" << std::endl;
+  Trace("prop") << "resetTrail()" << std::endl;
 }
 
 unsigned PropEngine::getAssertionLevel() const
@@ -556,7 +556,7 @@ void PropEngine::interrupt()
 
   d_interrupted = true;
   d_satSolver->interrupt();
-  Debug("prop") << "interrupt()" << std::endl;
+  Trace("prop") << "interrupt()" << std::endl;
 }
 
 void PropEngine::spendResource(Resource r)

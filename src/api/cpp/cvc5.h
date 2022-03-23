@@ -222,7 +222,7 @@ class CVC5_EXPORT Result
    * Return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  bool isSatUnknown() const;
+  bool isUnknown() const;
 
   /**
    * Operator overloading for equality of two results.
@@ -879,21 +879,7 @@ class CVC5_EXPORT Op
    * @param i the position of the index to return
    * @return the index at position i
    */
-
   Term operator[](size_t i) const;
-
-  /**
-   * Get the indices used to create this Op.
-   * Supports the following template arguments:
-   *   - string
-   *   - Kind
-   *   - uint32_t
-   *   - pair<uint32_t, uint32_t>
-   * Check the Op Kind with getKind() to determine which argument to use.
-   * @return the indices used to create this Op
-   */
-  template <typename T>
-  T getIndices() const;
 
   /**
    * @return a string representation of this operator
@@ -2840,8 +2826,12 @@ class CVC5_EXPORT Stat
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
-  /** Can only be obtained from a `Statistics` object. */
-  Stat() = delete;
+  /**
+   * Create an empty statistics object. On such an object all ``isX()`` return
+   * false and all ``getX()`` throw an API exception. It solely exists because
+   * it makes implementing bindings for other languages much easier.
+   */
+  Stat();
   /** Copy constructor */
   Stat(const Stat& s);
   /** Destructor */
@@ -2937,6 +2927,7 @@ class CVC5_EXPORT Statistics
   {
    public:
     friend class Statistics;
+    iterator() = default;
     BaseType::const_reference operator*() const;
     BaseType::const_pointer operator->() const;
     iterator& operator++();
@@ -2958,6 +2949,9 @@ class CVC5_EXPORT Statistics
     bool d_showDefault = false;
   };
 
+  /** Creates an empty statistics object. */
+  Statistics() = default;
+
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
@@ -2978,7 +2972,6 @@ class CVC5_EXPORT Statistics
   iterator end() const;
 
  private:
-  Statistics() = default;
   Statistics(const StatisticsRegistry& reg);
   /** Internal data */
   BaseType d_stats;
@@ -3238,90 +3231,11 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create 0-ary term of given kind.
-   * @param kind the kind of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind) const;
-
-  /**
-   * Create a unary term of given kind.
-   * @param kind the kind of the term
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const Term& child) const;
-
-  /**
-   * Create binary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const Term& child1, const Term& child2) const;
-
-  /**
-   * Create ternary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind,
-              const Term& child1,
-              const Term& child2,
-              const Term& child3) const;
-
-  /**
    * Create n-ary term of given kind.
    * @param kind the kind of the term
    * @param children the children of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const std::vector<Term>& children) const;
-
-  /**
-   * Create nullary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @return the Term
-   */
-  Term mkTerm(const Op& op) const;
-
-  /**
-   * Create unary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op, const Term& child) const;
-
-  /**
-   * Create binary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op, const Term& child1, const Term& child2) const;
-
-  /**
-   * Create ternary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op,
-              const Term& child1,
-              const Term& child2,
-              const Term& child3) const;
+   * @return the Term */
+  Term mkTerm(Kind kind, const std::vector<Term>& children = {}) const;
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -3330,7 +3244,7 @@ class CVC5_EXPORT Solver
    * @param children the children of the term
    * @return the Term
    */
-  Term mkTerm(const Op& op, const std::vector<Term>& children) const;
+  Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
@@ -3395,7 +3309,6 @@ class CVC5_EXPORT Solver
    *   - FLOATINGPOINT_TO_FP_FROM_REAL
    *   - FLOATINGPOINT_TO_FP_FROM_SBV
    *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first uint32_t argument to this operator

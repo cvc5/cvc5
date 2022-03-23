@@ -270,12 +270,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     double clSet = 0;
-    if( Trace.isOn("quant-engine") ){
+    if( TraceIsOn("quant-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << ">>>>> Quantifiers Engine Round, effort = " << e << " <<<<<" << std::endl;
     }
 
-    if( Trace.isOn("quant-engine-debug") ){
+    if( TraceIsOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug")
           << "  depth : " << d_qstate.getInstRoundDepth() << std::endl;
@@ -297,11 +297,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-debug")
           << "  In conflict : " << d_qstate.isInConflict() << std::endl;
     }
-    if( Trace.isOn("quant-engine-ee-pre") ){
+    if( TraceIsOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
       d_qstate.debugPrintEqualityEngine("quant-engine-ee-pre");
     }
-    if( Trace.isOn("quant-engine-assert") ){
+    if( TraceIsOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
       d_te->printAssertions("quant-engine-assert");
     }
@@ -325,7 +325,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
 
-    if( Trace.isOn("quant-engine-ee") ){
+    if( TraceIsOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
       d_qstate.debugPrintEqualityEngine("quant-engine-ee");
     }
@@ -485,7 +485,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       d_qim.getInstantiate()->notifyEndRound();
       d_numInstRoundsLemma++;
     }
-    if( Trace.isOn("quant-engine") ){
+    if( TraceIsOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
       Trace("quant-engine") << ", sent lemma = " << d_qim.hasSentLemma();
@@ -629,7 +629,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     TrustNode lem = d_qim.getSkolemize()->process(f);
     if (!lem.isNull())
     {
-      if (Trace.isOn("quantifiers-sk-debug"))
+      if (TraceIsOn("quantifiers-sk-debug"))
       {
         Node slem = rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")

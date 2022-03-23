@@ -168,7 +168,7 @@ public:
   *
   * Corresponds to the "check()" procedure in [Cav06].
   */
- virtual Result::Sat findModel(bool exactResult) = 0;
+ virtual Result::Status findModel(bool exactResult) = 0;
 
  void increaseMax() { d_numVariables++; }
 

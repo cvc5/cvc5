@@ -236,7 +236,7 @@ bool CegSingleInv::solve()
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
-  Result::Sat res = r.asSatisfiabilityResult().isSat();
+  Result::Status res = r.getStatus();
   if (res != Result::UNSAT)
   {
     warning() << "Warning : the single invocation solver determined the SyGuS "

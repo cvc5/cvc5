@@ -138,7 +138,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
       break;
     case REGEXP_INTER:
       // universal language
-      nullTerm = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+      nullTerm = nm->mkNode(REGEXP_ALL);
       break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());

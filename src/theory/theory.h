@@ -47,6 +47,7 @@ class ProofRuleChecker;
 
 namespace theory {
 
+class CarePairArgumentCallback;
 class DecisionManager;
 struct EeSetupInfo;
 class OutputChannel;
@@ -97,6 +98,7 @@ namespace eq {
  */
 class Theory : protected EnvObj
 {
+  friend class CarePairArgumentCallback;
   friend class ::cvc5::TheoryEngine;
 
  protected:
@@ -112,10 +114,24 @@ class Theory : protected EnvObj
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  /**
-   * The only method to add suff to the care graph.
-   */
+  /** Add (t1, t2) to the care graph */
   void addCarePair(TNode t1, TNode t2);
+  /**
+   * Assuming a is f(a1, ..., an) and b is f(b1, ..., bn), this method adds
+   * (ai, bi) to the care graph for each i where ai is not equal to bi.
+   */
+  void addCarePairArgs(TNode a, TNode b);
+  /**
+   * Process care pair arguments for a and b. By default, this calls the
+   * method above if a and b are not equal according to the equality engine
+   * of this theory.
+   */
+  virtual void processCarePairArgs(TNode a, TNode b);
+  /**
+   * Are care disequal? Return true if x and y are shared terms that are
+   * disequal according to the valuation.
+   */
+  virtual bool areCareDisequal(TNode x, TNode y);
 
   /**
    * The function should compute the care graph over the shared terms.

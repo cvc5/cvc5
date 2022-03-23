@@ -59,7 +59,7 @@ CoveringsSolver::~CoveringsSolver() {}
 void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
 {
 #ifdef CVC5_POLY_IMP
-  if (Trace.isOn("nl-cov"))
+  if (TraceIsOn("nl-cov"))
   {
     Trace("nl-cov") << "CoveringsSolver::initLastCall" << std::endl;
     Trace("nl-cov") << "* Assertions: " << std::endl;
@@ -79,7 +79,7 @@ void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
         Trace("nl-cov") << "Found conflict: " << lem << std::endl;
         return;
     }
-    if (Trace.isOn("nl-cov"))
+    if (TraceIsOn("nl-cov"))
     {
       Trace("nl-cov") << "After simplifications" << std::endl;
       Trace("nl-cov") << "* Assertions: " << std::endl;
