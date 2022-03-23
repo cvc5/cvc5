@@ -1,6 +1,6 @@
 ; COMMAND-LINE: -i --sygus-out=status
-;EXPECT: unsat
-;EXPECT: unsat
+;EXPECT: success
+;EXPECT: success
 (set-logic LIA)
 
 (synth-fun f ((x Int) (y Int)) Int

@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none
-; EXPECT: unsat
+; EXPECT: success
 
 (set-logic BV)
 

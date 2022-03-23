@@ -1,8 +1,8 @@
 ; COMMAND-LINE: -i --sygus-out=status
-;EXPECT: unsat
-;EXPECT: unsat
-;EXPECT: unsat
-;EXPECT: unsat
+;EXPECT: success
+;EXPECT: success
+;EXPECT: success
+;EXPECT: success
 
 (set-logic LIA)
 
