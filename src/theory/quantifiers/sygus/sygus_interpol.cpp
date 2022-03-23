@@ -361,10 +361,10 @@ bool SygusInterpol::solveInterpolationNext(Node& interpol)
   Trace("sygus-interpol")
       << "  SygusInterpol::solveInterpolationNext check synth..." << std::endl;
   // invoke the check-synth with isNext = true.
-  Result r = d_subSolver->checkSynth(true);
+  SynthResult r = d_subSolver->checkSynth(true);
   Trace("sygus-interpol") << "  SygusInterpol::solveInterpolationNext result: "
                           << r << std::endl;
-  if (r.getStatus() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     return findInterpol(d_subSolver.get(), interpol, d_itp);
   }
