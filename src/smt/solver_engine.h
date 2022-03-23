@@ -29,6 +29,7 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
+#include "util/synth_result.h"
 
 namespace cvc5 {
 
