@@ -118,9 +118,9 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   }
 }
 
-void SolverEngineState::notifyCheckSynthResult(Result r)
+void SolverEngineState::notifyCheckSynthResult(SynthResult r)
 {
-  if (r.getStatus() == Result::UNSAT)
+  if (r.getStatus() == SynthResult::SOLUTION)
   {
     // successfully generated a synthesis solution, update to abduct state
     d_smtMode = SmtMode::SYNTH;

@@ -448,7 +448,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @throw Exception
    */
-  Result checkSynth(bool isNext = false);
+  SynthResult checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 

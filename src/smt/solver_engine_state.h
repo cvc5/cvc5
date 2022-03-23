@@ -24,6 +24,7 @@
 #include "smt/env_obj.h"
 #include "smt/smt_mode.h"
 #include "util/result.h"
+#include "util/synth_result.h"
 
 namespace cvc5 {
 
@@ -91,7 +92,7 @@ class SolverEngineState : protected EnvObj
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
    */
-  void notifyCheckSynthResult(Result r);
+  void notifyCheckSynthResult(SynthResult r);
   /**
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above
