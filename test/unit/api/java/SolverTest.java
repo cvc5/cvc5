@@ -1570,7 +1570,7 @@ class SolverTest
       assertFalse(s.isInternal());
       assertFalse(s.isDefault());
       assertTrue(s.isString());
-      assertTrue(s.getString().endsWith("s"));
+      assertTrue(s.getString().endsWith("ms"));
       s = stats.get("resource::resourceUnitsUsed");
       assertTrue(s.isInternal());
       assertFalse(s.isDefault());
