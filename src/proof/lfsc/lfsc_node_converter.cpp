@@ -843,8 +843,7 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL
-         || k == FLOATINGPOINT_TO_FP_GENERIC || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
@@ -924,14 +923,6 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
-    }
-    break;
-    case FLOATINGPOINT_TO_FP_GENERIC:
-    {
-      const FloatingPointToFPGeneric& fg =
-          n.getConst<FloatingPointToFPGeneric>();
-      indices.push_back(nm->mkConstInt(fg.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(fg.getSize().significandWidth()));
     }
     break;
     case APPLY_TESTER:
@@ -1074,10 +1065,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       else if (k == FLOATINGPOINT_TO_FP_FROM_REAL)
       {
         opName << "to_fp_real";
-      }
-      else if (k == FLOATINGPOINT_TO_FP_GENERIC)
-      {
-        opName << "to_fp_generic";
       }
       else
       {

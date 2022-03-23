@@ -300,7 +300,7 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   else
   {
     // otherwise, we return "unknown"
-    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    r = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
   }
   return r;
 }
@@ -400,13 +400,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.asSatisfiabilityResult().isUnknown())
+    if (r.isUnknown())
     {
       InternalError() << "SygusSolver::checkSynthSolution(): could not check "
                          "solution, result "
                          "unknown.";
     }
-    else if (r.asSatisfiabilityResult().isSat())
+    else if (r.getStatus() == Result::SAT)
     {
       InternalError()
           << "SygusSolver::checkSynthSolution(): produced solution leads to "

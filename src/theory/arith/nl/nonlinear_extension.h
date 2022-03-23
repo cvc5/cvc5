@@ -128,11 +128,11 @@ class NonlinearExtension : EnvObj
    * the current candidate model.
    *
    * This function returns whether we found a satisfying assignment
-   * (Result::Sat::SAT), or not (Result::Sat::UNSAT). Note that UNSAT does not
+   * (Result::SAT), or not (Result::UNSAT). Note that UNSAT does not
    * necessarily means the whole query is UNSAT, but that the linear model was
    * refuted by a lemma.
    */
-  Result::Sat modelBasedRefinement(const std::set<Node>& termSet);
+  Result::Status modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *
