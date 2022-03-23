@@ -75,6 +75,8 @@ class SmtLibLexer(RegexLexer):
         'str\.replace_re_all', 're\.comp', 're\.diff', 're\.\+', 're\.opt',
         're\.range', 're\.^', 're\.loop', 'str\.is_digit', 'str\.to_code',
         'str\.from_code', 'str\.to_int', 'str\.from_int',
+        # sequences
+        'seq\.\+\+', 'seq\.unit',
     ]
 
     tokens = {
