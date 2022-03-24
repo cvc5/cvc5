@@ -2615,7 +2615,7 @@ class SolverTest
   {
     assertThrows(CVC5ApiException.class, () -> d_solver.checkSynth());
     d_solver.setOption("sygus", "true");
-    assertDoesNotThrow(() -> d_solver.checkSynth();
+    assertDoesNotThrow(() -> d_solver.checkSynth());
   }
 
   @Test void getSynthSolution() throws CVC5ApiException
