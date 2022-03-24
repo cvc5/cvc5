@@ -198,14 +198,14 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   }
 }
 
-void TheoryProxy::notifyOptPropagation(int explLevel)
+void TheoryProxy::notifyClauseInsertedAtLevel(int explLevel)
 {
-  d_propEngine->getProofCnfStream()->notifyOptPropagation(explLevel);
+  d_propEngine->getProofCnfStream()->notifyCurrPropagationInsertedAtLevel(explLevel);
 }
 
 void TheoryProxy::notifyOptClause(const SatClause& clause, int clLevel)
 {
-  d_propEngine->getProofCnfStream()->notifyOptClause(clause, clLevel);
+  d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause, clLevel);
 }
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
