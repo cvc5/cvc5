@@ -19,10 +19,10 @@ class SmtLibLexer(RegexLexer):
         'assert', 'block-model', 'block-model-values', 'check-sat',
         'check-sat-assuming', 'declare-const', 'declare-datatype',
         'declare-datatypes', 'declare-codatatypes', 'declare-fun',
-        'declare-sort', 'define-fun', 'define-fun-rec', 'define-funs-rec',
-        'define-sort', 'echo', 'exit', 'get-abduct', 'get-assertions',
-        'get-assignment', 'get-info', 'get-interpol', 'get-model',
-        'get-option', 'get-proof', 'get-qe', 'get-qe-disjunct',
+        'declare-sort', 'define-const', 'define-fun', 'define-fun-rec',
+        'define-funs-rec', 'define-sort', 'echo', 'exit', 'get-abduct',
+        'get-assertions', 'get-assignment', 'get-info', 'get-interpol',
+        'get-model', 'get-option', 'get-proof', 'get-qe', 'get-qe-disjunct',
         'get-unsat-assumptions', 'get-unsat-core', 'get-value', 'pop', 'push',
         'reset', 'reset-assertions', 'set-info', 'set-logic', 'set-option',
         # SyGuS v2
@@ -30,8 +30,9 @@ class SmtLibLexer(RegexLexer):
         'synth-fun', 'synth-inv', 'declare-pool',
     ]
     SORTS = [
-        'Array', 'BitVec', 'Bool', 'FloatingPoint', 'Float[0-9]+', 'Int',
-        'Real', 'RegLan', 'RoundingMode', 'Set', 'String', 'Tuple',
+        'Array', 'BitVec', 'Bag', 'Bool', 'FloatingPoint', 'Float[0-9]+',
+        'Int', 'Real', 'RegLan', 'RoundingMode', 'Set', 'Seq', 'String',
+        'Tuple',
     ]
     OPERATORS = [
         # array
@@ -76,7 +77,10 @@ class SmtLibLexer(RegexLexer):
         're\.range', 're\.^', 're\.loop', 'str\.is_digit', 'str\.to_code',
         'str\.from_code', 'str\.to_int', 'str\.from_int',
         # sequences
-        'seq\.\+\+', 'seq\.unit',
+        'seq\.\+\+', 'seq\.len', 'seq\.extract', 'seq\.update', 'seq\.at',
+        'seq\.contains', 'seq\.indexof', 'seq\.replace', 'seq\.prefixof',
+        'seq\.suffixof', 'seq\.rev', 'seq\.replace_all', 'seq\.unit',
+        'seq\.nth', 'seq\.empty',
         # others
         'witness',
     ]

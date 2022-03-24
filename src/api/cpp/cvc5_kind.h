@@ -108,7 +108,7 @@ enum Kind : int32_t
    */
   DISTINCT,
   /**
-   * First-order constant.
+   * Free constant symbol.
    *
    * @note Not permitted in bindings (e.g., #FORALL, #EXISTS).
    *
@@ -362,9 +362,9 @@ enum Kind : int32_t
    * Higher-order applicative encoding of function application, left
    * associative.
    *
-   * - Arity: `n > 1`
+   * - Arity: `n = 2`
    *   - `1:` Function Term
-   *   - `2..n:` Function argument instantiation Terms of any Sort
+   *   - `2:` Argument Term of the domain Sort of the function
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
