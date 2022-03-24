@@ -614,20 +614,6 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
 }
 
-
-Node ProofCnfStream::getClauseNode(const SatClause& clause)
-{
-  std::vector<Node> clauseNodes;
-  for (size_t i = 0, size = clause.size(); i < size; ++i)
-  {
-    SatLiteral satLit = clause[i];
-    clauseNodes.push_back(d_cnfStream.getNode(satLit));
-  }
-  // order children by node id
-  std::sort(clauseNodes.begin(), clauseNodes.end());
-  return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
-}
-
 void ProofCnfStream::notifyOptPropagation(int explLevel)
 {
   Assert(explLevel < (d_userContext->getLevel() - 1));
@@ -644,7 +630,8 @@ void ProofCnfStream::notifyOptPropagation(int explLevel)
   // It's also necessary to copy the proof node, so we prevent unintended
   // updates to the saved proof. Not doing this may also lead to open proofs.
   std::shared_ptr<ProofNode> currPropagationProcPf =
-      d_pnm->clone(d_proof.getProofFor(d_currPropagationProccessed));
+      d_env.getProofNodeManager()->clone(
+          d_proof.getProofFor(d_currPropagationProccessed));
   Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
@@ -663,7 +650,7 @@ void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
   Assert(clLevel < (d_userContext->getLevel() - 1));
   // As above, also justify eagerly.
   std::shared_ptr<ProofNode> clauseCnfPf =
-      d_pnm->clone(d_proof.getProofFor(clauseNode));
+      d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
   Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
 }
