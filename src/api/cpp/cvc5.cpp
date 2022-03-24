@@ -63,6 +63,7 @@
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/smt_options.h"
+#include "options/quantifiers_options.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
