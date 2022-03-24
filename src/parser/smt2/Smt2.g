@@ -281,8 +281,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       // we allow overloading for function declarations
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-fun are not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-fun are not allowed in sygus "
+                                 "version 2.0");
       }
       else
       {
@@ -780,8 +780,8 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { // allow overloading here
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-const is not allowed in sygus "
+                                 "version 2.0");
       }
       api::Term c =
           PARSER_STATE->bindVar(name, t, true);
