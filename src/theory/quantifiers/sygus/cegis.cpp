@@ -183,7 +183,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   }
   // we only do evaluation unfolding for passive enumerators
   bool doEvalUnfold =
-      (doGen && options().quantifiers.sygusEvalUnfold) || d_usingSymCons;
+      (doGen && options().quantifiers.sygusEvalUnfoldMode!=options::SygusEvalUnfoldMode::NONE) || d_usingSymCons;
   if (doEvalUnfold)
   {
     Trace("sygus-engine") << "  *** Do evaluation unfolding..." << std::endl;
@@ -476,7 +476,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   addRefinementLemma(lem);
   // must be closed enumerable
-  if (d_cexClosedEnum && options().quantifiers.sygusEvalUnfold)
+  if (d_cexClosedEnum && options().quantifiers.sygusEvalUnfoldMode!=options::SygusEvalUnfoldMode::NONE)
   {
     // Make the refinement lemma and add it to lems.
     // This lemma is guarded by the parent's guard, which has the semantics
