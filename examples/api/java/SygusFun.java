@@ -101,8 +101,8 @@ public class SygusFun
       Term min = slv.synthFun("min", new Term[] {x, y}, integer);
 
       // declare universal variables.
-      Term varX = slv.mkSygusVar(integer, "x");
-      Term varY = slv.mkSygusVar(integer, "y");
+      Term varX = slv.declareSygusVar(integer, "x");
+      Term varY = slv.declareSygusVar(integer, "y");
 
       Term max_x_y = slv.mkTerm(APPLY_UF, max, varX, varY);
       Term min_x_y = slv.mkTerm(APPLY_UF, min, varX, varY);

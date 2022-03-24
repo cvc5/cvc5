@@ -70,7 +70,7 @@ if __name__ == "__main__":
   id4 = slv.synthFun("id4", {x}, integer, g1)
 
   # declare universal variables.
-  varX = slv.mkSygusVar(integer, "x")
+  varX = slv.declareSygusVar(integer, "x")
 
   id1_x = slv.mkTerm(Kind.ApplyUf, id1, varX)
   id2_x = slv.mkTerm(Kind.ApplyUf, id2, varX)
