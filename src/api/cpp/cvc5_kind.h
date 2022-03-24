@@ -173,8 +173,8 @@ enum Kind : int32_t
    * returns an element @f$x@f$ of Sort @f$S@f$ and asserts formula @f$F@f$.
    *
    * The witness operator behaves like the description operator
-   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no
-   * @f$x@f$ that satisfies @f$F@f$. But if such @f$x@f$ exists, the witness
+   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is
+   * no @f$x@f$ that satisfies @f$F@f$. But if such @f$x@f$ exists, the witness
    * operator does not enforce the following axiom which ensures uniqueness up
    * to logical equivalence:
    *
@@ -2593,8 +2593,8 @@ enum Kind : int32_t
    * \Leftrightarrow (member y C)
    * @f]
    * where @f$y@f$ ranges over the element Sort of the (set) Sort of the
-   * comprehension. If @f$t[x_1..x_n]@f$ is not provided, it is equivalent to
-   * @f$y@f$ in the above formula.
+   * comprehension. If @f$t[x_1..x_n]@f$ is not provided, it is equivalent
+   * to @f$y@f$ in the above formula.
    *
    * - Arity: `3`
    *   - `1:` Term of Kind #VARIABLE_LIST
@@ -2645,9 +2645,10 @@ enum Kind : int32_t
   /**
    * Set map.
    *
-   * This operator applies the first argument, a function of Sort
-   * @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second argument,
-   * a set of Sort (Set @f$S_1@f$), and returns a set of Sort (Set @f$S_2@f$).
+   * This operator applies the first argument, a function of
+   * Sort @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second
+   * argument, a set of Sort (Set @f$S_1@f$), and returns a set of Sort
+   * (Set @f$S_2@f$).
    *
    * - Arity: `2`
    *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
@@ -2990,9 +2991,10 @@ enum Kind : int32_t
   /**
    * Bag map.
    *
-   * This operator applies the first argument, a function of Sort
-   * @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second argument, a
-   * set of Sort (Bag @f$S_1@f$), and returns a set of Sort (Bag @f$S_2@f$).
+   * This operator applies the first argument, a function of
+   * Sort @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second
+   * argument, a set of Sort (Bag @f$S_1@f$), and returns a set of Sort
+   * (Bag @f$S_2@f$).
    *
    * - Arity: `2`
    *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
@@ -3010,11 +3012,11 @@ enum Kind : int32_t
    * Bag filter.
    *
    * This operator filters the elements of a bag.
-   * `(bag.filter p B)` takes a predicate @f$p@f$ of Sort
-   * @f$(\rightarrow S_1 \; S_2)@f$ as a first
-   * argument, and a bag @f$@f$ of Sort (Bag @f$S@f$) as a second argument, and
-   * returns a subbag of Sort (Bag @f$T@f$) that includes all elements of
-   * @f$B@f$ that satisfy @f$p@f$ with the same multiplicity.
+   * `(bag.filter p B)` takes a predicate @f$p@f$ of
+   * Sort @f$(\rightarrow S_1 \; S_2)@f$ as a first argument, and a bag @f$@f$
+   * of Sort (Bag @f$S@f$) as a second argument, and returns a subbag of Sort
+   * (Bag @f$T@f$) that includes all elements of @f$B@f$ that satisfy @f$p@f$
+   * with the same multiplicity.
    *
    * - Arity: `2`
    *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
@@ -3032,8 +3034,8 @@ enum Kind : int32_t
    * Bag fold.
    *
    * This operator combines elements of a bag into a single value.
-   * `(bag.fold f t B)` folds the elements of bag @f$B@f$ starting with term
-   * @f$t@f$ and using the combining function @f$f@f$.
+   * `(bag.fold f t B)` folds the elements of bag @f$B@f$ starting with
+   * Term @f$t@f$ and using the combining function @f$f@f$.
    *
    * - Arity: `2`
    *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2 \; S_2)@f$
@@ -3192,8 +3194,8 @@ enum Kind : int32_t
    *
    * Returns the index of a substring @f$s_2@f$ in a string @f$s_1@f$ starting
    * at index @f$i@f$. If the index is negative or greater than the length of
-   * string @f$s_1@f$ or the substring @f$s_2@f$ does not appear in string
-   * @f$s_1@f$ after index @f$i@f$, the result is `-1`.
+   * string @f$s_1@f$ or the substring @f$s_2@f$ does not appear in
+   * string @f$s_1@f$ after index @f$i@f$, the result is `-1`.
    *
    * - Arity: `2`
    *   - `1:` Term of Sort String (substring @f$s_1@f$)
@@ -3211,10 +3213,10 @@ enum Kind : int32_t
   /**
    * String index-of regular expression match.
    *
-   * Returns the first match of a regular expression @f$r@f$ in a string
-   * @f$s@f$. If the index is negative or greater than the length of string
-   * @f$s_1@f$, or @f$r@f$ does not match a substring in @f$s@f$ after index
-   * @f$i@f$, the result is `-1`.
+   * Returns the first match of a regular expression @f$r@f$ in a
+   * string @f$s@f$. If the index is negative or greater than the length of
+   * string @f$s_1@f$, or @f$r@f$ does not match a substring in @f$s@f$ after
+   * index @f$i@f$, the result is `-1`.
    *
    * - Arity: `3`
    *   - `1:` Term of Sort String (string @f$s@f$)
@@ -3272,9 +3274,9 @@ enum Kind : int32_t
   /**
    * String replace regular expression match.
    *
-   * Replaces the first match of a regular expression @f$r@f$ in string
-   * @f$s_1@f$ with string @f$s_2@f$. If @f$r@f$ does not match a substring of
-   * @f$s_1@f$, @f$s_1@f$ is returned unmodified.
+   * Replaces the first match of a regular expression @f$r@f$ in
+   * string @f$s_1@f$ with string @f$s_2@f$. If @f$r@f$ does not match a
+   * substring of @f$s_1@f$, @f$s_1@f$ is returned unmodified.
    *
    * - Arity: `3`
    *   - `1:` Term of Sort String (@f$s_1@f$)
@@ -3294,7 +3296,7 @@ enum Kind : int32_t
    *
    * Replaces all matches of a regular expression @f$r@f$ in string @f$s_1@f$
    * with string @f$s_2@f$. If @f$r@f$ does not match a substring of @f$s_1@f$,
-   * @f$s_1@f$ is returned unmodified.
+   * string @f$s_1@f$ is returned unmodified.
    *
    * - Arity: `3`
    *   - `1:` Term of Sort String (@f$s_1@f$)
@@ -3847,9 +3849,9 @@ enum Kind : int32_t
   /**
    * Sequence replace.
    *
-   * Replaces the first occurrence of a sequence @f$s_2@f$ in a sequence
-   * @f$s_1@f$ with sequence @f$s_3@f$. If @f$s_2@f$ does not appear in
-   * @f$s_1@f$, @f$s_1@f$ is returned unmodified.
+   * Replaces the first occurrence of a sequence @f$s_2@f$ in a
+   * sequence @f$s_1@f$ with sequence @f$s_3@f$. If @f$s_2@f$ does not
+   * appear in @f$s_1@f$, @f$s_1@f$ is returned unmodified.
    *
    * - Arity: `3`
    *   - `1:` Term of sequence Sort (@f$s_1@f$)
@@ -3869,7 +3871,7 @@ enum Kind : int32_t
    *
    * Replaces all occurrences of a sequence @f$s_2@f$ in a sequence @f$s_1@f$
    * with sequence @f$s_3@f$. If @f$s_2@f$ does not appear in @f$s_1@f$,
-   * @f$s_1@f$ is returned unmodified.
+   * sequence @f$s_1@f$ is returned unmodified.
    *
    * - Arity: `3`
    *   - `1:` Term of sequence Sort (@f$s_1@f$)

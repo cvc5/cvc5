@@ -132,6 +132,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getRegExpSort(long pointer);
   /**
    * @return sort RoundingMode
+   * @throws CVC5ApiException
    */
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
@@ -168,6 +169,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a bit-vector sort.
    * @param size the bit-width of the bit-vector sort
    * @return the bit-vector sort
+   * @throws CVC5ApiException
    */
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
@@ -182,6 +184,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a floating-point sort.
    * @param exp the bit-width of the exponent of the floating-point sort.
    * @param sig the bit-width of the significand of the floating-point sort.
+   * @throws CVC5ApiException
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
   {
@@ -198,6 +201,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param dtypedecl the datatype declaration from which the sort is
    *     created
    * @return the datatype sort
+   * @throws CVC5ApiException
    */
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
@@ -215,6 +219,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @return the datatype sorts
+   * @throws CVC5ApiException
    */
   public Sort[] mkDatatypeSorts(List<DatatypeDecl> dtypedecls) throws CVC5ApiException
   {
@@ -228,6 +233,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @return the datatype sorts
+   * @throws CVC5ApiException
    */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
@@ -260,6 +266,7 @@ public class Solver implements IPointer, AutoCloseable
    *     created
    * @param unresolvedSorts the set of unresolved sorts
    * @return the datatype sorts
+   * @throws CVC5ApiException
    */
   public List<Sort> mkDatatypeSorts(List<DatatypeDecl> dtypedecls, Set<Sort> unresolvedSorts)
       throws CVC5ApiException
@@ -429,6 +436,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the symbol of the sort
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
+   * @throws CVC5ApiException
    */
   public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
   {
@@ -447,6 +455,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @param symbol the symbol of the sort
    * @return the unresolved sort
+   * @throws CVC5ApiException
    */
   public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
   {
@@ -458,6 +467,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the symbol of the sort
    * @param arity the arity of the sort
    * @return the sort constructor sort
+   * @throws CVC5ApiException
    */
   public Sort mkSortConstructorSort(String symbol, int arity) throws CVC5ApiException
   {
@@ -719,6 +729,7 @@ public class Solver implements IPointer, AutoCloseable
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the unsigned int argument to this operator
+   * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
@@ -741,6 +752,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param kind the kind of the operator
    * @param arg1 the first unsigned int argument to this operator
    * @param arg2 the second unsigned int argument to this operator
+   * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
   {
@@ -758,6 +770,7 @@ public class Solver implements IPointer, AutoCloseable
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
+   * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
@@ -822,6 +835,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123").
    * @return a constant of sort Integer assuming 's' represents an integer)
+   * @throws CVC5ApiException
    */
   public Term mkInteger(String s) throws CVC5ApiException
   {
@@ -849,6 +863,7 @@ public class Solver implements IPointer, AutoCloseable
    *          integer (e.g., "123") or real constant (e.g., "12.34" or
    * "12/34").
    * @return a constant of sort Real
+   * @throws CVC5ApiException
    */
   public Term mkReal(String s) throws CVC5ApiException
   {
@@ -1001,6 +1016,7 @@ public class Solver implements IPointer, AutoCloseable
    *     as
    * string
    * @return the String constant
+   * @throws CVC5ApiException
    */
   public Term mkString(int[] s) throws CVC5ApiException
   {
@@ -1055,6 +1071,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
    * @return the bit-vector constant
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size, long val) throws CVC5ApiException
   {
@@ -1076,6 +1093,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
   {
@@ -1107,6 +1125,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
@@ -1122,6 +1141,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
@@ -1137,6 +1157,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
@@ -1153,6 +1174,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
@@ -1169,6 +1191,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
@@ -1197,6 +1220,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
   {
@@ -1213,6 +1237,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
+   * @throws CVC5ApiException
    */
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {
@@ -1533,6 +1558,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
+   * @throws CVC5ApiException
    */
   public Sort declareSort(String symbol, int arity) throws CVC5ApiException
   {
@@ -2107,6 +2133,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( pop <numeral> )
    * }
+   * @throws CVC5ApiException
    */
   public void pop() throws CVC5ApiException
   {
@@ -2120,6 +2147,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( pop <numeral> )
    * }
    * @param nscopes the number of levels to pop
+   * @throws CVC5ApiException
    */
   public void pop(int nscopes) throws CVC5ApiException
   {
@@ -2315,6 +2343,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( push <numeral> )
    * }
+   * @throws CVC5ApiException
    */
   public void push() throws CVC5ApiException
   {
@@ -2328,6 +2357,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( push <numeral> )
    * }
    * @param nscopes the number of levels to push
+   * @throws CVC5ApiException
    */
   public void push(int nscopes) throws CVC5ApiException
   {
@@ -2359,6 +2389,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * @param keyword the info flag
    * @param value the value of the info flag
+   * @throws CVC5ApiException
    */
   public void setInfo(String keyword, String value) throws CVC5ApiException
   {
@@ -2374,6 +2405,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( set-logic <symbol> )
    * }
    * @param logic the logic to set
+   * @throws CVC5ApiException
    */
   public void setLogic(String logic) throws CVC5ApiException
   {
