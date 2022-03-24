@@ -517,7 +517,8 @@ enum class PfRule : uint32_t
    *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
-   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}} C_i'`
+   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
+   * C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
    * representation, to :math:`C_n'`
@@ -1475,114 +1476,154 @@ enum class PfRule : uint32_t
   // strings::InferProofCons::convert.
   STRING_INFERENCE,
 
-  //================================================= Arithmetic rules
-  // ======== Adding Inequalities
-  // Note: an ArithLiteral is a term of the form (>< poly const)
-  // where
-  //   >< is >=, >, ==, <, <=, or not(== ...).
-  //   poly is a polynomial
-  //   const is a rational constant
-
-  // Children: (P1:l1, ..., Pn:ln)
-  //           where each li is an ArithLiteral
-  //           not(= ...) is dis-allowed!
-  //
-  // Arguments: (k1, ..., kn), non-zero reals
-  // ---------------------
-  // Conclusion: (>< t1 t2)
-  //    where >< is the fusion of the combination of the ><i, (flipping each it
-  //    its ki is negative). >< is always one of <, <=
-  //    NB: this implies that lower bounds must have negative ki,
-  //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
-  //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
-  //    * const_n)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Adding inequalities**
+   * 
+   * An arithmetic literal is a term of the form :math:`p \diamond c` where
+   * :math:`\diamond \in \{ <, \leq, =, \geq, > \}`, :math:`p` a
+   * polynomial and :math:`c` a rational constant.
+   *
+   * .. math::
+   *   \inferrule{l_1 \dots l_n \mid k_1 \dots k_n}{t_1 \diamond t_2}
+   * 
+   * where :math:`k_i \in \mathbb{R}, k_i \neq 0`, :math:`\diamond` is the
+   * fusion of the :math:`\diamond_i` (flipping each if its :math:`k_i` is
+   * negative) such that :math:`\diamond_i \in \{ <, \leq \}` (this implies that
+   * lower bounds have negative :math:`k_i` and upper bounds have positive
+   * :math:`k_i`), :math:`t_1` is the sum of the scaled polynomials and
+   * :math:`t_2` is the sum of the scaled constants:
+   * 
+   * .. math::
+   *   t_1 \colon= k_1 \cdot p_1 + \cdots + k_n \cdot p_n
+   *   
+   *   t_2 \colon= k_1 \cdot c_1 + \cdots + k_n \cdot c_n
+   *
+   * \endverbatim
+   */
   MACRO_ARITH_SCALE_SUM_UB,
-  // ======== Sum Upper Bounds
-  // Children: (P1, ... , Pn)
-  //           where each Pi has form (><i, Li, Ri)
-  //           for ><i in {<, <=, ==}
-  // Conclusion: (>< L R)
-  //           where >< is < if any ><i is <, and <= otherwise.
-  //                 L is (+ L1 ... Ln)
-  //                 R is (+ R1 ... Rn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Sum upper bounds**
+   * 
+   * .. math::
+   *   \inferrule{P_1 \dots P_n \mid -}{L \diamond R}
+   * 
+   * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
+   * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
+   * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
+   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots + R_n`.
+   * \endverbatim
+   */
   ARITH_SUM_UB,
-  // ======== Tightening Strict Integer Upper Bounds
-  // Children: (P:(< i c))
-  //         where i has integer type.
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (<= i greatestIntLessThan(c)})
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Tighten strict integer upper bounds**
+   * 
+   * .. math::
+   *   \inferrule{i < c \mid -}{i \leq \lfloor c \rfloor}
+   * 
+   * where :math:`i` has integer type.
+   * \endverbatim
+   */
   INT_TIGHT_UB,
-  // ======== Tightening Strict Integer Lower Bounds
-  // Children: (P:(> i c))
-  //         where i has integer type.
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (>= i leastIntGreaterThan(c)})
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Tighten strict integer lower bounds**
+   * 
+   * .. math::
+   *   \inferrule{i > c \mid -}{i \geq \lceil c \rceil}
+   * 
+   * where :math:`i` has integer type.
+   * \endverbatim
+   */
   INT_TIGHT_LB,
-  // ======== Trichotomy of the reals
-  // Children: (A B)
-  // Arguments: (C)
-  // ---------------------
-  // Conclusion: (C),
-  //                 where (not A) (not B) and C
-  //                   are (> x c) (< x c) and (= x c)
-  //                   in some order
-  //                 note that "not" here denotes arithmetic negation, flipping
-  //                 >= to <, etc.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Trichotomy of the reals**
+   * 
+   * .. math::
+   *   \inferrule{A, B \mid C}{C}
+   * 
+   * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
+   * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
+   * \endverbatim
+   */
   ARITH_TRICHOTOMY,
-  // ======== Arithmetic operator elimination
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Operator elimination**
+   * 
+   * .. math::
+   *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
+   * \endverbatim
+   */
   ARITH_OP_ELIM_AXIOM,
-  // ======== Arithmetic polynomial normalization
-  // Children: none
-  // Arguments: ((= t s))
-  // ---------------------
-  // Conclusion: (= t s)
-  // where arith::PolyNorm::isArithPolyNorm(t, s) = true
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Polynomial normalization**
+   * 
+   * .. math::
+   *   \inferrule{- \mid t = s}{t = s}
+   * 
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
+   * \endverbatim
+   */
   ARITH_POLY_NORM,
 
-  //======== Multiplication sign inference
-  // Children: none
-  // Arguments: (f1, ..., fk, m)
-  // ---------------------
-  // Conclusion: (=> (and f1 ... fk) (~ m 0))
-  // Where f1, ..., fk are variables compared to zero (less, greater or not
-  // equal), m is a monomial from these variables, and ~ is the comparison (less
-  // or greater) that results from the signs of the variables. All variables
-  // with even exponent in m should be given as not equal to zero while all
-  // variables with odd exponent in m should be given as less or greater than
-  // zero.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Sign inference**
+   * 
+   * .. math::
+   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
+   * 
+   * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
+   * or not equal), :math:`m` is a monomial from these variables and
+   * :math:`\diamond` is the comparison (less or equal) that results from the
+   * signs of the variables. All variables with even exponent in :math:`m`
+   * should be given as not equal to zero while all variables with odd exponent
+   * in :math:`m` should be given as less or greater than zero.
+   * \endverbatim
+   */
   ARITH_MULT_SIGN,
-  //======== Multiplication with positive factor
-  // Children: none
-  // Arguments: (m, (rel lhs rhs))
-  // ---------------------
-  // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
-  // Where rel is a relation symbol.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Multiplication with positive factor**
+   * 
+   * .. math::
+   *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
+   * 
+   * where :math:`\diamond` is a relation symbol.
+   * \endverbatim
+   */
   ARITH_MULT_POS,
-  //======== Multiplication with negative factor
-  // Children: none
-  // Arguments: (m, (rel lhs rhs))
-  // ---------------------
-  // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
-  // Where rel is a relation symbol and rel_inv the inverted relation symbol.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Multiplication with negative factor**
+   * 
+   * .. math::
+   *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
+   * 
+   * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
+   * inverted relation symbol.
+   * \endverbatim
+   */
   ARITH_MULT_NEG,
-  //======== Multiplication tangent plane
-  // Children: none
-  // Arguments: (t, x, y, a, b, sgn)
-  // ---------------------
-  // Conclusion:
-  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
-  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
-  //   (>= y b)))
-  // Where x,y are real terms (variables or extended terms), t = (* x y)
-  // (possibly under rewriting), a,b are real constants, and sgn is either -1
-  // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Multiplication tangent plane**
+   * 
+   * .. math::
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   * 
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   * 
+   * where :math:`x,y` are real terms (variables or extended terms),
+   * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
+   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
+   * \endverbatim
+   */
   ARITH_MULT_TANGENT,
 
   /**
