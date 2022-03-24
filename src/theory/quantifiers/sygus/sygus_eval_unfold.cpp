@@ -37,7 +37,8 @@ SygusEvalUnfold::SygusEvalUnfold(Env& env, TermDbSygus* tds)
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
-  Assert(options().quantifiers.sygusEvalUnfold);
+  Assert(options().quantifiers.sygusEvalUnfoldMode
+         != options::SygusEvalUnfoldMode::NONE);
   // is this a sygus evaluation function application?
   if (n.getKind() != DT_SYGUS_EVAL)
   {
