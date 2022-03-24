@@ -30,7 +30,7 @@ QuantifiersState::QuantifiersState(Env& env,
       d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
-  d_ierCounter = options().quantifiers.instWhenTcFirst ? 0 : 1;
+  d_ierCounter = 0;
   d_ierCounterc = d_ierCounter;
   d_ierCounterLc = 0;
   d_ierCounterLastLc = 0;
@@ -44,10 +44,8 @@ void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
 {
   if (e == Theory::EFFORT_FULL)
   {
-    // increment if a last call happened, we are not strictly enforcing
-    // interleaving, or already were in phase
+    // increment if a last call happened, or already were in phase
     if (d_ierCounterLastLc != d_ierCounterLc
-        || !options().quantifiers.instWhenStrictInterleave
         || d_ierCounter % d_instWhenPhase != 0)
     {
       d_ierCounter = d_ierCounter + 1;

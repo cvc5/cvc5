@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__RESULT_H
-#define CVC5__RESULT_H
+#ifndef CVC5__UTIL__RESULT_H
+#define CVC5__UTIL__RESULT_H
 
 #include <iosfwd>
 #include <string>

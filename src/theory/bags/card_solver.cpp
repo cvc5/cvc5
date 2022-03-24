@@ -65,7 +65,8 @@ std::set<Node> CardSolver::getChildren(Node bag)
 
 void CardSolver::checkCardinalityGraph()
 {
-  for (const auto& pair : d_state.getCardinalityTerms())
+  const std::map<Node, Node>& cardinalityTerms = d_state.getCardinalityTerms();
+  for (const auto& pair : cardinalityTerms)
   {
     Trace("bags-card") << "CardSolver::checkCardinalityGraph cardTerm: " << pair
                        << std::endl;
@@ -96,14 +97,16 @@ void CardSolver::checkCardinalityGraph()
         case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
         default: break;
       }
+      if (d_im.hasSentLemma())
+      {
+        // exit with each new pending lemma
+        return;
+      }
       it++;
     }
     // if the bag is a leaf in the graph, then we reduce its cardinality
     checkLeafBag(pair, bag);
-  }
-
-  for (const auto& pair : d_state.getCardinalityTerms())
-  {
+    // cardinality term is non-negative
     InferInfo i = d_ig.nonNegativeCardinality(pair.second);
     d_im.lemmaTheoryInference(&i);
   }

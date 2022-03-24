@@ -121,7 +121,6 @@ class SimpSolver : public Solver {
 
     bool    use_asymm;         // Shrink clauses by asymmetric branching.
     bool    use_rcheck;        // Check if a clause is already implied. Prett costly, and subsumes subsumptions :)
-    bool    use_elim;          // Perform variable elimination.
 
     // Statistics:
     //

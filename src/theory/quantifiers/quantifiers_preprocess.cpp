@@ -127,6 +127,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>&
         visited) const
 {
+  Assert(options().quantifiers.preSkolemQuant
+         != options::PreSkolemQuantMode::OFF);
   std::pair<Node, bool> key(n, polarity);
   std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>::
       iterator it = visited.find(key);
@@ -149,8 +151,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     }
     else if (polarity)
     {
-      if (options().quantifiers.preSkolemQuant
-          && options().quantifiers.preSkolemQuantNested)
+      if (options().quantifiers.preSkolemQuantNested)
       {
         std::vector<Node> children;
         children.push_back(n[0]);
@@ -192,7 +193,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
   Assert(n.getType().isBoolean());
   if (k == ITE || (k == EQUAL && n[0].getType().isBoolean()))
   {
-    if (options().quantifiers.preSkolemQuantAgg)
+    if (options().quantifiers.preSkolemQuant
+        == options::PreSkolemQuantMode::AGG)
     {
       Node nn;
       // must remove structure
@@ -231,7 +233,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
 TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst) const
 {
   Node prev = n;
-  if (options().quantifiers.preSkolemQuant)
+  if (options().quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
   {
     if (!isInst || !options().quantifiers.preSkolemQuantNested)
     {

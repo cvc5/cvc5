@@ -2,34 +2,37 @@ id     = "QUANTIFIERS"
 name   = "Quantifiers"
 
 # Whether to mini-scope quantifiers.
-# For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
-# ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
+# Miniscoping is done based on two techniques.
+# First, miniscoping can be done based on conjunctions within quantified
+# formulas. For example, forall x. (P(x) ^ Q(x)) can be rewritten to
+# (forall x. P(x)) ^ (forall x. Q(x))
+# Second, miniscoping can be done based which free variables occur in
+# subformulas of quantified formulas. For example, forall xy. (P(x) V Q(y))
+# can be rewritten to:
+# (forall x. P(x)) V (forall y. Q(y)).
 [[option]]
   name       = "miniscopeQuant"
   category   = "regular"
-  long       = "miniscope-quant"
-  type       = "bool"
-  default    = "true"
-  help       = "miniscope quantifiers"
-
-# Whether to mini-scope quantifiers based on formulas with no free variables.
-# For example, forall x. ( P( x ) V Q ) will be rewritten to
-# ( forall x. P( x ) ) V Q
-[[option]]
-  name       = "miniscopeQuantFreeVar"
-  category   = "regular"
-  long       = "miniscope-quant-fv"
-  type       = "bool"
-  default    = "true"
-  help       = "miniscope quantifiers for ground subformulas"
-
-[[option]]
-  name       = "quantSplit"
-  category   = "regular"
-  long       = "quant-split"
-  type       = "bool"
-  default    = "true"
-  help       = "apply splitting to quantified formulas based on variable disjoint disjuncts"
+  long       = "miniscope-quant=MODE"
+  type       = "MiniscopeQuantMode"
+  default    = "CONJ_AND_FV"
+  help       = "miniscope mode for quantified formulas"
+  help_mode  = "Miniscope quantifiers modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not miniscope quantifiers."
+[[option.mode.CONJ]]
+  name = "conj"
+  help = "Use miniscoping of conjunctions only."
+[[option.mode.FV]]
+  name = "fv"
+  help = "Use free variable miniscoping only."
+[[option.mode.CONJ_AND_FV]]
+  name = "conj-and-fv"
+  help = "Enable both conjunction and free variable miniscoping."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Enable aggressive miniscope, which further may rewrite quantified formulas into a form where miniscoping is possible."
 
 [[option]]
   name       = "prenexQuant"
@@ -41,7 +44,7 @@ name   = "Quantifiers"
   help_mode  = "Prenex quantifiers modes."
 [[option.mode.NONE]]
   name = "none"
-  help = "Do no prenex nested quantifiers."
+  help = "Do not prenex nested quantifiers."
 [[option.mode.SIMPLE]]
   name = "simple"
   help = "Do simple prenexing of same sign quantifiers."
@@ -105,38 +108,50 @@ name   = "Quantifiers"
 [[option]]
   name       = "condVarSplitQuant"
   category   = "regular"
-  long       = "cond-var-split-quant"
-  type       = "bool"
-  default    = "true"
+  long       = "cond-var-split-quant=MODE"
+  type       = "CondVarSplitQuantMode"
+  default    = "ON"
   help       = "split quantified formulas that lead to variable eliminations"
-
-[[option]]
-  name       = "condVarSplitQuantAgg"
-  category   = "regular"
-  long       = "cond-var-split-agg-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "aggressive split quantified formulas that lead to variable eliminations"
-
+  help_mode  = "Modes for splitting quantified formulas that lead to variable eliminations."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not split quantified formulas."
+[[option.mode.ON]]
+  name = "on"
+  help = "Split quantified formulas that lead to variable eliminations."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Aggressively split quantified formulas that lead to variable eliminations."
+  
 [[option]]
   name       = "iteDtTesterSplitQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "ite-dtt-split-quant"
   type       = "bool"
   default    = "false"
   help       = "split ites with dt testers as conditions"
 
-# Whether to pre-skolemize quantifier bodies.
-# For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
-#   forall x. P( x ) => f( S( x ) ) = x
 [[option]]
   name       = "preSkolemQuant"
   category   = "regular"
-  long       = "pre-skolem-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "apply skolemization eagerly to bodies of quantified formulas"
+  long       = "pre-skolem-quant=MODE"
+  type       = "PreSkolemQuantMode"
+  default    = "OFF"
+  help       = "modes to apply skolemization eagerly to bodies of quantified formulas"
+  help_mode  = "Modes to apply skolemization eagerly to bodies of quantified formulas."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not apply Skolemization eagerly."
+[[option.mode.ON]]
+  name = "on"
+  help = "Apply Skolemization eagerly to top-level (negatively asserted) quantified formulas."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Apply Skolemization eagerly and aggressively during preprocessing."
 
+# Whether to pre-skolemize quantifier bodies.
+# For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
+#   forall x. P( x ) => f( S( x ) ) = x
 [[option]]
   name       = "preSkolemQuantNested"
   category   = "regular"
@@ -144,22 +159,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "apply skolemization to nested quantified formulas"
-
-[[option]]
-  name       = "preSkolemQuantAgg"
-  category   = "regular"
-  long       = "pre-skolem-quant-agg"
-  type       = "bool"
-  default    = "true"
-  help       = "apply skolemization to quantified formulas aggressively"
-
-[[option]]
-  name       = "aggressiveMiniscopeQuant"
-  category   = "regular"
-  long       = "ag-miniscope-quant"
-  type       = "bool"
-  default    = "false"
-  help       = "perform aggressive miniscoping for quantifiers"
 
 [[option]]
   name       = "elimTautQuant"
@@ -212,7 +211,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "termDbCd"
-  category   = "regular"
+  category   = "expert"
   long       = "term-db-cd"
   type       = "bool"
   default    = "true"
@@ -220,7 +219,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "registerQuantBodyTerms"
-  category   = "regular"
+  category   = "expert"
   long       = "register-quant-body-terms"
   type       = "bool"
   default    = "false"
@@ -228,7 +227,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "relevantTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "relevant-triggers"
   type       = "bool"
   default    = "false"
@@ -236,7 +235,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "relationalTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "relational-triggers"
   type       = "bool"
   default    = "false"
@@ -244,7 +243,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "purifyTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "purify-triggers"
   type       = "bool"
   default    = "false"
@@ -252,7 +251,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "partialTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "partial-triggers"
   type       = "bool"
   default    = "false"
@@ -260,7 +259,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "consExpandTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "cons-exp-triggers"
   type       = "bool"
   default    = "false"
@@ -268,7 +267,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerWhenSingle"
-  category   = "regular"
+  category   = "expert"
   long       = "multi-trigger-when-single"
   type       = "bool"
   default    = "false"
@@ -276,7 +275,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerPriority"
-  category   = "regular"
+  category   = "expert"
   long       = "multi-trigger-priority"
   type       = "bool"
   default    = "false"
@@ -284,7 +283,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerCache"
-  category   = "regular"
+  category   = "expert"
   long       = "multi-trigger-cache"
   type       = "bool"
   default    = "false"
@@ -292,7 +291,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerLinear"
-  category   = "regular"
+  category   = "expert"
   long       = "multi-trigger-linear"
   type       = "bool"
   default    = "true"
@@ -403,7 +402,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "incrementTriggers"
-  category   = "regular"
+  category   = "expert"
   long       = "increment-triggers"
   type       = "bool"
   default    = "true"
@@ -434,44 +433,20 @@ name   = "Quantifiers"
   help = "Run instantiation at last call effort, after theory combination and and theories report sat."
 
 [[option]]
-  name       = "instWhenStrictInterleave"
-  category   = "regular"
-  long       = "inst-when-strict-interleave"
-  type       = "bool"
-  default    = "true"
-  help       = "ensure theory combination and standard quantifier effort strategies take turns"
-
-[[option]]
   name       = "instWhenPhase"
-  category   = "regular"
+  category   = "expert"
   long       = "inst-when-phase=N"
   type       = "int64_t"
   default    = "2"
   help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
 
 [[option]]
-  name       = "instWhenTcFirst"
-  category   = "regular"
-  long       = "inst-when-tc-first"
-  type       = "bool"
-  default    = "true"
-  help       = "allow theory combination to happen once initially, before quantifier strategies are run"
-
-[[option]]
   name       = "instMaxLevel"
-  category   = "regular"
+  category   = "expert"
   long       = "inst-max-level=N"
   type       = "int64_t"
   default    = "-1"
   help       = "maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)"
-
-[[option]]
-  name       = "instLevelInputOnly"
-  category   = "regular"
-  long       = "inst-level-input-only"
-  type       = "bool"
-  default    = "true"
-  help       = "only input terms are assigned instantiation level zero"
 
 [[option]]
   name       = "instMaxRounds"
@@ -483,7 +458,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantRepMode"
-  category   = "regular"
+  category   = "expert"
   long       = "quant-rep-mode=MODE"
   type       = "QuantRepMode"
   default    = "FIRST"
@@ -517,7 +492,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstRd"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-rd"
   type       = "bool"
   default    = "true"
@@ -525,7 +500,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstLimit"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-limit=N"
   type       = "int64_t"
   default    = "-1"
@@ -541,7 +516,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstStratify"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-stratify"
   type       = "bool"
   default    = "false"
@@ -549,7 +524,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstSum"
-  category   = "regular"
+  category   = "expert"
   long       = "enum-inst-sum"
   type       = "bool"
   default    = "false"
@@ -557,7 +532,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "literalMatchMode"
-  category   = "regular"
+  category   = "expert"
   long       = "literal-matching=MODE"
   type       = "LiteralMatchMode"
   default    = "USE"
@@ -578,7 +553,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "poolInst"
-  category   = "regular"
+  category   = "expert"
   long       = "pool-inst"
   type       = "bool"
   default    = "true"
@@ -596,7 +571,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantFunWellDefined"
-  category   = "regular"
+  category   = "expert"
   long       = "quant-fun-wd"
   type       = "bool"
   default    = "false"
@@ -620,7 +595,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiMode"
-  category   = "regular"
+  category   = "expert"
   long       = "mbqi=MODE"
   type       = "MbqiMode"
   default    = "FMC"
@@ -638,7 +613,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfOneInstPerRound"
-  category   = "regular"
+  category   = "expert"
   long       = "mbqi-one-inst-per-round"
   type       = "bool"
   default    = "false"
@@ -646,35 +621,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiInterleave"
-  category   = "regular"
+  category   = "expert"
   long       = "mbqi-interleave"
   type       = "bool"
   default    = "false"
   help       = "interleave model-based quantifier instantiation with other techniques"
-
-[[option]]
-  name       = "fmfInstEngine"
-  category   = "regular"
-  long       = "fmf-inst-engine"
-  type       = "bool"
-  default    = "false"
-  help       = "use instantiation engine in conjunction with finite model finding"
-
-[[option]]
-  name       = "fmfFreshDistConst"
-  category   = "regular"
-  long       = "fmf-fresh-dc"
-  type       = "bool"
-  default    = "false"
-  help       = "use fresh distinguished representative when applying Inst-Gen techniques"
-
-[[option]]
-  name       = "fmfFmcSimple"
-  category   = "regular"
-  long       = "fmf-fmc-simple"
-  type       = "bool"
-  default    = "true"
-  help       = "simple models in full model check for finite model finding"
 
 [[option]]
   name       = "fmfBoundInt"
@@ -694,7 +645,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfBoundLazy"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-bound-lazy"
   type       = "bool"
   default    = "false"
@@ -702,24 +653,26 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfTypeCompletionThresh"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-type-completion-thresh=N"
   type       = "int64_t"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
-[[option]]
-  name       = "quantConflictFind"
-  category   = "regular"
-  long       = "quant-cf"
-  type       = "bool"
-  default    = "true"
-  help       = "enable conflict find mechanism for quantifiers"
+### Conflict-based instantiation options
 
 [[option]]
-  name       = "qcfMode"
+  name       = "conflictBasedInst"
   category   = "regular"
-  long       = "quant-cf-mode=MODE"
+  long       = "cbqi"
+  type       = "bool"
+  default    = "true"
+  help       = "enable conflict-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiMode"
+  category   = "regular"
+  long       = "cbqi-mode=MODE"
   type       = "QcfMode"
   default    = "PROP_EQ"
   help       = "what effort to apply conflict find mechanism"
@@ -730,62 +683,54 @@ name   = "Quantifiers"
 [[option.mode.PROP_EQ]]
   name = "prop-eq"
   help = "Apply QCF algorithm to propagate equalities as well as conflicts."
-[[option.mode.PARTIAL]]
-  name = "partial"
-  help = "Use QCF for conflicts, propagations and heuristic instantiations."
 
 [[option]]
-  name       = "qcfWhenMode"
-  category   = "regular"
-  long       = "quant-cf-when=MODE"
-  type       = "QcfWhenMode"
-  default    = "DEFAULT"
-  help       = "when to invoke conflict find mechanism for quantifiers"
-  help_mode  = "Quantifier conflict find modes."
-[[option.mode.DEFAULT]]
-  name = "default"
-  help = "Default, apply conflict finding at full effort."
-[[option.mode.LAST_CALL]]
-  name = "last-call"
-  help = "Apply conflict finding at last call, after theory combination and and all theories report sat."
-[[option.mode.STD]]
-  name = "std"
-  help = "Apply conflict finding at standard effort."
-[[option.mode.STD_H]]
-  name = "std-h"
-  help = "Apply conflict finding at standard effort when heuristic says to."
-
-[[option]]
-  name       = "qcfTConstraint"
-  category   = "regular"
-  long       = "qcf-tconstraint"
+  name       = "cbqiTConstraint"
+  category   = "expert"
+  long       = "cbqi-tconstraint"
   type       = "bool"
   default    = "false"
-  help       = "enable entailment checks for t-constraints in qcf algorithm"
+  help       = "enable entailment checks for t-constraints in cbqi algorithm"
 
 [[option]]
-  name       = "qcfAllConflict"
-  category   = "regular"
-  long       = "qcf-all-conflict"
+  name       = "cbqiAllConflict"
+  category   = "expert"
+  long       = "cbqi-all-conflict"
   type       = "bool"
   default    = "false"
   help       = "add all available conflicting instances during conflict-based instantiation"
 
 [[option]]
-  name       = "qcfNestedConflict"
-  category   = "regular"
-  long       = "qcf-nested-conflict"
+  name       = "cbqiVoExp"
+  category   = "expert"
+  long       = "cbqi-vo-exp"
   type       = "bool"
   default    = "false"
-  help       = "consider conflicts for nested quantifiers"
+  help       = "cbqi experimental variable ordering"
 
 [[option]]
-  name       = "qcfVoExp"
-  category   = "regular"
-  long       = "qcf-vo-exp"
+  name       = "cbqiEagerTest"
+  category   = "expert"
+  long       = "cbqi-eager-test"
+  type       = "bool"
+  default    = "true"
+  help       = "optimization, test cbqi instances eagerly"
+
+[[option]]
+  name       = "cbqiEagerCheckRd"
+  category   = "expert"
+  long       = "cbqi-eager-check-rd"
+  type       = "bool"
+  default    = "true"
+  help       = "optimization, eagerly check relevant domain of matched position"
+
+[[option]]
+  name       = "cbqiSkipRd"
+  category   = "expert"
+  long       = "cbqi-skip-rd"
   type       = "bool"
   default    = "false"
-  help       = "qcf experimental variable ordering"
+  help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
 [[option]]
   name       = "instNoEntail"
@@ -795,35 +740,11 @@ name   = "Quantifiers"
   default    = "true"
   help       = "do not consider instances of quantified formulas that are currently entailed"
 
-[[option]]
-  name       = "qcfEagerTest"
-  category   = "regular"
-  long       = "qcf-eager-test"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, test qcf instances eagerly"
-
-[[option]]
-  name       = "qcfEagerCheckRd"
-  category   = "regular"
-  long       = "qcf-eager-check-rd"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, eagerly check relevant domain of matched position"
-
-[[option]]
-  name       = "qcfSkipRd"
-  category   = "regular"
-  long       = "qcf-skip-rd"
-  type       = "bool"
-  default    = "false"
-  help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
-
 ### Induction options
 
 [[option]]
   name       = "quantInduction"
-  category   = "regular"
+  category   = "expert"
   long       = "quant-ind"
   type       = "bool"
   default    = "false"
@@ -831,7 +752,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "dtStcInduction"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-stc-ind"
   type       = "bool"
   default    = "false"
@@ -839,7 +760,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "intWfInduction"
-  category   = "regular"
+  category   = "expert"
   long       = "int-wf-ind"
   type       = "bool"
   default    = "false"
@@ -847,7 +768,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureGen"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-gen"
   type       = "bool"
   default    = "false"
@@ -855,7 +776,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureGenPerRound"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-gen-per-round=N"
   type       = "int64_t"
   default    = "1"
@@ -863,7 +784,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureNoFilter"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-no-filter"
   type       = "bool"
   default    = "false"
@@ -871,7 +792,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureFilterActiveTerms"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-filter-active-terms"
   type       = "bool"
   default    = "true"
@@ -879,7 +800,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureFilterCanonical"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-filter-canonical"
   type       = "bool"
   default    = "true"
@@ -887,7 +808,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureFilterModel"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-filter-model"
   type       = "bool"
   default    = "true"
@@ -895,23 +816,15 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "conjectureGenGtEnum"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-gen-gt-enum=N"
   type       = "int64_t"
   default    = "50"
   help       = "number of ground terms to generate for model filtering"
 
 [[option]]
-  name       = "conjectureUeeIntro"
-  category   = "regular"
-  long       = "conjecture-gen-uee-intro"
-  type       = "bool"
-  default    = "false"
-  help       = "more aggressive merging for universal equality engine, introduces terms"
-
-[[option]]
   name       = "conjectureGenMaxDepth"
-  category   = "regular"
+  category   = "expert"
   long       = "conjecture-gen-max-depth=N"
   type       = "int64_t"
   default    = "3"
@@ -1030,7 +943,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusUnifShuffleCond"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-unif-shuffle-cond"
   type       = "bool"
   default    = "false"
@@ -1038,7 +951,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-unif-cond-independent-no-repeat-sol"
   type       = "bool"
   default    = "true"
@@ -1046,7 +959,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusBoolIteReturnConst"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-bool-ite-return-const"
   type       = "bool"
   default    = "true"
@@ -1054,7 +967,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusQePreproc"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-qe-preproc"
   type       = "bool"
   default    = "false"
@@ -1110,7 +1023,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusEnumRandomP"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-enum-random-p=P"
   type       = "double"
   default    = "0.5"
@@ -1120,7 +1033,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusEnumFastNumConsts"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-enum-fast-num-consts=N"
   type       = "uint64_t"
   default    = "5"
@@ -1144,19 +1057,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusGrammarNorm"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-grammar-norm"
   type       = "bool"
   default    = "false"
   help       = "statically normalize sygus grammars based on flattening (linearization)"
-
-[[option]]
-  name       = "sygusTemplEmbedGrammar"
-  category   = "regular"
-  long       = "sygus-templ-embed-grammar"
-  type       = "bool"
-  default    = "false"
-  help       = "embed sygus templates into grammars"
 
 [[option]]
   name       = "sygusGrammarConsMode"
@@ -1207,7 +1112,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInvAutoUnfold"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-auto-unfold"
   type       = "bool"
   default    = "true"
@@ -1223,7 +1128,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusPbeMultiFair"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-pbe-multi-fair"
   type       = "bool"
   default    = "false"
@@ -1231,27 +1136,32 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusPbeMultiFairDiff"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-pbe-multi-fair-diff=N"
   type       = "int64_t"
   default    = "0"
   help       = "when using multiple enumerators, ensure that we only register values of minimial term size plus this value (default 0)"
 
 [[option]]
-  name       = "sygusEvalUnfold"
+  name       = "sygusEvalUnfoldMode"
   category   = "regular"
-  long       = "sygus-eval-unfold"
-  type       = "bool"
-  default    = "true"
-  help       = "do unfolding of sygus evaluation functions"
-
-[[option]]
-  name       = "sygusEvalUnfoldBool"
-  category   = "regular"
-  long       = "sygus-eval-unfold-bool"
-  type       = "bool"
-  default    = "true"
-  help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
+  long       = "sygus-eval-unfold=MODE"
+  type       = "SygusEvalUnfoldMode"
+  default    = "SINGLE_BOOL"
+  help       = "modes for sygus evaluation unfolding"
+  help_mode  = "Modes for sygus evaluation unfolding."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use sygus evaluation unfolding."
+[[option.mode.SINGLE]]
+  name = "single"
+  help = "Do single-step unfolding for all evaluation functions."
+[[option.mode.SINGLE_BOOL]]
+  name = "single-bool"
+  help = "Do single-step unfolding for Boolean functions and ITEs, and multi-step unfolding for all others."
+[[option.mode.MULTI]]
+  name = "multi"
+  help = "Do multi-step unfolding for all evaluation functions."
 
 [[option]]
   name       = "sygusStream"
@@ -1263,7 +1173,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegisSample"
-  category   = "regular"
+  category   = "expert"
   long       = "cegis-sample=MODE"
   type       = "CegisSampleMode"
   default    = "NONE"
@@ -1280,16 +1190,8 @@ name   = "Quantifiers"
   help = "Trust that when a solution for a conjecture is always true under sampling, then it is indeed a solution. Note this option may print out spurious solutions for synthesis conjectures."
 
 [[option]]
-  name       = "sygusEvalOpt"
-  category   = "regular"
-  long       = "sygus-eval-opt"
-  type       = "bool"
-  default    = "true"
-  help       = "use optimized approach for evaluation in sygus"
-
-[[option]]
   name       = "sygusArgRelevant"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-arg-relevant"
   type       = "bool"
   default    = "false"
@@ -1297,7 +1199,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRecFun"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rec-fun"
   type       = "bool"
   default    = "true"
@@ -1305,7 +1207,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRecFunEvalLimit"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rec-fun-eval-limit=N"
   type       = "uint64_t"
   default    = "1000"
@@ -1313,7 +1215,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusVerifyInstMaxRounds"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-verify-inst-max-rounds=N"
   type       = "int64_t"
   default    = "3"
@@ -1330,16 +1232,8 @@ name   = "Quantifiers"
 # Internal uses of sygus
 
 [[option]]
-  name       = "sygusRew"
-  category   = "regular"
-  long       = "sygus-rr"
-  type       = "bool"
-  default    = "false"
-  help       = "use sygus to enumerate and verify correctness of rewrite rules"
-
-[[option]]
   name       = "sygusRewSynth"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth"
   type       = "bool"
   default    = "false"
@@ -1347,7 +1241,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthFilterOrder"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-filter-order"
   type       = "bool"
   default    = "true"
@@ -1355,7 +1249,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthFilterMatch"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-filter-match"
   type       = "bool"
   default    = "true"
@@ -1363,7 +1257,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthFilterCong"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-filter-cong"
   type       = "bool"
   default    = "true"
@@ -1371,7 +1265,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthFilterNonLinear"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-filter-nl"
   type       = "bool"
   default    = "false"
@@ -1386,16 +1280,8 @@ name   = "Quantifiers"
   help       = "use sygus to verify the correctness of rewrite rules via sampling"
 
 [[option]]
-  name       = "sygusRewVerifyAbort"
-  category   = "regular"
-  long       = "sygus-rr-verify-abort"
-  type       = "bool"
-  default    = "true"
-  help       = "abort when sygus-rr-verify finds an instance of unsoundness"
-
-[[option]]
   name       = "sygusSamples"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-samples=N"
   type       = "int64_t"
   default    = "1000"
@@ -1403,7 +1289,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusSampleGrammar"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-sample-grammar"
   type       = "bool"
   default    = "true"
@@ -1411,7 +1297,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusSampleFpUniform"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-sample-fp-uniform"
   type       = "bool"
   default    = "false"
@@ -1419,7 +1305,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthAccel"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-accel"
   type       = "bool"
   default    = "false"
@@ -1427,7 +1313,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthCheck"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-check"
   type       = "bool"
   default    = "true"
@@ -1435,7 +1321,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthInput"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-input"
   type       = "bool"
   default    = "false"
@@ -1443,7 +1329,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthInputNVars"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-input-nvars=N"
   type       = "int64_t"
   default    = "3"
@@ -1451,7 +1337,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthInputUseBool"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-input-use-bool"
   type       = "bool"
   default    = "false"
@@ -1467,7 +1353,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewSynthRec"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-synth-rec"
   type       = "bool"
   default    = "false"
@@ -1496,7 +1382,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusQueryGenThresh"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-query-gen-thresh=N"
   type       = "uint64_t"
   default    = "5"
@@ -1522,7 +1408,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusFilterSolMode"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-filter-sol=MODE"
   type       = "SygusFilterSolMode"
   default    = "NONE"
@@ -1558,7 +1444,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiFullEffort"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-full"
   type       = "bool"
   default    = "false"
@@ -1566,7 +1452,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiAll"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-all"
   type       = "bool"
   default    = "false"
@@ -1574,23 +1460,15 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMultiInst"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-multi-inst"
   type       = "bool"
   default    = "false"
   help       = "when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cegqiRepeatLit"
-  category   = "regular"
-  long       = "cegqi-repeat-lit"
-  type       = "bool"
-  default    = "false"
-  help       = "solve literals more than once in counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cegqiInnermost"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-innermost"
   type       = "bool"
   default    = "true"
@@ -1598,7 +1476,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiNestedQE"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-nested-qe"
   type       = "bool"
   default    = "false"
@@ -1608,7 +1486,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfInt"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-use-inf-int"
   type       = "bool"
   default    = "false"
@@ -1616,7 +1494,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfReal"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-use-inf-real"
   type       = "bool"
   default    = "false"
@@ -1624,7 +1502,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMinBounds"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-min-bounds"
   type       = "bool"
   default    = "false"
@@ -1632,7 +1510,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiRoundUpLowerLia"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-round-up-lia"
   type       = "bool"
   default    = "false"
@@ -1640,7 +1518,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMidpoint"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-midpoint"
   type       = "bool"
   default    = "false"
@@ -1648,7 +1526,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiNopt"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-nopt"
   type       = "bool"
   default    = "true"
@@ -1666,7 +1544,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvInterleaveValue"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-interleave-value"
   type       = "bool"
   default    = "false"
@@ -1692,7 +1570,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvRmExtract"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-rm-extract"
   type       = "bool"
   default    = "true"
@@ -1700,7 +1578,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvLinearize"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-linear"
   type       = "bool"
   default    = "true"
@@ -1708,7 +1586,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvSolveNl"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-solve-nl"
   type       = "bool"
   default    = "false"
@@ -1716,7 +1594,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvConcInv"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-concat-inv"
   type       = "bool"
   default    = "true"
@@ -1780,23 +1658,15 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoMatching"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-matching"
   type       = "bool"
   default    = "true"
   help       = "do higher-order matching algorithm for triggers with variable operators"
 
 [[option]]
-  name       = "hoMatchingVarArgPriority"
-  category   = "regular"
-  long       = "ho-matching-var-priority"
-  type       = "bool"
-  default    = "true"
-  help       = "give priority to variable arguments over constant arguments"
-
-[[option]]
   name       = "hoMergeTermDb"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-merge-term-db"
   type       = "bool"
   default    = "true"
@@ -1804,7 +1674,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoElim"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-elim"
   type       = "bool"
   default    = "false"
@@ -1812,7 +1682,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoElimStoreAx"
-  category   = "regular"
+  category   = "expert"
   long       = "ho-elim-store-ax"
   type       = "bool"
   default    = "true"
@@ -1830,7 +1700,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInstScope"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inst-scope=MODE"
   type       = "SygusInstScope"
   default    = "IN"
@@ -1848,7 +1718,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInstTermSel"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inst-term-sel=MODE"
   type       = "SygusInstTermSelMode"
   default    = "MIN"
@@ -1866,7 +1736,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInstMode"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inst-mode=MODE"
   type       = "SygusInstMode"
   default    = "PRIORITY_INST"

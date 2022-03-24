@@ -2208,8 +2208,8 @@ enum Kind : int32_t
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y )
-   * \Leftrightarrow (member y C)
+   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \wedge t[x_1...x_n] = y )
+   * \Leftrightarrow (set.member \; y \; C)
    * @f]
    * where y ranges over the element type of the (set) type of the
    * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to

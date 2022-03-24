@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-fmf --re-elim --re-elim-agg
+; COMMAND-LINE: --strings-exp --strings-fmf --re-elim=agg
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun a () String)
