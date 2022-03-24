@@ -193,6 +193,13 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         UnknownExplanation getUnknownExplanation() except +
         string toString() except +
 
+    cdef cppclass SynthResult:
+        SynthResult() except+
+        bint isNull() except +
+        bint hasSolution() except +
+        bint hasNoSolution() except +
+        bint isUnknown() except +
+        string toString() except +
 
     cdef cppclass RoundingMode:
         pass

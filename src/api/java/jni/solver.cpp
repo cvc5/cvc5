@@ -2707,6 +2707,20 @@ Java_io_github_cvc5_api_Solver_getNullResult(JNIEnv* env, jobject, jlong)
 
 /*
  * Class:     io_github_cvc5_api_Solver
+ * Method:    getNullSynthResult
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SynthResult* ret = new SynthResult();
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
  * Method:    getNullOp
  * Signature: (J)J
  */
