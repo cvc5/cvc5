@@ -46,7 +46,7 @@ enum Kind : int32_t
   /**
    * Internal kind.
    *
-   * @note Should never be exposed or created via the API.
+   * @note Should never be created via the API.
    */
   INTERNAL_KIND = -2,
   /**
@@ -56,7 +56,9 @@ enum Kind : int32_t
    */
   UNDEFINED_KIND = -1,
   /**
-   * Null kind (kind of null term Term::Term()).
+   * Null kind.
+   *
+   * The kind of a null term (Term::Term()).
    *
    * @note May not be explicitly created via API functions other than
    *       Term::Term().
@@ -69,8 +71,8 @@ enum Kind : int32_t
    * The value of an uninterpreted constant.
    *
    * @note May be returned as the result of an API call, but terms of this kind
-   *       may not be created explicitly via the API. Terms of this kind may
-   *       further not appear in assertions.
+   *       may not be created explicitly via the API and may not appear in
+   *       assertions.
    */
   UNINTERPRETED_SORT_VALUE,
 #if 0
@@ -95,7 +97,7 @@ enum Kind : int32_t
    * Disequality.
    *
    * - Arity: `n > 1`
-   *   - `1..n:` Terms with same sorts
+   *   - `1..n:` Terms of the same Sort
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -118,7 +120,7 @@ enum Kind : int32_t
   /**
    * (Bound) variable.
    *
-   * @note Permitted in bindings and in the lambda and quantifier bodies only.
+   * @note Only permitted in bindings and in lambda and quantifier bodies.
    *
    * - Create Term of this Kind with:
    *   - Solver::mkVar(const Sort&, const std::string&) const
@@ -147,7 +149,7 @@ enum Kind : int32_t
    *
    * - Arity: `2`
    *   - `1:` Term of kind #VARIABLE_LIST
-   *   - `2:` The body of the lambda, a Term of any Sort.
+   *   - `2:` Term of any Sort (the body of the lambda)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -158,23 +160,30 @@ enum Kind : int32_t
    */
   LAMBDA,
   /**
+   * Witness.
+   *
    * The syntax of a witness term is similar to a quantified formula except that
    * only one variable is allowed.
-   * The term `(witness ((x S)) F)` returns an element `x` of Sort `S`
-   * and asserts `F`.
+   * For example, the term
+   * \rst
+   * .. code:: smtlib
+   *
+   *     (witness ((x S)) F)
+   * \endrst
+   * returns an element @f$x@f$ of Sort @f$S@f$ and asserts formula @f$F@f$.
    *
    * The witness operator behaves like the description operator
    * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no
-   * `x` that satisfies `F`. But if such `x` exists, the witness
-   * operator does not enforce the axiom that ensures uniqueness up to logical
-   * equivalence:
+   * @f$x@f$ that satisfies @f$F@f$. But if such @f$x@f$ exists, the witness
+   * operator does not enforce the following axiom which ensures uniqueness up
+   * to logical equivalence:
    *
    * @f[
    *   \forall x. F \equiv G \Rightarrow witness~x. F =  witness~x. G
    * @f]
    *
-   * For example if there are 2 elements of Sort `S` that satisfy `F`,
-   * then the following formula is satisfiable:
+   * For example, if there are two elements of Sort @f$S@f$ that satisfy
+   * formula @f$F@f$, then the following formula is satisfiable:
    *
    * \rst
    * .. code:: smtlib
@@ -185,7 +194,7 @@ enum Kind : int32_t
    * \endrst
    *
    * @note This kind is primarily used internally, but may be returned in
-   *       models (e.g. for arithmetic terms in non-linear queries). However,
+   *       models (e.g., for arithmetic terms in non-linear queries). However,
    *       it is not supported by the parser. Moreover, the user of the API
    *       should be cautious when using this operator. In general, all witness
    *       terms `(witness ((x Int)) F)` should be such that `(exists ((x Int))
@@ -194,11 +203,12 @@ enum Kind : int32_t
    *       the following formula is unsatisfiable:
    *       `(or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int))
    *       false) 0))`, whereas notice that `(or (= z 0) (not (= z 0)))` is
-   *       true for any `z`.
+   *       true for any @f$z@f$.
    *
-   * - Arity: `2`
+   * - Arity: `3`
    *   - `1:` Term of kind #VARIABLE_LIST
-   *   - `2:` The body of the lambda, a Term of any Sort.
+   *   - `2:` Term of Sort Bool (the body of the witness)
+   *   - `3:` (optional) Term of kind #INST_PATTERN_LIST
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -332,12 +342,13 @@ enum Kind : int32_t
    * Cardinality constraint on uninterpreted sort.
    *
    * Interpreted as a predicate that is true when the cardinality of
-   * uinterpreted Sort `S` is less than or equal to the value of the second
-   * argument.
+   * uinterpreted Sort @f$S@f$ is less than or equal to the value of
+   * the second argument.
    *
    * - Arity: `2`
-   *   - `1:` Term of Sort `S`
-   *   - `2:` Positive integer constant that bounds the cardinality of `S`
+   *   - `1:` Term of Sort @f$S@f$
+   *   - `2:` Term of Sort Int (positive integer value that bounds the
+   *          cardinality of @f$S@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -395,19 +406,30 @@ enum Kind : int32_t
    */
   MULT,
   /**
-   * Operator for bit-wise `AND` over integers, parameterized by a (positive)
-   * bit-width `k`.
+   * Integer and.
    *
-   * `((_ iand k) i1 i2)` is equivalent to
-   * `(bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))`
-   * for all integers `i1`, `i2`.
+   * Operator for bit-wise `AND` over integers, parameterized by a (positive)
+   * bit-width @f$k@f$.
+   *
+   * \rst
+   * .. code:: smtlib
+   *
+   *     ((_ iand k) i_1 i_2)
+   * \endrst
+   * is equivalent to
+   * \rst
+   * .. code:: smtlib
+   *
+   *     ((_ iand k) i_1 i_2)
+   *     (bv2int (bvand ((_ int2bv k) i_1) ((_ int2bv k) i_2)))
+   * \endrst
+   * for all integers `i_1`, `i_2`.
    *
    * - Arity: `2`
-   *   - `1:` Term of Sort Int
-   *   - `2:` Term of Sort Int
+   *   - `1..2:` Terms of Sort Int
    *
    * - Indices: `1`
-   *   - `1:` Bit-width `k`
+   *   - `1:` Bit-width @f$k@f$
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
@@ -417,7 +439,9 @@ enum Kind : int32_t
    */
   IAND,
   /**
-   * Operator for raising 2 to a non-negative integer power.
+   * Power of two.
+   *
+   * Operator for raising `2` to a non-negative integer power.
    *
    * - Arity: `1`
    *   - `1:` Term of Sort Int
@@ -491,7 +515,7 @@ enum Kind : int32_t
    */
   INTS_DIVISION,
   /**
-   * Integer modulus, division by 0 undefined.
+   * Integer modulus, division by `0` undefined.
    *
    * - Arity: `2`
    *   - `1:` Term of Sort Int
@@ -730,13 +754,13 @@ enum Kind : int32_t
    */
   SQRT,
   /**
-   * Operator for the divisibility-by-k predicate.
+   * Operator for the divisibility-by-@f$k@f$ predicate.
    *
    * - Arity: `1`
    *   - `1:` Term of Sort Int
    *
    * - Indices: `1`
-   *   - `1:` The integer `k` to divide by.
+   *   - `1:` The integer @f$k@f$ to divide by.
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
@@ -858,7 +882,7 @@ enum Kind : int32_t
    * Pi constant.
    *
    * @note #PI is considered a special symbol of Sort Real, but is not
-   * a Real value, i.e., `Term::isRealValue() const` will return `false`.
+   * a Real value, i.e., Term::isRealValue() will return `false`.
    *
    * - Create Term of this Kind with:
    *   - Solver::mkPi() const
@@ -988,7 +1012,7 @@ enum Kind : int32_t
    */
   BITVECTOR_XNOR,
   /**
-   * Equality comparison (returns bit-vector of size 1).
+   * Equality comparison (returns bit-vector of size `1`).
    *
    * - Arity: `2`
    *   - `1..2:` Terms of bit-vector Sort (sorts must match)
@@ -1060,7 +1084,7 @@ enum Kind : int32_t
   /**
    * Unsigned bit-vector division.
    *
-   * Truncates towards 0. If the divisor is zero, the result is all ones.
+   * Truncates towards `0`. If the divisor is zero, the result is all ones.
    *
    * - Arity: `2`
    *   - `1..2:` Terms of bit-vector Sort (sorts must match)
@@ -1311,7 +1335,7 @@ enum Kind : int32_t
    */
   BITVECTOR_ULTBV,
   /**
-   * Bit-vector signed less than returning a bit-vector of size 1.
+   * Bit-vector signed less than returning a bit-vector of size `1`.
    *
    * - Arity: `2`
    *   - `1..2:` Terms of bit-vector Sort (sorts must match)
@@ -1327,7 +1351,7 @@ enum Kind : int32_t
   /**
    * Bit-vector if-then-else.
    *
-   * Same semantics as regular ITE, but condition is bit-vector of size 1.
+   * Same semantics as regular ITE, but condition is bit-vector of size `1`.
    *
    * - Arity: `3`
    *   - `1:` Term of bit-vector Sort of size `1`
@@ -2074,7 +2098,8 @@ enum Kind : int32_t
    */
   CONST_ARRAY,
   /**
-   * Equality over arrays `a` and `b` over a given range `[i,j]`, i.e.,
+   * Equality over arrays @f$a@f$ and @f$b@f$ over a given range @f$[i,j]@f$,
+   * i.e.,
    * @f[
    *   \forall k . i \leq k \leq j \Rightarrow a[k] = b[k]
    * @f]
@@ -2551,7 +2576,7 @@ enum Kind : int32_t
    *
    * @note #SET_UNIVERSE is considered a special symbol of the theory of
    *       sets and is not considered as a set value, i.e.,
-   *       Term::isSetValue() const will return `false`.
+   *       Term::isSetValue() will return `false`.
    *
    * - Create Op of this kind with:
    *   - Solver::mkUniverseSet(const Sort&) const
@@ -2622,12 +2647,12 @@ enum Kind : int32_t
    * Set map.
    *
    * This operator applies the first argument, a function of Sort
-   * `(-> S_1 S_2)`, to every element of the second argument, a set of Sort
-   * `(Set S_1)`, and returns a set of Sort `(Set S_2)`.
+   * @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second argument,
+   * a set of Sort (Set @f$S_1@f$), and returns a set of Sort (Set @f$S_2@f$).
    *
    * - Arity: `2`
-   *   - `1:` Term of function Sort `(-> S_1 S_2)`
-   *   - `2:` Term of set Sort `(Set S_1)`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
+   *   - `2:` Term of set Sort (Set @f$S_1@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -2965,12 +2990,12 @@ enum Kind : int32_t
    * Bag map.
    *
    * This operator applies the first argument, a function of Sort
-   * `(-> S_1 S_2)`, to every element of the second argument, a set of Sort 
-   * `(Bag S_1)`, and returns a set of Sort `(Bag S_2)`.
+   * @f$(\rightarrow S_1 \; S_2)@f$, to every element of the second argument, a
+   * set of Sort (Bag @f$S_1@f$), and returns a set of Sort (Bag @f$S_2@f$).
    *
    * - Arity: `2`
-   *   - `1:` Term of function Sort `(-> S_1 S_2)`
-   *   - `2:` Term of bag Sort `(Bag S_1)`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
+   *   - `2:` Term of bag Sort (Bag @f$S_1@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -2984,14 +3009,15 @@ enum Kind : int32_t
    * Bag filter.
    *
    * This operator filters the elements of a bag.
-   * `(bag.filter p B)` takes a predicate `p` of Sort `(-> S Bool)` as a first
-   * argument, and a bag `B` of Sort `(Bag S)` as a second argument, and
-   * returns a subbag of Sort `(Bag T)` that includes all elements of `B` that
-   * satisfy `p` with the same multiplicity.
+   * `(bag.filter p B)` takes a predicate @f$p@f$ of Sort
+   * @f$(\rightarrow S_1 \; S_2)@f$ as a first
+   * argument, and a bag @f$@f$ of Sort (Bag @f$S@f$) as a second argument, and
+   * returns a subbag of Sort (Bag @f$T@f$) that includes all elements of
+   * @f$B@f$ that satisfy @f$p@f$ with the same multiplicity.
    *
    * - Arity: `2`
-   *   - `1:` Term of function Sort `(-> S_1 S_2)`
-   *   - `2:` Term of bag Sort `(Bag S_1)`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2)@f$
+   *   - `2:` Term of bag Sort (Bag @f$S_1@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3005,13 +3031,13 @@ enum Kind : int32_t
    * Bag fold.
    *
    * This operator combines elements of a bag into a single value.
-   * `(bag.fold f t B)` folds the elements of bag `B` starting with term `t`
-   * and using the combining function `f`.
+   * `(bag.fold f t B)` folds the elements of bag @f$B@f$ starting with term
+   * @f$t@f$ and using the combining function @f$f@f$.
    *
    * - Arity: `2`
-   *   - `1:` Term of function Sort `(-> S_1 S_2 S_2)`
+   *   - `1:` Term of function Sort @f$(\rightarrow S_1 \; S_2 \; S_2)@f$
    *   - `2:` Term of Sort `S_2)` (the initial value)
-   *   - `3:` Term of bag Sort `(Bag S_1)`
+   *   - `3:` Term of bag Sort (Bag @f$S_1@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3084,15 +3110,15 @@ enum Kind : int32_t
   /**
    * String substring.
    *
-   * Extracts a substring, starting at index `i` and of length `l`, from a
-   * string `s`.  If the start index is negative, the start index is greater
-   * than the length of the string, or the length is negative, the result is
-   * the empty string.
+   * Extracts a substring, starting at index @f$i@f$ and of length @f$l@f$,
+   * from a string @f$s@f$.  If the start index is negative, the start index is
+   * greater than the length of the string, or the length is negative, the
+   * result is the empty string.
    *
    * - Arity: `3`
    *   - `1:` Term of Sort String
-   *   - `2:` Term of Sort Int (index `i`)
-   *   - `3:` Term of Sort Int (length `l`)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of Sort Int (length @f$l@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3105,15 +3131,15 @@ enum Kind : int32_t
   /**
    * String update.
    *
-   * Updates a string `s` by replacing its context starting at an index with
-   * string `t`. If the start index is negative, the start index is greater
-   * than the length of the string, the result is `s`. Otherwise, the length of
-   * the original string is preserved.
+   * Updates a string @f$s@f$ by replacing its context starting at an index
+   * with string @f$t@f$. If the start index is negative, the start index is
+   * greater than the length of the string, the result is @f$s@f$. Otherwise,
+   * the length of the original string is preserved.
    *
    * - Arity: `3`
    *   - `1:` Term of Sort String
-   *   - `2:` Term of Sort Int (index `i`)
-   *   - `3:` Term of Sort Strong (replacement string `t`)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of Sort Strong (replacement string @f$t@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3126,13 +3152,13 @@ enum Kind : int32_t
   /**
    * String character at.
    *
-   * Returns the character at index `i` from a string `s`. If the index is
+   * Returns the character at index @f$i@f$ from a string @f$s@f$. If the index is
    * negative or the index is greater than the length of the string, the result
-   * is the empty string. Otherwise the result is a string of length `1`.
+   * is the empty string. Otherwise the result is a string of length @f$1@f$.
    *
    * - Arity: `2`
-   *   - `1:` Term of Sort String (string `s`)
-   *   - `2:` Term of Sort Int (index `i`)
+   *   - `1:` Term of Sort String (string @f$s@f$)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3164,14 +3190,14 @@ enum Kind : int32_t
    * String index-of.
    *
    * Returns the index of a substring @f$s_2@f$ in a string @f$s_1@f$ starting
-   * at index `i`. If the index is negative or greater than the length of
+   * at index @f$i@f$. If the index is negative or greater than the length of
    * string @f$s_1@f$ or the substring @f$s_2@f$ does not appear in string
-   * @f$s_1@f$ after index `i`, the result is `-1`.
+   * @f$s_1@f$ after index @f$i@f$, the result is `-1`.
    *
    * - Arity: `2`
    *   - `1:` Term of Sort String (substring @f$s_1@f$)
    *   - `2:` Term of Sort String (substring @f$s_2@f$)
-   *   - `3:` Term of Sort Int (index `i`)
+   *   - `3:` Term of Sort Int (index @f$i@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3184,14 +3210,15 @@ enum Kind : int32_t
   /**
    * String index-of regular expression match.
    *
-   * Returns the first match of a regular expression `r` in a string `s`. If
-   * the index is negative or greater than the length of string @f$s_1@f$, or
-   * `r` does not match a substring in `s` after index `i`, the result is `-1`.
+   * Returns the first match of a regular expression @f$r@f$ in a string
+   * @f$s@f$. If the index is negative or greater than the length of string
+   * @f$s_1@f$, or @f$r@f$ does not match a substring in @f$s@f$ after index
+   * @f$i@f$, the result is `-1`.
    *
    * - Arity: `3`
-   *   - `1:` Term of Sort String (string `s`)
-   *   - `2:` Term of Sort RegLan (regular expression `r`)
-   *   - `3:` Term of Sort Int (index `i`)
+   *   - `1:` Term of Sort String (string @f$s@f$)
+   *   - `2:` Term of Sort RegLan (regular expression @f$r@f$)
+   *   - `3:` Term of Sort Int (index @f$i@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3718,15 +3745,15 @@ enum Kind : int32_t
   /**
    * Sequence extract.
    *
-   * Extracts a subsequence, starting at index `i` and of length `l`, from a
-   * sequence `s`.  If the start index is negative, the start index is greater
-   * than the length of the sequence, or the length is negative, the result is
-   * the empty sequence.
+   * Extracts a subsequence, starting at index @f$i@f$ and of length @f$l@f$,
+   * from a sequence @f$s@f$.  If the start index is negative, the start index
+   * is greater than the length of the sequence, or the length is negative, the
+   * result is the empty sequence.
    *
    * - Arity: `3`
    *   - `1:` Term of sequence Sort
-   *   - `2:` Term of Sort Int (index `i`)
-   *   - `3:` Term of Sort Int (length `l`)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of Sort Int (length @f$l@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3739,15 +3766,15 @@ enum Kind : int32_t
   /**
    * Sequence update.
    *
-   * Updates a sequence `s` by replacing its context starting at an index with
-   * string `t`. If the start index is negative, the start index is greater
-   * than the length of the sequence, the result is `s`. Otherwise, the length
-   * of the original sequence is preserved.
+   * Updates a sequence @f$s@f$ by replacing its context starting at an index
+   * with string @f$t@f$. If the start index is negative, the start index is
+   * greater than the length of the sequence, the result is @f$s@f$. Otherwise,
+   * the length of the original sequence is preserved.
    *
    * - Arity: `3`
    *   - `1:` Term of sequence Sort
-   *   - `2:` Term of Sort Int (index `i`)
-   *   - `3:` Term of sequence Sort (replacement sequence `t`)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
+   *   - `3:` Term of sequence Sort (replacement sequence @f$t@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3760,14 +3787,14 @@ enum Kind : int32_t
   /**
    * Sequence element at.
    *
-   * Returns the element at index `i` from a sequence `s`. If the index is
-   * negative or the index is greater or equal to the length of the sequence,
-   * the result is the empty sequence. Otherwise the result is a sequence of
-   * length `1`.
+   * Returns the element at index @f$i@f$ from a sequence @f$s@f$. If the index
+   * is negative or the index is greater or equal to the length of the
+   * sequence, the result is the empty sequence. Otherwise the result is a
+   * sequence of length `1`.
    *
    * - Arity: `2`
    *   - `1:` Term of sequence Sort
-   *   - `2:` Term of Sort Int (index `i`)
+   *   - `2:` Term of Sort Int (index @f$i@f$)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const

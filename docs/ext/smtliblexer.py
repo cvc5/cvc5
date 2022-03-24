@@ -59,7 +59,7 @@ class SmtLibLexer(RegexLexer):
         '-zero',
         # int / real
         '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/', 'div', 'mod', 'abs',
-        'divisible', 'to_real', 'to_int', 'is_int',
+        'divisible', 'to_real', 'to_int', 'is_int', 'iand', 'int2bv',
         # separation logic
         'emp', 'pto', 'sep', 'wand', 'nil',
         # sets / relations
@@ -77,6 +77,8 @@ class SmtLibLexer(RegexLexer):
         'str\.from_code', 'str\.to_int', 'str\.from_int',
         # sequences
         'seq\.\+\+', 'seq\.unit',
+        # others
+        'witness',
     ]
 
     tokens = {
