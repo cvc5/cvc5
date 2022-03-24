@@ -104,7 +104,7 @@ void ZeroLevelLearner::notifyInputFormulas(
     {
       output(OutputTag::LEARNED_LITS)
           << "(learned-lit " << SkolemManager::getOriginalForm(lit)
-          << " :preprocess)" << std::endl;
+          << " :input)" << std::endl;
     }
   }
   // Compute the set of literals in the preprocessed assertions
