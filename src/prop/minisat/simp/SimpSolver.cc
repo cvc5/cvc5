@@ -38,7 +38,6 @@ static const char* _cat = "SIMP";
 
 static BoolOption   opt_use_asymm        (_cat, "asymm",        "Shrink clauses by asymmetric branching.", false);
 static BoolOption   opt_use_rcheck       (_cat, "rcheck",       "Check if a clause is already implied. (costly)", false);
-static BoolOption   opt_use_elim         (_cat, "elim",         "Perform variable elimination.", true);
 static IntOption    opt_grow             (_cat, "grow",         "Allow a variable elimination step to grow by a number of clauses.", 0);
 static IntOption    opt_clause_lim       (_cat, "cl-lim",       "Variables are not eliminated if it produces a resolvent with a length above this limit. -1 means no limit", 20,   IntRange(-1, INT32_MAX));
 static IntOption    opt_subsumption_lim  (_cat, "sub-lim",      "Do not check if subsumption against a clause larger than this. -1 means no limit.", 1000, IntRange(-1, INT32_MAX));
@@ -62,27 +61,18 @@ SimpSolver::SimpSolver(Env& env,
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
       use_rcheck(opt_use_rcheck && !options().smt.unsatCores && !pnm),
-      use_elim(options().prop.minisatUseElim && !enableIncremental),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
-      use_simplification(!enableIncremental && !options().smt.unsatCores
-                         && !pnm)  // TODO: turn off simplifications if
-                                   // proofs are on initially
-      ,
+      use_simplification(
+          options().prop.minisatSimpMode != options::MinisatSimpMode::NONE
+          && !enableIncremental && !options().smt.unsatCores && !pnm),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),
       n_touched(0)
 {
-  if (options().prop.minisatUseElim && options().prop.minisatUseElimWasSetByUser
-      && enableIncremental)
-  {
-    WarningOnce() << "Incremental mode incompatible with --minisat-elim"
-                  << std::endl;
-  }
-
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(0, dummy);
@@ -701,8 +691,14 @@ bool SimpSolver::eliminate(bool turn_off_elim)
 
             // At this point, the variable may have been set by assymetric branching, so check it
             // again. Also, don't eliminate frozen variables:
-            if (use_elim && value(elim) == l_Undef && !frozen[elim] && !eliminateVar(elim)){
-                ok = false; goto cleanup; }
+            if (options().prop.minisatSimpMode
+                    != options::MinisatSimpMode::CLAUSE_ELIM
+                && value(elim) == l_Undef && !frozen[elim]
+                && !eliminateVar(elim))
+            {
+              ok = false;
+              goto cleanup;
+            }
 
             checkGarbage(simp_garbage_frac);
         }

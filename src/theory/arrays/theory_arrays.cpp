@@ -99,7 +99,6 @@ TheoryArrays::TheoryArrays(Env& env,
       d_constReadsList(context()),
       d_constReadsContext(new context::Context()),
       d_contextPopper(context(), d_constReadsContext),
-      d_skolemIndex(context(), 0),
       d_decisionRequests(context()),
       d_permRef(context()),
       d_modelConstraints(context()),
@@ -1126,19 +1125,6 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
 
     // Build the STORE_ALL term with the default value
     rep = nm->mkConst(ArrayStoreAll(nrep.getType(), rep));
-    /*
-  }
-  else {
-    std::unordered_map<Node, Node>::iterator it = d_skolemCache.find(n);
-    if (it == d_skolemCache.end()) {
-      rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model
-  variable for array collectModelInfo"); d_skolemCache[n] = rep;
-    }
-    else {
-      rep = (*it).second;
-    }
-  }
-*/
 
     // For each read, require that the rep stores the right value
     vector<Node>& reads = selects[nrep];
@@ -1184,19 +1170,7 @@ void TheoryArrays::presolve()
 
 Node TheoryArrays::getSkolem(TNode ref)
 {
-  // the call to SkolemCache::getExtIndexSkolem should be deterministic, but use
-  // cache anyways for now
-  Node skolem;
-  std::unordered_map<Node, Node>::iterator it = d_skolemCache.find(ref);
-  if (it == d_skolemCache.end()) {
-    Assert(ref.getKind() == kind::NOT && ref[0].getKind() == kind::EQUAL);
-    // make the skolem using the skolem cache utility
-    skolem = SkolemCache::getExtIndexSkolem(ref);
-    d_skolemCache[ref] = skolem;
-  }
-  else {
-    skolem = (*it).second;
-  }
+  Node skolem = SkolemCache::getExtIndexSkolem(ref);
 
   Trace("pf::array") << "Pregistering a Skolem" << std::endl;
   preRegisterTermInternal(skolem);

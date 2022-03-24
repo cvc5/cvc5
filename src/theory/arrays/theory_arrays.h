@@ -409,10 +409,6 @@ class TheoryArrays : public Theory {
   };/* class ContextPopper */
   ContextPopper d_contextPopper;
 
-  std::unordered_map<Node, Node> d_skolemCache;
-  context::CDO<unsigned> d_skolemIndex;
-  std::vector<Node> d_skolemAssertions;
-
   // The decision requests we have for the core
   context::CDQueue<Node> d_decisionRequests;
 
