@@ -692,7 +692,7 @@ bool SimpSolver::eliminate(bool turn_off_elim)
             // At this point, the variable may have been set by assymetric branching, so check it
             // again. Also, don't eliminate frozen variables:
             if (options().prop.minisatSimpMode
-                    != options::MinisatSimpMode::NO_VAR_ELIM
+                    != options::MinisatSimpMode::CLAUSE_ELIM
                 && value(elim) == l_Undef && !frozen[elim]
                 && !eliminateVar(elim))
             {

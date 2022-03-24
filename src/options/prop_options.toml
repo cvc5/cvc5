@@ -64,11 +64,11 @@ name   = "SAT Layer"
   help       = "Simplifications to be performed by Minisat."
   help_mode  = "Modes for Minisat simplifications."
 [[option.mode.ALL]]
-  name = "status"
+  name = "all"
   help = "Variable and clause elimination, plus other simplifications."
-[[option.mode.NO_VAR_ELIM]]
-  name = "no-var-elim"
-  help = "All simplifications except variable elimination."
+[[option.mode.CLAUSE_ELIM]]
+  name = "clause-elim"
+  help = "Caluse elimination and other simplifications, except variable elimination."
 [[option.mode.NONE]]
   name = "none"
   help = "No simplifications."

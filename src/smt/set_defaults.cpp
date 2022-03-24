@@ -703,7 +703,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || opts.smt.produceAssignments || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      opts.prop.minisatSimpMode = options::MinisatSimpMode::NO_VAR_ELIM;
+      opts.prop.minisatSimpMode = options::MinisatSimpMode::CLAUSE_ELIM;
     }
   }
 
