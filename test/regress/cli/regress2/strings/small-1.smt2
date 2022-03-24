@@ -2,7 +2,7 @@
 (set-logic ALL)
 (set-info :status sat)
 (set-option :strings-exp true)
-(set-option :re-elim true)
+(set-option :re-elim on)
 (declare-const x String)
 (assert (str.in_re x (re.++ (str.to_re "example-bucket/") (re.* re.allchar) (str.to_re "/") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar (str.to_re "-") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to_re "/foo"))))
 (check-sat)

@@ -37,25 +37,25 @@ public class Statistics
       System.out.println("Long version:");
 
       // long version
-      for (Pair<String, Stat> pair : stats)
+      for (Map.Entry<String, Stat> pair : stats)
       {
-        Stat stat = pair.second;
+        Stat stat = pair.getValue();
         if (stat.isInt())
         {
-          System.out.println(pair.first + " = " + stat.getInt());
+          System.out.println(pair.getKey() + " = " + stat.getInt());
         }
         else if (stat.isDouble())
         {
-          System.out.println(pair.first + " = " + stat.getDouble());
+          System.out.println(pair.getKey() + " = " + stat.getDouble());
         }
         else if (stat.isString())
         {
-          System.out.println(pair.first + " = " + stat.getString());
+          System.out.println(pair.getKey() + " = " + stat.getString());
         }
         else if (stat.isHistogram())
         {
           System.out.println("-------------------------------------------------------");
-          System.out.println(pair.first + " : Map");
+          System.out.println(pair.getKey() + " : Map");
           for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
           {
             System.out.println(entry.getKey() + " = " + entry.getValue());

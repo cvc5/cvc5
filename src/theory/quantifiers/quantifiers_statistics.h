@@ -33,7 +33,7 @@ class QuantifiersStatistics
  public:
   QuantifiersStatistics();
   TimerStat d_time;
-  TimerStat d_qcf_time;
+  TimerStat d_cbqi_time;
   TimerStat d_ematching_time;
   IntStat d_num_quant;
   IntStat d_instantiation_rounds;

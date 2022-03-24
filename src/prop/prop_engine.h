@@ -22,6 +22,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
@@ -361,6 +362,8 @@ class PropEngine : protected EnvObj
   CnfStream* d_cnfStream;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
+  /** A default proof generator for theory lemmas */
+  CDProof d_theoryLemmaPg;
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;
