@@ -2483,6 +2483,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f6", new Term[] {x}, bool, g2));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     Term x2 = slv.mkVar(slv.getBooleanSort());
     assertDoesNotThrow(() -> slv.synthFun("f1", new Term[] {x2}, slv.getBooleanSort()));
 
