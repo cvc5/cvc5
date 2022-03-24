@@ -468,7 +468,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlRlvMode"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-rlv=MODE"
   type       = "NlRlvMode"
   default    = "NONE"
@@ -502,7 +502,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlCovVarElim"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-cov-var-elim"
   type       = "bool"
   default    = "true"
@@ -510,7 +510,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlCovPrune"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-cov-prune"
   type       = "bool"
   default    = "false"

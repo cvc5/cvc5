@@ -373,7 +373,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -431,7 +431,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -439,7 +439,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"

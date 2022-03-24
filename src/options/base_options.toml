@@ -3,7 +3,7 @@ name   = "Base"
 
 [[option]]
   name       = "err"
-  category   = "regular"
+  category   = "expert"
   long       = "err=erroutput"
   type       = "ManagedErr"
   default    = '{}'
@@ -14,7 +14,7 @@ name   = "Base"
 
 [[option]]
   name       = "in"
-  category   = "regular"
+  category   = "expert"
   long       = "in=input"
   type       = "ManagedIn"
   default    = '{}'
@@ -23,7 +23,7 @@ name   = "Base"
 
 [[option]]
   name       = "out"
-  category   = "regular"
+  category   = "expert"
   long       = "out=output"
   type       = "ManagedOut"
   default    = '{}'
@@ -162,11 +162,11 @@ name   = "Base"
 
 [[option]]
   short      = "o"
+  category   = "common"
   long       = "output=TAG"
   type       = "OutputTag"
   default    = "NONE"
   predicates = ["enableOutputTag"]
-  category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
 [[option.mode.NONE]]
