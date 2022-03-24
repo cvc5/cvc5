@@ -300,23 +300,6 @@ def test_parametric_datatype(solver):
     assert pairIntInt != pairRealInt
     assert pairIntReal != pairRealInt
 
-    assert pairRealReal.isSubsortOf(pairRealReal)
-    assert not pairIntReal.isSubsortOf(pairRealReal)
-    assert not pairRealInt.isSubsortOf(pairRealReal)
-    assert not pairIntInt.isSubsortOf(pairRealReal)
-    assert not pairRealReal.isSubsortOf(pairRealInt)
-    assert not pairIntReal.isSubsortOf(pairRealInt)
-    assert pairRealInt.isSubsortOf(pairRealInt)
-    assert not pairIntInt.isSubsortOf(pairRealInt)
-    assert not pairRealReal.isSubsortOf(pairIntReal)
-    assert pairIntReal.isSubsortOf(pairIntReal)
-    assert not pairRealInt.isSubsortOf(pairIntReal)
-    assert not pairIntInt.isSubsortOf(pairIntReal)
-    assert not pairRealReal.isSubsortOf(pairIntInt)
-    assert not pairIntReal.isSubsortOf(pairIntInt)
-    assert not pairRealInt.isSubsortOf(pairIntInt)
-    assert pairIntInt.isSubsortOf(pairIntInt)
-
 def test_is_finite(solver):
     dtypedecl = solver.mkDatatypeDecl("dt", [])
     ctordecl = solver.mkDatatypeConstructorDecl("cons")

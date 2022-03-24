@@ -757,6 +757,15 @@ Node SequencesRewriter::rewriteConcat(Node node)
   return node;
 }
 
+Node SequencesRewriter::rewriteAllRegExp(TNode node)
+{
+  Assert(node.getKind() == kind::REGEXP_ALL);
+  NodeManager* nm = NodeManager::currentNM();
+  // re.all ----> (re.* re.allchar)
+  Node ret = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
+  return returnRewrite(node, ret, Rewrite::RE_ALL_ELIM);
+}
+
 Node SequencesRewriter::rewriteConcatRegExp(TNode node)
 {
   Assert(node.getKind() == kind::REGEXP_CONCAT);
@@ -948,6 +957,15 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   }
   else if (node[0].getKind() == REGEXP_UNION)
   {
+    for (const Node& nc : node[0])
+    {
+      if (nc.getKind() == REGEXP_ALLCHAR)
+      {
+        // (re.* (re.union ... re.allchar ...)) ---> (re.* re.allchar)
+        retNode = nm->mkNode(REGEXP_STAR, nc);
+        return returnRewrite(node, retNode, Rewrite::RE_STAR_UNION_CHAR);
+      }
+    }
     // simplification of unions under star
     if (RegExpEntail::hasEpsilonNode(node[0]))
     {
@@ -1654,6 +1672,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == kind::STRING_IN_REGEXP)
   {
     retNode = rewriteMembership(node);
+  }
+  else if (nk == REGEXP_ALL)
+  {
+    retNode = rewriteAllRegExp(node);
   }
   else if (nk == REGEXP_CONCAT)
   {
@@ -3650,7 +3672,9 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   {
     std::vector<Node> seq;
     seq.push_back(node[0]);
-    TypeNode stype = node[0].getType();
+    // important to take the type according to the operator here, not the
+    // type of the argument
+    TypeNode stype = node.getType().getSequenceElementType();
     Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }

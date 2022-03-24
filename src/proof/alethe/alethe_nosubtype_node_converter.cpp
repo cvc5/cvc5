@@ -200,7 +200,7 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
         children.push_back(visited[child]);
       }
       visited[cur] = !childChanged ? cur : nm->mkNode(cur.getKind(), children);
-      if (Trace.isOn("alethe-proof-subtyping-convert") && childChanged)
+      if (TraceIsOn("alethe-proof-subtyping-convert") && childChanged)
       {
         Trace("alethe-proof-subtyping-convert")
             << "..rebuilt " << cur << " into " << visited[cur] << "\n";

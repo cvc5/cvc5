@@ -60,7 +60,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
       {
         Trace("nl-ext-factor") << "Factoring for literal " << lit
                                << ", monomial sum is : " << std::endl;
-        if (Trace.isOn("nl-ext-factor"))
+        if (TraceIsOn("nl-ext-factor"))
         {
           ArithMSum::debugPrintMonomialSum(msum, "nl-ext-factor");
         }

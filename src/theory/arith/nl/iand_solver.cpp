@@ -131,7 +131,7 @@ void IAndSolver::checkFullRefine()
     {
       Node valAndXY = d_model.computeAbstractModelValue(i);
       Node valAndXYC = d_model.computeConcreteModelValue(i);
-      if (Trace.isOn("iand-check"))
+      if (TraceIsOn("iand-check"))
       {
         Node x = i[0];
         Node y = i[1];

@@ -34,7 +34,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SolverEngine* optChecker,
   // Model-value of objective (used in optimization loop)
   Node value;
   if (intermediateSatResult.isUnknown()
-      || intermediateSatResult.isSat() == Result::UNSAT)
+      || intermediateSatResult.getStatus() == Result::UNSAT)
   {
     return OptimizationResult(intermediateSatResult, value);
   }
@@ -58,7 +58,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SolverEngine* optChecker,
   // This loop will keep incrmenting/decrementing the objective until unsat
   // When unsat is hit,
   // the optimized value is the model value just before the unsat call
-  while (intermediateSatResult.isSat() == Result::SAT)
+  while (intermediateSatResult.getStatus() == Result::SAT)
   {
     lastSatResult = intermediateSatResult;
     value = optChecker->getValue(target);

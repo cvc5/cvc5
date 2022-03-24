@@ -252,38 +252,6 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getNullSort().isSortConstructor());
   }
 
-  @Test void isFirstClass()
-  {
-    Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(), d_solver.getIntegerSort());
-    assertTrue(d_solver.getIntegerSort().isFirstClass());
-    assertTrue(fun_sort.isFirstClass());
-    Sort reSort = d_solver.getRegExpSort();
-    assertFalse(reSort.isFirstClass());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isFirstClass());
-  }
-
-  @Test void isFunctionLike() throws CVC5ApiException
-  {
-    Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(), d_solver.getIntegerSort());
-    assertFalse(d_solver.getIntegerSort().isFunctionLike());
-    assertTrue(fun_sort.isFunctionLike());
-
-    Sort dt_sort = create_datatype_sort();
-    Datatype dt = dt_sort.getDatatype();
-    Sort cons_sort = dt.getConstructor(0).getSelector(1).getSelectorTerm().getSort();
-    assertTrue(cons_sort.isFunctionLike());
-
-    assertDoesNotThrow(() -> d_solver.getNullSort().isFunctionLike());
-  }
-
-  @Test void isSubsortOf()
-  {
-    assertTrue(d_solver.getIntegerSort().isSubsortOf(d_solver.getIntegerSort()));
-    assertTrue(d_solver.getIntegerSort().isSubsortOf(d_solver.getRealSort()));
-    assertFalse(d_solver.getIntegerSort().isSubsortOf(d_solver.getBooleanSort()));
-    assertDoesNotThrow(() -> d_solver.getNullSort().isSubsortOf(d_solver.getNullSort()));
-  }
-
   @Test void getDatatype() throws CVC5ApiException
   {
     Sort dtypeSort = create_datatype_sort();
@@ -430,9 +398,9 @@ class SortTest
   @Test void getUninterpretedSortName() throws CVC5ApiException
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
-    assertDoesNotThrow(() -> uSort.getUninterpretedSortName());
+    assertDoesNotThrow(() -> uSort.getSymbol());
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    assertThrows(CVC5ApiException.class, () -> bvSort.getUninterpretedSortName());
+    assertThrows(CVC5ApiException.class, () -> bvSort.getSymbol());
   }
 
   @Test void isUninterpretedSortParameterized() throws CVC5ApiException
@@ -460,9 +428,9 @@ class SortTest
   @Test void getUninterpretedSortConstructorName() throws CVC5ApiException
   {
     Sort sSort = d_solver.mkSortConstructorSort("s", 2);
-    assertDoesNotThrow(() -> sSort.getSortConstructorName());
+    assertDoesNotThrow(() -> sSort.getSymbol());
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    assertThrows(CVC5ApiException.class, () -> bvSort.getSortConstructorName());
+    assertThrows(CVC5ApiException.class, () -> bvSort.getSymbol());
   }
 
   @Test void getUninterpretedSortConstructorArity() throws CVC5ApiException
@@ -565,23 +533,6 @@ class SortTest
     assertTrue(intSort.compareTo(boolSort) > 0 != intSort.compareTo(boolSort) < 0);
     assertTrue((intSort.compareTo(bvSort) > 0 || intSort.equals(bvSort))
         == (intSort.compareTo(bvSort) >= 0));
-  }
-
-  @Test void sortSubtyping()
-  {
-    Sort intSort = d_solver.getIntegerSort();
-    Sort realSort = d_solver.getRealSort();
-    assertTrue(intSort.isSubsortOf(realSort));
-    assertFalse(realSort.isSubsortOf(intSort));
-
-    Sort arraySortII = d_solver.mkArraySort(intSort, intSort);
-    Sort arraySortIR = d_solver.mkArraySort(intSort, realSort);
-
-    Sort setSortI = d_solver.mkSetSort(intSort);
-    Sort setSortR = d_solver.mkSetSort(realSort);
-    // we don't support subtyping for sets
-    assertFalse(setSortI.isSubsortOf(setSortR));
-    assertFalse(setSortR.isSubsortOf(setSortI));
   }
 
   @Test void sortScopedToString() throws CVC5ApiException

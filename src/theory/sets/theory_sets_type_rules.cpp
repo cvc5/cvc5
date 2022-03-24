@@ -124,7 +124,7 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::SET_SINGLETON && n.hasOperator()
          && n.getOperator().getKind() == kind::SET_SINGLETON_OP);
 
-  SetSingletonOp op = n.getOperator().getConst<SetSingletonOp>();
+  const SetSingletonOp& op = n.getOperator().getConst<SetSingletonOp>();
   TypeNode type1 = op.getType();
   if (check)
   {

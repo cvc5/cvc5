@@ -57,7 +57,7 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
     Node eq = d_nodeManager->mkNode(kind::DISTINCT, lhs, rhs);
     d_slvEngine->assertFormula(eq);
     Result res = d_slvEngine->checkSat();
-    ASSERT_EQ(res.isSat(), Result::UNSAT);
+    ASSERT_EQ(res.getStatus(), Result::UNSAT);
     d_slvEngine->pop();
   }
 }

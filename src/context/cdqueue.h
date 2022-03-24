@@ -65,13 +65,6 @@ protected:
     // We save the d_size in d_lastsave and we should never destruct below this
     // indices before the corresponding restore.
     d_lastsave = ParentType::d_size;
-    Debug("cdqueue") << "save " << this
-                     << " at level " << this->getContext()->getLevel()
-                     << " size at " << this->d_size
-                     << " iter at " << this->d_iter
-                     << " lastsave at " << this->d_lastsave
-                     << " d_list is " << this->d_list
-                     << " data:" << data << std::endl;
     return data;
   }
 

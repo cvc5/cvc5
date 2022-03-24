@@ -67,7 +67,7 @@ void OptimizedClausesManager::contextNotifyPop()
       ++it;
       continue;
     }
-    if (Trace.isOn("sat-proof"))
+    if (TraceIsOn("sat-proof"))
     {
       Trace("sat-proof") << "Should remove from map pfs of [" << it->first
                          << "]:\n";

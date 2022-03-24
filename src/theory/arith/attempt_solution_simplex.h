@@ -71,9 +71,9 @@ public:
                     RaiseConflict conflictChannel,
                     TempVarMalloc tvmalloc);
 
- Result::Sat attempt(const ApproximateSimplex::Solution& sol);
+ Result::Status attempt(const ApproximateSimplex::Solution& sol);
 
- Result::Sat findModel(bool exactResult) override { Unreachable(); }
+ Result::Status findModel(bool exactResult) override { Unreachable(); }
 
 private:
  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
