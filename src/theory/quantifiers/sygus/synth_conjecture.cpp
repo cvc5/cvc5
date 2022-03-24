@@ -1033,7 +1033,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           // make the builtin version of the full solution
           sol = d_tds->sygusToBuiltin(sol, sol.getType());
           Trace("cegqi-inv") << "Builtin version of solution is : " << sol
-                              << ", type : " << sol.getType() << std::endl;
+                             << ", type : " << sol.getType() << std::endl;
           TNode tsol = sol;
           sol = templ.substitute(templa, tsol);
           Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
