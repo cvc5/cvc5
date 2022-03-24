@@ -1,7 +1,6 @@
 (set-logic ALL)
 (set-info :status unsat)
-(set-option :ag-miniscope-quant true)
-(set-option :qcf-nested-conflict true)
+(set-option :miniscope-quant agg)
 (set-option :macros-quant true)
 (set-option :cegqi false)
 (set-option :fmf-fun-rlv true)
