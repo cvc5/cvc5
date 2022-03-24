@@ -135,6 +135,23 @@ name   = "SMT Layer"
   help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
+  name       = "proofMode"
+  category   = "expert"
+  long       = "proof-mode=MODE"
+  type       = "ProofMode"
+  default    = "OFF"
+  help       = "choose proof mode, see --proof-mode=help"
+  help_mode  = "proof modes."
+[[option.mode.OFF]]
+  name = "off"
+[[option.mode.PP_ONLY]]
+  name = "pp-only"
+[[option.mode.SAT]]
+  name = "sat-proof"
+[[option.mode.FULL]]
+  name = "full-proof"
+
+[[option]]
   name       = "checkProofs"
   category   = "regular"
   long       = "check-proofs"
@@ -188,23 +205,6 @@ name   = "SMT Layer"
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
-
-[[option]]
-  name       = "proofMode"
-  category   = "expert"
-  long       = "proof-mode=MODE"
-  type       = "ProofMode"
-  default    = "OFF"
-  help       = "choose proof mode, see --proof-mode=help"
-  help_mode  = "proof modes."
-[[option.mode.OFF]]
-  name = "off"
-[[option.mode.PP_ONLY]]
-  name = "pp-only"
-[[option.mode.SAT]]
-  name = "sat-proof"
-[[option.mode.FULL]]
-  name = "full-proof"
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -283,7 +283,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "doITESimp"
-  category   = "regular"
+  category   = "expert"
   long       = "ite-simp"
   type       = "bool"
   default    = "false"
@@ -291,7 +291,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "doITESimpOnRepeat"
-  category   = "regular"
+  category   = "expert"
   long       = "on-repeat-ite-simp"
   type       = "bool"
   default    = "false"
@@ -299,7 +299,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "regular"
+  category   = "expert"
   long       = "ext-rew-prep=MODE"
   type       = "ExtRewPrepMode"
   default    = "OFF"
@@ -317,7 +317,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "simplifyWithCareEnabled"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-with-care"
   type       = "bool"
   default    = "false"
@@ -325,7 +325,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "compressItes"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-ite-compress"
   type       = "bool"
   default    = "false"
@@ -349,19 +349,11 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "repeatSimp"
-  category   = "regular"
+  category   = "expert"
   long       = "repeat-simp"
   type       = "bool"
   default    = "false"
   help       = "make multiple passes with nonclausal simplifier"
-
-[[option]]
-  name       = "zombieHuntThreshold"
-  category   = "regular"
-  long       = "simp-ite-hunt-zombies=N"
-  type       = "uint64_t"
-  default    = "524288"
-  help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
   name       = "sortInference"
@@ -373,7 +365,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "abstractValues"
-  category   = "regular"
+  category   = "expert"
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
@@ -400,7 +392,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "foreignTheoryRewrite"
-  category   = "regular"
+  category   = "expert"
   long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"

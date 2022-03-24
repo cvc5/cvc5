@@ -47,7 +47,7 @@ name   = "Strings Theory"
   long       = "strings-infer-sym"
   type       = "bool"
   default    = "true"
-  help       = "strings split on empty string"
+  help       = "generalized inferences in strings based on proxy symbols"
 
 [[option]]
   name       = "stringEagerLen"
@@ -89,7 +89,6 @@ name   = "Strings Theory"
   name = "abort"
   help = "Abort if looping word equations are encountered."
 
-
 [[option]]
   name       = "stringInferAsLemmas"
   category   = "regular"
@@ -125,18 +124,20 @@ name   = "Strings Theory"
 [[option]]
   name       = "regExpElim"
   category   = "regular"
-  long       = "re-elim"
-  type       = "bool"
-  default    = "false"
-  help       = "elimination techniques for regular expressions"
-
-[[option]]
-  name       = "regExpElimAgg"
-  category   = "regular"
-  long       = "re-elim-agg"
-  type       = "bool"
-  default    = "false"
-  help       = "aggressive elimination techniques for regular expressions"
+  long       = "re-elim=MODE"
+  type       = "RegExpElimMode"
+  default    = "OFF"
+  help       = "regular expression elimination mode"
+  help_mode  = "Regular expression elimination modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use regular expression elimination."
+[[option.mode.ON]]
+  name = "on"
+  help = "Use regular expression elimination."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Use aggressive regular expression elimination."
 
 [[option]]
   name       = "stringFlatForms"
@@ -222,7 +223,7 @@ name   = "Strings Theory"
   long       = "strings-regexp-inclusion"
   type       = "bool"
   default    = "true"
-  help       = "use regular expression inclusion"
+  help       = "use regular expression inclusion for finding conflicts and avoiding regular expression unfolding"
 
 [[option]]
   name       = "seqArray"

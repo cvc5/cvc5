@@ -181,7 +181,7 @@ int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
     if( n.hasAttribute(InstLevelAttribute()) ){
       return n.getAttribute(InstLevelAttribute());
     }
-    return options().quantifiers.instLevelInputOnly ? -1 : 0;
+    return -1;
   }
   else if (options().quantifiers.quantRepMode == options::QuantRepMode::FIRST)
   {
