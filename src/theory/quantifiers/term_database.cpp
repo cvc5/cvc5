@@ -508,11 +508,10 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
         return false;
       }
     }else{
-      if (options().quantifiers.instLevelInputOnly)
-      {
-        Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
-        return false;
-      }
+      Trace("inst-add-debug")
+          << "Term " << n << " does not have an instantiation level."
+          << std::endl;
+      return false;
     }
   }
   // it cannot have instantiation constants, which originate from

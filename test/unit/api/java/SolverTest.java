@@ -1552,6 +1552,52 @@ class SolverTest
     assertAll(assertions);
   }
 
+  @Test void getStatistics()
+  {
+    // do some array reasoning to make sure we have a double statistics
+    {
+      Sort s1 = d_solver.getIntegerSort();
+      Sort s2 = d_solver.mkArraySort(s1, s1);
+      Term t1 = d_solver.mkConst(s1, "i");
+      Term t2 = d_solver.mkVar(s2, "a");
+      Term t3 = d_solver.mkTerm(Kind.SELECT, t2, t1);
+      d_solver.checkSat();
+    }
+    Statistics stats = d_solver.getStatistics();
+    stats.toString();
+    {
+      Stat s = stats.get("global::totalTime");
+      assertFalse(s.isInternal());
+      assertFalse(s.isDefault());
+      assertTrue(s.isString());
+      assertTrue(s.getString().endsWith("ms"));
+      s = stats.get("resource::resourceUnitsUsed");
+      assertTrue(s.isInternal());
+      assertFalse(s.isDefault());
+      assertTrue(s.isInt());
+      assertTrue(s.getInt() >= 0);
+    }
+    for (Map.Entry<String, Stat> s : stats) {}
+    for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
+    {
+      Map.Entry<String, Stat> elem = it.next();
+      if (elem.getKey() == "api::CONSTANT")
+      {
+        assertFalse(elem.getValue().isInternal());
+        assertFalse(elem.getValue().isDefault());
+        assertTrue(elem.getValue().isHistogram());
+        Map<String, Long> hist = elem.getValue().getHistogram();
+        assertFalse(hist.isEmpty());
+        assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
+      }
+      else if (elem.getKey() == "theory::arrays::avgIndexListLength")
+      {
+        assertTrue(elem.getValue().isInternal());
+        assertTrue(elem.getValue().isDefault());
+      }
+    }
+  }
+
   @Test void getUnsatAssumptions1()
   {
     d_solver.setOption("incremental", "false");

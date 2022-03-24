@@ -83,6 +83,7 @@
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 #include "util/string.h"
+#include "util/synth_result.h"
 #include "util/uninterpreted_sort_value.h"
 #include "util/utility.h"
 
@@ -985,6 +986,45 @@ std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
     case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
     default: Unhandled() << e;
   }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* SynthResult */
+/* -------------------------------------------------------------------------- */
+
+SynthResult::SynthResult(const cvc5::SynthResult& r)
+    : d_result(new cvc5::SynthResult(r))
+{
+}
+
+SynthResult::SynthResult() : d_result(new cvc5::SynthResult()) {}
+
+bool SynthResult::isNull() const
+{
+  return d_result->getStatus() == cvc5::SynthResult::NONE;
+}
+
+bool SynthResult::hasSolution(void) const
+{
+  return d_result->getStatus() == cvc5::SynthResult::SOLUTION;
+}
+
+bool SynthResult::hasNoSolution() const
+{
+  return d_result->getStatus() == cvc5::SynthResult::NO_SOLUTION;
+}
+
+bool SynthResult::isUnknown() const
+{
+  return d_result->getStatus() == cvc5::SynthResult::UNKNOWN;
+}
+
+std::string SynthResult::toString(void) const { return d_result->toString(); }
+
+std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
+{
+  out << sr.toString();
   return out;
 }
 
