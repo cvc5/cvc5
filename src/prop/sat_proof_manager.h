@@ -271,7 +271,7 @@ class CnfStream;
  * getProof
  *
  */
-class SatProofManager: protected EnvObj
+class SatProofManager : protected EnvObj
 {
  public:
   SatProofManager(Env& env, Minisat::Solver* solver, CnfStream* cnfStream);
