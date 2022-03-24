@@ -134,6 +134,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
         solver->setOption("input-language", "sygus2");
+        // enable the sygus API
+        solver->setOption("sygus", "true");
       }
     }
   }
