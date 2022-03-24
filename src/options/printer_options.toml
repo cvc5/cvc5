@@ -3,7 +3,7 @@ name   = "Printing"
 
 [[option]]
   name       = "flattenHOChains"
-  category   = "regular"
+  category   = "expert"
   long       = "flatten-ho-chains"
   type       = "bool"
   default    = "false"
@@ -11,7 +11,7 @@ name   = "Printing"
 
 [[option]]
   name       = "printInstMode"
-  category   = "regular"
+  category   = "common"
   long       = "print-inst=MODE"
   type       = "PrintInstMode"
   default    = "LIST"
