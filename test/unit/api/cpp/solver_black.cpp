@@ -2652,7 +2652,7 @@ TEST_F(TestApiBlackSolver, addSygusInvConstraint)
 
 TEST_F(TestApiBlackSolver, getSynthSolution)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "false");
 
   Term nullTerm;
@@ -2675,7 +2675,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
 
 TEST_F(TestApiBlackSolver, getSynthSolutions)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "false");
 
   Term nullTerm;
@@ -2700,7 +2700,7 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
 
 TEST_F(TestApiBlackSolver, checkSynthNext)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
@@ -2712,7 +2712,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
 
 TEST_F(TestApiBlackSolver, checkSynthNext2)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "false");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
@@ -2722,7 +2722,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext2)
 
 TEST_F(TestApiBlackSolver, checkSynthNext3)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 

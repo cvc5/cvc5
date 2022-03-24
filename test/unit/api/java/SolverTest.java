@@ -2613,7 +2613,7 @@ class SolverTest
 
   @Test void getSynthSolution() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "false");
 
     Term nullTerm = d_solver.getNullTerm();
@@ -2637,7 +2637,7 @@ class SolverTest
 
   @Test void getSynthSolutions() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "false");
 
     Term nullTerm = d_solver.getNullTerm();
@@ -2662,7 +2662,7 @@ class SolverTest
   }
   @Test void checkSynthNext() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
@@ -2674,7 +2674,7 @@ class SolverTest
 
   @Test void checkSynthNext2() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "false");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
@@ -2684,7 +2684,7 @@ class SolverTest
 
   @Test void checkSynthNext3() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 

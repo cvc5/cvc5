@@ -2026,7 +2026,7 @@ def test_add_sygus_inv_constraint(solver):
 
 
 def test_get_synth_solution(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
 
     nullTerm = cvc5.Term(solver)
@@ -2051,7 +2051,7 @@ def test_get_synth_solution(solver):
         slv.getSynthSolution(f)
 
 def test_check_synth_next(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
@@ -2062,7 +2062,7 @@ def test_check_synth_next(solver):
     solver.getSynthSolutions([f])
 
 def test_check_synth_next2(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
@@ -2071,7 +2071,7 @@ def test_check_synth_next2(solver):
         solver.checkSynthNext()
 
 def test_check_synth_next3(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
     with pytest.raises(RuntimeError):
@@ -2245,7 +2245,7 @@ def test_get_model_domain_elements(solver):
 
 
 def test_get_synth_solutions(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
 
     nullTerm = cvc5.Term(solver)
