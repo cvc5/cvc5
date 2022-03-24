@@ -2455,21 +2455,21 @@ TEST_F(TestApiBlackSolver, resetAssertions)
   d_solver.checkSatAssuming({slt, ule});
 }
 
-TEST_F(TestApiBlackSolver, mkSygusVar)
+TEST_F(TestApiBlackSolver, declareSygusVar)
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
   Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
 
-  ASSERT_NO_THROW(d_solver.mkSygusVar(boolSort));
-  ASSERT_NO_THROW(d_solver.mkSygusVar(funSort));
-  ASSERT_NO_THROW(d_solver.mkSygusVar(boolSort, std::string("b")));
-  ASSERT_NO_THROW(d_solver.mkSygusVar(funSort, ""));
-  ASSERT_THROW(d_solver.mkSygusVar(Sort()), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkSygusVar(d_solver.getNullSort(), "a"),
+  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort, std::string("b")));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort, ""));
+  ASSERT_THROW(d_solver.declareSygusVar(Sort()), CVC5ApiException);
+  ASSERT_THROW(d_solver.declareSygusVar(d_solver.getNullSort(), "a"),
                CVC5ApiException);
   Solver slv;
-  ASSERT_THROW(slv.mkSygusVar(boolSort), CVC5ApiException);
+  ASSERT_THROW(slv.declareSygusVar(boolSort), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkSygusGrammar)

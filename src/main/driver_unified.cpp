@@ -134,7 +134,10 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
         solver->setOption("input-language", "sygus2");
-        // enable the sygus API
+        // Enable the sygus API. We set this here instead of in set defaults 
+        // to simplify checking at the API level. In particular, the sygus
+        // option is the authority on whether sygus commands are currently
+        // allowed in the API.
         solver->setOption("sygus", "true");
       }
     }
