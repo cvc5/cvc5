@@ -515,7 +515,7 @@ enum Kind : int32_t
    */
   INTS_DIVISION,
   /**
-   * Integer modulus, division by `0` undefined.
+   * Integer modulus, modulus by `0` undefined.
    *
    * - Arity: `2`
    *   - `1:` Term of Sort Int
@@ -840,7 +840,7 @@ enum Kind : int32_t
    * Is-integer predicate.
    *
    * - Arity: `1`
-   *   - `1:` Term of Sort Int
+   *   - `1:` Term of Sort Int or Real
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -2199,8 +2199,8 @@ enum Kind : int32_t
    * - Arity: `3`
    *   - `1:` Datatype updater Term
    *          (see DatatypeSelector::getUpdaterTerm() const)
-   *   - `2:` Term of Datatype Sort (DatatypeSelector must belong to a
-   *          constructor of this Datatype Sort)
+   *   - `2:` Term of Datatype Sort (DatatypeSelector of the updater must
+   *          belong to a constructor of this Datatype Sort)
    *   - `3:` Term of the codomain Sort of the selector (the Term to update
    *          the field of the datatype term with)
    *
@@ -2253,8 +2253,8 @@ enum Kind : int32_t
    * A (constant) case expression to be used within a match expression.
    *
    * - Arity: `2`
-   *   - `1:` Term of kind #APPLY_CONSTRUCTOR
-   *   - `2:` Term of any Sort (the term to match against)
+   *   - `1:` Term of kind #APPLY_CONSTRUCTOR (the pattern to match against)
+   *   - `2:` Term of any Sort (the term the pattern evaluates to)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -2276,13 +2276,13 @@ enum Kind : int32_t
    *            the case)
    *     - `2:` Term of kind #VARIABLE (the pattern expression, the free
    *            variable of the case)
-   *     - `3:` Term of any Sort (the term to match against)
+   *     - `3:` Term of any Sort (the term the pattern evaluates to)
    *   - For constructors with selectors:
    *     - `1:` Term of kind #VARIABLE_LIST (containing the free variable of
    *            the case)
    *     - `2:` Term of kind #APPLY_CONSTRUCTOR (the pattern expression,
    *            applying the set of variables to the constructor)
-   *     - `3:` Term of any Sort (the term to match against)
+   *     - `3:` Term of any Sort (the term the pattern evaluates to)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -2335,7 +2335,6 @@ enum Kind : int32_t
    *   - `1..n:` The tuple indices to project
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
@@ -2496,7 +2495,7 @@ enum Kind : int32_t
    * Determines if the given set element is a member of the second set.
    *
    * - Arity: `2`
-   *   - `1:` Term of any Sort (must match the element sort of the
+   *   - `1:` Term of any Sort (must match the element Sort of the
    *          given set Term)
    *   - `2:` Term of set Sort
    *
@@ -2865,7 +2864,9 @@ enum Kind : int32_t
    * Bag membership predicate.
    *
    * - Arity: `2`
-   *   - `1..2:` Terms of bag Sort
+   *   - `1:` Term of any Sort (must match the element Sort of the
+   *          given bag Term)
+   *   - `2:` Terms of bag Sort
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3051,7 +3052,7 @@ enum Kind : int32_t
    * Table cross product.
    *
    * - Arity: `2`
-   *   - `1..2:` Terms of bag Sort
+   *   - `1..2:` Terms of table Sort
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
