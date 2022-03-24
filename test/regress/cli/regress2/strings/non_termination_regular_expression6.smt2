@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --re-elim
+; COMMAND-LINE: --strings-exp --re-elim=on
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

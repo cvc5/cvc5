@@ -488,7 +488,9 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
       }
-      Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
+      Node en = hasNonStar ? n
+                           : NodeManager::currentNM()->mkNode(APPLY_UF,
+                                                              entry_children);
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
         Trace("fmc-model-debug") << "- add " << n << " -> " << nv << " (entry is " << en << ")" << std::endl;
         conds.push_back(n);
@@ -1378,10 +1380,6 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
   return fm->getFunctionValue(op, argPrefix);
 }
 
-
-bool FullModelChecker::useSimpleModels() {
-  return options().quantifiers.fmfFmcSimple;
-}
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {
   if (d_quant_cond.find(q) != d_quant_cond.end())
