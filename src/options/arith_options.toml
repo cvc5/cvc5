@@ -20,6 +20,7 @@ name   = "Arithmetic Theory"
   help  = "Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d."
 [[option.mode.NO]]
   name = "none"
+  help  = "Do not add unate lemmas."
 
 [[option]]
   name       = "arithPropagationMode"

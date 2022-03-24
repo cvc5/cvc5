@@ -2589,8 +2589,8 @@ enum Kind : int32_t
    * comprehension @f$C@f$ with the above form has members given by the
    * following semantics:
    * @f[
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y )
-   * \Leftrightarrow (member y C)
+   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \wedge t[x_1...x_n] = y )
+   * \Leftrightarrow (set.member \; y \; C)
    * @f]
    * where @f$y@f$ ranges over the element Sort of the (set) Sort of the
    * comprehension. If @f$t[x_1..x_n]@f$ is not provided, it is equivalent
