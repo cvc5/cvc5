@@ -2457,6 +2457,7 @@ TEST_F(TestApiBlackSolver, resetAssertions)
 
 TEST_F(TestApiBlackSolver, declareSygusVar)
 {
+  d_solver.setOption("sygus", "true");
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
   Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
@@ -2495,6 +2496,7 @@ TEST_F(TestApiBlackSolver, mkSygusGrammar)
 
 TEST_F(TestApiBlackSolver, synthFun)
 {
+  d_solver.setOption("sygus", "true");
   Sort null = d_solver.getNullSort();
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
@@ -2529,6 +2531,7 @@ TEST_F(TestApiBlackSolver, synthFun)
 
 TEST_F(TestApiBlackSolver, synthInv)
 {
+  d_solver.setOption("sygus", "true");
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
 
@@ -2554,6 +2557,7 @@ TEST_F(TestApiBlackSolver, synthInv)
 
 TEST_F(TestApiBlackSolver, addSygusConstraint)
 {
+  d_solver.setOption("sygus", "true");
   Term nullTerm;
   Term boolTerm = d_solver.mkBoolean(true);
   Term intTerm = d_solver.mkInteger(1);
@@ -2568,6 +2572,7 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
 
 TEST_F(TestApiBlackSolver, addSygusAssume)
 {
+  d_solver.setOption("sygus", "true");
   Term nullTerm;
   Term boolTerm = d_solver.mkBoolean(false);
   Term intTerm = d_solver.mkInteger(1);
@@ -2582,6 +2587,7 @@ TEST_F(TestApiBlackSolver, addSygusAssume)
 
 TEST_F(TestApiBlackSolver, addSygusInvConstraint)
 {
+  d_solver.setOption("sygus", "true");
   Sort boolean = d_solver.getBooleanSort();
   Sort real = d_solver.getRealSort();
 

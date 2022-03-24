@@ -2405,6 +2405,7 @@ class SolverTest
 
   @Test void declareSygusVar() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort boolSort = d_solver.getBooleanSort();
     Sort intSort = d_solver.getIntegerSort();
     Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
@@ -2493,6 +2494,7 @@ class SolverTest
 
   @Test void synthInv() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
@@ -2518,6 +2520,7 @@ class SolverTest
 
   @Test void addSygusConstraint() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(true);
     Term intTerm = d_solver.mkInteger(1);
@@ -2533,6 +2536,7 @@ class SolverTest
 
   @Test void addSygusAssume()
   {
+    d_solver.setOption("sygus", "true");
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(false);
     Term intTerm = d_solver.mkInteger(1);
@@ -2548,6 +2552,7 @@ class SolverTest
 
   @Test void addSygusInvConstraint() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort real = d_solver.getRealSort();
 

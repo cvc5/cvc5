@@ -1915,6 +1915,7 @@ def test_mk_sygus_grammar(solver):
 
 
 def test_synth_inv(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -1941,6 +1942,7 @@ def test_synth_inv(solver):
 
 
 def test_add_sygus_constraint(solver):
+    solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
     boolTerm = solver.mkBoolean(True)
     intTerm = solver.mkInteger(1)
@@ -1957,6 +1959,7 @@ def test_add_sygus_constraint(solver):
 
 
 def test_add_sygus_inv_constraint(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     real = solver.getRealSort()
 
