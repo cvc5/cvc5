@@ -146,7 +146,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
         Node expn;
         // should we unfold?
         bool do_unfold = false;
-        if (options().quantifiers.sygusEvalUnfoldBool)
+        if (options().quantifiers.sygusEvalUnfoldMode
+            == options::SygusEvalUnfoldMode::SINGLE_BOOL)
         {
           Node bTermUse = bTerm;
           if (bTerm.getKind() == APPLY_UF)
@@ -163,6 +164,12 @@ void SygusEvalUnfold::registerModelValue(Node a,
           {
             do_unfold = true;
           }
+        }
+        else if (options().quantifiers.sygusEvalUnfoldMode
+                 == options::SygusEvalUnfoldMode::SINGLE)
+        {
+          // do single step for all
+          do_unfold = true;
         }
         if (do_unfold || hasSymCons)
         {

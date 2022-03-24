@@ -433,14 +433,6 @@ name   = "Quantifiers"
   help = "Run instantiation at last call effort, after theory combination and and theories report sat."
 
 [[option]]
-  name       = "instWhenStrictInterleave"
-  category   = "regular"
-  long       = "inst-when-strict-interleave"
-  type       = "bool"
-  default    = "true"
-  help       = "ensure theory combination and standard quantifier effort strategies take turns"
-
-[[option]]
   name       = "instWhenPhase"
   category   = "expert"
   long       = "inst-when-phase=N"
@@ -1072,14 +1064,6 @@ name   = "Quantifiers"
   help       = "statically normalize sygus grammars based on flattening (linearization)"
 
 [[option]]
-  name       = "sygusTemplEmbedGrammar"
-  category   = "regular"
-  long       = "sygus-templ-embed-grammar"
-  type       = "bool"
-  default    = "false"
-  help       = "embed sygus templates into grammars"
-
-[[option]]
   name       = "sygusGrammarConsMode"
   category   = "regular"
   long       = "sygus-grammar-cons=MODE"
@@ -1159,20 +1143,25 @@ name   = "Quantifiers"
   help       = "when using multiple enumerators, ensure that we only register values of minimial term size plus this value (default 0)"
 
 [[option]]
-  name       = "sygusEvalUnfold"
+  name       = "sygusEvalUnfoldMode"
   category   = "regular"
-  long       = "sygus-eval-unfold"
-  type       = "bool"
-  default    = "true"
-  help       = "do unfolding of sygus evaluation functions"
-
-[[option]]
-  name       = "sygusEvalUnfoldBool"
-  category   = "expert"
-  long       = "sygus-eval-unfold-bool"
-  type       = "bool"
-  default    = "true"
-  help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
+  long       = "sygus-eval-unfold=MODE"
+  type       = "SygusEvalUnfoldMode"
+  default    = "SINGLE_BOOL"
+  help       = "modes for sygus evaluation unfolding"
+  help_mode  = "Modes for sygus evaluation unfolding."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use sygus evaluation unfolding."
+[[option.mode.SINGLE]]
+  name = "single"
+  help = "Do single-step unfolding for all evaluation functions."
+[[option.mode.SINGLE_BOOL]]
+  name = "single-bool"
+  help = "Do single-step unfolding for Boolean functions and ITEs, and multi-step unfolding for all others."
+[[option.mode.MULTI]]
+  name = "multi"
+  help = "Do multi-step unfolding for all evaluation functions."
 
 [[option]]
   name       = "sygusStream"
