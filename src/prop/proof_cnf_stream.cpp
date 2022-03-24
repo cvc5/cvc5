@@ -23,14 +23,17 @@
 namespace cvc5 {
 namespace prop {
 
-ProofCnfStream::ProofCnfStream(context::UserContext* u,
+ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
-                               SatProofManager* satPM,
-                               ProofNodeManager* pnm)
-    : d_cnfStream(cnfStream),
+                               SatProofManager* satPM)
+    : EnvObj(env),
+      d_cnfStream(cnfStream),
       d_satPM(satPM),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_blocked(u)
+      d_proof(env.getProofNodeManager(),
+              nullptr,
+              userContext(),
+              "ProofCnfStream::LazyCDProof"),
+      d_blocked(userContext())
 {
 }
 
@@ -59,7 +62,7 @@ std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
 {
   Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-  if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+  if (TraceIsOn("cnf") && normClauseNode != clauseNode)
   {
     Trace("cnf") << push
                  << "ProofCnfStream::normalizeAndRegister: steps to normalized "
@@ -591,7 +594,9 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
     clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
   normalizeAndRegister(clauseExp);
-  // consume steps
+  // consume steps if clausification being recorded. If we are not logging it,
+  // we need to add the clause as a closed step to the proof so that the SAT
+  // proof does not have non-input formulas as assumptions.
   if (proofLogging)
   {
     const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
@@ -600,6 +605,10 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
       d_proof.addStep(step.first, step.second);
     }
     d_psb.clear();
+  }
+  else
+  {
+    d_proof.addStep(clauseExp, PfRule::THEORY_LEMMA, {}, {clauseExp});
   }
 }
 
@@ -628,7 +637,7 @@ void ProofCnfStream::ensureLiteral(TNode n)
   // remove top level negation. We don't need to track this because it's a
   // literal.
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // These are not removable
     d_cnfStream.d_removable = false;

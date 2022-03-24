@@ -24,8 +24,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
-    : ExprMiner(env), d_queryCount(0)
+QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -38,19 +37,11 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
   d_subOptions.smt.checkModels = true;
 }
 
-void QueryGeneratorUnsat::initialize(const std::vector<Node>& vars,
-                                     SygusSampler* ss)
-{
-  Assert(ss != nullptr);
-  d_queryCount = 0;
-  ExprMiner::initialize(vars, ss);
-}
-
 bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
-  d_terms.push_back(n);
   Trace("sygus-qgen") << "Add term: " << n << std::endl;
-  Assert(n.getType().isBoolean());
+  ensureBoolean(n);
+  d_terms.push_back(n);
 
   // the loop below conjoins a random subset of predicates we have enumerated
   // so far C1 ^ ... ^ Cn such that no subset of C1 ... Cn is an unsat core
@@ -79,7 +70,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
       Result r = checkCurrent(aTermCurr, out, currModel);
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
         activeTerms.pop_back();
@@ -140,7 +131,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
   initializeChecker(queryChecker, qy, d_subOptions, logicInfo());
   Result r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     // if unsat, get the unsat core
     std::vector<Node> unsatCore;
@@ -149,11 +140,12 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
     Trace("sygus-qgen-check") << "...unsat core: " << unsatCore << std::endl;
     d_cores.add(d_false, unsatCore);
   }
-  else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  else if (r.getStatus() == Result::SAT)
   {
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
     Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
   }
+  dumpQuery(qy, r);
   return r;
 }
 

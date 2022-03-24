@@ -70,7 +70,39 @@
   (! res term
   (! f1 term
   (! f2 term
-  (! p (holds f1)
-  (! p (holds f2)
+  (! p1 (holds f1)
+  (! p2 (holds f2)
   (! r (^ (sc_arith_trichotomy f1 f2) res)
     (holds res))))))))
+
+; Returns ok if c is the greatest integer less than (integer or real) constant
+; t. We compute this via conditions 0 <= c-t ^ (c-t)-1 <= 0.
+(program sc_check_int_tight_ub ((t term) (c term)) Ok
+  (mpq_between_zero_one (mp_add (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))
+                                (mp_neg (mpz_to_mpq (sc_arith_get_mpz c))))))
+
+; Integer tight upper bound rule, which uses the above side condition to
+; compute whether c is the greatest integer less than t. The constant c must
+; be provided to applications of this rule.
+(declare int_tight_ub
+  (! s term
+  (! t term
+  (! c term
+  (! p (holds (a.< s t))
+  (! r (^ (sc_check_int_tight_ub t c) ok)
+    (holds (a.<= s c))))))))
+
+; Returns ok if c2 is the least integer greater than c1. We compute this
+; via conditions 0 <= c1-c2 ^ (c1-c2)-1 <= 0.
+(program sc_check_int_tight_lb ((t term) (c term)) Ok
+  (mpq_between_zero_one (mp_add (mpz_to_mpq (sc_arith_get_mpz c))
+                                (mp_neg (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))))))
+
+; Similar to int_tight_ub, but for lower bound.
+(declare int_tight_lb
+  (! s term
+  (! t term
+  (! c term
+  (! p (holds (a.> s t))
+  (! r (^ (sc_check_int_tight_lb t c) ok)
+    (holds (a.>= s c))))))))

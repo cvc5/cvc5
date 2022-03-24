@@ -146,7 +146,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   }
@@ -162,9 +161,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        cmd.reset(new SetOptionCommand("incremental", "true"));
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
+        solver->setOption("incremental", "true");
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager(),
@@ -184,12 +181,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           << Configuration::copyright() << std::endl;
 
       while(true) {
-        try {
-          cmd.reset(shell.readCommand());
-        } catch(UnsafeInterruptException& e) {
-          dopts.out() << CommandInterrupted();
-          break;
-        }
+        cmd.reset(shell.readCommand());
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
@@ -202,9 +194,13 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        cmd.reset(new SetOptionCommand("incremental", "false"));
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
+        solver->setOption("incremental", "false");
+      }
+      // we don't need to check that terms passed to API methods are well
+      // formed, since this should be an invariant of the parser
+      if (!solver->getOptionInfo("wf-checking").setByUser)
+      {
+        solver->setOption("wf-checking", "false");
       }
 
       ParserBuilder parserBuilder(
@@ -217,9 +213,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       else
       {
         parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"),
-                                filename,
-                                solver->getOptionInfo("mmap").boolValue()));
+            Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
       bool interrupted = false;
@@ -230,13 +224,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
           pExecutor->reset();
           break;
         }
-        try {
-          cmd.reset(parser->nextCommand());
-          if (cmd == nullptr) break;
-        } catch (UnsafeInterruptException& e) {
-          interrupted = true;
-          continue;
-        }
+        cmd.reset(parser->nextCommand());
+        if (cmd == nullptr) break;
 
         status = pExecutor->doCommand(cmd);
         if (cmd->interrupted() && status == 0) {

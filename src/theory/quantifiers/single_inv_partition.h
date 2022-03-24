@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/subs.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -56,10 +57,10 @@ namespace quantifiers {
  * see Example 5 of Reynolds et al. SYNT 2017.
  *
  */
-class SingleInvocationPartition
+class SingleInvocationPartition : protected EnvObj
 {
  public:
-  SingleInvocationPartition() : d_has_input_funcs(false) {}
+  SingleInvocationPartition(Env& env);
   ~SingleInvocationPartition() {}
   /** initialize this partition for formula n, with input functions funcs
    *
@@ -289,6 +290,9 @@ class SingleInvocationPartition
 
   /** get the and node corresponding to d_conjuncts[index] */
   Node getConjunct(int index);
+  /** Quantified simplify (treat free variables in n as quantified and run
+   * rewriter) */
+  Node getQuantSimplify(TNode n) const;
 };
 
 }  // namespace quantifiers

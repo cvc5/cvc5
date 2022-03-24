@@ -20,7 +20,6 @@
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
-#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -28,7 +27,6 @@ namespace theory {
 // optimization: try to rewrite to constant
 Result quickCheck(Node& query)
 {
-  query = theory::Rewriter::rewrite(query);
   if (query.isConst())
   {
     if (!query.getConst<bool>())
@@ -40,7 +38,7 @@ Result quickCheck(Node& query)
       return Result(Result::SAT);
     }
   }
-  return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+  return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
 void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
@@ -113,7 +111,7 @@ Result checkWithSubsolver(Node query,
   Result r = quickCheck(query);
   if (!r.isUnknown())
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    if (r.getStatus() == Result::SAT)
     {
       // default model
       NodeManager* nm = NodeManager::currentNM();
@@ -128,7 +126,7 @@ Result checkWithSubsolver(Node query,
   initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  if (r.getStatus() == Result::SAT)
   {
     for (const Node& v : vars)
     {

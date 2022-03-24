@@ -183,10 +183,15 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConjectureStale = true;
 }
 
-Result SygusSolver::checkSynth(Assertions& as)
+Result SygusSolver::checkSynth(Assertions& as, bool isNext)
 {
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
+  if (!isNext)
+  {
+    // if we are not using check-synth-next, we always reconstruct the solver.
+    d_sygusConjectureStale = true;
+  }
   if (usingSygusSubsolver() && d_subsolverCd.get() != d_subsolver.get())
   {
     // this can occur if we backtrack to a place where we were using a different
@@ -194,11 +199,6 @@ Result SygusSolver::checkSynth(Assertions& as)
     // the subsolver.
     d_sygusConjectureStale = true;
   }
-  // TODO (project #7): we currently must always rebuild the synthesis
-  // conjecture + subsolver, since it answers unsat. When the subsolver is
-  // updated to treat "sat" as solution for synthesis conjecture, this line
-  // will be deleted.
-  d_sygusConjectureStale = true;
   if (d_sygusConjectureStale)
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -259,7 +259,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   {
     std::vector<Node> query;
     query.push_back(d_conj);
-    r = d_smtSolver.checkSatisfiability(as, query, false);
+    r = d_smtSolver.checkSatisfiability(as, query);
   }
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
@@ -300,7 +300,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   else
   {
     // otherwise, we return "unknown"
-    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    r = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
   }
   return r;
 }
@@ -400,13 +400,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.asSatisfiabilityResult().isUnknown())
+    if (r.isUnknown())
     {
       InternalError() << "SygusSolver::checkSynthSolution(): could not check "
                          "solution, result "
                          "unknown.";
     }
-    else if (r.asSatisfiabilityResult().isSat())
+    else if (r.getStatus() == Result::SAT)
     {
       InternalError()
           << "SygusSolver::checkSynthSolution(): produced solution leads to "

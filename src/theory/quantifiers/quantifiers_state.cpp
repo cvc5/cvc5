@@ -30,7 +30,7 @@ QuantifiersState::QuantifiersState(Env& env,
       d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
-  d_ierCounter = options().quantifiers.instWhenTcFirst ? 0 : 1;
+  d_ierCounter = 0;
   d_ierCounterc = d_ierCounter;
   d_ierCounterLc = 0;
   d_ierCounterLastLc = 0;
@@ -112,7 +112,7 @@ uint64_t QuantifiersState::getInstRounds() const { return d_ierCounter; }
 
 void QuantifiersState::debugPrintEqualityEngine(const char* c) const
 {
-  bool traceEnabled = Trace.isOn(c);
+  bool traceEnabled = TraceIsOn(c);
   if (!traceEnabled)
   {
     return;

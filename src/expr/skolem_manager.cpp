@@ -43,14 +43,22 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+struct AbstractValueId
+{
+};
+using AbstractValueAttribute = expr::Attribute<AbstractValueId, bool>;
+
 const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
     case SkolemFunId::SQRT: return "SQRT";
+    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
+      return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
@@ -79,7 +87,12 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
     case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
     case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
+    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
+    case SkolemFunId::BAG_DEQ_DIFF: return "BAG_DEQ_DIFF";
+    case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
+    case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     default: return "?";
   }
@@ -290,6 +303,12 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
   return nullptr;
 }
 
+bool SkolemManager::isAbstractValue(TNode n) const
+{
+  AbstractValueAttribute ava;
+  return n.getAttribute(ava);
+}
+
 Node SkolemManager::getWitnessForm(Node k)
 {
   Assert(k.getKind() == SKOLEM);
@@ -424,6 +443,13 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
+
+  if ((flags & SKOLEM_ABSTRACT_VALUE) != 0)
+  {
+    AbstractValueAttribute ava;
+    n.setAttribute(ava, true);
+  }
+
   return n;
 }
 

@@ -98,12 +98,19 @@ bool ProcessAssertions::apply(Assertions& as)
   // Dump the assertions
   dumpAssertions("assertions::pre-everything", as);
   Trace("assertions::pre-everything") << std::endl;
+  if (isOutputOn(OutputTag::PRE_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::PRE_ASSERTS);
+    outPA << ";; pre-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; pre-asserts end" << std::endl;
+  }
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
 
-  Debug("smt") << "#Assertions : " << assertions.size() << endl;
-  Debug("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
+  Trace("smt") << "#Assertions : " << assertions.size() << endl;
+  Trace("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
 
   if (assertions.size() == 0)
   {
@@ -137,7 +144,7 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options().quantifiers.globalNegate)
   {
@@ -166,11 +173,11 @@ bool ProcessAssertions::apply(Assertions& as)
     applyPass("ackermann", as);
   }
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   bool noConflict = true;
 
-  if (options().smt.extRewPrep)
+  if (options().smt.extRewPrep != options::ExtRewPrepMode::OFF)
   {
     applyPass("ext-rew-pre", as);
   }
@@ -201,10 +208,6 @@ bool ProcessAssertions::apply(Assertions& as)
     applyPass("foreign-theory-rewrite", as);
   }
 
-  // Since this pass is not robust for the information tracking necessary for
-  // unsat cores, it's only applied if we are not doing unsat core computation
-  applyPass("apply-substs", as);
-
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", as);
 
@@ -233,6 +236,9 @@ bool ProcessAssertions::apply(Assertions& as)
   if (!options().strings.stringLazyPreproc)
   {
     applyPass("strings-eager-pp", as);
+    // needed since strings eager preprocessing may reintroduce skolems that
+    // were already solved for in incremental mode
+    applyPass("apply-substs", as);
   }
   if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
   {
@@ -274,7 +280,7 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     applyPass("static-learning", as);
   }
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options().smt.learnedRewrite)
   {
@@ -317,11 +323,11 @@ bool ProcessAssertions::apply(Assertions& as)
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
-  Debug("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
+  Trace("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
                << endl;
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   // ensure rewritten
   applyPass("rewrite", as);
@@ -340,6 +346,13 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
   dumpAssertions("assertions::post-everything", as);
   Trace("assertions::post-everything") << std::endl;
+  if (isOutputOn(OutputTag::POST_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::POST_ASSERTS);
+    outPA << ";; post-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; post-asserts end" << std::endl;
+  }
 
   return noConflict;
 }
@@ -384,7 +397,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // ITE simplification
     if (options().smt.doITESimp
@@ -398,7 +411,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // Unconstrained simplification
     if (options().smt.unconstrainedSimp)
@@ -419,7 +432,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
     dumpAssertions("post-repeatsimp", as);
     Trace("smt") << "POST repeatSimp" << endl;
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
   }
   catch (TypeCheckingExceptionPrivate& tcep)
   {
@@ -437,21 +450,20 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
 void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 {
-  bool isTraceOn = Trace.isOn(key);
+  bool isTraceOn = TraceIsOn(key);
   if (!isTraceOn)
   {
     return;
   }
-  // Cannot print unless produce assertions is enabled. Otherwise, the printing
-  // is misleading, since it does not capture what symbols were provided
-  // as definitions.
-  if (!options().smt.produceAssertions)
-  {
-    warning()
-        << "Assertions not available for dumping (use --produce-assertions)."
-        << std::endl;
-    return;
-  }
+  std::stringstream ss;
+  dumpAssertionsToStream(ss, as);
+  Trace(key) << ";;; " << key << " start" << std::endl;
+  Trace(key) << ss.str();
+  Trace(key) << ";;; " << key << " end " << std::endl;
+}
+
+void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
+{
   PrintBenchmark pb(&d_env.getPrinter());
   std::vector<Node> assertions;
   // Notice that the following list covers define-fun and define-fun-rec
@@ -479,11 +491,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   {
     assertions.push_back(ap[i]);
   }
-  std::stringstream ss;
-  pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
-  Trace(key) << ";;; " << key << " start" << std::endl;
-  Trace(key) << ss.str();
-  Trace(key) << ";;; " << key << " end " << std::endl;
+  pb.printBenchmark(os, logicInfo().getLogicString(), defs, assertions);
 }
 
 PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,

@@ -17,8 +17,8 @@
 # system tests.
 ##
 
-import pycvc5
+import cvc5
 
-slv = pycvc5.Solver()
-r = slv.checkEntailed(slv.mkBoolean(True))
-r.isEntailed()
+slv = cvc5.Solver()
+r = slv.checkSatAssuming(slv.mkBoolean(False))
+r.isUnsat()

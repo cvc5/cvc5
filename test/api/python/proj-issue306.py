@@ -12,10 +12,10 @@
 #
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
-slv = pycvc5.Solver()
+slv = cvc5.Solver()
 slv.setOption("check-proofs", "true")
 slv.setOption("proof-check", "eager")
 s1 = slv.getBooleanSort()

@@ -114,7 +114,7 @@ class InstStrategyEnum : public QuantifiersModule
    * means no limit. This value is set to the value of fullSaturateLimit()
    * during presolve.
    */
-  int32_t d_fullSaturateLimit;
+  int32_t d_enumInstLimit;
 }; /* class InstStrategyEnum */
 
 }  // namespace quantifiers

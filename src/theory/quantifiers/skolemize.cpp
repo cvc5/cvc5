@@ -168,8 +168,8 @@ void Skolemize::getSelfSel(const DType& dt,
     }
     for (unsigned k = 0; k < ssc.size(); k++)
     {
-      Node ss = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
+      Node ss =
+          nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(n.getType(), j), n);
       if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
       {
         selfSel.push_back(ss);
@@ -288,7 +288,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
       Node icond = nm->mkNode(GEQ, k, nm->mkConstInt(Rational(0)));
       Node iret =
           ret.substitute(ind_vars[0],
-                         nm->mkNode(MINUS, k, nm->mkConstInt(Rational(1))))
+                         nm->mkNode(SUB, k, nm->mkConstInt(Rational(1))))
               .negate();
       n_str_ind = nm->mkNode(OR, icond.negate(), iret);
       n_str_ind = nm->mkNode(AND, icond, n_str_ind);

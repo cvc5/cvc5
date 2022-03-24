@@ -85,7 +85,7 @@ class InferBoundsResult;
 class TheoryArithPrivate : protected EnvObj
 {
  private:
-  static const uint32_t RESET_START = 2;
+  static constexpr uint32_t RESET_START = 2;
 
   TheoryArith& d_containing;
 
@@ -111,7 +111,7 @@ class TheoryArithPrivate : protected EnvObj
    */
   ConstraintDatabase d_constraintDatabase;
 
-  enum Result::Sat d_qflraStatus;
+  enum Result::Status d_qflraStatus;
   // check()
   //   !done() -> d_qflraStatus = Unknown
   //   fullEffort(e) -> simplex returns either sat or unsat
@@ -316,8 +316,7 @@ private:
   bool d_tableauSizeHasBeenModified;
   double d_tableauResetDensity;
   uint32_t d_tableauResetPeriod;
-  static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;
-
+  static constexpr uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
   /** This is only used by simplex at the moment. */
   context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
@@ -774,7 +773,7 @@ private:
   /** Whether there were new facts during preCheck */
   bool d_newFacts;
   /** The previous status, computed during preCheck */
-  Result::Sat d_previousStatus;
+  Result::Status d_previousStatus;
   //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
