@@ -843,10 +843,11 @@ name   = "Quantifiers"
 # this is set to true for sygus inputs
 [[option]]
   name       = "sygus"
-  category   = "undocumented"
+  category   = "regular"
   long       = "sygus"
   type       = "bool"
   default    = "false"
+  help       = "support SyGuS commands"
 
 [[option]]
   name       = "cegqiSingleInvMode"
