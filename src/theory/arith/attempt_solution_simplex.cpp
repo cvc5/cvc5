@@ -54,7 +54,9 @@ bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv, Arit
   return nv[v] == d_variables.getAssignment(v);
 }
 
-Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol){
+Result::Status AttemptSolutionSDP::attempt(
+    const ApproximateSimplex::Solution& sol)
+{
   const DenseSet& newBasis = sol.newBasis;
   const DenseMap<DeltaRational>& newValues = sol.newValues;
 
@@ -83,11 +85,11 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
   d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   if(processSignals()){
-    Debug("arith::findModel") << "attemptSolution() early conflict" << endl;
+    Trace("arith::findModel") << "attemptSolution() early conflict" << endl;
     d_conflictVariables.purge();
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    Debug("arith::findModel") << "attemptSolution() fixed itself" << endl;
+    Trace("arith::findModel") << "attemptSolution() fixed itself" << endl;
     return Result::SAT;
   }
 
@@ -141,7 +143,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     return Result::SAT;
   }else{
     d_errorSet.reduceToSignals();
-    return Result::SAT_UNKNOWN;
+    return Result::UNKNOWN;
   }
 }
 

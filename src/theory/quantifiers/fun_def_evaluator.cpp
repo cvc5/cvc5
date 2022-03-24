@@ -186,7 +186,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           {
             // invoke it on arguments using the evaluator
             sbody = evaluate(sbody, args, children);
-            if (Trace.isOn("fd-eval-debug2"))
+            if (TraceIsOn("fd-eval-debug2"))
             {
               Trace("fd-eval-debug2")
                   << "FunDefEvaluator: evaluation with args:\n";

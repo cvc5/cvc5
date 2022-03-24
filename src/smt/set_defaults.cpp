@@ -476,8 +476,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // cases where we need produce models
   if (!opts.smt.produceModels
-      && (opts.smt.produceAssignments || opts.quantifiers.sygusRewSynthCheck
-          || usesSygus(opts)))
+      && (opts.smt.produceAssignments || usesSygus(opts)))
   {
     verbose(1) << "SolverEngine: turning on produce-models" << std::endl;
     opts.smt.produceModels = true;
@@ -815,7 +814,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       opts.arith.nlCov = true;
-      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -832,7 +830,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       opts.arith.nlCov = true;
-      opts.arith.nlCovVarElim = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
@@ -954,6 +951,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
                << std::endl;
     opts.bv.bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
+  if (opts.arith.nlCovVarElim && !opts.arith.nlCovVarElimWasSetByUser)
+  {
+    verbose(1)
+        << "Disabling nl-cov-var-elim since it is incompatible with proofs."
+        << std::endl;
+    opts.arith.nlCovVarElim = false;
+  }
   return false;
 }
 
@@ -978,6 +982,11 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
   else if (opts.quantifiers.globalNegate)
   {
     reason << "global-negate";
+    return true;
+  }
+  else if (opts.arrays.arraysWeakEquivalence)
+  {
+    reason << "arrays-weak-equiv";
     return true;
   }
   return false;
@@ -1462,8 +1471,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
       {
         opts.quantifiers.instNoEntail = false;
       }
-      if (!opts.quantifiers.instWhenModeWasSetByUser
-          && opts.quantifiers.cegqiModel)
+      if (!opts.quantifiers.instWhenModeWasSetByUser)
       {
         // only instantiation should happen at last call when model is avaiable
         opts.quantifiers.instWhenMode = options::InstWhenMode::LAST_CALL;

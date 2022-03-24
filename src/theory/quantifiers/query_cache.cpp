@@ -80,11 +80,11 @@ bool QueryCache::addTerm(Node sol)
       std::vector<Node> modelVals;
       Result r = checkWithSubsolver(
           sol, d_skolems, modelVals, d_subOptions, d_env.getLogicInfo());
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         // check the sample point
         d_sampler.addSamplePoint(modelVals);
-        if (r.asSatisfiabilityResult().isSat() == Result::SAT_UNKNOWN)
+        if (r.getStatus() == Result::UNKNOWN)
         {
           // always a failure if unknown
           return false;

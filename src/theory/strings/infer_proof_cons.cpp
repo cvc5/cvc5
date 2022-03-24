@@ -149,7 +149,7 @@ void InferProofCons::convert(InferenceId infer,
     utils::flattenOp(AND, ec, ps.d_children);
   }
   // debug print
-  if (Trace.isOn("strings-ipc-debug"))
+  if (TraceIsOn("strings-ipc-debug"))
   {
     Trace("strings-ipc-debug") << "InferProofCons::convert: " << infer
                                << (isRev ? " :rev " : " ") << conc << std::endl;
@@ -222,7 +222,6 @@ void InferProofCons::convert(InferenceId infer,
       {
         std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
         Node psrc = ps.d_children[ps.d_children.size() - 1];
-        // purifyCoreSubstitution(psrc, exps, psb, true))
         // we apply the substitution on the purified form to get the
         // original conclusion
         if (psb.applyPredTransform(psrc, conc, exps))
@@ -1036,7 +1035,7 @@ void InferProofCons::convert(InferenceId infer,
   if (!success)
   {
     // debug print
-    if (Trace.isOn("strings-ipc-fail"))
+    if (TraceIsOn("strings-ipc-fail"))
     {
       Trace("strings-ipc-fail")
           << "InferProofCons::convert: Failed " << infer
@@ -1055,7 +1054,7 @@ void InferProofCons::convert(InferenceId infer,
     // use the trust rule
     ps.d_rule = PfRule::THEORY_INFERENCE;
   }
-  if (Trace.isOn("strings-ipc-debug"))
+  if (TraceIsOn("strings-ipc-debug"))
   {
     if (useBuffer)
     {

@@ -12,14 +12,14 @@ echo "================== Update LFSC"
 $CVC5_DIR/contrib/get-lfsc-checker
 
 # HACK: update the regression script
-cp $CVC5_DIR/test/regress/run_regression.py $CVC5_DIR/test/regress/temp.py
-cp $CVC5_DIR/test/regress/extract_regression_calls.py $CVC5_DIR/test/regress/run_regression.py
+cp $CVC5_DIR/test/regress/cli/run_regression.py $CVC5_DIR/test/regress/cli/temp.py
+cp $CVC5_DIR/test/regress/cli/extract_regression_calls.py $CVC5_DIR/test/regress/cli/run_regression.py
 
 echo "================== Make the LFSC regression script"
 make regress | grep CALL: >& temp-rrf.txt
 
 # HACK: revert changes to regression script
-cp $CVC5_DIR/test/regress/temp.py $CVC5_DIR/test/regress/run_regression.py
+cp $CVC5_DIR/test/regress/cli/temp.py $CVC5_DIR/test/regress/cli/run_regression.py
 
 sed -i 's/\CALL:/run_regression_lfsc/g' temp-rrf.txt
 

@@ -72,7 +72,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   double clSet = 0;
-  if (Trace.isOn("pool-engine"))
+  if (TraceIsOn("pool-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
@@ -111,7 +111,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       break;
     }
   }
-  if (Trace.isOn("pool-engine"))
+  if (TraceIsOn("pool-engine"))
   {
     Trace("pool-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);

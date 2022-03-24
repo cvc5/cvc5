@@ -63,7 +63,7 @@ std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
 {
   Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-  if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+  if (TraceIsOn("cnf") && normClauseNode != clauseNode)
   {
     Trace("cnf") << push
                  << "ProofCnfStream::normalizeAndRegister: steps to normalized "
@@ -623,7 +623,7 @@ void ProofCnfStream::notifyOptPropagation(int explLevel)
   //
   // It's also necessary to copy the proof node, so we prevent unintended
   // updates to the saved proof. Not doing this may also lead to open proofs.
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> currPropagationProcPf =
       pnm->clone(d_proof.getProofFor(d_currPropagationProccessed));
   AlwaysAssert(currPropagationProcPf->getRule() != PfRule::ASSUME);
@@ -643,7 +643,7 @@ void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
   AlwaysAssert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> clauseCnfPf =
       pnm->clone(d_proof.getProofFor(clauseNode));
   AlwaysAssert(clauseCnfPf->getRule() != PfRule::ASSUME);

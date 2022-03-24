@@ -1,0 +1,6 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :fmf-bound true)
+(declare-const x (Bag Bool))
+(declare-const x5 (Bag Bool))
+(check-sat-assuming ((= 0 (bag.card (bag.inter_min x5 (bag.inter_min x5 x))))))

@@ -545,56 +545,6 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class QueryCommand                                                         */
-/* -------------------------------------------------------------------------- */
-
-QueryCommand::QueryCommand(const api::Term& t) : d_term(t) {}
-
-api::Term QueryCommand::getTerm() const { return d_term; }
-void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    d_result = solver->checkEntailed(d_term);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-api::Result QueryCommand::getResult() const { return d_result; }
-void QueryCommand::printResult(std::ostream& out) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out);
-  }
-  else
-  {
-    out << d_result << endl;
-  }
-}
-
-Command* QueryCommand::clone() const
-{
-  QueryCommand* c = new QueryCommand(d_term);
-  c->d_result = d_result;
-  return c;
-}
-
-std::string QueryCommand::getCommandName() const { return "query"; }
-
-void QueryCommand::toStream(std::ostream& out,
-                            int toDepth,
-                            size_t dag,
-                            Language language) const
-{
-  Printer::getPrinter(language)->toStreamCmdQuery(out, termToNode(d_term));
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DeclareSygusVarCommand */
 /* -------------------------------------------------------------------------- */
 
@@ -1562,9 +1512,9 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       api::Term request = d_terms[i];
       api::Term value = result[i];
-      result[i] = solver->mkTerm(api::SEXPR, request, value);
+      result[i] = solver->mkTerm(api::SEXPR, {request, value});
     }
-    d_result = solver->mkTerm(api::SEXPR, result);
+    d_result = solver->mkTerm(api::SEXPR, {result});
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiRecoverableException& e)
@@ -1637,7 +1587,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
       // Treat the expression name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name.
       api::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
-      sexprs.push_back(solver->mkTerm(api::SEXPR, name, values[i]));
+      sexprs.push_back(solver->mkTerm(api::SEXPR, {name, values[i]}));
     }
     d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
@@ -1889,9 +1839,9 @@ bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
                                          const api::Result& res)
 {
   return (res.isSat()
-          || (res.isSatUnknown()
+          || (res.isUnknown()
               && res.getUnknownExplanation() == api::Result::INCOMPLETE))
-         || res.isUnsat() || res.isEntailed();
+         || res.isUnsat();
 }
 void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
@@ -1914,7 +1864,7 @@ void GetInstantiationsCommand::printResult(std::ostream& out) const
   }
   else
   {
-    d_solver->printInstantiations(out);
+    out << d_solver->getInstantiations();
   }
 }
 
@@ -1944,16 +1894,13 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetInterpolCommand::GetInterpolCommand(const std::string& name, api::Term conj)
-    : d_name(name),
-      d_conj(conj),
-      d_sygus_grammar(nullptr),
-      d_resultStatus(false)
+    : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
 GetInterpolCommand::GetInterpolCommand(const std::string& name,
                                        api::Term conj,
                                        api::Grammar* g)
-    : d_name(name), d_conj(conj), d_sygus_grammar(g), d_resultStatus(false)
+    : d_name(name), d_conj(conj), d_sygus_grammar(g)
 {
 }
 
@@ -1975,12 +1922,11 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
     sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
-      d_resultStatus = solver->getInterpolant(d_conj, d_result);
+      d_result = solver->getInterpolant(d_conj);
     }
     else
     {
-      d_resultStatus =
-          solver->getInterpolant(d_conj, *d_sygus_grammar, d_result);
+      d_result = solver->getInterpolant(d_conj, *d_sygus_grammar);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2000,7 +1946,7 @@ void GetInterpolCommand::printResult(std::ostream& out) const
   {
     options::ioutils::Scope scope(out);
     options::ioutils::applyDagThresh(out, 0);
-    if (d_resultStatus)
+    if (!d_result.isNull())
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
           << std::endl;
@@ -2017,7 +1963,6 @@ Command* GetInterpolCommand::clone() const
   GetInterpolCommand* c =
       new GetInterpolCommand(d_name, d_conj, d_sygus_grammar);
   c->d_result = d_result;
-  c->d_resultStatus = d_resultStatus;
   return c;
 }
 
@@ -2039,7 +1984,7 @@ void GetInterpolCommand::toStream(std::ostream& out,
 /* class GetInterpolNextCommand */
 /* -------------------------------------------------------------------------- */
 
-GetInterpolNextCommand::GetInterpolNextCommand() : d_resultStatus(false) {}
+GetInterpolNextCommand::GetInterpolNextCommand() {}
 
 api::Term GetInterpolNextCommand::getResult() const { return d_result; }
 
@@ -2049,7 +1994,7 @@ void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     // Get the name of the interpolant from the symbol manager
     d_name = sm->getLastSynthName();
-    d_resultStatus = solver->getInterpolantNext(d_result);
+    d_result = solver->getInterpolantNext();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2068,7 +2013,7 @@ void GetInterpolNextCommand::printResult(std::ostream& out) const
   {
     options::ioutils::Scope scope(out);
     options::ioutils::applyDagThresh(out, 0);
-    if (d_resultStatus)
+    if (!d_result.isNull())
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
           << std::endl;
@@ -2084,7 +2029,6 @@ Command* GetInterpolNextCommand::clone() const
 {
   GetInterpolNextCommand* c = new GetInterpolNextCommand;
   c->d_result = d_result;
-  c->d_resultStatus = d_resultStatus;
   return c;
 }
 
@@ -2106,16 +2050,13 @@ void GetInterpolNextCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetAbductCommand::GetAbductCommand(const std::string& name, api::Term conj)
-    : d_name(name),
-      d_conj(conj),
-      d_sygus_grammar(nullptr),
-      d_resultStatus(false)
+    : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
 GetAbductCommand::GetAbductCommand(const std::string& name,
                                    api::Term conj,
                                    api::Grammar* g)
-    : d_name(name), d_conj(conj), d_sygus_grammar(g), d_resultStatus(false)
+    : d_name(name), d_conj(conj), d_sygus_grammar(g)
 {
 }
 
@@ -2138,11 +2079,11 @@ void GetAbductCommand::invoke(api::Solver* solver, SymbolManager* sm)
     sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
-      d_resultStatus = solver->getAbduct(d_conj, d_result);
+      d_result = solver->getAbduct(d_conj);
     }
     else
     {
-      d_resultStatus = solver->getAbduct(d_conj, *d_sygus_grammar, d_result);
+      d_result = solver->getAbduct(d_conj, *d_sygus_grammar);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2162,7 +2103,7 @@ void GetAbductCommand::printResult(std::ostream& out) const
   {
     options::ioutils::Scope scope(out);
     options::ioutils::applyDagThresh(out, 0);
-    if (d_resultStatus)
+    if (!d_result.isNull())
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
           << std::endl;
@@ -2178,7 +2119,6 @@ Command* GetAbductCommand::clone() const
 {
   GetAbductCommand* c = new GetAbductCommand(d_name, d_conj, d_sygus_grammar);
   c->d_result = d_result;
-  c->d_resultStatus = d_resultStatus;
   return c;
 }
 
@@ -2197,7 +2137,7 @@ void GetAbductCommand::toStream(std::ostream& out,
 /* class GetAbductNextCommand */
 /* -------------------------------------------------------------------------- */
 
-GetAbductNextCommand::GetAbductNextCommand() : d_resultStatus(false) {}
+GetAbductNextCommand::GetAbductNextCommand() {}
 
 api::Term GetAbductNextCommand::getResult() const { return d_result; }
 
@@ -2207,7 +2147,7 @@ void GetAbductNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     // Get the name of the abduct from the symbol manager
     d_name = sm->getLastSynthName();
-    d_resultStatus = solver->getAbductNext(d_result);
+    d_result = solver->getAbductNext();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2226,7 +2166,7 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
   {
     options::ioutils::Scope scope(out);
     options::ioutils::applyDagThresh(out, 0);
-    if (d_resultStatus)
+    if (!d_result.isNull())
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
           << std::endl;
@@ -2242,7 +2182,6 @@ Command* GetAbductNextCommand::clone() const
 {
   GetAbductNextCommand* c = new GetAbductNextCommand;
   c->d_result = d_result;
-  c->d_resultStatus = d_resultStatus;
   return c;
 }
 
@@ -2774,7 +2713,7 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     std::vector<api::Term> v;
     v.push_back(solver->mkString(":" + d_flag));
     v.push_back(solver->mkString(solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
+    d_result = sexprToString(solver->mkTerm(api::SEXPR, {v}));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiUnsupportedException&)

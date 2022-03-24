@@ -74,8 +74,9 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       Node cond1 = nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), n[1]);
       Node cond2 = nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]));
       Node cond = nm->mkNode(AND, cond1, cond2);
+      TypeNode etn = n.getType().getSequenceElementType();
       Node body1 = nm->mkNode(
-          EQUAL, n, nm->mkNode(SEQ_UNIT, nm->mkNode(SEQ_NTH, n[0], n[1])));
+          EQUAL, n, nm->mkSeqUnit(etn, nm->mkNode(SEQ_NTH, n[0], n[1])));
       Node body2 = nm->mkNode(EQUAL, n, Word::mkEmptyWord(n.getType()));
       Node lem = nm->mkNode(ITE, cond, body1, body2);
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_EXTRACT);
@@ -217,7 +218,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
   NodeManager* nm = NodeManager::currentNM();
 
   Trace("seq-array-debug") << "NTH SIZE: " << nthTerms.size() << std::endl;
-  if (Trace.isOn("seq-array-terms"))
+  if (TraceIsOn("seq-array-terms"))
   {
     for (const Node& n : nthTerms)
     {
@@ -226,7 +227,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
   }
   Trace("seq-array-debug") << "UPDATE SIZE: " << updateTerms.size()
                            << std::endl;
-  if (Trace.isOn("seq-array-terms"))
+  if (TraceIsOn("seq-array-terms"))
   {
     for (const Node& n : updateTerms)
     {
@@ -319,7 +320,7 @@ void ArrayCoreSolver::computeConnected(const std::vector<Node>& updateTerms)
 
 const std::map<Node, Node>& ArrayCoreSolver::getWriteModel(Node eqc)
 {
-  if (Trace.isOn("seq-write-model"))
+  if (TraceIsOn("seq-write-model"))
   {
     Trace("seq-write-model") << "write model of " << eqc << ":" << std::endl;
     for (auto& x : d_writeModel[eqc])

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Make regress with stats, regression arguments=$@ ..."
-make regress -j8 CVC5_REGRESSION_ARGS="--stats-expert $@" >& temp.txt
+make regress -j8 CVC5_REGRESSION_ARGS="--stats-internal $@" >& temp.txt
 echo "=== Final rule counts:"
 getaggrhistogram temp.txt finalProof::ruleCount
 echo "=== Total:"

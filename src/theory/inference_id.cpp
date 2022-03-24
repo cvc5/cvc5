@@ -118,7 +118,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
     case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
     case InferenceId::BAGS_BAG_MAKE_SPLIT: return "BAGS_BAG_MAKE_SPLIT";
-    case InferenceId::BAGS_COUNT_SKOLEM: return "BAGS_COUNT_SKOLEM";
+    case InferenceId::BAGS_SKOLEM: return "BAGS_SKOLEM";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
@@ -129,11 +129,13 @@ const char* toString(InferenceId i)
       return "BAGS_DIFFERENCE_SUBTRACT";
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
-    case InferenceId::BAGS_MAP: return "BAGS_MAP";
+    case InferenceId::BAGS_MAP_DOWN: return "BAGS_MAP_DOWN";
+    case InferenceId::BAGS_MAP_UP: return "BAGS_MAP_UP";
     case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
     case InferenceId::BAGS_FILTER_UP: return "BAGS_FILTER_UP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
     case InferenceId::BAGS_CARD: return "BAGS_CARD";
+    case InferenceId::BAGS_CARD_EMPTY: return "BAGS_CARD_EMPTY";
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
 
@@ -331,6 +333,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_UP_CLOSURE_2: return "SETS_UP_CLOSURE_2";
     case InferenceId::SETS_UP_UNIV: return "SETS_UP_UNIV";
     case InferenceId::SETS_CARD_SPLIT_EMPTY: return "SETS_CARD_SPLIT_EMPTY";
+    case InferenceId::SETS_CARD_SPLIT_EQ: return "SETS_CARD_SPLIT_EQ";
     case InferenceId::SETS_CARD_CYCLE: return "SETS_CARD_CYCLE";
     case InferenceId::SETS_CARD_EQUAL: return "SETS_CARD_EQUAL";
     case InferenceId::SETS_CARD_GRAPH_EMP: return "SETS_CARD_GRAPH_EMP";

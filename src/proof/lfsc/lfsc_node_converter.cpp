@@ -89,7 +89,8 @@ Node LfscNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  Assert (k!=MATCH);
+  // we eliminate MATCH at preConvert above
+  Assert(k != MATCH);
   if (k == ASCRIPTION_TYPE)
   {
     // dummy node, return it
@@ -180,7 +181,7 @@ Node LfscNodeConverter::postConvert(Node n)
     return convert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == APPLY_CONSTRUCTOR || k == APPLY_SELECTOR || k == APPLY_TESTER
-           || k == APPLY_SELECTOR_TOTAL || k == APPLY_UPDATER)
+           || k == APPLY_UPDATER)
   {
     // must convert other kinds of apply to functions, since we convert to
     // HO_APPLY
@@ -302,7 +303,8 @@ Node LfscNodeConverter::postConvert(Node n)
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
-      Node u = nm->mkNode(SEQ_UNIT, postConvert(charVec[size - (i + 1)]));
+      Node u = nm->mkSeqUnit(tn.getSequenceElementType(),
+                             postConvert(charVec[size - (i + 1)]));
       if (size == 1)
       {
         // singleton case
@@ -838,11 +840,11 @@ bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
          || k == INT_TO_BITVECTOR || k == IAND
-         || k == FLOATINGPOINT_TO_FP_FLOATINGPOINT
-         || k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-         || k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-         || k == FLOATINGPOINT_TO_FP_REAL || k == FLOATINGPOINT_TO_FP_GENERIC
-         || k == APPLY_UPDATER || k == APPLY_TESTER;
+         || k == FLOATINGPOINT_TO_FP_FROM_FP
+         || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+         || k == FLOATINGPOINT_TO_FP_FROM_SBV
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == APPLY_UPDATER
+         || k == APPLY_TESTER;
 }
 
 std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
@@ -892,7 +894,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
     case IAND:
       indices.push_back(nm->mkConstInt(Rational(n.getConst<IntAnd>().d_size)));
       break;
-    case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    case FLOATINGPOINT_TO_FP_FROM_FP:
     {
       const FloatingPointToFPFloatingPoint& ffp =
           n.getConst<FloatingPointToFPFloatingPoint>();
@@ -900,7 +902,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
     {
       const FloatingPointToFPIEEEBitVector& fbv =
           n.getConst<FloatingPointToFPIEEEBitVector>();
@@ -908,7 +910,7 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    case FLOATINGPOINT_TO_FP_FROM_SBV:
     {
       const FloatingPointToFPSignedBitVector& fsbv =
           n.getConst<FloatingPointToFPSignedBitVector>();
@@ -916,19 +918,11 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_REAL:
+    case FLOATINGPOINT_TO_FP_FROM_REAL:
     {
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
-    }
-    break;
-    case FLOATINGPOINT_TO_FP_GENERIC:
-    {
-      const FloatingPointToFPGeneric& fg =
-          n.getConst<FloatingPointToFPGeneric>();
-      indices.push_back(nm->mkConstInt(fg.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(fg.getSize().significandWidth()));
     }
     break;
     case APPLY_TESTER:
@@ -1056,25 +1050,21 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         }
       }
       // must avoid overloading for to_fp variants
-      if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+      if (k == FLOATINGPOINT_TO_FP_FROM_FP)
       {
         opName << "to_fp_fp";
       }
-      else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
+      else if (k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
       {
         opName << "to_fp_ieee_bv";
       }
-      else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
+      else if (k == FLOATINGPOINT_TO_FP_FROM_SBV)
       {
         opName << "to_fp_sbv";
       }
-      else if (k == FLOATINGPOINT_TO_FP_REAL)
+      else if (k == FLOATINGPOINT_TO_FP_FROM_REAL)
       {
         opName << "to_fp_real";
-      }
-      else if (k == FLOATINGPOINT_TO_FP_GENERIC)
-      {
-        opName << "to_fp_generic";
       }
       else
       {
@@ -1088,12 +1078,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       // get its variable name
       opName << getNameForUserNameOf(dt[index].getConstructor());
     }
-    else if (k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL)
+    else if (k == APPLY_SELECTOR)
     {
-      if (k == APPLY_SELECTOR_TOTAL)
-      {
-        ret = maybeMkSkolemFun(op, macroApply);
-      }
+      ret = maybeMkSkolemFun(op, macroApply);
       if (ret.isNull())
       {
         unsigned index = DType::indexOf(op);
