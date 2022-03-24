@@ -11,6 +11,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "simplificationMode"
+  alias      = ["simplification-mode"]
   category   = "regular"
   long       = "simplification=MODE"
   type       = "SimplificationMode"
