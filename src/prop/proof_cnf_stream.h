@@ -106,6 +106,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   void notifyOptPropagation(int explLevel);
   /** Notify that and added clause was inserted at lower level than current. */
   void notifyOptClause(const SatClause& clause, int clLevel);
+
  private:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the
