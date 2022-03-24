@@ -26,6 +26,7 @@
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 
 namespace Minisat {
 class Solver;
@@ -270,13 +271,10 @@ class CnfStream;
  * getProof
  *
  */
-class SatProofManager
+class SatProofManager: protected EnvObj
 {
  public:
-  SatProofManager(Minisat::Solver* solver,
-                  CnfStream* cnfStream,
-                  context::UserContext* userContext,
-                  ProofNodeManager* pnm);
+  SatProofManager(Env& env, Minisat::Solver* solver, CnfStream* cnfStream);
 
   /** Marks the start of a resolution chain.
    *
