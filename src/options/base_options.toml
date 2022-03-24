@@ -59,7 +59,7 @@ name   = "Base"
 [[option]]
   name       = "verbosity"
   long       = "verbosity=N"
-  category   = "regular"
+  category   = "common"
   type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
@@ -130,7 +130,7 @@ name   = "Base"
 
 [[option]]
   name       = "parseOnly"
-  category   = "regular"
+  category   = "common"
   long       = "parse-only"
   type       = "bool"
   default    = "false"
@@ -138,7 +138,7 @@ name   = "Base"
 
 [[option]]
   name       = "preprocessOnly"
-  category   = "regular"
+  category   = "common"
   long       = "preprocess-only"
   type       = "bool"
   default    = "false"
@@ -227,7 +227,7 @@ name   = "Base"
 
 [[option]]
   name       = "printSuccess"
-  category   = "regular"
+  category   = "common"
   long       = "print-success"
   type       = "bool"
   default    = "false"
