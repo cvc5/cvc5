@@ -15,11 +15,13 @@
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
+#include "expr/annotation_elim_node_converter.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
@@ -137,10 +139,7 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(CONST_RATIONAL,
-                          Rational(d_coeff.getConst<Rational>()
-                                   * p.d_coeff.getConst<Rational>()));
+    d_coeff = arith::multConstants(d_coeff, p.d_coeff);
   }
 }
 
@@ -163,12 +162,7 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    Assert(new_theta.isConst());
-    Assert(pv_prop.d_coeff.isConst());
-    NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(CONST_RATIONAL,
-                            Rational(new_theta.getConst<Rational>()
-                                     * pv_prop.d_coeff.getConst<Rational>()));
+    new_theta = arith::multConstants(new_theta, pv_prop.d_coeff);
   }
   d_theta.push_back(new_theta);
 }
@@ -216,9 +210,11 @@ CegInstantiator::~CegInstantiator() {
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
-    if (n.getKind() == kind::WITNESS)
+    Kind k = n.getKind();
+    if (k == kind::WITNESS)
     {
       Assert(d_prog_var.find(n[0][0]) == d_prog_var.end());
+      // ignore the bound variable
       d_prog_var[n[0][0]].clear();
     }
     if (d_vars_set.find(n) != d_vars_set.end())
@@ -230,7 +226,14 @@ void CegInstantiator::computeProgVars( Node n ){
       d_inelig.insert(n);
       return;
     }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    bool isClosure = n.isClosure();
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      if (isClosure && i != 1)
+      {
+        // ignore the bound variable list and annotation
+        continue;
+      }
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
         d_inelig.insert(n);
@@ -239,12 +242,11 @@ void CegInstantiator::computeProgVars( Node n ){
       d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
     }
     // selectors applied to program variables are also variables
-    if (n.getKind() == APPLY_SELECTOR_TOTAL
-        && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
+    if (k == APPLY_SELECTOR && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
     {
       d_prog_var[n].insert(n);
     }
-    if (n.getKind() == kind::WITNESS)
+    if (k == kind::WITNESS)
     {
       d_prog_var.erase(n[0][0]);
     }
@@ -259,7 +261,7 @@ bool CegInstantiator::isEligible( Node n ) {
 
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
-  if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
+  if (quantifiers::TermUtil::isBoolConnective(k) || k == ADD || k == GEQ
       || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
       || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
       || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
@@ -528,7 +530,7 @@ void CegInstantiator::registerTheoryIds(TypeNode tn,
   if (visited.find(tn) == visited.end())
   {
     visited[tn] = true;
-    TheoryId tid = Theory::theoryOf(tn);
+    TheoryId tid = d_env.theoryOf(tn);
     registerTheoryId(tid);
     if (tn.isDatatype())
     {
@@ -687,12 +689,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
-  Node pv_value;
-  if (options().quantifiers.cegqiModel)
-  {
-    pv_value = getModelValue(pv);
-    Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
-  }
+  Node pv_value = getModelValue(pv);
+  Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv
@@ -868,7 +866,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   std::unordered_set<Node> lits;
   for (unsigned r = 0; r < 2; r++)
   {
-    TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
+    TheoryId tid = r == 0 ? d_env.theoryOf(pvtn) : THEORY_UF;
     Trace("cegqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
     std::map<TheoryId, std::vector<Node> >::iterator ita =
         d_curr_asserts.find(tid);
@@ -880,7 +878,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         {
           lits.insert(lit);
           Node plit;
-          if (options().quantifiers.cegqiRepeatLit || !isSolvedAssertion(lit))
+          if (!isSolvedAssertion(lit))
           {
             plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
           }
@@ -943,7 +941,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
-    if( Trace.isOn("cegqi-inst-debug") ){
+    if( TraceIsOn("cegqi-inst-debug") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
         Trace("cegqi-inst-debug") << " ";
       }
@@ -1091,7 +1089,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       subs.push_back( n );
     }
   }
-  if (Trace.isOn("cegqi-inst"))
+  if (TraceIsOn("cegqi-inst"))
   {
     Trace("cegqi-inst") << "Ceg Instantiator produced : " << std::endl;
     for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
@@ -1143,7 +1141,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
   n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
-  if( Trace.isOn("sygus-si-apply-subs-debug") ){
+  if( TraceIsOn("sygus-si-apply-subs-debug") ){
     Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
@@ -1232,7 +1230,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             children.push_back( c );
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
-          Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
+          Node nretc = children.size() == 1
+                           ? children[0]
+                           : NodeManager::currentNM()->mkNode(ADD, children);
           nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
@@ -1279,7 +1279,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
+        atom_lhs = nm->mkNode(SUB, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
         atom_rhs = nm->mkConstRealOrInt(atom_lhs.getType(), Rational(0));
       }
@@ -1404,7 +1404,7 @@ void CegInstantiator::processAssertions() {
   while( !eqcs_i.isFinished() ){
     Node r = *eqcs_i;
     TypeNode rtn = r.getType();
-    TheoryId tid = Theory::theoryOf( rtn );
+    TheoryId tid = d_env.theoryOf(rtn);
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
       if (rtn.isRealOrInt())
@@ -1464,7 +1464,12 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_treg.getModel()->getValue(n);
+  Node mv = d_treg.getModel()->getValue(n);
+  // Witness terms with identifiers may appear in the model. We require
+  // dropping their annotations here.
+  AnnotationElimNodeConverter aenc;
+  mv = aenc.convert(mv);
+  return mv;
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)

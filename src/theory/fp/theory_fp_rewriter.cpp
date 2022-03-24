@@ -80,46 +80,6 @@ namespace rewrite {
                   << ") found in expression?";
   }
 
-  RewriteResponse removeToFPGeneric(TNode node, bool isPreRewrite)
-  {
-    Assert(!isPreRewrite);
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
-
-    FloatingPointToFPGeneric info =
-        node.getOperator().getConst<FloatingPointToFPGeneric>();
-
-    uint32_t children = node.getNumChildren();
-
-    Node op;
-    NodeManager* nm = NodeManager::currentNM();
-
-    if (children == 1)
-    {
-      op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
-      return RewriteResponse(REWRITE_AGAIN, nm->mkNode(op, node[0]));
-    }
-    Assert(children == 2);
-    Assert(node[0].getType().isRoundingMode());
-
-    TypeNode t = node[1].getType();
-
-    if (t.isFloatingPoint())
-    {
-      op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
-    }
-    else if (t.isReal())
-    {
-      op = nm->mkConst(FloatingPointToFPReal(info));
-    }
-    else
-    {
-      Assert(t.isBitVector());
-      op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
-    }
-
-    return RewriteResponse(REWRITE_AGAIN, nm->mkNode(op, node[0], node[1]));
-  }
-
   RewriteResponse removeDoubleNegation(TNode node, bool isPreRewrite)
   {
     Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
@@ -186,16 +146,22 @@ namespace rewrite {
     Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
     NodeManager *nm = NodeManager::currentNM();
 
-    return RewriteResponse(REWRITE_DONE,
-			   nm->mkNode(kind::AND,
-				      nm->mkNode(kind::AND,
-						 nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0])),
-						 nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[1]))),
-				      nm->mkNode(kind::OR,
-						 nm->mkNode(kind::EQUAL, node[0], node[1]),
-						 nm->mkNode(kind::AND,
-							    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-							    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[1])))));
+    return RewriteResponse(
+        REWRITE_DONE,
+        nm->mkNode(
+            kind::AND,
+            nm->mkNode(
+                kind::AND,
+                nm->mkNode(kind::NOT,
+                           nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0])),
+                nm->mkNode(kind::NOT,
+                           nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[1]))),
+            nm->mkNode(
+                kind::OR,
+                nm->mkNode(kind::EQUAL, node[0], node[1]),
+                nm->mkNode(kind::AND,
+                           nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[0]),
+                           nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[1])))));
   }
 
   RewriteResponse geqToleq(TNode node, bool isPreRewrite)
@@ -303,11 +269,11 @@ namespace rewrite {
   }
 
   RewriteResponse removeSignOperations (TNode node, bool isPreRewrite) {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISN
-           || node.getKind() == kind::FLOATINGPOINT_ISSN
-           || node.getKind() == kind::FLOATINGPOINT_ISZ
-           || node.getKind() == kind::FLOATINGPOINT_ISINF
-           || node.getKind() == kind::FLOATINGPOINT_ISNAN);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NORMAL
+           || node.getKind() == kind::FLOATINGPOINT_IS_SUBNORMAL
+           || node.getKind() == kind::FLOATINGPOINT_IS_ZERO
+           || node.getKind() == kind::FLOATINGPOINT_IS_INF
+           || node.getKind() == kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
     Kind childKind(node[0].getKind());
@@ -363,7 +329,7 @@ namespace rewrite {
       return RewriteResponse(
           isPreRewrite ? REWRITE_DONE : REWRITE_AGAIN_FULL,
           nm->mkNode(kind::NOT,
-                     nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0])));
+                     nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0])));
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
@@ -383,7 +349,7 @@ namespace rewrite {
   RewriteResponse toFPSignedBV(TNode node, bool isPreRewrite)
   {
     Assert(!isPreRewrite);
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
     /* symFPU does not allow conversions from signed bit-vector of size 1 */
     if (node[1].getType().getBitVectorSize() == 1)
@@ -716,7 +682,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNormal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISN);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NORMAL);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNormal()));
@@ -724,7 +690,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isSubnormal(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISSN);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_SUBNORMAL);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isSubnormal()));
@@ -732,7 +698,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isZero(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISZ);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_ZERO);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isZero()));
@@ -740,7 +706,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isInfinite(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISINF);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_INF);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isInfinite()));
@@ -748,7 +714,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNaN(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISNAN);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNaN()));
@@ -756,7 +722,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isNegative(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISNEG);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_NEG);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNegative()));
@@ -764,7 +730,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse isPositive(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_ISPOS);
+    Assert(node.getKind() == kind::FLOATINGPOINT_IS_POS);
     Assert(node.getNumChildren() == 1);
 
     return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isPositive()));
@@ -772,7 +738,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromIEEEBitVectorLiteral(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
 
     TNode op = node.getOperator();
     const FloatingPointToFPIEEEBitVector &param = op.getConst<FloatingPointToFPIEEEBitVector>();
@@ -788,7 +754,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse constantConvert(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_FP);
     Assert(node.getNumChildren() == 2);
 
     RoundingMode rm(node[0].getConst<RoundingMode>());
@@ -802,7 +768,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromRealLiteral(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -820,7 +786,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromSBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -848,7 +814,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
   RewriteResponse convertFromUBV(TNode node, bool isPreRewrite)
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_UBV);
 
     TNode op = node.getOperator();
     const FloatingPointSize& size =
@@ -915,7 +881,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     FloatingPoint::PartialRational res(arg.convertToRational());
 
     if (res.second) {
-      Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, res.first);
+      Node lit = NodeManager::currentNM()->mkConstReal(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -998,14 +964,14 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
       Rational partialValue(node[1].getConst<Rational>());
 
       Rational folded(arg.convertToRationalTotal(partialValue));
-      Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, folded);
+      Node lit = NodeManager::currentNM()->mkConstReal(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialRational res(arg.convertToRational());
 
       if (res.second) {
-        Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, res.first);
+        Node lit = NodeManager::currentNM()->mkConstReal(res.first);
         return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
@@ -1159,25 +1125,20 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
       rewrite::then<rewrite::breakChain, rewrite::gtTolt>;
 
   /******** Classifications ********/
-  d_preRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_NORMAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_SUBNORMAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_ZERO] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_INF] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_NAN] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_NEG] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
 
   /******** Conversions ********/
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
-      rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1245,26 +1206,27 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::identity;
 
   /******** Classifications ********/
-  d_postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
-  d_postRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::removeSignOperations;
-  d_postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::removeSignOperations;
-  d_postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::removeSignOperations;
-  d_postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::removeSignOperations;
-  d_postRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_NORMAL] =
+      rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_SUBNORMAL] =
+      rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_ZERO] =
+      rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_INF] =
+      rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_NAN] =
+      rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_NEG] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_IS_POS] = rewrite::identity;
 
   /******** Conversions ********/
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
       rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
-      rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
       rewrite::toFPSignedBV;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
-      rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] =
-      rewrite::removeToFPGeneric;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1331,24 +1293,25 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
 
   /******** Classifications ********/
-  d_constantFoldTable[kind::FLOATINGPOINT_ISN] = constantFold::isNormal;
-  d_constantFoldTable[kind::FLOATINGPOINT_ISSN] = constantFold::isSubnormal;
-  d_constantFoldTable[kind::FLOATINGPOINT_ISZ] = constantFold::isZero;
-  d_constantFoldTable[kind::FLOATINGPOINT_ISINF] = constantFold::isInfinite;
-  d_constantFoldTable[kind::FLOATINGPOINT_ISNAN] = constantFold::isNaN;
-  d_constantFoldTable[kind::FLOATINGPOINT_ISNEG] = constantFold::isNegative;
-  d_constantFoldTable[kind::FLOATINGPOINT_ISPOS] = constantFold::isPositive;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_NORMAL] = constantFold::isNormal;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_SUBNORMAL] =
+      constantFold::isSubnormal;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_ZERO] = constantFold::isZero;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_INF] = constantFold::isInfinite;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_NAN] = constantFold::isNaN;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_NEG] = constantFold::isNegative;
+  d_constantFoldTable[kind::FLOATINGPOINT_IS_POS] = constantFold::isPositive;
 
   /******** Conversions ********/
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV] =
       constantFold::convertFromIEEEBitVectorLiteral;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_FP] =
       constantFold::constantConvert;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_REAL] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] =
       constantFold::convertFromRealLiteral;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
       constantFold::convertFromSBV;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] =
       constantFold::convertFromUBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;
@@ -1399,8 +1362,8 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
     RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
     if (res.d_node != node)
     {
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
+      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
+      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
                           << res.d_node << std::endl;
     }
     return res;
@@ -1434,8 +1397,8 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
     RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
     if (res.d_node != node)
     {
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  "
+      Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
+      Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  "
                           << res.d_node << std::endl;
     }
 
@@ -1532,10 +1495,10 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
 
         if (constRes.d_node != res.d_node)
         {
-          Debug("fp-rewrite")
+          Trace("fp-rewrite")
               << "TheoryFpRewriter::postRewrite(): before constant fold "
               << res.d_node << std::endl;
-          Debug("fp-rewrite")
+          Trace("fp-rewrite")
               << "TheoryFpRewriter::postRewrite(): after constant fold "
               << constRes.d_node << std::endl;
         }

@@ -13,13 +13,13 @@
 # Test for issue #5074
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
-slv = pycvc5.Solver()
+slv = cvc5.Solver()
 c1 = slv.mkConst(slv.getIntegerSort())
 t6 = slv.mkTerm(Kind.StringFromCode, c1)
 t12 = slv.mkTerm(Kind.StringToRegexp, t6)
 t14 = slv.mkTerm(Kind.StringReplaceRe, [t6, t12, t6])
 t16 = slv.mkTerm(Kind.StringContains, [t14, t14])
-slv.checkEntailed(t16)
+slv.checkSatAssuming(t16.notTerm())

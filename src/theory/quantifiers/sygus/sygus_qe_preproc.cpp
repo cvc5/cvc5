@@ -39,7 +39,7 @@ Node SygusQePreproc::preprocess(Node q)
   SkolemManager* sm = nm->getSkolemManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;
-  quantifiers::SingleInvocationPartition sip;
+  quantifiers::SingleInvocationPartition sip(d_env);
   std::vector<Node> funcs0;
   funcs0.insert(funcs0.end(), q[0].begin(), q[0].end());
   sip.init(funcs0, body);
@@ -117,7 +117,7 @@ Node SygusQePreproc::preprocess(Node q)
 
   Trace("cegqi-qep") << "Run quantifier elimination on " << conj_se_ngsi_subs
                      << std::endl;
-  Node qeRes = smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true, false);
+  Node qeRes = smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true);
   Trace("cegqi-qep") << "Result : " << qeRes << std::endl;
 
   // create single invocation conjecture, if QE was successful

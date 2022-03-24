@@ -147,6 +147,13 @@ class FloatingPoint
    */
   std::string toString(bool printAsIndexed = false) const;
 
+  /**
+   * Get the IEEE bit-vector representation of this floating-point value.
+   * Stores the sign bit in `sign`, the exponent in `exp` and the significand
+   * in `sig`.
+   */
+  void getIEEEBitvectors(BitVector& sign, BitVector& exp, BitVector& sig) const;
+
   /** Return the packed (IEEE-754) representation of this floating-point. */
   BitVector pack(void) const;
 
@@ -426,20 +433,6 @@ class FloatingPointToFPUnsignedBitVector : public FloatingPointConvertSort
   {
   }
   FloatingPointToFPUnsignedBitVector(const FloatingPointConvertSort& old)
-      : FloatingPointConvertSort(old)
-  {
-  }
-};
-
-class FloatingPointToFPGeneric : public FloatingPointConvertSort
-{
- public:
-  /** Constructors. */
-  FloatingPointToFPGeneric(uint32_t _e, uint32_t _s)
-      : FloatingPointConvertSort(_e, _s)
-  {
-  }
-  FloatingPointToFPGeneric(const FloatingPointConvertSort& old)
       : FloatingPointConvertSort(old)
   {
   }

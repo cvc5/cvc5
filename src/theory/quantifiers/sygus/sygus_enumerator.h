@@ -59,6 +59,7 @@ class SygusEnumerator : public EnumValGenerator
 {
  public:
   /**
+   * @param env Reference to the environment
    * @param tds Pointer to the term database, required if enumShapes or
    * enumAnyConstHoles is true, or if we want to include symmetry breaking from
    * lemmas stored in the sygus term database,
@@ -70,7 +71,8 @@ class SygusEnumerator : public EnumValGenerator
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
    * free variables are the arguments to any-constant constructors.
    */
-  SygusEnumerator(TermDbSygus* tds = nullptr,
+  SygusEnumerator(Env& env,
+                  TermDbSygus* tds = nullptr,
                   SygusEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
@@ -241,7 +243,7 @@ class SygusEnumerator : public EnumValGenerator
     TermEnum();
     virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
-    unsigned getCurrentSize();
+    unsigned getCurrentSize() const;
     /** get the current term of the enumerator */
     virtual Node getCurrent() = 0;
     /** increment the enumerator, return false if the enumerator is finished */
@@ -298,6 +300,8 @@ class SygusEnumerator : public EnumValGenerator
    private:
     /** the maximum size of terms this enumerator should enumerate */
     unsigned d_sizeLim;
+    /** is the index valid? */
+    bool d_indexValid;
     /** the current index in the term cache we are considering */
     unsigned d_index;
     /** the index in the term cache where terms of the current size end */

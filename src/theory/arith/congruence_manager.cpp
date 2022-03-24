@@ -137,7 +137,7 @@ bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
     TNode predicate, bool value)
 {
   Assert(predicate.getKind() == kind::EQUAL);
-  Debug("arith::congruences")
+  Trace("arith::congruences")
       << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", "
       << (value ? "true" : "false") << ")" << std::endl;
   if (value) {
@@ -147,7 +147,7 @@ bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
 }
 
 bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
-  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
+  Trace("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
   if (value) {
     return d_acm.propagate(t1.eqNode(t2));
   } else {
@@ -155,7 +155,7 @@ bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerTermEquality(
   }
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
+  Trace("arith::congruences") << "ArithCongruenceNotify::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
   d_acm.propagate(t1.eqNode(t2));
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
@@ -171,7 +171,7 @@ void ArithCongruenceManager::raiseConflict(Node conflict,
                                            std::shared_ptr<ProofNode> pf)
 {
   Assert(!inConflict());
-  Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
+  Trace("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
   d_inConflict.raise();
   d_raiseConflict.raiseEEConflict(conflict, pf);
 }
@@ -238,7 +238,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   NodeBuilder reasonBuilder(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
-  Node reason = safeConstructNary(reasonBuilder);
+  Node reason = mkAndFromBuilder(reasonBuilder);
   std::shared_ptr<ProofNode> pf{};
   if (isProofEnabled())
   {
@@ -256,7 +256,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
 }
 
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
-  Debug("arith::cong") << "Cong::watchedVariableIsZero: " << *eq << std::endl;
+  Trace("arith::cong") << "Cong::watchedVariableIsZero: " << *eq << std::endl;
 
   Assert(eq->isEquality());
   Assert(eq->getValue().sgn() == 0);
@@ -270,9 +270,9 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   //These will be safe for propagation later as well
   NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
-  if (Debug.isOn("arith::cong"))
+  if (TraceIsOn("arith::cong"))
   {
-    eq->printProofTree(Debug("arith::cong"));
+    eq->printProofTree(Trace("arith::cong"));
   }
   auto pf = eq->externalExplainByAssertions(nb);
   if (isProofEnabled())
@@ -280,14 +280,14 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
     pf = d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
   }
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason, pf);
 }
 
 void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
-  Debug("arith::cong::notzero")
+  Trace("arith::cong::notzero")
       << "Cong::watchedVariableCannotBeZero " << *c << std::endl;
   ++(d_statistics.d_watchedVariableIsNotZero);
 
@@ -299,13 +299,13 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
   NodeBuilder nb(Kind::AND);
   // An open proof of eq from literals now in reason.
   auto pf = c->externalExplainByAssertions(nb);
-  if (Debug.isOn("arith::cong::notzero"))
+  if (TraceIsOn("arith::cong::notzero"))
   {
-    Debug("arith::cong::notzero") << "  original proof ";
-    pf->printDebug(Debug("arith::cong::notzero"));
-    Debug("arith::cong::notzero") << std::endl;
+    Trace("arith::cong::notzero") << "  original proof ";
+    pf->printDebug(Trace("arith::cong::notzero"));
+    Trace("arith::cong::notzero") << std::endl;
   }
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
   if (isProofEnabled())
   {
     if (c->getType() == ConstraintType::Disequality)
@@ -316,7 +316,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     }
     else
     {
-      Debug("arith::cong::notzero")
+      Trace("arith::cong::notzero")
           << "  proof modification needed" << std::endl;
 
       // Four cases:
@@ -341,9 +341,9 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
           PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
       pf = d_pnm->mkScope(botPf, assumption, false);
-      Debug("arith::cong::notzero") << "  new proof ";
-      pf->printDebug(Debug("arith::cong::notzero"));
-      Debug("arith::cong::notzero") << std::endl;
+      Trace("arith::cong::notzero") << "  new proof ";
+      pf->printDebug(Trace("arith::cong::notzero"));
+      Trace("arith::cong::notzero") << std::endl;
     }
     Assert(pf->getResult() == disEq);
   }
@@ -353,7 +353,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
 
 
 bool ArithCongruenceManager::propagate(TNode x){
-  Debug("arith::congruenceManager")<< "ArithCongruenceManager::propagate("<<x<<")"<<std::endl;
+  Trace("arith::congruenceManager")<< "ArithCongruenceManager::propagate("<<x<<")"<<std::endl;
   if(inConflict()){
     return true;
   }
@@ -371,7 +371,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       ++(d_statistics.d_conflicts);
       TrustNode trn = explainInternal(x);
       Node conf = flattenAnd(trn.getNode());
-      Debug("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
+      Trace("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
       if (isProofEnabled())
       {
         auto pf = trn.getGenerator()->getProofFor(trn.getProven());
@@ -397,7 +397,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     Assert(c != NullConstraint);
   }
 
-  Debug("arith::congruenceManager")<< "x is "
+  Trace("arith::congruenceManager")<< "x is "
                                    <<  c->hasProof() << " "
                                    << (x == rewritten) << " "
                                    << c->canBePropagated() << " "
@@ -413,7 +413,7 @@ bool ArithCongruenceManager::propagate(TNode x){
 
     ++(d_statistics.d_conflicts);
     raiseConflict(final);
-    Debug("arith::congruenceManager") << "congruenceManager found a conflict " << final << std::endl;
+    Trace("arith::congruenceManager") << "congruenceManager found a conflict " << final << std::endl;
     return false;
   }
 
@@ -534,7 +534,7 @@ void ArithCongruenceManager::explain(TNode external, NodeBuilder& out)
 void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   Assert(!isWatchedVariable(s));
 
-  Debug("arith::congruenceManager")
+  Trace("arith::congruenceManager")
     << "addWatchedPair(" << s << ", " << x << ", " << y << ")" << std::endl;
 
 
@@ -573,7 +573,7 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
     {
       setProofFor(lit, pf);
       Trace("arith-pfee") << "Actually asserting" << std::endl;
-      if (Debug.isOn("arith-pfee"))
+      if (TraceIsOn("arith-pfee"))
       {
         Trace("arith-pfee") << "Proof: ";
         pf->printDebug(Trace("arith-pfee"));
@@ -632,11 +632,13 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Assert(c->isEquality());
 
   ++(d_statistics.d_equalsConstantCalls);
-  Debug("equalsConstant") << "equals constant " << c << std::endl;
+  Trace("equalsConstant") << "equals constant " << c << std::endl;
 
   ArithVar x = c->getVariable();
   Node xAsNode = d_avariables.asNode(x);
-  Node asRational = mkRationalNode(c->getValue().getNoninfinitesimalPart());
+  NodeManager* nm = NodeManager::currentNM();
+  Node asRational = nm->mkConstRealOrInt(
+      xAsNode.getType(), c->getValue().getNoninfinitesimalPart());
 
   // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!
@@ -645,7 +647,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   NodeBuilder nb(Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
@@ -658,17 +660,19 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   Assert(lb->getVariable() == ub->getVariable());
 
   ++(d_statistics.d_equalsConstantCalls);
-  Debug("equalsConstant") << "equals constant " << lb << std::endl
+  Trace("equalsConstant") << "equals constant " << lb << std::endl
                           << ub << std::endl;
 
   ArithVar x = lb->getVariable();
   NodeBuilder nb(Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(nb);
   auto pfUb = ub->externalExplainByAssertions(nb);
-  Node reason = safeConstructNary(nb);
+  Node reason = mkAndFromBuilder(nb);
 
   Node xAsNode = d_avariables.asNode(x);
-  Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());
+  NodeManager* nm = NodeManager::currentNM();
+  Node asRational = nm->mkConstRealOrInt(
+      xAsNode.getType(), lb->getValue().getNoninfinitesimalPart());
 
   // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!

@@ -6,14 +6,8 @@ name   = "Parser"
   category   = "common"
   long       = "strict-parsing"
   type       = "bool"
+  default    = "false"
   help       = "be less tolerant of non-conforming inputs"
-
-[[option]]
-  name       = "memoryMap"
-  category   = "regular"
-  long       = "mmap"
-  type       = "bool"
-  help       = "memory map file input"
 
 [[option]]
   name       = "semanticChecks"
@@ -56,4 +50,5 @@ name   = "Parser"
   category   = "expert"
   long       = "force-logic=LOGIC"
   type       = "std::string"
+  default    = '""'
   help       = "set the logic, and override all further user attempts to change it"

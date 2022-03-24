@@ -28,7 +28,6 @@
  * - Use insert_safe if you want to check if the element has been inserted
  *   and only insert if it has not yet been.
  * - Does not accept TNodes as keys.
- * - Supports insertAtContextLevelZero() if the element is not in the map.
  */
 
 #include <deque>
@@ -154,7 +153,7 @@ public:
     const Key& front = d_keys.front();
     d_hashMap.erase(front);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
     d_keys.pop_front();
   }
 
@@ -166,7 +165,7 @@ public:
     const Key& back = d_keys.back();
     d_hashMap.erase(back);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
     d_keys.pop_back();
   }
 
@@ -192,23 +191,14 @@ private:
   size_t d_size;
 
   /**
-   * To support insertAtContextLevelZero() and restores,
-   * we have called d_insertMap->d_pushFront().
-   */
-  size_t d_pushFronts;
-
-  /**
    * Private copy constructor used only by save().  d_insertMap is
    * not copied: only the base class information and
-   * d_size and d_pushFronts are needed in restore.
+   * d_size are needed in restore.
    */
-  CDInsertHashMap(const CDInsertHashMap& l) :
-    ContextObj(l),
-    d_insertMap(NULL),
-    d_size(l.d_size),
-    d_pushFronts(l.d_pushFronts)
+  CDInsertHashMap(const CDInsertHashMap& l)
+      : ContextObj(l), d_insertMap(nullptr), d_size(l.d_size)
   {
-    Debug("CDInsertHashMap") << "copy ctor: " << this
+    Trace("CDInsertHashMap") << "copy ctor: " << this
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
@@ -224,52 +214,35 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
-    Debug("CDInsertHashMap") << "save " << this
-                            << " at level " << this->getContext()->getLevel()
-                            << " size at " << this->d_size
-                            << " d_list is " << this->d_insertMap
-                            << " data:" << data << std::endl;
     return data;
   }
 protected:
-  /**
-   * Implementation of mandatory ContextObj method restore:
-   * restore to the previous size taking into account the number
-   * of new pushFront calls have happened since saving.
-   * The d_insertMap is untouched and d_pushFronts is also kept.
-   */
+ /**
+  * Implementation of mandatory ContextObj method restore:
+  * restore to the previous size taking into account the number
+  * of new pushFront calls have happened since saving.
+  * The d_insertMap is untouched.
+  */
  void restore(ContextObj* data) override
  {
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " data == " << data << " d_insertMap == " << this->d_insertMap
-       << std::endl;
    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
-   size_t oldPushFronts =
-       ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_pushFronts;
-   Assert(oldPushFronts <= d_pushFronts);
 
    // The size to restore to.
-   size_t restoreSize = oldSize + (d_pushFronts - oldPushFronts);
+   size_t restoreSize = oldSize;
    d_insertMap->pop_to_size(restoreSize);
    d_size = restoreSize;
    Assert(d_insertMap->size() == d_size);
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " size back to " << this->d_size << std::endl;
   }
 public:
 
  /**
    * Main constructor: d_insertMap starts as an empty map, with the size is 0
    */
-  CDInsertHashMap(Context* context) :
-    ContextObj(context),
-    d_insertMap(new IHM()),
-    d_size(0),
-    d_pushFronts(0){
-    Assert(d_insertMap->size() == d_size);
-  }
+ CDInsertHashMap(Context* context)
+     : ContextObj(context), d_insertMap(new IHM()), d_size(0)
+ {
+   Assert(d_insertMap->size() == d_size);
+ }
 
   /**
    * Destructor: delete the d_insertMap
@@ -326,20 +299,6 @@ public:
       insert(k,d);
       return true;
     }
-  }
-
-  /**
-   * Version of insert() for CDMap<> that inserts data value d at
-   * context level zero.
-   *
-   * It is an error to insertAtContextLevelZero()
-   * a key that already is in the map.
-   */
-  void insertAtContextLevelZero(const Key& k, const Data& d){
-    makeCurrent();
-    ++d_size;
-    ++d_pushFronts;
-    d_insertMap->push_front(k, d);
   }
 
   /** Returns true if k is a mapped key in the context. */

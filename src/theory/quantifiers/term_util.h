@@ -78,8 +78,6 @@ private:
 public:
   //remove quantifiers
   static Node getRemoveQuantifiers( Node n );
-  //quantified simplify (treat free variables in n as quantified and run rewriter)
-  static Node getQuantSimplify( Node n );
 
  private:
   /** adds the set of nodes of kind k in n to vars */
