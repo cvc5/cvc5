@@ -2521,6 +2521,7 @@ TEST_F(TestApiBlackSolver, synthFun)
   ASSERT_THROW(d_solver.synthFun("f4", {}, null), CVC5ApiException);
   ASSERT_THROW(d_solver.synthFun("f6", {x}, boolean, g2), CVC5ApiException);
   Solver slv;
+  slv.setOption("sygus", "true");
   Term x2 = slv.mkVar(slv.getBooleanSort());
   ASSERT_NO_THROW(slv.synthFun("f1", {x2}, slv.getBooleanSort()));
   ASSERT_THROW(slv.synthFun("", {}, d_solver.getBooleanSort()),
@@ -2567,6 +2568,7 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_THROW(d_solver.addSygusConstraint(intTerm), CVC5ApiException);
 
   Solver slv;
+  slv.setOption("sygus", "true");
   ASSERT_THROW(slv.addSygusConstraint(boolTerm), CVC5ApiException);
 }
 
@@ -2582,6 +2584,7 @@ TEST_F(TestApiBlackSolver, addSygusAssume)
   ASSERT_THROW(d_solver.addSygusAssume(intTerm), CVC5ApiException);
 
   Solver slv;
+  slv.setOption("sygus", "true");
   ASSERT_THROW(slv.addSygusAssume(boolTerm), CVC5ApiException);
 }
 
@@ -2639,6 +2642,7 @@ TEST_F(TestApiBlackSolver, addSygusInvConstraint)
   ASSERT_THROW(d_solver.addSygusInvConstraint(inv, pre, trans, trans),
                CVC5ApiException);
   Solver slv;
+  slv.setOption("sygus", "true");
   Sort boolean2 = slv.getBooleanSort();
   Sort real2 = slv.getRealSort();
   Term inv22 = slv.declareFun("inv", {real2}, boolean2);

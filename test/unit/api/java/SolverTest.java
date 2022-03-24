@@ -2419,6 +2419,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort(), "a"));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     assertThrows(CVC5ApiException.class, () -> slv.declareSygusVar(boolSort));
     slv.close();
   }
@@ -2443,6 +2444,7 @@ class SolverTest
         () -> d_solver.mkSygusGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     Term boolVar2 = slv.mkVar(slv.getBooleanSort());
     Term intVar2 = slv.mkVar(slv.getIntegerSort());
     assertDoesNotThrow(() -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
@@ -2532,6 +2534,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.addSygusConstraint(intTerm));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     assertThrows(CVC5ApiException.class, () -> slv.addSygusConstraint(boolTerm));
     slv.close();
   }
@@ -2548,6 +2551,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.addSygusAssume(intTerm));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     assertThrows(CVC5ApiException.class, () -> slv.addSygusAssume(boolTerm));
     slv.close();
   }

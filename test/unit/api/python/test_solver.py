@@ -2481,6 +2481,7 @@ def test_mk_sygus_var(solver):
     with pytest.raises(RuntimeError):
         solver.declareSygusVar(solver.getNullSort(), "a")
     slv = cvc5.Solver()
+    solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
         slv.declareSygusVar(boolSort)
 
@@ -2514,6 +2515,7 @@ def test_synth_fun(solver):
     with pytest.raises(RuntimeError):
         solver.synthFun("f6", [x], boolean, g2)
     slv = cvc5.Solver()
+    solver.setOption("sygus", "true")
     x2 = slv.mkVar(slv.getBooleanSort())
     slv.synthFun("f1", [x2], slv.getBooleanSort())
     with pytest.raises(RuntimeError):
