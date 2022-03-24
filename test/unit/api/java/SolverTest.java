@@ -2456,6 +2456,7 @@ class SolverTest
 
   @Test void synthFun() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort nullSort = d_solver.getNullSort();
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
@@ -2597,6 +2598,7 @@ class SolverTest
         CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans, trans));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     Sort boolean2 = slv.getBooleanSort();
     Sort real2 = slv.getRealSort();
     Term inv22 = slv.declareFun("inv", new Sort[] {real2}, boolean2);

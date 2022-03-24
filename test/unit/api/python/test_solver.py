@@ -2011,6 +2011,7 @@ def test_add_sygus_inv_constraint(solver):
     with pytest.raises(RuntimeError):
         solver.addSygusInvConstraint(inv, pre, trans, trans)
     slv = cvc5.Solver()
+    slv.setOption("sygus", "true")
     boolean2 = slv.getBooleanSort()
     real2 = slv.getRealSort()
     inv22 = slv.declareFun("inv", [real2], boolean2)
@@ -2485,6 +2486,7 @@ def test_mk_sygus_var(solver):
 
 
 def test_synth_fun(solver):
+    solver.setOption("sygus", "true")
     null = solver.getNullSort()
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
