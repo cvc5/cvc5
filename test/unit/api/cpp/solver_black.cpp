@@ -2650,6 +2650,14 @@ TEST_F(TestApiBlackSolver, addSygusInvConstraint)
                CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, checkSynth)
+{
+  // requires option to be set
+  ASSERT_THROW(d_solver.checkSynth(), CVC5ApiException);
+  d_solver.setOption("sygus", "true");
+  ASSERT_NO_THROW(d_solver.checkSynth());
+}
+
 TEST_F(TestApiBlackSolver, getSynthSolution)
 {
   d_solver.setOption("sygus", "true");

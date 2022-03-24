@@ -2025,6 +2025,12 @@ def test_add_sygus_inv_constraint(solver):
         slv.addSygusInvConstraint(inv22, pre22, trans22, post)
 
 
+def test_check_synth(solver):
+    with pytest.raises(RuntimeError):
+        solver.checkSynth()
+    solver.setOption("sygus", "true")
+    solver.checkSynth()
+
 def test_get_synth_solution(solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
