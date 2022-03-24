@@ -32,6 +32,7 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
       d_propEngine(propEngine),
       d_levelZeroAsserts(userContext()),
       d_levelZeroAssertsLearned(userContext()),
+      d_levelZeroInternalAssertsLearned(userContext()),
       d_nonZeroAssert(context(), false),
       d_ppnAtoms(userContext()),
       d_pplAtoms(userContext()),
@@ -144,27 +145,30 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
     if (alevel == 0)
     {
       TNode aatom = assertion.getKind() == kind::NOT ? assertion[0] : assertion;
-      bool learnable = d_ppnAtoms.find(aatom) != d_ppnAtoms.end();
+      bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
       Trace("level-zero-assert")
-          << "Level zero assert: " << assertion << ", learnable=" << learnable
+          << "Level zero assert: " << assertion << ", internal=" << internal
           << ", already learned="
           << (d_pplAtoms.find(aatom) != d_pplAtoms.end()) << std::endl;
       d_levelZeroAsserts.insert(assertion);
-      if (learnable)
+      if (!internal)
       {
         d_assertNoLearnCount = 0;
         d_levelZeroAssertsLearned.insert(assertion);
         Trace("level-zero-assert")
             << "#learned now " << d_levelZeroAssertsLearned.size() << std::endl;
-        if (isOutputOn(OutputTag::LEARNED_LITS))
-        {
-          // get the original form so that internally generated variables
-          // are mapped back to their original form
-          output(OutputTag::LEARNED_LITS)
-              << "(learned-lit " << SkolemManager::getOriginalForm(assertion)
-              << ")" << std::endl;
-        }
-        return true;
+      }
+      else
+      {
+        d_levelZeroInternalAssertsLearned.insert(assertion);
+      }
+      if (isOutputOn(OutputTag::LEARNED_LITS))
+      {
+        // get the original form so that internally generated variables
+        // are mapped back to their original form
+        output(OutputTag::LEARNED_LITS)
+            << "(learned-lit " << SkolemManager::getOriginalForm(assertion)
+            << (internal ? " :internal" : "") << ")" << std::endl;
       }
     }
     else
@@ -185,27 +189,31 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
     }
   }
   // request a deep restart?
-  if (!d_levelZeroAssertsLearned.empty())
+  if (options().smt.deepRestart)
   {
-    // if non-empty and non-learned atoms have been asserted beyond the
-    // threshold
-    if (d_assertNoLearnCount > d_deepRestartThreshold)
+    if (!d_levelZeroAssertsLearned.empty())
     {
-      Trace("level-zero") << "DEEP RESTART with "
-                          << d_levelZeroAssertsLearned.size()
-                          << " learned literals" << std::endl;
-      return false;
+      // if non-empty and non-learned atoms have been asserted beyond the
+      // threshold
+      if (d_assertNoLearnCount > d_deepRestartThreshold)
+      {
+        Trace("level-zero") << "DEEP RESTART with "
+                            << d_levelZeroAssertsLearned.size()
+                            << " learned literals" << std::endl;
+        return false;
+      }
     }
   }
   return true;
 }
 
-std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals() const
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(bool isInternal) const
 {
+  const NodeSet& la = isInternal ? d_levelZeroInternalAssertsLearned : d_levelZeroAssertsLearned;
   Trace("level-zero") << "Get zero level learned "
-                      << d_levelZeroAssertsLearned.size() << std::endl;
+                      << la.size() << std::endl;
   std::vector<Node> ret;
-  for (const Node& n : d_levelZeroAssertsLearned)
+  for (const Node& n : la)
   {
     ret.push_back(n);
   }

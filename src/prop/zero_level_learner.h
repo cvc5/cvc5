@@ -57,7 +57,7 @@ class ZeroLevelLearner : protected EnvObj
   bool notifyAsserted(TNode assertion);
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals(bool isInternal = false) const;
 
  private:
   static void getAtoms(TNode a,
@@ -72,6 +72,9 @@ class ZeroLevelLearner : protected EnvObj
 
   /** Set of learnable literals that hold at level 0 */
   NodeSet d_levelZeroAssertsLearned;
+  
+  /** Set of internal literals that hold at level 0 */
+  NodeSet d_levelZeroInternalAssertsLearned;
 
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;

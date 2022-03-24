@@ -294,7 +294,7 @@ class PropEngine : protected EnvObj
   std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals(bool isInternal = false) const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */
