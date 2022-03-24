@@ -106,10 +106,6 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   void notifyOptPropagation(int explLevel);
   /** Notify that and added clause was inserted at lower level than current. */
   void notifyOptClause(const SatClause& clause, int clLevel);
-
-  /** Return the user context tracked by this class. */
-  context::Context* getContext() { return d_userContext; }
-
  private:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the
@@ -175,9 +171,6 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   SatProofManager* d_satPM;
   /** The user-context-dependent proof object. */
   LazyCDProof d_proof;
-
-  /** The user context */
-  context::UserContext* d_userContext;
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
   TheoryProofStepBuffer d_psb;

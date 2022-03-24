@@ -82,7 +82,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false")
-               << "), level " << d_userContext->getLevel() << "\n";
+               << "), level " << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
   if (pg)
   {
@@ -616,12 +616,12 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
 
 void ProofCnfStream::notifyOptPropagation(int explLevel)
 {
-  Assert(explLevel < (d_userContext->getLevel() - 1));
+  Assert(explLevel < (userContext()->getLevel() - 1));
   Assert(!d_currPropagationProccessed.isNull());
   Trace("cnf") << "Need to save curr propagation "
                << d_currPropagationProccessed << "'s proof in level "
                << explLevel + 1 << " despite being currently in level "
-               << d_userContext->getLevel() << "\n";
+               << userContext()->getLevel() << "\n";
   // Save into map the proof of the processed propagation. Note that
   // propagations must be explained eagerly, since their justification depends
   // on the theory engine and may be different if we only get its proof when the
@@ -644,10 +644,10 @@ void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "
-               << d_userContext->getLevel() << "\n";
+               << userContext()->getLevel() << "\n";
   Node clauseNode = getClauseNode(clause);
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
-  Assert(clLevel < (d_userContext->getLevel() - 1));
+  Assert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
   std::shared_ptr<ProofNode> clauseCnfPf =
       d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
