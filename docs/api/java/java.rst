@@ -72,6 +72,7 @@ Building cvc5 Java API
   * class `Sort <io/github/cvc5/api/Sort.html>`_
   * class `Stat <io/github/cvc5/api/Stat.html>`_
   * class `Statistics <io/github/cvc5/api/Statistics.html>`_
+  * class `SynthResult <io/github/cvc5/api/SynthResult.html>`_
   * class `Term <io/github/cvc5/api/Term.html>`_
   * class `Triplet<A,B,C> <io/github/cvc5/api/Triplet.html>`_
   * class `Utils <io/github/cvc5/api/Utils.html>`_

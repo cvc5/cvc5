@@ -144,14 +144,6 @@ name   = "Driver"
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
-  name       = "printUnsatCoresFull"
-  category   = "regular"
-  long       = "print-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  help       = "dump the full unsat core, including unlabeled assertions"
-
-[[option]]
   name       = "dumpDifficulty"
   category   = "regular"
   long       = "dump-difficulty"

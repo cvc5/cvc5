@@ -1626,175 +1626,268 @@ enum class PfRule : uint32_t
    */
   ARITH_MULT_TANGENT,
 
-  // ================ Lemmas for transcendentals
-  //======== Assert bounds on PI
-  // Children: none
-  // Arguments: (l, u)
-  // ---------------------
-  // Conclusion: (and (>= real.pi l) (<= real.pi u))
-  // Where l (u) is a valid lower (upper) bound on pi.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Assert bounds on Pi**
+   *
+   * .. math::
+   *   \inferrule{- \mid l, u}{\texttt{real.pi} \geq l \land \texttt{real.pi}
+   *   \leq u}
+   *
+   * where :math:`l,u` are valid lower and upper bounds on :math:`\pi`.
+   * \endverbatim
+   */
   ARITH_TRANS_PI,
-  //======== Exp at negative values
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= (< t 0) (< (exp t) 1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp at negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t < 0) \leftrightarrow (\exp(t) < 1)}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_NEG,
-  //======== Exp is always positive
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (> (exp t) 0)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is always positive**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\exp(t) > 0}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_POSITIVITY,
-  //======== Exp grows super-linearly for positive values
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (or (<= t 0) (> exp(t) (+ t 1)))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp grows super-linearly for positive
+   * values**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{t \leq 0 \lor \exp(t) > t+1}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_SUPER_LIN,
-  //======== Exp at zero
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= (= t 0) (= (exp t) 1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp at zero**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t=0) \leftrightarrow (\exp(t) = 1)}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_ZERO,
-  //======== Exp is approximated from above for negative values
-  // Children: none
-  // Arguments: (d, t, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant exp l u t))
-  // Where d is an even positive number, t an arithmetic term and l (u) a lower
-  // (upper) bound on t. Let p be the d'th taylor polynomial at zero (also
-  // called the Maclaurin series) of the exponential function. (secant exp l u
-  // t) denotes the secant of p from (l, exp(l)) to (u, exp(u)) evaluated at t,
-  // calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (exp t) is below the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is approximated from above for
+   * negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,l,u}{(t \geq l \land t \leq u) \rightarrow exp(t)
+   *   \leq \texttt{secant}(\exp, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term
+   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p` be
+   * the :math:`d`'th taylor polynomial at zero (also called the Maclaurin
+   * series) of the exponential function. :math:`\texttt{secant}(\exp, l, u, t)`
+   * denotes the secant of :math:`p` from :math:`(l, \exp(l))` to :math:`(u,
+   * \exp(u))` evaluated at :math:`t`, calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
-  //======== Exp is approximated from above for positive values
-  // Children: none
-  // Arguments: (d, t, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant-pos exp l u t))
-  // Where d is an even positive number, t an arithmetic term and l (u) a lower
-  // (upper) bound on t. Let p* be a modification of the d'th taylor polynomial
-  // at zero (also called the Maclaurin series) of the exponential function as
-  // follows where p(d-1) is the regular Maclaurin series of degree d-1:
-  //    p* = p(d-1) * (1 + t^n / n!)
-  // (secant-pos exp l u t) denotes the secant of p from (l, exp(l)) to (u,
-  // exp(u)) evaluated at t, calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (exp t) is below the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is approximated from above for
+   * positive values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,l,u}{(t \geq l \land t \leq u) \rightarrow exp(t)
+   *   \leq \texttt{secant-pos}(\exp, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term
+   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p^*` be
+   * a modification of the :math:`d`'th taylor polynomial at zero (also called
+   * the Maclaurin series) of the exponential function as follows where
+   * :math:`p(d-1)` is the regular Maclaurin series of degree :math:`d-1`:
+   *
+   * .. math::
+   *   p^* := p(d-1) \cdot \frac{1 + t^n}{n!}
+   *
+   * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
+   * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
+   * calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_EXP_APPROX_ABOVE_POS,
-  //======== Exp is approximated from below
-  // Children: none
-  // Arguments: (d, t)
-  // ---------------------
-  // Conclusion: (>= (exp t) (maclaurin exp d t))
-  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
-  // taylor polynomial at zero (also called the Maclaurin series) of the
-  // exponential function evaluated at t. The Maclaurin series for the
-  // exponential function is the following:
-  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is approximated from below**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t}{exp(t) \geq \texttt{maclaurin}(\exp, d, t)}
+   *
+   * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
+   * :math:`\texttt{maclaurin}(\exp, d, t)` is the :math:`d`'th taylor
+   * polynomial at zero (also called the Maclaurin series) of the exponential
+   * function evaluated at :math:`t`. The Maclaurin series for the exponential
+   * function is the following:
+   *
+   * .. math::
+   *   \exp(x) = \sum_{n=0}^{\infty} \frac{x^n}{n!}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_APPROX_BELOW,
-  //======== Sine is always between -1 and 1
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and (<= (sin t) 1) (>= (sin t) (- 1)))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is always between -1 and 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\sin(t) \leq 1 \land \sin(t) \geq -1}
+   * \endverbatim
+   */
   ARITH_TRANS_SINE_BOUNDS,
-  //======== Sine arg shifted to -pi..pi
-  // Children: none
-  // Arguments: (x, y, s)
-  // ---------------------
-  // Conclusion: (and
-  //   (<= -pi y pi)
-  //   (= (sin y) (sin x))
-  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
-  // )
-  // Where x is the argument to sine, y is a new real skolem that is x shifted
-  // into -pi..pi and s is a new integer skolem that is the number of phases y
-  // is shifted.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is shifted to -pi...pi**
+   *
+   * .. math::
+   *   \inferrule{- \mid x, y, s}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
+   *   \land (\ite{-\pi \leq x \leq \pi}{x = y}{x = y + 2 \pi s})}
+   *
+   * where :math:`x` is the argument to sine, :math:`y` is a new real skolem
+   * that is :math:`x` shifted into :math:`-\pi \dots \pi` and :math:`s` is a
+   * new integer slolem that is the number of phases :math:`y` is shifted.
+   * \endverbatim
+   */
   ARITH_TRANS_SINE_SHIFT,
-  //======== Sine is symmetric with respect to negation of the argument
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= (- (sin t) (sin (- t))) 0)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is symmetric with respect to
+   * negation of the argument**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\sin(t) - \sin(-t) = 0}
+   * \endverbatim
+   */
   ARITH_TRANS_SINE_SYMMETRY,
-  //======== Sine is bounded by the tangent at zero
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and
-  //   (=> (> t 0) (< (sin t) t))
-  //   (=> (< t 0) (> (sin t) t))
-  // )
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is bounded by the tangent at zero**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t > 0 \rightarrow \sin(t) < t) \land (t < 0
+   *   \rightarrow \sin(t) > t)} \endverbatim
+   */
   ARITH_TRANS_SINE_TANGENT_ZERO,
-  //======== Sine is bounded by the tangents at -pi and pi
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and
-  //   (=> (> t -pi) (> (sin t) (- -pi t)))
-  //   (=> (< t pi) (< (sin t) (- pi t)))
-  // )
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is bounded by the tangents at -pi
+   * and pi**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t > -\pi \rightarrow \sin(t) > -\pi - t) \land (t <
+   *   \pi \rightarrow \sin(t) < \pi - t)} \endverbatim
+   */
   ARITH_TRANS_SINE_TANGENT_PI,
-  //======== Sine is approximated from above for negative values
-  // Children: none
-  // Arguments: (d, t, lb, ub, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (secant sin l u t))
-  // Where d is an even positive number, t an arithmetic term, lb (ub) a
-  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
-  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
-  // zero (also called the Maclaurin series) of the sine function. (secant sin l
-  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
-  // t, calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (sin t) is below the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from above for
+   * negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \leq \texttt{secant}(\sin, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`lb,ub` are symbolic lower and upper bounds on :math:`t` (possibly
+   * containing :math:`\pi`) and :math:`l,u` the evaluated lower and upper
+   * bounds on :math:`t`. Let :math:`p` be the :math:`d`'th taylor polynomial at
+   * zero (also called the Maclaurin series) of the sine function.
+   * :math:`\texttt{secant}(\sin, l, u, t)` denotes the secant of :math:`p` from
+   * :math:`(l, \sin(l))` to :math:`(u, \sin(u))` evaluated at :math:`t`,
+   * calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\sin(t)` is below the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
-  //======== Sine is approximated from above for positive values
-  // Children: none
-  // Arguments: (d, t, c, lb, ub)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (upper sin c))
-  // Where d is an even positive number, t an arithmetic term, c an arithmetic
-  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
-  // containing pi). Let p be the d'th taylor polynomial at zero (also called
-  // the Maclaurin series) of the sine function. (upper sin c) denotes the upper
-  // bound on sin(c) given by p and lb,ub are such that sin(t) is the maximum of
-  // the sine function on (lb,ub).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from above for
+   * positive values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \leq \texttt{upper}(\sin, c)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`c` an arithmetic constant and :math:`lb,ub` are symbolic lower and
+   * upper bounds on :math:`t` (possibly containing :math:`\pi`). Let :math:`p`
+   * be the :math:`d`'th taylor polynomial at zero (also called the Maclaurin
+   * series) of the sine function. :math:`\texttt{upper}(\sin, c)` denotes the
+   * upper bound on :math:`\sin(c)` given by :math:`p` and :math:`lb,up` such
+   * that :math:`\sin(t)` is the maximum of the sine function on
+   * :math:`(lb,ub)`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_ABOVE_POS,
-  //======== Sine is approximated from below for negative values
-  // Children: none
-  // Arguments: (d, t, c, lb, ub)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (lower sin c))
-  // Where d is an even positive number, t an arithmetic term, c an arithmetic
-  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
-  // containing pi). Let p be the d'th taylor polynomial at zero (also called
-  // the Maclaurin series) of the sine function. (lower sin c) denotes the lower
-  // bound on sin(c) given by p and lb,ub are such that sin(t) is the minimum of
-  // the sine function on (lb,ub).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from below for
+   * negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \geq \texttt{lower}(\sin, c)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`c` an arithmetic constant and :math:`lb,ub` are symbolic lower and
+   * upper bounds on :math:`t` (possibly containing :math:`\pi`). Let :math:`p`
+   * be the :math:`d`'th taylor polynomial at zero (also called the Maclaurin
+   * series) of the sine function. :math:`\texttt{lower}(\sin, c)` denotes the
+   * lower bound on :math:`\sin(c)` given by :math:`p` and :math:`lb,up` such
+   * that :math:`\sin(t)` is the minimum of the sine function on
+   * :math:`(lb,ub)`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_BELOW_NEG,
-  //======== Sine is approximated from below for positive values
-  // Children: none
-  // Arguments: (d, t, lb, ub, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (secant sin l u t))
-  // Where d is an even positive number, t an arithmetic term, lb (ub) a
-  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
-  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
-  // zero (also called the Maclaurin series) of the sine function. (secant sin l
-  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
-  // t, calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (sin t) is above the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from below for
+   * positive values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \geq \texttt{secant}(\sin, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`lb,ub` are symbolic lower and upper bounds on :math:`t` (possibly
+   * containing :math:`\pi`) and :math:`l,u` the evaluated lower and upper
+   * bounds on :math:`t`. Let :math:`p` be the :math:`d`'th taylor polynomial at
+   * zero (also called the Maclaurin series) of the sine function.
+   * :math:`\texttt{secant}(\sin, l, u, t)` denotes the secant of :math:`p` from
+   * :math:`(l, \sin(l))` to :math:`(u, \sin(u))` evaluated at :math:`t`,
+   * calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\sin(t)` is above the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
   // ================ Coverings Lemmas

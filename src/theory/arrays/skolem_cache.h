@@ -49,13 +49,6 @@ class SkolemCache
    * variable over the lifetime of `eqr`.
    */
   static Node getEqRangeVar(TNode eqr);
-
- private:
-  /**
-   * Get the bound variable x of the witness term above for disequality deq
-   * between arrays.
-   */
-  static Node getExtIndexVar(Node deq);
 };
 
 }  // namespace arrays
