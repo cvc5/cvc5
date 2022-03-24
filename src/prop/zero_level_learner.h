@@ -72,7 +72,7 @@ class ZeroLevelLearner : protected EnvObj
 
   /** Set of learnable literals that hold at level 0 */
   NodeSet d_levelZeroAssertsLearned;
-  
+
   /** Set of internal literals that hold at level 0 */
   NodeSet d_levelZeroInternalAssertsLearned;
 

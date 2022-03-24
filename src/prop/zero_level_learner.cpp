@@ -197,9 +197,9 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
       // threshold
       if (d_assertNoLearnCount > d_deepRestartThreshold)
       {
-        Trace("level-zero") << "DEEP RESTART with "
-                            << d_levelZeroAssertsLearned.size()
-                            << " learned literals" << std::endl;
+        Trace("level-zero")
+            << "DEEP RESTART with " << d_levelZeroAssertsLearned.size()
+            << " learned literals" << std::endl;
         return false;
       }
     }
@@ -207,11 +207,12 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   return true;
 }
 
-std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(bool isInternal) const
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
+    bool isInternal) const
 {
-  const NodeSet& la = isInternal ? d_levelZeroInternalAssertsLearned : d_levelZeroAssertsLearned;
-  Trace("level-zero") << "Get zero level learned "
-                      << la.size() << std::endl;
+  const NodeSet& la = isInternal ? d_levelZeroInternalAssertsLearned
+                                 : d_levelZeroAssertsLearned;
+  Trace("level-zero") << "Get zero level learned " << la.size() << std::endl;
   std::vector<Node> ret;
   for (const Node& n : la)
   {

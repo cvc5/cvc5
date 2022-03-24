@@ -316,7 +316,8 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
-std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(bool isInternal) const
+std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
+    bool isInternal) const
 {
   if (d_zll != nullptr)
   {
