@@ -96,7 +96,7 @@ class TheoryProxy : protected EnvObj, public Registrar
    * It'll trigger a call to the ProofCnfStream to notify it that the proof of
    * this propagation should be saved in case it's needed after this user
    * context is popped.
- */
+   */
   void notifyCurrPropagationInsertedAtLevel(int explLevel);
   /** Notify that added clause was inserted at lower level than current.
    *

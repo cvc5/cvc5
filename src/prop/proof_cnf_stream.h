@@ -107,7 +107,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * The proof of the current propagation (d_currPropagationProccessed) will be
    * saved in d_optClausesPfs, so that it is not potentially lost when the user
    * context is popped.
- */
+   */
   void notifyCurrPropagationInsertedAtLevel(int explLevel);
   /** Notify that added clause was inserted at lower level than current.
    *
