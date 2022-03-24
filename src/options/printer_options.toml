@@ -39,3 +39,21 @@ name   = "Printing"
   type       = "bool"
   default    = "false"
   help       = "when printing unsat cores, include unlabeled assertions"
+
+[[option]]
+  name       = "modelUninterpPrint"
+  category   = "regular"
+  long       = "model-u-print=MODE"
+  type       = "ModelUninterpPrintMode"
+  default    = "None"
+  help       = "determines how to print uninterpreted elements in models"
+  help_mode  = "uninterpreted elements in models printing modes."
+[[option.mode.DeclSortAndFun]]
+  name = "decl-sort-and-fun"
+  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
+[[option.mode.DeclFun]]
+  name = "decl-fun"
+  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.None]]
+  name = "none"
+  help = "(default) do not print declarations of uninterpreted elements in models."

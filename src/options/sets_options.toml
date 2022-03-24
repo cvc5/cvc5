@@ -19,7 +19,7 @@ name   = "Sets Theory"
 
 [[option]]
   name       = "setsExt"
-  category   = "expert"
+  category   = "regular"
   long       = "sets-ext"
   type       = "bool"
   default    = "false"

@@ -127,7 +127,7 @@ name   = "Datatypes Theory"
 
 [[option]]
   name       = "sygusFair"
-  category   = "expert"
+  category   = "regular"
   long       = "sygus-fair=MODE"
   type       = "SygusFairMode"
   default    = "DT_SIZE"

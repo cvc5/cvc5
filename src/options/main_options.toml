@@ -145,7 +145,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpDifficulty"
-  category   = "expert"
+  category   = "regular"
   long       = "dump-difficulty"
   type       = "bool"
   default    = "false"
