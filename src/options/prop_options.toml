@@ -15,7 +15,7 @@ name   = "SAT Layer"
 [[option]]
   name       = "satRandomSeed"
   category   = "regular"
-  long       = "sat-random-seed=S"
+  long       = "sat-random-seed=N"
   type       = "uint64_t"
   default    = "0"
   help       = "sets the random seed for the sat solver"

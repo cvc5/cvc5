@@ -11,9 +11,9 @@
 (set-option :verbosity 1)
 (get-option :verbosity)
 (set-option :verbosity 0)
-(get-option :random-seed)
-(set-option :random-seed 2)
-(get-option :random-seed)
+(get-option :sat-random-seed)
+(set-option :sat-random-seed 2)
+(get-option :sat-random-seed)
 
 (set-logic QF_UF)
 (declare-fun x () Bool)

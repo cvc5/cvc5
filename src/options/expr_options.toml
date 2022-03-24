@@ -3,7 +3,7 @@ name   = "Expression"
 
 [[option]]
   name       = "defaultExprDepth"
-  category   = "common"
+  category   = "expert"
   long       = "expr-depth=N"
   type       = "int64_t"
   default    = "-1"

@@ -81,7 +81,7 @@ name   = "Driver"
 
 [[option]]
   name       = "interactive"
-  category   = "regular"
+  category   = "common"
   long       = "interactive"
   type       = "bool"
   default    = "false"
