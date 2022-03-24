@@ -1661,6 +1661,7 @@ identifier[cvc5::ParseOp& p]
           // We don't know which kind to use until we know the type of the
           // arguments
           p.d_name = opName;
+          p.d_kind = api::UNDEFINED_KIND;
           // convert uint64_t to uint32_t
           for(uint32_t numeral : numerals)
           {
