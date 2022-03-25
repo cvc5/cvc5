@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-produce-proofs
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: unsat

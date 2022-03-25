@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q --incremental --no-produce-proofs
+; COMMAND-LINE: -q --incremental
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
