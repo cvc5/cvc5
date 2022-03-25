@@ -75,10 +75,6 @@ enum Kind : int32_t
    *       assertions.
    */
   UNINTERPRETED_SORT_VALUE,
-#if 0
-  /* Built-in operator */
-  BUILTIN,
-#endif
   /**
    * Equality, chainable.
    *
@@ -126,10 +122,6 @@ enum Kind : int32_t
    *   - Solver::mkVar(const Sort&, const std::string&) const
    */
   VARIABLE,
-#if 0
-  /* Skolem variable (internal only) */
-  SKOLEM,
-#endif
   /**
    * Symbolic expression.
    *
@@ -334,10 +326,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind) const
    */
   APPLY_UF,
-#if 0
-  /* Boolean term variable */
-  BOOLEAN_TERM_VARIABLE,
-#endif
   /**
    * Cardinality constraint on uninterpreted sort.
    *
@@ -454,10 +442,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind) const
    */
   POW2,
-#if 0
-  /* Synonym for MULT.  */
-  NONLINEAR_MULT,
-#endif
   /**
    * Arithmetic subtraction, left associative.
    *
@@ -1393,17 +1377,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind) const
    */
   BITVECTOR_REDAND,
-#if 0
-  /* formula to be treated as a bv atom via eager bit-blasting
-   * (internal-only symbol) */
-  BITVECTOR_EAGER_ATOM,
-  /* term to be treated as a variable. used for eager bit-blasting Ackermann
-   * expansion of bvudiv (internal-only symbol) */
-  BITVECTOR_ACKERMANIZE_UDIV,
-  /* term to be treated as a variable. used for eager bit-blasting Ackermann
-   * expansion of bvurem (internal-only symbol) */
-  BITVECTOR_ACKERMANIZE_UREM,
-#endif
   /**
    * Bit-vector extract.
    *
@@ -1502,10 +1475,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, uint32_t) const
    */
   BITVECTOR_ROTATE_RIGHT,
-#if 0
-  /* bit-vector boolean bit extract. */
-  BITVECTOR_BITOF,
-#endif
   /**
    * Conversion from Int to bit-vector.
    *
@@ -2125,16 +2094,6 @@ enum Kind : int32_t
    *
    */
   EQ_RANGE,
-#if 0
-  /* array table function (internal-only symbol) */
-  ARR_TABLE_FUN,
-  /* array lambda (internal-only symbol) */
-  ARRAY_LAMBDA,
-  /* partial array select, for internal use only */
-  PARTIAL_SELECT_0,
-  /* partial array select, for internal use only */
-  PARTIAL_SELECT_1,
-#endif
 
   /* Datatypes ------------------------------------------------------------- */
 
@@ -2341,18 +2300,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   TUPLE_PROJECT,
-#if 0
-  /* datatypes height bound */
-  DT_HEIGHT_BOUND,
-  /* datatypes height bound */
-  DT_SIZE_BOUND,
-  /* datatypes sygus bound */
-  DT_SYGUS_BOUND,
-  /* datatypes sygus term order */
-  DT_SYGUS_TERM_ORDER,
-  /* datatypes sygus is constant */
-  DT_SYGUS_IS_CONST,
-#endif
 
   /* Separation Logic ------------------------------------------------------ */
 
@@ -2417,10 +2364,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind) const
    */
   SEP_WAND,
-#if 0
-  /* separation label (internal use only) */
-  SEP_LABEL,
-#endif
 
   /* Sets ------------------------------------------------------------------ */
 
@@ -4148,41 +4091,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
    */
   INST_PATTERN_LIST,
-#if 0
-
-  /* Sort Kinds ------------------------------------------------------------ */
-
-  /* array type */
-   ARRAY_TYPE,
-  /* a type parameter for type ascription */
-  ASCRIPTION_TYPE,
-  /* constructor */
-  CONSTRUCTOR_TYPE,
-  /* a datatype type index */
-  DATATYPE_TYPE,
-  /* selector */
-  SELECTOR_TYPE,
-  /* set type, takes as parameter the type of the elements */
-  SET_TYPE,
-  /* bag type, takes as parameter the type of the elements */
-  BAG_TYPE,
-  /* sort tag */
-  SORT_TAG,
-  /* specifies types of user-declared 'uninterpreted' sorts */
-  SORT_TYPE,
-  /* tester */
-  TESTER_TYPE,
-  /* a representation for basic types */
-  TYPE_CONSTANT,
-  /* a function type */
-  FUNCTION_TYPE,
-  /* the type of a symbolic expression */
-  SEXPR_TYPE,
-  /* bit-vector type */
-  BITVECTOR_TYPE,
-  /* floating-point type */
-  FLOATINGPOINT_TYPE,
-#endif
 
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
