@@ -1583,7 +1583,7 @@ class CVC5_EXPORT Term
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
-  
+
   /**
    * @return true if the term is a cardinality constraint
    */
