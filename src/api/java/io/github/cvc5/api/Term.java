@@ -674,12 +674,12 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Asserts isCardinalityConstraint().
    * @return the sort the cardinality constraint is for and its upper bound.
    */
-  public Pair<Sort, BigInteger> getCardinalityConstraint()
+  public Pair<Sort, int> getCardinalityConstraint()
   {
     return getCardinalityConstraint(pointer);
   }
 
-  private native Pair<Sort, BigInteger> getCardinalityConstraint(long pointer);
+  private native Pair<Sort, int> getCardinalityConstraint(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {
