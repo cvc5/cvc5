@@ -102,13 +102,18 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * generator. */
   bool isBlocked(std::shared_ptr<ProofNode> pfn);
 
-  /** Notify that current propagation inserted at lower level than current. */
-  void notifyOptPropagation(int explLevel);
-  /** Notify that and added clause was inserted at lower level than current. */
-  void notifyOptClause(const SatClause& clause, int clLevel);
-
-  /** Return the user context tracked by this class. */
-  context::Context* getContext() { return d_userContext; }
+  /** Notify that current propagation inserted at lower level than current.
+   *
+   * The proof of the current propagation (d_currPropagationProccessed) will be
+   * saved in d_optClausesPfs, so that it is not potentially lost when the user
+   * context is popped.
+   */
+  void notifyCurrPropagationInsertedAtLevel(int explLevel);
+  /** Notify that added clause was inserted at lower level than current.
+   *
+   * As above, the proof of this clause is saved in  d_optClausesPfs.
+   */
+  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
  private:
   /**
@@ -175,9 +180,6 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   SatProofManager* d_satPM;
   /** The user-context-dependent proof object. */
   LazyCDProof d_proof;
-
-  /** The user context */
-  context::UserContext* d_userContext;
   /** An accumulator of steps that may be applied to normalize the clauses
    * generated during clausification. */
   TheoryProofStepBuffer d_psb;

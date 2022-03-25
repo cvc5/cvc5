@@ -808,9 +808,9 @@ void SatProofManager::notifyPop()
     // proof node saved to be restored to suffering unintended updates. This is
     // *necessary*.
     std::shared_ptr<ProofNode> clauseResPf =
-        d_env.getProofNodeManager()->clone(d_resChains.getProofFor(it->first));
+        d_env.getProofNodeManager()->clone(d_resChains.getProofFor(p.first));
     Assert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
-    d_optResProofs[it->second].push_back(clauseResPf);
+    d_optResProofs[p.second].push_back(clauseResPf);
   }
 }
 

@@ -399,7 +399,7 @@ CRef Solver::reason(Var x) {
   {
     Trace("pf::sat") << "..user level is " << d_userContext->getLevel() << "\n";
     Assert(d_userContext->getLevel() == (assertionLevel + 1));
-    d_proxy->notifyOptPropagation(explLevel);
+    d_proxy->notifyCurrPropagationInsertedAtLevel(explLevel);
   }
   // Construct the reason
   CRef real_reason = ca.alloc(explLevel, explanation, true);
@@ -529,7 +529,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           SatClause satClause;
           MinisatSatSolver::toSatClause(ca[cr], satClause);
-          d_proxy->notifyOptClause(satClause, clauseLevel);
+          d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
         }
         if (options().smt.unsatCores || needProof())
         {
@@ -2144,7 +2144,7 @@ CRef Solver::updateLemmas() {
         }
         SatClause satClause;
         MinisatSatSolver::toSatClause(ca[lemma_ref], satClause);
-        d_proxy->notifyOptClause(satClause, clauseLevel);
+        d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
       }
       if (removable) {
         clauses_removable.push(lemma_ref);
