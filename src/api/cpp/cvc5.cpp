@@ -3193,7 +3193,7 @@ std::vector<Term> Term::getSequenceValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::isCardinalityConstraint() const;
+bool Term::isCardinalityConstraint() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3212,13 +3212,12 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
       << "Term to be a cardinality constraint when calling "
          "getCardinalityConstraint()";
   // this should never happen since we restrict what the user can create
-  CVC5_API_ARG_CHECK_EXPECTED(checkIntegerBounds<std::uint32_t>(d_node->getConst<CardinalityConstraint>().getUpperBound())),
+  CVC5_API_ARG_CHECK_EXPECTED(detail::checkIntegerBounds<std::uint32_t>(d_node->getConst<CardinalityConstraint>().getUpperBound()),
                               *d_node)
       << "Upper bound for cardinality constraint does not fit uint32_t";
   //////// all checks before this line
   const CardinalityConstraint& cc = d_node->getConst<CardinalityConstraint>();
-  const Integer& i = cc.getUpperBound();
-  return std::make_pair(Sort(d_solver, cc.getType()), cc.getUnsignedInt());
+  return std::make_pair(Sort(d_solver, cc.getType()), cc.getUpperBound().getUnsignedInt());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
