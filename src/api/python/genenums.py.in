@@ -1,0 +1,174 @@
+#!/usr/bin/env python
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mudathir Mohamed, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+##
+"""
+This script reads a file that defines enums and generates .pxd and .pxi files
+which declare all the enum values and implement a Python wrapper for values,
+respectively. The default names are kinds.pxd / kinds.pxi, but the name is
+configurable from the command line with --enums-file-prefix.
+
+The script is aware of the '#if 0' pattern and will ignore values declared
+between '#if 0' and '#endif'. It can also handle nested '#if 0' pairs.
+"""
+
+import argparse
+import os
+import re
+import sys
+
+# get access to cvc5/src/api/parseenums.py
+SOURCE_DIR = '${CMAKE_SOURCE_DIR}/src'
+sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/api'))
+
+from parseenums import *
+
+#################### Default Filenames ################
+DEFAULT_PREFIX = 'kinds'
+
+################ Comments and Macro Tokens ############
+PYCOMMENT = '#'
+
+ENUMS_PXD_TOP_TEMPLATE = \
+r"""cdef extern from "{header}" namespace "{namespace}":
+    cdef enum {enum}:
+"""
+
+ENUMS_PXI_TOP = \
+r'''# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
+from {basename} cimport {enum} as c_{enum}
+from enum import Enum
+
+class {enum}(Enum):
+    """The {enum} enum"""
+    def __new__(cls, value, doc):
+        self = object.__new__(cls)
+        self._value_ = value
+        self.__doc__ = doc
+        return self
+'''
+
+ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
+'''
+
+# Format Kind Names
+# special cases for format_name
+_IS = '_IS'
+# replacements after some preprocessing
+replacements = {'Bitvector': 'BV', 'Floatingpoint': 'FP'}
+
+
+def format_name(name):
+    '''
+    In the Python API, each Kind name is reformatted for easier use
+
+    The naming scheme is:
+       1. capitalize the first letter of each word (delimited by underscores)
+       2. make the rest of the letters lowercase
+       3. replace Floatingpoint with FP
+       4. replace Bitvector with BV
+
+    There is one exception:
+       FLOATINGPOINT_IS_NAN  --> FPIsNan
+
+    For every "_IS" in the name, there's an underscore added before step 1,
+       so that the word after "Is" is capitalized
+
+    Examples:
+       BITVECTOR_ADD       -->  BVAdd
+       APPLY_SELECTOR      -->  ApplySelector
+       FLOATINGPOINT_IS_NAN -->  FPIsNan
+       SET_MINUS            -->  Setminus
+
+    See the generated .pxi file for an explicit mapping
+    '''
+    name = name.replace(_IS, _IS + US)
+    words = [w.capitalize() for w in name.lower().split(US)]
+    name = "".join(words)
+
+    for og, new in replacements.items():
+        name = name.replace(og, new)
+
+    return name
+
+
+comment_repls = {
+    '`Solver::([a-zA-Z]+)\(([^)]*)\)[^`]*`': ':py:meth:`pycvc5.Solver.\\1`',
+}
+
+
+def reformat_comment(comment):
+    for pat, repl in comment_repls.items():
+        comment = re.sub(pat, repl, comment)
+    return comment
+
+
+def gen_pxd(parser: EnumParser, file_prefix, header):
+    with open(file_prefix + ".pxd", "w") as f:
+        for namespace in parser.namespaces:
+            for enum in namespace.enums:
+                # include the format_name docstring in the generated file
+                # could be helpful for users to see the formatting rules
+                for line in format_name.__doc__.split(NL):
+                    f.write(PYCOMMENT)
+                    if not line.isspace():
+                        f.write(line)
+                    f.write(NL)
+                f.write(
+                    ENUMS_PXD_TOP_TEMPLATE.format(header=header[len(SOURCE_DIR)
+                                                                + 1:],
+                                                  enum=enum.name,
+                                                  namespace=namespace.name))
+                for enumerator in enum.enumerators:
+                    f.write("       {},\n".format(enumerator))
+
+
+def gen_pxi(parser: EnumParser, file_prefix):
+    basename = file_prefix[file_prefix.rfind("/") + 1:]
+    with open(file_prefix + ".pxi", "w") as f:
+        for namespace in parser.namespaces:
+            for enum in namespace.enums:
+                f.write(ENUMS_PXI_TOP.format(basename=basename,
+                                             enum=enum.name))
+                for name, value in enum.enumerators.items():
+                    doc = reformat_comment(enum.enumerators_doc.get(name, ''))
+                    f.write(
+                        ENUMS_ATTR_TEMPLATE.format(name=format_name(name),
+                                                   enum=enum.name,
+                                                   cpp_name=name,
+                                                   doc=doc))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        'Read a header with enums and generate a '
+        'corresponding pxd file, with simplified enum names.')
+    parser.add_argument('--enums-header',
+                        metavar='<ENUMS_HEADER>',
+                        help='The header file to read enums from')
+    parser.add_argument('--enums-file-prefix',
+                        metavar='<ENUMS_FILE_PREFIX>',
+                        help='The prefix for the .pxd and .pxi files to write '
+                        'the Cython declarations to.',
+                        default=DEFAULT_PREFIX)
+
+    args = parser.parse_args()
+    enums_header = args.enums_header
+    enums_file_prefix = args.enums_file_prefix
+
+    kp = EnumParser()
+    kp.parse(enums_header)
+
+    gen_pxd(kp, enums_file_prefix, enums_header)
+    gen_pxi(kp, enums_file_prefix)

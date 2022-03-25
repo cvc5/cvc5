@@ -239,7 +239,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   }
   // if it has a kind, it's a builtin one and this function should not have been
   // called
-  Assert(p.d_kind == api::NULL_EXPR);
+  Assert(p.d_kind == api::NULL_TERM);
   expr = isTptpDeclared(p.d_name);
   if (expr.isNull())
   {
@@ -290,9 +290,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   bool isBuiltinKind = false;
   // the builtin kind of the overall return expression
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   // First phase: piece operator together
-  if (p.d_kind == api::NULL_EXPR)
+  if (p.d_kind == api::NULL_TERM)
   {
     // A non-built-in function application, get the expression
     api::Term v = isTptpDeclared(p.d_name);
@@ -326,7 +326,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     kind = p.d_kind;
     isBuiltinKind = true;
   }
-  Assert(kind != api::NULL_EXPR);
+  Assert(kind != api::NULL_TERM);
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {

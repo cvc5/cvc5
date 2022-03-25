@@ -863,7 +863,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
 {
   Trace("parser") << "parseOpToExpr: " << p << std::endl;
   api::Term expr;
-  if (p.d_kind != api::NULL_EXPR || !p.d_type.isNull())
+  if (p.d_kind != api::NULL_TERM || !p.d_type.isNull())
   {
     parseError(
         "Bad syntax for qualified identifier operator in term position.");
@@ -890,7 +890,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   // First phase: process the operator
   if (TraceIsOn("parser"))
   {
@@ -902,7 +902,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   api::Op op;
-  if (p.d_kind != api::NULL_EXPR)
+  if (p.d_kind != api::NULL_TERM)
   {
     // It is a special case, e.g. tuple_select or array constant specification.
     // We have to wait until the arguments are parsed to resolve it.
@@ -1094,7 +1094,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind != api::NULL_EXPR)
+  else if (p.d_kind != api::NULL_TERM)
   {
     // it should not have an expression or type specified at this point
     if (!p.d_expr.isNull() || !p.d_type.isNull())
@@ -1216,7 +1216,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     Trace("parser") << "applyParseOp: return op : " << ret << std::endl;
     return ret;
   }
-  if (kind == api::NULL_EXPR)
+  if (kind == api::NULL_TERM)
   {
     // should never happen in the new API
     parseError("do not know how to process parse op");
