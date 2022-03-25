@@ -143,14 +143,6 @@ Solver::Solver(Env& env,
       d_userContext(userContext),
       assertionLevel(0),
       d_pfManager(nullptr),
-      d_assertionLevelOnly(
-          (options().smt.produceProofs || options().smt.unsatCores)
-          && options().base.incrementalSolving),
-      // d_assertionLevelOnly(
-      //     options().smt.unsatCores
-      //     && !(isProofEnabled()
-      //          && options().smt.proofMode != options::ProofMode::PP_ONLY)
-      //     && options().base.incrementalSolving),
       d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
@@ -349,7 +341,7 @@ CRef Solver::reason(Var x) {
 
   // Compute the assertion level for this clause
   int explLevel = 0;
-  if (d_assertionLevelOnly)
+  if (assertionLevelOnly())
   {
     explLevel = assertionLevel;
   }
@@ -425,13 +417,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     Lit p; int i, j;
 
     // Which user-level to assert this clause at
-    int clauseLevel = (removable && !d_assertionLevelOnly) ? 0 : assertionLevel;
+    int clauseLevel = (removable && !assertionLevelOnly()) ? 0 : assertionLevel;
 
     // Check the clause for tautologies and similar
     int falseLiteralsCount = 0;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
       // Update the level
-      clauseLevel = d_assertionLevelOnly
+      clauseLevel = assertionLevelOnly()
                         ? assertionLevel
                         : std::max(clauseLevel, intro_level(var(ps[i])));
       // Tautologies are ignored
@@ -1593,7 +1585,7 @@ lbool Solver::search(int nof_conflicts)
       }
       else
       {
-        CRef cr = ca.alloc(d_assertionLevelOnly ? assertionLevel : max_level,
+        CRef cr = ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
                            learnt_clause,
                            true);
         clauses_removable.push(cr);
@@ -2123,7 +2115,7 @@ CRef Solver::updateLemmas() {
     if (lemma.size() > 1) {
       // If the lemmas is removable, we can compute its level by the level
       int clauseLevel = assertionLevel;
-      if (removable && !d_assertionLevelOnly)
+      if (removable && !assertionLevelOnly())
       {
         clauseLevel = 0;
         for (int k = 0; k < lemma.size(); ++k)
@@ -2249,7 +2241,8 @@ bool Solver::needProof() const
 
 bool Solver::assertionLevelOnly() const
 {
-  return options::unsatCores() && !needProof() && options::incrementalSolving();
+  return options().smt.unsatCores && !needProof()
+         && options().base.incrementalSolving;
 }
 
 }  // namespace Minisat
