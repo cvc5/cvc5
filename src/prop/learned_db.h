@@ -28,6 +28,25 @@ namespace cvc5 {
 namespace prop {
 
 /**
+ * Each category excludes those above it.
+ */
+enum class LearnedLitType
+{
+  // a top-level literal during preprocess
+  PREPROCESS,
+  // a literal from the preprocessed input
+  INPUT,
+  // a solvable literal
+  SOLVABLE,
+  // all literals
+  INTERNAL
+};
+/** Converts a learned literal type to a string. */
+const char* toString(LearnedLitType ltype);
+/** Writes a learned literal type to a stream. */
+std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
+  
+/**
  */
 class LearnedDb
 {
@@ -36,15 +55,23 @@ class LearnedDb
   LearnedDb(context::Context * c);
   ~LearnedDb();
   /** Add learned literal */
-  void addLearnedLiteral(const Node& lit, bool isInternal);
+  void addLearnedLiteral(const Node& lit, LearnedLitType ltype);
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(bool isInternal = false) const;
+  std::vector<Node> getLearnedLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
+  /** Get number of learned literals */
+  size_t getNumLearnedLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
  private:
-  /** Set of learnable literals that hold at level 0 */
-  NodeSet d_levelZeroAssertsLearned;
-
-  /** Set of internal literals that hold at level 0 */
-  NodeSet d_levelZeroInternalAssertsLearned;
+   /** Get literal set, const and non-const versions */
+   context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype);
+   const context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype) const;
+  /** preprocess lits */
+  NodeSet d_preprocessLits;
+  /** Input lits */
+  NodeSet d_inputLits;
+  /** Solvable lits */
+  NodeSet d_solvableLits;
+  /** Internal lits */
+  NodeSet d_internalLits;
 };
 
 }  // namespace prop

@@ -679,9 +679,9 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   return cdp.getProofFor(fnode);
 }
 
-std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(bool isInternal) const
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(LearnedLitType ltype) const
 {
-  return d_theoryProxy->getLearnedZeroLevelLiterals(isInternal);
+  return d_theoryProxy->getLearnedZeroLevelLiterals(ltype);
 }
 
 }  // namespace prop

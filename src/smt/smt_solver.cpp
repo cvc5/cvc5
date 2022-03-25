@@ -239,6 +239,8 @@ void SmtSolver::processAssertions(Assertions& as)
     // to the actual preprocessed learned literals, as the input may have
     // undergone further preprocessing.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+    // if we deep restart, we always remember the preprocessed formulas, which
+    // are the basis for the next check-sat.
     if (options().smt.deepRestart)
     {
       // incompatible with global negation

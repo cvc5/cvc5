@@ -24,6 +24,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "prop/learned_db.h"
 
 namespace cvc5 {
 
@@ -60,12 +61,16 @@ class ZeroLevelLearner : protected EnvObj
   bool notifyAsserted(TNode assertion);
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(bool isInternal = false) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
 
  private:
   static void getAtoms(TNode a,
                        std::unordered_set<TNode>& visited,
                        NodeSet& ppLits);
+  /** Process learned literal */
+  void processLearnedLiteral(const Node& lit, LearnedLitType ltype);
+  /** compute type for learned literal */
+  LearnedLitType computeLearnedLiteralType(const Node& lit) const;
 
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -76,19 +81,16 @@ class ZeroLevelLearner : protected EnvObj
   /** Set of literals that hold at level 0 */
   NodeSet d_levelZeroAsserts;
 
-  /** Set of learnable literals that hold at level 0 */
-  NodeSet d_levelZeroAssertsLearned;
-
-  /** Set of internal literals that hold at level 0 */
-  NodeSet d_levelZeroInternalAssertsLearned;
-
+  /** What we have learned */
+  LearnedDb d_ldb;
+  
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;
 
   /** Preprocessed literals that are not learned */
   NodeSet d_ppnAtoms;
 
-  /** Already learned TEMPORARY */
+  /** Already learned */
   NodeSet d_pplAtoms;
 
   /** Current counter of assertions */

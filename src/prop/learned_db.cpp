@@ -19,35 +19,81 @@ namespace cvc5 {
 namespace prop {
 
 
+const char* toString(LearnedLitType ltype)
+{
+  switch (ltype)
+  {
+    case LearnedLitType::PREPROCESS: return "PREPROCESS";
+    case LearnedLitType::INPUT: return "INPUT";
+    case LearnedLitType::SOLVABLE: return "SOLVABLE";
+    case LearnedLitType::INTERNAL: return "INTERNAL";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
+{
+  out << toString(ltype);
+  return out;
+}
+
 LearnedDb::LearnedDb(context::Context * c) :
-      d_levelZeroAssertsLearned(c),
-      d_levelZeroInternalAssertsLearned(c)
+d_preprocessLits(c),
+      d_inputLits(c),
+      d_solvableLits(c),
+      d_internalLits(c)
       {}
 
 LearnedDb::~LearnedDb() {}
 
-void LearnedDb::addLearnedLiteral(const Node& lit, bool isInternal)
+void LearnedDb::addLearnedLiteral(const Node& lit, LearnedLitType ltype)
 {
-  if (isInternal)
-  {
-    d_levelZeroInternalAssertsLearned.insert(lit);
-  }
-  else
-  {
-    d_levelZeroAssertsLearned.insert(lit);
-  }
+  NodeSet& lset = getLiteralSet(ltype);
+  lset.insert(lit);
 }
 
-std::vector<Node> LearnedDb::getLearnedZeroLevelLiterals(bool isInternal) const
+std::vector<Node> LearnedDb::getLearnedLiterals(LearnedLitType ltype) const
 {
-  const NodeSet& la = isInternal ? d_levelZeroInternalAssertsLearned
-                                 : d_levelZeroAssertsLearned;
+  const NodeSet& lset = getLiteralSet(ltype);
   std::vector<Node> ret;
-  for (const Node& n : la)
+  for (const Node& n : lset)
   {
     ret.push_back(n);
   }
   return ret;
+}
+size_t LearnedDb::getNumLearnedLiterals(LearnedLitType ltype) const
+{
+  const NodeSet& lset = getLiteralSet(ltype);
+  return lset.size();
+}
+
+context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype)
+{
+  switch (ltype)
+  {
+    case LearnedLitType::PREPROCESS: return d_preprocessLits;
+    case LearnedLitType::INPUT: return d_inputLits;
+    case LearnedLitType::SOLVABLE: return d_solvableLits;
+    default:
+      Assert (LearnedLitType::INTERNAL);
+      break;
+  }
+  return d_internalLits;
+}
+
+const context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype) const
+{
+  switch (ltype)
+  {
+    case LearnedLitType::PREPROCESS: return d_preprocessLits;
+    case LearnedLitType::INPUT: return d_inputLits;
+    case LearnedLitType::SOLVABLE: return d_solvableLits;
+    default:
+      Assert (LearnedLitType::INTERNAL);
+      break;
+  }
+  return d_internalLits;
 }
 
 }  // namespace prop
