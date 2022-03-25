@@ -140,7 +140,6 @@ Solver::Solver(Env& env,
     : EnvObj(env),
       d_proxy(proxy),
       d_context(context),
-      d_userContext(userContext),
       assertionLevel(0),
       d_pfManager(nullptr),
       d_enable_incremental(enableIncremental),
@@ -394,8 +393,8 @@ CRef Solver::reason(Var x) {
                    << " (assertion lvl: " << assertionLevel << ")\n";
   if (needProof() && explLevel < assertionLevel)
   {
-    Trace("pf::sat") << "..user level is " << d_userContext->getLevel() << "\n";
-    Assert(d_userContext->getLevel() == (assertionLevel + 1));
+    Trace("pf::sat") << "..user level is " << userContext()->getLevel() << "\n";
+    Assert(userContext()->getLevel() == (assertionLevel + 1));
     d_proxy->notifyCurrPropagationInsertedAtLevel(explLevel);
   }
   // Construct the reason
