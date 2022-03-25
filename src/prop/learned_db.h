@@ -67,6 +67,7 @@ class LearnedDb
       LearnedLitType ltype = LearnedLitType::INPUT) const;
   /** To string debug */
   std::string toStringDebug() const;
+
  private:
   /** Get literal set, const and non-const versions */
   context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype);

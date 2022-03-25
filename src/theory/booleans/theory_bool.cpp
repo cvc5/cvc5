@@ -44,7 +44,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
 {
   TNode in = tin.getNode();
   // should not get the false node here
-  Assert (in.getKind() != kind::CONST_BOOLEAN || in.getConst<bool>());
+  Assert(in.getKind() != kind::CONST_BOOLEAN || in.getConst<bool>());
 
   // Add the substitution from the variable to its value
   if (in.getKind() == kind::NOT) {

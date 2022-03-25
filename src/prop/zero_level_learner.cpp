@@ -197,8 +197,7 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       internal ? LearnedLitType::INTERNAL : LearnedLitType::INPUT;
   // compute if solvable
   Trace("level-zero-assert")
-      << "Level zero assert: " << lit << ", type=" << ltype
-      << std::endl;
+      << "Level zero assert: " << lit << ", type=" << ltype << std::endl;
   return ltype;
 }
 
