@@ -48,7 +48,7 @@ enum Kind : int32_t
    *
    * This kind serves as an abstraction for internal kinds that are not exposed
    * via the API but may appear in terms returned by API functions, e.g.,
-   * when querying model values.
+   * when querying the simplified form of a term.
    *
    * @note Should never be created via the API.
    */
