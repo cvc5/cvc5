@@ -104,7 +104,6 @@ class TheoryProxy : protected EnvObj, public Registrar
    * in terms of "current added clause" because the clause added at a lower
    * level could be for example a lemma derived at a prior moment whose
    * assertion the SAT solver delayed.
-   *
    */
   void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
