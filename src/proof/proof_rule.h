@@ -1890,39 +1890,62 @@ enum class PfRule : uint32_t
    */
   ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
-  // ================ Coverings Lemmas
-  // We use IRP for IndexedRootPredicate.
-  //
-  // A formula "Interval" describes that a variable (xn is none is given) is
-  // within a particular interval whose bounds are given as IRPs. It is either
-  // an open interval or a point interval:
-  //   (IRP k poly) < xn < (IRP k poly)
-  //   xn == (IRP k poly)
-  //
-  // A formula "Cell" describes a portion
-  // of the real space in the following form:
-  //   Interval(x1) and Interval(x2) and ...
-  // We implicitly assume a Cell to go up to n-1 (and can be empty).
-  //
-  // A formula "Covering" is a set of Intervals, implying that xn can be in
-  // neither of these intervals. To be a covering (of the real line), the union
-  // of these intervals should be the real numbers.
-  // ======== Coverings direct conflict
-  // Children (Cell, A)
-  // ---------------------
-  // Conclusion: (false)
-  // A direct interval is generated from an assumption A (in variables x1...xn)
-  // over a Cell (in variables x1...xn). It derives that A evaluates to false
-  // over the Cell. In the actual algorithm, it means that xn can not be in the
-  // topmost interval of the Cell.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Coverings -- Direct conflict**
+   *
+   * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
+   * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
+   * :math:`poly` may not be univariate; in this case, the value of
+   * :math:`\texttt{IRP}_k(poly)` can only be calculated with respect to a
+   * (partial) model for all but one variable of :math:`poly`.
+   *
+   * A formula :math:`\texttt{Interval}(x_i)` describes that a variable
+   * :math:`x_i` is within a particular interval whose bounds are given as IRPs.
+   * It is either an open interval or a point interval:
+   *
+   * .. math::
+   *   \texttt{IRP}_k(poly) < x_i < \texttt{IRP}_k(poly)
+   *
+   *   x_i = \texttt{IRP}_k(poly)
+   *
+   * A formula :math:`\texttt{Cell}(x_1 \dots x_i)` describes a portion
+   * of the real space in the following form:
+   *
+   * .. math::
+   *   \texttt{Interval}(x_1) \land \dots \land \texttt{Interval}(x_i)
+   *
+   * A cell can also be empty (for :math:`i = 0`).
+   *
+   * A formula :math:`\texttt{Covering}(x_i)` is a set of intervals, implying
+   * that :math:`x_i` can be in neither of these intervals. To be a covering (of
+   * the real line), the union of these intervals should be the real numbers.
+   *
+   * .. math::
+   *   \inferrule{\texttt{Cell}, A \mid -}{\bot}
+   *
+   * A direct interval is generated from an assumption :math:`A` (in variables
+   * :math:`x_1 \dots x_i`) over a :math:`\texttt{Cell}(x_1 \dots x_i)`. It
+   * derives that :math:`A` evaluates to false over the cell. In the actual
+   * algorithm, it means that :math:`x_i` can not be in the topmost interval of
+   * the cell. \endverbatim
+   */
   ARITH_NL_COVERING_DIRECT,
-  // ======== Coverings recursive interval
-  // Children (Cell, Covering)
-  // ---------------------
-  // Conclusion: (false)
-  // A recursive interval is generated from a Covering (for xn) over a Cell
-  // (in variables x1...xn-1). It generates the conclusion that no xn exists
-  // that extends the Cell and satisfies all assumptions.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Coverings -- Recursive interval**
+   *
+   * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
+   * <cvc5::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   *
+   * .. math::
+   *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
+   *
+   * A recursive interval is generated from :math:`\texttt{Covering}(x_i)` over
+   * :math:`\texttt{Cell}(x_1 \dots x_{i-1})`. It generates the conclusion that
+   * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
+   * \endverbatim
+   */
   ARITH_NL_COVERING_RECURSIVE,
 
   //================================================ Place holder for Lfsc rules

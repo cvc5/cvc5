@@ -1915,6 +1915,7 @@ def test_mk_sygus_grammar(solver):
 
 
 def test_synth_inv(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -1941,6 +1942,7 @@ def test_synth_inv(solver):
 
 
 def test_add_sygus_constraint(solver):
+    solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
     boolTerm = solver.mkBoolean(True)
     intTerm = solver.mkInteger(1)
@@ -1957,6 +1959,7 @@ def test_add_sygus_constraint(solver):
 
 
 def test_add_sygus_inv_constraint(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     real = solver.getRealSort()
 
@@ -2008,6 +2011,7 @@ def test_add_sygus_inv_constraint(solver):
     with pytest.raises(RuntimeError):
         solver.addSygusInvConstraint(inv, pre, trans, trans)
     slv = cvc5.Solver()
+    slv.setOption("sygus", "true")
     boolean2 = slv.getBooleanSort()
     real2 = slv.getRealSort()
     inv22 = slv.declareFun("inv", [real2], boolean2)
@@ -2025,8 +2029,14 @@ def test_add_sygus_inv_constraint(solver):
         slv.addSygusInvConstraint(inv22, pre22, trans22, post)
 
 
+def test_check_synth(solver):
+    with pytest.raises(RuntimeError):
+        solver.checkSynth()
+    solver.setOption("sygus", "true")
+    solver.checkSynth()
+
 def test_get_synth_solution(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
 
     nullTerm = cvc5.Term(solver)
@@ -2051,7 +2061,7 @@ def test_get_synth_solution(solver):
         slv.getSynthSolution(f)
 
 def test_check_synth_next(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
@@ -2062,7 +2072,7 @@ def test_check_synth_next(solver):
     solver.getSynthSolutions([f])
 
 def test_check_synth_next2(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
@@ -2071,7 +2081,7 @@ def test_check_synth_next2(solver):
         solver.checkSynthNext()
 
 def test_check_synth_next3(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
     with pytest.raises(RuntimeError):
@@ -2245,7 +2255,7 @@ def test_get_model_domain_elements(solver):
 
 
 def test_get_synth_solutions(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
 
     nullTerm = cvc5.Term(solver)
@@ -2462,20 +2472,22 @@ def test_mk_sygus_var(solver):
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort(intSort, boolSort)
 
-    solver.mkSygusVar(boolSort)
-    solver.mkSygusVar(funSort)
-    solver.mkSygusVar(boolSort, "b")
-    solver.mkSygusVar(funSort, "")
+    solver.declareSygusVar(boolSort)
+    solver.declareSygusVar(funSort)
+    solver.declareSygusVar(boolSort, "b")
+    solver.declareSygusVar(funSort, "")
     with pytest.raises(RuntimeError):
-        solver.mkSygusVar(cvc5.Sort(solver))
+        solver.declareSygusVar(cvc5.Sort(solver))
     with pytest.raises(RuntimeError):
-        solver.mkSygusVar(solver.getNullSort(), "a")
+        solver.declareSygusVar(solver.getNullSort(), "a")
     slv = cvc5.Solver()
+    solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
-        slv.mkSygusVar(boolSort)
+        slv.declareSygusVar(boolSort)
 
 
 def test_synth_fun(solver):
+    solver.setOption("sygus", "true")
     null = solver.getNullSort()
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
@@ -2503,6 +2515,7 @@ def test_synth_fun(solver):
     with pytest.raises(RuntimeError):
         solver.synthFun("f6", [x], boolean, g2)
     slv = cvc5.Solver()
+    solver.setOption("sygus", "true")
     x2 = slv.mkVar(slv.getBooleanSort())
     slv.synthFun("f1", [x2], slv.getBooleanSort())
     with pytest.raises(RuntimeError):

@@ -3,7 +3,7 @@ name   = "Separation Logic Theory"
 
 [[option]]
   name       = "sepMinimalRefine"
-  category   = "regular"
+  category   = "expert"
   long       = "sep-min-refine"
   type       = "bool"
   default    = "false"
@@ -11,7 +11,7 @@ name   = "Separation Logic Theory"
 
 [[option]]
   name       = "sepPreSkolemEmp"
-  category   = "regular"
+  category   = "expert"
   long       = "sep-pre-skolem-emp"
   type       = "bool"
   default    = "false"
