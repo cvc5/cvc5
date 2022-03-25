@@ -4,7 +4,7 @@ name   = "SAT Layer"
 [[option]]
   name       = "satRandomFreq"
   alias      = ["random-frequency"]
-  category   = "regular"
+  category   = "expert"
   long       = "random-freq=P"
   type       = "double"
   default    = "0.0"
@@ -15,14 +15,14 @@ name   = "SAT Layer"
 [[option]]
   name       = "satRandomSeed"
   category   = "regular"
-  long       = "random-seed=S"
+  long       = "sat-random-seed=N"
   type       = "uint64_t"
   default    = "0"
   help       = "sets the random seed for the sat solver"
 
 [[option]]
   name       = "satVarDecay"
-  category   = "regular"
+  category   = "expert"
   type       = "double"
   default    = "0.95"
   minimum    = "0.0"
@@ -31,7 +31,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "satClauseDecay"
-  category   = "regular"
+  category   = "expert"
   type       = "double"
   default    = "0.999"
   minimum    = "0.0"
@@ -40,7 +40,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "satRestartFirst"
-  category   = "regular"
+  category   = "expert"
   long       = "restart-int-base=N"
   type       = "uint64_t"
   default    = "25"
@@ -48,7 +48,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "satRestartInc"
-  category   = "regular"
+  category   = "expert"
   long       = "restart-int-inc=F"
   type       = "double"
   default    = "3.0"
@@ -57,7 +57,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "minisatSimpMode"
-  category   = "regular"
+  category   = "expert"
   long       = "minisat-simplification=MODE"
   type       = "MinisatSimpMode"
   default    = "ALL"
@@ -75,7 +75,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "minisatDumpDimacs"
-  category   = "regular"
+  category   = "expert"
   long       = "minisat-dump-dimacs"
   type       = "bool"
   default    = "false"
