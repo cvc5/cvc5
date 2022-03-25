@@ -20,8 +20,7 @@
 
 #include <ostream>
 
-namespace cvc5 {
-namespace api {
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -67,7 +66,7 @@ enum Kind : int32_t
    * @note May not be explicitly created via API functions other than
    *       Term::Term().
    */
-  NULL_EXPR,
+  NULL_TERM,
 
   /* Builtin --------------------------------------------------------------- */
 
@@ -4117,8 +4116,7 @@ std::string kindToString(Kind k) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
 
-}  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::api
 
 namespace std {
 

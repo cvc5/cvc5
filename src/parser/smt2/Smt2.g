@@ -1248,7 +1248,7 @@ symbolicExpr[cvc5::api::Term& sexpr]
  */
 term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   cvc5::api::Term f;
   std::string name;
   cvc5::api::Sort type;
@@ -1272,7 +1272,7 @@ term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
   Trace("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   std::string name;
   std::vector<cvc5::api::Term> args;
   std::vector< std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
@@ -1661,6 +1661,7 @@ identifier[cvc5::ParseOp& p]
           // We don't know which kind to use until we know the type of the
           // arguments
           p.d_name = opName;
+          p.d_kind = api::UNDEFINED_KIND;
           // convert uint64_t to uint32_t
           for(uint32_t numeral : numerals)
           {

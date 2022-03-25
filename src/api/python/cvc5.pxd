@@ -252,8 +252,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
-        Result checkSynth() except +
-        Result checkSynthNext() except +
+        SynthResult checkSynth() except +
+        SynthResult checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
@@ -387,7 +387,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isBitVector() except +
         bint isFloatingPoint() except +
         bint isDatatype() except +
-        bint isParametricDatatype() except +
         bint isConstructor() except +
         bint isSelector() except +
         bint isTester() except +

@@ -22,27 +22,28 @@ import sys
 import re
 import textwrap
 
-# get access to cvc5/src/api/parsekinds.py
-sys.path.insert(0, os.path.abspath('${CMAKE_SOURCE_DIR}/src/api'))
+# get access to cvc5/src/api/parseenums.py
+SOURCE_DIR = '${CMAKE_SOURCE_DIR}/src'
+sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/api'))
 
-from parsekinds import *
+from parseenums import *
 
-# Default Filenames
+#################### Default Filenames ################
 DEFAULT_PREFIX = 'Kind'
 
 # Code Blocks
 
-KINDS_JAVA_TOP = \
-    r"""package io.github.cvc5.api;
+ENUM_JAVA_TOP = \
+    r"""package io.github.cvc5.{namespace};
 
 import java.util.HashMap;
 import java.util.Map;
 
-public enum Kind
-{
+public enum {name}
+{{
 """
 
-KINDS_JAVA_BOTTOM = \
+ENUM_JAVA_BOTTOM = \
     r""";
 
   /* the int value of the kind */
@@ -112,36 +113,43 @@ def format_comment(comment):
 
 
 # Files generation
-def gen_java(parser: KindsParser, filename):
-    f = open(filename, "w")
-    code = KINDS_JAVA_TOP
-    enum_value = -2  # initial enum value
-    for kind, comment in parser.kinds_doc.items():
-        comment = format_comment(comment)
-        code += "{comment}\n  {name}({enum_value}),\n".format(
-            comment=comment, name=kind, enum_value=enum_value)
-        enum_value = enum_value + 1
-    code += KINDS_JAVA_BOTTOM
-    f.write(code)
-    f.close()
+def gen_java(parser: EnumParser, path):
+    for namespace in parser.namespaces:
+        for enum in namespace.enums:
+            subnamespace = namespace.name.split('::')[1]
+            filedir = os.path.join(path, subnamespace)
+            if not os.path.exists(filedir):
+                os.mkdir(filedir)
+            filename = os.path.join(filedir, enum.name + ".java")
+            with open(filename, "w") as f:
+                code = ENUM_JAVA_TOP.format(name=enum.name,
+                                            namespace=subnamespace)
+                for name, value in enum.enumerators.items():
+                    comment = enum.enumerators_doc.get(name, '')
+                    comment = format_comment(comment)
+                    code += "{comment}\n  {name}({enum_value}),\n".format(
+                        comment=comment, name=name, enum_value=value)
+                code += ENUM_JAVA_BOTTOM
+                f.write(code)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Read a kinds header file and generate a '
-                                     'corresponding java file')
-    parser.add_argument('--kinds-header',
-                        metavar='<KINDS_HEADER>',
-                        help='The header file to read kinds from')
-    parser.add_argument('--kinds-file-prefix',
-                        metavar='<KIND_FILE_PREFIX>',
+    parser = argparse.ArgumentParser(
+        'Read an enums header file and generate a '
+        'corresponding java file')
+    parser.add_argument('--enums-header',
+                        metavar='<ENUMS_HEADER>',
+                        help='The header file to read enums from')
+    parser.add_argument('--java-api-path',
+                        metavar='<ENUMS_FILE_PREFIX>',
                         help='The prefix for the generated .java file',
                         default=DEFAULT_PREFIX)
 
     args = parser.parse_args()
-    kinds_header = args.kinds_header
-    kinds_file_prefix = args.kinds_file_prefix
+    enums_header = args.enums_header
+    java_api_path = args.java_api_path
 
-    kp = KindsParser()
-    kp.parse(kinds_header)
+    ep = EnumParser()
+    ep.parse(enums_header)
 
-    gen_java(kp, kinds_file_prefix + ".java")
+    gen_java(ep, java_api_path)

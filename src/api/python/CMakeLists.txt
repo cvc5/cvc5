@@ -48,27 +48,46 @@ find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
 
+configure_file(genenums.py.in genenums.py)
+
 # Generate cvc5kinds.{pxd,pyx}
-configure_file(genkinds.py.in genkinds.py)
-set(GENERATED_FILES
+set(GENERATED_KINDS_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxi"
 )
 add_custom_command(
   OUTPUT
-    ${GENERATED_FILES}
+    ${GENERATED_KINDS_FILES}
   COMMAND
     "${PYTHON_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds"
   DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parsekinds.py"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
 )
+add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
-add_custom_target(cvc5kinds DEPENDS ${GENERATED_FILES})
+set(GENERATED_TYPES_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxi"
+)
+add_custom_command(
+  OUTPUT
+    ${GENERATED_TYPES_FILES}
+  COMMAND
+    "${PYTHON_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5types"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+)
+add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})   # for cvc5kinds.pxi
 add_cython_target(cvc5_python_base CXX)
@@ -76,7 +95,7 @@ add_cython_target(cvc5_python_base CXX)
 add_library(cvc5_python_base
             MODULE
             cvc5_python_base)
-add_dependencies(cvc5_python_base cvc5kinds)
+add_dependencies(cvc5_python_base cvc5kinds cvc5types)
 
 target_include_directories(cvc5_python_base
   PRIVATE

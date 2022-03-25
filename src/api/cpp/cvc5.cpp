@@ -116,7 +116,7 @@ const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
     s_kinds{
         KIND_ENUM(INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND),
         KIND_ENUM(UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND),
-        KIND_ENUM(NULL_EXPR, cvc5::Kind::NULL_EXPR),
+        KIND_ENUM(NULL_TERM, cvc5::Kind::NULL_EXPR),
         /* Builtin ---------------------------------------------------------- */
         KIND_ENUM(UNINTERPRETED_SORT_VALUE,
                   cvc5::Kind::UNINTERPRETED_SORT_VALUE),
@@ -402,7 +402,7 @@ const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
 const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
     s_kinds_internal{
         {cvc5::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
-        {cvc5::Kind::NULL_EXPR, NULL_EXPR},
+        {cvc5::Kind::NULL_EXPR, NULL_TERM},
         /* Builtin --------------------------------------------------------- */
         {cvc5::Kind::UNINTERPRETED_SORT_VALUE, UNINTERPRETED_SORT_VALUE},
         {cvc5::Kind::EQUAL, EQUAL},
@@ -1248,16 +1248,6 @@ bool Sort::isDatatype() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isParametricDatatype() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  if (!d_type->isDatatype()) return false;
-  return d_type->isParametricDatatype();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 bool Sort::isConstructor() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1400,9 +1390,9 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_DOMAIN_SORTS(params);
-  CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
+  CVC5_API_CHECK(d_type->isParametricDatatype() || d_type->isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
-  CVC5_API_CHECK(!isParametricDatatype()
+  CVC5_API_CHECK(!d_type->isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
       << "Arity mismatch for instantiated parametric datatype";
   CVC5_API_CHECK(!isSortConstructor()
@@ -1714,7 +1704,7 @@ uint32_t Sort::getFloatingPointExponentSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  CVC5_API_CHECK(d_type->isFloatingPoint()) << "Not a floating-point sort.";
   //////// all checks before this line
   return d_type->getFloatingPointExponentSize();
   ////////
@@ -1725,7 +1715,7 @@ uint32_t Sort::getFloatingPointSignificandSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  CVC5_API_CHECK(d_type->isFloatingPoint()) << "Not a floating-point sort.";
   //////// all checks before this line
   return d_type->getFloatingPointSignificandSize();
   ////////
@@ -1738,7 +1728,8 @@ std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
+  CVC5_API_CHECK(d_type->isParametricDatatype())
+      << "Not a parametric datatype sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getParamTypes());
   ////////
@@ -1749,7 +1740,7 @@ size_t Sort::getDatatypeArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isDatatype()) << "Not a datatype sort.";
+  CVC5_API_CHECK(d_type->isDatatype()) << "Not a datatype sort.";
   //////// all checks before this line
   return d_type->isParametricDatatype() ? d_type->getNumChildren() - 1 : 0;
   ////////
@@ -1773,7 +1764,7 @@ std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTuple()) << "Not a tuple sort.";
+  CVC5_API_CHECK(d_type->isTuple()) << "Not a tuple sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getTupleTypes());
   ////////
@@ -1800,7 +1791,7 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_solver(nullptr), d_kind(NULL_EXPR), d_node(new cvc5::Node()) {}
+Op::Op() : d_solver(nullptr), d_kind(NULL_TERM), d_node(new cvc5::Node()) {}
 
 Op::Op(const Solver* slv, const Kind k)
     : d_solver(slv), d_kind(k), d_node(new cvc5::Node())
@@ -1851,7 +1842,7 @@ bool Op::operator!=(const Op& t) const
 
 Kind Op::getKind() const
 {
-  CVC5_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
+  CVC5_API_CHECK(d_kind != NULL_TERM) << "Expecting a non-null Kind";
   //////// all checks before this line
   return d_kind;
 }
@@ -2121,7 +2112,7 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 
 bool Op::isNullHelper() const
 {
-  return (d_node->isNull() && (d_kind == NULL_EXPR));
+  return (d_node->isNull() && (d_kind == NULL_TERM));
 }
 
 bool Op::isIndexedHelper() const { return !d_node->isNull(); }
@@ -7626,7 +7617,7 @@ void Solver::addSygusInvConstraint(Term inv,
   CVC5_API_TRY_CATCH_END;
 }
 
-Result Solver::checkSynth() const
+SynthResult Solver::checkSynth() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
@@ -7637,7 +7628,7 @@ Result Solver::checkSynth() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Result Solver::checkSynthNext() const
+SynthResult Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
