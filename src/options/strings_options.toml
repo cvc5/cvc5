@@ -19,7 +19,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringEager"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-eager"
   type       = "bool"
   default    = "false"
@@ -35,7 +35,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringLenNorm"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-len-norm"
   type       = "bool"
   default    = "true"
@@ -43,7 +43,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringInferSym"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-infer-sym"
   type       = "bool"
   default    = "true"
@@ -51,7 +51,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringEagerLen"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-eager-len"
   type       = "bool"
   default    = "true"
@@ -67,7 +67,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringProcessLoopMode"
-  category   = "expert"
+  category   = "regular"
   long       = "strings-process-loop-mode=MODE"
   type       = "ProcessLoopMode"
   default    = "FULL"
@@ -91,7 +91,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringInferAsLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-infer-as-lemmas"
   type       = "bool"
   default    = "false"
@@ -99,7 +99,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringRExplainLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-rexplain-lemmas"
   type       = "bool"
   default    = "true"
@@ -107,7 +107,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringMinPrefixExplain"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-min-prefix-explain"
   type       = "bool"
   default    = "true"
@@ -141,7 +141,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringFlatForms"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-ff"
   type       = "bool"
   default    = "true"
@@ -149,7 +149,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringRegExpInterMode"
-  category   = "expert"
+  category   = "regular"
   long       = "re-inter-mode=MODE"
   type       = "RegExpInterMode"
   default    = "CONSTANT"
@@ -170,7 +170,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringUnifiedVSpt"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-unified-vspt"
   type       = "bool"
   default    = "true"
@@ -186,7 +186,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringsAlphaCard"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-alpha-card=N"
   type       = "uint64_t"
   default    = "196608"
@@ -245,7 +245,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringsModelMaxLength"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-model-max-len=N"
   type       = "uint64_t"
   default    = "65536"

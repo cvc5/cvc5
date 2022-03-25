@@ -63,6 +63,7 @@
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/smt_options.h"
+#include "options/quantifiers_options.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -7450,10 +7451,12 @@ void Solver::setOption(const std::string& option,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkSygusVar(const Sort& sort, const std::string& symbol) const
+Term Solver::declareSygusVar(const Sort& sort, const std::string& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot call declareSygusVar unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   Node res = getNodeManager()->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
@@ -7486,6 +7489,8 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot call synthFun unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort);
   ////////
@@ -7500,6 +7505,8 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot call synthFun unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort, false, &grammar);
   ////////
@@ -7511,6 +7518,8 @@ Term Solver::synthInv(const std::string& symbol,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return synthFunHelper(
       symbol, boundVars, Sort(this, getNodeManager()->booleanType()), true);
@@ -7524,6 +7533,8 @@ Term Solver::synthInv(const std::string& symbol,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return synthFunHelper(symbol,
                         boundVars,
@@ -7541,6 +7552,8 @@ void Solver::addSygusConstraint(const Term& term) const
   CVC5_API_ARG_CHECK_EXPECTED(
       term.d_node->getType() == getNodeManager()->booleanType(), term)
       << "boolean term";
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot addSygusConstraint unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, false);
   ////////
@@ -7554,6 +7567,8 @@ void Solver::addSygusAssume(const Term& term) const
   CVC5_API_ARG_CHECK_EXPECTED(
       term.d_node->getType() == getNodeManager()->booleanType(), term)
       << "boolean term";
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot addSygusAssume unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, true);
   ////////
@@ -7584,6 +7599,8 @@ void Solver::addSygusInvConstraint(Term inv,
 
   CVC5_API_CHECK(post.d_node->getType() == invType)
       << "Expected inv and post to have the same sort";
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot addSygusInvConstraint unless sygus is enabled (use --sygus)";
   //////// all checks before this line
 
   const std::vector<TypeNode>& invArgTypes = invType.getArgTypes();
@@ -7612,6 +7629,8 @@ void Solver::addSygusInvConstraint(Term inv,
 Result Solver::checkSynth() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot checkSynth unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return d_slv->checkSynth();
   ////////
@@ -7621,6 +7640,8 @@ Result Solver::checkSynth() const
 Result Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
+      << "Cannot checkSynthNext unless sygus is enabled (use --sygus)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot checkSynthNext when not solving incrementally (use "
          "--incremental)";
