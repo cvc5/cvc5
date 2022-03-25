@@ -1400,9 +1400,9 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_DOMAIN_SORTS(params);
-  CVC5_API_CHECK(isParametricDatatype() || isSortConstructor())
+  CVC5_API_CHECK(d_type->isParametricDatatype() || d_type->isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
-  CVC5_API_CHECK(!isParametricDatatype()
+  CVC5_API_CHECK(!d_type->isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
       << "Arity mismatch for instantiated parametric datatype";
   CVC5_API_CHECK(!isSortConstructor()
@@ -1714,7 +1714,7 @@ uint32_t Sort::getFloatingPointExponentSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  CVC5_API_CHECK(d_type->isFloatingPoint()) << "Not a floating-point sort.";
   //////// all checks before this line
   return d_type->getFloatingPointExponentSize();
   ////////
@@ -1725,7 +1725,7 @@ uint32_t Sort::getFloatingPointSignificandSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  CVC5_API_CHECK(d_type->isFloatingPoint()) << "Not a floating-point sort.";
   //////// all checks before this line
   return d_type->getFloatingPointSignificandSize();
   ////////
@@ -1738,7 +1738,7 @@ std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
+  CVC5_API_CHECK(d_type->isParametricDatatype()) << "Not a parametric datatype sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getParamTypes());
   ////////
@@ -1749,7 +1749,7 @@ size_t Sort::getDatatypeArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isDatatype()) << "Not a datatype sort.";
+  CVC5_API_CHECK(d_type->isDatatype()) << "Not a datatype sort.";
   //////// all checks before this line
   return d_type->isParametricDatatype() ? d_type->getNumChildren() - 1 : 0;
   ////////
@@ -1773,7 +1773,7 @@ std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTuple()) << "Not a tuple sort.";
+  CVC5_API_CHECK(d_type->isTuple()) << "Not a tuple sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getTupleTypes());
   ////////
