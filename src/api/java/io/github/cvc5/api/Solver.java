@@ -2605,9 +2605,9 @@ public class Solver implements IPointer, AutoCloseable
    *   ( check-synth )
    * }
    * @return the result of the check, which is "solution" if the check found a
-   * solution in which case solutions are available via getSynthSolutions,
-   * "no solution" if it was determined there is no solution, or "unknown"
-   * otherwise.
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
   public SynthResult checkSynth()
   {
@@ -2627,9 +2627,9 @@ public class Solver implements IPointer, AutoCloseable
    *   ( check-synth-next )
    * }
    * @return the result of the check, which is "solution" if the check found a
-   * solution in which case solutions are available via getSynthSolutions,
-   * "no solution" if it was determined there is no solution, or "unknown"
-   * otherwise.
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
   public SynthResult checkSynthNext()
   {

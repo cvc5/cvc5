@@ -87,12 +87,12 @@ class SolverEngineState : protected EnvObj
    * If so, we pop a context.
    * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(bool hasAssumptions, Result r);
+  void notifyCheckSatResult(bool hasAssumptions, const Result& r);
   /**
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
    */
-  void notifyCheckSynthResult(SynthResult r);
+  void notifyCheckSynthResult(const SynthResult& r);
   /**
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above

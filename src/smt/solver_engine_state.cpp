@@ -84,7 +84,7 @@ void SolverEngineState::notifyCheckSat(bool hasAssumptions)
   }
 }
 
-void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
+void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, const Result& r)
 {
   d_needPostsolve = true;
 
@@ -118,7 +118,7 @@ void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   }
 }
 
-void SolverEngineState::notifyCheckSynthResult(SynthResult r)
+void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 {
   if (r.getStatus() == SynthResult::SOLUTION)
   {

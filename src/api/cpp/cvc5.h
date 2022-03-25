@@ -4751,9 +4751,9 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @return the result of the check, which is "solution" if the check found a
-   * solution in which case solutions are available via getSynthSolutions,
-   * "no solution" if it was determined there is no solution, or "unknown"
-   * otherwise.
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
   SynthResult checkSynth() const;
 
@@ -4772,9 +4772,9 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @return the result of the check, which is "solution" if the check found a
-   * solution in which case solutions are available via getSynthSolutions,
-   * "no solution" if it was determined there is no solution, or "unknown"
-   * otherwise.
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
   SynthResult checkSynthNext() const;
 
