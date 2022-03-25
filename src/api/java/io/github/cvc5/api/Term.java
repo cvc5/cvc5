@@ -660,6 +660,27 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native long[] getSequenceValue(long pointer);
 
+  /**
+   * @return true if the term is a cardinality constraint
+   */
+  public boolean isCardinalityConstraint()
+  {
+    return isCardinalityConstraint(pointer);
+  }
+
+  private native boolean isCardinalityConstraint(long pointer);
+
+  /**
+   * Asserts isCardinalityConstraint().
+   * @return the sort the cardinality constraint is for and its upper bound.
+   */
+  public Pair<Sort, BigInteger> getCardinalityConstraint()
+  {
+    return getCardinalityConstraint(pointer);
+  }
+
+  private native Pair<Sort, BigInteger> getCardinalityConstraint(long pointer);
+  
   public class ConstIterator implements Iterator<Term>
   {
     private int currentIndex;

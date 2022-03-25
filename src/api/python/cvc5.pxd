@@ -524,6 +524,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getSequenceValue() except +
         bint isTupleValue() except +
         vector[Term] getTupleValue() except +
+        bint isCardinalityConstraint() except +
+        pair[Sort, bint] getCardinalityConstraint() except +
 
 
     cdef cppclass TermHashFunction:

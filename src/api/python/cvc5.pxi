@@ -3530,6 +3530,22 @@ cdef class Term:
 	"""
         return self.cterm.getBitVectorValue(base).decode()
 
+
+    def isCardinalityConstraint(self):
+        """
+
+	    :return: True iff this term is a cardinality constraint
+        """
+        return self.cterm.isCardinalityConstraint()
+
+    def getCardinalityConstraint(self):
+        """
+	   Asserts :py:meth:`isCardinalityConstraint()`.
+
+	   :return: the representation of a rational value as a python Fraction.
+	"""
+        return self.cterm.getCardinalityConstraint()
+
     def toPythonObj(self):
         """
         Converts a constant value Term to a Python object.
