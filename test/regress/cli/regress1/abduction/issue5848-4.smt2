@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --produce-abducts
-; EXPECT: none
+; EXPECT: fail
 (set-logic UFLRA)
 (declare-sort S0 0)
 (declare-fun S0-0 () S0)

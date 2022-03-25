@@ -129,7 +129,7 @@ int main()
       {slv.mkTerm(ADD, {max_x_y, min_x_y}), slv.mkTerm(ADD, {varX, varY})}));
 
   // print solutions if available
-  if (slv.checkSynth().isUnsat())
+  if (slv.checkSynth().hasSolution())
   {
     // Output should be equivalent to:
     // (

@@ -2046,7 +2046,8 @@ def test_get_synth_solution(solver):
     with pytest.raises(RuntimeError):
         solver.getSynthSolution(f)
 
-    solver.checkSynth()
+    res = solver.checkSynth()
+    assert res.hasSolution()
 
     solver.getSynthSolution(f)
     solver.getSynthSolution(f)
@@ -2065,10 +2066,12 @@ def test_check_synth_next(solver):
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
-    solver.checkSynth()
+    res = solver.checkSynth()
+    assert res.hasSolution()
     solver.getSynthSolutions([f])
 
-    solver.checkSynthNext()
+    res = solver.checkSynthNext()
+    assert res.hasSolution()
     solver.getSynthSolutions([f])
 
 def test_check_synth_next2(solver):
@@ -2468,6 +2471,7 @@ def test_issue7000(solver):
 
 
 def test_mk_sygus_var(solver):
+    solver.setOption("sygus", "true")
     boolSort = solver.getBooleanSort()
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort(intSort, boolSort)
@@ -2515,7 +2519,7 @@ def test_synth_fun(solver):
     with pytest.raises(RuntimeError):
         solver.synthFun("f6", [x], boolean, g2)
     slv = cvc5.Solver()
-    solver.setOption("sygus", "true")
+    slv.setOption("sygus", "true")
     x2 = slv.mkVar(slv.getBooleanSort())
     slv.synthFun("f1", [x2], slv.getBooleanSort())
     with pytest.raises(RuntimeError):

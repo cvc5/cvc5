@@ -34,5 +34,41 @@ TEST_F(TestApiBlackSynthResult, isNull)
   ASSERT_FALSE(res_null.isUnknown());
 }
 
+TEST_F(TestApiBlackSynthResult, hasSolution)
+{
+  d_solver.setOption("sygus", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+  Term boolTerm = d_solver.mkTrue();
+  d_solver.addSygusConstraint(boolTerm);
+  cvc5::api::SynthResult res = d_solver.checkSynth();
+  ASSERT_FALSE(res.isNull());
+  ASSERT_TRUE(res.hasSolution());
+  ASSERT_FALSE(res.hasNoSolution());
+  ASSERT_FALSE(res.isUnknown());
+}
+
+TEST_F(TestApiBlackSynthResult, hasNoSolution)
+{
+  // note that we never return synth result for which hasNoSolution is true
+  // currently
+  cvc5::api::SynthResult res_null;
+  ASSERT_FALSE(res_null.hasNoSolution());
+}
+
+TEST_F(TestApiBlackSynthResult, isUnknown)
+{
+  d_solver.setOption("sygus", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+  Term boolTerm = d_solver.mkFalse();
+  d_solver.addSygusConstraint(boolTerm);
+  cvc5::api::SynthResult res = d_solver.checkSynth();
+  // currently isUnknown, could also return hasNoSolution when support for
+  // infeasibility of sygus conjectures is added.
+  ASSERT_FALSE(res.isNull());
+  ASSERT_FALSE(res.hasSolution());
+  ASSERT_FALSE(res.hasNoSolution());
+  ASSERT_TRUE(res.isUnknown());
+}
+
 }  // namespace test
 }  // namespace cvc5
