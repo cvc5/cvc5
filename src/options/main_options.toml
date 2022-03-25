@@ -53,7 +53,7 @@ name   = "Driver"
 
 [[option]]
   name       = "showDebugTags"
-  category   = "regular"
+  category   = "expert"
   long       = "show-debug-tags"
   type       = "bool"
   default    = "false"
@@ -63,7 +63,7 @@ name   = "Driver"
 
 [[option]]
   name       = "showTraceTags"
-  category   = "regular"
+  category   = "expert"
   long       = "show-trace-tags"
   type       = "bool"
   default    = "false"
@@ -81,7 +81,7 @@ name   = "Driver"
 
 [[option]]
   name       = "interactive"
-  category   = "regular"
+  category   = "common"
   long       = "interactive"
   type       = "bool"
   default    = "false"
@@ -97,7 +97,7 @@ name   = "Driver"
 
 [[option]]
   name       = "segvSpin"
-  category   = "regular"
+  category   = "expert"
   long       = "segv-spin"
   type       = "bool"
   default    = "false"
@@ -129,7 +129,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpInstantiationsDebug"
-  category   = "regular"
+  category   = "expert"
   long       = "dump-instantiations-debug"
   type       = "bool"
   default    = "false"
@@ -153,7 +153,7 @@ name   = "Driver"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"
-  category   = "regular"
+  category   = "expert"
   long       = "force-no-limit-cpu-while-dump"
   type       = "bool"
   default    = "false"

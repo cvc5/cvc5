@@ -12,7 +12,7 @@ name   = "Parser"
 [[option]]
   name       = "semanticChecks"
   long       = "semantic-checks"
-  category   = "regular"
+  category   = "expert"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   help       = "enable semantic checks, including type checks"
@@ -47,7 +47,7 @@ name   = "Parser"
 
 [[option]]
   name       = "forceLogicString"
-  category   = "expert"
+  category   = "common"
   long       = "force-logic=LOGIC"
   type       = "std::string"
   default    = '""'
