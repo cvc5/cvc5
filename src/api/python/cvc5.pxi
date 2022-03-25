@@ -1678,9 +1678,12 @@ cdef class Solver:
 
             ( check-synth )
 
-        :return: the result of the synthesis conjecture.
+        :return: the result of the check, which is "solution" if the check
+                 found a solution in which case solutions are available via
+                 getSynthSolutions, "no solution" if it was determined there is
+                 no solution, or "unknown" otherwise.
         """
-        cdef Result r = Result()
+        cdef SynthResult r = SynthResult()
         r.cr = self.csolver.checkSynth()
         return r
 
@@ -1697,10 +1700,12 @@ cdef class Solver:
 
             ( check-synth )
 
-        :return: the result of the check, which is unsat if the check succeeded,
-                 in which case solutions are available via getSynthSolutions.
+        :return: the result of the check, which is "solution" if the check
+                 found a solution in which case solutions are available via
+                 getSynthSolutions, "no solution" if it was determined there is
+                 no solution, or "unknown" otherwise.
         """
-        cdef Result r = Result()
+        cdef SynthResult r = SynthResult()
         r.cr = self.csolver.checkSynthNext()
         return r
 
