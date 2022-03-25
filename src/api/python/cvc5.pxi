@@ -1063,40 +1063,28 @@ cdef class Solver:
         Supports the following uses:
 
         - ``Op mkOp(Kind kind)``
-        - ``Op mkOp(Kind kind, Kind k)``
         - ``Op mkOp(Kind kind, const string& arg)``
-        - ``Op mkOp(Kind kind, uint32_t arg)``
-        - ``Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)``
-        - ``Op mkOp(Kind kind, [uint32_t arg0, ...])`` (used for the TupleProject kind)
+        - ``Op mkOp(Kind kind, uint32_t arg0, ...)``
         """
         cdef Op op = Op(self)
         cdef vector[uint32_t] v
 
         if len(args) == 0:
             op.cop = self.csolver.mkOp(<c_Kind> k.value)
-        elif len(args) == 1:
-            if isinstance(args[0], str):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value,
-                                           <const string &>
-                                           args[0].encode())
-            elif isinstance(args[0], int):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int?> args[0])
-            elif isinstance(args[0], list):
-                for a in args[0]:
-                    if a < 0 or a >= 2 ** 31:
-                        raise ValueError("Argument {} must fit in a uint32_t".format(a))
-
-                    v.push_back((<uint32_t?> a))
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <const vector[uint32_t]&> v)
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
-        elif len(args) == 2:
-            if isinstance(args[0], int) and isinstance(args[1], int):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int> args[0], <int> args[1])
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
+        elif len(args) == 1 and isinstance(args[0], str):
+            op.cop = self.csolver.mkOp(<c_Kind> k.value,
+                                       <const string &>
+                                       args[0].encode())
+        else:
+            for a in args:
+                if not isinstance(a, int):
+                  raise ValueError(
+                            "Expected uint32_t for argument {}".format(a))
+                if a < 0 or a >= 2 ** 31:
+                    raise ValueError(
+                            "Argument {} must fit in a uint32_t".format(a))
+                v.push_back((<uint32_t?> a))
+            op.cop = self.csolver.mkOp(<c_Kind> k.value, v)
         return op
 
     def mkTrue(self):
