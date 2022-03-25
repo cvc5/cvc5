@@ -34,7 +34,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   bool result = pn->getRule() == PfRule::ASSUME
                 && d_proofCnfStream->hasProofFor(pn->getResult());
-  if (Trace.isOn("prop-proof-pp") && !result && pn->getRule() == PfRule::ASSUME)
+  if (TraceisOn("prop-proof-pp") && !result && pn->getRule() == PfRule::ASSUME)
   {
     Trace("prop-proof-pp") << "- Ignoring no-proof assumption "
                            << pn->getResult() << "\n";
