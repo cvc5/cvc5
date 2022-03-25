@@ -47,7 +47,7 @@ class SynthResultTest
 
   @Test void hasSolution()
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
     Term boolTerm = d_solver.mkTrue();
     d_solver.addSygusConstraint(boolTerm);
@@ -66,7 +66,7 @@ class SynthResultTest
 
   @Test void isUnknown()
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
     Term boolTerm = d_solver.mkTrue();
     d_solver.addSygusConstraint(boolTerm);

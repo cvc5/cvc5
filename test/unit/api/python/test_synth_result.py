@@ -33,7 +33,7 @@ def test_is_null(solver):
     assert not res_null.isUnknown()
 
 def test_has_solution(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
     boolTerm = solver.mkBoolean(True)
     solver.addSygusConstraint(boolTerm)
@@ -48,7 +48,7 @@ def test_has_no_solution(solver):
     assert not res_null.hasNoSolution()
 
 def test_has_is_unknown(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
     boolTerm = solver.mkBoolean(False)
     solver.addSygusConstraint(boolTerm)
