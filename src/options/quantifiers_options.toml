@@ -628,14 +628,6 @@ name   = "Quantifiers"
   help       = "interleave model-based quantifier instantiation with other techniques"
 
 [[option]]
-  name       = "fmfBoundInt"
-  category   = "regular"
-  long       = "fmf-bound-int"
-  type       = "bool"
-  default    = "false"
-  help       = "finite model finding on bounded integer quantification"
-
-[[option]]
   name       = "fmfBound"
   category   = "regular"
   long       = "fmf-bound"
