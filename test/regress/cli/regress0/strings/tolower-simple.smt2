@@ -5,7 +5,7 @@
 (declare-const y String)
 (declare-const z String)
 
-(assert (= (str.tolower "aBCDef") x))
+(assert (= (str.to_lower "aBCDef") x))
 (assert (= x (str.++ y "c" z)))
 
 (check-sat)

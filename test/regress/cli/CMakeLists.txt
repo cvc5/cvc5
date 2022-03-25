@@ -1412,8 +1412,8 @@ set(regress_0_tests
   regress0/strings/strings-native-simple.cvc.smt2
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2
-  regress0/strings/tolower-rrs.smt2
-  regress0/strings/tolower-simple.smt2
+  regress0/strings/to_lower-rrs.smt2
+  regress0/strings/to_lower-simple.smt2
   regress0/strings/type001.smt2
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
@@ -2611,7 +2611,7 @@ set(regress_1_tests
   regress1/strings/strings-lt-simple.smt2
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
-  regress1/strings/tolower-find.smt2
+  regress1/strings/to_lower-find.smt2
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
