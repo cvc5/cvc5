@@ -115,7 +115,9 @@ enum class PfRule : uint32_t
    * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
    * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
    * determines how to convert the formulas :math:`F_1 \dots F_n` into
-   * substitutions. It is an optional argument, where by default the premises are equalities of the form `(= x y)` and converted into substitutions :math:`x\mapsto y`. \endverbatim
+   * substitutions. It is an optional argument, where by default the premises
+   * are equalities of the form `(= x y)` and converted into substitutions
+   * :math:`x\mapsto y`. \endverbatim
    */
   SUBS,
   /**
@@ -292,7 +294,7 @@ enum class PfRule : uint32_t
    * \texttt{Theory::ppRewrite}(t)` for some theory. \endverbatim
    */
   THEORY_PREPROCESS,
-    /**
+  /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory preprocessing**
    *
@@ -515,7 +517,8 @@ enum class PfRule : uint32_t
    *   :cpp:enumerator:`RESOLUTION <cvc5::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
-   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}} C_i'`
+   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
+   * C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
    * representation, to :math:`C_n'`
@@ -1473,320 +1476,476 @@ enum class PfRule : uint32_t
   // strings::InferProofCons::convert.
   STRING_INFERENCE,
 
-  //================================================= Arithmetic rules
-  // ======== Adding Inequalities
-  // Note: an ArithLiteral is a term of the form (>< poly const)
-  // where
-  //   >< is >=, >, ==, <, <=, or not(== ...).
-  //   poly is a polynomial
-  //   const is a rational constant
-
-  // Children: (P1:l1, ..., Pn:ln)
-  //           where each li is an ArithLiteral
-  //           not(= ...) is dis-allowed!
-  //
-  // Arguments: (k1, ..., kn), non-zero reals
-  // ---------------------
-  // Conclusion: (>< t1 t2)
-  //    where >< is the fusion of the combination of the ><i, (flipping each it
-  //    its ki is negative). >< is always one of <, <=
-  //    NB: this implies that lower bounds must have negative ki,
-  //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
-  //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
-  //    * const_n)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Adding inequalities**
+   * 
+   * An arithmetic literal is a term of the form :math:`p \diamond c` where
+   * :math:`\diamond \in \{ <, \leq, =, \geq, > \}`, :math:`p` a
+   * polynomial and :math:`c` a rational constant.
+   *
+   * .. math::
+   *   \inferrule{l_1 \dots l_n \mid k_1 \dots k_n}{t_1 \diamond t_2}
+   * 
+   * where :math:`k_i \in \mathbb{R}, k_i \neq 0`, :math:`\diamond` is the
+   * fusion of the :math:`\diamond_i` (flipping each if its :math:`k_i` is
+   * negative) such that :math:`\diamond_i \in \{ <, \leq \}` (this implies that
+   * lower bounds have negative :math:`k_i` and upper bounds have positive
+   * :math:`k_i`), :math:`t_1` is the sum of the scaled polynomials and
+   * :math:`t_2` is the sum of the scaled constants:
+   * 
+   * .. math::
+   *   t_1 \colon= k_1 \cdot p_1 + \cdots + k_n \cdot p_n
+   *   
+   *   t_2 \colon= k_1 \cdot c_1 + \cdots + k_n \cdot c_n
+   *
+   * \endverbatim
+   */
   MACRO_ARITH_SCALE_SUM_UB,
-  // ======== Sum Upper Bounds
-  // Children: (P1, ... , Pn)
-  //           where each Pi has form (><i, Li, Ri)
-  //           for ><i in {<, <=, ==}
-  // Conclusion: (>< L R)
-  //           where >< is < if any ><i is <, and <= otherwise.
-  //                 L is (+ L1 ... Ln)
-  //                 R is (+ R1 ... Rn)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Sum upper bounds**
+   * 
+   * .. math::
+   *   \inferrule{P_1 \dots P_n \mid -}{L \diamond R}
+   * 
+   * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
+   * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
+   * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
+   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots + R_n`.
+   * \endverbatim
+   */
   ARITH_SUM_UB,
-  // ======== Tightening Strict Integer Upper Bounds
-  // Children: (P:(< i c))
-  //         where i has integer type.
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (<= i greatestIntLessThan(c)})
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Tighten strict integer upper bounds**
+   * 
+   * .. math::
+   *   \inferrule{i < c \mid -}{i \leq \lfloor c \rfloor}
+   * 
+   * where :math:`i` has integer type.
+   * \endverbatim
+   */
   INT_TIGHT_UB,
-  // ======== Tightening Strict Integer Lower Bounds
-  // Children: (P:(> i c))
-  //         where i has integer type.
-  // Arguments: none
-  // ---------------------
-  // Conclusion: (>= i leastIntGreaterThan(c)})
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Tighten strict integer lower bounds**
+   * 
+   * .. math::
+   *   \inferrule{i > c \mid -}{i \geq \lceil c \rceil}
+   * 
+   * where :math:`i` has integer type.
+   * \endverbatim
+   */
   INT_TIGHT_LB,
-  // ======== Trichotomy of the reals
-  // Children: (A B)
-  // Arguments: (C)
-  // ---------------------
-  // Conclusion: (C),
-  //                 where (not A) (not B) and C
-  //                   are (> x c) (< x c) and (= x c)
-  //                   in some order
-  //                 note that "not" here denotes arithmetic negation, flipping
-  //                 >= to <, etc.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Trichotomy of the reals**
+   * 
+   * .. math::
+   *   \inferrule{A, B \mid C}{C}
+   * 
+   * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
+   * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
+   * \endverbatim
+   */
   ARITH_TRICHOTOMY,
-  // ======== Arithmetic operator elimination
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Operator elimination**
+   * 
+   * .. math::
+   *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
+   * \endverbatim
+   */
   ARITH_OP_ELIM_AXIOM,
-  // ======== Arithmetic polynomial normalization
-  // Children: none
-  // Arguments: ((= t s))
-  // ---------------------
-  // Conclusion: (= t s)
-  // where arith::PolyNorm::isArithPolyNorm(t, s) = true
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Polynomial normalization**
+   * 
+   * .. math::
+   *   \inferrule{- \mid t = s}{t = s}
+   * 
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
+   * \endverbatim
+   */
   ARITH_POLY_NORM,
 
-  //======== Multiplication sign inference
-  // Children: none
-  // Arguments: (f1, ..., fk, m)
-  // ---------------------
-  // Conclusion: (=> (and f1 ... fk) (~ m 0))
-  // Where f1, ..., fk are variables compared to zero (less, greater or not
-  // equal), m is a monomial from these variables, and ~ is the comparison (less
-  // or greater) that results from the signs of the variables. All variables
-  // with even exponent in m should be given as not equal to zero while all
-  // variables with odd exponent in m should be given as less or greater than
-  // zero.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Sign inference**
+   * 
+   * .. math::
+   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
+   * 
+   * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
+   * or not equal), :math:`m` is a monomial from these variables and
+   * :math:`\diamond` is the comparison (less or equal) that results from the
+   * signs of the variables. All variables with even exponent in :math:`m`
+   * should be given as not equal to zero while all variables with odd exponent
+   * in :math:`m` should be given as less or greater than zero.
+   * \endverbatim
+   */
   ARITH_MULT_SIGN,
-  //======== Multiplication with positive factor
-  // Children: none
-  // Arguments: (m, (rel lhs rhs))
-  // ---------------------
-  // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
-  // Where rel is a relation symbol.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Multiplication with positive factor**
+   * 
+   * .. math::
+   *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
+   * 
+   * where :math:`\diamond` is a relation symbol.
+   * \endverbatim
+   */
   ARITH_MULT_POS,
-  //======== Multiplication with negative factor
-  // Children: none
-  // Arguments: (m, (rel lhs rhs))
-  // ---------------------
-  // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
-  // Where rel is a relation symbol and rel_inv the inverted relation symbol.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Multiplication with negative factor**
+   * 
+   * .. math::
+   *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
+   * 
+   * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
+   * inverted relation symbol.
+   * \endverbatim
+   */
   ARITH_MULT_NEG,
-  //======== Multiplication tangent plane
-  // Children: none
-  // Arguments: (t, x, y, a, b, sgn)
-  // ---------------------
-  // Conclusion:
-  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
-  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
-  //   (>= y b)))
-  // Where x,y are real terms (variables or extended terms), t = (* x y)
-  // (possibly under rewriting), a,b are real constants, and sgn is either -1
-  // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Multiplication tangent plane**
+   * 
+   * .. math::
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   * 
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   * 
+   * where :math:`x,y` are real terms (variables or extended terms),
+   * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
+   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
+   * \endverbatim
+   */
   ARITH_MULT_TANGENT,
 
-  // ================ Lemmas for transcendentals
-  //======== Assert bounds on PI
-  // Children: none
-  // Arguments: (l, u)
-  // ---------------------
-  // Conclusion: (and (>= real.pi l) (<= real.pi u))
-  // Where l (u) is a valid lower (upper) bound on pi.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Assert bounds on Pi**
+   *
+   * .. math::
+   *   \inferrule{- \mid l, u}{\texttt{real.pi} \geq l \land \texttt{real.pi}
+   *   \leq u}
+   *
+   * where :math:`l,u` are valid lower and upper bounds on :math:`\pi`.
+   * \endverbatim
+   */
   ARITH_TRANS_PI,
-  //======== Exp at negative values
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= (< t 0) (< (exp t) 1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp at negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t < 0) \leftrightarrow (\exp(t) < 1)}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_NEG,
-  //======== Exp is always positive
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (> (exp t) 0)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is always positive**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\exp(t) > 0}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_POSITIVITY,
-  //======== Exp grows super-linearly for positive values
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (or (<= t 0) (> exp(t) (+ t 1)))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp grows super-linearly for positive
+   * values**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{t \leq 0 \lor \exp(t) > t+1}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_SUPER_LIN,
-  //======== Exp at zero
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= (= t 0) (= (exp t) 1))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp at zero**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t=0) \leftrightarrow (\exp(t) = 1)}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_ZERO,
-  //======== Exp is approximated from above for negative values
-  // Children: none
-  // Arguments: (d, t, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant exp l u t))
-  // Where d is an even positive number, t an arithmetic term and l (u) a lower
-  // (upper) bound on t. Let p be the d'th taylor polynomial at zero (also
-  // called the Maclaurin series) of the exponential function. (secant exp l u
-  // t) denotes the secant of p from (l, exp(l)) to (u, exp(u)) evaluated at t,
-  // calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (exp t) is below the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is approximated from above for
+   * negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,l,u}{(t \geq l \land t \leq u) \rightarrow exp(t)
+   *   \leq \texttt{secant}(\exp, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term
+   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p` be
+   * the :math:`d`'th taylor polynomial at zero (also called the Maclaurin
+   * series) of the exponential function. :math:`\texttt{secant}(\exp, l, u, t)`
+   * denotes the secant of :math:`p` from :math:`(l, \exp(l))` to :math:`(u,
+   * \exp(u))` evaluated at :math:`t`, calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
-  //======== Exp is approximated from above for positive values
-  // Children: none
-  // Arguments: (d, t, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant-pos exp l u t))
-  // Where d is an even positive number, t an arithmetic term and l (u) a lower
-  // (upper) bound on t. Let p* be a modification of the d'th taylor polynomial
-  // at zero (also called the Maclaurin series) of the exponential function as
-  // follows where p(d-1) is the regular Maclaurin series of degree d-1:
-  //    p* = p(d-1) * (1 + t^n / n!)
-  // (secant-pos exp l u t) denotes the secant of p from (l, exp(l)) to (u,
-  // exp(u)) evaluated at t, calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (exp t) is below the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is approximated from above for
+   * positive values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,l,u}{(t \geq l \land t \leq u) \rightarrow exp(t)
+   *   \leq \texttt{secant-pos}(\exp, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term
+   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p^*` be
+   * a modification of the :math:`d`'th taylor polynomial at zero (also called
+   * the Maclaurin series) of the exponential function as follows where
+   * :math:`p(d-1)` is the regular Maclaurin series of degree :math:`d-1`:
+   *
+   * .. math::
+   *   p^* := p(d-1) \cdot \frac{1 + t^n}{n!}
+   *
+   * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
+   * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
+   * calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_EXP_APPROX_ABOVE_POS,
-  //======== Exp is approximated from below
-  // Children: none
-  // Arguments: (d, t)
-  // ---------------------
-  // Conclusion: (>= (exp t) (maclaurin exp d t))
-  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
-  // taylor polynomial at zero (also called the Maclaurin series) of the
-  // exponential function evaluated at t. The Maclaurin series for the
-  // exponential function is the following:
-  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Exp is approximated from below**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t}{exp(t) \geq \texttt{maclaurin}(\exp, d, t)}
+   *
+   * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
+   * :math:`\texttt{maclaurin}(\exp, d, t)` is the :math:`d`'th taylor
+   * polynomial at zero (also called the Maclaurin series) of the exponential
+   * function evaluated at :math:`t`. The Maclaurin series for the exponential
+   * function is the following:
+   *
+   * .. math::
+   *   \exp(x) = \sum_{n=0}^{\infty} \frac{x^n}{n!}
+   * \endverbatim
+   */
   ARITH_TRANS_EXP_APPROX_BELOW,
-  //======== Sine is always between -1 and 1
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and (<= (sin t) 1) (>= (sin t) (- 1)))
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is always between -1 and 1**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\sin(t) \leq 1 \land \sin(t) \geq -1}
+   * \endverbatim
+   */
   ARITH_TRANS_SINE_BOUNDS,
-  //======== Sine arg shifted to -pi..pi
-  // Children: none
-  // Arguments: (x, y, s)
-  // ---------------------
-  // Conclusion: (and
-  //   (<= -pi y pi)
-  //   (= (sin y) (sin x))
-  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
-  // )
-  // Where x is the argument to sine, y is a new real skolem that is x shifted
-  // into -pi..pi and s is a new integer skolem that is the number of phases y
-  // is shifted.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is shifted to -pi...pi**
+   *
+   * .. math::
+   *   \inferrule{- \mid x, y, s}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
+   *   \land (\ite{-\pi \leq x \leq \pi}{x = y}{x = y + 2 \pi s})}
+   *
+   * where :math:`x` is the argument to sine, :math:`y` is a new real skolem
+   * that is :math:`x` shifted into :math:`-\pi \dots \pi` and :math:`s` is a
+   * new integer slolem that is the number of phases :math:`y` is shifted.
+   * \endverbatim
+   */
   ARITH_TRANS_SINE_SHIFT,
-  //======== Sine is symmetric with respect to negation of the argument
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (= (- (sin t) (sin (- t))) 0)
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is symmetric with respect to
+   * negation of the argument**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{\sin(t) - \sin(-t) = 0}
+   * \endverbatim
+   */
   ARITH_TRANS_SINE_SYMMETRY,
-  //======== Sine is bounded by the tangent at zero
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and
-  //   (=> (> t 0) (< (sin t) t))
-  //   (=> (< t 0) (> (sin t) t))
-  // )
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is bounded by the tangent at zero**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t > 0 \rightarrow \sin(t) < t) \land (t < 0
+   *   \rightarrow \sin(t) > t)} \endverbatim
+   */
   ARITH_TRANS_SINE_TANGENT_ZERO,
-  //======== Sine is bounded by the tangents at -pi and pi
-  // Children: none
-  // Arguments: (t)
-  // ---------------------
-  // Conclusion: (and
-  //   (=> (> t -pi) (> (sin t) (- -pi t)))
-  //   (=> (< t pi) (< (sin t) (- pi t)))
-  // )
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is bounded by the tangents at -pi
+   * and pi**
+   *
+   * .. math::
+   *   \inferrule{- \mid t}{(t > -\pi \rightarrow \sin(t) > -\pi - t) \land (t <
+   *   \pi \rightarrow \sin(t) < \pi - t)} \endverbatim
+   */
   ARITH_TRANS_SINE_TANGENT_PI,
-  //======== Sine is approximated from above for negative values
-  // Children: none
-  // Arguments: (d, t, lb, ub, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (secant sin l u t))
-  // Where d is an even positive number, t an arithmetic term, lb (ub) a
-  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
-  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
-  // zero (also called the Maclaurin series) of the sine function. (secant sin l
-  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
-  // t, calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (sin t) is below the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from above for
+   * negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \leq \texttt{secant}(\sin, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`lb,ub` are symbolic lower and upper bounds on :math:`t` (possibly
+   * containing :math:`\pi`) and :math:`l,u` the evaluated lower and upper
+   * bounds on :math:`t`. Let :math:`p` be the :math:`d`'th taylor polynomial at
+   * zero (also called the Maclaurin series) of the sine function.
+   * :math:`\texttt{secant}(\sin, l, u, t)` denotes the secant of :math:`p` from
+   * :math:`(l, \sin(l))` to :math:`(u, \sin(u))` evaluated at :math:`t`,
+   * calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\sin(t)` is below the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
-  //======== Sine is approximated from above for positive values
-  // Children: none
-  // Arguments: (d, t, c, lb, ub)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (upper sin c))
-  // Where d is an even positive number, t an arithmetic term, c an arithmetic
-  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
-  // containing pi). Let p be the d'th taylor polynomial at zero (also called
-  // the Maclaurin series) of the sine function. (upper sin c) denotes the upper
-  // bound on sin(c) given by p and lb,ub are such that sin(t) is the maximum of
-  // the sine function on (lb,ub).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from above for
+   * positive values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \leq \texttt{upper}(\sin, c)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`c` an arithmetic constant and :math:`lb,ub` are symbolic lower and
+   * upper bounds on :math:`t` (possibly containing :math:`\pi`). Let :math:`p`
+   * be the :math:`d`'th taylor polynomial at zero (also called the Maclaurin
+   * series) of the sine function. :math:`\texttt{upper}(\sin, c)` denotes the
+   * upper bound on :math:`\sin(c)` given by :math:`p` and :math:`lb,up` such
+   * that :math:`\sin(t)` is the maximum of the sine function on
+   * :math:`(lb,ub)`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_ABOVE_POS,
-  //======== Sine is approximated from below for negative values
-  // Children: none
-  // Arguments: (d, t, c, lb, ub)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (lower sin c))
-  // Where d is an even positive number, t an arithmetic term, c an arithmetic
-  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
-  // containing pi). Let p be the d'th taylor polynomial at zero (also called
-  // the Maclaurin series) of the sine function. (lower sin c) denotes the lower
-  // bound on sin(c) given by p and lb,ub are such that sin(t) is the minimum of
-  // the sine function on (lb,ub).
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from below for
+   * negative values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \geq \texttt{lower}(\sin, c)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`c` an arithmetic constant and :math:`lb,ub` are symbolic lower and
+   * upper bounds on :math:`t` (possibly containing :math:`\pi`). Let :math:`p`
+   * be the :math:`d`'th taylor polynomial at zero (also called the Maclaurin
+   * series) of the sine function. :math:`\texttt{lower}(\sin, c)` denotes the
+   * lower bound on :math:`\sin(c)` given by :math:`p` and :math:`lb,up` such
+   * that :math:`\sin(t)` is the minimum of the sine function on
+   * :math:`(lb,ub)`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_BELOW_NEG,
-  //======== Sine is approximated from below for positive values
-  // Children: none
-  // Arguments: (d, t, lb, ub, l, u)
-  // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (secant sin l u t))
-  // Where d is an even positive number, t an arithmetic term, lb (ub) a
-  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
-  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
-  // zero (also called the Maclaurin series) of the sine function. (secant sin l
-  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
-  // t, calculated as follows:
-  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
-  // The lemma states that if t is between l and u, then (sin t) is above the
-  // secant of p from l to u.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Transcendentals -- Sine is approximated from below for
+   * positive values**
+   *
+   * .. math::
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \sin(t) \geq \texttt{secant}(\sin, l, u, t)}
+   *
+   * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
+   * :math:`lb,ub` are symbolic lower and upper bounds on :math:`t` (possibly
+   * containing :math:`\pi`) and :math:`l,u` the evaluated lower and upper
+   * bounds on :math:`t`. Let :math:`p` be the :math:`d`'th taylor polynomial at
+   * zero (also called the Maclaurin series) of the sine function.
+   * :math:`\texttt{secant}(\sin, l, u, t)` denotes the secant of :math:`p` from
+   * :math:`(l, \sin(l))` to :math:`(u, \sin(u))` evaluated at :math:`t`,
+   * calculated as follows:
+   *
+   * .. math::
+   *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
+   *
+   * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
+   * :math:`\sin(t)` is above the secant of :math:`p` from :math:`l` to
+   * :math:`u`. \endverbatim
+   */
   ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
-  // ================ Coverings Lemmas
-  // We use IRP for IndexedRootPredicate.
-  //
-  // A formula "Interval" describes that a variable (xn is none is given) is
-  // within a particular interval whose bounds are given as IRPs. It is either
-  // an open interval or a point interval:
-  //   (IRP k poly) < xn < (IRP k poly)
-  //   xn == (IRP k poly)
-  //
-  // A formula "Cell" describes a portion
-  // of the real space in the following form:
-  //   Interval(x1) and Interval(x2) and ...
-  // We implicitly assume a Cell to go up to n-1 (and can be empty).
-  //
-  // A formula "Covering" is a set of Intervals, implying that xn can be in
-  // neither of these intervals. To be a covering (of the real line), the union
-  // of these intervals should be the real numbers.
-  // ======== Coverings direct conflict
-  // Children (Cell, A)
-  // ---------------------
-  // Conclusion: (false)
-  // A direct interval is generated from an assumption A (in variables x1...xn)
-  // over a Cell (in variables x1...xn). It derives that A evaluates to false
-  // over the Cell. In the actual algorithm, it means that xn can not be in the
-  // topmost interval of the Cell.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Coverings -- Direct conflict**
+   *
+   * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
+   * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
+   * :math:`poly` may not be univariate; in this case, the value of
+   * :math:`\texttt{IRP}_k(poly)` can only be calculated with respect to a
+   * (partial) model for all but one variable of :math:`poly`.
+   *
+   * A formula :math:`\texttt{Interval}(x_i)` describes that a variable
+   * :math:`x_i` is within a particular interval whose bounds are given as IRPs.
+   * It is either an open interval or a point interval:
+   *
+   * .. math::
+   *   \texttt{IRP}_k(poly) < x_i < \texttt{IRP}_k(poly)
+   *
+   *   x_i = \texttt{IRP}_k(poly)
+   *
+   * A formula :math:`\texttt{Cell}(x_1 \dots x_i)` describes a portion
+   * of the real space in the following form:
+   *
+   * .. math::
+   *   \texttt{Interval}(x_1) \land \dots \land \texttt{Interval}(x_i)
+   *
+   * A cell can also be empty (for :math:`i = 0`).
+   *
+   * A formula :math:`\texttt{Covering}(x_i)` is a set of intervals, implying
+   * that :math:`x_i` can be in neither of these intervals. To be a covering (of
+   * the real line), the union of these intervals should be the real numbers.
+   *
+   * .. math::
+   *   \inferrule{\texttt{Cell}, A \mid -}{\bot}
+   *
+   * A direct interval is generated from an assumption :math:`A` (in variables
+   * :math:`x_1 \dots x_i`) over a :math:`\texttt{Cell}(x_1 \dots x_i)`. It
+   * derives that :math:`A` evaluates to false over the cell. In the actual
+   * algorithm, it means that :math:`x_i` can not be in the topmost interval of
+   * the cell. \endverbatim
+   */
   ARITH_NL_COVERING_DIRECT,
-  // ======== Coverings recursive interval
-  // Children (Cell, Covering)
-  // ---------------------
-  // Conclusion: (false)
-  // A recursive interval is generated from a Covering (for xn) over a Cell
-  // (in variables x1...xn-1). It generates the conclusion that no xn exists
-  // that extends the Cell and satisfies all assumptions.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Coverings -- Recursive interval**
+   *
+   * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
+   * <cvc5::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   *
+   * .. math::
+   *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
+   *
+   * A recursive interval is generated from :math:`\texttt{Covering}(x_i)` over
+   * :math:`\texttt{Cell}(x_1 \dots x_{i-1})`. It generates the conclusion that
+   * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
+   * \endverbatim
+   */
   ARITH_NL_COVERING_RECURSIVE,
 
   //================================================ Place holder for Lfsc rules

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --fmf-inst-engine
+; COMMAND-LINE: --finite-model-find --e-matching
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
