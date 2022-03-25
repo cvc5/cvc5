@@ -58,7 +58,7 @@ TheoryProxy::TheoryProxy(Env& env,
                               || options().smt.produceLearnedLiterals;
   if (trackTopLevelLearned)
   {
-    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine);
+    d_zll = std::make_unique<ZeroLevelLearner>(env, propEngine, theoryEngine);
   }
 }
 

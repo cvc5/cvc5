@@ -23,13 +23,15 @@
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/trust_substitutions.h"
+#include "theory/theory_engine.h"
 
 namespace cvc5 {
 namespace prop {
 
-ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine)
+ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine, TheoryEngine * theoryEngine)
     : EnvObj(env),
       d_propEngine(propEngine),
+      d_theoryEngine(theoryEngine),
       d_levelZeroAsserts(userContext()),
       d_levelZeroAssertsLearned(userContext()),
       d_levelZeroInternalAssertsLearned(userContext()),

@@ -26,6 +26,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5 {
+
+class TheoryEngine;
+
 namespace prop {
 
 class PropEngine;
@@ -45,7 +48,7 @@ class ZeroLevelLearner : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  ZeroLevelLearner(Env& env, PropEngine* propEngine);
+  ZeroLevelLearner(Env& env, PropEngine* propEngine, TheoryEngine * theoryEngine);
 
   ~ZeroLevelLearner();
 
@@ -66,6 +69,9 @@ class ZeroLevelLearner : protected EnvObj
 
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
+
+  /** The theory engine we are using */
+  TheoryEngine * d_theoryEngine;
 
   /** Set of literals that hold at level 0 */
   NodeSet d_levelZeroAsserts;
