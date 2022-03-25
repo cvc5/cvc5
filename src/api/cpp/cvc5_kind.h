@@ -4016,22 +4016,22 @@ enum Kind : int32_t
    *
    * Specifies an annotation for pool based instantiation.
    *
-   * Should only be used as a child of #INST_PATTERN_LIST.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
    *
    * In detail, pool symbols can be declared via the method
    *  - Solver::declarePool(const std::string&, const Sort&, const std::vector<Term>&) const
    *
    * A pool symbol represents a set of terms of a given sort. An instantiation
    * pool annotation should match the types of the quantified formula.
-   * 
+   *
    * For example, for a quantified formula:
-   * 
+   *
    * \rst
    * .. code:: lisp
    *
    *     (FORALL (VARIABLE_LIST x y) F (INST_PATTERN_LIST (INST_POOL p q)))
    * \endrst
-   * 
+   *
    * if @f$x@f$ and @f$y@f$ have Sorts @f$S_1@f$ and @f$S_2@f$,
    * then pool symbols @f$p@f$ and @f$q@f$ should have Sorts
    * (Set @f$S_1@f$) and (Set @f$S_2@f$), respectively.
@@ -4088,21 +4088,21 @@ enum Kind : int32_t
   /**
    * A skolemization-add-to-pool annotation.
    *
-   * Should only be used as a child of #INST_PATTERN_LIST.
-   * 
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   *
    * An skolemization-add-to-pool annotation indicates that when a quantified
    * formula is skolemized, the skolemized version of a term should be added to
    * the given pool.
-   * 
+   *
    * For example, consider a quantified formula:
-   * 
+   *
    * \rst
    * .. code:: lisp
    *
-   *     (FORALL (VARIABLE_LIST x) F 
+   *     (FORALL (VARIABLE_LIST x) F
    *             (INST_PATTERN_LIST (SKOLEM_ADD_TO_POOL (ADD x 1) p)))
    * \endrst
-   * 
+   *
    * where assume that @f$x@f$ has type Int. When this quantified formula is
    * skolemized, e.g., with @f$k@f$ of type Int, then the term `(ADD k 1)` is
    * added to the pool @f$p@f$.
