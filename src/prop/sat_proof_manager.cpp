@@ -149,9 +149,9 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
   }
   Node conclusion = getClauseNode(clause);
   int clauseLevel = clause.level() + 1;
-  if (clauseLevel < userContext()->getLevel())
+  if (clauseLevel < userContext()->getLevel()
+      && !d_resChains.hasGenerator(conclusion))
   {
-    Assert(!d_optResLevels.count(conclusion));
     d_optResLevels[conclusion] = clauseLevel;
     Trace("sat-proof") << "SatProofManager::endResChain: ..clause's lvl "
                        << clause.level() + 1 << " below curr user level "

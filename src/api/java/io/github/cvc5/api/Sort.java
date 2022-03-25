@@ -200,17 +200,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isDatatype(long pointer);
 
   /**
-   * Is this a parametric datatype sort?
-   * @return true if the sort is a parametric datatype sort
-   */
-  public boolean isParametricDatatype()
-  {
-    return isParametricDatatype(pointer);
-  }
-
-  private native boolean isParametricDatatype(long pointer);
-
-  /**
    * Is this a constructor sort?
    * @return true if the sort is a constructor sort
    */

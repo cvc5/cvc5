@@ -251,20 +251,6 @@ Java_io_github_cvc5_api_Sort_isDatatype(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    isParametricDatatype
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isParametricDatatype(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isParametricDatatype());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    isConstructor
  * Signature: (J)Z
  */
