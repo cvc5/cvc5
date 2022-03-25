@@ -1728,7 +1728,8 @@ std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isParametricDatatype()) << "Not a parametric datatype sort.";
+  CVC5_API_CHECK(d_type->isParametricDatatype())
+      << "Not a parametric datatype sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getParamTypes());
   ////////

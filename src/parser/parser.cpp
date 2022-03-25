@@ -587,8 +587,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     {
       std::stringstream ss;
       ss << "Type ascription on constructor not satisfied, term " << t
-         << " expected sort " << s << " but has sort "
-         << etyped;
+         << " expected sort " << s << " but has sort " << etyped;
       parseError(ss.str());
     }
     return t;
