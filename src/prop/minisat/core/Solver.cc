@@ -146,6 +146,11 @@ Solver::Solver(Env& env,
       d_assertionLevelOnly(
           (options().smt.produceProofs || options().smt.unsatCores)
           && options().base.incrementalSolving),
+      // d_assertionLevelOnly(
+      //     options().smt.unsatCores
+      //     && !(isProofEnabled()
+      //          && options().smt.proofMode != options::ProofMode::PP_ONLY)
+      //     && options().base.incrementalSolving),
       d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
