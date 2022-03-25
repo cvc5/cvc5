@@ -34,13 +34,20 @@ class Rewriter;
  */
 enum RewriteStatus
 {
-  /** The node is fully rewritten (no more rewrites apply) */
+  /**
+   * The node is fully rewritten (no more rewrites apply for the original
+   * kind). If the rewrite changes the kind, the rewriter will apply another
+   * round of rewrites.
+   */
   REWRITE_DONE,
   /** The node may be rewritten further */
   REWRITE_AGAIN,
   /** Subnodes of the node may be rewritten further */
   REWRITE_AGAIN_FULL
 }; /* enum RewriteStatus */
+
+/** Print a RewriteStatus to an output stream */
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs);
 
 /**
  * Instances of this class serve as response codes from

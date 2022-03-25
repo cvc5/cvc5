@@ -148,7 +148,7 @@ void SygusRedundantCons::getGenericList(TermDbSygus* tds,
   if (index == dt[c].getNumArgs())
   {
     Node gt = tds->mkGeneric(dt, c, pre);
-    gt = Rewriter::callExtendedRewrite(gt);
+    gt = extendedRewrite(gt);
     terms.push_back(gt);
     return;
   }

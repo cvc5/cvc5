@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of strings-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -43,38 +43,38 @@ if __name__ == "__main__":
     z = slv.mkConst(string, "z")
 
     # String concatenation: x.ab.y
-    lhs = slv.mkTerm(kinds.StringConcat, x, ab, y)
+    lhs = slv.mkTerm(Kind.StringConcat, x, ab, y)
     # String concatenation: abc.z
-    rhs = slv.mkTerm(kinds.StringConcat, abc, z)
+    rhs = slv.mkTerm(Kind.StringConcat, abc, z)
     # x.ab.y = abc.z
-    formula1 = slv.mkTerm(kinds.Equal, lhs, rhs)
+    formula1 = slv.mkTerm(Kind.Equal, lhs, rhs)
 
     # Length of y: |y|
-    leny = slv.mkTerm(kinds.StringLength, y)
+    leny = slv.mkTerm(Kind.StringLength, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(kinds.Geq, leny, slv.mkInteger(0))
+    formula2 = slv.mkTerm(Kind.Geq, leny, slv.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
-    r = slv.mkTerm(kinds.RegexpUnion,
-                   slv.mkTerm(kinds.RegexpConcat,
-                              slv.mkTerm(kinds.StringToRegexp, slv.mkString("ab")),
-                              slv.mkTerm(kinds.RegexpStar,
-                                         slv.mkTerm(kinds.RegexpRange, slv.mkString("c"), slv.mkString("e"))),
-                            slv.mkTerm(kinds.StringToRegexp, slv.mkString("f"))),
-                 slv.mkTerm(kinds.StringToRegexp, slv.mkString("g")),
-                 slv.mkTerm(kinds.StringToRegexp, slv.mkString("h")))
+    r = slv.mkTerm(Kind.RegexpUnion,
+                   slv.mkTerm(Kind.RegexpConcat,
+                              slv.mkTerm(Kind.StringToRegexp, slv.mkString("ab")),
+                              slv.mkTerm(Kind.RegexpStar,
+                                         slv.mkTerm(Kind.RegexpRange, slv.mkString("c"), slv.mkString("e"))),
+                            slv.mkTerm(Kind.StringToRegexp, slv.mkString("f"))),
+                 slv.mkTerm(Kind.StringToRegexp, slv.mkString("g")),
+                 slv.mkTerm(Kind.StringToRegexp, slv.mkString("h")))
 
     # String variables
     s1 = slv.mkConst(string, "s1")
     s2 = slv.mkConst(string, "s2")
     # String concatenation: s1.s2
-    s = slv.mkTerm(kinds.StringConcat, s1, s2)
+    s = slv.mkTerm(Kind.StringConcat, s1, s2)
 
     # s1.s2 in (ab[c-e]*f)|g|h
-    formula3 = slv.mkTerm(kinds.StringInRegexp, s, r)
+    formula3 = slv.mkTerm(Kind.StringInRegexp, s, r)
 
     # Make a query
-    q = slv.mkTerm(kinds.And,
+    q = slv.mkTerm(Kind.And,
                    formula1,
                    formula2,
                    formula3)

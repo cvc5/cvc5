@@ -63,6 +63,7 @@ name   = "SMT Layer"
   category   = "regular"
   long       = "check-models"
   type       = "bool"
+  default    = "false"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
 
 [[option]]
@@ -70,7 +71,16 @@ name   = "SMT Layer"
   category   = "regular"
   long       = "debug-check-models"
   type       = "bool"
+  default    = "false"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
+
+[[option]]
+  name       = "modelVarElimUneval"
+  category   = "expert"
+  long       = "model-var-elim-uneval"
+  type       = "bool"
+  default    = "true"
+  help       = "allow variable elimination based on unevaluatable terms to variables"
 
 [[option]]
   name       = "modelCoresMode"
@@ -109,6 +119,14 @@ name   = "SMT Layer"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
+  name       = "produceLearnedLiterals"
+  category   = "regular"
+  long       = "produce-learned-literals"
+  type       = "bool"
+  default    = "false"
+  help       = "produce learned literals, support get-learned-literals"
+
+[[option]]
   name       = "produceProofs"
   category   = "regular"
   long       = "produce-proofs"
@@ -117,10 +135,28 @@ name   = "SMT Layer"
   help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
+  name       = "proofMode"
+  category   = "expert"
+  long       = "proof-mode=MODE"
+  type       = "ProofMode"
+  default    = "OFF"
+  help       = "choose proof mode, see --proof-mode=help"
+  help_mode  = "proof modes."
+[[option.mode.OFF]]
+  name = "off"
+[[option.mode.PP_ONLY]]
+  name = "pp-only"
+[[option.mode.SAT]]
+  name = "sat-proof"
+[[option.mode.FULL]]
+  name = "full-proof"
+
+[[option]]
   name       = "checkProofs"
   category   = "regular"
   long       = "check-proofs"
   type       = "bool"
+  default    = "false"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
@@ -149,6 +185,7 @@ name   = "SMT Layer"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
+  default    = "false"
   help       = "turn on unsat core generation. Unless otherwise specified, cores will be produced using SAT soving under assumptions and preprocessing proofs."
 
 [[option]]
@@ -164,16 +201,10 @@ name   = "SMT Layer"
   help = "Do not produce unsat cores."
 [[option.mode.SAT_PROOF]]
   name = "sat-proof"
-  help = "Produce unsat cores from SAT and preprocessing proofs."
-[[option.mode.FULL_PROOF]]
-  name = "full-proof"
-  help = "Produce unsat cores from full proofs."
+  help = "Produce unsat cores from the SAT proof and prepocessing proofs."
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
-[[option.mode.PP_ONLY]]
-  name = "pp-only"
-  help = "Not producing unsat cores, but tracking proofs of preprocessing (internal only)."
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -188,6 +219,7 @@ name   = "SMT Layer"
   category   = "regular"
   long       = "check-unsat-cores"
   type       = "bool"
+  default    = "false"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
@@ -216,6 +248,9 @@ name   = "SMT Layer"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
   name = "lemma-literal"
+  help = "Difficulty of an assertion is how many lemmas (at full effort) use a literal that the assertion depends on to be satisfied."
+[[option.mode.LEMMA_LITERAL_ALL]]
+  name = "lemma-literal-all"
   help = "Difficulty of an assertion is how many lemmas use a literal that the assertion depends on to be satisfied."
 [[option.mode.MODEL_CHECK]]
   name = "model-check"
@@ -243,18 +278,20 @@ name   = "SMT Layer"
   long       = "produce-assertions"
   type       = "bool"
   alias      = ["interactive-mode"]
-  help       = "keep an assertions list (enables get-assertions command)"
+  default    = "true"
+  help       = "keep an assertions list. Note this option is always enabled."
 
 [[option]]
   name       = "doITESimp"
-  category   = "regular"
+  category   = "expert"
   long       = "ite-simp"
   type       = "bool"
+  default    = "false"
   help       = "turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)"
 
 [[option]]
   name       = "doITESimpOnRepeat"
-  category   = "regular"
+  category   = "expert"
   long       = "on-repeat-ite-simp"
   type       = "bool"
   default    = "false"
@@ -262,23 +299,25 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "regular"
-  long       = "ext-rew-prep"
-  type       = "bool"
-  default    = "false"
-  help       = "use extended rewriter as a preprocessing pass"
-
-[[option]]
-  name       = "extRewPrepAgg"
-  category   = "regular"
-  long       = "ext-rew-prep-agg"
-  type       = "bool"
-  default    = "false"
-  help       = "use aggressive extended rewriter as a preprocessing pass"
+  category   = "expert"
+  long       = "ext-rew-prep=MODE"
+  type       = "ExtRewPrepMode"
+  default    = "OFF"
+  help       = "mode for using extended rewriter as a preprocessing pass, see --ext-rew-prep=help"
+  help_mode  = "extended rewriter preprocessing pass modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "do not use extended rewriter as a preprocessing pass."
+[[option.mode.USE]]
+  name = "use"
+  help = "use extended rewriter as a preprocessing pass."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "use aggressive extended rewriter as a preprocessing pass."
 
 [[option]]
   name       = "simplifyWithCareEnabled"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-with-care"
   type       = "bool"
   default    = "false"
@@ -286,7 +325,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "compressItes"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-ite-compress"
   type       = "bool"
   default    = "false"
@@ -310,18 +349,11 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "repeatSimp"
-  category   = "regular"
+  category   = "expert"
   long       = "repeat-simp"
   type       = "bool"
+  default    = "false"
   help       = "make multiple passes with nonclausal simplifier"
-
-[[option]]
-  name       = "zombieHuntThreshold"
-  category   = "regular"
-  long       = "simp-ite-hunt-zombies=N"
-  type       = "uint64_t"
-  default    = "524288"
-  help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
   name       = "sortInference"
@@ -333,7 +365,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "abstractValues"
-  category   = "regular"
+  category   = "expert"
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
@@ -358,18 +390,9 @@ name   = "SMT Layer"
   name = "none"
   help = "(default) do not print declarations of uninterpreted elements in models."
 
-
-[[option]]
-  name       = "modelWitnessValue"
-  category   = "regular"
-  long       = "model-witness-value"
-  type       = "bool"
-  default    = "false"
-  help       = "in models, use a witness constant for choice functions"
-
 [[option]]
   name       = "foreignTheoryRewrite"
-  category   = "regular"
+  category   = "expert"
   long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"
@@ -377,7 +400,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -395,10 +418,21 @@ name   = "SMT Layer"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
+
+[[option]]
+  name       = "bvToIntUsePow2"
+  category   = "undocumented"
+  long       = "bv-to-int-use-pow2"
+  type       = "bool"
+  default    = "false"
+  help       = "use internal pow2 operator when translating shift notes"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
-  category   = "undocumented"
+  category   = "expert"
   long       = "bvand-integer-granularity=N"
   type       = "uint64_t"
   default    = "1"
@@ -406,7 +440,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "iandMode"
-  category   = "undocumented"
+  category   = "expert"
   long       = "iand-mode=mode"
   type       = "IandMode"
   default    = "VALUE"
@@ -424,7 +458,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -432,7 +466,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
@@ -440,7 +474,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceInterpols"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-interpols=MODE"
   type       = "ProduceInterpols"
   default    = "NONE"
@@ -467,7 +501,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceAbducts"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-abducts"
   type       = "bool"
   default    = "false"

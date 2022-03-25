@@ -25,11 +25,9 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-RelationalMatchGenerator::RelationalMatchGenerator(Trigger* tparent,
-                                                   Node rtrigger,
-                                                   bool hasPol,
-                                                   bool pol)
-    : InstMatchGenerator(tparent, Node::null()),
+RelationalMatchGenerator::RelationalMatchGenerator(
+    Env& env, Trigger* tparent, Node rtrigger, bool hasPol, bool pol)
+    : InstMatchGenerator(env, tparent, Node::null()),
       d_vindex(-1),
       d_hasPol(hasPol),
       d_pol(pol),
@@ -95,9 +93,9 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     if (!checkPol)
     {
       s = nm->mkNode(
-          PLUS,
+          ADD,
           s,
-          nm->mkConst(CONST_RATIONAL, Rational(d_rel == GEQ ? -1 : 1)));
+          nm->mkConstRealOrInt(s.getType(), Rational(d_rel == GEQ ? -1 : 1)));
     }
     d_counter++;
     Trace("relational-match-gen")
@@ -105,7 +103,8 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     if (m.set(d_qstate, d_vindex, s))
     {
       Trace("relational-match-gen") << "...success" << std::endl;
-      int ret = continueNextMatch(q, m, InferenceId::UNKNOWN);
+      int ret = continueNextMatch(
+          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;

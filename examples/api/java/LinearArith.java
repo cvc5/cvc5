@@ -41,7 +41,7 @@ public class LinearArith
 
       // Terms
       Term three_y = slv.mkTerm(Kind.MULT, three, y);
-      Term diff = slv.mkTerm(Kind.MINUS, y, x);
+      Term diff = slv.mkTerm(Kind.SUB, y, x);
 
       // Formulas
       Term x_geq_3y = slv.mkTerm(Kind.GEQ, x, three_y);
@@ -56,8 +56,9 @@ public class LinearArith
       slv.push();
       Term diff_leq_two_thirds = slv.mkTerm(Kind.LEQ, diff, two_thirds);
       System.out.println("Prove that " + diff_leq_two_thirds + " with cvc5.");
-      System.out.println("cvc5 should report ENTAILED.");
-      System.out.println("Result from cvc5 is: " + slv.checkEntailed(diff_leq_two_thirds));
+      System.out.println("cvc5 should report UNSAT.");
+      System.out.println("Result from cvc5 is: "
+          + slv.checkSatAssuming(diff_leq_two_thirds.notTerm()));
       slv.pop();
 
       System.out.println();

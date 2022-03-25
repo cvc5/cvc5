@@ -114,22 +114,19 @@ void TheoryFp::finishInit()
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LT);
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GEQ); // Removed
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GT); // Removed
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISN);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISSN);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISZ);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISINF);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISNAN);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISNEG);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISPOS);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_NORMAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_SUBNORMAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_ZERO);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_INF);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_NAN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_NEG);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_POS);
 
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_REAL);
-  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
-  d_equalityEngine->addFunctionKind(
-      kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_GENERIC); //
-  // Needed in parsing, should be rewritten away
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_FP);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_REAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_SBV);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_UBV);
 
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV); // Removed
   // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV); // Removed
@@ -221,9 +218,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       Node defined = nm->mkNode(
           kind::AND,
           nm->mkNode(kind::NOT,
-                     nm->mkNode(kind::FLOATINGPOINT_ISNAN, concrete[0])),
+                     nm->mkNode(kind::FLOATINGPOINT_IS_NAN, concrete[0])),
           nm->mkNode(kind::NOT,
-                     nm->mkNode(kind::FLOATINGPOINT_ISINF, concrete[0])));
+                     nm->mkNode(kind::FLOATINGPOINT_IS_INF, concrete[0])));
       // First the "forward" constraints
       Node fg = nm->mkNode(
           kind::IMPLIES,
@@ -245,7 +242,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
       // Then the backwards constraints
       Node floatAboveAbstract = rewrite(
-          nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
+          nm->mkNode(kind::FLOATINGPOINT_TO_FP_FROM_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
                      nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
@@ -262,7 +259,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       handleLemma(bg, InferenceId::FP_PREPROCESS);
 
       Node floatBelowAbstract = rewrite(
-          nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
+          nm->mkNode(kind::FLOATINGPOINT_TO_FP_FROM_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
                      nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
@@ -287,7 +284,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       return false;
     }
   }
-  else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
+  else if (k == kind::FLOATINGPOINT_TO_FP_FROM_REAL)
   {
     // Get the values
     Assert(m->hasTerm(abstract)) << "Term " << abstract << " not in model";
@@ -313,7 +310,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     NodeManager *nm = NodeManager::currentNM();
 
     Node evaluate =
-        nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
+        nm->mkNode(kind::FLOATINGPOINT_TO_FP_FROM_REAL,
                    nm->mkConst(FloatingPointToFPReal(
                        concrete.getType().getConst<FloatingPointSize>())),
                    rmValue,
@@ -364,7 +361,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
         Node realValueOfAbstract =
             rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                abstractValue,
-                               nm->mkConst(CONST_RATIONAL, Rational(0U))));
+                               nm->mkConstReal(Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -414,9 +411,9 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
 
   if (wordBlasted != node)
   {
-    Debug("fp-wordBlastTerm")
+    Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
-    Debug("fp-wordBlastTerm")
+    Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): after  " << wordBlasted << std::endl;
   }
 
@@ -426,7 +423,7 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
   {
     Node addA = d_wordBlaster->d_additionalAssertions[oldSize];
 
-    Debug("fp-wordBlastTerm")
+    Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): additional assertion  " << addA
         << std::endl;
 
@@ -482,9 +479,8 @@ void TheoryFp::registerTerm(TNode node)
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
   Kind k = node.getKind();
-  Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC && k != kind::FLOATINGPOINT_SUB
-         && k != kind::FLOATINGPOINT_EQ && k != kind::FLOATINGPOINT_GEQ
-         && k != kind::FLOATINGPOINT_GT);
+  Assert(k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
+         && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT);
 
   // Add to the equality engine, always. This is required to ensure
   // getEqualityStatus works as expected when theory combination is enabled.
@@ -508,19 +504,19 @@ void TheoryFp::registerTerm(TNode node)
 
   // Give the expansion of classifications in terms of equalities
   // This should make equality reasoning slightly more powerful.
-  if ((k == kind::FLOATINGPOINT_ISNAN) || (k == kind::FLOATINGPOINT_ISZ)
-      || (k == kind::FLOATINGPOINT_ISINF))
+  if ((k == kind::FLOATINGPOINT_IS_NAN) || (k == kind::FLOATINGPOINT_IS_ZERO)
+      || (k == kind::FLOATINGPOINT_IS_INF))
   {
     NodeManager* nm = NodeManager::currentNM();
     FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
     Node equalityAlias = Node::null();
 
-    if (k == kind::FLOATINGPOINT_ISNAN)
+    if (k == kind::FLOATINGPOINT_IS_NAN)
     {
       equalityAlias = nm->mkNode(
           kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
     }
-    else if (k == kind::FLOATINGPOINT_ISZ)
+    else if (k == kind::FLOATINGPOINT_IS_ZERO)
     {
       equalityAlias = nm->mkNode(
           kind::OR,
@@ -531,7 +527,7 @@ void TheoryFp::registerTerm(TNode node)
                      node[0],
                      nm->mkConst(FloatingPoint::makeZero(s, false))));
     }
-    else if (k == kind::FLOATINGPOINT_ISINF)
+    else if (k == kind::FLOATINGPOINT_IS_INF)
     {
       equalityAlias =
           nm->mkNode(kind::OR,
@@ -562,22 +558,21 @@ void TheoryFp::registerTerm(TNode node)
     Node pd =
         nm->mkNode(kind::IMPLIES,
                    nm->mkNode(kind::OR,
-                              nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0]),
-                              nm->mkNode(kind::FLOATINGPOINT_ISINF, node[0])),
+                              nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0]),
+                              nm->mkNode(kind::FLOATINGPOINT_IS_INF, node[0])),
                    nm->mkNode(kind::EQUAL, node, node[1]));
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-        nm->mkNode(
-            kind::EQUAL, node, nm->mkConst(CONST_RATIONAL, Rational(0U))));
+        nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[0]),
+        nm->mkNode(kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
     // TODO : bounds on the output from largest floats, #1914
   }
-  else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
+  else if (k == kind::FLOATINGPOINT_TO_FP_FROM_REAL)
   {
     // Purify ((_ to_fp eb sb) rm x)
     NodeManager* nm = NodeManager::currentNM();
@@ -587,13 +582,12 @@ void TheoryFp::registerTerm(TNode node)
     d_abstractionMap.insert(sk, node);
 
     Node nnan =
-        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node));
+        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node));
     handleLemma(nnan, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(
-            kind::EQUAL, node[1], nm->mkConst(CONST_RATIONAL, Rational(0U))),
+        nm->mkNode(kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
         nm->mkNode(kind::EQUAL,
                    node,
                    nm->mkConst(FloatingPoint::makeZero(
@@ -787,7 +781,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 {
   Trace("fp-collectModelInfo")
       << "TheoryFp::collectModelInfo(): begin" << std::endl;
-  if (Trace.isOn("fp-collectModelInfo")) {
+  if (TraceIsOn("fp-collectModelInfo")) {
     for (std::set<Node>::const_iterator i(relevantTerms.begin());
          i != relevantTerms.end(); ++i) {
       Trace("fp-collectModelInfo")
@@ -857,10 +851,16 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
           nm->mkNode(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, node);
 
       eq::EqualityEngine* ee = m->getEqualityEngine();
-      Assert(ee->hasTerm(compNaN) && ee->getRepresentative(compNaN).isConst());
-      Assert(ee->hasTerm(compInf) && ee->getRepresentative(compInf).isConst());
-      Assert(ee->hasTerm(compZero)
-             && ee->getRepresentative(compZero).isConst());
+      Assert(ee->hasTerm(compNaN));
+      Assert(ee->hasTerm(compInf));
+      Assert(ee->hasTerm(compZero));
+      TNode rCompNaN = ee->getRepresentative(compNaN);
+      TNode rCompInf = ee->getRepresentative(compInf);
+      TNode rCompZero = ee->getRepresentative(compZero);
+      Assert(rCompNaN.isConst());
+      Assert(rCompInf.isConst());
+      Assert(rCompZero.isConst());
+
       Assert(ee->hasTerm(compExponent)
              && ee->getRepresentative(compExponent).isConst());
       Assert(ee->hasTerm(compSignificand));
@@ -868,11 +868,9 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 
       // At most one of the flags (NaN, inf, zero) can be set
       Node one = nm->mkConst(BitVector(1U, 1U));
-      size_t numFlags = 0;
-      numFlags += ee->getRepresentative(compNaN) == one ? 1 : 0;
-      numFlags += ee->getRepresentative(compInf) == one ? 1 : 0;
-      numFlags += ee->getRepresentative(compZero) == one ? 1 : 0;
-      Assert(numFlags <= 1);
+      Assert((rCompNaN == one ? 1 : 0) + (rCompInf == one ? 1 : 0)
+                 + (rCompZero == one ? 1 : 0)
+             <= 1);
     }
   }
 
@@ -881,7 +879,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
                                                      bool value) {
-  Debug("fp-eq")
+  Trace("fp-eq")
       << "TheoryFp::eqNotifyTriggerPredicate(): call back as predicate "
       << predicate << " is " << value << std::endl;
 
@@ -893,7 +891,7 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
                                                         TNode t2, bool value) {
-  Debug("fp-eq") << "TheoryFp::eqNotifyTriggerTermEquality(): call back as "
+  Trace("fp-eq") << "TheoryFp::eqNotifyTriggerTermEquality(): call back as "
                  << t1 << (value ? " = " : " != ") << t2 << std::endl;
 
   if (value) {
@@ -903,7 +901,7 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
 }
 
 void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-  Debug("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
+  Trace("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
                  << " = " << t2 << std::endl;
   d_theorySolver.conflictEqConstantMerge(t1, t2);
 }

@@ -48,7 +48,7 @@ class CardinalityExtension : protected EnvObj
    * Information for incremental conflict/clique finding for a
    * particular sort.
    */
-  class SortModel
+  class SortModel : protected EnvObj
   {
    private:
     std::map< Node, std::vector< int > > d_totality_lems;
@@ -281,7 +281,8 @@ class CardinalityExtension : protected EnvObj
     void simpleCheckCardinality();
 
    public:
-    SortModel(TypeNode tn,
+    SortModel(Env& env,
+              TypeNode tn,
               TheoryState& state,
               TheoryInferenceManager& im,
               CardinalityExtension* thss);

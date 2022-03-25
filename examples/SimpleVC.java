@@ -44,7 +44,7 @@ public class SimpleVC
 
       Term two = slv.mkInteger(2);
       Term twox = slv.mkTerm(Kind.MULT, two, x);
-      Term twox_plus_y = slv.mkTerm(Kind.PLUS, twox, y);
+      Term twox_plus_y = slv.mkTerm(Kind.ADD, twox, y);
 
       Term three = slv.mkInteger(3);
       Term twox_plus_y_geq_3 = slv.mkTerm(Kind.GEQ, twox_plus_y, three);
@@ -52,8 +52,9 @@ public class SimpleVC
       Term formula = slv.mkTerm(Kind.AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
       System.out.println("Checking entailment of formula " + formula + " with cvc5.");
-      System.out.println("cvc5 should report ENTAILED.");
-      System.out.println("Result from cvc5 is: " + slv.checkEntailed(formula));
+      System.out.println("cvc5 should report UNSAT.");
+      System.out.println(
+          "Result from cvc5 is: " + slv.checkSatAssuming(formula.notTerm()));
     }
   }
 }

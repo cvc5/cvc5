@@ -31,7 +31,8 @@ namespace theory {
 namespace eq {
 
 ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
-    : EagerProofGenerator(env.getProofNodeManager(),
+    : EnvObj(env),
+      EagerProofGenerator(env.getProofNodeManager(),
                           env.getUserContext(),
                           "pfee::" + ee.identify()),
       d_ee(ee),
@@ -180,7 +181,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
   // lit may not be equivalent to false, but should rewrite to false
   if (lit != d_false)
   {
-    Assert(Rewriter::rewrite(lit) == d_false)
+    Assert(rewrite(lit) == d_false)
         << "pfee::assertConflict: conflict literal is not rewritable to "
            "false";
     std::vector<Node> exp;
@@ -413,7 +414,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
                       << std::endl;
   // should always be non-null
   Assert(pf != nullptr);
-  if (Trace.isOn("pfee-proof") || Trace.isOn("pfee-proof-final"))
+  if (TraceIsOn("pfee-proof") || TraceIsOn("pfee-proof-final"))
   {
     Trace("pfee-proof") << "pfee::ensureProofForFact: printing proof"
                         << std::endl;
@@ -540,7 +541,7 @@ void ProofEqEngine::explainWithProof(Node lit,
       assumps.push_back(a);
     }
   }
-  if (Trace.isOn("pfee-proof"))
+  if (TraceIsOn("pfee-proof"))
   {
     Trace("pfee-proof") << "pfee::explainWithProof: add to proof ---"
                         << std::endl;

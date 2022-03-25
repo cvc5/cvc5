@@ -22,9 +22,11 @@
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
+#include "theory/bags/card_solver.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/bags/strategy.h"
 #include "theory/bags/term_registry.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -57,6 +59,15 @@ class TheoryBags : public Theory
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   //--------------------------------- end initialization
 
+  /**
+   * initialize bag and count terms
+   */
+  void initialize();
+  /**
+   * collect bags' representatives and all count terms.
+   */
+  void collectBagsAndCountTerms();
+
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort effort) override;
@@ -71,6 +82,11 @@ class TheoryBags : public Theory
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
   void presolve() override;
+
+  /** run strategy for effort e */
+  void runStrategy(Theory::Effort e);
+  /** run the given inference step */
+  bool runInferStep(InferStep s, int effort);
 
  private:
   /** Functions to handle callbacks from equality engine */
@@ -93,8 +109,6 @@ class TheoryBags : public Theory
   /** expand the definition of the bag.choose operator */
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
-  /** expand the definition of bag.card operator */
-  TrustNode expandCardOperator(TNode n, std::vector<SkolemLemma>& lems);
 
   /** The state of the bags solver at full effort */
   SolverState d_state;
@@ -113,8 +127,14 @@ class TheoryBags : public Theory
   /** the main solver for bags */
   BagSolver d_solver;
 
+  /** the main solver for bags */
+  CardSolver d_cardSolver;
+
   /** bag reduction */
   BagReduction d_bagReduction;
+
+  /** The representation of the strategy */
+  Strategy d_strat;
 
   void eqNotifyNewClass(TNode n);
   void eqNotifyMerge(TNode n1, TNode n2);

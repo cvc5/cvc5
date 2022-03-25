@@ -64,27 +64,13 @@ enum Kind : int32_t
   /* Builtin --------------------------------------------------------------- */
 
   /**
-   * Uninterpreted constant.
+   * The value of an uninterpreted constant.
    *
-   * Parameters:
-   *   - 1: Sort of the constant
-   *   - 2: Index of the constant
-   *
-   * Create with:
-   *   - `Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const`
+   * @note May be returned as the result of an API call, but terms of this kind
+   *       may not be created explicitly via the API. Terms of this kind may
+   *       further not appear in assertions.
    */
-  UNINTERPRETED_CONSTANT,
-  /**
-   * Abstract value (other than uninterpreted sort constants).
-   *
-   * Parameters:
-   *   - 1: Index of the abstract value
-   *
-   * Create with:
-   *   - `Solver::mkAbstractValue(const std::string& index) const`
-   *   - `Solver::mkAbstractValue(uint64_t index) const`
-   */
-  ABSTRACT_VALUE,
+  UNINTERPRETED_SORT_VALUE,
 #if 0
   /* Built-in operator */
   BUILTIN,
@@ -359,7 +345,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  PLUS,
+  ADD,
   /**
    * Arithmetic multiplication.
    *
@@ -430,7 +416,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MINUS,
+  SUB,
   /**
    * Arithmetic negation.
    *
@@ -440,7 +426,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  UMINUS,
+  NEG,
   /**
    * Real division, division by 0 undefined, left associative.
    *
@@ -1379,7 +1365,7 @@ enum Kind : int32_t
    * Floating-point equality.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1390,7 +1376,7 @@ enum Kind : int32_t
    * Floating-point absolute value.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
@@ -1400,7 +1386,7 @@ enum Kind : int32_t
    * Floating-point negation.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
@@ -1411,8 +1397,8 @@ enum Kind : int32_t
    *
    * Parameters:
    *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of sort FloatingPoint
-   *   - 3: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
+   *   - 3: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
@@ -1424,8 +1410,8 @@ enum Kind : int32_t
    *
    * Parameters:
    *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of sort FloatingPoint
-   *   - 3: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
+   *   - 3: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
@@ -1437,8 +1423,8 @@ enum Kind : int32_t
    *
    * Parameters:
    *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of sort FloatingPoint
-   *   - 3: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
+   *   - 3: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
@@ -1450,8 +1436,8 @@ enum Kind : int32_t
    *
    * Parameters:
    *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of sort FloatingPoint
-   *   - 3: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
+   *   - 3: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
@@ -1463,9 +1449,9 @@ enum Kind : int32_t
    *
    * Parameters:
    *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of sort FloatingPoint
-   *   - 3: Term of sort FloatingPoint
-   *   - 4: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
+   *   - 3: Term of floating-point sort
+   *   - 4: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
@@ -1476,7 +1462,7 @@ enum Kind : int32_t
    *
    * Parameters:
    *   - 1: CONST_ROUNDINGMODE
-   *   - 2: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1487,7 +1473,7 @@ enum Kind : int32_t
    * Floating-point remainder.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1498,7 +1484,7 @@ enum Kind : int32_t
    * Floating-point round to integral.
    *
    * Parameters:
-   *   -1..2: Terms of floating point sort
+   *   -1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1509,7 +1495,7 @@ enum Kind : int32_t
    * Floating-point minimum.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1520,7 +1506,7 @@ enum Kind : int32_t
    * Floating-point maximum.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1531,7 +1517,7 @@ enum Kind : int32_t
    * Floating-point less than or equal.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1542,7 +1528,7 @@ enum Kind : int32_t
    * Floating-point less than.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1553,7 +1539,7 @@ enum Kind : int32_t
    * Floating-point greater than or equal.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1564,7 +1550,7 @@ enum Kind : int32_t
    * Floating-point greater than.
    *
    * Parameters:
-   *   - 1..2: Terms of floating point sort
+   *   - 1..2: Terms of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -1575,74 +1561,74 @@ enum Kind : int32_t
    * Floating-point is normal.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISN,
+  FLOATINGPOINT_IS_NORMAL,
   /**
    * Floating-point is sub-normal.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISSN,
+  FLOATINGPOINT_IS_SUBNORMAL,
   /**
    * Floating-point is zero.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISZ,
+  FLOATINGPOINT_IS_ZERO,
   /**
    * Floating-point is infinite.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISINF,
+  FLOATINGPOINT_IS_INF,
   /**
    * Floating-point is NaN.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNAN,
+  FLOATINGPOINT_IS_NAN,
   /**
    * Floating-point is negative.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISNEG,
+  FLOATINGPOINT_IS_NEG,
   /**
    * Floating-point is positive.
    *
    * Parameters:
-   *   - 1: Term of floating point sort
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  FLOATINGPOINT_ISPOS,
+  FLOATINGPOINT_IS_POS,
   /**
-   * Operator for to_fp from bit vector.
+   * Operator for to_fp from bit-vector.
    *
    * Parameters:
    *   - 1: Exponent size
@@ -1651,19 +1637,19 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
    *
-   * Conversion from an IEEE-754 bit vector to floating-point.
+   * Conversion from an IEEE-754 bit-vector to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-   *   - 2: Term of sort FloatingPoint
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - 2: Term of bit-vector sort
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+  FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
   /**
-   * Operator for to_fp from floating point.
+   * Operator for to_fp from floating-point.
    *
    * Parameters:
    *   - 1: Exponent size
@@ -1675,14 +1661,15 @@ enum Kind : int32_t
    * Conversion between floating-point sorts.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FLOATINGPOINT
-   *   - 2: Term of sort FloatingPoint
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_FP
+   *   - 2: Term of sort RoundingMode
+   *   - 3: Term of floating-point sort
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+  FLOATINGPOINT_TO_FP_FROM_FP,
   /**
    * Operator for to_fp from real.
    *
@@ -1696,16 +1683,17 @@ enum Kind : int32_t
    * Conversion from a real to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_REAL
-   *   - 2: Term of sort FloatingPoint
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - 2: Term of sort RoundingMode
+   *   - 3: Term of sort Real
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_REAL,
+  FLOATINGPOINT_TO_FP_FROM_REAL,
   /**
-   * Operator for to_fp from signed bit vector
+   * Operator for to_fp from signed bit-vector
    *
    * Parameters:
    *   - 1: Exponent size
@@ -1714,19 +1702,20 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
    *
-   * Conversion from a signed bit vector to floating-point.
+   * Conversion from a signed bit-vector to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-   *   - 2: Term of sort FloatingPoint
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - 2: Term of sort RoundingMode
+   *   - 3: Term of bit-vector sort
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+  FLOATINGPOINT_TO_FP_FROM_SBV,
   /**
-   * Operator for to_fp from unsigned bit vector.
+   * Operator for to_fp from unsigned bit-vector.
    *
    * Parameters:
    *   - 1: Exponent size
@@ -1735,38 +1724,18 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
    *
-   * Converting an unsigned bit vector to floating-point.
+   * Converting an unsigned bit-vector to floating-point.
    *
    * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
-   *   - 2: Term of sort FloatingPoint
+   *   - 1: Op of kind FLOATINGPOINT_TO_FP_FROM_UBV
+   *   - 2: Term of sort RoundingMode
+   *   - 3: Term of bit-vector sort
    *
    * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
-  FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-  /**
-   * Operator for a generic to_fp.
-   *
-   * Parameters:
-   *   - 1: exponent size
-   *   - 2: Significand size
-   *
-   * Create with:
-   *   - `Solver::mkOp(Kind kind, uint32_t param1, uint32_t param2) const`
-   *
-   * Generic conversion to floating-point, used in parsing only.
-   *
-   * Parameters:
-   *   - 1: Op of kind FLOATINGPOINT_TO_FP_GENERIC
-   *   - 2: Term of sort FloatingPoint
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
-   */
-  FLOATINGPOINT_TO_FP_GENERIC,
+  FLOATINGPOINT_TO_FP_FROM_UBV,
   /**
    * Operator for to_ubv.
    *
@@ -1776,11 +1745,11 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
-   * Conversion from a floating-point value to an unsigned bit vector.
+   * Conversion from a floating-point value to an unsigned bit-vector.
    *
    * Parameters:
    *   - 1: Op of kind FLOATINGPOINT_TO_FP_TO_UBV
-   *   - 2: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -1796,11 +1765,11 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
-   * Conversion from a floating-point value to a signed bit vector.
+   * Conversion from a floating-point value to a signed bit-vector.
    *
    * Parameters:
    *   - 1: Op of kind FLOATINGPOINT_TO_FP_TO_SBV
-   *   - 2: Term of sort FloatingPoint
+   *   - 2: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -1811,7 +1780,7 @@ enum Kind : int32_t
    * Floating-point to real.
    *
    * Parameters:
-   *   - 1: Term of sort FloatingPoint
+   *   - 1: Term of floating-point sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
@@ -1950,12 +1919,20 @@ enum Kind : int32_t
   /**
    * Match expressions.
    * For example, the smt2 syntax match term
-   *   `(match l (((cons h t) h) (nil 0)))`
+   * \rst
+   * .. code:: smtlib
+   *
+   *      (match l (((cons h t) h) (nil 0)))
+   * \endrst
    * is represented by the AST
    *
+   * \rst
+   * .. code:: lisp
+   * 
    *     (MATCH l
-   *       (MATCH_BIND_CASE (VARIABLE_LIST h t) (cons h t) h)
-   *       (MATCH_CASE nil 0))
+   *         (MATCH_BIND_CASE (VARIABLE_LIST h t) (cons h t) h)
+   *         (MATCH_CASE nil 0))
+   * \endrst
    *
    * The type of the last argument of each case term could be equal.
    *
@@ -1966,7 +1943,6 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   *
    */
   MATCH,
   /**
@@ -2232,8 +2208,8 @@ enum Kind : int32_t
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \hat{} t[x_1...x_n] = y )
-   * \Leftrightarrow (member y C)
+   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \wedge t[x_1...x_n] = y )
+   * \Leftrightarrow (set.member \; y \; C)
    * @f]
    * where y ranges over the element type of the (set) type of the
    * comprehension. If @f$ t[x_1..x_n] @f$ is not provided, it is equivalent to
@@ -2284,8 +2260,7 @@ enum Kind : int32_t
    *   - 2: a set of type (Set T1)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
    SET_MAP,
@@ -2370,6 +2345,7 @@ enum Kind : int32_t
   BAG_EMPTY,
   /**
    * Bag max union.
+   *
    * Parameters:
    *   - 1..2: Terms of bag sort
    *
@@ -2447,6 +2423,17 @@ enum Kind : int32_t
    */
   BAG_COUNT,
   /**
+   * Bag membership predicate.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort (Bag E), is [1] of type E an element of [2]
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_MEMBER,
+  /**
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
    *
@@ -2497,6 +2484,7 @@ enum Kind : int32_t
   BAG_CHOOSE,
   /**
    * Bag is_singleton predicate (single element with multiplicity exactly one).
+   *
    * Parameters:
    *   - 1: Term of bag sort, is [1] a singleton bag?
    *
@@ -2534,11 +2522,26 @@ enum Kind : int32_t
    *   - 2: a bag of type (Bag T1)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
-   * const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_MAP,
+  /**
+    * bag.filter operator filters the elements of a bag.
+    * (bag.filter p B) takes a predicate p of type (-> T Bool) as a first
+    * argument, and a bag B of type (Bag T) as a second argument, and returns a
+    * subbag of type (Bag T) that includes all elements of B that satisfy p
+    * with the same multiplicity.
+    *
+    * Parameters:
+    *   - 1: a function of type (-> T Bool)
+    *   - 2: a bag of type (Bag T)
+    *
+    * Create with:
+    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+    */
+   BAG_FILTER,
   /**
    * bag.fold operator combines elements of a bag into a single value.
    * (bag.fold f t B) folds the elements of bag B starting with term t and using
@@ -2550,11 +2553,21 @@ enum Kind : int32_t
    *   - 2: a bag of type (Bag T1)
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
-   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_FOLD,
+  /**
+   * Table cross product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of bag sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  TABLE_PRODUCT,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -2961,7 +2974,7 @@ enum Kind : int32_t
    */
   REGEXP_DIFF,
   /**
-   * Regexp *.
+   * Regexp \*.
    *
    * Parameters:
    *   - 1: Term of sort Regexp
@@ -3054,6 +3067,16 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind) const`
    */
   REGEXP_NONE,
+  /**
+   * Regexp all.
+   *
+   * Parameters: none
+   *
+   * Create with:
+   *   - `Solver::mkRegexpAll() const`
+   *   - `Solver::mkTerm(Kind kind) const`
+   */
+  REGEXP_ALL,
   /**
    * Regexp all characters.
    *
@@ -3358,29 +3381,34 @@ enum Kind : int32_t
   /*
    * An instantiation pool.
    * Specifies an annotation for pool based instantiation.
+   *
    * Parameters: n > 1
-   *   - 1..n: Terms that comprise the pools, which are one-to-one with
-   * the variables of the quantified formula to be instantiated.
+   *   - 1..n: Terms that comprise the pools, which are one-to-one with the variables of the quantified formula to be instantiated.
+   *
    * Create with:
-   *   - `mkTerm(Kind kind, Term child1, Term child2)
-   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   - `mkTerm(Kind kind, const std::vector<Term>& children)
+   *   - `mkTerm(Kind kind, Term child1, Term child2)`
+   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)`
+   *   - `mkTerm(Kind kind, const std::vector<Term>& children)`
    */
   INST_POOL,
   /*
    * A instantantiation-add-to-pool annotation.
+   *
    * Parameters: n = 1
    *   - 1: The pool to add to.
+   *
    * Create with:
-   *   - `mkTerm(Kind kind, Term child)
+   *   - `mkTerm(Kind kind, Term child)`
    */
   INST_ADD_TO_POOL,
   /*
    * A skolemization-add-to-pool annotation.
+   *
    * Parameters: n = 1
    *   - 1: The pool to add to.
+   *
    * Create with:
-   *   - `mkTerm(Kind kind, Term child)
+   *   - `mkTerm(Kind kind, Term child)`
    */
   SKOLEM_ADD_TO_POOL,
   /**
@@ -3393,17 +3421,16 @@ enum Kind : int32_t
    *   - 2...n: The values of the attribute.
    *
    * Create with:
-   *   - `mkTerm(Kind kind, Term child1, Term child2)
-   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   - `mkTerm(Kind kind, const std::vector<Term>& children)
+   *   - `mkTerm(Kind kind, Term child1, Term child2)`
+   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)`
+   *   - `mkTerm(Kind kind, const std::vector<Term>& children)`
    */
   INST_ATTRIBUTE,
   /**
    * A list of instantiation patterns and/or attributes.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind INST_PATTERN, INST_NO_PATTERN, or
-   * INST_ATTRIBUTE.
+   *   - 1..n: Terms with kind INST_PATTERN, INST_NO_PATTERN, or INST_ATTRIBUTE.
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`

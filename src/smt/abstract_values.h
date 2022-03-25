@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__ABSTRACT_VALUES_H
-#define CVC5__SMT__ABSTRACT_VALUES_H
+#ifndef CVC5__SMT__UNINTERPRETED_SORT_VALUES_H
+#define CVC5__SMT__UNINTERPRETED_SORT_VALUES_H
 
 #include <unordered_map>
 
@@ -48,7 +48,7 @@ class AbstractValues
 
   /**
    * Make a new (or return an existing) abstract value for a node.
-   * Can only use this if options::abstractValues() is on.
+   * Can only use this if abstractValues option is on.
    */
   Node mkAbstractValue(TNode n);
 
@@ -63,7 +63,7 @@ class AbstractValues
 
   /**
    * A map of AbsractValues to their actual constants.  Only used if
-   * options::abstractValues() is on.
+   * abstractValues option is on.
    */
   theory::SubstitutionMap d_abstractValueMap;
 
@@ -71,7 +71,7 @@ class AbstractValues
    * A mapping of all abstract values (actual value |-> abstract) that
    * we've handed out.  This is necessary to ensure that we give the
    * same AbstractValues for the same real constants.  Only used if
-   * options::abstractValues() is on.
+   * abstractValues option is on.
    */
   NodeToNodeHashMap d_abstractValues;
 };

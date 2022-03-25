@@ -22,8 +22,8 @@ using namespace cvc5::api;
 int main()
 {
   Solver slv;
-  Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
-  std::cout << helloworld << " is " << slv.checkEntailed(helloworld)
+  Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
+  std::cout << helloworld << " is " << slv.checkSatAssuming(helloworld)
             << std::endl;
   return 0;
 }

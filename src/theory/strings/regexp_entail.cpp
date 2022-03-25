@@ -28,10 +28,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-RegExpEntail::RegExpEntail(Rewriter* r) : d_rewriter(r), d_aent(r)
+RegExpEntail::RegExpEntail(Rewriter* r) : d_aent(r)
 {
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
 }
 
 Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
@@ -584,7 +584,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::String& s,
               }
               else
               {
-                Node num2 = nm->mkConst(CONST_RATIONAL, cvc5::Rational(u - 1));
+                Node num2 = nm->mkConstInt(cvc5::Rational(u - 1));
                 Node r2 = nm->mkNode(REGEXP_LOOP, r[0], r[1], num2);
                 if (testConstStringInRegExp(s, index_start + len, r2))
                 {
@@ -616,7 +616,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::String& s,
             cvc5::String t = s.substr(index_start, len);
             if (testConstStringInRegExp(t, 0, r[0]))
             {
-              Node num2 = nm->mkConst(CONST_RATIONAL, cvc5::Rational(l - 1));
+              Node num2 = nm->mkConstInt(cvc5::Rational(l - 1));
               Node r2 = nm->mkNode(REGEXP_LOOP, r[0], num2, num2);
               if (testConstStringInRegExp(s, index_start + len, r2))
               {
@@ -659,16 +659,14 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
   Kind k = n.getKind();
   if (k == STRING_TO_REGEXP)
   {
-    Node ret = nm->mkNode(STRING_LENGTH, n[0]);
-    ret = Rewriter::rewrite(ret);
-    if (ret.isConst())
+    if (n[0].isConst())
     {
-      return ret;
+      return nm->mkConstInt(Rational(Word::getLength(n[0])));
     }
   }
   else if (k == REGEXP_ALLCHAR || k == REGEXP_RANGE)
   {
-    return nm->mkConst(CONST_RATIONAL, Rational(1));
+    return nm->mkConstInt(Rational(1));
   }
   else if (k == REGEXP_UNION || k == REGEXP_INTER)
   {
@@ -690,7 +688,7 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
   }
   else if (k == REGEXP_CONCAT)
   {
-    NodeBuilder nb(PLUS);
+    Rational sum(0);
     for (const Node& nc : n)
     {
       Node flc = getFixedLengthForRegexp(nc);
@@ -698,11 +696,10 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
       {
         return flc;
       }
-      nb << flc;
+      Assert(flc.isConst() && flc.getType().isInteger());
+      sum += flc.getConst<Rational>();
     }
-    Node ret = nb.constructNode();
-    ret = Rewriter::rewrite(ret);
-    return ret;
+    return nm->mkConstInt(sum);
   }
   return Node::null();
 }
@@ -749,7 +746,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
           continue;
         }
       }
-      Assert(bc.getKind() == CONST_RATIONAL);
+      Assert(bc.isConst() && bc.getType().isInteger());
       Rational r = bc.getConst<Rational>();
       if (k == REGEXP_CONCAT)
       {
@@ -772,7 +769,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
     // if we were successful and didn't ignore all components
     if (success && !firstTime)
     {
-      ret = nm->mkConst(CONST_RATIONAL, rr);
+      ret = nm->mkConstInt(rr);
     }
   }
   if (ret.isNull() && isLower)
@@ -785,8 +782,6 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
 
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
-  Assert(Rewriter::rewrite(r1) == r1);
-  Assert(Rewriter::rewrite(r2) == r2);
   if (r1 == r2)
   {
     return true;

@@ -16,7 +16,7 @@
 #include "theory/bags/theory_bags_type_enumerator.h"
 
 #include "expr/emptybag.h"
-#include "theory/rewriter.h"
+#include "theory/bags/bags_utils.h"
 #include "theory_bags_type_enumerator.h"
 #include "util/rational.h"
 
@@ -56,21 +56,23 @@ Node BagEnumerator::operator*()
 
 BagEnumerator& BagEnumerator::operator++()
 {
-  // increase the multiplicity by one
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  TypeNode elementType = d_elementTypeEnumerator.getType();
-  Node singleton = d_nodeManager->mkBag(elementType, d_element, one);
   if (d_currentBag.getKind() == kind::BAG_EMPTY)
   {
+    // return (bag d_element 1)
+    Node one = d_nodeManager->mkConstInt(Rational(1));
+    TypeNode elementType = d_elementTypeEnumerator.getType();
+    Node singleton = d_nodeManager->mkBag(elementType, d_element, one);
     d_currentBag = singleton;
   }
   else
   {
-    d_currentBag = d_nodeManager->mkNode(
-        kind::BAG_UNION_DISJOINT, singleton, d_currentBag);
+    // increase the multiplicity of one of the elements in the current bag
+    std::map<Node, Rational> elements = BagsUtils::getBagElements(d_currentBag);
+    Node element = elements.begin()->first;
+    elements[element] = elements[element] + Rational(1);
+    d_currentBag = BagsUtils::constructConstantBagFromElements(
+        d_currentBag.getType(), elements);
   }
-
-  d_currentBag = Rewriter::rewrite(d_currentBag);
 
   Assert(d_currentBag.isConst());
 

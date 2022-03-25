@@ -121,7 +121,8 @@ void MinisatSatSolver::initialize(context::Context* context,
 
   // Create the solver
   d_minisat =
-      new Minisat::SimpSolver(theoryProxy,
+      new Minisat::SimpSolver(d_env,
+                              theoryProxy,
                               d_context,
                               userContext,
                               pnm,
@@ -256,7 +257,7 @@ bool MinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const 
 
 void MinisatSatSolver::requirePhase(SatLiteral lit) {
   Assert(!d_minisat->rnd_pol);
-  Debug("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
+  Trace("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
   SatVariable v = lit.getSatVariable();
   d_minisat->freezePolarity(v, lit.isNegated());
 }

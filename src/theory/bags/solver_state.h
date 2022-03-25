@@ -40,16 +40,40 @@ class SolverState : public TheoryState
   void registerBag(TNode n);
 
   /**
-   * @param n has the form (bag.count e A)
-   * @pre bag A needs is already registered using registerBag(A)
-   * @return a unique skolem for (bag.count e A)
+   * register the pair <element, skolem> with the given bag
+   * @param bag a representative of type (Bag E)
+   * @param element a representative of type E
+   * @param skolem an integer variable
+   * @pre (= (bag.count element bag) skolem)
    */
-  void registerCountTerm(TNode n);
+  void registerCountTerm(Node bag, Node element, Node skolem);
+
+  /**
+   * store cardinality term and its skolem in a cahce
+   * @param n has the form (bag.card A) where A is a representative
+   * @param skolem for n
+   */
+  void registerCardinalityTerm(Node n, Node skolem);
+
+  /**
+   * @param n has the form (bag.card A)
+   */
+  Node getCardinalitySkolem(Node n);
+
+  bool hasCardinalityTerms() const;
+
   /** get all bag terms that are representatives in the equality engine.
    * This function is valid after the current solver is initialized during
    * postCheck. See SolverState::initialize and BagSolver::postCheck
    */
   const std::set<Node>& getBags();
+
+  /**
+   * get all cardinality terms
+   * @return a map from registered card terms to their skolem variables
+   */
+  const std::map<Node, Node>& getCardinalityTerms();
+
   /**
    * @pre B is a registered bag
    * @return all elements associated with bag B so far
@@ -58,24 +82,26 @@ class SolverState : public TheoryState
    * (assert (= 0 (bag.count x B)))
    * element x is associated with bag B, albeit x is definitely not in B.
    */
-  const std::set<Node>& getElements(Node B);
-  /** initialize bag and count terms */
-  void initialize();
-  /** return disequal bag terms */
-  const std::set<Node>& getDisequalBagTerms();
+  std::set<Node> getElements(Node B);
+  /**
+   * return disequal bag terms where keys are equality nodes and values are
+   * skolems that witness the negation of these equalities
+   */
+  const std::map<Node, Node>& getDisequalBagTerms();
+  /**
+   * return a list of bag elements and their skolem counts
+   */
+  const std::vector<std::pair<Node, Node>>& getElementCountPairs(Node n);
 
- private:
   /** clear all bags data structures */
   void reset();
-  /**
-   * collect bags' representatives and all count terms.
-   * This function is called during postCheck
-   */
-  void collectBagsAndCountTerms();
+
   /**
    * collect disequal bag terms. This function is called during postCheck.
    */
   void collectDisequalBagTerms();
+
+ private:
   /** constants */
   Node d_true;
   Node d_false;
@@ -83,10 +109,20 @@ class SolverState : public TheoryState
   NodeManager* d_nm;
   /** collection of bag representatives */
   std::set<Node> d_bags;
-  /** bag -> associated elements */
-  std::map<Node, std::set<Node>> d_bagElements;
-  /** Disequal bag terms */
-  std::set<Node> d_deq;
+  /**
+   * This cache maps bag representatives to pairs of elements and multiplicity
+   * skolems which are used for model building.
+   * This map is cleared and initialized at the start of each full effort check.
+   */
+  std::map<Node, std::vector<std::pair<Node, Node>>> d_bagElements;
+  /**
+   * A map from equalities between bag terms to elements that witness their
+   * disequalities. This map is cleared and initialized at the start of each
+   * full effort check.
+   */
+  std::map<Node, Node> d_deq;
+  /** a map from card terms to their skolem variables */
+  std::map<Node, Node> d_cardTerms;
 }; /* class SolverState */
 
 }  // namespace bags

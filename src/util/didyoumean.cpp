@@ -37,7 +37,7 @@ uint64_t editDistance(const std::string& a, const std::string& b) {
   constexpr uint64_t swapCost = 0;
   constexpr uint64_t substituteCost = 2;
   constexpr uint64_t addCost = 1;
-  constexpr uint64_t deleteCost = 3;
+  constexpr uint64_t deleteCost = 2;
   constexpr uint64_t switchCaseCost = 0;
 
   uint64_t len1 = a.size();
@@ -104,7 +104,7 @@ std::vector<std::string> DidYouMean::getMatch(const std::string& input)
   }
 
   /** Magic numbers */
-  constexpr uint64_t similarityThreshold = 7;
+  constexpr uint64_t similarityThreshold = 10;
   constexpr uint64_t numMatchesThreshold = 10;
 
   std::vector<std::pair<uint64_t,std::string>> scores;
@@ -127,7 +127,7 @@ std::vector<std::string> DidYouMean::getMatch(const std::string& input)
     // from here on, matches are not similar enough
     if (score.first > similarityThreshold) break;
     // from here on, matches are way worse than the best one
-    if (score.first > min_score + 2) break;
+    if (score.first > min_score + 4) break;
     // we already have enough matches
     if (ret.size() >= numMatchesThreshold) break;
     ret.push_back(score.second);

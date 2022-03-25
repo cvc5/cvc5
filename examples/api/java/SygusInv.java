@@ -67,7 +67,7 @@ public class SygusInv
       // (ite (< x 10) (= xp (+ x 1)) (= xp x))
       Term ite = slv.mkTerm(ITE,
           slv.mkTerm(LT, x, ten),
-          slv.mkTerm(EQUAL, xp, slv.mkTerm(PLUS, x, one)),
+          slv.mkTerm(EQUAL, xp, slv.mkTerm(ADD, x, one)),
           slv.mkTerm(EQUAL, xp, x));
 
       // define the pre-conditions, transition relations, and post-conditions

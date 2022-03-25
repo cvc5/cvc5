@@ -22,15 +22,16 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
+#include "smt/env_obj.h"
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
-class Env;
 class ResourceManager;
 class ProofNodeManager;
 class TheoryEngine;
@@ -51,13 +52,13 @@ class TheoryProxy;
  * PropEngine is the abstraction of a Sat Solver, providing methods for
  * solving the SAT problem and conversion to CNF (via the CnfStream).
  */
-class PropEngine
+class PropEngine : protected EnvObj
 {
  public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine* te, Env& env);
+  PropEngine(Env& env, TheoryEngine* te);
 
   /**
    * Destructor.
@@ -70,15 +71,6 @@ class PropEngine
    * This method converts and asserts true and false into the CNF stream.
    */
   void finishInit();
-
-  /**
-   * This is called by SolverEngine, at shutdown time, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between some parts of the system (notably between
-   * PropEngine and Theory).  For now, there's nothing to do here in
-   * the PropEngine.
-   */
-  void shutdown() {}
 
   /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
@@ -262,7 +254,7 @@ class PropEngine
 
   /**
    * Informs the ResourceManager that a resource has been spent.  If out of
-   * resources, can throw an UnsafeInterruptException exception.
+   * resources, the solver is interrupted using a callback.
    */
   void spendResource(Resource r);
 
@@ -300,6 +292,9 @@ class PropEngine
 
   /** Return the prop engine proof for assumption-based unsat cores. */
   std::shared_ptr<ProofNode> getRefutation();
+
+  /** Get the zero-level assertions */
+  std::vector<Node> getLearnedZeroLevelLiterals() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */
@@ -348,9 +343,6 @@ class PropEngine
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** Reference to the environment */
-  Env& d_env;
-
   /** The decision engine we will be using */
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
@@ -370,6 +362,8 @@ class PropEngine
   CnfStream* d_cnfStream;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
+  /** A default proof generator for theory lemmas */
+  CDProof d_theoryLemmaPg;
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;

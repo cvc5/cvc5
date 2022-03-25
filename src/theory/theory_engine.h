@@ -39,7 +39,6 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
 
@@ -172,10 +171,15 @@ class TheoryEngine : protected EnvObj
   }
 
   /**
-   * Preprocess rewrite equality, called by the preprocessor to rewrite
-   * equalities appearing in the input.
+   * Preprocess rewrite, called:
+   * (1) on equalities by the preprocessor to rewrite equalities appearing in
+   * the input,
+   * (2) on non-equalities by the theory preprocessor.
+   *
+   * Calls the ppRewrite of the theory of term and adds the associated skolem
+   * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -204,12 +208,6 @@ class TheoryEngine : protected EnvObj
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
-  /**
-   * This is called at shutdown time by the SolverEngine, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between PropEngine and Theory.
-   */
-  void shutdown();
 
   /**
    * Solve the given literal with a theory that owns it. The proof of tliteral
@@ -264,7 +262,7 @@ class TheoryEngine : protected EnvObj
     for (; d_propagatedLiteralsIndex < d_propagatedLiterals.size();
          d_propagatedLiteralsIndex = d_propagatedLiteralsIndex + 1)
     {
-      Debug("getPropagatedLiterals")
+      Trace("getPropagatedLiterals")
           << "TheoryEngine::getPropagatedLiterals: propagating: "
           << d_propagatedLiterals[d_propagatedLiteralsIndex] << std::endl;
       literals.push_back(d_propagatedLiterals[d_propagatedLiteralsIndex]);
@@ -320,7 +318,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* theoryOf(TNode node) const
   {
-    return d_theoryTable[theory::Theory::theoryOf(node)];
+    return d_theoryTable[d_env.theoryOf(node)];
   }
 
   /**
@@ -374,7 +372,7 @@ class TheoryEngine : protected EnvObj
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
    */
-  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success);
 
   /**
    * Get difficulty map, which populates dmap, mapping preprocessed assertions
@@ -383,6 +381,9 @@ class TheoryEngine : protected EnvObj
    * For details, see theory/difficuly_manager.h.
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
+
+  /** Get incomplete id, valid immediately after an `unknown` response. */
+  theory::IncompleteId getIncompleteId() const;
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
@@ -544,11 +545,6 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
-  /**
-   * An empty set of relevant assertions, which is returned as a dummy value for
-   * getRelevantAssertions when relevance is disabled.
-   */
-  std::unordered_set<TNode> d_emptyRelevantSet;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -569,12 +565,6 @@ class TheoryEngine : protected EnvObj
    * standard, version 2.6.
    */
   bool d_inSatMode;
-
-  /**
-   * Debugging flag to ensure that shutdown() is called before the
-   * destructor.
-   */
-  bool d_hasShutDown;
 
   /**
    * True if a theory has notified us of incompleteness (at this

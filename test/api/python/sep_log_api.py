@@ -19,14 +19,14 @@
 # correct and can be interrogated.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 
 # Test function to validate that we *cannot* obtain the heap/nil expressions
 # when *not* using the separation logic theory
 def validate_exception():
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     # Setup some options for cvc5 -- we explictly want to use a simplistic
     # theory (e.g., QF_IDL)
     slv.setLogic("QF_IDL")
@@ -43,7 +43,7 @@ def validate_exception():
     y = slv.mkConst(integer, "y")
 
     # y > x
-    y_gt_x = slv.mkTerm(kinds.Gt, y, x)
+    y_gt_x = slv.mkTerm(Kind.Gt, y, x)
 
     # assert it
     slv.assertFormula(y_gt_x)
@@ -95,7 +95,7 @@ def validate_exception():
 # Test function to demonstrate the use of, and validate the capability, of
 # obtaining the heap/nil expressions when using separation logic.
 def validate_getters():
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # Setup some options for cvc5
     slv.setLogic("QF_ALL")
@@ -124,18 +124,18 @@ def validate_getters():
     p2 = slv.mkConst(integer, "p2")
 
     # Constraints on x and y
-    x_equal_const = slv.mkTerm(kinds.Equal, x, random_constant)
-    y_gt_x = slv.mkTerm(kinds.Gt, y, x)
+    x_equal_const = slv.mkTerm(Kind.Equal, x, random_constant)
+    y_gt_x = slv.mkTerm(Kind.Gt, y, x)
 
     # Points-to expressions
-    p1_to_x = slv.mkTerm(kinds.SepPto, p1, x)
-    p2_to_y = slv.mkTerm(kinds.SepPto, p2, y)
+    p1_to_x = slv.mkTerm(Kind.SepPto, p1, x)
+    p2_to_y = slv.mkTerm(Kind.SepPto, p2, y)
 
     # Heap -- the points-to have to be "starred"!
-    heap = slv.mkTerm(kinds.SepStar, p1_to_x, p2_to_y)
+    heap = slv.mkTerm(Kind.SepStar, p1_to_x, p2_to_y)
 
     # Constain "nil" to be something random
-    fix_nil = slv.mkTerm(kinds.Equal, nil, expr_nil_val)
+    fix_nil = slv.mkTerm(Kind.Equal, nil, expr_nil_val)
 
     # Add it all to the solver!
     slv.assertFormula(x_equal_const)
@@ -157,11 +157,11 @@ def validate_getters():
     nil_expr = slv.getValueSepNil()
 
     # If the heap is not a separating conjunction, bail-out
-    if (heap_expr.getKind() != kinds.SepStar):
+    if (heap_expr.getKind() != Kind.SepStar):
         return False
 
     # If nil is not a direct equality, bail-out
-    if (nil_expr.getKind() != kinds.Equal):
+    if (nil_expr.getKind() != Kind.Equal):
         return False
 
     # Obtain the values for our "pointers"
@@ -175,7 +175,7 @@ def validate_getters():
     # Walk all the children
     for child in heap_expr:
         # If we don't have a PTO operator, bail-out
-        if (child.getKind() != kinds.SepPto):
+        if (child.getKind() != Kind.SepPto):
             return False
 
         # Find both sides of the PTO operator

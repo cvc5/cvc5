@@ -61,7 +61,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, false);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
   Node seven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(7));
   ASSERT_EQ(seven, result);
@@ -86,7 +86,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(bv, lemmas, skolems);
   ASSERT_TRUE(result.isVar() && result.getType().isInteger());
 
@@ -116,7 +116,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(f, lemmas, skolems);
   TypeNode resultType = result.getType();
   std::vector<TypeNode> resultDomain = resultType.getArgTypes();
@@ -130,7 +130,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
 }
 
 /** Check all cases of the translation.
- * This is a sanity check, that noly verifies
+ * This is a sanity check, that only verifies
  * the expected type, and that there were no
  * failures.
  */
@@ -143,7 +143,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
 
   // bit-vector variables
   TypeNode bvType = d_nodeManager->mkBitVectorType(4);
@@ -278,6 +278,46 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   original = d_nodeManager->mkNode(BITVECTOR_ULTBV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
+}
+
+/** Check AND translation for bitwise option.
+ * This is a sanity check, that only verifies
+ * the expected kind, and that there were no
+ * failures.
+ */
+TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
+{
+  // place holders for lemmas and skolem
+  std::vector<Node> lemmas;
+  std::map<Node, Node> skolems;
+  Options opts;
+  Env env(d_nodeManager, &opts);
+  env.d_logic.setLogicString("QF_UFBV");
+  env.d_logic.lock();
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::BITWISE, 1);
+
+  // bit-vector variables
+  TypeNode bvType = d_nodeManager->mkBitVectorType(4);
+  Node v1 = d_nodeManager->mkVar("v1", bvType);
+  Node v2 = d_nodeManager->mkVar("v2", bvType);
+
+  // translated integer variables
+  Node i1 = intBlaster.translateNoChildren(v1, lemmas, skolems);
+  Node i2 = intBlaster.translateNoChildren(v2, lemmas, skolems);
+
+  // if original is BV, result should be Int.
+  // Otherwise, they should have the same type.
+  Node original;
+  Node result;
+
+  // bvand
+  original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
+  size_t orig_num_lemmas = lemmas.size();
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  // should have kind skolem, would use bitwise comparisons to refine
+  ASSERT_TRUE(result.getKind() == kind::SKOLEM);
+  // check that a lemma was added
+  ASSERT_TRUE(lemmas.size() > orig_num_lemmas);
 }
 
 }  // namespace test

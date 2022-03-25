@@ -16,13 +16,13 @@
 # translation of bitvectors_and_arrays-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 import math
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setOption("produce-models", "true")
     slv.setOption("output-language", "smtlib")
     slv.setLogic("QF_AUFBV")
@@ -58,29 +58,29 @@ if __name__ == "__main__":
     constarr0 = slv.mkConstArray(arraySort, slv.mkBitVector(32, 0))
 
     # Asserting that current_array[0] > 0
-    current_array0 = slv.mkTerm(kinds.Select, current_array, zero)
-    current_array0_gt_0 = slv.mkTerm(kinds.BVSgt,
+    current_array0 = slv.mkTerm(Kind.Select, current_array, zero)
+    current_array0_gt_0 = slv.mkTerm(Kind.BVSgt,
                                      current_array0,
                                      slv.mkBitVector(32, 0))
     slv.assertFormula(current_array0_gt_0)
 
     # Building the assertions in the loop unrolling
     index = slv.mkBitVector(index_size, 0)
-    old_current = slv.mkTerm(kinds.Select, current_array, index)
+    old_current = slv.mkTerm(Kind.Select, current_array, index)
     two = slv.mkBitVector(32, 2)
 
     assertions = []
     for i in range(1, k):
         index = slv.mkBitVector(index_size, i)
-        new_current = slv.mkTerm(kinds.BVMult, two, old_current)
+        new_current = slv.mkTerm(Kind.BVMult, two, old_current)
         # current[i] = 2*current[i-1]
-        current_array = slv.mkTerm(kinds.Store, current_array, index, new_current)
+        current_array = slv.mkTerm(Kind.Store, current_array, index, new_current)
         # current[i-1] < current[i]
-        current_slt_new_current = slv.mkTerm(kinds.BVSlt, old_current, new_current)
+        current_slt_new_current = slv.mkTerm(Kind.BVSlt, old_current, new_current)
         assertions.append(current_slt_new_current)
-        old_current = slv.mkTerm(kinds.Select, current_array, index)
+        old_current = slv.mkTerm(Kind.Select, current_array, index)
 
-    query = slv.mkTerm(kinds.Not, slv.mkTerm(kinds.And, assertions))
+    query = slv.mkTerm(Kind.Not, slv.mkTerm(Kind.And, assertions))
 
     print("Asserting {} to cvc5".format(query))
     slv.assertFormula(query)

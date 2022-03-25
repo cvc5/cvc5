@@ -114,6 +114,28 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Datatype_getNumConstructors(
 
 /*
  * Class:     io_github_cvc5_api_Datatype
+ * Method:    getParameters
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Datatype_getParameters(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* current = (Datatype*)pointer;
+  std::vector<Sort> sorts = current->getParameters();
+  std::vector<jlong> sortPointers(sorts.size());
+  for (size_t i = 0; i < sorts.size(); i++)
+  {
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
+  }
+  jlongArray ret = env->NewLongArray(sorts.size());
+  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isParametric
  * Signature: (J)Z
  */
@@ -193,20 +215,6 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_isWellFounded(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
   return (jboolean)current->isWellFounded();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Datatype
- * Method:    hasNestedRecursion
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_hasNestedRecursion(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Datatype* current = (Datatype*)pointer;
-  return (jboolean)current->hasNestedRecursion();
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

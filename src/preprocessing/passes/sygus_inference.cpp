@@ -301,14 +301,13 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   Trace("sygus-infer") << "*** Check sat..." << std::endl;
   Result r = rrSygus->checkSat();
   Trace("sygus-infer") << "...result : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  // get the synthesis solutions
+  std::map<Node, Node> synth_sols;
+  if (!rrSygus->getSubsolverSynthSolutions(synth_sols))
   {
     // failed, conjecture was infeasible
     return false;
   }
-  // get the synthesis solutions
-  std::map<Node, Node> synth_sols;
-  rrSygus->getSynthSolutions(synth_sols);
 
   std::vector<Node> final_ff;
   std::vector<Node> final_ff_sol;

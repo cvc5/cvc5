@@ -18,11 +18,11 @@
 
 import copy
 import utils 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = pycvc5.Solver()
+  slv = cvc5.Solver()
 
   # required options
   slv.setOption("lang", "sygus2")
@@ -42,8 +42,8 @@ if __name__ == "__main__":
 
   # define the rules
   zero = slv.mkInteger(0)
-  neg_x = slv.mkTerm(kinds.Uminus, x)
-  plus = slv.mkTerm(kinds.Plus, x, start)
+  neg_x = slv.mkTerm(Kind.Neg, x)
+  plus = slv.mkTerm(Kind.Add, x, start)
 
   # create the grammar object
   g1 = slv.mkSygusGrammar({x}, {start})
@@ -72,14 +72,14 @@ if __name__ == "__main__":
   # declare universal variables.
   varX = slv.mkSygusVar(integer, "x")
 
-  id1_x = slv.mkTerm(kinds.ApplyUf, id1, varX)
-  id2_x = slv.mkTerm(kinds.ApplyUf, id2, varX)
-  id3_x = slv.mkTerm(kinds.ApplyUf, id3, varX)
-  id4_x = slv.mkTerm(kinds.ApplyUf, id4, varX)
+  id1_x = slv.mkTerm(Kind.ApplyUf, id1, varX)
+  id2_x = slv.mkTerm(Kind.ApplyUf, id2, varX)
+  id3_x = slv.mkTerm(Kind.ApplyUf, id3, varX)
+  id4_x = slv.mkTerm(Kind.ApplyUf, id4, varX)
 
   # add semantic constraints
   # (constraint (= (id1 x) (id2 x) (id3 x) (id4 x) x))
-  slv.addSygusConstraint(slv.mkTerm(kinds.And, [slv.mkTerm(kinds.Equal, id1_x, id2_x), slv.mkTerm(kinds.Equal, id1_x, id3_x), slv.mkTerm(kinds.Equal, id1_x, id4_x), slv.mkTerm(kinds.Equal, id1_x, varX)]))
+  slv.addSygusConstraint(slv.mkTerm(Kind.And, [slv.mkTerm(Kind.Equal, id1_x, id2_x), slv.mkTerm(Kind.Equal, id1_x, id3_x), slv.mkTerm(Kind.Equal, id1_x, id4_x), slv.mkTerm(Kind.Equal, id1_x, varX)]))
 
   # print solutions if available
   if (slv.checkSynth().isUnsat()):

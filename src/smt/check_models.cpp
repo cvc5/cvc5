@@ -16,6 +16,7 @@
 #include "smt/check_models.h"
 
 #include "base/modal_exception.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/preprocessor.h"
@@ -41,18 +42,17 @@ void CheckModels::checkModel(TheoryModel* m,
   // If this function is running, the user gave --check-model (or equivalent),
   // and if verbose(1) is on, the user gave --verbose (or equivalent).
 
-  // check-model is not guaranteed to succeed if approximate values were used.
-  // Thus, we intentionally abort here.
-  if (m->hasApproximations())
-  {
-    throw RecoverableModalException(
-        "Cannot run check-model on a model with approximate values.");
-  }
   Node sepHeap, sepNeq;
   if (m->getHeapModel(sepHeap, sepNeq))
   {
     throw RecoverableModalException(
         "Cannot run check-model on a model with a separation logic heap.");
+  }
+  if (options().quantifiers.fmfFunWellDefined)
+  {
+    warning() << "Running check-model is not guaranteed to pass when fmf-fun "
+                 "is enabled."
+              << std::endl;
   }
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
@@ -71,7 +71,7 @@ void CheckModels::checkModel(TheoryModel* m,
     // evaluate e.g. divide-by-zero. This is intentional since the evaluation
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
-    Node n = sm.apply(assertion, false);
+    Node n = sm.apply(assertion);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
                << std::endl;
 

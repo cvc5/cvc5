@@ -21,7 +21,6 @@
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
 
@@ -142,7 +141,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   Node operator*() override
   {
-    Debug("dt-enum-debug") << ": get term " << this << std::endl;
+    Trace("dt-enum-debug") << ": get term " << this << std::endl;
     if (d_zeroTermActive)
     {
       return d_zeroTerm;

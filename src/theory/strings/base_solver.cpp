@@ -32,8 +32,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
-    : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
+BaseSolver::BaseSolver(Env& env,
+                       SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr)
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
@@ -120,7 +123,7 @@ void BaseSolver::checkInit()
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
-              Assert(s.getType() == t.getType());
+              Assert(s.getType().isComparableTo(t.getType()));
               d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }
@@ -287,7 +290,7 @@ void BaseSolver::checkInit()
     }
     ++eqcs_i;
   }
-  if (Trace.isOn("strings-base"))
+  if (TraceIsOn("strings-base"))
   {
     for (const std::pair<const Kind, std::pair<uint32_t, uint32_t>>& cc :
          congruentCount)
@@ -344,11 +347,11 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     Node c;
     if (isConst)
     {
-      c = utils::mkNConcat(vecc, n.getType());
+      c = d_termReg.mkNConcat(vecc, n.getType());
     }
     if (!isConst || !d_state.areEqual(n, c))
     {
-      if (Trace.isOn("strings-debug"))
+      if (TraceIsOn("strings-debug"))
       {
         Trace("strings-debug")
             << "Constant eqc : " << c << " for " << n << std::endl;
@@ -421,7 +424,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           {
             // The equivalence class is not entailed to be equal to a constant
             // and we found a better concatenation
-            Node nct = utils::mkNConcat(vecnc, n.getType());
+            Node nct = d_termReg.mkNConcat(vecnc, n.getType());
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
             bei.d_bestScore = contentSize;
@@ -604,8 +607,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     if (lr.isConst())
     {
       // if constant, compare
-      Node cmp =
-          nm->mkNode(GEQ, lr, nm->mkConst(CONST_RATIONAL, Rational(card_need)));
+      Node cmp = nm->mkNode(GEQ, lr, nm->mkConstInt(Rational(card_need)));
       cmp = rewrite(cmp);
       needsSplit = !cmp.getConst<bool>();
     }
@@ -619,7 +621,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       bool success = true;
       while (r < card_need && success)
       {
-        Node rr = nm->mkConst(CONST_RATIONAL, Rational(r));
+        Node rr = nm->mkConstInt(Rational(r));
         if (d_state.areDisequal(rr, lr))
         {
           r++;
@@ -669,7 +671,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                           << std::endl;
     if (int_k + 1 > ei->d_cardinalityLemK.get())
     {
-      Node k_node = nm->mkConst(CONST_RATIONAL, Rational(int_k));
+      Node k_node = nm->mkConstInt(Rational(int_k));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
       std::vector<Node> expn;

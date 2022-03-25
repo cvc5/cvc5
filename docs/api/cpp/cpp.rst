@@ -1,4 +1,4 @@
-C++ API Documentation
+C++ API
 =====================
 
 The C++ API is the primary interface for cvc5 and exposes the full functionality of cvc5.
@@ -9,7 +9,6 @@ For most applications, the :cpp:class:`Solver <cvc5::api::Solver>` class is the 
 .. container:: hide-toctree
 
   .. toctree::
-    :maxdepth: 0
 
     quickstart
     exceptions
@@ -27,6 +26,7 @@ For most applications, the :cpp:class:`Solver <cvc5::api::Solver>` class is the 
     solver
     sort
     statistics
+    synthresult
     term
 
 
@@ -34,7 +34,7 @@ Class hierarchy
 ^^^^^^^^^^^^^^^
 
 ``namespace cvc5::api {``
-  
+
   * class :cpp:class:`CVC5ApiException <cvc5::api::CVC5ApiException>`
   * class :cpp:class:`CVC5ApiRecoverableException <cvc5::api::CVC5ApiRecoverableException>`
   * class :ref:`api/cpp/datatype:datatype`
@@ -61,6 +61,7 @@ Class hierarchy
   * class :ref:`api/cpp/sort:sort`
   * class :cpp:class:`Stat <cvc5::api::Stat>`
   * class :cpp:class:`Statistics <cvc5::api::Statistics>`
+  * class :ref:`api/cpp/synthresult:synthresult`
   * class :ref:`api/cpp/term:term`
 
     * class :cpp:class:`const_iterator <cvc5::api::Term::const_iterator>`

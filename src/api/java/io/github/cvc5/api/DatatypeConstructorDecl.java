@@ -35,7 +35,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
   /**
    * Add datatype selector declaration.
    * @param name the name of the datatype selector declaration to add
-   * @param sort the range sort of the datatype selector declaration to add
+   * @param sort the codomain sort of the datatype selector declaration to add
    */
   public void addSelector(String name, Sort sort)
   {
@@ -45,7 +45,8 @@ public class DatatypeConstructorDecl extends AbstractPointer
   private native void addSelector(long pointer, String name, long sortPointer);
 
   /**
-   * Add datatype selector declaration whose range type is the datatype itself.
+   * Add datatype selector declaration whose codomain type is the datatype
+   * itself.
    * @param name the name of the datatype selector declaration to add
    */
   public void addSelectorSelf(String name)
