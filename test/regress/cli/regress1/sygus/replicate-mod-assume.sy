@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --sygus-out=status
 (set-logic LIA)
 (synth-fun fr0 ((_v Int) (n Int) (x Int)) Int

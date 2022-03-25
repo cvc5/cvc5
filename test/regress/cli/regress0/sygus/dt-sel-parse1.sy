@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 (set-logic ALL)
 
 (declare-datatypes ((IntRange 0)) 

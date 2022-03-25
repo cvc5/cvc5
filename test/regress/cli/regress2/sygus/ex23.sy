@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-repair-const --sygus-grammar-cons=any-const
 (set-logic LIA)
 
