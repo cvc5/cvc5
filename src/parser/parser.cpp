@@ -572,7 +572,8 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     // Note that we check whether the datatype is parametric, and not whether
     // etyped is a parametric datatype, since e.g. the smt2 parser constructs
     // an arbitrary instantitated constructor term before it is resolved.
-    // Hence, etyped is an instantiated datatype type.
+    // Hence, etyped is an instantiated datatype type, but we correctly
+    // check if its datatype is parametric.
     if (d.isParametric())
     {
       // lookup by name

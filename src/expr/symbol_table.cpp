@@ -486,7 +486,7 @@ api::Sort SymbolTable::Implementation::lookupType(
   if (p.second.isDatatype())
   {
     PrettyCheckArgument(
-        p.second.isParametricDatatype(), name, "expected parametric datatype");
+        p.second.getDatatype().isParametric(), name, "expected parametric datatype");
     return p.second.instantiate(params);
   }
   bool isSortConstructor = p.second.isSortConstructor();

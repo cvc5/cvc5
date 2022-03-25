@@ -2655,14 +2655,6 @@ cdef class Sort:
         """
         return self.csort.isDatatype()
 
-    def isParametricDatatype(self):
-        """
-            Is this a parametric datatype sort?
-
-            :return: True if the sort is a parametric datatype sort.
-        """
-        return self.csort.isParametricDatatype()
-
     def isConstructor(self):
         """
             Is this a constructor sort?
