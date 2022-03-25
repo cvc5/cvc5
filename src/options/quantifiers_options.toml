@@ -81,7 +81,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "dtVarExpandQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-var-exp-quant"
   type       = "bool"
   default    = "true"
@@ -107,7 +107,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "condVarSplitQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "cond-var-split-quant=MODE"
   type       = "CondVarSplitQuantMode"
   default    = "ON"
@@ -154,7 +154,7 @@ name   = "Quantifiers"
 #   forall x. P( x ) => f( S( x ) ) = x
 [[option]]
   name       = "preSkolemQuantNested"
-  category   = "regular"
+  category   = "expert"
   long       = "pre-skolem-quant-nested"
   type       = "bool"
   default    = "true"
@@ -178,7 +178,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "globalNegate"
-  category   = "regular"
+  category   = "expert"
   long       = "global-negate"
   type       = "bool"
   default    = "false"
@@ -227,7 +227,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "relevantTriggers"
-  category   = "expert"
+  category   = "regular"
   long       = "relevant-triggers"
   type       = "bool"
   default    = "false"
@@ -267,7 +267,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerWhenSingle"
-  category   = "expert"
+  category   = "regular"
   long       = "multi-trigger-when-single"
   type       = "bool"
   default    = "false"
@@ -275,7 +275,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerPriority"
-  category   = "expert"
+  category   = "regular"
   long       = "multi-trigger-priority"
   type       = "bool"
   default    = "false"
@@ -283,7 +283,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerCache"
-  category   = "expert"
+  category   = "regular"
   long       = "multi-trigger-cache"
   type       = "bool"
   default    = "false"
@@ -291,7 +291,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "multiTriggerLinear"
-  category   = "expert"
+  category   = "regular"
   long       = "multi-trigger-linear"
   type       = "bool"
   default    = "true"
@@ -357,7 +357,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "triggerActiveSelMode"
-  category   = "regular"
+  category   = "expert"
   long       = "trigger-active-sel=MODE"
   type       = "TriggerActiveSelMode"
   default    = "ALL"
@@ -524,7 +524,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInstSum"
-  category   = "expert"
+  category   = "regular"
   long       = "enum-inst-sum"
   type       = "bool"
   default    = "false"
@@ -613,7 +613,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfOneInstPerRound"
-  category   = "expert"
+  category   = "regular"
   long       = "mbqi-one-inst-per-round"
   type       = "bool"
   default    = "false"
@@ -653,7 +653,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfTypeCompletionThresh"
-  category   = "expert"
+  category   = "regular"
   long       = "fmf-type-completion-thresh=N"
   type       = "int64_t"
   default    = "1000"
@@ -694,7 +694,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cbqiAllConflict"
-  category   = "expert"
+  category   = "regular"
   long       = "cbqi-all-conflict"
   type       = "bool"
   default    = "false"
@@ -834,19 +834,20 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInference"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inference"
   type       = "bool"
   default    = "false"
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
+# this is set to true for sygus inputs
 [[option]]
   name       = "sygus"
   category   = "regular"
   long       = "sygus"
   type       = "bool"
   default    = "false"
-  help       = "use sygus solver (default is true for sygus inputs)"
+  help       = "support SyGuS commands"
 
 [[option]]
   name       = "cegqiSingleInvMode"
@@ -895,7 +896,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiSingleInvReconstructLimit"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-si-rcons-limit=N"
   type       = "int64_t"
   default    = "10000"
@@ -911,7 +912,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusConstRepairAbort"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-crepair-abort"
   type       = "bool"
   default    = "false"
@@ -991,7 +992,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRepairConstTimeout"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1104,7 +1105,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInvTemplWhenSyntax"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inv-templ-when-sg"
   type       = "bool"
   default    = "false"
@@ -1173,7 +1174,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegisSample"
-  category   = "expert"
+  category   = "regular"
   long       = "cegis-sample=MODE"
   type       = "CegisSampleMode"
   default    = "NONE"
@@ -1273,7 +1274,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRewVerify"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-rr-verify"
   type       = "bool"
   default    = "false"
@@ -1345,7 +1346,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusExprMinerCheckTimeout"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1361,7 +1362,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusQueryGen"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-query-gen=MODE"
   type       = "SygusQueryGenMode"
   default    = "NONE"
@@ -1390,7 +1391,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusQueryGenDumpFiles"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-query-gen-dump-files=MODE"
   type       = "SygusQueryDumpFilesMode"
   default    = "NONE"
@@ -1468,7 +1469,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiInnermost"
-  category   = "expert"
+  category   = "regular"
   long       = "cegqi-innermost"
   type       = "bool"
   default    = "true"
@@ -1476,7 +1477,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiNestedQE"
-  category   = "expert"
+  category   = "regular"
   long       = "cegqi-nested-qe"
   type       = "bool"
   default    = "false"
@@ -1486,16 +1487,16 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfInt"
-  category   = "expert"
-  long       = "cegqi-use-inf-int"
+  category   = "regular"
+  long       = "cegqi-inf-int"
   type       = "bool"
   default    = "false"
   help       = "use integer infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cegqiUseInfReal"
-  category   = "expert"
-  long       = "cegqi-use-inf-real"
+  category   = "regular"
+  long       = "cegqi-inf-real"
   type       = "bool"
   default    = "false"
   help       = "use real infinity for vts in counterexample-based quantifier instantiation"
@@ -1518,7 +1519,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMidpoint"
-  category   = "expert"
+  category   = "regular"
   long       = "cegqi-midpoint"
   type       = "bool"
   default    = "false"
@@ -1639,7 +1640,7 @@ name   = "Quantifiers"
 [[option]]
   name       = "quantDynamicSplit"
   category   = "regular"
-  long       = "quant-dsplit-mode=MODE"
+  long       = "quant-dsplit=MODE"
   type       = "QuantDSplitMode"
   default    = "DEFAULT"
   help       = "mode for dynamic quantifiers splitting"
@@ -1674,7 +1675,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoElim"
-  category   = "expert"
+  category   = "regular"
   long       = "ho-elim"
   type       = "bool"
   default    = "false"
@@ -1682,7 +1683,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "hoElimStoreAx"
-  category   = "expert"
+  category   = "regular"
   long       = "ho-elim-store-ax"
   type       = "bool"
   default    = "true"
