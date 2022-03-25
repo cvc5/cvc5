@@ -2403,10 +2403,10 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_ensureTermSort(
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    mkSygusVar
+ * Method:    declareSygusVar
  * Signature: (JJLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSygusVar(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSygusVar(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2414,7 +2414,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSygusVar(
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Term* retPointer = new Term(solver->mkSygusVar(*sort, cSymbol));
+  Term* retPointer = new Term(solver->declareSygusVar(*sort, cSymbol));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);

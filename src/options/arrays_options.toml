@@ -3,7 +3,7 @@ name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysOptimizeLinear"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-optimize-linear"
   type       = "bool"
   default    = "true"
@@ -11,7 +11,7 @@ name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysWeakEquivalence"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-weak-equiv"
   type       = "bool"
   default    = "false"
@@ -27,7 +27,7 @@ name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysEagerLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-eager-lemmas"
   type       = "bool"
   default    = "false"
@@ -35,7 +35,7 @@ name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysReduceSharing"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-reduce-sharing"
   type       = "bool"
   default    = "false"
@@ -43,7 +43,7 @@ name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysPropagate"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-prop=N"
   type       = "int64_t"
   default    = "2"
