@@ -930,7 +930,9 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   if (isSygus(opts))
   {
     // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
-    // functions are incompatible with our equality proofs.
+    // functions are incompatible with our equality proofs. Moreover, enabling
+    // proofs for sygus (sub)solvers is irrelevant, since they are not given
+    // check-sat queries.
     reason << "sygus";
     return true;
   }

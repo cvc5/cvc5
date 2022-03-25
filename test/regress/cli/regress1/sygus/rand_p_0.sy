@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-enum=random --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 
 (set-logic BV)
 (set-option :sygus-enum-random-p 0)

@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-out=status --sygus-si=all
-; EXPECT: unsat
+; EXPECT: feasible
 
 ; This regression ensures that we are not too aggressive in filtering
 ; enumerated shapes in the pool.

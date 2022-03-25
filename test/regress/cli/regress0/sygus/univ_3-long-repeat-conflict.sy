@@ -1,4 +1,4 @@
-; EXPECT: unknown
+; EXPECT: fail
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status -q
 (set-logic SLIA)
 

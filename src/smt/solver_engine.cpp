@@ -892,7 +892,7 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth(bool isNext)
+SynthResult SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
@@ -902,7 +902,7 @@ Result SolverEngine::checkSynth(bool isNext)
         "Cannot check-synth-next unless immediately preceded by a successful "
         "call to check-synth(-next).");
   }
-  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  SynthResult r = d_sygusSolver->checkSynth(*d_asserts, isNext);
   d_state->notifyCheckSynthResult(r);
   return r;
 }

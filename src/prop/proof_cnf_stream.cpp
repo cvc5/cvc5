@@ -614,10 +614,10 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
 }
 
-void ProofCnfStream::notifyOptPropagation(int explLevel)
+void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
 {
-  AlwaysAssert(explLevel < (userContext()->getLevel() - 1));
-  AlwaysAssert(!d_currPropagationProccessed.isNull());
+  Assert(explLevel < (userContext()->getLevel() - 1));
+  Assert(!d_currPropagationProccessed.isNull());
   Trace("cnf") << "Need to save curr propagation "
                << d_currPropagationProccessed << "'s proof in level "
                << explLevel + 1 << " despite being currently in level "
@@ -629,10 +629,10 @@ void ProofCnfStream::notifyOptPropagation(int explLevel)
   //
   // It's also necessary to copy the proof node, so we prevent unintended
   // updates to the saved proof. Not doing this may also lead to open proofs.
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> currPropagationProcPf =
-      pnm->clone(d_proof.getProofFor(d_currPropagationProccessed));
-  AlwaysAssert(currPropagationProcPf->getRule() != PfRule::ASSUME);
+      d_env.getProofNodeManager()->clone(
+          d_proof.getProofFor(d_currPropagationProccessed));
+  Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
@@ -640,19 +640,19 @@ void ProofCnfStream::notifyOptPropagation(int explLevel)
   d_currPropagationProccessed = Node::null();
 }
 
-void ProofCnfStream::notifyOptClause(const SatClause& clause, int clLevel)
+void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                                 int clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "
                << userContext()->getLevel() << "\n";
   Node clauseNode = getClauseNode(clause);
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
-  AlwaysAssert(clLevel < (userContext()->getLevel() - 1));
+  Assert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> clauseCnfPf =
-      pnm->clone(d_proof.getProofFor(clauseNode));
-  AlwaysAssert(clauseCnfPf->getRule() != PfRule::ASSUME);
+      d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
+  Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
 }
 

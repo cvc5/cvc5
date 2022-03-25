@@ -102,10 +102,18 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * generator. */
   bool isBlocked(std::shared_ptr<ProofNode> pfn);
 
-  /** Notify that current propagation inserted at lower level than current. */
-  void notifyOptPropagation(int explLevel);
-  /** Notify that and added clause was inserted at lower level than current. */
-  void notifyOptClause(const SatClause& clause, int clLevel);
+  /** Notify that current propagation inserted at lower level than current.
+   *
+   * The proof of the current propagation (d_currPropagationProccessed) will be
+   * saved in d_optClausesPfs, so that it is not potentially lost when the user
+   * context is popped.
+   */
+  void notifyCurrPropagationInsertedAtLevel(int explLevel);
+  /** Notify that added clause was inserted at lower level than current.
+   *
+   * As above, the proof of this clause is saved in  d_optClausesPfs.
+   */
+  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
  private:
   /**

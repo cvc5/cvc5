@@ -2647,7 +2647,8 @@ class SolverTest
 
     assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(f));
 
-    d_solver.checkSynth();
+    SynthResult sr = d_solver.checkSynth();
+    assertEquals(sr.hasSolution(), true);
 
     assertDoesNotThrow(() -> d_solver.getSynthSolution(f));
     assertDoesNotThrow(() -> d_solver.getSynthSolution(f));
@@ -2691,9 +2692,11 @@ class SolverTest
     d_solver.setOption("incremental", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
-    d_solver.checkSynth();
+    SynthResult sr = d_solver.checkSynth();
+    assertEquals(sr.hasSolution(), true);
     assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
-    d_solver.checkSynthNext();
+    sr = d_solver.checkSynthNext();
+    assertEquals(sr.hasSolution(), true);
     assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
   }
 
