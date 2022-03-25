@@ -149,54 +149,53 @@ class EnumParser:
         return False
 
     def parse(self, filename):
-        f = open(filename, "r")
-
-        for line in f.read().split(NL):
-            line = line.strip()
-            if COMMENT in line:
-                line = line[:line.find(COMMENT)]
-            if not line:
-                continue
-
-            if self.ignore_block(line):
-                continue
-
-            if ENUM_END in line:
-                self.in_enum = False
-                break
-            elif self.in_enum:
-                if line == OCB:
+        with open(filename, "r") as f:
+            for line in f:
+                line = line.strip()
+                if COMMENT in line:
+                    line = line[:line.find(COMMENT)]
+                if not line:
                     continue
-                name = None
-                value = None
-                if EQ in line:
-                    (name, remainder) = line.split(EQ)
-                    name = name.strip()
-                    if C in remainder:
-                        value = int(remainder[:remainder.find(C)].strip())
+
+                if self.ignore_block(line):
+                    continue
+
+                if ENUM_END in line:
+                    self.in_enum = False
+                    break
+                elif self.in_enum:
+                    if line == OCB:
+                        continue
+                    name = None
+                    value = None
+                    if EQ in line:
+                        (name, remainder) = line.split(EQ)
+                        name = name.strip()
+                        if C in remainder:
+                            value = int(remainder[:remainder.find(C)].strip())
+                        else:
+                            value = int(remainder)
+                    elif C in line:
+                        name = line[:line.find(C)].strip()
                     else:
-                        value = int(remainder)
-                elif C in line:
-                    name = line[:line.find(C)].strip()
-                else:
-                    name = line
+                        name = line
 
-                if not value:
-                    value = self.last_value + 1
-                self.last_value = value
+                    if not value:
+                        value = self.last_value + 1
+                    self.last_value = value
 
-                enum = self.get_current_enum()
-                enum.enumerators[name] = value
-                fmt_comment = self.format_comment(self.latest_block_comment)
-                enum.enumerators_doc[name] = fmt_comment
-            elif ENUM_START in line:
-                self.in_enum = True
-                tokens = line.split(" ")
-                name = tokens[1]
-                self.get_current_namespace().enums.append(CppEnum(name))
-                continue
-            elif line.startswith(NAMESPACE_START):
-                tokens = line.split(" ")
-                name = tokens[1]
-                self.namespaces.append(CppNamespace(name))
-        f.close()
+                    enum = self.get_current_enum()
+                    enum.enumerators[name] = value
+                    fmt_comment = self.format_comment(
+                        self.latest_block_comment)
+                    enum.enumerators_doc[name] = fmt_comment
+                elif ENUM_START in line:
+                    self.in_enum = True
+                    tokens = line.split(" ")
+                    name = tokens[1]
+                    self.get_current_namespace().enums.append(CppEnum(name))
+                    continue
+                elif line.startswith(NAMESPACE_START):
+                    tokens = line.split(" ")
+                    name = tokens[1]
+                    self.namespaces.append(CppNamespace(name))
