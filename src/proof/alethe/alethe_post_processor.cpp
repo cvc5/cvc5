@@ -986,7 +986,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           Node vpi = children[0][0][i].eqNode(children[0][1][i]);
           new_args.push_back(vpi);
-          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
+          vpi = nm->mkNode(kind::SEXPR, d_cl, vpi);
+          vpis.push_back(vpi);
           success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
         vpis.push_back(children[1]);
