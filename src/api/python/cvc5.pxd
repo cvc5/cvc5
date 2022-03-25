@@ -385,7 +385,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isBitVector() except +
         bint isFloatingPoint() except +
         bint isDatatype() except +
-        bint isParametricDatatype() except +
         bint isConstructor() except +
         bint isSelector() except +
         bint isTester() except +

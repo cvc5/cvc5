@@ -506,16 +506,6 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a parametric datatype sort? A parametric datatype sort is either
-   * one that is returned by a call to Solver::mkDatatypeSort() or
-   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
-   * datatype sort returned by Sort::instantiate() for parametric datatype
-   * sort `s`.
-   * @return true if the sort is a parametric datatype sort
-   */
-  bool isParametricDatatype() const;
-
-  /**
    * Is this a constructor sort?
    * @return true if the sort is a constructor sort
    */
