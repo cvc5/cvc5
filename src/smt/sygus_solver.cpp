@@ -183,7 +183,7 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConjectureStale = true;
 }
 
-Result SygusSolver::checkSynth(Assertions& as, bool isNext)
+SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
 {
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
@@ -264,8 +264,8 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
   // successfully. Instead we call getSynthSolutions below. If this returns
-  // true, then we were successful. In this case, we set the result to "unsat",
-  // since the synthesis conjecture was negated when asserted to the subsolver.
+  // true, then we were successful. In this case, we set the synthesis result to
+  // "solution".
   //
   // This behavior is done for 2 reasons:
   // (1) if we do not negate the synthesis conjecture, the subsolver in some
@@ -286,11 +286,12 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   //
   // Thus, we use getSynthSolutions as means of knowing the conjecture was
   // solved.
+  SynthResult sr;
   std::map<Node, Node> sol_map;
   if (getSynthSolutions(sol_map))
   {
-    // if we have solutions, we return "unsat" by convention
-    r = Result(Result::UNSAT);
+    // if we have solutions, we return "solution"
+    sr = SynthResult(SynthResult::SOLUTION);
     // Check that synthesis solutions satisfy the conjecture
     if (options().smt.checkSynthSol)
     {
@@ -300,9 +301,9 @@ Result SygusSolver::checkSynth(Assertions& as, bool isNext)
   else
   {
     // otherwise, we return "unknown"
-    r = Result(Result::UNKNOWN, Result::UNKNOWN_REASON);
+    sr = SynthResult(SynthResult::UNKNOWN, Result::UNKNOWN_REASON);
   }
-  return r;
+  return sr;
 }
 
 bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)

@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status --sygus-fair=direct
-; EXPECT: unsat
+; EXPECT: feasible
 (set-logic SLIA)
 
 (synth-fun f ((name String)) String

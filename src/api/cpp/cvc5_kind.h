@@ -20,8 +20,7 @@
 
 #include <ostream>
 
-namespace cvc5 {
-namespace api {
+namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -4113,8 +4112,7 @@ std::string kindToString(Kind k) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
 
-}  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::api
 
 namespace std {
 
