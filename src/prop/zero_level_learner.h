@@ -23,8 +23,8 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "smt/env_obj.h"
 #include "prop/learned_db.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -49,7 +49,9 @@ class ZeroLevelLearner : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  ZeroLevelLearner(Env& env, PropEngine* propEngine, TheoryEngine * theoryEngine);
+  ZeroLevelLearner(Env& env,
+                   PropEngine* propEngine,
+                   TheoryEngine* theoryEngine);
 
   ~ZeroLevelLearner();
 
@@ -61,7 +63,8 @@ class ZeroLevelLearner : protected EnvObj
   bool notifyAsserted(TNode assertion);
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      LearnedLitType ltype = LearnedLitType::INPUT) const;
 
  private:
   static void getAtoms(TNode a,
@@ -76,14 +79,14 @@ class ZeroLevelLearner : protected EnvObj
   PropEngine* d_propEngine;
 
   /** The theory engine we are using */
-  TheoryEngine * d_theoryEngine;
+  TheoryEngine* d_theoryEngine;
 
   /** Set of literals that hold at level 0 */
   NodeSet d_levelZeroAsserts;
 
   /** What we have learned */
   LearnedDb d_ldb;
-  
+
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;
 

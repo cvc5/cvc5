@@ -45,25 +45,29 @@ enum class LearnedLitType
 const char* toString(LearnedLitType ltype);
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
-  
+
 /**
  */
 class LearnedDb
 {
   using NodeSet = context::CDHashSet<Node>;
+
  public:
-  LearnedDb(context::Context * c);
+  LearnedDb(context::Context* c);
   ~LearnedDb();
   /** Add learned literal */
   void addLearnedLiteral(const Node& lit, LearnedLitType ltype);
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
+  std::vector<Node> getLearnedLiterals(
+      LearnedLitType ltype = LearnedLitType::INPUT) const;
   /** Get number of learned literals */
-  size_t getNumLearnedLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
+  size_t getNumLearnedLiterals(
+      LearnedLitType ltype = LearnedLitType::INPUT) const;
+
  private:
-   /** Get literal set, const and non-const versions */
-   context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype);
-   const context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype) const;
+  /** Get literal set, const and non-const versions */
+  context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype);
+  const context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype) const;
   /** preprocess lits */
   NodeSet d_preprocessLits;
   /** Input lits */

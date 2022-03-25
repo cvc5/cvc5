@@ -22,13 +22,15 @@
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/trust_substitutions.h"
 #include "theory/theory_engine.h"
+#include "theory/trust_substitutions.h"
 
 namespace cvc5 {
 namespace prop {
 
-ZeroLevelLearner::ZeroLevelLearner(Env& env, PropEngine* propEngine, TheoryEngine * theoryEngine)
+ZeroLevelLearner::ZeroLevelLearner(Env& env,
+                                   PropEngine* propEngine,
+                                   TheoryEngine* theoryEngine)
     : EnvObj(env),
       d_propEngine(propEngine),
       d_theoryEngine(theoryEngine),
@@ -162,7 +164,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   // request a deep restart?
   if (options().smt.deepRestart)
   {
-    if (d_ldb.getNumLearnedLiterals()>0)
+    if (d_ldb.getNumLearnedLiterals() > 0)
     {
       // if non-empty and non-learned atoms have been asserted beyond the
       // threshold
@@ -178,23 +180,26 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   return true;
 }
 
-LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit) const
+LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
+    const Node& lit) const
 {
   // literal was learned, determine its type
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
-  LearnedLitType ltype = internal ? LearnedLitType::INTERNAL : LearnedLitType::INPUT;
+  LearnedLitType ltype =
+      internal ? LearnedLitType::INTERNAL : LearnedLitType::INPUT;
   Trace("level-zero-assert")
       << "Level zero assert: " << lit << ", internal=" << internal
-      << ", already learned="
-      << (d_pplAtoms.find(aatom) != d_pplAtoms.end()) << std::endl;
+      << ", already learned=" << (d_pplAtoms.find(aatom) != d_pplAtoms.end())
+      << std::endl;
   return ltype;
 }
 
-void ZeroLevelLearner::processLearnedLiteral(const Node& lit, LearnedLitType ltype)
+void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
+                                             LearnedLitType ltype)
 {
   d_ldb.addLearnedLiteral(lit, ltype);
-  if (ltype==LearnedLitType::INPUT)
+  if (ltype == LearnedLitType::INPUT)
   {
     d_assertNoLearnCount = 0;
   }
@@ -204,7 +209,7 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit, LearnedLitType lty
     // are mapped back to their original form
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << SkolemManager::getOriginalForm(lit);
-    if (ltype!=LearnedLitType::INPUT)
+    if (ltype != LearnedLitType::INPUT)
     {
       std::stringstream tss;
       tss << ltype;
@@ -223,7 +228,8 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
     LearnedLitType ltype) const
 {
   std::vector<Node> ret = d_ldb.getLearnedLiterals(ltype);
-  Trace("level-zero") << "Get zero level learned " << ltype << " " << ret.size() << std::endl;
+  Trace("level-zero") << "Get zero level learned " << ltype << " " << ret.size()
+                      << std::endl;
   return ret;
 }
 

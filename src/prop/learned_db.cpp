@@ -18,7 +18,6 @@
 namespace cvc5 {
 namespace prop {
 
-
 const char* toString(LearnedLitType ltype)
 {
   switch (ltype)
@@ -37,12 +36,10 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
   return out;
 }
 
-LearnedDb::LearnedDb(context::Context * c) :
-d_preprocessLits(c),
-      d_inputLits(c),
-      d_solvableLits(c),
-      d_internalLits(c)
-      {}
+LearnedDb::LearnedDb(context::Context* c)
+    : d_preprocessLits(c), d_inputLits(c), d_solvableLits(c), d_internalLits(c)
+{
+}
 
 LearnedDb::~LearnedDb() {}
 
@@ -75,23 +72,20 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype)
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
-    default:
-      Assert (LearnedLitType::INTERNAL);
-      break;
+    default: Assert(LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
 }
 
-const context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype) const
+const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
+    LearnedLitType ltype) const
 {
   switch (ltype)
   {
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
-    default:
-      Assert (LearnedLitType::INTERNAL);
-      break;
+    default: Assert(LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
 }

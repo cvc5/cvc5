@@ -24,13 +24,13 @@
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
-#include "prop/learned_db.h"
 
 namespace cvc5 {
 
@@ -152,7 +152,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      LearnedLitType ltype = LearnedLitType::INPUT) const;
 
  private:
   /** The prop engine we are using. */

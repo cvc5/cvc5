@@ -24,12 +24,12 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
-#include "prop/learned_db.h"
 
 namespace cvc5 {
 
@@ -295,7 +295,8 @@ class PropEngine : protected EnvObj
   std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype = LearnedLitType::INPUT) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      LearnedLitType ltype = LearnedLitType::INPUT) const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

@@ -679,7 +679,8 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   return cdp.getProofFor(fnode);
 }
 
-std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(LearnedLitType ltype) const
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
+    LearnedLitType ltype) const
 {
   return d_theoryProxy->getLearnedZeroLevelLiterals(ltype);
 }
