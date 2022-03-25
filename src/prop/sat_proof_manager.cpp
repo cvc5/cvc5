@@ -798,19 +798,18 @@ void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 
 void SatProofManager::notifyPop()
 {
-  for (const std::pair<const Node, int>& p : d_optResLevels)
-  // for (context::CDHashMap<Node, int>::const_iterator it =
-  //          d_optResLevels.begin();
-  //      it != d_optResLevels.end();
-  //      ++it)
+  for (context::CDHashMap<Node, int>::const_iterator it =
+           d_optResLevels.begin();
+       it != d_optResLevels.end();
+       ++it)
   {
     // Save into map the proof of the resolution chain. We copy to prevent the
     // proof node saved to be restored to suffering unintended updates. This is
     // *necessary*.
     std::shared_ptr<ProofNode> clauseResPf =
-        d_env.getProofNodeManager()->clone(d_resChains.getProofFor(p.first));
+        d_env.getProofNodeManager()->clone(d_resChains.getProofFor(it->first));
     Assert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
-    d_optResProofs[p.second].push_back(clauseResPf);
+    d_optResProofs[it->second].push_back(clauseResPf);
   }
 }
 
