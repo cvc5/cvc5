@@ -125,8 +125,7 @@ public class SygusFun
           slv.mkTerm(EQUAL, slv.mkTerm(ADD, max_x_y, min_x_y), slv.mkTerm(ADD, varX, varY)));
 
       // print solutions if available
-      if (slv.checkSynth().hasSolution())
-      {
+      if (slv.checkSynth().hasSolution()) {
         // Output should be equivalent to:
         // (
         //   (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))

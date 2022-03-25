@@ -84,7 +84,8 @@ void SolverEngineState::notifyCheckSat(bool hasAssumptions)
   }
 }
 
-void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, const Result& r)
+void SolverEngineState::notifyCheckSatResult(bool hasAssumptions,
+                                             const Result& r)
 {
   d_needPostsolve = true;
 

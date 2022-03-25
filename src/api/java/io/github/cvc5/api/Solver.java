@@ -2609,8 +2609,7 @@ public class Solver implements IPointer, AutoCloseable
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
    */
-  public SynthResult checkSynth()
-  {
+  public SynthResult checkSynth() {
     long resultPointer = checkSynth(pointer);
     return new SynthResult(this, resultPointer);
   }
@@ -2631,8 +2630,7 @@ public class Solver implements IPointer, AutoCloseable
    *         getSynthSolutions, "no solution" if it was determined there is no
    *         solution, or "unknown" otherwise.
    */
-  public SynthResult checkSynthNext()
-  {
+  public SynthResult checkSynthNext() {
     long resultPointer = checkSynthNext(pointer);
     return new SynthResult(this, resultPointer);
   }

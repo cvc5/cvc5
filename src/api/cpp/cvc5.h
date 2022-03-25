@@ -338,7 +338,7 @@ class CVC5_EXPORT SynthResult
    * Constructor.
    * @param r the internal synth result that is to be wrapped by this synth
    *          result
-   * @return the SynthResult 
+   * @return the SynthResult
    */
   SynthResult(const cvc5::SynthResult& r);
   /**

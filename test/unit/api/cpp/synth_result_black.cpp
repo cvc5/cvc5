@@ -70,6 +70,5 @@ TEST_F(TestApiBlackSynthResult, isUnknown)
   ASSERT_TRUE(res.isUnknown());
 }
 
-
 }  // namespace test
 }  // namespace cvc5

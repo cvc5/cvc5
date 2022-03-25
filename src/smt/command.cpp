@@ -786,7 +786,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
       {
         d_solution << "infeasible" << std::endl;
       }
-      else 
+      else
       {
         d_solution << "fail" << std::endl;
       }
