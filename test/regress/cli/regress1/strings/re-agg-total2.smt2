@@ -2,7 +2,7 @@
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :strings-exp true)
-(set-option :re-elim-agg true)
+(set-option :re-elim agg)
 (declare-const x String)
 (declare-const y String)
 (assert (str.in_re x (re.* (str.to_re "'\r''k'\n'"))))

@@ -17,8 +17,10 @@ package io.github.cvc5.api;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Map;
+import java.util.AbstractMap;
 
-public class Statistics extends AbstractPointer implements Iterable<Pair<String, Stat>>
+public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
   // region construction and destruction
   Statistics(Solver solver, long pointer)
@@ -63,6 +65,7 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
 
+  private native long getIteratorOpts(long pointer, boolean internal, boolean defaulted);
   private native long getIterator(long pointer);
 
   private native boolean hasNext(long pointer, long iteratorPointer);
@@ -74,10 +77,14 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
 
   private native void deleteIteratorPointer(long iteratorPointer);
 
-  public class ConstIterator implements Iterator<Pair<String, Stat>>
+  public class ConstIterator implements Iterator<Map.Entry<String, Stat>>
   {
     private long iteratorPointer = 0;
 
+    public ConstIterator(boolean internal, boolean defaulted)
+    {
+      iteratorPointer = getIteratorOpts(pointer, internal, defaulted);
+    }
     public ConstIterator()
     {
       iteratorPointer = getIterator(pointer);
@@ -88,14 +95,14 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
       return Statistics.this.hasNext(pointer, iteratorPointer);
     }
 
-    @Override public Pair<String, Stat> next()
+    @Override public Map.Entry<String, Stat> next()
     {
       try
       {
         Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
         Stat stat = new Stat(solver, pair.second);
         this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
-        return new Pair<>(pair.first, stat);
+        return new AbstractMap.SimpleImmutableEntry(pair.first, stat);
       }
       catch (CVC5ApiException e)
       {
@@ -109,7 +116,11 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
     }
   }
 
-  @Override public Iterator<Pair<String, Stat>> iterator()
+  public ConstIterator iterator(boolean internal, boolean defaulted)
+  {
+    return new ConstIterator(internal, defaulted);
+  }
+  @Override public ConstIterator iterator()
   {
     return new ConstIterator();
   }

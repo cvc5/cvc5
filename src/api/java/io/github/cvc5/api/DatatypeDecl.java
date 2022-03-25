@@ -50,7 +50,7 @@ public class DatatypeDecl extends AbstractPointer
 
   private native int getNumConstructors(long pointer);
 
-  /** Is this Datatype declaration parametric? */
+  /** @return true if this datatype is parametric */
   public boolean isParametric()
   {
     return isParametric(pointer);

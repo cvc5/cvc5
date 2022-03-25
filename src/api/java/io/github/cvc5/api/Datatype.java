@@ -68,6 +68,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the
    * first is returned.
+   * @param name the name of the datatype constructor
+   * @return a Term representing the datatype constructor with the given name
    */
   public Term getConstructorTerm(String name)
   {

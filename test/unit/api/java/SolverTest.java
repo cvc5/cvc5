@@ -1552,6 +1552,52 @@ class SolverTest
     assertAll(assertions);
   }
 
+  @Test void getStatistics()
+  {
+    // do some array reasoning to make sure we have a double statistics
+    {
+      Sort s1 = d_solver.getIntegerSort();
+      Sort s2 = d_solver.mkArraySort(s1, s1);
+      Term t1 = d_solver.mkConst(s1, "i");
+      Term t2 = d_solver.mkVar(s2, "a");
+      Term t3 = d_solver.mkTerm(Kind.SELECT, t2, t1);
+      d_solver.checkSat();
+    }
+    Statistics stats = d_solver.getStatistics();
+    stats.toString();
+    {
+      Stat s = stats.get("global::totalTime");
+      assertFalse(s.isInternal());
+      assertFalse(s.isDefault());
+      assertTrue(s.isString());
+      assertTrue(s.getString().endsWith("ms"));
+      s = stats.get("resource::resourceUnitsUsed");
+      assertTrue(s.isInternal());
+      assertFalse(s.isDefault());
+      assertTrue(s.isInt());
+      assertTrue(s.getInt() >= 0);
+    }
+    for (Map.Entry<String, Stat> s : stats) {}
+    for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
+    {
+      Map.Entry<String, Stat> elem = it.next();
+      if (elem.getKey() == "api::CONSTANT")
+      {
+        assertFalse(elem.getValue().isInternal());
+        assertFalse(elem.getValue().isDefault());
+        assertTrue(elem.getValue().isHistogram());
+        Map<String, Long> hist = elem.getValue().getHistogram();
+        assertFalse(hist.isEmpty());
+        assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
+      }
+      else if (elem.getKey() == "theory::arrays::avgIndexListLength")
+      {
+        assertTrue(elem.getValue().isInternal());
+        assertTrue(elem.getValue().isDefault());
+      }
+    }
+  }
+
   @Test void getUnsatAssumptions1()
   {
     d_solver.setOption("incremental", "false");
@@ -2357,22 +2403,24 @@ class SolverTest
     d_solver.checkSatAssuming(new Term[] {slt, ule});
   }
 
-  @Test void mkSygusVar() throws CVC5ApiException
+  @Test void declareSygusVar() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort boolSort = d_solver.getBooleanSort();
     Sort intSort = d_solver.getIntegerSort();
     Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
 
-    assertDoesNotThrow(() -> d_solver.mkSygusVar(boolSort));
-    assertDoesNotThrow(() -> d_solver.mkSygusVar(funSort));
-    assertDoesNotThrow(() -> d_solver.mkSygusVar(boolSort, ("b")));
-    assertDoesNotThrow(() -> d_solver.mkSygusVar(funSort, ""));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar(boolSort));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar(funSort));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar(boolSort, ("b")));
+    assertDoesNotThrow(() -> d_solver.declareSygusVar(funSort, ""));
 
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusVar(d_solver.getNullSort()));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkSygusVar(d_solver.getNullSort(), "a"));
+    assertThrows(CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.declareSygusVar(d_solver.getNullSort(), "a"));
 
     Solver slv = new Solver();
-    assertThrows(CVC5ApiException.class, () -> slv.mkSygusVar(boolSort));
+    slv.setOption("sygus", "true");
+    assertThrows(CVC5ApiException.class, () -> slv.declareSygusVar(boolSort));
     slv.close();
   }
 
@@ -2396,6 +2444,7 @@ class SolverTest
         () -> d_solver.mkSygusGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     Term boolVar2 = slv.mkVar(slv.getBooleanSort());
     Term intVar2 = slv.mkVar(slv.getIntegerSort());
     assertDoesNotThrow(() -> slv.mkSygusGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
@@ -2409,6 +2458,7 @@ class SolverTest
 
   @Test void synthFun() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort nullSort = d_solver.getNullSort();
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
@@ -2435,6 +2485,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.synthFun("f6", new Term[] {x}, bool, g2));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     Term x2 = slv.mkVar(slv.getBooleanSort());
     assertDoesNotThrow(() -> slv.synthFun("f1", new Term[] {x2}, slv.getBooleanSort()));
 
@@ -2447,6 +2498,7 @@ class SolverTest
 
   @Test void synthInv() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
@@ -2472,6 +2524,7 @@ class SolverTest
 
   @Test void addSygusConstraint() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(true);
     Term intTerm = d_solver.mkInteger(1);
@@ -2481,12 +2534,14 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.addSygusConstraint(intTerm));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     assertThrows(CVC5ApiException.class, () -> slv.addSygusConstraint(boolTerm));
     slv.close();
   }
 
   @Test void addSygusAssume()
   {
+    d_solver.setOption("sygus", "true");
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(false);
     Term intTerm = d_solver.mkInteger(1);
@@ -2496,12 +2551,14 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.addSygusAssume(intTerm));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     assertThrows(CVC5ApiException.class, () -> slv.addSygusAssume(boolTerm));
     slv.close();
   }
 
   @Test void addSygusInvConstraint() throws CVC5ApiException
   {
+    d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
     Sort real = d_solver.getRealSort();
 
@@ -2546,6 +2603,7 @@ class SolverTest
         CVC5ApiException.class, () -> d_solver.addSygusInvConstraint(inv, pre, trans, trans));
 
     Solver slv = new Solver();
+    slv.setOption("sygus", "true");
     Sort boolean2 = slv.getBooleanSort();
     Sort real2 = slv.getRealSort();
     Term inv22 = slv.declareFun("inv", new Sort[] {real2}, boolean2);
@@ -2565,9 +2623,16 @@ class SolverTest
     slv.close();
   }
 
+  @Test void checkSynth() throws CVC5ApiException
+  {
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSynth());
+    d_solver.setOption("sygus", "true");
+    assertDoesNotThrow(() -> d_solver.checkSynth());
+  }
+
   @Test void getSynthSolution() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "false");
 
     Term nullTerm = d_solver.getNullTerm();
@@ -2591,7 +2656,7 @@ class SolverTest
 
   @Test void getSynthSolutions() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "false");
 
     Term nullTerm = d_solver.getNullTerm();
@@ -2616,7 +2681,7 @@ class SolverTest
   }
   @Test void checkSynthNext() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
@@ -2628,7 +2693,7 @@ class SolverTest
 
   @Test void checkSynthNext2() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "false");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
@@ -2638,7 +2703,7 @@ class SolverTest
 
   @Test void checkSynthNext3() throws CVC5ApiException
   {
-    d_solver.setOption("lang", "sygus2");
+    d_solver.setOption("sygus", "true");
     d_solver.setOption("incremental", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 

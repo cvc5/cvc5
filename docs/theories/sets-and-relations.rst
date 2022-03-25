@@ -1,3 +1,5 @@
+.. _theory_reference_sets:
+
 Theory Reference: Sets and Relations
 ====================================
 
