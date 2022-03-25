@@ -117,7 +117,6 @@ def reformat_comment(comment):
 def gen_pxd(parser: EnumParser, file_prefix, header):
     with open(file_prefix + ".pxd", "w") as f:
         for namespace in parser.namespaces:
-            print(file_prefix)
             for enum in namespace.enums:
                 # include the format_name docstring in the generated file
                 # could be helpful for users to see the formatting rules

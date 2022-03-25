@@ -191,11 +191,11 @@ class EnumParser:
                     enum.enumerators_doc[name] = fmt_comment
                 elif ENUM_START in line:
                     self.in_enum = True
-                    tokens = line.split(" ")
+                    tokens = line.split()
                     name = tokens[1]
                     self.get_current_namespace().enums.append(CppEnum(name))
                     continue
                 elif line.startswith(NAMESPACE_START):
-                    tokens = line.split(" ")
+                    tokens = line.split()
                     name = tokens[1]
                     self.namespaces.append(CppNamespace(name))
