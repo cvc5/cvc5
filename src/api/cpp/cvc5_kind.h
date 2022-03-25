@@ -422,7 +422,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind kind, const std::vector<uint32_t>&) const`
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   IAND,
   /**
@@ -749,7 +749,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind kind, const std::vector<uint32_t>&) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   DIVISIBLE,
   /**
@@ -3655,7 +3655,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   REGEXP_COMPLEMENT,
 
@@ -3670,7 +3670,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_CONCAT,
   /**
@@ -3684,7 +3684,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_LENGTH,
   /**
@@ -3705,7 +3705,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_EXTRACT,
   /**
@@ -3726,7 +3726,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_UPDATE,
   /**
@@ -3746,7 +3746,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_AT,
   /**
@@ -3764,7 +3764,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_CONTAINS,
   /**
@@ -3785,7 +3785,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_INDEXOF,
   /**
@@ -3805,7 +3805,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_REPLACE,
   /**
@@ -3825,7 +3825,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_REPLACE_ALL,
   /**
@@ -3839,7 +3839,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_REV,
   /**
@@ -3857,7 +3857,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_PREFIX,
   /**
@@ -3875,7 +3875,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_SUFFIX,
   /**
@@ -3907,7 +3907,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_UNIT,
   /**
@@ -3924,7 +3924,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SEQ_NTH,
 
@@ -3943,7 +3943,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   FORALL,
   /**
@@ -3959,7 +3959,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EXISTS,
   /**
@@ -3975,7 +3975,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   VARIABLE_LIST,
   /**
@@ -3992,7 +3992,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_PATTERN,
   /**
@@ -4009,7 +4009,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_NO_PATTERN,
   /**
@@ -4026,7 +4026,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_POOL,
   /**
@@ -4040,7 +4040,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_ADD_TO_POOL,
   /**
@@ -4054,7 +4054,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   SKOLEM_ADD_TO_POOL,
   /**
@@ -4072,7 +4072,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_ATTRIBUTE,
   /**
@@ -4087,7 +4087,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, uint32_t, uint32_t) const
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   INST_PATTERN_LIST,
 
