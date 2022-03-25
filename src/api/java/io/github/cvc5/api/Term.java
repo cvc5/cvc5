@@ -680,7 +680,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native Pair<Sort, BigInteger> getCardinalityConstraint(long pointer);
-  
+
   public class ConstIterator implements Iterator<Term>
   {
     private int currentIndex;
