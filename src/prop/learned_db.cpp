@@ -80,7 +80,7 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype)
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
-    default: Assert(LearnedLitType::INTERNAL); break;
+    default: Assert(ltype==LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
 }
@@ -94,7 +94,7 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
-    default: Assert(LearnedLitType::INTERNAL); break;
+    default: Assert(ltype==LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
 }
