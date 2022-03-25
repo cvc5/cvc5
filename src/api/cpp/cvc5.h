@@ -4282,7 +4282,7 @@ class CVC5_EXPORT Solver
    * Declare a symbolic pool of terms with the given initial value.
    *
    * For details on how pools are used to specify instructions for quantifier
-   * instantiation, see documentation for the INST_POOL kind.
+   * instantiation, see documentation for the #INST_POOL kind.
    *
    * SMT-LIB:
    *
