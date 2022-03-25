@@ -345,15 +345,18 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isUninterpretedSort(long pointer);
 
   /**
-   * Is this a sort constructor kind?
+   * Is this an uninterpreted sort constructor kind?
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   *
    * @return true if this is a sort constructor kind
    */
-  public boolean isSortConstructor()
+  public boolean isUninterpretedSortConstructor()
   {
-    return isSortConstructor(pointer);
+    return isUninterpretedSortConstructor(pointer);
   }
 
-  private native boolean isSortConstructor(long pointer);
+  private native boolean isUninterpretedSortConstructor(long pointer);
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -367,7 +370,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getDatatype(long pointer);
 
   /**
-   * Instantiate a parameterized datatype/sort sort.
+   * Instantiate a parameterized datatype sort or uninterpreted sort
+   * constructor sort.
    * Create sorts parameter with Solver.mkParamSort().
    * @param params the list of sort parameters to instantiate with
    */
@@ -647,14 +651,14 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the arity of a sort constructor sort
+   * @return the arity of an uninterpreted sort constructor sort
    */
-  public int getSortConstructorArity()
+  public int getUninterpretedSortConstructorArity()
   {
-    return getSortConstructorArity(pointer);
+    return getUninterpretedSortConstructorArity(pointer);
   }
 
-  private native int getSortConstructorArity(long pointer);
+  private native int getUninterpretedSortConstructorArity(long pointer);
 
   /* Bit-vector sort ----------------------------------------------------- */
 

@@ -1365,7 +1365,7 @@ bool Sort::isUninterpretedSort() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Sort::isSortConstructor() const
+bool Sort::isUninterpretedSortConstructor() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -1395,7 +1395,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_CHECK(!d_type->isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
       << "Arity mismatch for instantiated parametric datatype";
-  CVC5_API_CHECK(!isSortConstructor()
+  CVC5_API_CHECK(!d_type->isSortConstructor()
                  || d_type->getSortConstructorArity() == params.size())
       << "Arity mismatch for instantiated sort constructor";
   //////// all checks before this line
@@ -1674,11 +1674,11 @@ std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 
 /* Sort constructor sort ----------------------------------------------- */
 
-size_t Sort::getSortConstructorArity() const
+size_t Sort::getUninterpretedSortConstructorArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  CVC5_API_CHECK(d_type->isSortConstructor()) << "Not a sort constructor sort.";
   //////// all checks before this line
   return d_type->getSortConstructorArity();
   ////////
@@ -5591,8 +5591,8 @@ Sort Solver::mkUnresolvedSort(const std::string& symbol, size_t arity) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkSortConstructorSort(const std::string& symbol,
-                                   size_t arity) const
+Sort Solver::mkUninterpretedSortConstructorSort(const std::string& symbol,
+                                                size_t arity) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";

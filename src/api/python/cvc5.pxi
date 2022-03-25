@@ -988,15 +988,19 @@ cdef class Solver:
         sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
         return sort
 
-    def mkSortConstructorSort(self, str symbol, size_t arity):
+    def mkUninterpretedSortConstructorSort(self, str symbol, size_t arity):
         """Create a sort constructor sort.
 
+        An uninterpreted sort constructor is an uninterpreted sort with
+        arity > 0.
+
         :param symbol: the symbol of the sort
-        :param arity: the arity of the sort
+        :param arity: the arity of the sort (must be > 0)
         :return: the sort constructor sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort =self.csolver.mkSortConstructorSort(symbol.encode(), arity)
+        sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
+            symbol.encode(), arity)
         return sort
 
     @expand_list_arg(num_req_args=0)
@@ -1841,6 +1845,10 @@ cdef class Solver:
         .. code-block:: smtlib
 
             ( declare-sort <symbol> <numeral> )
+
+        .. note::
+          This corresponds to mkUninterpretedSort() if arity = 0, and to
+          mkUninterpretedSortConstructorSort() if arity > 0.
 
         :param symbol: the name of the sort
         :param arity: the arity of the sort
@@ -2761,13 +2769,16 @@ cdef class Sort:
         """
         return self.csort.isUninterpretedSort()
 
-    def isSortConstructor(self):
+    def isUninterpretedSortConstructor(self):
         """
             Is this a sort constructor kind?
 
+            An uninterpreted sort constructor is an uninterpreted sort with
+            arity > 0.
+
             :return: True if this a sort constructor kind.
         """
-        return self.csort.isSortConstructor()
+        return self.csort.isUninterpretedSortConstructor()
 
     def getDatatype(self):
         """
@@ -2779,7 +2790,8 @@ cdef class Sort:
 
     def instantiate(self, params):
         """
-            Instantiate a parameterized datatype/sort sort.
+            Instantiate a parameterized datatype sort or uninterpreted sort
+            constructor sort.
             Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
             :param params: the list of sort parameters to instantiate with
@@ -2977,11 +2989,11 @@ cdef class Sort:
             param_sorts.append(sort)
         return param_sorts
 
-    def getSortConstructorArity(self):
+    def getUninterpretedSortConstructorArity(self):
         """
             :return: the arity of a sort constructor sort
         """
-        return self.csort.getSortConstructorArity()
+        return self.csort.getUninterpretedSortConstructorArity()
 
     def getBitVectorSize(self):
         """

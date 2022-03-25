@@ -464,19 +464,22 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   *
    * @param symbol the symbol of the sort
-   * @param arity the arity of the sort
+   * @param arity the arity of the sort (must be > 0)
    * @return the sort constructor sort
    * @throws CVC5ApiException
    */
-  public Sort mkSortConstructorSort(String symbol, int arity) throws CVC5ApiException
+  public Sort mkUninterpretedSortConstructorSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkSortConstructorSort(pointer, symbol, arity);
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, symbol, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkSortConstructorSort(long pointer, String symbol, int arity);
+  private native long mkUninterpretedSortConstructorSort(long pointer, String symbol, int arity);
 
   /**
    * Create a tuple sort.
@@ -1555,6 +1558,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
+   * @apiNote This corresponds to mkUninterpretedSort() if arity = 0, and to
+   *          mkUninterpretedSortConstructorSort() if arity > 0.
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort

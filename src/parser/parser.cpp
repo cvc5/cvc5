@@ -317,7 +317,7 @@ api::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type = d_solver->mkSortConstructorSort(name, arity);
+  api::Sort type = d_solver->mkUninterpretedSortConstructorSort(name, arity);
   defineType(name, vector<api::Sort>(arity), type);
   return type;
 }
@@ -333,7 +333,8 @@ api::Sort Parser::mkUnresolvedType(const std::string& name)
 api::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
-  api::Sort unresolved = d_solver->mkSortConstructorSort(name, arity);
+  api::Sort unresolved =
+      d_solver->mkUninterpretedSortConstructorSort(name, arity);
   defineType(name, vector<api::Sort>(arity), unresolved);
   d_unresolved.insert(unresolved);
   return unresolved;
@@ -344,7 +345,8 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  api::Sort unresolved = d_solver->mkSortConstructorSort(name, params.size());
+  api::Sort unresolved =
+      d_solver->mkUninterpretedSortConstructorSort(name, params.size());
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
   d_unresolved.insert(unresolved);

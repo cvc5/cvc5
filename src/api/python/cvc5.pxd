@@ -234,7 +234,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkUnresolvedSort(const string& symbol, size_t arity) except +
-        Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
@@ -400,7 +400,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isBag() except +
         bint isSequence() except +
         bint isUninterpretedSort() except +
-        bint isSortConstructor() except +
+        bint isUninterpretedSortConstructor() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
@@ -421,7 +421,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSequenceElementSort() except +
         bint isUninterpretedSortParameterized() except +
         vector[Sort] getUninterpretedSortParamSorts() except +
-        size_t getSortConstructorArity() except +
+        size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
         uint32_t getFloatingPointExponentSize() except +
         uint32_t getFloatingPointSignificandSize() except +
