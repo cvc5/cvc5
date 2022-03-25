@@ -169,10 +169,9 @@ public:
   * Returns true if the solver should add all clauses at the current assertion
   * level.
   *
-  * FIXME: This is a workaround. Currently, our resolution proofs do not
-  * handle clauses with a lower-than-assertion-level correctly because the
-  * resolution proofs get removed when popping the context but the SAT solver
-  * keeps using them.
+  * FIXME (cvc5-projects/issues/503): This is a workaround. While proofs are now
+  * compatible with the assertion level optimization, it has to be seen for
+  * non-sat-proofs-based unsat cores.
   */
  bool assertionLevelOnly() const;
 
