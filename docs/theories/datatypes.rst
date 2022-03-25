@@ -10,7 +10,7 @@ To enable cvc5's decision procedure for datatypes, include ``DT`` in the logic:
 
 .. code:: smtlib
 
-  (set-logic QF_UFDT)
+  (set-logic QF_DT)
 
 Alternatively, use the ``ALL`` logic:
 
@@ -35,7 +35,6 @@ where ``D1 ... Dk`` are datatype types, ``C1 ... Cj`` are the constructors for
 datatype ``D1``,
 ``S1 ... Si`` are the selectors (or "destructors") of constructor ``C1``, and
 each ``T1 ... Ti`` is a previously declared type or one of ``D1 ... Dk``.
-The symbols ``U1 ... Un`` are type parameters (fresh symbols).
 The numbers ``n1 ... nk`` denote the number of type
 parameters for the datatype, where ``0`` is used for non-parametric datatypes.
 
@@ -187,7 +186,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term t = solver.mkConst(s, "t");``                                                                                            |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Constructor  | ``(mkTuple <Term_1>, ..., <Term_n>)``  | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
+| Tuple Constructor  | ``(tuple  <Term_1>, ..., <Term_n>)``   | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
@@ -199,9 +198,9 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getSelector();``                                                                                               |
+|                    |                                        | ``Term c = dt[0].getSelector(i);``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term t = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                                                                       |
+|                    |                                        | ``Term s = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                                                                       |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 | Record Sort        | n/a                                    | ``Sort s = mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields);``                                             |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -225,7 +224,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getSelector();``                                                                                               |
+|                    |                                        | ``Term c = dt[0].getSelector(name);``                                                                                           |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term t = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {s, <Term_1>, ..., <Term_n>});``                                              |
+|                    |                                        | ``Term s = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                                                                       |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
