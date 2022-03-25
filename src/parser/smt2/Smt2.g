@@ -1656,6 +1656,7 @@ identifier[cvc5::ParseOp& p]
           // arguments
           p.d_name = opName;
           p.d_indices = numerals;
+          p.d_kind = api::UNDEFINED_KIND;
         }
         else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
