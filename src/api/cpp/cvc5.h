@@ -586,7 +586,8 @@ class CVC5_EXPORT Sort
   /**
    * Is this an uninterpreted sort constructor kind?
    *
-   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   * An uninterpreted sort constructor has arity > 0 and can be instantiated to
+   * construct uninterpreted sorts with given sort parameters.
    *
    * @return true if this is a sort constructor kind
    */
@@ -3851,8 +3852,10 @@ class CVC5_EXPORT Solver
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
    *
-   * @note This corresponds to mkUninterpretedSort() if arity = 0, and to
-   *       mkUninterpretedSortConstructorSort() if arity > 0.
+   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
+   *       arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   *       if arity > 0.
    *
    * @param symbol the name of the sort
    * @param arity the arity of the sort

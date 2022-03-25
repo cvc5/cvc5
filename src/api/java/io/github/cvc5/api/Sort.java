@@ -347,7 +347,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Is this an uninterpreted sort constructor kind?
    *
-   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   * An uninterpreted sort constructor is an uninterpreted sort with arity
+   * &gt; 0.
    *
    * @return true if this is a sort constructor kind
    */

@@ -1847,8 +1847,9 @@ cdef class Solver:
             ( declare-sort <symbol> <numeral> )
 
         .. note::
-          This corresponds to mkUninterpretedSort() if arity = 0, and to
-          mkUninterpretedSortConstructorSort() if arity > 0.
+          This corresponds to :py:meth:`Solver.mkUninterpretedSort()` if
+          arity = 0, and to
+          :py:meth:`Solver.mkUninterpretedSortConstructorSort()` if arity > 0.
 
         :param symbol: the name of the sort
         :param arity: the arity of the sort
