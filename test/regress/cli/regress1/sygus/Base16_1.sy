@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-qe-preproc --cegqi-full --sygus-out=status --sygus-si=all
 (set-logic BV)
 

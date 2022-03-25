@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegis-sample=trust --no-check-synth-sol
 (set-logic BV)
