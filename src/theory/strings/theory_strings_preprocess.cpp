@@ -864,7 +864,8 @@ Node StringsPreprocess::reduce(Node t,
     Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
     Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
 
-    Node lb = nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 97 : 65));
+    Node lb =
+        nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 97 : 65));
     Node ub =
         nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 122 : 90));
     Node offset =
