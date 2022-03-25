@@ -116,7 +116,7 @@ const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
     s_kinds{
         KIND_ENUM(INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND),
         KIND_ENUM(UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND),
-        KIND_ENUM(NULL_EXPR, cvc5::Kind::NULL_EXPR),
+        KIND_ENUM(NULL_TERM, cvc5::Kind::NULL_EXPR),
         /* Builtin ---------------------------------------------------------- */
         KIND_ENUM(UNINTERPRETED_SORT_VALUE,
                   cvc5::Kind::UNINTERPRETED_SORT_VALUE),
@@ -402,7 +402,7 @@ const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
 const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
     s_kinds_internal{
         {cvc5::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
-        {cvc5::Kind::NULL_EXPR, NULL_EXPR},
+        {cvc5::Kind::NULL_EXPR, NULL_TERM},
         /* Builtin --------------------------------------------------------- */
         {cvc5::Kind::UNINTERPRETED_SORT_VALUE, UNINTERPRETED_SORT_VALUE},
         {cvc5::Kind::EQUAL, EQUAL},
@@ -1800,7 +1800,7 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_solver(nullptr), d_kind(NULL_EXPR), d_node(new cvc5::Node()) {}
+Op::Op() : d_solver(nullptr), d_kind(NULL_TERM), d_node(new cvc5::Node()) {}
 
 Op::Op(const Solver* slv, const Kind k)
     : d_solver(slv), d_kind(k), d_node(new cvc5::Node())
@@ -1851,7 +1851,7 @@ bool Op::operator!=(const Op& t) const
 
 Kind Op::getKind() const
 {
-  CVC5_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
+  CVC5_API_CHECK(d_kind != NULL_TERM) << "Expecting a non-null Kind";
   //////// all checks before this line
   return d_kind;
 }
@@ -2121,7 +2121,7 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 
 bool Op::isNullHelper() const
 {
-  return (d_node->isNull() && (d_kind == NULL_EXPR));
+  return (d_node->isNull() && (d_kind == NULL_TERM));
 }
 
 bool Op::isIndexedHelper() const { return !d_node->isNull(); }

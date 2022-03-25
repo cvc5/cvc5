@@ -62,7 +62,7 @@ enum Kind : int32_t
    * @note May not be explicitly created via API functions other than
    *       Term::Term().
    */
-  NULL_EXPR,
+  NULL_TERM,
 
   /* Builtin --------------------------------------------------------------- */
 
