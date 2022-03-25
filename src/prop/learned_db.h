@@ -32,6 +32,8 @@ namespace prop {
  */
 enum class LearnedLitType
 {
+  // an equality that was turned into a substitution during preprocessing
+  PREPROCESS_SOLVED,
   // a top-level literal during preprocess
   PREPROCESS,
   // a literal from the preprocessed input
@@ -68,6 +70,8 @@ class LearnedDb
   /** Get literal set, const and non-const versions */
   context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype);
   const context::CDHashSet<Node>& getLiteralSet(LearnedLitType ltype) const;
+  /** preprocess solved lits */
+  NodeSet d_preprocessSolvedLits;
   /** preprocess lits */
   NodeSet d_preprocessLits;
   /** Input lits */

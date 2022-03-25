@@ -198,11 +198,14 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
 void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
                                              LearnedLitType ltype)
 {
+  // add to the database
   d_ldb.addLearnedLiteral(lit, ltype);
-  if (ltype == LearnedLitType::INPUT)
+  // reset the counter for deep restart if the literal was learnable
+  if (isLearnable(ltype))
   {
     d_assertNoLearnCount = 0;
   }
+  // print to stream
   if (isOutputOn(OutputTag::LEARNED_LITS))
   {
     // get the original form so that internally generated variables
@@ -231,6 +234,25 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
   Trace("level-zero") << "Get zero level learned " << ltype << " " << ret.size()
                       << std::endl;
   return ret;
+}
+
+bool ZeroLevelLearner::isLearnable(LearnedLitType ltype) const
+{
+  if (ltype == LearnedLitType::INPUT)
+  {
+    return true;
+  }
+  options::DeepRestartLearnMode lmode = options().smt.deepRestartLearnMode;
+  if (ltype == LearnedLitType::INTERNAL)
+  {
+    return lmode == options::DeepRestartLearnMode::ALL;
+  }
+  else if (ltype == LearnedLitType::SOLVABLE)
+  {
+    return lmode == options::DeepRestartLearnMode::ALL ||
+    lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE;
+  }
+  return false;
 }
 
 }  // namespace prop

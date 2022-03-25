@@ -74,6 +74,8 @@ class ZeroLevelLearner : protected EnvObj
   void processLearnedLiteral(const Node& lit, LearnedLitType ltype);
   /** compute type for learned literal */
   LearnedLitType computeLearnedLiteralType(const Node& lit) const;
+  /** is learnable based on the value of options */
+  bool isLearnable(LearnedLitType ltype) const;
 
   /** The prop engine we are using. */
   PropEngine* d_propEngine;

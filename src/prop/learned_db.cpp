@@ -22,6 +22,7 @@ const char* toString(LearnedLitType ltype)
 {
   switch (ltype)
   {
+    case LearnedLitType::PREPROCESS_SOLVED: return "PREPROCESS_SOLVED";
     case LearnedLitType::PREPROCESS: return "PREPROCESS";
     case LearnedLitType::INPUT: return "INPUT";
     case LearnedLitType::SOLVABLE: return "SOLVABLE";
@@ -37,7 +38,7 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 }
 
 LearnedDb::LearnedDb(context::Context* c)
-    : d_preprocessLits(c), d_inputLits(c), d_solvableLits(c), d_internalLits(c)
+    : d_preprocessSolvedLits(c), d_preprocessLits(c), d_inputLits(c), d_solvableLits(c), d_internalLits(c)
 {
 }
 
@@ -69,6 +70,7 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype)
 {
   switch (ltype)
   {
+    case LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
@@ -82,6 +84,7 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
 {
   switch (ltype)
   {
+    case LearnedLitType::PREPROCESS_SOLVED: return d_preprocessSolvedLits;
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
