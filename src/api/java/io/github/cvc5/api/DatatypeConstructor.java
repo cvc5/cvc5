@@ -107,7 +107,11 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   }
   private native int getNumSelectors(long pointer);
 
-  /** @return the i^th DatatypeSelector. */
+  /**
+   * Get the DatatypeSelector at the given index
+   * @param index the given index i
+   * @return the i^th DatatypeSelector
+   */
   public DatatypeSelector getSelector(int index)
   {
     long selectorPointer = getSelector(pointer, index);

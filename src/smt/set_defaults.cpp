@@ -852,7 +852,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
 bool SetDefaults::isSygus(const Options& opts) const
 {
-  if (language::isLangSygus(opts.base.inputLanguage))
+  if (opts.quantifiers.sygus)
   {
     return true;
   }
@@ -913,13 +913,6 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
     reason << "global-negate";
-    return true;
-  }
-  if (isSygus(opts))
-  {
-    // When sygus answers "unsat", it is not due to showing a set of
-    // formulas is unsat in the standard way. Thus, proofs do not apply.
-    reason << "sygus";
     return true;
   }
   // options that are automatically set to support proofs

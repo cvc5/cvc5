@@ -2037,10 +2037,10 @@ class CVC5_EXPORT DatatypeConstructor
    *
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
-   * ``(List Int)``.
+   * `(List Int)`.
    *
-   * @note the returned constructor term ``t`` is an operator, while
-   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
+   * @note the returned constructor term `t` is an operator, while
+   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
    *       above (nullary) application of nil.
    *
    * @param retSort the desired return sort of the constructor
@@ -2279,6 +2279,8 @@ class CVC5_EXPORT Datatype
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the
    * first is returned.
+   * @param name the name of the datatype constructor
+   * @return a Term representing the datatype constructor with the given name
    */
   Term getConstructorTerm(const std::string& name) const;
 
@@ -4594,8 +4596,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term mkSygusVar(const Sort& sort,
-                  const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const Sort& sort,
+                       const std::string& symbol = std::string()) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
@@ -4791,23 +4793,26 @@ class CVC5_EXPORT Solver
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
+   * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
+   * @return A snapshot of the current state of the statistic values
    */
   Statistics getStatistics() const;
 
   /**
-   * Whether the output stream for the given tag is enabled. Tags can be enabled
-   * with the `output` option (and `-o <tag>` on the command line). Raises an
-   * exception when an invalid tag is given.
+   * Determione the output stream for the given tag is enabled. Tags can be
+   * enabled with the `output` option (and `-o <tag>` on the command line).
+   * Raises an exception when an invalid tag is given.
+   * @return True if the given tag is enabled
    */
   bool isOutputOn(const std::string& tag) const;
 
   /**
-   * Returns an output stream for the given tag. Tags can be enabled with the
+   * Get an output stream for the given tag. Tags can be enabled with the
    * `output` option (and `-o <tag>` on the command line). Raises an exception
    * when an invalid tag is given.
+   * @return The output stream
    */
   std::ostream& getOutput(const std::string& tag) const;
 

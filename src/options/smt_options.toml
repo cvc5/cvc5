@@ -42,14 +42,6 @@ name   = "SMT Layer"
   help       = "rewrite the input based on learned literals"
 
 [[option]]
-  name       = "expandDefinitions"
-  long       = "expand-definitions"
-  category   = "regular"
-  type       = "bool"
-  default    = "false"
-  help       = "always expand symbol definitions in output"
-
-[[option]]
   name       = "produceModels"
   category   = "common"
   short      = "m"
@@ -60,7 +52,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkModels"
-  category   = "regular"
+  category   = "common"
   long       = "check-models"
   type       = "bool"
   default    = "false"
@@ -68,7 +60,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "regular"
+  category   = "expert"
   long       = "debug-check-models"
   type       = "bool"
   default    = "false"
@@ -102,7 +94,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "blockModelsMode"
-  category   = "regular"
+  category   = "expert"
   long       = "block-models=MODE"
   type       = "BlockModelsMode"
   default    = "NONE"
@@ -190,7 +182,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unsatCoresMode"
-  category   = "regular"
+  category   = "expert"
   long       = "unsat-cores-mode=MODE"
   type       = "UnsatCoresMode"
   default    = "OFF"
@@ -208,7 +200,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "minimalUnsatCores"
-  category   = "regular"
+  category   = "expert"
   long       = "minimal-unsat-cores"
   type       = "bool"
   default    = "false"
@@ -240,7 +232,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "difficultyMode"
-  category   = "regular"
+  category   = "expert"
   long       = "difficulty-mode=MODE"
   type       = "DifficultyMode"
   default    = "LEMMA_LITERAL"
@@ -274,7 +266,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceAssertions"
-  category   = "common"
+  category   = "regular"
   long       = "produce-assertions"
   type       = "bool"
   alias      = ["interactive-mode"]
@@ -299,7 +291,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "expert"
+  category   = "regular"
   long       = "ext-rew-prep=MODE"
   type       = "ExtRewPrepMode"
   default    = "OFF"
@@ -372,25 +364,6 @@ name   = "SMT Layer"
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
-  name       = "modelUninterpPrint"
-  alias      = ["model-uninterp-print"]
-  category   = "regular"
-  long       = "model-u-print=MODE"
-  type       = "ModelUninterpPrintMode"
-  default    = "None"
-  help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing modes."
-[[option.mode.DeclSortAndFun]]
-  name = "decl-sort-and-fun"
-  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
-[[option.mode.DeclFun]]
-  name = "decl-fun"
-  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
-[[option.mode.None]]
-  name = "none"
-  help = "(default) do not print declarations of uninterpreted elements in models."
-
-[[option]]
   name       = "foreignTheoryRewrite"
   category   = "expert"
   long       = "foreign-theory-rewrite"
@@ -400,7 +373,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -458,7 +431,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
@@ -466,7 +439,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
