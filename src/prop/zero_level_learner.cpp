@@ -41,6 +41,18 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
       d_ppnSyms(userContext()),
       d_assertNoLearnCount(0)
 {
+  // get the learned types
+  d_learnedTypes.insert(LearnedLitType::INPUT);
+  options::DeepRestartLearnMode lmode = options().smt.deepRestartLearnMode;
+  if (lmode == options::DeepRestartLearnMode::ALL)
+  {
+    d_learnedTypes.insert(LearnedLitType::INTERNAL);
+    d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+  }
+  else if (lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE)
+  {
+    d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+  }
 }
 
 ZeroLevelLearner::~ZeroLevelLearner() {}
@@ -109,19 +121,28 @@ void ZeroLevelLearner::notifyInputFormulas(
   {
     getAtoms(a, visited, inputAtoms);
   }
+  visited.clear();
+  std::unordered_set<Node> inputSymbols;
   for (const Node& a : inputAtoms)
   {
     d_ppnAtoms.insert(a);
     // also get its symbols
+    expr::getSymbols(a, inputSymbols, visited);
+  }
+  for (const Node& s : inputSymbols)
+  {
+    d_ppnSyms.insert(s);
   }
 
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
-  Trace("level-zero") << d_ldb.toStringDebug();
-  Trace("level-zero") << "#Top level subs = "
+  Trace("level-zero") << "#Non-learned symbols = " << d_ppnSyms.size()
+                      << std::endl;
+  Trace("level-zero") << "#Current top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
+  Trace("level-zero") << d_ldb.toStringDebug();
   // the threshold is by default d_ppnAtoms.size()*3.0, which means we restart
   // if we have learned any literals, and the number of assertions since the
   // last learned literal is equal to the total number of literals in the
@@ -188,7 +209,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
 }
 
 LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
-    const Node& lit) const
+    const Node& lit)
 {
   // literal was learned, determine its type
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
@@ -196,6 +217,22 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   LearnedLitType ltype =
       internal ? LearnedLitType::INTERNAL : LearnedLitType::INPUT;
   // compute if solvable
+  if (internal)
+  {
+    Subs ss;
+    if (getSolved(lit, ss))
+    {
+      // if we solved for any variable from input, we are SOLVABLE.
+      for (const Node& v : ss.d_vars)
+      {
+        if (d_ppnSyms.find(v)==d_ppnSyms.end())
+        {
+          Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
+          ltype = LearnedLitType::SOLVABLE;
+        }
+      }
+    }
+  }
   Trace("level-zero-assert")
       << "Level zero assert: " << lit << ", type=" << ltype << std::endl;
   return ltype;
@@ -237,27 +274,51 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
     LearnedLitType ltype) const
 {
   std::vector<Node> ret = d_ldb.getLearnedLiterals(ltype);
-  Trace("level-zero") << "Get zero level learned " << ltype << " " << ret.size()
-                      << std::endl;
+  if (TraceIsOn("level-zero"))
+  {
+    if (!ret.empty())
+    {
+      Trace("level-zero") << "...learned #literals (" << ltype << ") = " << ret.size()
+                          << std::endl;
+    }
+  }
+  return ret;
+}
+
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart() const
+{
+  std::vector<Node> ret;
+  for (LearnedLitType ltype : d_learnedTypes)
+  {
+    std::vector<Node> rett = getLearnedZeroLevelLiterals(ltype);
+    ret.insert(ret.end(), rett.begin(), rett.end());
+  }
   return ret;
 }
 
 bool ZeroLevelLearner::isLearnable(LearnedLitType ltype) const
 {
-  if (ltype == LearnedLitType::INPUT)
+  return d_learnedTypes.find(ltype)!=d_learnedTypes.end();
+}
+
+bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
+{
+  theory::TrustSubstitutionMap subsOut(&d_dummyContext);
+  TrustNode tlit = TrustNode::mkTrustLemma(lit);
+  theory::Theory::PPAssertStatus status = d_theoryEngine->solve(tlit, subsOut);
+  if (status==theory::Theory::PP_ASSERT_STATUS_SOLVED)
   {
+    Trace("level-zero-debug") << lit << " is solvable" << std::endl;
+    // extract the substitution
+    std::unordered_map<Node, Node> ss = subsOut.get().getSubstitutions();
+    for (const std::pair< const Node, Node >& s : ss)
+    {
+      subs.add(s.first, s.second);
+      Trace("level-zero-debug") << "  subs: " << s.first << " -> " << s.second << std::endl;
+    }
     return true;
   }
-  options::DeepRestartLearnMode lmode = options().smt.deepRestartLearnMode;
-  if (ltype == LearnedLitType::INTERNAL)
-  {
-    return lmode == options::DeepRestartLearnMode::ALL;
-  }
-  else if (ltype == LearnedLitType::SOLVABLE)
-  {
-    return lmode == options::DeepRestartLearnMode::ALL
-           || lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE;
-  }
+  Trace("level-zero-debug") << lit << " is not solvable" << std::endl;
   return false;
 }
 

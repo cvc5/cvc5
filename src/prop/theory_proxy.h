@@ -153,7 +153,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
-      LearnedLitType ltype = LearnedLitType::INPUT) const;
+      LearnedLitType ltype) const;
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   /** The prop engine we are using. */

@@ -294,9 +294,12 @@ class PropEngine : protected EnvObj
   /** Return the prop engine proof for assumption-based unsat cores. */
   std::shared_ptr<ProofNode> getRefutation();
 
-  /** Get the zero-level assertions */
+  /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
-      LearnedLitType ltype = LearnedLitType::INPUT) const;
+      LearnedLitType ltype) const;
+      
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

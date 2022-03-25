@@ -326,5 +326,14 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
   return {};
 }
 
+std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
+{
+  if (d_zll != nullptr)
+  {
+    return d_zll->getLearnedZeroLevelLiteralsForRestart();
+  }
+  return {};
+}
+
 }  // namespace prop
 }  // namespace cvc5

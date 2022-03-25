@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "prop/learned_db.h"
 #include "smt/env_obj.h"
+#include "expr/subs.h"
 
 namespace cvc5 {
 
@@ -64,7 +65,9 @@ class ZeroLevelLearner : protected EnvObj
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
-      LearnedLitType ltype = LearnedLitType::INPUT) const;
+      LearnedLitType ltype) const;
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 
  private:
   static void getAtoms(TNode a,
@@ -73,9 +76,11 @@ class ZeroLevelLearner : protected EnvObj
   /** Process learned literal */
   void processLearnedLiteral(const Node& lit, LearnedLitType ltype);
   /** compute type for learned literal */
-  LearnedLitType computeLearnedLiteralType(const Node& lit) const;
+  LearnedLitType computeLearnedLiteralType(const Node& lit);
   /** is learnable based on the value of options */
   bool isLearnable(LearnedLitType ltype) const;
+  /** get solved */
+  bool getSolved(const Node& lit, Subs& subs);
 
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -106,6 +111,10 @@ class ZeroLevelLearner : protected EnvObj
   size_t d_assertNoLearnCount;
   /** The threshold */
   size_t d_deepRestartThreshold;
+  /** Dummy context, used for getSolved */
+  context::Context d_dummyContext;
+  /** learned types, based on option */
+  std::unordered_set<LearnedLitType> d_learnedTypes;
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop

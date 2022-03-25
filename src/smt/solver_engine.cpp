@@ -1278,7 +1278,7 @@ std::vector<Node> SolverEngine::getLearnedLiterals()
   // although other modes could use the preprocessor
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  return pe->getLearnedZeroLevelLiterals();
+  return pe->getLearnedZeroLevelLiterals(LearnedLitType::INPUT);
 }
 
 void SolverEngine::checkProof()
@@ -1843,7 +1843,7 @@ bool SolverEngine::deepRestart()
   Trace("smt") << "SMT deepRestart()" << endl;
 
   // get the zero-level learned literals now, before resetting the context
-  std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiterals();
+  std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiteralsForRestart();
 
   if (zll.empty())
   {
