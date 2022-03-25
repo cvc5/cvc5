@@ -10,12 +10,14 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation for reconstruct.
+ * Implementation for Sygus reconstruct.
  */
 
 #include "theory/quantifiers/sygus/sygus_reconstruct.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "smt/command.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/rewriter.h"
@@ -49,30 +51,71 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   initialize(stn);
 
-  /** a set of builtin terms to reconstruct satisfied for each sygus datatype */
-  TypeBuiltinSetMap termsToRecons;
-
   // add the main obligation to the set of obligations
   // paramaters stn and sol constitute the main obligation to satisfy
   d_obs.push_back(std::make_unique<RConsObligation>(stn, sol));
-  termsToRecons[stn].emplace(sol);
   d_stnInfo[stn].setBuiltinToOb(sol, d_obs[0].get());
   RConsObligation* ob0 = d_obs[0].get();
   Node k0 = ob0->getSkolem();
+
+  if (options().quantifiers.cegqiSingleInvReconstruct
+      == cvc5::options::CegqiSingleInvRconsMode::TRY)
+  {
+    fast(sol, stn, reconstructed);
+  }
+  else
+  {
+    main(sol, stn, reconstructed, enumLimit);
+  }
+
+  if (Trace("sygus-rcons").isConnected())
+  {
+    RConsObligation::printCandSols(ob0, d_obs);
+    printPool();
+  }
+
+  // if the main obligation is solved, return the solution
+  if (!d_sol[k0].isNull())
+  {
+    reconstructed = 1;
+    // The algorithm mostly works with rewritten terms and may not notice that
+    // the original terms contain variables eliminated by the rewriter. For
+    // example, rewrite((ite true 0 z)) = 0. In such cases, we replace those
+    // variables with ground values.
+    return d_sol[k0].isConst() ? Node(d_sol[k0]) : mkGround(d_sol[k0]);
+  }
+
+  // we ran out of elements, return null
+  reconstructed = -1;
+  warning() << CommandFailure(
+      "Cannot get synth function: reconstruction to syntax failed.");
+  return Node::null();
+}
+
+void SygusReconstruct::main(Node sol,
+                            TypeNode stn,
+                            int8_t& reconstructed,
+                            uint64_t enumLimit)
+{
+  bool noLimit = options().quantifiers.cegqiSingleInvReconstruct
+                 == cvc5::options::CegqiSingleInvRconsMode::ALL;
+
+  // Skolem of the main obligation
+  Node k0 = d_obs[0]->getSkolem();
+
+  // a set of builtin terms to reconstruct for each sygus datatype
+  TypeBuiltinSetMap termsToRecons;
+  termsToRecons[stn].emplace(sol);
+
+  uint64_t count = 0;
 
   // We need to add the main obligation to the crd in case it cannot be broken
   // down by matching. By doing so, we can solve the obligation using
   // enumeration and crd (if it is in the grammar)
   d_stnInfo[stn].addTerm(sol);
 
-  // the set of unique (up to rewriting) patterns/shapes in the grammar used by
-  // matching
-  std::unordered_map<TypeNode, std::vector<Node>> pool;
-
-  uint64_t count = 0;
-
-  // algorithm
-  while (d_sol[k0].isNull() && count < enumLimit)
+  // procedure
+  while (d_sol[k0].isNull() && (noLimit || count < enumLimit))
   {
     // enumeration phase
     // a temporary set of new terms to reconstruct cached for processing in the
@@ -115,7 +158,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
       {
         // then, this is a new term and we should add it to pool
         d_poolTrie.addTerm(builtin);
-        pool[pair.first].push_back(sz);
+        d_pool[pair.first].push_back(sz);
         for (const Node& t : pair.second)
         {
           RConsObligation* ob = d_stnInfo[pair.first].builtinToOb(t);
@@ -138,7 +181,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
     while (!termsToReconsPrime.empty())
     {
       // a temporary set of new terms to reconstruct cached for later processing
-      TypeBuiltinSetMap obsDPrime;
+      TypeBuiltinSetMap termsToReconsDPrime;
       for (const std::pair<const TypeNode, BuiltinSet>& pair :
            termsToReconsPrime)
       {
@@ -149,7 +192,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           if (d_sol[ob->getSkolem()].isNull())
           {
             Trace("sygus-rcons") << "ob: " << *ob << std::endl;
-            for (const Node& sz : pool[pair.first])
+            for (const Node& sz : d_pool[pair.first])
             {
               // try to match each newly generated and cached term with patterns
               // in pool
@@ -157,42 +200,109 @@ Node SygusReconstruct::reconstructSolution(Node sol,
               // cache the new terms for later processing
               for (const std::pair<const TypeNode, BuiltinSet>& tempPair : temp)
               {
-                obsDPrime[tempPair.first].insert(tempPair.second.cbegin(),
-                                                 tempPair.second.cend());
+                termsToReconsDPrime[tempPair.first].insert(
+                    tempPair.second.cbegin(), tempPair.second.cend());
               }
             }
           }
         }
       }
-      termsToReconsPrime = std::move(obsDPrime);
+      termsToReconsPrime = std::move(termsToReconsDPrime);
     }
     // remove reconstructed terms from termsToRecons
     removeReconstructedTerms(termsToRecons);
     ++count;
   }
+}
 
-  if (Trace("sygus-rcons").isConnected())
+void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  Assert(stn.isDatatype());
+  Assert(stn.getDType().isSygus());
+  SygusTypeInfo sti;
+  sti.initialize(d_tds, stn);
+  std::vector<TypeNode> stns;
+  sti.getSubfieldTypes(stns);
+  std::map<cvc5::TypeNode, int> varCount;
+
+  // add the constructors for each sygus datatype to the pool
+  for (const TypeNode& cstn : stns)
   {
-    RConsObligation::printCandSols(ob0, d_obs);
-    printPool(pool);
+    for (const std::shared_ptr<DTypeConstructor>& cons :
+         cstn.getDType().getConstructors())
+    {
+      if (cons->getNumArgs() == 0)
+      {
+        // just like in the main procedure, add no-argument constructors
+        // directly to the crd
+        Node sz = nm->mkNode(Kind::APPLY_CONSTRUCTOR, cons->getConstructor());
+        Node builtin = datatypes::utils::sygusToBuiltin(sz);
+        Node rep = d_stnInfo[cstn].addTerm(builtin);
+        RConsObligation* ob = d_stnInfo[cstn].builtinToOb(rep);
+        // check if the enumerated term solves an obligation
+        if (ob == nullptr)
+        {
+          // if not, create an "artifical" obligation whose solution would be
+          // the enumerated term
+          d_obs.push_back(std::make_unique<RConsObligation>(cstn, builtin));
+          d_stnInfo[cstn].setBuiltinToOb(builtin, d_obs.back().get());
+          ob = d_obs.back().get();
+        }
+        // mark the obligation as solved
+        markSolved(ob, sz);
+      }
+      else
+      {
+        std::vector<Node> args;
+        args.push_back(cons->getConstructor());
+        // populate each constructor argument with a free variable of the
+        // corresponding type
+        for (const std::shared_ptr<cvc5::DTypeSelector>& arg : cons->getArgs())
+        {
+          args.push_back(d_tds->getFreeVarInc(arg->getRangeType(), varCount));
+        }
+        Node sz = nm->mkNode(Kind::APPLY_CONSTRUCTOR, args);
+        d_pool[cstn].push_back(sz);
+      }
+    }
   }
 
-  // if the main obligation is solved, return the solution
-  if (!d_sol[k0].isNull())
-  {
-    reconstructed = 1;
-    // The algorithm mostly works with rewritten terms and may not notice that
-    // the original terms contain variables eliminated by the rewriter. For
-    // example, rewrite((ite true 0 z)) = 0. In such cases, we replace those
-    // variables with ground values.
-    return d_sol[k0].isConst() ? Node(d_sol[k0]) : mkGround(d_sol[k0]);
-  }
+  // a set of builtin terms to reconstruct for each sygus datatype
+  TypeBuiltinSetMap termsToRecons;
+  termsToRecons[stn].emplace(sol);
 
-  // we ran out of elements, return null
-  reconstructed = -1;
-  warning() << CommandFailure(
-      "Cannot get synth function: reconstruction to syntax failed.");
-  return Node::null();
+  // match phase of the rcons procedure
+  while (!termsToRecons.empty())
+  {
+    // a temporary set of new terms to reconstruct cached for later processing
+    TypeBuiltinSetMap termsToReconsPrime;
+    for (const std::pair<const TypeNode, BuiltinSet>& pair : termsToRecons)
+    {
+      for (const Node& t : pair.second)
+      {
+        RConsObligation* ob = d_stnInfo[pair.first].builtinToOb(t);
+        if (d_sol[ob->getSkolem()].isNull())
+        {
+          Trace("sygus-rcons") << "ob: " << *ob << std::endl;
+          for (const Node& sz : d_pool[pair.first])
+          {
+            // try to match each newly generated and cached term with patterns
+            // in pool
+            TypeBuiltinSetMap temp = matchNewObs(t, sz);
+            // cache the new terms for later processing
+            for (const std::pair<const TypeNode, BuiltinSet>& tempPair : temp)
+            {
+              termsToReconsPrime[tempPair.first].insert(
+                  tempPair.second.cbegin(), tempPair.second.cend());
+            }
+          }
+        }
+      }
+    }
+    termsToRecons = std::move(termsToReconsPrime);
+  }
 }
 
 TypeBuiltinSetMap SygusReconstruct::matchNewObs(Node t, Node sz)
@@ -457,20 +567,9 @@ bool SygusReconstruct::notify(Node s,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs)
 {
-  for (size_t i = 0; i < vars.size(); ++i)
-  {
-    // We consider sygus variables as ground terms. So, if they are not equal to
-    // their substitution, then s is not matchable with n and we try the next
-    // term s. Example: If s = (+ z x) and n = (+ z y), then s is not matchable
-    // with n and we return true
-    if (d_sygusVars.find(vars[i]) != d_sygusVars.cend() && vars[i] != subs[i])
-    {
-      return true;
-    }
-  }
-  // Note: false here means that we finally found an s that is matchable with n,
-  // so we should not add n to the pool
-  return false;
+  // If we are too aggressive in filtering enumerated shapes, we may miss some
+  // that speedup reconstruction time. So, for now, we disable filtering.
+  return true;
 }
 
 void SygusReconstruct::clear()
@@ -481,15 +580,15 @@ void SygusReconstruct::clear()
   d_subObs.clear();
   d_parentOb.clear();
   d_sygusVars.clear();
+  d_pool.clear();
   d_poolTrie.clear();
 }
 
-void SygusReconstruct::printPool(
-    const std::unordered_map<TypeNode, std::vector<Node>>& pool) const
+void SygusReconstruct::printPool() const
 {
   Trace("sygus-rcons") << std::endl << "Pool:" << std::endl << '{';
 
-  for (const std::pair<const TypeNode, std::vector<Node>>& pair : pool)
+  for (const std::pair<const TypeNode, std::vector<Node>>& pair : d_pool)
   {
     Trace("sygus-rcons") << std::endl
                          << "  " << pair.first << ':' << std::endl

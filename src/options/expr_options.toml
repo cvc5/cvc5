@@ -3,7 +3,7 @@ name   = "Expression"
 
 [[option]]
   name       = "defaultExprDepth"
-  category   = "regular"
+  category   = "expert"
   long       = "expr-depth=N"
   type       = "int64_t"
   default    = "-1"
@@ -13,7 +13,7 @@ name   = "Expression"
 
 [[option]]
   name       = "defaultDagThresh"
-  category   = "regular"
+  category   = "common"
   long       = "dag-thresh=N"
   type       = "int64_t"
   default    = "1"
@@ -23,8 +23,16 @@ name   = "Expression"
 
 [[option]]
   name       = "typeChecking"
-  category   = "regular"
+  category   = "expert"
   long       = "type-checking"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   help       = "type check expressions"
+
+[[option]]
+  name       = "wellFormedChecking"
+  category   = "expert"
+  long       = "wf-checking"
+  type       = "bool"
+  default    = "true"
+  help       = "check that terms passed to API methods are well formed (default false for text interface)"

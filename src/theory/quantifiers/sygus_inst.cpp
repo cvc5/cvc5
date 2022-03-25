@@ -45,14 +45,16 @@ namespace {
  * @param cache: Caches visited nodes.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMaxGroundTerms(TNode n,
+void getMaxGroundTerms(const Options& options,
+                       TNode n,
                        TypeNode tn,
                        std::unordered_set<Node>& terms,
                        std::unordered_set<TNode>& cache,
                        bool skip_quant = false)
 {
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  if (options.quantifiers.sygusInstTermSel != options::SygusInstTermSelMode::MAX
+      && options.quantifiers.sygusInstTermSel
+             != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -100,14 +102,16 @@ void getMaxGroundTerms(TNode n,
  *               term was already found in a subterm.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMinGroundTerms(TNode n,
+void getMinGroundTerms(const Options& options,
+                       TNode n,
                        TypeNode tn,
                        std::unordered_set<Node>& terms,
                        std::unordered_map<TNode, std::pair<bool, bool>>& cache,
                        bool skip_quant = false)
 {
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  if (options.quantifiers.sygusInstTermSel != options::SygusInstTermSelMode::MIN
+      && options.quantifiers.sygusInstTermSel
+             != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -361,8 +365,8 @@ void SygusInst::registerQuantifier(Node q)
         std::unordered_set<TNode> cache_max;
         std::unordered_map<TNode, std::pair<bool, bool>> cache_min;
 
-        getMinGroundTerms(q, tn, terms, cache_min);
-        getMaxGroundTerms(q, tn, terms, cache_max);
+        getMinGroundTerms(options(), q, tn, terms, cache_min);
+        getMaxGroundTerms(options(), q, tn, terms, cache_max);
         relevant_terms.emplace(tn, terms);
       }
 
@@ -394,8 +398,8 @@ void SygusInst::registerQuantifier(Node q)
 
         for (const Node& a : d_notified_assertions)
         {
-          getMinGroundTerms(a, tn, terms, cache_min, true);
-          getMaxGroundTerms(a, tn, terms, cache_max, true);
+          getMinGroundTerms(options(), a, tn, terms, cache_min, true);
+          getMaxGroundTerms(options(), a, tn, terms, cache_max, true);
         }
         d_global_terms.insert(tn, terms);
       }
@@ -486,11 +490,12 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
-  /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
-   * instantiation constant ic_i with type types[i] and wrap each ic_i in
-   * DT_SYGUS_EVAL(ic_i), which will be used to instantiate x_i. */
+  // For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
+  // instantiation constant ic_i with type types[i], and a Skolem eval_i whose
+  // type is is the same as x_i, and whose value will be used to instantiate x_i
   std::vector<Node> evals;
   std::vector<Node> inst_constants;
   for (size_t i = 0, size = types.size(); i < size; ++i)
@@ -513,9 +518,14 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
       args.insert(args.end(), svl.begin(), svl.end());
     }
     Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
+    // we use a Skolem constant here, instead of an application of an
+    // evaluation function, since we are not using the builtin support
+    // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
+    // skolem construction here is deterministic and reproducible.
+    Node k = sm->mkPurifySkolem(eval, "eval");
 
     inst_constants.push_back(ic);
-    evals.push_back(eval);
+    evals.push_back(k);
   }
 
   d_inst_constants.emplace(q, inst_constants);

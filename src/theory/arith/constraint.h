@@ -158,15 +158,16 @@ typedef context::CDList<ConstraintCP> CDConstraintList;
 typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
 typedef size_t ConstraintRuleID;
-static const ConstraintRuleID ConstraintRuleIdSentinel = std::numeric_limits<ConstraintRuleID>::max();
+static constexpr ConstraintRuleID ConstraintRuleIdSentinel =
+    std::numeric_limits<ConstraintRuleID>::max();
 
 typedef size_t AntecedentId;
-static const AntecedentId AntecedentIdSentinel = std::numeric_limits<AntecedentId>::max();
-
+static constexpr AntecedentId AntecedentIdSentinel =
+    std::numeric_limits<AntecedentId>::max();
 
 typedef size_t AssertionOrder;
-static const AssertionOrder AssertionOrderSentinel = std::numeric_limits<AssertionOrder>::max();
-
+static constexpr AssertionOrder AssertionOrderSentinel =
+    std::numeric_limits<AssertionOrder>::max();
 
 /**
  * A ValueCollection binds together convex constraints that have the same

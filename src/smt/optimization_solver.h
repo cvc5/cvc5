@@ -64,8 +64,7 @@ class OptimizationResult
   {
   }
   OptimizationResult()
-      : d_result(Result::Sat::SAT_UNKNOWN,
-                 Result::UnknownExplanation::NO_STATUS),
+      : d_result(Result::UNKNOWN, Result::UnknownExplanation::NO_STATUS),
         d_value(),
         d_infinity(FINITE)
   {
@@ -75,7 +74,7 @@ class OptimizationResult
   /**
    * Returns an enum indicating whether
    * the result is SAT or not.
-   * @return whether the result is SAT, UNSAT or SAT_UNKNOWN
+   * @return whether the result is SAT, UNSAT or UNKNOWN
    **/
   Result getResult() const { return d_result; }
 
@@ -84,7 +83,7 @@ class OptimizationResult
    * @return Node containing the optimal value,
    *   if result is infinite, this will be an empty node,
    *   if getResult() is UNSAT, it will return an empty node,
-   *   if getResult() is SAT_UNKNOWN, it will return something suboptimal
+   *   if getResult() is UNKNOWN, it will return something suboptimal
    *   or an empty node, depending on how the solver runs.
    **/
   Node getValue() const { return d_value; }
@@ -271,8 +270,8 @@ class OptimizationSolver
   /**
    * Optimize multiple goals in Box order
    * @return SAT if all of the objectives are optimal (could be infinite);
-   *   UNSAT if at least one objective is UNSAT and no objective is SAT_UNKNOWN;
-   *   SAT_UNKNOWN if any of the objective is SAT_UNKNOWN.
+   *   UNSAT if at least one objective is UNSAT and no objective is UNKNOWN;
+   *   UNKNOWN if any of the objective is UNKNOWN.
    **/
   Result optimizeBox();
 
@@ -284,10 +283,10 @@ class OptimizationSolver
    *     the optimization will stop at that objective;
    *   UNSAT if any of the objectives is UNSAT
    *     and optimization will stop at that objective;
-   *   SAT_UNKNOWN if any of the objectives is UNKNOWN
+   *   UNKNOWN if any of the objectives is UNKNOWN
    *     and optimization will stop at that objective;
    *   If the optimization is stopped at an objective,
-   *     all objectives following that objective will be SAT_UNKNOWN.
+   *     all objectives following that objective will be UNKNOWN.
    **/
   Result optimizeLexicographicIterative();
 
@@ -305,8 +304,8 @@ class OptimizationSolver
    *
    * @return if it finds a new Pareto optimal result it will return SAT;
    *   if it exhausts the results in the Pareto front it will return UNSAT;
-   *   if the underlying SMT solver returns SAT_UNKNOWN,
-   *   it will return SAT_UNKNOWN.
+   *   if the underlying SMT solver returns UNKNOWN,
+   *   it will return UNKNOWN.
    **/
   Result optimizeParetoNaiveGIA();
 

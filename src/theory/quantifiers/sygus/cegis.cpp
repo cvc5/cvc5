@@ -182,8 +182,10 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  bool doEvalUnfold =
-      (doGen && options().quantifiers.sygusEvalUnfold) || d_usingSymCons;
+  bool doEvalUnfold = (doGen
+                       && options().quantifiers.sygusEvalUnfoldMode
+                              != options::SygusEvalUnfoldMode::NONE)
+                      || d_usingSymCons;
   if (doEvalUnfold)
   {
     Trace("sygus-engine") << "  *** Do evaluation unfolding..." << std::endl;
@@ -242,7 +244,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 const std::vector<Node>& candidates,
                                 std::vector<Node>& candidate_values)
 {
-  if (Trace.isOn("cegis"))
+  if (TraceIsOn("cegis"))
   {
     Trace("cegis") << "  Enumerators :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
@@ -461,7 +463,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   }
   else
   {
-    if (Trace.isOn("cegis-rl"))
+    if (TraceIsOn("cegis-rl"))
     {
       if (d_refinement_lemma_conj.find(lem) == d_refinement_lemma_conj.end())
       {
@@ -476,7 +478,9 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   addRefinementLemma(lem);
   // must be closed enumerable
-  if (d_cexClosedEnum && options().quantifiers.sygusEvalUnfold)
+  if (d_cexClosedEnum
+      && options().quantifiers.sygusEvalUnfoldMode
+             != options::SygusEvalUnfoldMode::NONE)
   {
     // Make the refinement lemma and add it to lems.
     // This lemma is guarded by the parent's guard, which has the semantics
@@ -516,7 +520,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
-      EvalSygusInvarianceTest vsit;
+      EvalSygusInvarianceTest vsit(d_env.getRewriter());
       Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lem
                                << " against current model." << std::endl;
       Trace("sygus-cref-eval2") << "Check refinement lemma conjunct " << lem
@@ -631,7 +635,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals)
 {
   Trace("sygus-engine") << "  *** Do sample add refinement..." << std::endl;
-  if (Trace.isOn("cegis-sample"))
+  if (TraceIsOn("cegis-sample"))
   {
     Trace("cegis-sample") << "Check sampling for candidate solution"
                           << std::endl;
@@ -675,7 +679,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                 d_refinement_lemmas.begin(), d_refinement_lemmas.end(), rlem)
             == d_refinement_lemmas.end())
         {
-          if (Trace.isOn("cegis-sample"))
+          if (TraceIsOn("cegis-sample"))
           {
             Trace("cegis-sample") << "   false for point #" << i << " : ";
             for (const Node& cn : pt)

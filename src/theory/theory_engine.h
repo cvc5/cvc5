@@ -39,7 +39,6 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace cvc5 {
 
@@ -172,10 +171,15 @@ class TheoryEngine : protected EnvObj
   }
 
   /**
-   * Preprocess rewrite equality, called by the preprocessor to rewrite
-   * equalities appearing in the input.
+   * Preprocess rewrite, called:
+   * (1) on equalities by the preprocessor to rewrite equalities appearing in
+   * the input,
+   * (2) on non-equalities by the theory preprocessor.
+   *
+   * Calls the ppRewrite of the theory of term and adds the associated skolem
+   * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -204,12 +208,6 @@ class TheoryEngine : protected EnvObj
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
-  /**
-   * This is called at shutdown time by the SolverEngine, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between PropEngine and Theory.
-   */
-  void shutdown();
 
   /**
    * Solve the given literal with a theory that owns it. The proof of tliteral
@@ -264,7 +262,7 @@ class TheoryEngine : protected EnvObj
     for (; d_propagatedLiteralsIndex < d_propagatedLiterals.size();
          d_propagatedLiteralsIndex = d_propagatedLiteralsIndex + 1)
     {
-      Debug("getPropagatedLiterals")
+      Trace("getPropagatedLiterals")
           << "TheoryEngine::getPropagatedLiterals: propagating: "
           << d_propagatedLiterals[d_propagatedLiteralsIndex] << std::endl;
       literals.push_back(d_propagatedLiterals[d_propagatedLiteralsIndex]);
@@ -320,7 +318,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* theoryOf(TNode node) const
   {
-    return d_theoryTable[theory::Theory::theoryOf(node)];
+    return d_theoryTable[d_env.theoryOf(node)];
   }
 
   /**
@@ -567,12 +565,6 @@ class TheoryEngine : protected EnvObj
    * standard, version 2.6.
    */
   bool d_inSatMode;
-
-  /**
-   * Debugging flag to ensure that shutdown() is called before the
-   * destructor.
-   */
-  bool d_hasShutDown;
 
   /**
    * True if a theory has notified us of incompleteness (at this

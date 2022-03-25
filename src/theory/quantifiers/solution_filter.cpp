@@ -20,6 +20,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 #include "util/random.h"
 
 using namespace cvc5::kind;
@@ -48,7 +49,10 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   if (!n.getType().isBoolean())
   {
     // currently, should not register non-Boolean terms here
-    Assert(false);
+    std::stringstream ss;
+    ss << "SyGuS solution filtering requires the grammar to "
+          "generate Boolean terms only";
+    throw LogicException(ss.str());
     return true;
   }
   Node basen = d_isStrong ? n : n.negate();
@@ -68,7 +72,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
     // check the satisfiability query
     Result r = doCheck(imp);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       // it is subsumed by the current, discard this
       return false;
@@ -87,7 +91,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       // check the satisfiability query
       Result r = doCheck(imp);
       Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         nsubsume.push_back(s);
       }

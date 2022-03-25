@@ -319,6 +319,22 @@ Node negateProofLiteral(TNode n)
   }
 }
 
+Node multConstants(const Node& c1, const Node& c2)
+{
+  Assert(!c1.isNull() && c1.isConst());
+  Assert(!c2.isNull() && c2.isConst());
+  NodeManager* nm = NodeManager::currentNM();
+  // real type if either has type real
+  TypeNode tn = c1.getType();
+  if (tn.isInteger())
+  {
+    tn = c2.getType();
+  }
+  Assert(tn.isRealOrInt());
+  return nm->mkConstRealOrInt(
+      tn, Rational(c1.getConst<Rational>() * c2.getConst<Rational>()));
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5

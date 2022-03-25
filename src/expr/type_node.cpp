@@ -42,6 +42,15 @@ TypeNode TypeNode::substitute(
   if(i != cache.end()) {
     return (*i).second;
   }
+  else if (*this == type)
+  {
+    return replacement;
+  }
+
+  if (d_nv->getNumChildren() == 0)
+  {
+    return *this;
+  }
 
   // otherwise compute
   NodeBuilder nb(getKind());
@@ -57,7 +66,7 @@ TypeNode TypeNode::substitute(
     }
     else
     {
-      (*j).substitute(type, replacement);
+      nb << (*j).substitute(type, replacement);
     }
   }
 

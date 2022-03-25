@@ -55,10 +55,8 @@ class RelationalMatchGenerator : public InstMatchGenerator
    * @param hasPol Whether the trigger has an entailed polarity
    * @param pol The entailed polarity of the relational trigger.
    */
-  RelationalMatchGenerator(Trigger* tparent,
-                           Node rtrigger,
-                           bool hasPol,
-                           bool pol);
+  RelationalMatchGenerator(
+      Env& env, Trigger* tparent, Node rtrigger, bool hasPol, bool pol);
 
   /** Reset */
   bool reset(Node eqc) override;

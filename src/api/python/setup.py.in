@@ -24,12 +24,12 @@ from setuptools import setup
 
 CVC5_VERSION='${CVC5_VERSION}'
 
-setup(name='pycvc5',
+setup(name='cvc5',
       version=CVC5_VERSION,
       long_description='Python bindings for cvc5 ' + CVC5_VERSION,
       url='https://github.com/cvc5/cvc5',
       zip_safe=False,
-      packages=['pycvc5'],
+      packages=['cvc5'],
       package_dir={'':'${CMAKE_CURRENT_BINARY_DIR}'},
-      package_data={'': ['pycvc5*.so']},
+      package_data={'': ['cvc5_python_base*.so']},
       extras_require={'test': ['pytest']})

@@ -26,10 +26,11 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
+InstMatchGeneratorMulti::InstMatchGeneratorMulti(Env& env,
+                                                 Trigger* tparent,
                                                  Node q,
                                                  std::vector<Node>& pats)
-    : IMGenerator(tparent), d_quant(q)
+    : IMGenerator(env, tparent), d_quant(q)
 {
   Trace("multi-trigger-cache")
       << "Making smart multi-trigger for " << q << std::endl;
@@ -57,7 +58,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
     Node n = pats[i];
     // make the match generator
     InstMatchGenerator* img =
-        InstMatchGenerator::mkInstMatchGenerator(tparent, q, n);
+        InstMatchGenerator::mkInstMatchGenerator(env, tparent, q, n);
     img->setActiveAdd(false);
     d_children.push_back(img);
     // compute unique/shared variables
@@ -100,7 +101,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
       index = index == 0 ? patsSize - 1 : (index - 1);
     }
     vars.insert(vars.end(), unique_vars.begin(), unique_vars.end());
-    if (Trace.isOn("multi-trigger-cache"))
+    if (TraceIsOn("multi-trigger-cache"))
     {
       Trace("multi-trigger-cache") << "   Index[" << i << "]: ";
       for (uint64_t v : vars)

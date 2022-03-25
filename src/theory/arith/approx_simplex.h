@@ -116,8 +116,8 @@ class ApproximateSimplex{
 
   /** UTILITIES FOR DEALING WITH ESTIMATES */
 
-  static const double SMALL_FIXED_DELTA;
-  static const double TOLERENCE;
+  static constexpr double SMALL_FIXED_DELTA = .000000001;
+  static constexpr double TOLERENCE = 1 + .000000001;
 
   /** Returns true if two doubles are roughly equal based on TOLERENCE and SMALL_FIXED_DELTA.*/
   static bool roughlyEqual(double a, double b);
@@ -160,7 +160,7 @@ class ApproximateSimplex{
   int d_maxDepth;
 
   /* Default denominator for diophatine approximation, 2^{26} .*/
-  static Integer s_defaultMaxDenom;
+  static constexpr uint64_t s_defaultMaxDenom = (1 << 26);
 };/* class ApproximateSimplex */
 
 }  // namespace arith

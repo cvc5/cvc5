@@ -79,7 +79,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
     factorial *= counter;
     varpow = nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow);
   }
-  Node taylor_sum = (sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
+  Node taylor_sum = (sum.size() == 1 ? sum[0] : nm->mkNode(Kind::ADD, sum));
   Node taylor_rem =
       nm->mkNode(Kind::DIVISION, varpow, nm->mkConstReal(factorial));
 
@@ -112,17 +112,17 @@ void TaylorGenerator::getPolynomialApproximationBounds(
     if (k == Kind::EXPONENTIAL)
     {
       pbounds.d_lower = taylor_sum;
-      pbounds.d_upperNeg = nm->mkNode(Kind::PLUS, taylor_sum, ru);
+      pbounds.d_upperNeg = nm->mkNode(Kind::ADD, taylor_sum, ru);
       pbounds.d_upperPos =
           nm->mkNode(Kind::MULT,
                      taylor_sum,
-                     nm->mkNode(Kind::PLUS, nm->mkConstReal(Rational(1)), ru));
+                     nm->mkNode(Kind::ADD, nm->mkConstReal(Rational(1)), ru));
     }
     else
     {
       Assert(k == Kind::SINE);
-      Node l = nm->mkNode(Kind::MINUS, taylor_sum, ru);
-      Node u = nm->mkNode(Kind::PLUS, taylor_sum, ru);
+      Node l = nm->mkNode(Kind::SUB, taylor_sum, ru);
+      Node u = nm->mkNode(Kind::ADD, taylor_sum, ru);
       pbounds.d_lower = l;
       pbounds.d_upperNeg = u;
       pbounds.d_upperPos = u;

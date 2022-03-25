@@ -68,6 +68,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the
    * first is returned.
+   * @param name the name of the datatype constructor
+   * @return a Term representing the datatype constructor with the given name
    */
   public Term getConstructorTerm(String name)
   {
@@ -173,22 +175,6 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   }
 
   private native boolean isWellFounded(long pointer);
-
-  /**
-   * Does this datatype have nested recursion? This method returns false if a
-   * value of this datatype includes a subterm of its type that is nested
-   * beneath a non-datatype type constructor. For example, a datatype
-   * T containing a constructor having a selector with range type (Set T) has
-   * nested recursion.
-   *
-   * @return true if this datatype has nested recursion
-   */
-  public boolean hasNestedRecursion()
-  {
-    return hasNestedRecursion(pointer);
-  }
-
-  private native boolean hasNestedRecursion(long pointer);
 
   /**
    * @return true if this Datatype is a null object

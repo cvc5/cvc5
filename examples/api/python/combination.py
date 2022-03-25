@@ -16,8 +16,8 @@
 # combination-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 def prefixPrintGetValue(slv, t, level=0):
     print("slv.getValue({}): {}".format(t, slv.getValue(t)))
@@ -25,7 +25,7 @@ def prefixPrintGetValue(slv, t, level=0):
         prefixPrintGetValue(slv, c, level + 1)
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
     slv.setOption("dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # Terms
     f_x = slv.mkTerm(Kind.ApplyUf, f, x)
     f_y = slv.mkTerm(Kind.ApplyUf, f, y)
-    sum_ = slv.mkTerm(Kind.Plus, f_x, f_y)
+    sum_ = slv.mkTerm(Kind.Add, f_x, f_y)
     p_0 = slv.mkTerm(Kind.ApplyUf, p, zero)
     p_f_y = slv.mkTerm(Kind.ApplyUf, p, f_y)
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     print("Given the following assertions:", assertions, "\n")
     print("Prove x /= y is entailed.\ncvc5: ",
-          slv.checkEntailed(slv.mkTerm(Kind.Distinct, x, y)), "\n")
+          slv.checkSatAssuming(slv.mkTerm(Kind.Equal, x, y)), "\n")
 
     print("Call checkSat to show that the assertions are satisfiable")
     print("cvc5:", slv.checkSat(), "\n")

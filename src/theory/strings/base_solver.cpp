@@ -123,7 +123,7 @@ void BaseSolver::checkInit()
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
-              Assert(s.getType() == t.getType());
+              Assert(s.getType().isComparableTo(t.getType()));
               d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }
@@ -290,7 +290,7 @@ void BaseSolver::checkInit()
     }
     ++eqcs_i;
   }
-  if (Trace.isOn("strings-base"))
+  if (TraceIsOn("strings-base"))
   {
     for (const std::pair<const Kind, std::pair<uint32_t, uint32_t>>& cc :
          congruentCount)
@@ -351,7 +351,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     }
     if (!isConst || !d_state.areEqual(n, c))
     {
-      if (Trace.isOn("strings-debug"))
+      if (TraceIsOn("strings-debug"))
       {
         Trace("strings-debug")
             << "Constant eqc : " << c << " for " << n << std::endl;
