@@ -4020,6 +4020,7 @@ enum Kind : int32_t
    *
    * In detail, pool symbols can be declared via the method
    *  - Solver::declarePool(const std::string&, const Sort&, const std::vector<Term>&) const
+   *
    * A pool symbol represents a set of terms of a given sort. An instantiation
    * pool annotation should match the types of the quantified formula.
    * 
