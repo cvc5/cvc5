@@ -877,14 +877,13 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Term_getSequenceValue(
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
-
 /*
  * Class:     io_github_cvc5_api_Term
  * Method:    isCardinalityConstraint
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Term_isCardinalityConstraint(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isCardinalityConstraint(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -897,8 +896,8 @@ Java_io_github_cvc5_api_Term_isCardinalityConstraint(JNIEnv* env, jobject, jlong
  * Method:    getCardinalityConstraint
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_api_Term_getCardinalityConstraint(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getCardinalityConstraint(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
