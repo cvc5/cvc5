@@ -216,9 +216,9 @@ enum Kind : int32_t
    * Boolean constant.
    *
    * - Create Term of this Kind with:
-   *   - `Solver::mkTrue() const`
-   *   - `Solver::mkFalse() const`
-   *   - `Solver::mkBoolean(bool) const`
+   *   - Solver::mkTrue() const
+   *   - Solver::mkFalse() const
+   *   - Solver::mkBoolean(bool) const
    */
   CONST_BOOLEAN,
   /**
@@ -878,8 +878,8 @@ enum Kind : int32_t
    * Fixed-size bit-vector constant.
    *
    * - Create Term of this Kind with:
-   *   - `Solver::mkBitVector(uint32_t, uint64_t) const`
-   *   - `Solver::mkBitVector(uint32_t, const std::string&, uint32_t) const`
+   *   - Solver::mkBitVector(uint32_t, uint64_t) const
+   *   - Solver::mkBitVector(uint32_t, const std::string&, uint32_t) const
    */
   CONST_BITVECTOR,
   /**
@@ -1519,7 +1519,7 @@ enum Kind : int32_t
    * RoundingMode constant.
    *
    * - Create Term of this Kind with:
-   *   - `Solver::mkRoundingMode(RoundingMode rm) const`
+   *   - Solver::mkRoundingMode(RoundingMode rm) const
    */
   CONST_ROUNDINGMODE,
   /**
@@ -2370,7 +2370,7 @@ enum Kind : int32_t
    * Empty set.
    *
    * - Create Term of this Kind with:
-   *   - `Solver::mkEmptySet(const Sort&) const`
+   *   - Solver::mkEmptySet(const Sort&) const
    */
   SET_EMPTY,
   /**
@@ -2799,8 +2799,8 @@ enum Kind : int32_t
    *   - 1..2: Terms of bag sort (Bag E), [1] an element of sort E
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   *   - Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
+   *   - Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
    */
   BAG_COUNT,
   /**
