@@ -712,6 +712,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
           std::unique_ptr<SolverEngine> checkSc;
           initializeSubsolver(checkSc, d_env);
+          checkSc->setOption("sygus", "false");
           checkSc->setOption("produce-unsat-cores", "true");
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
