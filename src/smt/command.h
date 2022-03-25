@@ -823,7 +823,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
  public:
   CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
   /** returns the result of the check-synth call */
-  api::Result getResult() const;
+  api::SynthResult getResult() const;
   /** prints the result of the check-synth-call */
   void printResult(std::ostream& out) const override;
   /** invokes this command
@@ -849,7 +849,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
   /** Whether this is a check-synth-next call */
   bool d_isNext;
   /** result of the check-synth call */
-  api::Result d_result;
+  api::SynthResult d_result;
   /** string stream that stores the output of the solution */
   std::stringstream d_solution;
 };

@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 (set-logic ALL)
 (define-fun safe-mod ((x Int) (y Int)) Int (mod x (+ 1 (abs y))))
 (synth-fun args_0_refinement_0

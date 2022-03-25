@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-si=all --sygus-si-rcons-limit=0 --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 
 (set-logic LIA)
 

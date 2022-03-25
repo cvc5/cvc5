@@ -59,7 +59,7 @@ namespace cvc5 {
  */
 struct ParseOp
 {
-  ParseOp(api::Kind k = api::NULL_EXPR) : d_kind(k) {}
+  ParseOp(api::Kind k = api::NULL_TERM) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */
   api::Kind d_kind;
   /** The name associated with the parsed operator, if it exists */
