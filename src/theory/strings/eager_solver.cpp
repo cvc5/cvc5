@@ -126,7 +126,7 @@ bool EagerSolver::checkForMergeConflict(Node a,
                                         EqcInfo* eb)
 {
   Assert(eb != nullptr && ea != nullptr);
-  Assert(a.getType() == b.getType())
+  Assert(a.getType().isComparableTo(b.getType()))
       << "bad types for merge " << a << ", " << b;
   Assert(a.getType().isStringLike() || a.getType().isInteger());
   // check prefix, suffix
