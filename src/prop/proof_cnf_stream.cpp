@@ -613,7 +613,6 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
 }
 
-
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
 {
   std::vector<Node> clauseNodes;
