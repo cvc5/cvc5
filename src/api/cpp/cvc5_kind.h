@@ -4031,10 +4031,12 @@ enum Kind : int32_t
    *     (FORALL (VARIABLE_LIST x y) F (INST_PATTERN_LIST (INST_POOL p q)))
    * \endrst
    * 
-   * if x and y have types T1 and T2, then pool symbols p and q should have
-   * types (Set T1) and (Set T2) respectively. This annotation specifies that
-   * the quantified formula above should be instantiated with the product of
-   * all terms that occur in the sets p and q.
+   * if @f$x@f$ and @f$y@f$ have Sorts @f$S_1@f$ and @f$S_2@f$,
+   * then pool symbols @f$p@f$ and @f$q@f$ should have Sorts
+   * (Set @f$S_1@f$) and (Set @f$S_2@f$), respectively.
+   * This annotation specifies that the quantified formula above should be
+   * instantiated with the product of all terms that occur in the sets @f$p@f$
+   * and @f$q@f$.
    * 
    * - Arity: `n > 0`
    *   - `1..n:` Terms that comprise the pools, which are one-to-one with the
