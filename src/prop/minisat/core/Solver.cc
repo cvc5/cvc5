@@ -468,7 +468,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     // If we are in solve_ or propagate
     if (minisat_busy)
     {
-      if (TraceisOn("pf::sat"))
+      if (TraceIsOn("pf::sat"))
       {
         Trace("pf::sat") << "Add clause adding a new lemma: ";
         for (int k = 0, size = ps.size(); k < size; ++k)
@@ -517,7 +517,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         attachClause(cr);
         if (needProof() && clauseLevel < assertionLevel)
         {
-          if (TraceisOn("pf::sat"))
+          if (TraceIsOn("pf::sat"))
           {
             Trace("pf::sat") << "addClause_: ";
             for (int k = 0, size = ps.size(); k < size; ++k)
@@ -1598,7 +1598,7 @@ lbool Solver::search(int nof_conflicts)
         if (needProof())
         {
           d_pfManager->endResChain(ca[cr]);
-          if (TraceisOn("pf::sat") && ca[cr].level() < assertionLevel)
+          if (TraceIsOn("pf::sat") && ca[cr].level() < assertionLevel)
           {
             Trace("pf::sat")
                 << "learnt_clause: " << ca[cr] << " clause/assert levels "
@@ -2132,7 +2132,7 @@ CRef Solver::updateLemmas() {
       // context-popping
       if (needProof() && clauseLevel < assertionLevel)
       {
-        if (TraceisOn("pf::sat"))
+        if (TraceIsOn("pf::sat"))
         {
           Trace("pf::sat") << "updateLemmas: ";
           for (int k = 0, size = lemma.size(); k < size; ++k)
