@@ -775,14 +775,6 @@ name   = "Quantifiers"
   help       = "number of conjectures to generate per instantiation round"
 
 [[option]]
-  name       = "conjectureNoFilter"
-  category   = "expert"
-  long       = "conjecture-no-filter"
-  type       = "bool"
-  default    = "false"
-  help       = "do not filter conjectures"
-
-[[option]]
   name       = "conjectureFilterActiveTerms"
   category   = "expert"
   long       = "conjecture-filter-active-terms"

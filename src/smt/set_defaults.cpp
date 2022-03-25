@@ -1522,21 +1522,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
       opts.quantifiers.purifyTriggers = true;
     }
   }
-  if (opts.quantifiers.conjectureNoFilter)
-  {
-    if (!opts.quantifiers.conjectureFilterActiveTermsWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterActiveTerms = false;
-    }
-    if (!opts.quantifiers.conjectureFilterCanonicalWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterCanonical = false;
-    }
-    if (!opts.quantifiers.conjectureFilterModelWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterModel = false;
-    }
-  }
   if (opts.quantifiers.conjectureGenPerRoundWasSetByUser)
   {
     if (opts.quantifiers.conjectureGenPerRound > 0)
