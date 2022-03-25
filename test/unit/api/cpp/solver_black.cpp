@@ -2455,21 +2455,22 @@ TEST_F(TestApiBlackSolver, resetAssertions)
   d_solver.checkSatAssuming({slt, ule});
 }
 
-TEST_F(TestApiBlackSolver, mkSygusVar)
+TEST_F(TestApiBlackSolver, declareSygusVar)
 {
+  d_solver.setOption("sygus", "true");
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
   Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
 
-  ASSERT_NO_THROW(d_solver.mkSygusVar(boolSort));
-  ASSERT_NO_THROW(d_solver.mkSygusVar(funSort));
-  ASSERT_NO_THROW(d_solver.mkSygusVar(boolSort, std::string("b")));
-  ASSERT_NO_THROW(d_solver.mkSygusVar(funSort, ""));
-  ASSERT_THROW(d_solver.mkSygusVar(Sort()), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkSygusVar(d_solver.getNullSort(), "a"),
+  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(boolSort, std::string("b")));
+  ASSERT_NO_THROW(d_solver.declareSygusVar(funSort, ""));
+  ASSERT_THROW(d_solver.declareSygusVar(Sort()), CVC5ApiException);
+  ASSERT_THROW(d_solver.declareSygusVar(d_solver.getNullSort(), "a"),
                CVC5ApiException);
   Solver slv;
-  ASSERT_THROW(slv.mkSygusVar(boolSort), CVC5ApiException);
+  ASSERT_THROW(slv.declareSygusVar(boolSort), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkSygusGrammar)
@@ -2495,6 +2496,7 @@ TEST_F(TestApiBlackSolver, mkSygusGrammar)
 
 TEST_F(TestApiBlackSolver, synthFun)
 {
+  d_solver.setOption("sygus", "true");
   Sort null = d_solver.getNullSort();
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
@@ -2519,6 +2521,7 @@ TEST_F(TestApiBlackSolver, synthFun)
   ASSERT_THROW(d_solver.synthFun("f4", {}, null), CVC5ApiException);
   ASSERT_THROW(d_solver.synthFun("f6", {x}, boolean, g2), CVC5ApiException);
   Solver slv;
+  slv.setOption("sygus", "true");
   Term x2 = slv.mkVar(slv.getBooleanSort());
   ASSERT_NO_THROW(slv.synthFun("f1", {x2}, slv.getBooleanSort()));
   ASSERT_THROW(slv.synthFun("", {}, d_solver.getBooleanSort()),
@@ -2529,6 +2532,7 @@ TEST_F(TestApiBlackSolver, synthFun)
 
 TEST_F(TestApiBlackSolver, synthInv)
 {
+  d_solver.setOption("sygus", "true");
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
 
@@ -2554,6 +2558,7 @@ TEST_F(TestApiBlackSolver, synthInv)
 
 TEST_F(TestApiBlackSolver, addSygusConstraint)
 {
+  d_solver.setOption("sygus", "true");
   Term nullTerm;
   Term boolTerm = d_solver.mkBoolean(true);
   Term intTerm = d_solver.mkInteger(1);
@@ -2563,11 +2568,13 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_THROW(d_solver.addSygusConstraint(intTerm), CVC5ApiException);
 
   Solver slv;
+  slv.setOption("sygus", "true");
   ASSERT_THROW(slv.addSygusConstraint(boolTerm), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, addSygusAssume)
 {
+  d_solver.setOption("sygus", "true");
   Term nullTerm;
   Term boolTerm = d_solver.mkBoolean(false);
   Term intTerm = d_solver.mkInteger(1);
@@ -2577,11 +2584,13 @@ TEST_F(TestApiBlackSolver, addSygusAssume)
   ASSERT_THROW(d_solver.addSygusAssume(intTerm), CVC5ApiException);
 
   Solver slv;
+  slv.setOption("sygus", "true");
   ASSERT_THROW(slv.addSygusAssume(boolTerm), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, addSygusInvConstraint)
 {
+  d_solver.setOption("sygus", "true");
   Sort boolean = d_solver.getBooleanSort();
   Sort real = d_solver.getRealSort();
 
@@ -2633,6 +2642,7 @@ TEST_F(TestApiBlackSolver, addSygusInvConstraint)
   ASSERT_THROW(d_solver.addSygusInvConstraint(inv, pre, trans, trans),
                CVC5ApiException);
   Solver slv;
+  slv.setOption("sygus", "true");
   Sort boolean2 = slv.getBooleanSort();
   Sort real2 = slv.getRealSort();
   Term inv22 = slv.declareFun("inv", {real2}, boolean2);
@@ -2650,9 +2660,17 @@ TEST_F(TestApiBlackSolver, addSygusInvConstraint)
                CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, checkSynth)
+{
+  // requires option to be set
+  ASSERT_THROW(d_solver.checkSynth(), CVC5ApiException);
+  d_solver.setOption("sygus", "true");
+  ASSERT_NO_THROW(d_solver.checkSynth());
+}
+
 TEST_F(TestApiBlackSolver, getSynthSolution)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "false");
 
   Term nullTerm;
@@ -2675,7 +2693,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
 
 TEST_F(TestApiBlackSolver, getSynthSolutions)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "false");
 
   Term nullTerm;
@@ -2700,7 +2718,7 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
 
 TEST_F(TestApiBlackSolver, checkSynthNext)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
@@ -2712,7 +2730,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
 
 TEST_F(TestApiBlackSolver, checkSynthNext2)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "false");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 
@@ -2722,7 +2740,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext2)
 
 TEST_F(TestApiBlackSolver, checkSynthNext3)
 {
-  d_solver.setOption("lang", "sygus2");
+  d_solver.setOption("sygus", "true");
   d_solver.setOption("incremental", "true");
   Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
 

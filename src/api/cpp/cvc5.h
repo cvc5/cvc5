@@ -4594,8 +4594,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term mkSygusVar(const Sort& sort,
-                  const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const Sort& sort,
+                       const std::string& symbol = std::string()) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting

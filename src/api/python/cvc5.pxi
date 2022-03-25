@@ -1591,7 +1591,7 @@ cdef class Solver:
         grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
-    def mkSygusVar(self, Sort sort, str symbol=""):
+    def declareSygusVar(self, Sort sort, str symbol=""):
         """Append symbol to the current list of universal variables.
 
         SyGuS v2:
@@ -1605,7 +1605,7 @@ cdef class Solver:
         :return: the universal variable
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
+        term.cterm = self.csolver.declareSygusVar(sort.csort, symbol.encode())
         return term
 
     def addSygusConstraint(self, Term t):
