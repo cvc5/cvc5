@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-si-abort --decision=internal --cegqi --sygus-out=status
 (set-logic BV)
 

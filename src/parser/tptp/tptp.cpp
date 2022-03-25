@@ -239,7 +239,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   }
   // if it has a kind, it's a builtin one and this function should not have been
   // called
-  Assert(p.d_kind == api::NULL_EXPR);
+  Assert(p.d_kind == api::NULL_TERM);
   expr = isTptpDeclared(p.d_name);
   if (expr.isNull())
   {
@@ -290,9 +290,9 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   bool isBuiltinKind = false;
   // the builtin kind of the overall return expression
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   // First phase: piece operator together
-  if (p.d_kind == api::NULL_EXPR)
+  if (p.d_kind == api::NULL_TERM)
   {
     // A non-built-in function application, get the expression
     api::Term v = isTptpDeclared(p.d_name);
@@ -326,7 +326,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     kind = p.d_kind;
     isBuiltinKind = true;
   }
-  Assert(kind != api::NULL_EXPR);
+  Assert(kind != api::NULL_TERM);
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {
@@ -350,7 +350,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (kind == api::SUB && args.size() == 1)
     {
-      return d_solver->mkTerm(api::NEG, args[0]);
+      return d_solver->mkTerm(api::NEG, {args[0]});
     }
     if (kind == api::TO_REAL)
     {
@@ -498,11 +498,11 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr)
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
   // rational
-  api::Term ret = d_solver->mkTerm(api::APPLY_UF, d_rtu_op, expr);
+  api::Term ret = d_solver->mkTerm(api::APPLY_UF, {d_rtu_op, expr});
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
     api::Term eq = d_solver->mkTerm(
-        api::EQUAL, expr, d_solver->mkTerm(api::APPLY_UF, d_utr_op, ret));
+        api::EQUAL, {expr, d_solver->mkTerm(api::APPLY_UF, {d_utr_op, ret})});
     preemptCommand(new AssertCommand(eq));
   }
   return api::Term(ret);
@@ -535,8 +535,8 @@ api::Term Tptp::mkLambdaWrapper(api::Kind k, api::Sort argType)
   // apply body of lambda to variables
   api::Term wrapper =
       d_solver->mkTerm(api::LAMBDA,
-                       d_solver->mkTerm(api::VARIABLE_LIST, lvars),
-                       d_solver->mkTerm(k, lvars));
+                       {d_solver->mkTerm(api::VARIABLE_LIST, lvars),
+                        d_solver->mkTerm(k, lvars)});
 
   return wrapper;
 }
@@ -556,7 +556,7 @@ api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr)
       return expr;
     case FR_CONJECTURE:
       // it should be negated when asserted
-      return d_solver->mkTerm(api::NOT, expr);
+      return d_solver->mkTerm(api::NOT, {expr});
     case FR_UNKNOWN:
     case FR_FI_DOMAIN:
     case FR_FI_FUNCTORS:

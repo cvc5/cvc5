@@ -133,12 +133,6 @@ def test_is_datatype(solver):
     Sort(solver).isDatatype()
 
 
-def test_is_parametric_datatype(solver):
-    param_dt_sort = create_param_datatype_sort(solver)
-    assert param_dt_sort.isParametricDatatype()
-    Sort(solver).isParametricDatatype()
-
-
 def test_is_constructor(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()

@@ -1,3 +1,5 @@
+.. _theory_reference_sets:
+
 Theory Reference: Sets and Relations
 ====================================
 
@@ -81,8 +83,8 @@ For example:
   (declare-fun x () (Set Int))
   (declare-fun y () (Set Int))
   (declare-fun z () (Set Int))
-  (assert (member 0 x))
-  (assert (member 1 y))
+  (assert (set.member 0 x))
+  (assert (set.member 1 y))
   (assert (= z (as set.universe (Set Int))))
   (check-sat)
 
@@ -187,4 +189,7 @@ More details can be found in :cite:`MengRTB17`.
 Example:
 
 .. api-examples::
+    <examples>/api/cpp/relations.cpp
+    <examples>/api/java/Relations.java
+    <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2

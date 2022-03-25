@@ -73,6 +73,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
+      d_theoryLemmaPg(d_env.getProofNodeManager(), d_env.getUserContext()),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -220,7 +221,16 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
   Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
-  assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
+  // if we are producing proofs for the SAT solver but not for theory engine,
+  // then we need to prevent the lemma of being added as an assumption (since
+  // the generator will be null). We use the default proof generator for lemmas.
+  if (isProofEnabled() && !d_env.isTheoryProofProducing()
+      && !trn.getGenerator())
+  {
+    d_theoryLemmaPg.addStep(node, PfRule::THEORY_LEMMA, {}, {node});
+    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
+  }
+  assertInternal(node, negated, removable, false, trn.getGenerator());
 }
 
 void PropEngine::assertInternal(
@@ -354,7 +364,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
-    return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+    return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
 
   // Reset the interrupted flag
@@ -387,7 +397,7 @@ Result PropEngine::checkSat() {
     {
       why = Result::RESOURCEOUT;
     }
-    return Result(Result::SAT_UNKNOWN, why);
+    return Result(Result::UNKNOWN, why);
   }
 
   if( result == SAT_VALUE_TRUE && TraceIsOn("prop") ) {
@@ -397,7 +407,7 @@ Result PropEngine::checkSat() {
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
-    return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
+    return Result(Result::UNKNOWN, Result::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
@@ -642,6 +652,9 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   {
     return nullptr;
   }
+  Trace("sat-proof") << "PropEngine::getProof: getting proof with cnfStream's "
+                        "lazycdproof cxt lvl "
+                     << userContext()->getLevel() << "\n";
   return d_ppm->getProof();
 }
 

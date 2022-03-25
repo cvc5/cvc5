@@ -3,7 +3,7 @@
 (set-logic QF_UFNIA)
 (set-info :status sat)
 (set-option :cegqi-all true)
-(set-option :quant-split true)
+(set-option :miniscope-quant fv)
 (set-option :partial-triggers true)
 (set-option :full-saturate-quant true)
 (set-option :sygus-inference true)

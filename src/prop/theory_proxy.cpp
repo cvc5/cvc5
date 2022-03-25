@@ -198,6 +198,19 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   }
 }
 
+void TheoryProxy::notifyCurrPropagationInsertedAtLevel(int explLevel)
+{
+  d_propEngine->getProofCnfStream()->notifyCurrPropagationInsertedAtLevel(
+      explLevel);
+}
+
+void TheoryProxy::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                              int clLevel)
+{
+  d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause,
+                                                                 clLevel);
+}
+
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;

@@ -681,6 +681,7 @@ void TheorySetsPrivate::checkDisequalities()
   // disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (NodeBoolMap::const_iterator it = d_deq.begin(); it != d_deq.end(); ++it)
   {
     if (!(*it).second)
@@ -714,8 +715,8 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
     TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = d_skCache.mkTypedSkolemCached(
-        elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
+    Node x = sm->mkSkolemFunction(
+        SkolemFunId::SETS_DEQ_DIFF, elementType, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(SET_MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
@@ -1054,47 +1055,6 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
 
-Node mkAnd(const std::vector<TNode>& conjunctions)
-{
-  Assert(conjunctions.size() > 0);
-
-  std::set<TNode> all;
-  for (unsigned i = 0; i < conjunctions.size(); ++i)
-  {
-    TNode t = conjunctions[i];
-    if (t.getKind() == kind::AND)
-    {
-      for (TNode::iterator child_it = t.begin(); child_it != t.end();
-           ++child_it)
-      {
-        Assert((*child_it).getKind() != kind::AND);
-        all.insert(*child_it);
-      }
-    }
-    else
-    {
-      all.insert(t);
-    }
-  }
-
-  Assert(all.size() > 0);
-  if (all.size() == 1)
-  {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end)
-  {
-    conjunction << *it;
-    ++it;
-  }
-  return conjunction;
-} /* mkAnd() */
-
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
 bool TheorySetsPrivate::isEntailed(Node n, bool pol)
@@ -1147,8 +1107,7 @@ Node TheorySetsPrivate::explain(TNode literal)
                   << polarity << "); kind" << atom.getKind() << std::endl;
     Unhandled();
   }
-
-  return mkAnd(assumptions);
+  return NodeManager::currentNM()->mkAnd(assumptions);
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)

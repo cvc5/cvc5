@@ -121,7 +121,7 @@ using namespace cvc5::parser;
 #undef SYM_MAN
 #define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
@@ -281,8 +281,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       // we allow overloading for function declarations
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-fun are not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-fun are not allowed in sygus "
+                                 "version 2.0");
       }
       else
       {
@@ -518,7 +518,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      api::Term var = SOLVER->mkSygusVar(t, name);
+      api::Term var = SOLVER->declareSygusVar(t, name);
       PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
@@ -780,8 +780,8 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { // allow overloading here
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-const is not allowed in sygus "
+                                 "version 2.0");
       }
       api::Term c =
           PARSER_STATE->bindVar(name, t, true);
@@ -1248,7 +1248,7 @@ symbolicExpr[cvc5::api::Term& sexpr]
  */
 term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   cvc5::api::Term f;
   std::string name;
   cvc5::api::Sort type;
@@ -1272,7 +1272,7 @@ term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
   Trace("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   std::string name;
   std::vector<cvc5::api::Term> args;
   std::vector< std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
@@ -1504,7 +1504,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
   {
     std::vector<uint32_t> indices;
     api::Op op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, expr);
+    expr = SOLVER->mkTerm(op, {expr});
   }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
@@ -1656,7 +1656,18 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
+        if (k == api::UNDEFINED_KIND)
+        {
+          // We don't know which kind to use until we know the type of the
+          // arguments
+          p.d_name = opName;
+          // convert uint64_t to uint32_t
+          for(uint32_t numeral : numerals)
+          {
+            p.d_indices.push_back(numeral);
+          }
+        }
+        else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
           // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
           // for tuple selectors and updaters

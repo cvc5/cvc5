@@ -774,21 +774,25 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_commandStatus = CommandSuccess::instance();
     d_solution.clear();
     // check whether we should print the status
-    if (!d_result.isUnsat()
+    if (!d_result.hasSolution()
         || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
         || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
     {
-      if (options::sygusOut() == options::SygusSolutionOutMode::STANDARD)
+      if (d_result.hasSolution())
       {
-        d_solution << "fail" << endl;
+        d_solution << "feasible" << std::endl;
+      }
+      else if (d_result.hasNoSolution())
+      {
+        d_solution << "infeasible" << std::endl;
       }
       else
       {
-        d_solution << d_result << endl;
+        d_solution << "fail" << std::endl;
       }
     }
     // check whether we should print the solution
-    if (d_result.isUnsat()
+    if (d_result.hasSolution()
         && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
       std::vector<api::Term> synthFuns = sm->getFunctionsToSynthesize();
@@ -823,7 +827,7 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-api::Result CheckSynthCommand::getResult() const { return d_result; }
+api::SynthResult CheckSynthCommand::getResult() const { return d_result; }
 void CheckSynthCommand::printResult(std::ostream& out) const
 {
   if (!ok())
@@ -1512,9 +1516,9 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
     {
       api::Term request = d_terms[i];
       api::Term value = result[i];
-      result[i] = solver->mkTerm(api::SEXPR, request, value);
+      result[i] = solver->mkTerm(api::SEXPR, {request, value});
     }
-    d_result = solver->mkTerm(api::SEXPR, result);
+    d_result = solver->mkTerm(api::SEXPR, {result});
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiRecoverableException& e)
@@ -1587,7 +1591,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
       // Treat the expression name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name.
       api::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
-      sexprs.push_back(solver->mkTerm(api::SEXPR, name, values[i]));
+      sexprs.push_back(solver->mkTerm(api::SEXPR, {name, values[i]}));
     }
     d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
@@ -1839,7 +1843,7 @@ bool GetInstantiationsCommand::isEnabled(api::Solver* solver,
                                          const api::Result& res)
 {
   return (res.isSat()
-          || (res.isSatUnknown()
+          || (res.isUnknown()
               && res.getUnknownExplanation() == api::Result::INCOMPLETE))
          || res.isUnsat();
 }
@@ -1953,7 +1957,7 @@ void GetInterpolCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2020,7 +2024,7 @@ void GetInterpolNextCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2110,7 +2114,7 @@ void GetAbductCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2173,7 +2177,7 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2713,7 +2717,7 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     std::vector<api::Term> v;
     v.push_back(solver->mkString(":" + d_flag));
     v.push_back(solver->mkString(solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
+    d_result = sexprToString(solver->mkTerm(api::SEXPR, {v}));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC5ApiUnsupportedException&)

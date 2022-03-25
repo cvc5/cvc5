@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --sygus-out=status
 (set-logic NIA)
 (synth-fun patternGen ((i Int)) Int

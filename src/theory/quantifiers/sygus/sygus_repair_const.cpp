@@ -236,15 +236,12 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus
-  repcChecker->setOption("miniscope-quant", "true");
-  repcChecker->setOption("miniscope-quant-fv", "true");
-  repcChecker->setOption("quant-split", "true");
+  repcChecker->setOption("miniscope-quant", "conj-and-fv");
   repcChecker->assertFormula(fo_body);
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
-      || r.asSatisfiabilityResult().isUnknown())
+  if (r.getStatus() == Result::UNSAT || r.isUnknown())
   {
     Trace("sygus-engine") << "...failed" << std::endl;
     return false;
