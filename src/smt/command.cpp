@@ -1953,7 +1953,7 @@ void GetInterpolCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2020,7 +2020,7 @@ void GetInterpolNextCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2110,7 +2110,7 @@ void GetAbductCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
@@ -2173,7 +2173,7 @@ void GetAbductNextCommand::printResult(std::ostream& out) const
     }
     else
     {
-      out << "none" << std::endl;
+      out << "fail" << std::endl;
     }
   }
 }
