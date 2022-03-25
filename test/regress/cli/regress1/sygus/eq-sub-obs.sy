@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-si=all  --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 
 ; This regression tests the behavior of the reconstruction algorithm when the
 ; term to reconstruct contains two equivalent sub-terms, but one is easier to

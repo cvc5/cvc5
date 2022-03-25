@@ -7626,7 +7626,7 @@ void Solver::addSygusInvConstraint(Term inv,
   CVC5_API_TRY_CATCH_END;
 }
 
-Result Solver::checkSynth() const
+SynthResult Solver::checkSynth() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
@@ -7637,7 +7637,7 @@ Result Solver::checkSynth() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Result Solver::checkSynthNext() const
+SynthResult Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)

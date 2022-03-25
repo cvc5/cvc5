@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --sygus-out=status --lang=sygus2
 (set-logic BV)
 (synth-fun f (( x (_ BitVec 32))) (_ BitVec 32)

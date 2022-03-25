@@ -4,7 +4,7 @@
 ; EXPECT-ERROR: no-logic.sy:8.10: cvc5 will make all theories available.
 ; EXPECT-ERROR: no-logic.sy:8.10: Consider setting a stricter logic for (likely) better performance.
 ; EXPECT-ERROR: no-logic.sy:8.10: To suppress this warning in the future use (set-logic ALL).
-; EXPECT: unsat
+; EXPECT: feasible
 (synth-fun f ((x Int)) Int
   ((Start Int))
   (

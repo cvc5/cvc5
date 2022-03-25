@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 (set-logic LIA)
 
 ;declare enums
