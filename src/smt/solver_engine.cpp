@@ -1843,7 +1843,8 @@ bool SolverEngine::deepRestart()
   Trace("smt") << "SMT deepRestart()" << endl;
 
   // get the zero-level learned literals now, before resetting the context
-  std::vector<Node> zll = getPropEngine()->getLearnedZeroLevelLiteralsForRestart();
+  std::vector<Node> zll =
+      getPropEngine()->getLearnedZeroLevelLiteralsForRestart();
 
   if (zll.empty())
   {

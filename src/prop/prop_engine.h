@@ -295,9 +295,8 @@ class PropEngine : protected EnvObj
   std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions of the given type */
-  std::vector<Node> getLearnedZeroLevelLiterals(
-      LearnedLitType ltype) const;
-      
+  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype) const;
+
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 

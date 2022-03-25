@@ -23,9 +23,9 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "expr/subs.h"
 #include "prop/learned_db.h"
 #include "smt/env_obj.h"
-#include "expr/subs.h"
 
 namespace cvc5 {
 
@@ -64,8 +64,7 @@ class ZeroLevelLearner : protected EnvObj
   bool notifyAsserted(TNode assertion);
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals(
-      LearnedLitType ltype) const;
+  std::vector<Node> getLearnedZeroLevelLiterals(LearnedLitType ltype) const;
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
 

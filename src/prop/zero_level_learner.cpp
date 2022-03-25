@@ -208,8 +208,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   return true;
 }
 
-LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
-    const Node& lit)
+LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
 {
   // literal was learned, determine its type
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
@@ -225,7 +224,7 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       // if we solved for any variable from input, we are SOLVABLE.
       for (const Node& v : ss.d_vars)
       {
-        if (d_ppnSyms.find(v)==d_ppnSyms.end())
+        if (d_ppnSyms.find(v) == d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
           ltype = LearnedLitType::SOLVABLE;
@@ -278,14 +277,15 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiterals(
   {
     if (!ret.empty())
     {
-      Trace("level-zero") << "...learned #literals (" << ltype << ") = " << ret.size()
-                          << std::endl;
+      Trace("level-zero") << "...learned #literals (" << ltype
+                          << ") = " << ret.size() << std::endl;
     }
   }
   return ret;
 }
 
-std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart() const
+std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
+    const
 {
   std::vector<Node> ret;
   for (LearnedLitType ltype : d_learnedTypes)
@@ -298,7 +298,7 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart() cons
 
 bool ZeroLevelLearner::isLearnable(LearnedLitType ltype) const
 {
-  return d_learnedTypes.find(ltype)!=d_learnedTypes.end();
+  return d_learnedTypes.find(ltype) != d_learnedTypes.end();
 }
 
 bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
@@ -306,15 +306,16 @@ bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
   theory::TrustSubstitutionMap subsOut(&d_dummyContext);
   TrustNode tlit = TrustNode::mkTrustLemma(lit);
   theory::Theory::PPAssertStatus status = d_theoryEngine->solve(tlit, subsOut);
-  if (status==theory::Theory::PP_ASSERT_STATUS_SOLVED)
+  if (status == theory::Theory::PP_ASSERT_STATUS_SOLVED)
   {
     Trace("level-zero-debug") << lit << " is solvable" << std::endl;
     // extract the substitution
     std::unordered_map<Node, Node> ss = subsOut.get().getSubstitutions();
-    for (const std::pair< const Node, Node >& s : ss)
+    for (const std::pair<const Node, Node>& s : ss)
     {
       subs.add(s.first, s.second);
-      Trace("level-zero-debug") << "  subs: " << s.first << " -> " << s.second << std::endl;
+      Trace("level-zero-debug")
+          << "  subs: " << s.first << " -> " << s.second << std::endl;
     }
     return true;
   }
