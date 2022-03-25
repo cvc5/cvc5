@@ -927,6 +927,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "global-negate";
     return true;
   }
+  if (isSygus(opts))
+  {
+    // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
+    // functions are incompatible with our equality proofs.
+    reason << "sygus";
+    return true;
+  }
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
   {
