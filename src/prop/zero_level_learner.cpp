@@ -249,8 +249,8 @@ bool ZeroLevelLearner::isLearnable(LearnedLitType ltype) const
   }
   else if (ltype == LearnedLitType::SOLVABLE)
   {
-    return lmode == options::DeepRestartLearnMode::ALL ||
-    lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE;
+    return lmode == options::DeepRestartLearnMode::ALL
+           || lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE;
   }
   return false;
 }

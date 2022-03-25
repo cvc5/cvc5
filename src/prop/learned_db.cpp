@@ -38,7 +38,11 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 }
 
 LearnedDb::LearnedDb(context::Context* c)
-    : d_preprocessSolvedLits(c), d_preprocessLits(c), d_inputLits(c), d_solvableLits(c), d_internalLits(c)
+    : d_preprocessSolvedLits(c),
+      d_preprocessLits(c),
+      d_inputLits(c),
+      d_solvableLits(c),
+      d_internalLits(c)
 {
 }
 
