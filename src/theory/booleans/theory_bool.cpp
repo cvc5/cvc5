@@ -43,10 +43,8 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
-  if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
-    // If we get a false literal, we're in conflict
-    return PP_ASSERT_STATUS_CONFLICT;
-  }
+  // should not get the false node here
+  Assert (in.getKind() != kind::CONST_BOOLEAN || in.getConst<bool>());
 
   // Add the substitution from the variable to its value
   if (in.getKind() == kind::NOT) {

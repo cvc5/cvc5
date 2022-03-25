@@ -38,7 +38,7 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
       d_ldb(userContext()),
       d_nonZeroAssert(context(), false),
       d_ppnAtoms(userContext()),
-      d_pplAtoms(userContext()),
+      d_ppnSyms(userContext()),
       d_assertNoLearnCount(0)
 {
 }
@@ -47,7 +47,7 @@ ZeroLevelLearner::~ZeroLevelLearner() {}
 
 void ZeroLevelLearner::getAtoms(TNode a,
                                 std::unordered_set<TNode>& visited,
-                                NodeSet& ppLits)
+                                std::unordered_set<Node>& atoms)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -64,7 +64,7 @@ void ZeroLevelLearner::getAtoms(TNode a,
         visit.insert(visit.end(), cur.begin(), cur.end());
         continue;
       }
-      ppLits.insert(cur);
+      atoms.insert(cur);
     }
   } while (!visit.empty());
 }
@@ -98,20 +98,27 @@ void ZeroLevelLearner::notifyInputFormulas(
     {
       continue;
     }
+    // we mark that we visited this
     visited.insert(atom);
     // output learned literals from preprocessing
     processLearnedLiteral(lit, LearnedLitType::PREPROCESS);
   }
   // Compute the set of literals in the preprocessed assertions
+  std::unordered_set<Node> inputAtoms;
   for (const Node& a : assertions)
   {
-    getAtoms(a, visited, d_ppnAtoms);
+    getAtoms(a, visited, inputAtoms);
+  }
+  for (const Node& a : inputAtoms)
+  {
+    d_ppnAtoms.insert(a);
+    // also get its symbols
   }
 
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
-  Trace("level-zero") << "#Learned lits = " << d_pplAtoms.size() << std::endl;
+  Trace("level-zero") << d_ldb.toStringDebug();
   Trace("level-zero") << "#Top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
@@ -188,9 +195,9 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   LearnedLitType ltype =
       internal ? LearnedLitType::INTERNAL : LearnedLitType::INPUT;
+  // compute if solvable
   Trace("level-zero-assert")
-      << "Level zero assert: " << lit << ", internal=" << internal
-      << ", already learned=" << (d_pplAtoms.find(aatom) != d_pplAtoms.end())
+      << "Level zero assert: " << lit << ", type=" << ltype
       << std::endl;
   return ltype;
 }

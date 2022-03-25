@@ -69,7 +69,7 @@ class ZeroLevelLearner : protected EnvObj
  private:
   static void getAtoms(TNode a,
                        std::unordered_set<TNode>& visited,
-                       NodeSet& ppLits);
+                       std::unordered_set<Node>& atoms);
   /** Process learned literal */
   void processLearnedLiteral(const Node& lit, LearnedLitType ltype);
   /** compute type for learned literal */
@@ -92,11 +92,15 @@ class ZeroLevelLearner : protected EnvObj
   /** Whether we have seen an assertion level > 0 */
   context::CDO<bool> d_nonZeroAssert;
 
-  /** Preprocessed literals that are not learned */
+  /**
+   * Atoms of literals from the input formula that were not learned at
+   * preprocess.
+   */
   NodeSet d_ppnAtoms;
-
-  /** Already learned */
-  NodeSet d_pplAtoms;
+  /**
+   * Symbols in the above atoms.
+   */
+  NodeSet d_ppnSyms;
 
   /** Current counter of assertions */
   size_t d_assertNoLearnCount;

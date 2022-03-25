@@ -15,6 +15,8 @@
 
 #include "prop/learned_db.h"
 
+#include <sstream>
+
 namespace cvc5 {
 namespace prop {
 
@@ -95,6 +97,28 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
     default: Assert(LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
+}
+
+std::string LearnedDb::toStringDebug() const
+{
+  std::stringstream ss;
+  ss << toStringDebugType(LearnedLitType::PREPROCESS_SOLVED);
+  ss << toStringDebugType(LearnedLitType::PREPROCESS);
+  ss << toStringDebugType(LearnedLitType::INPUT);
+  ss << toStringDebugType(LearnedLitType::SOLVABLE);
+  ss << toStringDebugType(LearnedLitType::INTERNAL);
+  return ss.str();
+}
+
+std::string LearnedDb::toStringDebugType(LearnedLitType ltype) const
+{
+  std::stringstream ss;
+  const NodeSet& lset = getLiteralSet(ltype);
+  if (!lset.empty())
+  {
+    ss << "#Learned literals (" << ltype << ") = " << lset.size() << std::endl;
+  }
+  return ss.str();
 }
 
 }  // namespace prop

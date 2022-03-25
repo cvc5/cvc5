@@ -191,13 +191,6 @@ Theory::PPAssertStatus TheorySets::ppAssert(
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
   }
   return status;
 }
