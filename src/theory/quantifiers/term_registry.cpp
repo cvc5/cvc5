@@ -98,7 +98,9 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
       || options().quantifiers.termDbCd)
   {
     d_termDb->addTerm(n);
-    if (d_sygusTdb.get() && options().quantifiers.sygusEvalUnfold)
+    if (d_sygusTdb.get()
+        && options().quantifiers.sygusEvalUnfoldMode
+               != options::SygusEvalUnfoldMode::NONE)
     {
       d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
     }

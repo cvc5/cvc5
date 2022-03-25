@@ -26,6 +26,7 @@
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 
 namespace Minisat {
 class Solver;
@@ -270,13 +271,10 @@ class CnfStream;
  * getProof
  *
  */
-class SatProofManager
+class SatProofManager : protected EnvObj
 {
  public:
-  SatProofManager(Minisat::Solver* solver,
-                  CnfStream* cnfStream,
-                  context::UserContext* userContext,
-                  ProofNodeManager* pnm);
+  SatProofManager(Env& env, Minisat::Solver* solver, CnfStream* cnfStream);
 
   /** Marks the start of a resolution chain.
    *
@@ -594,10 +592,10 @@ class SatProofManager
   /** User-context dependent map from resolution conclusions to their assertion
       level. */
   context::CDHashMap<Node, int> d_optResLevels;
-  /** User-context-dependent map assertion level to proof nodes.
+  /** Maps assertion level to proof nodes.
    *
-   * This map is used to update the internal proof of this manager when the
-   * context pops.
+   * This map is used by d_optResManager to update the internal proof of this
+   * manager when the context pops.
    */
   std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optResProofs;
   /** Manager for optimized resolution conclusions inserted at assertion levels

@@ -312,10 +312,10 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   //
   // We don't want to set this option when we are in logics that contain ALL.
   //
-  // We also must enable stringExp if reElimAgg is true, since this introduces
-  // bounded quantifiers during preprocessing.
+  // We also must enable stringExp if reElim is aggressive, since this
+  // introduces bounded quantifiers during preprocessing.
   if ((!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
-      || opts.strings.regExpElimAgg)
+      || opts.strings.regExpElim == options::RegExpElimMode::AGG)
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
@@ -705,10 +705,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 
-  // until bugs 371,431 are fixed
-  if (!opts.prop.minisatUseElimWasSetByUser)
+  if (!opts.prop.minisatSimpModeWasSetByUser
+      && opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
-    // cannot use minisat elimination for logics where a theory solver
+    // cannot use minisat variable elimination for logics where a theory solver
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
@@ -717,7 +717,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || opts.smt.produceAssignments || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      opts.prop.minisatUseElim = false;
+      opts.prop.minisatSimpMode = options::MinisatSimpMode::CLAUSE_ELIM;
     }
   }
 
@@ -864,7 +864,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
 bool SetDefaults::isSygus(const Options& opts) const
 {
-  if (language::isLangSygus(opts.base.inputLanguage))
+  if (opts.quantifiers.sygus)
   {
     return true;
   }
@@ -927,13 +927,6 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "global-negate";
     return true;
   }
-  if (isSygus(opts))
-  {
-    // When sygus answers "unsat", it is not due to showing a set of
-    // formulas is unsat in the standard way. Thus, proofs do not apply.
-    reason << "sygus";
-    return true;
-  }
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
   {
@@ -974,9 +967,9 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
     reason << "sort-inference";
     return true;
   }
-  else if (opts.prop.minisatUseElim)
+  else if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
   {
-    reason << "minisat-elimination";
+    reason << "minisat-simplification";
     return true;
   }
   else if (opts.quantifiers.globalNegate)
@@ -1105,15 +1098,15 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     opts.smt.sortInference = false;
   }
 
-  if (opts.quantifiers.preSkolemQuant)
+  if (opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
   {
     if (opts.quantifiers.preSkolemQuantWasSetByUser)
     {
       reason << "pre-skolemization";
       return true;
     }
-    notifyModifyOption("preSkolemQuant", "false", "unsat cores");
-    opts.quantifiers.preSkolemQuant = false;
+    notifyModifyOption("preSkolemQuant", "off", "unsat cores");
+    opts.quantifiers.preSkolemQuant = options::PreSkolemQuantMode::OFF;
   }
 
   if (opts.bv.bitvectorToBool)
@@ -1411,7 +1404,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
     if (!opts.quantifiers.eMatchingWasSetByUser)
     {
-      opts.quantifiers.eMatching = opts.quantifiers.fmfInstEngine;
+      // do not use E-matching by default. For E-matching + FMF, the user should
+      // specify --finite-model-find --e-matching.
+      opts.quantifiers.eMatching = false;
     }
     if (!opts.quantifiers.instWhenModeWasSetByUser)
     {
@@ -1425,7 +1420,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (usesSygus(opts))
+  if (isSygus(opts))
   {
     std::stringstream reasonNoSygus;
     if (incompatibleWithSygus(opts, reasonNoSygus))
@@ -1463,9 +1458,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {
-      if (!opts.quantifiers.quantConflictFindWasSetByUser)
+      if (!opts.quantifiers.conflictBasedInstWasSetByUser)
       {
-        opts.quantifiers.quantConflictFind = false;
+        opts.quantifiers.conflictBasedInst = false;
       }
       if (!opts.quantifiers.instNoEntailWasSetByUser)
       {
@@ -1491,16 +1486,16 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
   }
   // implied options...
-  if (opts.quantifiers.qcfModeWasSetByUser || opts.quantifiers.qcfTConstraint)
+  if (opts.quantifiers.cbqiModeWasSetByUser || opts.quantifiers.cbqiTConstraint)
   {
-    opts.quantifiers.quantConflictFind = true;
+    opts.quantifiers.conflictBasedInst = true;
   }
   if (opts.quantifiers.cegqiNestedQE)
   {
     opts.quantifiers.prenexQuantUser = true;
     if (!opts.quantifiers.preSkolemQuantWasSetByUser)
     {
-      opts.quantifiers.preSkolemQuant = true;
+      opts.quantifiers.preSkolemQuant = options::PreSkolemQuantMode::ON;
     }
   }
   // for induction techniques
@@ -1561,7 +1556,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
   }
   // can't pre-skolemize nested quantifiers without UF theory
-  if (!logic.isTheoryEnabled(THEORY_UF) && opts.quantifiers.preSkolemQuant)
+  if (!logic.isTheoryEnabled(THEORY_UF)
+      && opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
   {
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
     {
@@ -1604,7 +1600,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // optimization: apply preskolemization, makes it succeed more often
     if (!opts.quantifiers.preSkolemQuantWasSetByUser)
     {
-      opts.quantifiers.preSkolemQuant = true;
+      opts.quantifiers.preSkolemQuant = options::PreSkolemQuantMode::ON;
     }
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
     {
@@ -1616,9 +1612,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     opts.quantifiers.cegqiSingleInvMode = options::CegqiSingleInvMode::USE;
   }
-  if (!opts.quantifiers.quantConflictFindWasSetByUser)
+  if (!opts.quantifiers.conflictBasedInstWasSetByUser)
   {
-    opts.quantifiers.quantConflictFind = false;
+    opts.quantifiers.conflictBasedInst = false;
   }
   if (!opts.quantifiers.instNoEntailWasSetByUser)
   {
@@ -1628,11 +1624,6 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     // should use full effort cbqi for single invocation and repair const
     opts.quantifiers.cegqiFullEffort = true;
-  }
-  if (opts.quantifiers.sygusRew)
-  {
-    opts.quantifiers.sygusRewSynth = true;
-    opts.quantifiers.sygusRewVerify = true;
   }
   if (opts.quantifiers.sygusRewSynthInput)
   {
@@ -1699,15 +1690,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   // do not miniscope
   if (!opts.quantifiers.miniscopeQuantWasSetByUser)
   {
-    opts.quantifiers.miniscopeQuant = false;
-  }
-  if (!opts.quantifiers.miniscopeQuantFreeVarWasSetByUser)
-  {
-    opts.quantifiers.miniscopeQuantFreeVar = false;
-  }
-  if (!opts.quantifiers.quantSplitWasSetByUser)
-  {
-    opts.quantifiers.quantSplit = false;
+    opts.quantifiers.miniscopeQuant = options::MiniscopeQuantMode::OFF;
   }
   // do not do macros
   if (!opts.quantifiers.macrosQuantWasSetByUser)

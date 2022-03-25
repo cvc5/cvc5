@@ -1029,30 +1029,21 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
         {
           Trace("cegqi-inv-debug")
               << sf << " used template : " << templ << std::endl;
-          // if it was not embedded into the grammar
-          if (!options().quantifiers.sygusTemplEmbedGrammar)
-          {
-            TNode templa = d_templInfer->getTemplateArg(sf);
-            // make the builtin version of the full solution
-            sol = d_tds->sygusToBuiltin(sol, sol.getType());
-            Trace("cegqi-inv") << "Builtin version of solution is : " << sol
-                               << ", type : " << sol.getType() << std::endl;
-            TNode tsol = sol;
-            sol = templ.substitute(templa, tsol);
-            Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
-            sol = rewrite(sol);
-            Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
-            // now, reconstruct to the syntax
-            sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
-            sol = sol.getKind() == LAMBDA ? sol[1] : sol;
-            Trace("cegqi-inv-debug")
-                << "Reconstructed to syntax : " << sol << std::endl;
-          }
-          else
-          {
-            Trace("cegqi-inv-debug")
-                << "...was embedding into grammar." << std::endl;
-          }
+          TNode templa = d_templInfer->getTemplateArg(sf);
+          // make the builtin version of the full solution
+          sol = d_tds->sygusToBuiltin(sol, sol.getType());
+          Trace("cegqi-inv") << "Builtin version of solution is : " << sol
+                             << ", type : " << sol.getType() << std::endl;
+          TNode tsol = sol;
+          sol = templ.substitute(templa, tsol);
+          Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
+          sol = rewrite(sol);
+          Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
+          // now, reconstruct to the syntax
+          sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
+          sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+          Trace("cegqi-inv-debug")
+              << "Reconstructed to syntax : " << sol << std::endl;
         }
         else
         {

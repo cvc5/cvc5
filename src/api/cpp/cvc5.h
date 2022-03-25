@@ -50,6 +50,7 @@ class Options;
 class Random;
 class Rational;
 class Result;
+class SynthResult;
 class StatisticsRegistry;
 
 namespace main {
@@ -61,6 +62,7 @@ namespace api {
 class Solver;
 class Statistics;
 struct APIStatistics;
+class Term;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -257,7 +259,7 @@ class CVC5_EXPORT Result
   Result(const cvc5::Result& r);
 
   /**
-   * The interal result wrapped by this result.
+   * The internal result wrapped by this result.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
    *       since ``cvc5::Result`` is not ref counted.
@@ -281,6 +283,80 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC5_EXPORT;
+
+/* -------------------------------------------------------------------------- */
+/* Result                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Encapsulation of a solver synth result.
+ *
+ * This is the return value of the API methods:
+ *   - Solver::checkSynth()
+ *   - Solver::checkSynthNext()
+ *
+ * which we call synthesis queries.  This class indicates whether the
+ * synthesis query has a solution, has no solution, or is unknown.
+ */
+class CVC5_EXPORT SynthResult
+{
+  friend class Solver;
+
+ public:
+  /** Constructor. */
+  SynthResult();
+
+  /**
+   * @return true if SynthResult is null, i.e., not a SynthResult returned
+   * from a synthesis query.
+   */
+  bool isNull() const;
+
+  /**
+   * @return true if the synthesis query has a solution.
+   */
+  bool hasSolution() const;
+
+  /**
+   * @return true if the synthesis query has no solution. In this case, it
+   * was determined that there was no solution.
+   */
+  bool hasNoSolution() const;
+
+  /**
+   * @return true if the result of the synthesis query could not be determined.
+   */
+  bool isUnknown() const;
+
+  /**
+   * @return a string representation of this synthesis result.
+   */
+  std::string toString() const;
+
+ private:
+  /**
+   * Constructor.
+   * @param r the internal synth result that is to be wrapped by this synth
+   *          result
+   * @return the SynthResult
+   */
+  SynthResult(const cvc5::SynthResult& r);
+  /**
+   * The internal result wrapped by this result.
+   *
+   * @note This is a `std::shared_ptr` rather than a `std::unique_ptr`
+   *       since `cvc5::SynthResult` is not ref counted.
+   */
+  std::shared_ptr<cvc5::SynthResult> d_result;
+};
+
+/**
+ * Serialize a SynthResult to given stream.
+ * @param out the output stream
+ * @param r the result to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const SynthResult& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -987,6 +1063,7 @@ class CVC5_EXPORT Term
   friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
+  friend class SynthResult;
   friend struct std::hash<Term>;
 
  public:
@@ -1960,10 +2037,10 @@ class CVC5_EXPORT DatatypeConstructor
    *
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
-   * ``(List Int)``.
+   * `(List Int)`.
    *
-   * @note the returned constructor term ``t`` is an operator, while
-   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
+   * @note the returned constructor term `t` is an operator, while
+   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
    *       above (nullary) application of nil.
    *
    * @param retSort the desired return sort of the constructor
@@ -2202,6 +2279,8 @@ class CVC5_EXPORT Datatype
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the
    * first is returned.
+   * @param name the name of the datatype constructor
+   * @return a Term representing the datatype constructor with the given name
    */
   Term getConstructorTerm(const std::string& name) const;
 
@@ -2774,14 +2853,14 @@ struct CVC5_EXPORT OptionInfo
   /** Whether the option was explicitly set by the user */
   bool setByUser;
   /** The option value information */
-  std::variant<VoidInfo,
-               ValueInfo<bool>,
-               ValueInfo<std::string>,
-               NumberInfo<int64_t>,
-               NumberInfo<uint64_t>,
-               NumberInfo<double>,
-               ModeInfo>
-      valueInfo;
+  using OptionInfoVariant = std::variant<VoidInfo,
+                                         ValueInfo<bool>,
+                                         ValueInfo<std::string>,
+                                         NumberInfo<int64_t>,
+                                         NumberInfo<uint64_t>,
+                                         NumberInfo<double>,
+                                         ModeInfo>;
+  OptionInfoVariant valueInfo;
   /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
    */
   bool boolValue() const;
@@ -4517,8 +4596,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term mkSygusVar(const Sort& sort,
-                  const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const Sort& sort,
+                       const std::string& symbol = std::string()) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
@@ -4714,23 +4793,26 @@ class CVC5_EXPORT Solver
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
+   * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
+   * @return A snapshot of the current state of the statistic values
    */
   Statistics getStatistics() const;
 
   /**
-   * Whether the output stream for the given tag is enabled. Tags can be enabled
-   * with the `output` option (and `-o <tag>` on the command line). Raises an
-   * exception when an invalid tag is given.
+   * Determione the output stream for the given tag is enabled. Tags can be
+   * enabled with the `output` option (and `-o <tag>` on the command line).
+   * Raises an exception when an invalid tag is given.
+   * @return True if the given tag is enabled
    */
   bool isOutputOn(const std::string& tag) const;
 
   /**
-   * Returns an output stream for the given tag. Tags can be enabled with the
+   * Get an output stream for the given tag. Tags can be enabled with the
    * `output` option (and `-o <tag>` on the command line). Raises an exception
    * when an invalid tag is given.
+   * @return The output stream
    */
   std::ostream& getOutput(const std::string& tag) const;
 

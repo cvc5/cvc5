@@ -25,20 +25,18 @@
 namespace cvc5 {
 namespace prop {
 
-SatProofManager::SatProofManager(Minisat::Solver* solver,
-                                 CnfStream* cnfStream,
-                                 context::UserContext* userContext,
-                                 ProofNodeManager* pnm)
-    : d_solver(solver),
+SatProofManager::SatProofManager(Env& env,
+                                 Minisat::Solver* solver,
+                                 CnfStream* cnfStream)
+    : EnvObj(env),
+      d_solver(solver),
       d_cnfStream(cnfStream),
-      d_pnm(pnm),
-      d_resChains(pnm, true, userContext),
-      d_resChainPg(userContext, pnm),
-      d_assumptions(userContext),
+      d_resChains(d_env.getProofNodeManager(), true, userContext()),
+      d_resChainPg(userContext(), d_env.getProofNodeManager()),
+      d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
-      d_userContext(userContext),
-      d_optResLevels(userContext),
-      d_optResManager(userContext, &d_resChains, d_optResProofs)
+      d_optResLevels(userContext()),
+      d_optResManager(userContext(), &d_resChains, d_optResProofs)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -130,7 +128,7 @@ void SatProofManager::endResChain(Minisat::Lit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
-                     << d_userContext->getLevel() << "\n";
+                     << userContext()->getLevel() << "\n";
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
   endResChain(d_cnfStream->getNode(satLit), {satLit});
@@ -144,7 +142,7 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
   if (TraceIsOn("sat-proof"))
   {
     Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
-                       << d_userContext->getLevel() << "\n";
+                       << userContext()->getLevel() << "\n";
     Trace("sat-proof") << "SatProofManager::endResChain: chain_res for ";
     printClause(clause);
   }
@@ -155,13 +153,13 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
   }
   Node conclusion = getClauseNode(clause);
   int clauseLevel = clause.level() + 1;
-  if (clauseLevel < d_userContext->getLevel())
+  if (clauseLevel < userContext()->getLevel())
   {
     Assert(!d_optResLevels.count(conclusion));
     d_optResLevels[conclusion] = clauseLevel;
     Trace("sat-proof") << "SatProofManager::endResChain: ..clause's lvl "
                        << clause.level() + 1 << " below curr user level "
-                       << d_userContext->getLevel() << "\n";
+                       << userContext()->getLevel() << "\n";
   }
   endResChain(conclusion, clauseLits);
 }
@@ -777,7 +775,7 @@ std::shared_ptr<ProofNode> SatProofManager::getProof()
   std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
   if (!pfn)
   {
-    pfn = d_pnm->mkAssume(d_false);
+    pfn = d_env.getProofNodeManager()->mkAssume(d_false);
   }
   return pfn;
 }
@@ -813,8 +811,8 @@ void SatProofManager::notifyPop()
     // proof node saved to be restored to suffering unintended updates. This is
     // *necessary*.
     std::shared_ptr<ProofNode> clauseResPf =
-        d_pnm->clone(d_resChains.getProofFor(it->first));
-    AlwaysAssert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
+        d_env.getProofNodeManager()->clone(d_resChains.getProofFor(it->first));
+    Assert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
     d_optResProofs[it->second].push_back(clauseResPf);
   }
 }

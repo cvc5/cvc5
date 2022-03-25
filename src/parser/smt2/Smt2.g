@@ -281,8 +281,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       // we allow overloading for function declarations
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-fun are not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-fun are not allowed in sygus "
+                                 "version 2.0");
       }
       else
       {
@@ -518,7 +518,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      api::Term var = SOLVER->mkSygusVar(t, name);
+      api::Term var = SOLVER->declareSygusVar(t, name);
       PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
@@ -780,8 +780,8 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { // allow overloading here
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-const is not allowed in sygus "
+                                 "version 2.0");
       }
       api::Term c =
           PARSER_STATE->bindVar(name, t, true);

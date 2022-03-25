@@ -4,16 +4,16 @@
 ; EXPECT: 2
 ; EXPECT: sat
 ; EXPECT: 0
-; EXPECT: (error "Invalid call to 'setOption' for option 'random-seed', solver is already fully initialized")
+; EXPECT: (error "Invalid call to 'setOption' for option 'sat-random-seed', solver is already fully initialized")
 ; EXIT: 1
 
 (get-option :verbosity)
 (set-option :verbosity 1)
 (get-option :verbosity)
 (set-option :verbosity 0)
-(get-option :random-seed)
-(set-option :random-seed 2)
-(get-option :random-seed)
+(get-option :sat-random-seed)
+(set-option :sat-random-seed 2)
+(get-option :sat-random-seed)
 
 (set-logic QF_UF)
 (declare-fun x () Bool)
@@ -22,4 +22,4 @@
 
 (set-option :verbosity 0)
 (get-option :verbosity)
-(set-option :random-seed 1)
+(set-option :sat-random-seed 1)

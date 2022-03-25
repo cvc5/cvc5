@@ -137,6 +137,14 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       }
     }
   }
+  if (solver->getOption("input-language") == "LANG_SYGUS_V2")
+  {
+    // Enable the sygus API. We set this here instead of in set defaults 
+    // to simplify checking at the API level. In particular, the sygus
+    // option is the authority on whether sygus commands are currently
+    // allowed in the API.
+    solver->setOption("sygus", "true");
+  }
 
   if (solver->getOption("output-language") == "LANG_AUTO")
   {

@@ -1176,9 +1176,80 @@ def test_get_op(solver):
 
 
 def test_get_option(solver):
-    solver.getOption("incremental")
+    solver.setOption("incremental", "true")
+    assert solver.getOption("incremental") == "true"
     with pytest.raises(RuntimeError):
         solver.getOption("asdf")
+
+
+def test_get_option_names(solver):
+    opts = solver.getOptionNames()
+    assert len(opts) > 100
+    assert "verbose" in opts
+    assert "foobar" not in opts
+
+
+def test_get_option_info(solver):
+    with pytest.raises(RuntimeError):
+        solver.getOptionInfo("asdf-invalid")
+    
+    info = solver.getOptionInfo("verbose")
+    assert info['name'] == "verbose"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is None
+    
+    info = solver.getOptionInfo("print-success")
+    assert info['name'] == "print-success"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is bool
+    assert info['current'] == False
+    assert info['default'] == False
+
+    info = solver.getOptionInfo("verbosity")
+    assert info['name'] == "verbosity"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is int
+    assert info['current'] == 0
+    assert info['default'] == 0
+    assert info['minimum'] is None and info['maximum'] is None
+
+    info = solver.getOptionInfo("rlimit")
+    assert info['name'] == "rlimit"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is int
+    assert info['current'] == 0
+    assert info['default'] == 0
+    assert info['minimum'] is None and info['maximum'] is None
+
+    info = solver.getOptionInfo("random-freq")
+    assert info['name'] == "random-freq"
+    assert info['aliases'] == ["random-frequency"]
+    assert not info['setByUser']
+    assert info['type'] is float
+    assert info['current'] == 0.0
+    assert info['default'] == 0.0
+    assert info['minimum'] == 0.0 and info['maximum'] == 1.0
+
+    info = solver.getOptionInfo("force-logic")
+    assert info['name'] == "force-logic"
+    assert info['aliases'] == []
+    assert not info['setByUser']
+    assert info['type'] is str
+    assert info['current'] == ""
+    assert info['default'] == ""
+
+    info = solver.getOptionInfo("simplification")
+    assert info['name'] == "simplification"
+    assert info['aliases'] == ["simplification-mode"]
+    assert not info['setByUser']
+    assert info['type'] == 'mode'
+    assert info['current'] == 'batch'
+    assert info['default'] == 'batch'
+    assert info['modes'] == ['batch', 'none']
 
 
 def test_get_unsat_assumptions1(solver):
@@ -1848,6 +1919,7 @@ def test_mk_sygus_grammar(solver):
 
 
 def test_synth_inv(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -1874,6 +1946,7 @@ def test_synth_inv(solver):
 
 
 def test_add_sygus_constraint(solver):
+    solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
     boolTerm = solver.mkBoolean(True)
     intTerm = solver.mkInteger(1)
@@ -1890,6 +1963,7 @@ def test_add_sygus_constraint(solver):
 
 
 def test_add_sygus_inv_constraint(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     real = solver.getRealSort()
 
@@ -1941,6 +2015,7 @@ def test_add_sygus_inv_constraint(solver):
     with pytest.raises(RuntimeError):
         solver.addSygusInvConstraint(inv, pre, trans, trans)
     slv = cvc5.Solver()
+    slv.setOption("sygus", "true")
     boolean2 = slv.getBooleanSort()
     real2 = slv.getRealSort()
     inv22 = slv.declareFun("inv", [real2], boolean2)
@@ -1958,8 +2033,14 @@ def test_add_sygus_inv_constraint(solver):
         slv.addSygusInvConstraint(inv22, pre22, trans22, post)
 
 
+def test_check_synth(solver):
+    with pytest.raises(RuntimeError):
+        solver.checkSynth()
+    solver.setOption("sygus", "true")
+    solver.checkSynth()
+
 def test_get_synth_solution(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
 
     nullTerm = cvc5.Term(solver)
@@ -1984,7 +2065,7 @@ def test_get_synth_solution(solver):
         slv.getSynthSolution(f)
 
 def test_check_synth_next(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
@@ -1995,7 +2076,7 @@ def test_check_synth_next(solver):
     solver.getSynthSolutions([f])
 
 def test_check_synth_next2(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
@@ -2004,7 +2085,7 @@ def test_check_synth_next2(solver):
         solver.checkSynthNext()
 
 def test_check_synth_next3(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
     with pytest.raises(RuntimeError):
@@ -2178,7 +2259,7 @@ def test_get_model_domain_elements(solver):
 
 
 def test_get_synth_solutions(solver):
-    solver.setOption("lang", "sygus2")
+    solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
 
     nullTerm = cvc5.Term(solver)
@@ -2391,24 +2472,27 @@ def test_issue7000(solver):
 
 
 def test_mk_sygus_var(solver):
+    solver.setOption("sygus", "true")
     boolSort = solver.getBooleanSort()
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort(intSort, boolSort)
 
-    solver.mkSygusVar(boolSort)
-    solver.mkSygusVar(funSort)
-    solver.mkSygusVar(boolSort, "b")
-    solver.mkSygusVar(funSort, "")
+    solver.declareSygusVar(boolSort)
+    solver.declareSygusVar(funSort)
+    solver.declareSygusVar(boolSort, "b")
+    solver.declareSygusVar(funSort, "")
     with pytest.raises(RuntimeError):
-        solver.mkSygusVar(cvc5.Sort(solver))
+        solver.declareSygusVar(cvc5.Sort(solver))
     with pytest.raises(RuntimeError):
-        solver.mkSygusVar(solver.getNullSort(), "a")
+        solver.declareSygusVar(solver.getNullSort(), "a")
     slv = cvc5.Solver()
+    solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
-        slv.mkSygusVar(boolSort)
+        slv.declareSygusVar(boolSort)
 
 
 def test_synth_fun(solver):
+    solver.setOption("sygus", "true")
     null = solver.getNullSort()
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
@@ -2436,6 +2520,7 @@ def test_synth_fun(solver):
     with pytest.raises(RuntimeError):
         solver.synthFun("f6", [x], boolean, g2)
     slv = cvc5.Solver()
+    slv.setOption("sygus", "true")
     x2 = slv.mkVar(slv.getBooleanSort())
     slv.synthFun("f1", [x2], slv.getBooleanSort())
     with pytest.raises(RuntimeError):

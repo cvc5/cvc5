@@ -196,14 +196,6 @@ Node CegGrammarConstructor::process(Node q,
       Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
       Assert(!templ_arg.isNull());
-      // if there is a template for this argument, make a sygus type on top of it
-      if (options().quantifiers.sygusTemplEmbedGrammar)
-      {
-        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
-                             << " with arg " << templ_arg << std::endl;
-        Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
-        tn = mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
-      }
     }
 
     // ev is the first-order variable corresponding to this synth fun
@@ -246,35 +238,39 @@ Node CegGrammarConstructor::process(Node q,
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of
       // it
-      if (!options().quantifiers.sygusTemplEmbedGrammar)
+      // otherwise, apply it as a preprocessing pass
+      Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
+                           << " with arg " << templ_arg << std::endl;
+      Trace("cegqi-debug")
+          << "  apply this template as a substituion during preprocess..."
+          << std::endl;
+      std::vector<Node> schildren;
+      std::vector<Node> largs;
+      for (unsigned j = 0; j < sfvl.getNumChildren(); j++)
       {
-        // otherwise, apply it as a preprocessing pass
-        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
-                             << " with arg " << templ_arg << std::endl;
-        Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
-        std::vector< Node > schildren;
-        std::vector< Node > largs;
-        for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
-          schildren.push_back( sfvl[j] );
-          largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
-        }
-        std::vector< Node > subsfn_children;
-        subsfn_children.push_back( sf );
-        subsfn_children.insert( subsfn_children.end(), schildren.begin(), schildren.end() );
-        Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
-        TNode subsf = subsfn;
-        Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> " << subsf << std::endl;
-        templ = templ.substitute( templ_arg, subsf );
-        // substitute lambda arguments
-        templ = templ.substitute( schildren.begin(), schildren.end(), largs.begin(), largs.end() );
-        Node subsn =
-            nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
-        TNode var = sf;
-        TNode subs = subsn;
-        Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs << std::endl;
-        qbody_subs = qbody_subs.substitute( var, subs );
-        Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
+        schildren.push_back(sfvl[j]);
+        largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
       }
+      std::vector<Node> subsfn_children;
+      subsfn_children.push_back(sf);
+      subsfn_children.insert(
+          subsfn_children.end(), schildren.begin(), schildren.end());
+      Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
+      TNode subsf = subsfn;
+      Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> "
+                           << subsf << std::endl;
+      templ = templ.substitute(templ_arg, subsf);
+      // substitute lambda arguments
+      templ = templ.substitute(
+          schildren.begin(), schildren.end(), largs.begin(), largs.end());
+      Node subsn =
+          nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
+      TNode var = sf;
+      TNode subs = subsn;
+      Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs
+                           << std::endl;
+      qbody_subs = qbody_subs.substitute(var, subs);
+      Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
     }
     d_tds->registerSygusType(tn);
     Assert(tn.isDatatype());
