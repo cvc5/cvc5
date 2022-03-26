@@ -333,20 +333,11 @@ enum Kind : int32_t
    * Cardinality constraint on uninterpreted sort.
    *
    * Interpreted as a predicate that is true when the cardinality of
-   * uinterpreted Sort @f$S@f$ is less than or equal to the value of
-   * the second argument.
+   * uinterpreted Sort @f$S@f$ is less than or equal to an upper bound.
    *
-   * - Arity: `2`
-   *   - `1:` Term of Sort @f$S@f$
-   *   - `2:` Term of Sort Int (positive integer value that bounds the
-   *          cardinality of @f$S@f$)
-   *
+   * - Arity: `0`
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - Solver::mkCardinalityConstraint(const Sort&, uint32_t) const
    */
   CARDINALITY_CONSTRAINT,
   /**
@@ -502,7 +493,7 @@ enum Kind : int32_t
    */
   INTS_DIVISION,
   /**
-   * Integer modulus, modulus by `0` undefined.
+   * Integer modulus, modulus by 0 undefined.
    *
    * - Arity: `2`
    *   - `1:` Term of Sort Int
@@ -2176,6 +2167,9 @@ enum Kind : int32_t
   APPLY_UPDATER,
   /**
    * Match expression.
+   
+   * This kind is primarily used in the parser to support the
+   * SMT-LIBv2 `match` expression.
    *
    * For example, the SMT-LIBv2 syntax for the following match term
    * \rst
@@ -2216,7 +2210,7 @@ enum Kind : int32_t
    *
    * - Arity: `2`
    *   - `1:` Term of kind #APPLY_CONSTRUCTOR (the pattern to match against)
-   *   - `2:` Term of any Sort (the term the pattern evaluates to)
+   *   - `2:` Term of any Sort (the term the match term evaluates to)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -2244,7 +2238,7 @@ enum Kind : int32_t
    *            the case)
    *     - `2:` Term of kind #APPLY_CONSTRUCTOR (the pattern expression,
    *            applying the set of variables to the constructor)
-   *     - `3:` Term of any Sort (the term the pattern evaluates to)
+   *     - `3:` Term of any Sort (the term the match term evaluates to)
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -3270,7 +3264,7 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TOLOWER,
+  STRING_TO_LOWER,
   /**
    * String to upper case.
    *
@@ -3284,7 +3278,7 @@ enum Kind : int32_t
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TOUPPER,
+  STRING_TO_UPPER,
   /**
    * String reverse.
    *
@@ -3988,6 +3982,8 @@ enum Kind : int32_t
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.
    *
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   *
    * - Arity: `n > 0`
    *   - `1..n:` Terms of any Sort
    *
@@ -4005,6 +4001,8 @@ enum Kind : int32_t
    * Specifies a (list of) terms that should not be used as a pattern for
    * quantifier instantiation.
    *
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   *
    * - Arity: `n > 0`
    *   - `1..n:` Terms of any Sort
    *
@@ -4017,10 +4015,33 @@ enum Kind : int32_t
    */
   INST_NO_PATTERN,
   /**
-   * Instantiation pool.
+   * Instantiation pool annotation.
    *
    * Specifies an annotation for pool based instantiation.
    *
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   *
+   * In detail, pool symbols can be declared via the method
+   *  - Solver::declarePool(const std::string&, const Sort&, const std::vector<Term>&) const
+   *
+   * A pool symbol represents a set of terms of a given sort. An instantiation
+   * pool annotation should match the types of the quantified formula.
+   *
+   * For example, for a quantified formula:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (FORALL (VARIABLE_LIST x y) F (INST_PATTERN_LIST (INST_POOL p q)))
+   * \endrst
+   *
+   * if @f$x@f$ and @f$y@f$ have Sorts @f$S_1@f$ and @f$S_2@f$,
+   * then pool symbols @f$p@f$ and @f$q@f$ should have Sorts
+   * (Set @f$S_1@f$) and (Set @f$S_2@f$), respectively.
+   * This annotation specifies that the quantified formula above should be
+   * instantiated with the product of all terms that occur in the sets @f$p@f$
+   * and @f$q@f$.
+   * 
    * - Arity: `n > 0`
    *   - `1..n:` Terms that comprise the pools, which are one-to-one with the
    *             variables of the quantified formula to be instantiated
@@ -4036,8 +4057,28 @@ enum Kind : int32_t
   /**
    * A instantantiation-add-to-pool annotation.
    *
-   * - Arity: `1`
-   *   - `1:` The pool to add to.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   * 
+   * An instantantiation-add-to-pool annotation indicates that when a quantified
+   * formula is instantiated, the instantiated version of a term should be
+   * added to the given pool.
+   * 
+   * For example, consider a quantified formula:
+   * 
+   * \rst
+   * .. code:: lisp
+   *
+   *     (FORALL (VARIABLE_LIST x) F 
+   *             (INST_PATTERN_LIST (INST_ADD_TO_POOL (ADD x 1) p)))
+   * \endrst
+   * 
+   * where assume that @f$x@f$ has type Int. When this quantified formula is
+   * instantiated with, e.g., the term @f$t@f$, the term `(ADD t 1)` is added to pool @f$p@f$.
+   *
+   * - Arity: `2`
+   *   - `1:` The Term whose free variables are bound by the quantified formula.
+   *   - `2:` The pool to add to, whose Sort should be a set of elements that
+   *          match the Sort of the first argument.
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -4050,8 +4091,29 @@ enum Kind : int32_t
   /**
    * A skolemization-add-to-pool annotation.
    *
-   * - Arity: `1`
-   *   - `1:` The pool to add to.
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   *
+   * An skolemization-add-to-pool annotation indicates that when a quantified
+   * formula is skolemized, the skolemized version of a term should be added to
+   * the given pool.
+   *
+   * For example, consider a quantified formula:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (FORALL (VARIABLE_LIST x) F
+   *             (INST_PATTERN_LIST (SKOLEM_ADD_TO_POOL (ADD x 1) p)))
+   * \endrst
+   *
+   * where assume that @f$x@f$ has type Int. When this quantified formula is
+   * skolemized, e.g., with @f$k@f$ of type Int, then the term `(ADD k 1)` is
+   * added to the pool @f$p@f$.
+   *
+   * - Arity: `2`
+   *   - `1:` The Term whose free variables are bound by the quantified formula.
+   *   - `2:` The pool to add to, whose Sort should be a set of elements that
+   *          match the Sort of the first argument.
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
@@ -4067,6 +4129,8 @@ enum Kind : int32_t
    * Specifies a custom property for a quantified formula given by a
    * term that is ascribed a user attribute.
    *
+   * @note Should only be used as a child of #INST_PATTERN_LIST.
+   *
    * - Arity: `n > 0`
    *   - `1:` Term of Kind #CONST_STRING (the keyword of the attribute)
    *   - `2...n:` Terms representing the values of the attribute
@@ -4080,11 +4144,11 @@ enum Kind : int32_t
    */
   INST_ATTRIBUTE,
   /**
-   * A list of instantiation patterns and/or attributes.
+   * A list of instantiation patterns, attributes or annotations.
    *
    * - Arity: `n > 1`
-   *   - `1..n:` Terms of Kind #INST_PATTERN, #INST_NO_PATTERN, or
-   *             #INST_ATTRIBUTE
+   *   - `1..n:` Terms of Kind #INST_PATTERN, #INST_NO_PATTERN, #INST_POOL,
+   *             #INST_ADD_TO_POOL, #SKOLEM_ADD_TO_POOL, #INST_ATTRIBUTE
    *
    * - Create Term of this Kind with:
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const

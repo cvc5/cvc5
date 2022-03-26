@@ -49,7 +49,7 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
   {
     retNode = rewriteStringLeq(node);
   }
-  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
+  else if (nk == STRING_TO_LOWER || nk == STRING_TO_UPPER)
   {
     retNode = rewriteStrConvert(node);
   }
@@ -151,7 +151,7 @@ Node StringsRewriter::rewriteIntToStr(Node node)
 Node StringsRewriter::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
-  Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
+  Assert(nk == STRING_TO_LOWER || nk == STRING_TO_UPPER);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
@@ -162,14 +162,14 @@ Node StringsRewriter::rewriteStrConvert(Node node)
       // transform it
       // upper 65 ... 90
       // lower 97 ... 122
-      if (nk == STRING_TOUPPER)
+      if (nk == STRING_TO_UPPER)
       {
         if (newChar >= 97 && newChar <= 122)
         {
           newChar = newChar - 32;
         }
       }
-      else if (nk == STRING_TOLOWER)
+      else if (nk == STRING_TO_LOWER)
       {
         if (newChar >= 65 && newChar <= 90)
         {
@@ -188,21 +188,21 @@ Node StringsRewriter::rewriteStrConvert(Node node)
     {
       concatBuilder << nm->mkNode(nk, nc);
     }
-    // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
+    // to_lower( x1 ++ x2 ) --> to_lower( x1 ) ++ to_lower( x2 )
     Node retNode = concatBuilder.constructNode();
     return returnRewrite(node, retNode, Rewrite::STR_CONV_MINSCOPE_CONCAT);
   }
-  else if (node[0].getKind() == STRING_TOLOWER
-           || node[0].getKind() == STRING_TOUPPER)
+  else if (node[0].getKind() == STRING_TO_LOWER
+           || node[0].getKind() == STRING_TO_UPPER)
   {
-    // tolower( tolower( x ) ) --> tolower( x )
-    // tolower( toupper( x ) ) --> tolower( x )
+    // to_lower( to_lower( x ) ) --> to_lower( x )
+    // to_lower( toupper( x ) ) --> to_lower( x )
     Node retNode = nm->mkNode(nk, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::STR_CONV_IDEM);
   }
   else if (node[0].getKind() == STRING_ITOS)
   {
-    // tolower( str.from.int( x ) ) --> str.from.int( x )
+    // to_lower( str.from.int( x ) ) --> str.from.int( x )
     return returnRewrite(node, node[0], Rewrite::STR_CONV_ITOS);
   }
   return node;

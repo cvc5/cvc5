@@ -156,8 +156,8 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_RE_ALL, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REPLACE_ALL, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
-  d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_TO_LOWER, eagerEval);
+  d_equalityEngine->addFunctionKind(kind::STRING_TO_UPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
 
   // memberships are not relevant for model building

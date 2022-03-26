@@ -4251,6 +4251,9 @@ class CVC5_EXPORT Solver
   /**
    * Declare a symbolic pool of terms with the given initial value.
    *
+   * For details on how pools are used to specify instructions for quantifier
+   * instantiation, see documentation for the #INST_POOL kind.
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -4262,6 +4265,7 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
+   * @return The pool symbol
    */
   Term declarePool(const std::string& symbol,
                    const Sort& sort,

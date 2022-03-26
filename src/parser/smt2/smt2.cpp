@@ -160,8 +160,8 @@ void Smt2::addStringOperators() {
   {
     addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
     addOperator(api::STRING_UPDATE, "str.update");
-    addOperator(api::STRING_TOLOWER, "str.tolower");
-    addOperator(api::STRING_TOUPPER, "str.toupper");
+    addOperator(api::STRING_TO_LOWER, "str.to_lower");
+    addOperator(api::STRING_TO_UPPER, "str.to_upper");
     addOperator(api::STRING_REV, "str.rev");
     // sequence versions
     addOperator(api::SEQ_CONCAT, "seq.++");

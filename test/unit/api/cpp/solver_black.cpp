@@ -3301,7 +3301,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t234 = slv.mkTerm(Kind::SET_CHOOSE, {t212});
   Term t250 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t1, t92, t1});
   Term t259 = slv.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
-  Term t263 = slv.mkTerm(Kind::STRING_TOLOWER, {t259});
+  Term t263 = slv.mkTerm(Kind::STRING_TO_LOWER, {t259});
   Term t272 = slv.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
   Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {71}), {t272});
   Term t288 = slv.mkTerm(Kind::EQUAL, {t263, t1});
