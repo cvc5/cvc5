@@ -520,7 +520,7 @@ def test_mk_op(solver):
         solver.mkOp(Kind.Divisible, 1, 2)
 
     args = [1, 2, 2]
-    solver.mkOp(Kind.TupleProject, args)
+    solver.mkOp(Kind.TupleProject, *args)
 
 
 def test_mk_pi(solver):
@@ -2046,7 +2046,8 @@ def test_get_synth_solution(solver):
     with pytest.raises(RuntimeError):
         solver.getSynthSolution(f)
 
-    solver.checkSynth()
+    res = solver.checkSynth()
+    assert res.hasSolution()
 
     solver.getSynthSolution(f)
     solver.getSynthSolution(f)
@@ -2065,10 +2066,12 @@ def test_check_synth_next(solver):
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
-    solver.checkSynth()
+    res = solver.checkSynth()
+    assert res.hasSolution()
     solver.getSynthSolutions([f])
 
-    solver.checkSynthNext()
+    res = solver.checkSynthNext()
+    assert res.hasSolution()
     solver.getSynthSolutions([f])
 
 def test_check_synth_next2(solver):
@@ -2545,22 +2548,22 @@ def test_tuple_project(solver):
     indices5 = [4]
     indices6 = [0, 4]
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices1), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices1), tuple)
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices2), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices2), tuple)
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices3), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices3), tuple)
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices4), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices4), tuple)
 
     with pytest.raises(RuntimeError):
-        solver.mkTerm(solver.mkOp(Kind.TupleProject, indices5), tuple)
+        solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices5), tuple)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(solver.mkOp(Kind.TupleProject, indices6), tuple)
+        solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices6), tuple)
 
     indices = [0, 3, 2, 0, 1, 2]
 
-    op = solver.mkOp(Kind.TupleProject, indices)
+    op = solver.mkOp(Kind.TupleProject, *indices)
     projection = solver.mkTerm(op, tuple)
 
     datatype = tuple.getSort().getDatatype()

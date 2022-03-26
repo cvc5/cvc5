@@ -796,7 +796,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JII(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Kind kind = (Kind)kindValue;
-  Op* retPointer = new Op(solver->mkOp(kind, (uint32_t)arg));
+  Op* retPointer = new Op(solver->mkOp(kind, {(uint32_t)arg}));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -812,7 +812,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkOp__JIII(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Kind kind = (Kind)kindValue;
-  Op* retPointer = new Op(solver->mkOp(kind, (uint32_t)arg1, (uint32_t)arg2));
+  Op* retPointer = new Op(solver->mkOp(kind, {(uint32_t)arg1, (uint32_t)arg2}));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2608,7 +2608,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynth(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Result* retPointer = new Result(solver->checkSynth());
+  SynthResult* retPointer = new SynthResult(solver->checkSynth());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2623,7 +2623,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_checkSynthNext(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Result* retPointer = new Result(solver->checkSynthNext());
+  SynthResult* retPointer = new SynthResult(solver->checkSynthNext());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

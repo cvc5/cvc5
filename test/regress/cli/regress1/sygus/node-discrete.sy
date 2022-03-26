@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
 (set-logic ALL)
 
@@ -22,7 +22,7 @@
 ; reliability
 (define-fun rel () Real 0.7)
 
-; new chance of success
+; new chance of feasible
 (define-fun updateReal ((addP Real) (currP Real)) Real
   (+ currP (* (- 1.0 currP) addP))
 )
@@ -105,7 +105,7 @@
     (let ((dst_pair (mkPair dst pck)))
     (let ((src_pair (mkPair actor pck)))
     (let ((chSuccess (ite (select prevRcv src_pair) rel 0.0)))
-    ; success and failure
+    ; feasible and failure
     (appendStateToPState
       (mkState (store prevRcv dst_pair true))
       (* r chSuccess)
@@ -121,7 +121,7 @@
     (let ((dst_pair (mkPair actor pck)))
     (let ((src_pair (mkPair src pck)))
     (let ((chSuccess (ite (select prevRcv src_pair) rel 0.0)))
-    ; success and failure
+    ; feasible and failure
     (appendStateToPState
       (mkState (store prevRcv dst_pair true))
       (* r chSuccess)

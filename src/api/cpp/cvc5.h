@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
+#include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
 
@@ -503,16 +504,6 @@ class CVC5_EXPORT Sort
    * @return true if the sort is a datatype sort
    */
   bool isDatatype() const;
-
-  /**
-   * Is this a parametric datatype sort? A parametric datatype sort is either
-   * one that is returned by a call to Solver::mkDatatypeSort() or
-   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
-   * datatype sort returned by Sort::instantiate() for parametric datatype
-   * sort `s`.
-   * @return true if the sort is a parametric datatype sort
-   */
-  bool isParametricDatatype() const;
 
   /**
    * Is this a constructor sort?
@@ -3340,69 +3331,48 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create an operator for a builtin Kind.
+   * Create operator of Kind:
+   *   - #BITVECTOR_EXTRACT
+   *   - #BITVECTOR_REPEAT
+   *   - #BITVECTOR_ROTATE_LEFT
+   *   - #BITVECTOR_ROTATE_RIGHT
+   *   - #BITVECTOR_SIGN_EXTEND
+   *   - #BITVECTOR_ZERO_EXTEND
+   *   - #DIVISIBLE
+   *   - #FLOATINGPOINT_TO_FP_FROM_FP
+   *   - #FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - #FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - #FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - #FLOATINGPOINT_TO_FP_FROM_UBV
+   *   - #FLOATINGPOINT_TO_SBV
+   *   - #FLOATINGPOINT_TO_UBV
+   *   - #INT_TO_BITVECTOR
+   *   - #TUPLE_PROJECT
    *
-   * The Kind may not be the Kind for an indexed operator
-   * (e.g. BITVECTOR_EXTRACT).
+   * See cvc5::api::Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param args the arguments (indices) of the operator
    *
-   * @note In this case, the ``Op`` simply wraps the ``Kind``.  The Kind can be
-   *       used in ``Solver::mkTerm`` directly without creating an ``Op`` first.
-   * @param kind the kind to wrap
+   * @note If ``args`` is empty, the Op simply wraps the cvc5::api::Kind.  The
+   * Kind can be used in Solver::mkTerm directly without creating an Op
+   * first.
    */
-  Op mkOp(Kind kind) const;
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args = {}) const;
+
+#ifndef DOXYGEN_SKIP
+  // Overload is only used to disambiguate the std::vector and std::string
+  // overloads.
+  Op mkOp(Kind kind, const std::initializer_list<uint32_t>& args) const;
+#endif
 
   /**
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
+   * See cvc5::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
   Op mkOp(Kind kind, const std::string& arg) const;
-
-  /**
-   * Create operator of kind:
-   *   - DIVISIBLE
-   *   - BITVECTOR_REPEAT
-   *   - BITVECTOR_ZERO_EXTEND
-   *   - BITVECTOR_SIGN_EXTEND
-   *   - BITVECTOR_ROTATE_LEFT
-   *   - BITVECTOR_ROTATE_RIGHT
-   *   - INT_TO_BITVECTOR
-   *   - FLOATINGPOINT_TO_UBV
-   *   - FLOATINGPOINT_TO_UBV_TOTAL
-   *   - FLOATINGPOINT_TO_SBV
-   *   - FLOATINGPOINT_TO_SBV_TOTAL
-   *   - TUPLE_UPDATE
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg) const;
-
-  /**
-   * Create operator of Kind:
-   *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - FLOATINGPOINT_TO_FP_FROM_FP
-   *   - FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg1 the first uint32_t argument to this operator
-   * @param arg2 the second uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
-
-  /**
-   * Create operator of Kind:
-   *   - TUPLE_PROJECT
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param args the arguments (indices) of the operator
-   */
-  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -4756,10 +4726,12 @@ class CVC5_EXPORT Solver
    *     (check-synth)
    * \endverbatim
    *
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  Result checkSynth() const;
+  SynthResult checkSynth() const;
 
   /**
    * Try to find a next solution for the synthesis conjecture corresponding to
@@ -4775,10 +4747,12 @@ class CVC5_EXPORT Solver
    *     (check-synth-next)
    * \endverbatim
    *
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  Result checkSynthNext() const;
+  SynthResult checkSynthNext() const;
 
   /**
    * Get the synthesis solution of the given term. This method should be called
@@ -4834,6 +4808,9 @@ class CVC5_EXPORT Solver
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+  /** Helper for creating operators. */
+  template <typename T>
+  Op mkOpHelper(Kind kind, const T& t) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(const T& t) const;

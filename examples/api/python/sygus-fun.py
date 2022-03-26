@@ -90,7 +90,7 @@ if __name__ == "__main__":
       Kind.Equal, slv.mkTerm(Kind.Add, max_x_y, min_x_y), slv.mkTerm(Kind.Add, varX, varY)))
 
   # print solutions if available
-  if (slv.checkSynth().isUnsat()):
+  if (slv.checkSynth().hasSolution()):
     # Output should be equivalent to:
     # (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
     # (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))

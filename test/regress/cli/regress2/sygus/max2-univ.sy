@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; Synthesize the maximum of 2 integers, but property has 4 variables (requires 2 passes)
 (set-logic LIA)

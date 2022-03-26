@@ -1502,6 +1502,22 @@ class SolverTest
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
+      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ verbose | void }"));
+    }
+    {
+      // bool type with default
+      OptionInfo info = d_solver.getOptionInfo("print-success");
+      assertions.add(() -> assertEquals("print-success", info.getName()));
+      assertions.add(
+          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+      assertions.add(
+          () -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class));
+      OptionInfo.ValueInfo<Boolean> valInfo =
+          (OptionInfo.ValueInfo<Boolean>) info.getBaseInfo();
+      assertions.add(() -> assertEquals(false, valInfo.getDefaultValue().booleanValue()));
+      assertions.add(() -> assertEquals(false, valInfo.getCurrentValue().booleanValue()));
+      assertions.add(() -> assertEquals(info.booleanValue(), false));
+      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ print-success | bool | false | default false }"));
     }
     {
       // int64 type with default
@@ -1516,10 +1532,24 @@ class SolverTest
       assertions.add(() -> assertEquals(0, numInfo.getDefaultValue().intValue()));
       assertions.add(() -> assertEquals(0, numInfo.getCurrentValue().intValue()));
       assertions.add(
-          () -> assertFalse(numInfo.getMinimum() != null || numInfo.getMaximum() != null));
+          () -> assertTrue(numInfo.getMinimum() == null && numInfo.getMaximum() == null));
       assertions.add(() -> assertEquals(info.intValue().intValue(), 0));
+      assertions.add(() -> assertEquals(info.toString(), "OptionInfo{ verbosity | int64_t | 0 | default 0 }"));
     }
     assertAll(assertions);
+    {
+      OptionInfo info = d_solver.getOptionInfo("rlimit");
+      assertEquals(info.getName(), "rlimit");
+      assertEquals(
+          Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
+      assertTrue(info.getBaseInfo().getClass() == OptionInfo.NumberInfo.class);
+      OptionInfo.NumberInfo<BigInteger> ni = (OptionInfo.NumberInfo<BigInteger>) info.getBaseInfo();
+      assertEquals(ni.getCurrentValue().intValue(), 0);
+      assertEquals(ni.getDefaultValue().intValue(), 0);
+      assertTrue(ni.getMinimum() == null && ni.getMaximum() == null);
+      assertEquals(info.intValue().intValue(), 0);
+      assertEquals(info.toString(), "OptionInfo{ rlimit | uint64_t | 0 | default 0 }");
+    }
     {
       OptionInfo info = d_solver.getOptionInfo("random-freq");
       assertEquals(info.getName(), "random-freq");
@@ -1533,6 +1563,19 @@ class SolverTest
       assertEquals(ni.getMinimum(), 0.0);
       assertEquals(ni.getMaximum(), 1.0);
       assertEquals(info.doubleValue(), 0.0);
+      assertEquals(info.toString(), "OptionInfo{ random-freq, random-frequency | double | 0 | default 0 | 0 <= x <= 1 }");
+    }
+    {
+      OptionInfo info = d_solver.getOptionInfo("force-logic");
+      assertEquals(info.getName(), "force-logic");
+      assertEquals(
+          Arrays.asList(info.getAliases()), Arrays.asList(new String[] {}));
+      assertTrue(info.getBaseInfo().getClass() == OptionInfo.ValueInfo.class);
+      OptionInfo.ValueInfo<String> ni = (OptionInfo.ValueInfo<String>) info.getBaseInfo();
+      assertEquals(ni.getCurrentValue(), "");
+      assertEquals(ni.getDefaultValue(), "");
+      assertEquals(info.stringValue(), "");
+      assertEquals(info.toString(), "OptionInfo{ force-logic | string | \"\" | default \"\" }");
     }
     {
       // mode option
@@ -1548,6 +1591,7 @@ class SolverTest
       assertions.add(() -> assertEquals(2, modeInfo.getModes().length));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
+      assertEquals(info.toString(), "OptionInfo{ simplification, simplification-mode | mode | batch | default batch | modes: batch, none }");
     }
     assertAll(assertions);
   }
@@ -2641,7 +2685,8 @@ class SolverTest
 
     assertThrows(CVC5ApiException.class, () -> d_solver.getSynthSolution(f));
 
-    d_solver.checkSynth();
+    SynthResult sr = d_solver.checkSynth();
+    assertEquals(sr.hasSolution(), true);
 
     assertDoesNotThrow(() -> d_solver.getSynthSolution(f));
     assertDoesNotThrow(() -> d_solver.getSynthSolution(f));
@@ -2685,9 +2730,11 @@ class SolverTest
     d_solver.setOption("incremental", "true");
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
-    d_solver.checkSynth();
+    SynthResult sr = d_solver.checkSynth();
+    assertEquals(sr.hasSolution(), true);
     assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
-    d_solver.checkSynthNext();
+    sr = d_solver.checkSynthNext();
+    assertEquals(sr.hasSolution(), true);
     assertDoesNotThrow(() -> d_solver.getSynthSolutions(new Term[] {f}));
   }
 
