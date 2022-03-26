@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
+#include "expr/annotation_elim_node_converter.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
@@ -209,9 +210,11 @@ CegInstantiator::~CegInstantiator() {
 void CegInstantiator::computeProgVars( Node n ){
   if( d_prog_var.find( n )==d_prog_var.end() ){
     d_prog_var[n].clear();
-    if (n.getKind() == kind::WITNESS)
+    Kind k = n.getKind();
+    if (k == kind::WITNESS)
     {
       Assert(d_prog_var.find(n[0][0]) == d_prog_var.end());
+      // ignore the bound variable
       d_prog_var[n[0][0]].clear();
     }
     if (d_vars_set.find(n) != d_vars_set.end())
@@ -223,7 +226,14 @@ void CegInstantiator::computeProgVars( Node n ){
       d_inelig.insert(n);
       return;
     }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    bool isClosure = n.isClosure();
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      if (isClosure && i != 1)
+      {
+        // ignore the bound variable list and annotation
+        continue;
+      }
       computeProgVars( n[i] );
       if( d_inelig.find( n[i] )!=d_inelig.end() ){
         d_inelig.insert(n);
@@ -232,12 +242,11 @@ void CegInstantiator::computeProgVars( Node n ){
       d_prog_var[n].insert(d_prog_var[n[i]].begin(), d_prog_var[n[i]].end());
     }
     // selectors applied to program variables are also variables
-    if (n.getKind() == APPLY_SELECTOR
-        && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
+    if (k == APPLY_SELECTOR && d_prog_var[n].find(n[0]) != d_prog_var[n].end())
     {
       d_prog_var[n].insert(n);
     }
-    if (n.getKind() == kind::WITNESS)
+    if (k == kind::WITNESS)
     {
       d_prog_var.erase(n[0][0]);
     }
@@ -932,7 +941,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   Node cnode = pv_prop.getCacheNode();
   if( d_curr_subs_proc[pv][n].find( cnode )==d_curr_subs_proc[pv][n].end() ){
     d_curr_subs_proc[pv][n][cnode] = true;
-    if( Trace.isOn("cegqi-inst-debug") ){
+    if( TraceIsOn("cegqi-inst-debug") ){
       for( unsigned j=0; j<sf.d_subs.size(); j++ ){
         Trace("cegqi-inst-debug") << " ";
       }
@@ -1080,7 +1089,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       subs.push_back( n );
     }
   }
-  if (Trace.isOn("cegqi-inst"))
+  if (TraceIsOn("cegqi-inst"))
   {
     Trace("cegqi-inst") << "Ceg Instantiator produced : " << std::endl;
     for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
@@ -1132,7 +1141,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
   n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
-  if( Trace.isOn("sygus-si-apply-subs-debug") ){
+  if( TraceIsOn("sygus-si-apply-subs-debug") ){
     Trace("sygus-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("sygus-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
@@ -1455,7 +1464,12 @@ void CegInstantiator::processAssertions() {
 }
 
 Node CegInstantiator::getModelValue( Node n ) {
-  return d_treg.getModel()->getValue(n);
+  Node mv = d_treg.getModel()->getValue(n);
+  // Witness terms with identifiers may appear in the model. We require
+  // dropping their annotations here.
+  AnnotationElimNodeConverter aenc;
+  mv = aenc.convert(mv);
+  return mv;
 }
 
 Node CegInstantiator::getBoundVariable(TypeNode tn)

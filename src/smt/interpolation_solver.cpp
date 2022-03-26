@@ -119,7 +119,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": result is " << r << std::endl;
     std::stringstream serr;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+    if (r.getStatus() != Result::UNSAT)
     {
       if (j == 0)
       {

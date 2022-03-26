@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --sygus-out=status
-; EXPECT: unsat
+; EXPECT: feasible
 (set-logic HO_ALL)
 (synth-fun f ((x Int)) Int)
 (synth-fun g ((x Int)) Int)

@@ -125,7 +125,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
         == options::nlCovLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
-      if (Trace.isOn("cdcac"))
+      if (TraceIsOn("cdcac"))
       {
         auto reference = poly::infeasible_regions(p, d_assignment, sc);
         Trace("cdcac") << "Lazard: " << intervals << std::endl;
@@ -292,7 +292,7 @@ PolyVector requiredCoefficientsLazardModified(
 
 PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
 {
-  if (Trace.isOn("cdcac::projection"))
+  if (TraceIsOn("cdcac::projection"))
   {
     Trace("cdcac::projection")
         << "Poly: " << p << " over " << d_assignment << std::endl;
@@ -519,7 +519,7 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
 
-  if (Trace.isOn("cdcac"))
+  if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[curVariable]
                    << ":" << std::endl;
@@ -610,7 +610,7 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     pruneRedundantIntervals(intervals);
   }
 
-  if (Trace.isOn("cdcac"))
+  if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
                    << d_variableOrdering[curVariable] << ":" << std::endl;
@@ -704,7 +704,7 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
   cleanIntervals(intervals);
   if (options().arith.nlCovPrune)
   {
-    if (Trace.isOn("cdcac"))
+    if (TraceIsOn("cdcac"))
     {
       auto copy = intervals;
       removeRedundantIntervals(intervals);

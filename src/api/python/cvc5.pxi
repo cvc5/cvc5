@@ -3,9 +3,12 @@ from fractions import Fraction
 from functools import wraps
 import sys
 
+from cython.operator cimport dereference, preincrement
+
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
 
+from libcpp cimport bool as c_bool
 from libcpp.pair cimport pair
 from libcpp.set cimport set as c_set
 from libcpp.string cimport string
@@ -18,10 +21,16 @@ from cvc5 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
 from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
+from cvc5 cimport SynthResult as c_SynthResult
 from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
+from cvc5 cimport OptionInfo as c_OptionInfo
+from cvc5 cimport holds as c_holds
+from cvc5 cimport getVariant as c_getVariant
 from cvc5 cimport Solver as c_Solver
+from cvc5 cimport Statistics as c_Statistics
+from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
@@ -495,30 +504,16 @@ cdef class Op:
         """
         return self.cop.getNumIndices()
 
-    def getIndices(self):
+    def __getitem__(self, i):
         """
-            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
+            Get the index at position i.
+            :param i: the position of the index to return
+            :return: the index at position i
         """
-        indices = None
-        try:
-            indices = self.cop.getIndices[string]().decode()
-        except:
-            pass
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cop[i]
+        return term
 
-        try:
-            indices = self.cop.getIndices[uint32_t]()
-        except:
-            pass
-
-        try:
-            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
-        except:
-            pass
-
-        if indices is None:
-            raise RuntimeError("Unable to retrieve indices from {}".format(self))
-
-        return indices
 
 cdef class Grammar:
     """
@@ -597,11 +592,11 @@ cdef class Result:
         """
         return self.cr.isUnsat()
 
-    def isSatUnknown(self):
+    def isUnknown(self):
         """
             :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
-        return self.cr.isSatUnknown()
+        return self.cr.isUnknown()
 
     def getUnknownExplanation(self):
         """
@@ -621,6 +616,50 @@ cdef class Result:
     def __repr__(self):
         return self.cr.toString().decode()
 
+cdef class SynthResult:
+    """
+      Encapsulation of a solver synth result. This is the return value of the
+      API methods:
+        - :py:meth:`Solver.checkSynth()`
+        - :py:meth:`Solver.checkSynthNext()`
+      which we call synthesis queries. This class indicates whether the
+      synthesis query has a solution, has no solution, or is unknown.
+    """
+    cdef c_SynthResult cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_SynthResult()
+
+    def isNull(self):
+        """
+            :return: True if SynthResult is null, i.e. not a SynthResult returned from a synthesis query.
+        """
+        return self.cr.isNull()
+
+    def hasSolution(self):
+        """
+            :return: True if the synthesis query has a solution.
+        """
+        return self.cr.hasSolution()
+
+    def hasNoSolution(self):
+        """
+            :return: True if the synthesis query has no solution.
+            In this case, then it was determined there was no solution.
+        """
+        return self.cr.hasNoSolution()
+
+    def isUnknown(self):
+        """
+            :return: True if the result of the synthesis query could not be determined.
+        """
+        return self.cr.isUnknown()
+
+    def __str__(self):
+        return self.cr.toString().decode()
+
+    def __repr__(self):
+        return self.cr.toString().decode()
 
 cdef class RoundingMode:
     """
@@ -949,15 +988,19 @@ cdef class Solver:
         sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
         return sort
 
-    def mkSortConstructorSort(self, str symbol, size_t arity):
+    def mkUninterpretedSortConstructorSort(self, str symbol, size_t arity):
         """Create a sort constructor sort.
 
+        An uninterpreted sort constructor is an uninterpreted sort with
+        arity > 0.
+
         :param symbol: the symbol of the sort
-        :param arity: the arity of the sort
+        :param arity: the arity of the sort (must be > 0)
         :return: the sort constructor sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort =self.csolver.mkSortConstructorSort(symbol.encode(), arity)
+        sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
+            symbol.encode(), arity)
         return sort
 
     @expand_list_arg(num_req_args=0)
@@ -1024,40 +1067,28 @@ cdef class Solver:
         Supports the following uses:
 
         - ``Op mkOp(Kind kind)``
-        - ``Op mkOp(Kind kind, Kind k)``
         - ``Op mkOp(Kind kind, const string& arg)``
-        - ``Op mkOp(Kind kind, uint32_t arg)``
-        - ``Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)``
-        - ``Op mkOp(Kind kind, [uint32_t arg0, ...])`` (used for the TupleProject kind)
+        - ``Op mkOp(Kind kind, uint32_t arg0, ...)``
         """
         cdef Op op = Op(self)
         cdef vector[uint32_t] v
 
         if len(args) == 0:
             op.cop = self.csolver.mkOp(<c_Kind> k.value)
-        elif len(args) == 1:
-            if isinstance(args[0], str):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value,
-                                           <const string &>
-                                           args[0].encode())
-            elif isinstance(args[0], int):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int?> args[0])
-            elif isinstance(args[0], list):
-                for a in args[0]:
-                    if a < 0 or a >= 2 ** 31:
-                        raise ValueError("Argument {} must fit in a uint32_t".format(a))
-
-                    v.push_back((<uint32_t?> a))
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <const vector[uint32_t]&> v)
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
-        elif len(args) == 2:
-            if isinstance(args[0], int) and isinstance(args[1], int):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int> args[0], <int> args[1])
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
+        elif len(args) == 1 and isinstance(args[0], str):
+            op.cop = self.csolver.mkOp(<c_Kind> k.value,
+                                       <const string &>
+                                       args[0].encode())
+        else:
+            for a in args:
+                if not isinstance(a, int):
+                  raise ValueError(
+                            "Expected uint32_t for argument {}".format(a))
+                if a < 0 or a >= 2 ** 31:
+                    raise ValueError(
+                            "Argument {} must fit in a uint32_t".format(a))
+                v.push_back((<uint32_t?> a))
+            op.cop = self.csolver.mkOp(<c_Kind> k.value, v)
         return op
 
     def mkTrue(self):
@@ -1552,7 +1583,7 @@ cdef class Solver:
         grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
-    def mkSygusVar(self, Sort sort, str symbol=""):
+    def declareSygusVar(self, Sort sort, str symbol=""):
         """Append symbol to the current list of universal variables.
 
         SyGuS v2:
@@ -1566,7 +1597,7 @@ cdef class Solver:
         :return: the universal variable
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
+        term.cterm = self.csolver.declareSygusVar(sort.csort, symbol.encode())
         return term
 
     def addSygusConstraint(self, Term t):
@@ -1639,9 +1670,12 @@ cdef class Solver:
 
             ( check-synth )
 
-        :return: the result of the synthesis conjecture.
+        :return: the result of the check, which is "solution" if the check
+                 found a solution in which case solutions are available via
+                 getSynthSolutions, "no solution" if it was determined there is
+                 no solution, or "unknown" otherwise.
         """
-        cdef Result r = Result()
+        cdef SynthResult r = SynthResult()
         r.cr = self.csolver.checkSynth()
         return r
 
@@ -1658,10 +1692,12 @@ cdef class Solver:
 
             ( check-synth )
 
-        :return: the result of the check, which is unsat if the check succeeded,
-                 in which case solutions are available via getSynthSolutions.
+        :return: the result of the check, which is "solution" if the check
+                 found a solution in which case solutions are available via
+                 getSynthSolutions, "no solution" if it was determined there is
+                 no solution, or "unknown" otherwise.
         """
-        cdef Result r = Result()
+        cdef SynthResult r = SynthResult()
         r.cr = self.csolver.checkSynthNext()
         return r
 
@@ -1797,6 +1833,11 @@ cdef class Solver:
         .. code-block:: smtlib
 
             ( declare-sort <symbol> <numeral> )
+
+        .. note::
+          This corresponds to :py:meth:`Solver.mkUninterpretedSort()` if
+          arity = 0, and to
+          :py:meth:`Solver.mkUninterpretedSortConstructorSort()` if arity > 0.
 
         :param symbol: the name of the sort
         :param arity: the arity of the sort
@@ -1989,7 +2030,85 @@ cdef class Solver:
         :param option: the option for which the value is queried
         :return: a string representation of the option value
         """
-        return self.csolver.getOption(option.encode())
+        return self.csolver.getOption(option.encode()).decode()
+
+    def getOptionNames(self):
+        """Get all option names that can be used with `setOption`, `getOption` and `getOptionInfo`.
+
+        :return: all option names
+        """
+        return [s.decode() for s in self.csolver.getOptionNames()]
+
+    def getOptionInfo(self, str option):
+        """Get some information about the given option. Check the `OptionInfo`
+        class for more details on which information is available.
+
+        :return: information about the given option
+        """
+        # declare all the variables we may need later
+        cdef c_OptionInfo.ValueInfo[c_bool] vib
+        cdef c_OptionInfo.ValueInfo[string] vis
+        cdef c_OptionInfo.NumberInfo[int64_t] nii
+        cdef c_OptionInfo.NumberInfo[uint64_t] niu
+        cdef c_OptionInfo.NumberInfo[double] nid
+        cdef c_OptionInfo.ModeInfo mi
+
+        oi = self.csolver.getOptionInfo(option.encode())
+        # generic information
+        res = {
+            'name': oi.name.decode(),
+            'aliases': [s.decode() for s in oi.aliases],
+            'setByUser': oi.setByUser,
+        }
+
+        # now check which type is actually in the variant
+        if c_holds[c_OptionInfo.VoidInfo](oi.valueInfo):
+            # it's a void
+            res['type'] = None
+        elif c_holds[c_OptionInfo.ValueInfo[c_bool]](oi.valueInfo):
+            # it's a bool
+            res['type'] = bool
+            vib = c_getVariant[c_OptionInfo.ValueInfo[c_bool]](oi.valueInfo)
+            res['current'] = vib.currentValue
+            res['default'] = vib.defaultValue
+        elif c_holds[c_OptionInfo.ValueInfo[string]](oi.valueInfo):
+            # it's a string
+            res['type'] = str
+            vis = c_getVariant[c_OptionInfo.ValueInfo[string]](oi.valueInfo)
+            res['current'] = vis.currentValue.decode()
+            res['default'] = vis.defaultValue.decode()
+        elif c_holds[c_OptionInfo.NumberInfo[int64_t]](oi.valueInfo):
+            # it's an int64_t
+            res['type'] = int
+            nii = c_getVariant[c_OptionInfo.NumberInfo[int64_t]](oi.valueInfo)
+            res['current'] = nii.currentValue
+            res['default'] = nii.defaultValue
+            res['minimum'] = nii.minimum.value() if nii.minimum.has_value() else None
+            res['maximum'] = nii.maximum.value() if nii.maximum.has_value() else None
+        elif c_holds[c_OptionInfo.NumberInfo[uint64_t]](oi.valueInfo):
+            # it's a uint64_t
+            res['type'] = int
+            niu = c_getVariant[c_OptionInfo.NumberInfo[uint64_t]](oi.valueInfo)
+            res['current'] = niu.currentValue
+            res['default'] = niu.defaultValue
+            res['minimum'] = niu.minimum.value() if niu.minimum.has_value() else None
+            res['maximum'] = niu.maximum.value() if niu.maximum.has_value() else None
+        elif c_holds[c_OptionInfo.NumberInfo[double]](oi.valueInfo):
+            # it's a double
+            res['type'] = float
+            nid = c_getVariant[c_OptionInfo.NumberInfo[double]](oi.valueInfo)
+            res['current'] = nid.currentValue
+            res['default'] = nid.defaultValue
+            res['minimum'] = nid.minimum.value() if nid.minimum.has_value() else None
+            res['maximum'] = nid.maximum.value() if nid.maximum.has_value() else None
+        elif c_holds[c_OptionInfo.ModeInfo](oi.valueInfo):
+            # it's a mode
+            res['type'] = 'mode'
+            mi = c_getVariant[c_OptionInfo.ModeInfo](oi.valueInfo)
+            res['current'] = mi.currentValue.decode()
+            res['default'] = mi.defaultValue.decode()
+            res['modes'] = [s.decode() for s in mi.modes]
+        return res
 
     def getUnsatAssumptions(self):
         """
@@ -2397,6 +2516,16 @@ cdef class Solver:
         """
         return self.csolver.getInstantiations()
 
+    def getStatistics(self):
+        """
+        Returns a snapshot of the current state of the statistic values of this
+        solver. The returned object is completely decoupled from the solver and
+        will not change when the solver is used again.
+        """
+        res = Statistics()
+        res.cstats = self.csolver.getStatistics()
+        return res
+
 
 cdef class Sort:
     """
@@ -2523,14 +2652,6 @@ cdef class Sort:
         """
         return self.csort.isDatatype()
 
-    def isParametricDatatype(self):
-        """
-            Is this a parametric datatype sort?
-
-            :return: True if the sort is a parametric datatype sort.
-        """
-        return self.csort.isParametricDatatype()
-
     def isConstructor(self):
         """
             Is this a constructor sort?
@@ -2637,13 +2758,16 @@ cdef class Sort:
         """
         return self.csort.isUninterpretedSort()
 
-    def isSortConstructor(self):
+    def isUninterpretedSortConstructor(self):
         """
             Is this a sort constructor kind?
 
+            An uninterpreted sort constructor is an uninterpreted sort with
+            arity > 0.
+
             :return: True if this a sort constructor kind.
         """
-        return self.csort.isSortConstructor()
+        return self.csort.isUninterpretedSortConstructor()
 
     def getDatatype(self):
         """
@@ -2655,7 +2779,8 @@ cdef class Sort:
 
     def instantiate(self, params):
         """
-            Instantiate a parameterized datatype/sort sort.
+            Instantiate a parameterized datatype sort or uninterpreted sort
+            constructor sort.
             Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
             :param params: the list of sort parameters to instantiate with
@@ -2853,11 +2978,11 @@ cdef class Sort:
             param_sorts.append(sort)
         return param_sorts
 
-    def getSortConstructorArity(self):
+    def getUninterpretedSortConstructorArity(self):
         """
             :return: the arity of a sort constructor sort
         """
-        return self.csort.getSortConstructorArity()
+        return self.csort.getUninterpretedSortConstructorArity()
 
     def getBitVectorSize(self):
         """
@@ -2917,6 +3042,47 @@ cdef class Sort:
             sort.csort = s
             tuple_sorts.append(sort)
         return tuple_sorts
+
+
+cdef class Statistics:
+    """
+    The cvc5 Statistics.
+    Wrapper class for :cpp:class:`cvc5::api::Statistics`.
+    Obtain a single statistic value using ``stats["name"]`` and a dictionary
+    with all (visible) statistics using ``stats.get(internal=False, defaulted=False)``.
+    """
+    cdef c_Statistics cstats
+
+    cdef __stat_to_dict(self, const c_Stat& s):
+        res = None
+        if s.isInt():
+            res = s.getInt()
+        elif s.isDouble():
+            res = s.getDouble()
+        elif s.isString():
+            res = s.getString().decode()
+        elif s.isHistogram():
+            res = { h.first.decode(): h.second for h in s.getHistogram() }
+        return {
+            'defaulted': s.isDefault(),
+            'internal': s.isInternal(),
+            'value': res
+        }
+
+    def __getitem__(self, str name):
+        """Get the statistics information for the statistic called ``name``."""
+        return self.__stat_to_dict(self.cstats.get(name.encode()))
+
+    def get(self, bint internal = False, bint defaulted = False):
+        """Get all statistics. See :cpp:class:`cvc5::api::Statistics::begin()` for more information."""
+        cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
+        cdef pair[string,c_Stat]* s
+        res = {}
+        while it != self.cstats.end():
+            s = &dereference(it)
+            res[s.first.decode()] = self.__stat_to_dict(s.second)
+            preincrement(it)
+        return res
 
 
 cdef class Term:

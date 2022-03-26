@@ -133,7 +133,6 @@ class CardSolver : protected EnvObj
    * This map needs to cleared before each full effort check.
    */
   std::map<Node, std::set<std::set<Node>>> d_cardGraph;
-
   /** Commonly used constants */
   Node d_true;
   Node d_false;

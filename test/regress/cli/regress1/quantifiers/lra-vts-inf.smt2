@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-use-inf-int --cegqi-use-inf-real
+; COMMAND-LINE: --cegqi-inf-int --cegqi-inf-real
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic LRA)

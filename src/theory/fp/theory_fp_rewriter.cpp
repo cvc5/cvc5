@@ -80,46 +80,6 @@ namespace rewrite {
                   << ") found in expression?";
   }
 
-  RewriteResponse removeToFPGeneric(TNode node, bool isPreRewrite)
-  {
-    Assert(!isPreRewrite);
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
-
-    FloatingPointToFPGeneric info =
-        node.getOperator().getConst<FloatingPointToFPGeneric>();
-
-    uint32_t children = node.getNumChildren();
-
-    Node op;
-    NodeManager* nm = NodeManager::currentNM();
-
-    if (children == 1)
-    {
-      op = nm->mkConst(FloatingPointToFPIEEEBitVector(info));
-      return RewriteResponse(REWRITE_AGAIN, nm->mkNode(op, node[0]));
-    }
-    Assert(children == 2);
-    Assert(node[0].getType().isRoundingMode());
-
-    TypeNode t = node[1].getType();
-
-    if (t.isFloatingPoint())
-    {
-      op = nm->mkConst(FloatingPointToFPFloatingPoint(info));
-    }
-    else if (t.isReal())
-    {
-      op = nm->mkConst(FloatingPointToFPReal(info));
-    }
-    else
-    {
-      Assert(t.isBitVector());
-      op = nm->mkConst(FloatingPointToFPSignedBitVector(info));
-    }
-
-    return RewriteResponse(REWRITE_AGAIN, nm->mkNode(op, node[0], node[1]));
-  }
-
   RewriteResponse removeDoubleNegation(TNode node, bool isPreRewrite)
   {
     Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
@@ -1179,7 +1139,6 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_REAL] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1268,8 +1227,6 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_SBV] =
       rewrite::toFPSignedBV;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FROM_UBV] = rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] =
-      rewrite::removeToFPGeneric;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1405,8 +1362,8 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
     RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
     if (res.d_node != node)
     {
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
+      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
+      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
                           << res.d_node << std::endl;
     }
     return res;
@@ -1440,8 +1397,8 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
     RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
     if (res.d_node != node)
     {
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  "
+      Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
+      Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  "
                           << res.d_node << std::endl;
     }
 
@@ -1538,10 +1495,10 @@ TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
 
         if (constRes.d_node != res.d_node)
         {
-          Debug("fp-rewrite")
+          Trace("fp-rewrite")
               << "TheoryFpRewriter::postRewrite(): before constant fold "
               << res.d_node << std::endl;
-          Debug("fp-rewrite")
+          Trace("fp-rewrite")
               << "TheoryFpRewriter::postRewrite(): after constant fold "
               << constRes.d_node << std::endl;
         }

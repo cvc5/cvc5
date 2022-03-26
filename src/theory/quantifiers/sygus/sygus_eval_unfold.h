@@ -70,7 +70,8 @@ class SygusEvalUnfold : protected EnvObj
    * function, i.e. op is a builtin operator encoded by constructor C_op.
    *
    * We decide which kind of lemma to send ([A] or [B]) based on the symbol
-   * C_op. If op is an ITE, or if C_op is a Boolean operator, then we add [B].
+   * C_op and the mode of sygus-eval-unfold. By default, if op is an ITE, or if
+   * C_op is a Boolean operator, then we add [B].
    * Otherwise, we add [A]. The intuition of why [B] is better than [A] for the
    * former is that evaluation unfolding can lead to useful conflict analysis.
    *

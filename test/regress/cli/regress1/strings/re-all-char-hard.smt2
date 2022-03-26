@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-re-elim
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)

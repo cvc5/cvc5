@@ -772,7 +772,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       }
       if (!only[0].empty() || !only[1].empty())
       {
-        if (Trace.isOn("sets-nf-debug"))
+        if (TraceIsOn("sets-nf-debug"))
         {
           Trace("sets-nf-debug") << "Unique venn regions : " << std::endl;
           for (unsigned e = 0; e < 2; e++)

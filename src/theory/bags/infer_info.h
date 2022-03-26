@@ -72,6 +72,10 @@ class InferInfo : public TheoryInference
    * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
+  /**
+   * @return the lemma for this InferInfo.
+   */
+  Node getLemma() const;
 };
 
 /**

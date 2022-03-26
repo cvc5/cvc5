@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/query_generator_unsat.h"
 
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "util/random.h"
@@ -31,6 +32,7 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(d_env.getOriginalOptions());
+  d_subOptions.quantifiers.sygus = false;
   d_subOptions.smt.produceProofs = true;
   d_subOptions.smt.checkProofs = true;
   d_subOptions.smt.produceModels = true;
@@ -70,7 +72,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
       Result r = checkCurrent(aTermCurr, out, currModel);
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
         activeTerms.pop_back();
@@ -131,7 +133,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
   initializeChecker(queryChecker, qy, d_subOptions, logicInfo());
   Result r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if (r.getStatus() == Result::UNSAT)
   {
     // if unsat, get the unsat core
     std::vector<Node> unsatCore;
@@ -140,7 +142,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
     Trace("sygus-qgen-check") << "...unsat core: " << unsatCore << std::endl;
     d_cores.add(d_false, unsatCore);
   }
-  else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  else if (r.getStatus() == Result::SAT)
   {
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
     Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
