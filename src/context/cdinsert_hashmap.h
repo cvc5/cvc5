@@ -153,7 +153,7 @@ public:
     const Key& front = d_keys.front();
     d_hashMap.erase(front);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
     d_keys.pop_front();
   }
 
@@ -165,7 +165,7 @@ public:
     const Key& back = d_keys.back();
     d_hashMap.erase(back);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
     d_keys.pop_back();
   }
 
@@ -198,7 +198,7 @@ private:
   CDInsertHashMap(const CDInsertHashMap& l)
       : ContextObj(l), d_insertMap(nullptr), d_size(l.d_size)
   {
-    Debug("CDInsertHashMap") << "copy ctor: " << this
+    Trace("CDInsertHashMap") << "copy ctor: " << this
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
@@ -214,11 +214,6 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
-    Debug("CDInsertHashMap") << "save " << this
-                            << " at level " << this->getContext()->getLevel()
-                            << " size at " << this->d_size
-                            << " d_list is " << this->d_insertMap
-                            << " data:" << data << std::endl;
     return data;
   }
 protected:
@@ -230,10 +225,6 @@ protected:
   */
  void restore(ContextObj* data) override
  {
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " data == " << data << " d_insertMap == " << this->d_insertMap
-       << std::endl;
    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
 
    // The size to restore to.
@@ -241,9 +232,6 @@ protected:
    d_insertMap->pop_to_size(restoreSize);
    d_size = restoreSize;
    Assert(d_insertMap->size() == d_size);
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " size back to " << this->d_size << std::endl;
   }
 public:
 

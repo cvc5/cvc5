@@ -31,7 +31,7 @@ TEST_F(TestApiBlackResult, isNull)
   ASSERT_TRUE(res_null.isNull());
   ASSERT_FALSE(res_null.isSat());
   ASSERT_FALSE(res_null.isUnsat());
-  ASSERT_FALSE(res_null.isSatUnknown());
+  ASSERT_FALSE(res_null.isUnknown());
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkConst(u_sort, "x");
   d_solver.assertFormula(x.eqTerm(x));
@@ -59,7 +59,7 @@ TEST_F(TestApiBlackResult, isSat)
   d_solver.assertFormula(x.eqTerm(x));
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isSat());
-  ASSERT_FALSE(res.isSatUnknown());
+  ASSERT_FALSE(res.isUnknown());
 }
 
 TEST_F(TestApiBlackResult, isUnsat)
@@ -69,10 +69,10 @@ TEST_F(TestApiBlackResult, isUnsat)
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
-  ASSERT_FALSE(res.isSatUnknown());
+  ASSERT_FALSE(res.isUnknown());
 }
 
-TEST_F(TestApiBlackResult, isSatUnknown)
+TEST_F(TestApiBlackResult, isUnknown)
 {
   d_solver.setLogic("QF_NIA");
   d_solver.setOption("incremental", "false");
@@ -82,7 +82,7 @@ TEST_F(TestApiBlackResult, isSatUnknown)
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
-  ASSERT_TRUE(res.isSatUnknown());
+  ASSERT_TRUE(res.isUnknown());
 }
 
 }  // namespace test

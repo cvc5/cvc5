@@ -29,6 +29,7 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
+#include "util/synth_result.h"
 
 namespace cvc5 {
 
@@ -229,10 +230,8 @@ class CVC5_EXPORT SolverEngine
    *
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by cvc5.
-   *
-   * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModel();
+  void blockModel();
 
   /**
    * Block the current model values of (at least) the values in exprs.
@@ -243,10 +242,8 @@ class CVC5_EXPORT SolverEngine
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
    * where M0 ... Mn are the current model values of exprs[0] ... exprs[n].
-   *
-   * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModelValues(const std::vector<Node>& exprs);
+  void blockModelValues(const std::vector<Node>& exprs);
 
   /**
    * Declare heap. For smt2 inputs, this is called when the command
@@ -336,13 +333,12 @@ class CVC5_EXPORT SolverEngine
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent. Note this formula will
+   * literals and conjunction of literals. Note this formula will
    * be included in the unsat core when applicable.
    *
    * @throw TypeCheckingException, LogicException
    */
-  Result assertFormula(const Node& formula);
+  void assertFormula(const Node& formula);
 
   /**
    * Reduce an unsatisfiable core to make it minimal.
@@ -351,7 +347,7 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Assert a formula (if provided) to the current context and call
-   * check().  Returns SAT, UNSAT, or SAT_UNKNOWN result.
+   * check().  Returns SAT, UNSAT, or UNKNOWN result.
    *
    * @throw Exception
    */
@@ -453,7 +449,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @throw Exception
    */
-  Result checkSynth(bool isNext = false);
+  SynthResult checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -898,7 +894,7 @@ class CVC5_EXPORT SolverEngine
   UnsatCore getUnsatCoreInternal();
 
   /** Internal version of assertFormula */
-  Result assertFormulaInternal(const Node& formula);
+  void assertFormulaInternal(const Node& formula);
 
   /**
    * Check that a generated proof checks. This method is the same as printProof,
@@ -937,13 +933,6 @@ class CVC5_EXPORT SolverEngine
    * between PropEngine and Theory.
    */
   void shutdown();
-
-  /**
-   * Quick check of consistency in current context: calls
-   * processAssertionList() then look for inconsistency (based only on
-   * that).
-   */
-  Result quickCheck();
 
   /**
    * Get the (SMT-level) model pointer, if we are in SAT mode. Otherwise,

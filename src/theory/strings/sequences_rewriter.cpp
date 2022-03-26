@@ -631,10 +631,10 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV
+  else if (nk0 == STRING_TO_LOWER || nk0 == STRING_TO_UPPER || nk0 == STRING_REV
            || nk0 == STRING_UPDATE)
   {
-    // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+    // len( f( x ) ) == len( x ) where f is to_lower, to_upper, or rev.
     // len( update( x, n, y ) ) = len( x )
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
@@ -2549,27 +2549,33 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     cvc5::Rational rMaxInt(cvc5::String::maxSize());
     if (node[2].getConst<Rational>() > rMaxInt)
     {
-      // We know that, due to limitations on the size of string constants
-      // in our implementation, that accessing a position greater than
-      // rMaxInt is guaranteed to be out of bounds.
-      Node negone = nm->mkConstInt(Rational(-1));
-      return returnRewrite(node, negone, Rewrite::IDOF_MAX);
+      if (node[0].isConst())
+      {
+        // We know that, due to limitations on the size of string constants
+        // in our implementation, that accessing a position greater than
+        // rMaxInt is guaranteed to be out of bounds.
+        Node negone = nm->mkConstInt(Rational(-1));
+        return returnRewrite(node, negone, Rewrite::IDOF_MAX);
+      }
     }
-    Assert(node[2].getConst<Rational>().sgn() >= 0);
-    Node s = children0[0];
-    Node t = node[1];
-    uint32_t start =
-        node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-    std::size_t ret = Word::find(s, t, start);
-    if (ret != std::string::npos)
+    else
     {
-      Node retv = nm->mkConstInt(Rational(static_cast<unsigned>(ret)));
-      return returnRewrite(node, retv, Rewrite::IDOF_FIND);
-    }
-    else if (children0.size() == 1)
-    {
-      Node negone = nm->mkConstInt(Rational(-1));
-      return returnRewrite(node, negone, Rewrite::IDOF_NFIND);
+      Assert(node[2].getConst<Rational>().sgn() >= 0);
+      Node s = children0[0];
+      Node t = node[1];
+      uint32_t start =
+          node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+      std::size_t ret = Word::find(s, t, start);
+      if (ret != std::string::npos)
+      {
+        Node retv = nm->mkConstInt(Rational(static_cast<unsigned>(ret)));
+        return returnRewrite(node, retv, Rewrite::IDOF_FIND);
+      }
+      else if (children0.size() == 1)
+      {
+        Node negone = nm->mkConstInt(Rational(-1));
+        return returnRewrite(node, negone, Rewrite::IDOF_NFIND);
+      }
     }
   }
 

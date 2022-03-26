@@ -96,7 +96,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   TrustNode tpp = theoryPreprocess(irNode, newLemmas);
   Node ppNode = tpp.getNode();
 
-  if (Trace.isOn("tpp-debug"))
+  if (TraceIsOn("tpp-debug"))
   {
     if (node != irNode)
     {

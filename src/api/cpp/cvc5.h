@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
+#include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
 
@@ -50,6 +51,7 @@ class Options;
 class Random;
 class Rational;
 class Result;
+class SynthResult;
 class StatisticsRegistry;
 
 namespace main {
@@ -61,6 +63,7 @@ namespace api {
 class Solver;
 class Statistics;
 struct APIStatistics;
+class Term;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -222,7 +225,7 @@ class CVC5_EXPORT Result
    * Return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  bool isSatUnknown() const;
+  bool isUnknown() const;
 
   /**
    * Operator overloading for equality of two results.
@@ -257,7 +260,7 @@ class CVC5_EXPORT Result
   Result(const cvc5::Result& r);
 
   /**
-   * The interal result wrapped by this result.
+   * The internal result wrapped by this result.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
    *       since ``cvc5::Result`` is not ref counted.
@@ -281,6 +284,80 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC5_EXPORT;
+
+/* -------------------------------------------------------------------------- */
+/* Result                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Encapsulation of a solver synth result.
+ *
+ * This is the return value of the API methods:
+ *   - Solver::checkSynth()
+ *   - Solver::checkSynthNext()
+ *
+ * which we call synthesis queries.  This class indicates whether the
+ * synthesis query has a solution, has no solution, or is unknown.
+ */
+class CVC5_EXPORT SynthResult
+{
+  friend class Solver;
+
+ public:
+  /** Constructor. */
+  SynthResult();
+
+  /**
+   * @return true if SynthResult is null, i.e., not a SynthResult returned
+   * from a synthesis query.
+   */
+  bool isNull() const;
+
+  /**
+   * @return true if the synthesis query has a solution.
+   */
+  bool hasSolution() const;
+
+  /**
+   * @return true if the synthesis query has no solution. In this case, it
+   * was determined that there was no solution.
+   */
+  bool hasNoSolution() const;
+
+  /**
+   * @return true if the result of the synthesis query could not be determined.
+   */
+  bool isUnknown() const;
+
+  /**
+   * @return a string representation of this synthesis result.
+   */
+  std::string toString() const;
+
+ private:
+  /**
+   * Constructor.
+   * @param r the internal synth result that is to be wrapped by this synth
+   *          result
+   * @return the SynthResult
+   */
+  SynthResult(const cvc5::SynthResult& r);
+  /**
+   * The internal result wrapped by this result.
+   *
+   * @note This is a `std::shared_ptr` rather than a `std::unique_ptr`
+   *       since `cvc5::SynthResult` is not ref counted.
+   */
+  std::shared_ptr<cvc5::SynthResult> d_result;
+};
+
+/**
+ * Serialize a SynthResult to given stream.
+ * @param out the output stream
+ * @param r the result to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const SynthResult& r) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -429,16 +506,6 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a parametric datatype sort? A parametric datatype sort is either
-   * one that is returned by a call to Solver::mkDatatypeSort() or
-   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
-   * datatype sort returned by Sort::instantiate() for parametric datatype
-   * sort `s`.
-   * @return true if the sort is a parametric datatype sort
-   */
-  bool isParametricDatatype() const;
-
-  /**
    * Is this a constructor sort?
    * @return true if the sort is a constructor sort
    */
@@ -517,10 +584,14 @@ class CVC5_EXPORT Sort
   bool isUninterpretedSort() const;
 
   /**
-   * Is this a sort constructor kind?
+   * Is this an uninterpreted sort constructor kind?
+   *
+   * An uninterpreted sort constructor has arity > 0 and can be instantiated to
+   * construct uninterpreted sorts with given sort parameters.
+   *
    * @return true if this is a sort constructor kind
    */
-  bool isSortConstructor() const;
+  bool isUninterpretedSortConstructor() const;
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -528,8 +599,11 @@ class CVC5_EXPORT Sort
   Datatype getDatatype() const;
 
   /**
-   * Instantiate a parameterized datatype/sort sort.
+   * Instantiate a parameterized datatype sort or uninterpreted sort
+   * constructor sort.
+   *
    * Create sorts parameter with Solver::mkParamSort().
+   *
    * @param params the list of sort parameters to instantiate with
    */
   Sort instantiate(const std::vector<Sort>& params) const;
@@ -686,9 +760,9 @@ class CVC5_EXPORT Sort
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the arity of a sort constructor sort
+   * @return the arity of an uninterpreted sort constructor sort
    */
-  size_t getSortConstructorArity() const;
+  size_t getUninterpretedSortConstructorArity() const;
 
   /* Bit-vector sort ----------------------------------------------------- */
 
@@ -879,21 +953,7 @@ class CVC5_EXPORT Op
    * @param i the position of the index to return
    * @return the index at position i
    */
-
   Term operator[](size_t i) const;
-
-  /**
-   * Get the indices used to create this Op.
-   * Supports the following template arguments:
-   *   - string
-   *   - Kind
-   *   - uint32_t
-   *   - pair<uint32_t, uint32_t>
-   * Check the Op Kind with getKind() to determine which argument to use.
-   * @return the indices used to create this Op
-   */
-  template <typename T>
-  T getIndices() const;
 
   /**
    * @return a string representation of this operator
@@ -1001,6 +1061,7 @@ class CVC5_EXPORT Term
   friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
+  friend class SynthResult;
   friend struct std::hash<Term>;
 
  public:
@@ -1974,10 +2035,10 @@ class CVC5_EXPORT DatatypeConstructor
    *
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
-   * ``(List Int)``.
+   * `(List Int)`.
    *
-   * @note the returned constructor term ``t`` is an operator, while
-   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
+   * @note the returned constructor term `t` is an operator, while
+   *       `Solver::mkTerm(APPLY_CONSTRUCTOR, {t})` is used to construct the
    *       above (nullary) application of nil.
    *
    * @param retSort the desired return sort of the constructor
@@ -2216,6 +2277,8 @@ class CVC5_EXPORT Datatype
    * This is a linear search through the constructors, so in case of multiple,
    * similarly-named constructors, the
    * first is returned.
+   * @param name the name of the datatype constructor
+   * @return a Term representing the datatype constructor with the given name
    */
   Term getConstructorTerm(const std::string& name) const;
 
@@ -2788,14 +2851,14 @@ struct CVC5_EXPORT OptionInfo
   /** Whether the option was explicitly set by the user */
   bool setByUser;
   /** The option value information */
-  std::variant<VoidInfo,
-               ValueInfo<bool>,
-               ValueInfo<std::string>,
-               NumberInfo<int64_t>,
-               NumberInfo<uint64_t>,
-               NumberInfo<double>,
-               ModeInfo>
-      valueInfo;
+  using OptionInfoVariant = std::variant<VoidInfo,
+                                         ValueInfo<bool>,
+                                         ValueInfo<std::string>,
+                                         NumberInfo<int64_t>,
+                                         NumberInfo<uint64_t>,
+                                         NumberInfo<double>,
+                                         ModeInfo>;
+  OptionInfoVariant valueInfo;
   /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
    */
   bool boolValue() const;
@@ -2840,8 +2903,12 @@ class CVC5_EXPORT Stat
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
-  /** Can only be obtained from a `Statistics` object. */
-  Stat() = delete;
+  /**
+   * Create an empty statistics object. On such an object all ``isX()`` return
+   * false and all ``getX()`` throw an API exception. It solely exists because
+   * it makes implementing bindings for other languages much easier.
+   */
+  Stat();
   /** Copy constructor */
   Stat(const Stat& s);
   /** Destructor */
@@ -2937,6 +3004,7 @@ class CVC5_EXPORT Statistics
   {
    public:
     friend class Statistics;
+    iterator() = default;
     BaseType::const_reference operator*() const;
     BaseType::const_pointer operator->() const;
     iterator& operator++();
@@ -2958,6 +3026,9 @@ class CVC5_EXPORT Statistics
     bool d_showDefault = false;
   };
 
+  /** Creates an empty statistics object. */
+  Statistics() = default;
+
   /**
    * Retrieve the statistic with the given name.
    * Asserts that a statistic with the given name actually exists and throws
@@ -2978,7 +3049,6 @@ class CVC5_EXPORT Statistics
   iterator end() const;
 
  private:
-  Statistics() = default;
   Statistics(const StatisticsRegistry& reg);
   /** Internal data */
   BaseType d_stats;
@@ -3219,12 +3289,16 @@ class CVC5_EXPORT Solver
   Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
 
   /**
-   * Create a sort constructor sort.
+   * Create an uninterpreted sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   *
    * @param symbol the symbol of the sort
-   * @param arity the arity of the sort
-   * @return the sort constructor sort
+   * @param arity the arity of the sort (must be > 0)
+   * @return the uninterpreted sort constructor sort
    */
-  Sort mkSortConstructorSort(const std::string& symbol, size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
+                                          size_t arity) const;
 
   /**
    * Create a tuple sort.
@@ -3238,90 +3312,11 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create 0-ary term of given kind.
-   * @param kind the kind of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind) const;
-
-  /**
-   * Create a unary term of given kind.
-   * @param kind the kind of the term
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const Term& child) const;
-
-  /**
-   * Create binary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const Term& child1, const Term& child2) const;
-
-  /**
-   * Create ternary term of given kind.
-   * @param kind the kind of the term
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind,
-              const Term& child1,
-              const Term& child2,
-              const Term& child3) const;
-
-  /**
    * Create n-ary term of given kind.
    * @param kind the kind of the term
    * @param children the children of the term
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, const std::vector<Term>& children) const;
-
-  /**
-   * Create nullary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @return the Term
-   */
-  Term mkTerm(const Op& op) const;
-
-  /**
-   * Create unary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child the child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op, const Term& child) const;
-
-  /**
-   * Create binary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op, const Term& child1, const Term& child2) const;
-
-  /**
-   * Create ternary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op the operator
-   * @param child1 the first child of the term
-   * @param child2 the second child of the term
-   * @param child3 the third child of the term
-   * @return the Term
-   */
-  Term mkTerm(const Op& op,
-              const Term& child1,
-              const Term& child2,
-              const Term& child3) const;
+   * @return the Term */
+  Term mkTerm(Kind kind, const std::vector<Term>& children = {}) const;
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -3330,7 +3325,7 @@ class CVC5_EXPORT Solver
    * @param children the children of the term
    * @return the Term
    */
-  Term mkTerm(const Op& op, const std::vector<Term>& children) const;
+  Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
@@ -3347,70 +3342,48 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create an operator for a builtin Kind.
+   * Create operator of Kind:
+   *   - #BITVECTOR_EXTRACT
+   *   - #BITVECTOR_REPEAT
+   *   - #BITVECTOR_ROTATE_LEFT
+   *   - #BITVECTOR_ROTATE_RIGHT
+   *   - #BITVECTOR_SIGN_EXTEND
+   *   - #BITVECTOR_ZERO_EXTEND
+   *   - #DIVISIBLE
+   *   - #FLOATINGPOINT_TO_FP_FROM_FP
+   *   - #FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - #FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - #FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - #FLOATINGPOINT_TO_FP_FROM_UBV
+   *   - #FLOATINGPOINT_TO_SBV
+   *   - #FLOATINGPOINT_TO_UBV
+   *   - #INT_TO_BITVECTOR
+   *   - #TUPLE_PROJECT
    *
-   * The Kind may not be the Kind for an indexed operator
-   * (e.g. BITVECTOR_EXTRACT).
+   * See cvc5::api::Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param args the arguments (indices) of the operator
    *
-   * @note In this case, the ``Op`` simply wraps the ``Kind``.  The Kind can be
-   *       used in ``Solver::mkTerm`` directly without creating an ``Op`` first.
-   * @param kind the kind to wrap
+   * @note If ``args`` is empty, the Op simply wraps the cvc5::api::Kind.  The
+   * Kind can be used in Solver::mkTerm directly without creating an Op
+   * first.
    */
-  Op mkOp(Kind kind) const;
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args = {}) const;
+
+#ifndef DOXYGEN_SKIP
+  // Overload is only used to disambiguate the std::vector and std::string
+  // overloads.
+  Op mkOp(Kind kind, const std::initializer_list<uint32_t>& args) const;
+#endif
 
   /**
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
+   * See cvc5::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
   Op mkOp(Kind kind, const std::string& arg) const;
-
-  /**
-   * Create operator of kind:
-   *   - DIVISIBLE
-   *   - BITVECTOR_REPEAT
-   *   - BITVECTOR_ZERO_EXTEND
-   *   - BITVECTOR_SIGN_EXTEND
-   *   - BITVECTOR_ROTATE_LEFT
-   *   - BITVECTOR_ROTATE_RIGHT
-   *   - INT_TO_BITVECTOR
-   *   - FLOATINGPOINT_TO_UBV
-   *   - FLOATINGPOINT_TO_UBV_TOTAL
-   *   - FLOATINGPOINT_TO_SBV
-   *   - FLOATINGPOINT_TO_SBV_TOTAL
-   *   - TUPLE_UPDATE
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg) const;
-
-  /**
-   * Create operator of Kind:
-   *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - FLOATINGPOINT_TO_FP_FROM_FP
-   *   - FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   *   - FLOATINGPOINT_TO_FP_GENERIC
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg1 the first uint32_t argument to this operator
-   * @param arg2 the second uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
-
-  /**
-   * Create operator of Kind:
-   *   - TUPLE_PROJECT
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param args the arguments (indices) of the operator
-   */
-  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -3858,6 +3831,11 @@ class CVC5_EXPORT Solver
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
    *
+   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
+   *       arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   *       if arity > 0.
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -4289,6 +4267,9 @@ class CVC5_EXPORT Solver
   /**
    * Declare a symbolic pool of terms with the given initial value.
    *
+   * For details on how pools are used to specify instructions for quantifier
+   * instantiation, see documentation for the #INST_POOL kind.
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -4300,6 +4281,7 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
+   * @return The pool symbol
    */
   Term declarePool(const std::string& symbol,
                    const Sort& sort,
@@ -4604,8 +4586,8 @@ class CVC5_EXPORT Solver
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  Term mkSygusVar(const Sort& sort,
-                  const std::string& symbol = std::string()) const;
+  Term declareSygusVar(const Sort& sort,
+                       const std::string& symbol = std::string()) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
@@ -4760,10 +4742,12 @@ class CVC5_EXPORT Solver
    *     (check-synth)
    * \endverbatim
    *
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  Result checkSynth() const;
+  SynthResult checkSynth() const;
 
   /**
    * Try to find a next solution for the synthesis conjecture corresponding to
@@ -4779,10 +4763,12 @@ class CVC5_EXPORT Solver
    *     (check-synth-next)
    * \endverbatim
    *
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  Result checkSynthNext() const;
+  SynthResult checkSynthNext() const;
 
   /**
    * Get the synthesis solution of the given term. This method should be called
@@ -4801,23 +4787,26 @@ class CVC5_EXPORT Solver
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
+   * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
+   * @return A snapshot of the current state of the statistic values
    */
   Statistics getStatistics() const;
 
   /**
-   * Whether the output stream for the given tag is enabled. Tags can be enabled
-   * with the `output` option (and `-o <tag>` on the command line). Raises an
-   * exception when an invalid tag is given.
+   * Determione the output stream for the given tag is enabled. Tags can be
+   * enabled with the `output` option (and `-o <tag>` on the command line).
+   * Raises an exception when an invalid tag is given.
+   * @return True if the given tag is enabled
    */
   bool isOutputOn(const std::string& tag) const;
 
   /**
-   * Returns an output stream for the given tag. Tags can be enabled with the
+   * Get an output stream for the given tag. Tags can be enabled with the
    * `output` option (and `-o <tag>` on the command line). Raises an exception
    * when an invalid tag is given.
+   * @return The output stream
    */
   std::ostream& getOutput(const std::string& tag) const;
 
@@ -4835,6 +4824,9 @@ class CVC5_EXPORT Solver
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+  /** Helper for creating operators. */
+  template <typename T>
+  Op mkOpHelper(Kind kind, const T& t) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(const T& t) const;

@@ -294,18 +294,11 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     }
     else
     {
-      if (options().quantifiers.fmfFreshDistConst)
-      {
-        mbt = d_treg.getTermDatabase()->getOrMakeTypeFreshVariable(tn);
-      }
-      else
-      {
-        // The model basis term cannot be an interpreted function, or else we
-        // may produce an inconsistent model by choosing an arbitrary
-        // equivalence class for it. Hence, we require that it be an existing or
-        // fresh variable.
-        mbt = d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
-      }
+      // The model basis term cannot be an interpreted function, or else we
+      // may produce an inconsistent model by choosing an arbitrary
+      // equivalence class for it. Hence, we require that it be an existing or
+      // fresh variable.
+      mbt = d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
     }
     ModelBasisAttribute mba;
     mbt.setAttribute(mba, true);

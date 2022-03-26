@@ -416,7 +416,7 @@ std::string SolverEngine::getInfo(const std::string& key) const
   {
     // sat | unsat | unknown
     Result status = d_state->getStatus();
-    switch (status.asSatisfiabilityResult().isSat())
+    switch (status.getStatus())
     {
       case Result::SAT: return "sat";
       case Result::UNSAT: return "unsat";
@@ -433,7 +433,7 @@ std::string SolverEngine::getInfo(const std::string& key) const
     if (!status.isNull() && status.isUnknown())
     {
       std::stringstream ss;
-      ss << status.whyUnknown();
+      ss << status.getUnknownExplanation();
       std::string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return s;
@@ -633,15 +633,6 @@ void SolverEngine::defineFunctionRec(Node func,
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
-Result SolverEngine::quickCheck()
-{
-  Assert(d_state->isFullyInited());
-  Trace("smt") << "SMT quickCheck()" << endl;
-  const std::string& filename = d_env->getOptions().driver.filename;
-  return Result(
-      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
-}
-
 TheoryModel* SolverEngine::getAvailableModel(const char* c) const
 {
   if (!d_env->getOptions().theory.assignFunctionValues)
@@ -771,7 +762,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    if (r.getStatus() == Result::SAT)
     {
       checkModel();
     }
@@ -779,7 +770,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Check that UNSAT results generate a proof correctly.
   if (d_env->getOptions().smt.checkProofs)
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       checkProof();
     }
@@ -787,7 +778,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Check that UNSAT results generate an unsat core correctly.
   if (d_env->getOptions().smt.checkUnsatCores)
   {
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
       checkUnsatCore();
@@ -831,16 +822,16 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SolverEngine::assertFormula(const Node& formula)
+void SolverEngine::assertFormula(const Node& formula)
 {
   SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   ensureWellFormedTerm(formula, "assertFormula");
-  return assertFormulaInternal(formula);
+  assertFormulaInternal(formula);
 }
 
-Result SolverEngine::assertFormulaInternal(const Node& formula)
+void SolverEngine::assertFormulaInternal(const Node& formula)
 {
   // as an optimization we do not check whether formula is well-formed here, and
   // defer this check for certain cases within the assertions module.
@@ -850,7 +841,6 @@ Result SolverEngine::assertFormulaInternal(const Node& formula)
   Node n = d_absValues->substituteAbstractValues(formula);
 
   d_asserts->assertFormula(n);
-  return quickCheck().asEntailmentResult();
 }
 
 /*
@@ -901,7 +891,7 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SolverEngine::checkSynth(bool isNext)
+SynthResult SolverEngine::checkSynth(bool isNext)
 {
   SolverEngineScope smts(this);
   finishInit();
@@ -911,7 +901,7 @@ Result SolverEngine::checkSynth(bool isNext)
         "Cannot check-synth-next unless immediately preceded by a successful "
         "call to check-synth(-next).");
   }
-  Result r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  SynthResult r = d_sygusSolver->checkSynth(*d_asserts, isNext);
   d_state->notifyCheckSynthResult(r);
   return r;
 }
@@ -1096,7 +1086,7 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   return ssm.str();
 }
 
-Result SolverEngine::blockModel()
+void SolverEngine::blockModel()
 {
   Trace("smt") << "SMT blockModel()" << endl;
   SolverEngineScope smts(this);
@@ -1118,10 +1108,10 @@ Result SolverEngine::blockModel()
   Node eblocker = mb.getModelBlocker(
       eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
-  return assertFormulaInternal(eblocker);
+  assertFormulaInternal(eblocker);
 }
 
-Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
+void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
   SolverEngineScope smts(this);
@@ -1141,7 +1131,7 @@ Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
       eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
-  return assertFormulaInternal(eblocker);
+  assertFormulaInternal(eblocker);
 }
 
 std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
@@ -1359,11 +1349,11 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
       throw;
     }
 
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       removed.insert(skip);
     }
-    else if (r.asSatisfiabilityResult().isUnknown())
+    else if (r.isUnknown())
     {
       d_env->warning()
           << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
@@ -1437,13 +1427,13 @@ void SolverEngine::checkUnsatCore()
   }
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): result is " << r
                     << std::endl;
-  if (r.asSatisfiabilityResult().isUnknown())
+  if (r.isUnknown())
   {
     d_env->warning() << "SolverEngine::checkUnsatCore(): could not check core result "
                  "unknown."
               << std::endl;
   }
-  else if (r.asSatisfiabilityResult().isSat())
+  else if (r.getStatus() == Result::SAT)
   {
     InternalError()
         << "SolverEngine::checkUnsatCore(): produced core was satisfiable.";

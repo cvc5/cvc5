@@ -130,7 +130,7 @@ Node TheoryModel::getValue(TNode n) const
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
   nn = rewrite(nn);
-  Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
+  Trace("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
   if (nn.isNull())
@@ -152,7 +152,7 @@ Node TheoryModel::getValue(TNode n) const
     //normalize
     nn = rewrite(nn);
   }
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
+  Trace("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
   Assert(nn.getType().isSubtypeOf(n.getType()));
   return nn;
@@ -173,18 +173,18 @@ Cardinality TheoryModel::getCardinality(TypeNode tn) const
   //for now, we only handle cardinalities for uninterpreted sorts
   if (!tn.isSort())
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
   if (d_rep_set.hasType(tn))
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get cardinality sort, #rep : "
         << d_rep_set.getNumRepresentatives(tn) << std::endl;
     return Cardinality(d_rep_set.getNumRepresentatives(tn));
   }
-  Debug("model-getvalue-debug")
+  Trace("model-getvalue-debug")
       << "Get cardinality sort, unconstrained, return 1." << std::endl;
   return Cardinality(1);
 }
@@ -195,8 +195,8 @@ Node TheoryModel::getModelValue(TNode n) const
   if (it != d_modelCache.end()) {
     return (*it).second;
   }
-  Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
-  Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
+  Trace("model-getvalue-debug") << "Get model value " << n << " ... ";
+  Trace("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
   Kind nk = n.getKind();
   if (n.isConst() || nk == BOUND_VARIABLE)
   {
@@ -215,13 +215,13 @@ Node TheoryModel::getModelValue(TNode n) const
   // e.g. forall x. P(x) where P = lambda x. true.
   if (n.getNumChildren() > 0)
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF)
     {
       Node op = getModelValue(n.getOperator());
-      Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
+      Trace("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
     else if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -240,20 +240,20 @@ Node TheoryModel::getModelValue(TNode n) const
       {
         ret = getModelValue(n[i]);
       }
-      Debug("model-getvalue-debug")
+      Trace("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
     }
     ret = nm->mkNode(n.getKind(), children);
-    Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
+    Trace("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
     ret = rewrite(ret);
-    Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
+    Trace("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
       const CardinalityConstraint& cc =
           ret.getOperator().getConst<CardinalityConstraint>();
-      Debug("model-getvalue-debug")
+      Trace("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
       ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
                         <= cc.getUpperBound());
@@ -290,7 +290,7 @@ Node TheoryModel::getModelValue(TNode n) const
   }
   if (eeHasTerm)
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
     ret = d_equalityEngine->getRepresentative(ret);
     Assert(d_reps.find(ret) != d_reps.end());

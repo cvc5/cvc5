@@ -56,7 +56,7 @@ public class SygusGrammar
     try (Solver slv = new Solver())
     {
       // required options
-      slv.setOption("lang", "sygus2");
+      slv.setOption("sygus", "true");
       slv.setOption("incremental", "false");
 
       // set the logic
@@ -101,7 +101,7 @@ public class SygusGrammar
       Term id4 = slv.synthFun("id4", new Term[] {x}, integer, g1);
 
       // declare universal variables.
-      Term varX = slv.mkSygusVar(integer, "x");
+      Term varX = slv.declareSygusVar(integer, "x");
 
       Term id1_x = slv.mkTerm(APPLY_UF, id1, varX);
       Term id2_x = slv.mkTerm(APPLY_UF, id2, varX);
@@ -113,7 +113,7 @@ public class SygusGrammar
       slv.addSygusConstraint(slv.mkTerm(EQUAL, new Term[] {id1_x, id2_x, id3_x, id4_x, varX}));
 
       // print solutions if available
-      if (slv.checkSynth().isUnsat())
+      if (slv.checkSynth().hasSolution())
       {
         // Output should be equivalent to:
         // (

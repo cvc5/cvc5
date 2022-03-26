@@ -72,7 +72,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
     // check the satisfiability query
     Result r = doCheck(imp);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       // it is subsumed by the current, discard this
       return false;
@@ -91,7 +91,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       // check the satisfiability query
       Result r = doCheck(imp);
       Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         nsubsume.push_back(s);
       }

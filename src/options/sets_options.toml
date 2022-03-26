@@ -3,7 +3,7 @@ name   = "Sets Theory"
 
 [[option]]
   name       = "setsProxyLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "sets-proxy-lemmas"
   type       = "bool"
   default    = "false"
@@ -11,7 +11,7 @@ name   = "Sets Theory"
 
 [[option]]
   name       = "setsInferAsLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "sets-infer-as-lemmas"
   type       = "bool"
   default    = "true"
