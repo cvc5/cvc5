@@ -135,8 +135,8 @@
             ; str.replaceall
             ; str.replace_re
             ; str.replace_re_all
-            ; str.tolower
-            ; str.toupper
+            ; str.to_lower
+            ; str.to_upper
             ; str.rev
             ; str.leq
 ))))))))

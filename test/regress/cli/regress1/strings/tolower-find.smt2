@@ -4,8 +4,8 @@
 (declare-const x String)
 (declare-const y String)
 
-(assert (= (str.tolower x) "abcde"))
-(assert (= (str.tolower y) "abcde"))
+(assert (= (str.to_lower x) "abcde"))
+(assert (= (str.to_lower y) "abcde"))
 (assert (not (= x "abcde")))
 (assert (not (= y "abcde")))
 (assert (not (= x y)))

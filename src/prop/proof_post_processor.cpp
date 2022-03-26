@@ -34,6 +34,11 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   bool result = pn->getRule() == PfRule::ASSUME
                 && d_proofCnfStream->hasProofFor(pn->getResult());
+  if (TraceIsOn("prop-proof-pp") && !result && pn->getRule() == PfRule::ASSUME)
+  {
+    Trace("prop-proof-pp") << "- Ignoring no-proof assumption "
+                           << pn->getResult() << "\n";
+  }
   // check if should continue traversing
   if (d_proofCnfStream->isBlocked(pn))
   {
@@ -50,8 +55,9 @@ bool ProofPostprocessCallback::update(Node res,
                                       CDProof* cdp,
                                       bool& continueUpdate)
 {
-  Trace("prop-proof-pp-debug")
-      << "- Post process " << id << " " << children << " / " << args << "\n";
+  Trace("prop-proof-pp") << "- Post process " << id << " " << res << " : "
+                         << children << " / " << args << "\n"
+                         << push;
   Assert(id == PfRule::ASSUME);
   // we cache based on the assumption node, not the proof node, since there
   // may be multiple occurrences of the same node.
@@ -61,7 +67,7 @@ bool ProofPostprocessCallback::update(Node res,
       d_assumpToProof.find(f);
   if (it != d_assumpToProof.end())
   {
-    Trace("prop-proof-pp-debug") << "...already computed" << std::endl;
+    Trace("prop-proof-pp") << "...already computed" << std::endl;
     pfn = it->second;
   }
   else
@@ -77,6 +83,7 @@ bool ProofPostprocessCallback::update(Node res,
     }
     d_assumpToProof[f] = pfn;
   }
+  Trace("prop-proof-pp") << pop;
   // connect the proof
   cdp->addProof(pfn);
   // do not recursively process the result
