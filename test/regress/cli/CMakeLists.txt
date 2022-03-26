@@ -867,6 +867,7 @@ set(regress_0_tests
   regress0/parser/issue7274.smt2
   regress0/parser/issue7860-parse-only-reset.smt2
   regress0/parser/issue7894-parse-error-assoc.smt2
+  regress0/parser/issue8377-resolve-indexed.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -2561,6 +2562,7 @@ set(regress_1_tests
   regress1/strings/proj254-re-elim-agg.smt2
   regress1/strings/proj-issue281.smt2
   regress1/strings/proj-issue331.smt2
+  regress1/strings/proj-issue502-merge-type.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2

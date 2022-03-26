@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --fmf-bound-int -q
+; COMMAND-LINE: --finite-model-find --fmf-bound -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

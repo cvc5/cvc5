@@ -94,7 +94,7 @@ def test_get_num_indices(solver):
 
     # Operators with n indices
     indices = [0, 3, 2, 0, 1, 2]
-    tuple_project_op = solver.mkOp(Kind.TupleProject, indices)
+    tuple_project_op = solver.mkOp(Kind.TupleProject, *indices)
     assert len(indices) == tuple_project_op.getNumIndices()
 
 
@@ -154,7 +154,7 @@ def test_subscript_operator(solver):
 
     # Operators with n indices
     indices = [0, 3, 2, 0, 1, 2]
-    tuple_project_op = solver.mkOp(Kind.TupleProject, indices)
+    tuple_project_op = solver.mkOp(Kind.TupleProject, *indices)
     for i in range(len(indices)):
         assert indices[i] == tuple_project_op[i].getIntegerValue()
 

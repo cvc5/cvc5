@@ -34,8 +34,8 @@ operator STRING_ITOS 1 "integer to string"
 operator STRING_STOI 1 "string to integer (total function)"
 operator STRING_TO_CODE 1 "string to code, returns the code of the first character of the string if it has length one, -1 otherwise"
 operator STRING_FROM_CODE 1 "string from code, returns a string containing a single character whose code point matches the argument to this function, empty string if the argument is out-of-bounds"
-operator STRING_TOLOWER 1 "string to lowercase conversion"
-operator STRING_TOUPPER 1 "string to uppercase conversion"
+operator STRING_TO_LOWER 1 "string to lowercase conversion"
+operator STRING_TO_UPPER 1 "string to uppercase conversion"
 operator STRING_REV 1 "string reverse"
 
 sort STRING_TYPE \
@@ -187,8 +187,8 @@ typerule STRING_ITOS "SimpleTypeRule<RString, AInteger>"
 typerule STRING_STOI "SimpleTypeRule<RInteger, AString>"
 typerule STRING_TO_CODE "SimpleTypeRule<RInteger, AString>"
 typerule STRING_FROM_CODE "SimpleTypeRule<RString, AInteger>"
-typerule STRING_TOUPPER "SimpleTypeRule<RString, AString>"
-typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
+typerule STRING_TO_UPPER "SimpleTypeRule<RString, AString>"
+typerule STRING_TO_LOWER "SimpleTypeRule<RString, AString>"
 
 ### sequence specific operators
 
