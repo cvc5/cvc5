@@ -317,7 +317,7 @@ api::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type = d_solver->mkSortConstructorSort(name, arity);
+  api::Sort type = d_solver->mkUninterpretedSortConstructorSort(name, arity);
   defineType(name, vector<api::Sort>(arity), type);
   return type;
 }
@@ -333,7 +333,8 @@ api::Sort Parser::mkUnresolvedType(const std::string& name)
 api::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
-  api::Sort unresolved = d_solver->mkSortConstructorSort(name, arity);
+  api::Sort unresolved =
+      d_solver->mkUninterpretedSortConstructorSort(name, arity);
   defineType(name, vector<api::Sort>(arity), unresolved);
   d_unresolved.insert(unresolved);
   return unresolved;
@@ -344,7 +345,8 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  api::Sort unresolved = d_solver->mkSortConstructorSort(name, params.size());
+  api::Sort unresolved =
+      d_solver->mkUninterpretedSortConstructorSort(name, params.size());
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
   d_unresolved.insert(unresolved);
@@ -384,9 +386,9 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       if (isDeclared(name, SYM_SORT)) {
         throw ParserException(name + " already declared");
       }
-      if (t.isParametricDatatype())
+      if (dt.isParametric())
       {
-        std::vector<api::Sort> paramTypes = t.getDatatypeParamSorts();
+        std::vector<api::Sort> paramTypes = dt.getParameters();
         defineType(name, paramTypes, t);
       }
       else
@@ -566,11 +568,16 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     // Type ascriptions only have an effect on the node structure if this is a
     // parametric datatype.
-    if (s.isParametricDatatype())
+    // get the datatype that t belongs to
+    api::Sort etyped = etype.getConstructorCodomainSort();
+    api::Datatype d = etyped.getDatatype();
+    // Note that we check whether the datatype is parametric, and not whether
+    // etyped is a parametric datatype, since e.g. the smt2 parser constructs
+    // an arbitrary instantitated constructor term before it is resolved.
+    // Hence, etyped is an instantiated datatype type, but we correctly
+    // check if its datatype is parametric.
+    if (d.isParametric())
     {
-      // get the datatype that t belongs to
-      api::Sort etyped = etype.getConstructorCodomainSort();
-      api::Datatype d = etyped.getDatatype();
       // lookup by name
       api::DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
@@ -582,8 +589,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     {
       std::stringstream ss;
       ss << "Type ascription on constructor not satisfied, term " << t
-         << " expected sort " << s << " but has sort "
-         << t.getSort().getConstructorCodomainSort();
+         << " expected sort " << s << " but has sort " << etyped;
       parseError(ss.str());
     }
     return t;

@@ -1149,6 +1149,12 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       }
     }
     break;
+    case kind::SET_MAP:
+    {
+        throw LogicException(
+            "set.map not currently supported by the sets theory solver");
+    }
+      break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }

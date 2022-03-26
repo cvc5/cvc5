@@ -29,6 +29,7 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
+#include "util/synth_result.h"
 
 namespace cvc5 {
 
@@ -448,7 +449,7 @@ class CVC5_EXPORT SolverEngine
    *
    * @throw Exception
    */
-  Result checkSynth(bool isNext = false);
+  SynthResult checkSynth(bool isNext = false);
 
   /*------------------------- end of sygus commands ------------------------*/
 

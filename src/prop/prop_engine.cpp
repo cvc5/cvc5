@@ -652,6 +652,9 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   {
     return nullptr;
   }
+  Trace("sat-proof") << "PropEngine::getProof: getting proof with cnfStream's "
+                        "lazycdproof cxt lvl "
+                     << userContext()->getLevel() << "\n";
   return d_ppm->getProof();
 }
 

@@ -666,6 +666,15 @@ namespace api {
       i += 1;                                                                  \
     }                                                                          \
   } while (0)
+
+/**
+ * Argument number checks for mkOp.
+ */
+#define CVC5_API_OP_CHECK_ARITY(nargs, expected, kind)                      \
+  CVC5_API_CHECK(nargs == expected)                                         \
+      << "Invalid number of indices for operator " << kind << ". Expected " \
+      << expected << " but got " << nargs << "."
+
 }  // namespace api
 }  // namespace cvc5
 #endif

@@ -27,7 +27,7 @@ int main(void)
   Term t1 = slv.mkVar(s1, "_x0");
   Term t3 = slv.mkInteger("8072314426184292007005683562403");
   Term t7 = slv.mkTerm(Kind::ADD, {t1, t1, t1, t3});
-  Term t8 = slv.mkTerm(slv.mkOp(Kind::DIVISIBLE, 2319436191), {t7});
+  Term t8 = slv.mkTerm(slv.mkOp(Kind::DIVISIBLE, {2319436191}), {t7});
   Term vl = slv.mkTerm(Kind::VARIABLE_LIST, {t1});
   Term t10 = slv.mkTerm(Kind::FORALL, {vl, t8});
   slv.checkSatAssuming({t10});

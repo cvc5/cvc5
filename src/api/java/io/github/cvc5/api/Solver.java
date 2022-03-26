@@ -464,19 +464,23 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with
+   * arity &gt; 0.
+   *
    * @param symbol the symbol of the sort
-   * @param arity the arity of the sort
+   * @param arity the arity of the sort (must be &gt; 0)
    * @return the sort constructor sort
    * @throws CVC5ApiException
    */
-  public Sort mkSortConstructorSort(String symbol, int arity) throws CVC5ApiException
+  public Sort mkUninterpretedSortConstructorSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkSortConstructorSort(pointer, symbol, arity);
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, symbol, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkSortConstructorSort(long pointer, String symbol, int arity);
+  private native long mkUninterpretedSortConstructorSort(long pointer, String symbol, int arity);
 
   /**
    * Create a tuple sort.
@@ -1555,6 +1559,8 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
+   * @apiNote This corresponds to mkUninterpretedSort() const if arity = 0, and
+   *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -2636,13 +2642,14 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  public Result checkSynth()
-  {
+  public SynthResult checkSynth() {
     long resultPointer = checkSynth(pointer);
-    return new Result(this, resultPointer);
+    return new SynthResult(this, resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -2656,13 +2663,14 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth-next )
    * }
-   * @return the result of the check, which is UNSAT if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  public Result checkSynthNext()
-  {
+  public SynthResult checkSynthNext() {
     long resultPointer = checkSynthNext(pointer);
-    return new Result(this, resultPointer);
+    return new SynthResult(this, resultPointer);
   }
 
   private native long checkSynthNext(long pointer);
