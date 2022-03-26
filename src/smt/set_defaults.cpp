@@ -1328,10 +1328,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     opts.quantifiers.cegqi = false;
   }
 
-  if ((opts.quantifiers.fmfBoundLazyWasSetByUser
+  if (opts.quantifiers.fmfBoundLazyWasSetByUser
        && opts.quantifiers.fmfBoundLazy)
-      || (opts.quantifiers.fmfBoundIntWasSetByUser
-          && opts.quantifiers.fmfBoundInt))
   {
     opts.quantifiers.fmfBound = true;
     Trace("smt")
@@ -1522,21 +1520,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     if (!opts.quantifiers.purifyTriggersWasSetByUser)
     {
       opts.quantifiers.purifyTriggers = true;
-    }
-  }
-  if (opts.quantifiers.conjectureNoFilter)
-  {
-    if (!opts.quantifiers.conjectureFilterActiveTermsWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterActiveTerms = false;
-    }
-    if (!opts.quantifiers.conjectureFilterCanonicalWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterCanonical = false;
-    }
-    if (!opts.quantifiers.conjectureFilterModelWasSetByUser)
-    {
-      opts.quantifiers.conjectureFilterModel = false;
     }
   }
   if (opts.quantifiers.conjectureGenPerRoundWasSetByUser)

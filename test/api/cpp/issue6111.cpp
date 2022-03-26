@@ -42,14 +42,14 @@ int main()
 
   vector<Term> args2;
   args2.push_back(concat_result_42);
-  args2.push_back(
-      solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, 7, 4), {concat_result_43}));
+  args2.push_back(solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, {7, 4}),
+                                {concat_result_43}));
   solver.assertFormula(solver.mkTerm(EQUAL, {args2}));
 
   vector<Term> args3;
   args3.push_back(concat_result_42);
-  args3.push_back(
-      solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, 3, 0), {concat_result_43}));
+  args3.push_back(solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, {3, 0}),
+                                {concat_result_43}));
   solver.assertFormula(solver.mkTerm(EQUAL, {args3}));
 
   cout << solver.checkSat() << endl;

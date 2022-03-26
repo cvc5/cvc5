@@ -144,13 +144,6 @@ TEST_F(TestApiBlackSort, isDatatype)
   ASSERT_NO_THROW(Sort().isDatatype());
 }
 
-TEST_F(TestApiBlackSort, isParametricDatatype)
-{
-  Sort param_dt_sort = create_param_datatype_sort();
-  ASSERT_TRUE(param_dt_sort.isParametricDatatype());
-  ASSERT_NO_THROW(Sort().isParametricDatatype());
-}
-
 TEST_F(TestApiBlackSort, isConstructor)
 {
   Sort dt_sort = create_datatype_sort();

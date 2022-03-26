@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --fmf-bound-int
+; COMMAND-LINE: --finite-model-find --fmf-bound
 ; EXPECT: sat
 (set-logic UFLIA)
 (set-info :status sat)

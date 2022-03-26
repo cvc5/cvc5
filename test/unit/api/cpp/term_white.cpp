@@ -37,7 +37,7 @@ TEST_F(TestApiWhiteTerm, getOp)
   Term b = d_solver.mkConst(bvsort, "b");
 
   Term ab = d_solver.mkTerm(SELECT, {a, b});
-  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
+  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, {4, 0});
   Term extb = d_solver.mkTerm(ext, {b});
 
   ASSERT_EQ(ab.getOp(), Op(&d_solver, SELECT));
