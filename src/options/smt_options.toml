@@ -429,6 +429,7 @@ name   = "SMT Layer"
   category   = "regular"
   long       = "produce-interpols"
   type       = "bool"
+  default    = "false"
   help       = "turn on interpolation generation."
 
 [[option]]
