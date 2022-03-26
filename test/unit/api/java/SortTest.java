@@ -147,13 +147,6 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getNullSort().isDatatype());
   }
 
-  @Test void isParametricDatatype() throws CVC5ApiException
-  {
-    Sort param_dt_sort = create_param_datatype_sort();
-    assertTrue(param_dt_sort.isParametricDatatype());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isParametricDatatype());
-  }
-
   @Test void isConstructor() throws CVC5ApiException
   {
     Sort dt_sort = create_datatype_sort();

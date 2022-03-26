@@ -129,7 +129,7 @@ class Smt2 : public Parser
    *         not valid.
    */
   api::Term mkIndexedConstant(const std::string& name,
-                              const std::vector<uint64_t>& numerals);
+                              const std::vector<uint32_t>& numerals);
 
   /**
    * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".

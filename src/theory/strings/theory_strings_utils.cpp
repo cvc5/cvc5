@@ -349,8 +349,8 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
 
 bool isStringKind(Kind k)
 {
-  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
-         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TO_LOWER
+         || k == STRING_TO_UPPER || k == STRING_LEQ || k == STRING_LT
          || k == STRING_FROM_CODE || k == STRING_TO_CODE;
 }
 

@@ -12,12 +12,11 @@
 # #############################################################################
 ##
 """
-This script implements KindsParser which
-parses the header file cvc5/src/api/cpp/cvc5_kind.h
+This script implements EnumParser which parses a header file that defines
+enums.
 
-The script is aware of the '#if 0' pattern and will ignore
-kinds declared between '#if 0' and '#endif'. It can also
-handle nested '#if 0' pairs.
+The script is aware of the '#if 0' pattern and will ignore enum values declared
+between '#if 0' and '#endif'. It can also handle nested '#if 0' pairs.
 """
 
 from collections import OrderedDict
@@ -32,8 +31,10 @@ C = ','
 US = '_'
 NL = '\n'
 
+NAMESPACE_START = 'namespace'
+
 # Expected C++ Enum Declarations
-ENUM_START = 'enum Kind'
+ENUM_START = 'enum'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens
@@ -44,30 +45,58 @@ MACRO_BLOCK_BEGIN = '#if 0'
 MACRO_BLOCK_END = '#endif'
 
 
-class KindsParser:
+class CppNamespace:
+
+    def __init__(self, name):
+        # The name of the namespace
+        self.name = name
+        # The enums in this namespace
+        self.enums = []
+
+
+class CppEnum:
+
+    def __init__(self, name):
+        # The name of the enum
+        self.name = name
+        # dictionary from C++ value name to shortened name
+        self.enumerators = OrderedDict()
+        # dictionary from shortened name to documentation comment
+        self.enumerators_doc = OrderedDict()
+
+
+class EnumParser:
     tokenmap = {
         BLOCK_COMMENT_BEGIN: BLOCK_COMMENT_END,
         MACRO_BLOCK_BEGIN: MACRO_BLOCK_END
     }
 
     def __init__(self):
-        # dictionary from shortened name to documentation comment
-        self.kinds_doc = OrderedDict()
+        # the namespaces that have been parsed
+        self.namespaces = []
         # the end token for the current type of block
         # none if not in a block comment or macro
         self.endtoken = None
         # stack of end tokens
         self.endtoken_stack = []
-        # boolean that is true when in the kinds enum
-        self.in_kinds = False
-        # latest block comment - used for kinds documentation
+        # boolean that is true when in an enum
+        self.in_enum = False
+        # latest block comment - used for enums documentation
         self.latest_block_comment = ""
+        # The value of the last enumerator
+        self.last_value = -1
 
-    def get_comment(self, kind_name):
+    def get_current_namespace(self):
         '''
-        Look up a documentation comment for a Kind by C++ name
+        Returns the namespace that is currently being parsed
         '''
-        return self.kinds_doc[kind_name]
+        return self.namespaces[-1]
+
+    def get_current_enum(self):
+        '''
+        Returns the enum that is currently being parsed
+        '''
+        return self.get_current_namespace().enums[-1]
 
     def format_comment(self, comment):
         '''
@@ -120,32 +149,53 @@ class KindsParser:
         return False
 
     def parse(self, filename):
-        f = open(filename, "r")
-
-        for line in f.read().split(NL):
-            line = line.strip()
-            if COMMENT in line:
-                line = line[:line.find(COMMENT)]
-            if not line:
-                continue
-
-            if self.ignore_block(line):
-                continue
-
-            if ENUM_END in line:
-                self.in_kinds = False
-                break
-            elif self.in_kinds:
-                if line == OCB:
+        with open(filename, "r") as f:
+            for line in f:
+                line = line.strip()
+                if COMMENT in line:
+                    line = line[:line.find(COMMENT)]
+                if not line:
                     continue
-                name = line
-                if EQ in line:
-                    name = line[:line.find(EQ)].strip()
-                elif C in line:
-                    name = line[:line.find(C)].strip()
-                fmt_comment = self.format_comment(self.latest_block_comment)
-                self.kinds_doc[name] = fmt_comment
-            elif ENUM_START in line:
-                self.in_kinds = True
-                continue
-        f.close()
+
+                if self.ignore_block(line):
+                    continue
+
+                if ENUM_END in line:
+                    self.in_enum = False
+                    break
+                elif self.in_enum:
+                    if line == OCB:
+                        continue
+                    name = None
+                    value = None
+                    if EQ in line:
+                        (name, remainder) = line.split(EQ)
+                        name = name.strip()
+                        if C in remainder:
+                            value = int(remainder[:remainder.find(C)].strip())
+                        else:
+                            value = int(remainder)
+                    elif C in line:
+                        name = line[:line.find(C)].strip()
+                    else:
+                        name = line
+
+                    if not value:
+                        value = self.last_value + 1
+                    self.last_value = value
+
+                    enum = self.get_current_enum()
+                    enum.enumerators[name] = value
+                    fmt_comment = self.format_comment(
+                        self.latest_block_comment)
+                    enum.enumerators_doc[name] = fmt_comment
+                elif ENUM_START in line:
+                    self.in_enum = True
+                    tokens = line.split()
+                    name = tokens[1]
+                    self.get_current_namespace().enums.append(CppEnum(name))
+                    continue
+                elif line.startswith(NAMESPACE_START):
+                    tokens = line.split()
+                    name = tokens[1]
+                    self.namespaces.append(CppNamespace(name))
