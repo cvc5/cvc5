@@ -69,7 +69,7 @@ TEST_F(TestApiBlackSolver, pow2Large3)
   Sort s4 = d_solver.getIntegerSort();
   Term t203 = d_solver.mkInteger("6135470354240554220207");
   Term t262 = d_solver.mkTerm(POW2, {t203});
-  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, 49), {t262});
+  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, {49}), {t262});
   ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
 }
 
@@ -361,11 +361,12 @@ TEST_F(TestApiBlackSolver, mkUnresolvedSort)
   ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
 }
 
-TEST_F(TestApiBlackSolver, mkSortConstructorSort)
+TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)
 {
-  ASSERT_NO_THROW(d_solver.mkSortConstructorSort("s", 2));
-  ASSERT_NO_THROW(d_solver.mkSortConstructorSort("", 2));
-  ASSERT_THROW(d_solver.mkSortConstructorSort("", 0), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("s", 2));
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("", 2));
+  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort("", 0),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkTupleSort)
@@ -545,26 +546,20 @@ TEST_F(TestApiBlackSolver, mkFloatingPointPosZero)
 
 TEST_F(TestApiBlackSolver, mkOp)
 {
-  // mkOp(Kind kind, Kind k)
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, EQUAL), CVC5ApiException);
-
   // mkOp(Kind kind, const std::string& arg)
   ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, "2147483648"));
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, "asdf"), CVC5ApiException);
 
-  // mkOp(Kind kind, uint32_t arg)
-  ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, 1));
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 1));
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 1));
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, 1), CVC5ApiException);
-
-  // mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, 1, 1));
-  ASSERT_THROW(d_solver.mkOp(DIVISIBLE, 1, 2), CVC5ApiException);
-
   // mkOp(Kind kind, std::vector<uint32_t> args)
-  std::vector<uint32_t> args = {1, 2, 2};
-  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, args));
+  ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, {1}));
+  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {1}));
+  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {1}));
+  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, {1}), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, {1, 1}));
+  ASSERT_THROW(d_solver.mkOp(DIVISIBLE, {1, 2}), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, {1, 2, 2}));
 }
 
 TEST_F(TestApiBlackSolver, mkPi) { ASSERT_NO_THROW(d_solver.mkPi()); }
@@ -828,8 +823,8 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
   Solver slv;
 
   // simple operator terms
-  Op opterm1 = d_solver.mkOp(BITVECTOR_EXTRACT, 2, 1);
-  Op opterm2 = d_solver.mkOp(DIVISIBLE, 1);
+  Op opterm1 = d_solver.mkOp(BITVECTOR_EXTRACT, {2, 1});
+  Op opterm2 = d_solver.mkOp(DIVISIBLE, {1});
 
   // list datatype
   Sort sort = d_solver.mkParamSort("T");
@@ -1479,7 +1474,7 @@ TEST_F(TestApiBlackSolver, getOp)
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);
   Term a = d_solver.mkConst(bv32, "a");
-  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 2, 1);
+  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, {2, 1});
   Term exta = d_solver.mkTerm(ext, {a});
 
   ASSERT_FALSE(a.hasOp());
@@ -1536,6 +1531,25 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ("verbose", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ verbose | void }");
+  }
+  {
+    // bool type with default
+    api::OptionInfo info = d_solver.getOptionInfo("print-success");
+    EXPECT_EQ("print-success", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(
+        std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo));
+    auto valInfo = std::get<OptionInfo::ValueInfo<bool>>(info.valueInfo);
+    EXPECT_EQ(false, valInfo.defaultValue);
+    EXPECT_EQ(false, valInfo.currentValue);
+    ASSERT_EQ(info.boolValue(), false);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ print-success | bool | false | default false }");
   }
   {
     // int64 type with default
@@ -1549,6 +1563,25 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ(0, numInfo.currentValue);
     EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
     ASSERT_EQ(info.intValue(), 0);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ verbosity | int64_t | 0 | default 0 }");
+  }
+  {
+    // uint64 type with default
+    api::OptionInfo info = d_solver.getOptionInfo("rlimit");
+    EXPECT_EQ("rlimit", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
+        info.valueInfo));
+    auto numInfo = std::get<OptionInfo::NumberInfo<uint64_t>>(info.valueInfo);
+    EXPECT_EQ(0, numInfo.defaultValue);
+    EXPECT_EQ(0, numInfo.currentValue);
+    EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+    ASSERT_EQ(info.uintValue(), 0);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(), "OptionInfo{ rlimit | uint64_t | 0 | default 0 }");
   }
   {
     auto info = d_solver.getOptionInfo("random-freq");
@@ -1563,6 +1596,27 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     ASSERT_EQ(*ni.minimum, 0.0);
     ASSERT_EQ(*ni.maximum, 1.0);
     ASSERT_EQ(info.doubleValue(), 0.0);
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ random-freq, random-frequency | double | 0 | "
+              "default 0 | 0 <= x <= 1 }");
+  }
+  {
+    // string type with default
+    api::OptionInfo info = d_solver.getOptionInfo("force-logic");
+    EXPECT_EQ("force-logic", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
+        info.valueInfo));
+    auto valInfo = std::get<OptionInfo::ValueInfo<std::string>>(info.valueInfo);
+    EXPECT_EQ("", valInfo.defaultValue);
+    EXPECT_EQ("", valInfo.currentValue);
+    ASSERT_EQ(info.stringValue(), "");
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ force-logic | string | \"\" | default \"\" }");
   }
   {
     // mode option
@@ -1578,9 +1632,22 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
                 != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
+    std::stringstream ss;
+    ss << info;
+    ASSERT_EQ(ss.str(),
+              "OptionInfo{ simplification, simplification-mode | mode | batch "
+              "| default batch | modes: batch, none }");
   }
 }
 
+TEST_F(TestApiBlackSolver, getDriverOptions)
+{
+  auto dopts = d_solver.getDriverOptions();
+  EXPECT_EQ(dopts.err().rdbuf(), std::cerr.rdbuf());
+  EXPECT_EQ(dopts.in().rdbuf(), std::cin.rdbuf());
+  EXPECT_EQ(dopts.out().rdbuf(), std::cout.rdbuf());
+}
+  
 TEST_F(TestApiBlackSolver, getStatistics)
 {
   // do some array reasoning to make sure we have a double statistics
@@ -3226,7 +3293,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t60 = slv.mkTerm(Kind::SET_SINGLETON, {t1});
   Term t66 = slv.mkTerm(Kind::BITVECTOR_COMP, {t2, t11});
   Term t92 = slv.mkRegexpAll();
-  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 51), {t66});
+  Term t96 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {51}), {t66});
   Term t105 = slv.mkTerm(Kind::BITVECTOR_ADD, {t96, t96});
   Term t113 = slv.mkTerm(Kind::BITVECTOR_SUB, {t105, t105});
   Term t137 = slv.mkTerm(Kind::BITVECTOR_XOR, {t113, t105});
@@ -3235,9 +3302,9 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t234 = slv.mkTerm(Kind::SET_CHOOSE, {t212});
   Term t250 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t1, t92, t1});
   Term t259 = slv.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
-  Term t263 = slv.mkTerm(Kind::STRING_TOLOWER, {t259});
+  Term t263 = slv.mkTerm(Kind::STRING_TO_LOWER, {t259});
   Term t272 = slv.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
-  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, 71), {t272});
+  Term t276 = slv.mkTerm(slv.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {71}), {t272});
   Term t288 = slv.mkTerm(Kind::EQUAL, {t263, t1});
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});

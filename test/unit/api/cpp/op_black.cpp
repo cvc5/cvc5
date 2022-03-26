@@ -28,7 +28,7 @@ class TestApiBlackOp : public TestApi
 TEST_F(TestApiBlackOp, getKind)
 {
   Op x;
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
+  x = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
   ASSERT_NO_THROW(x.getKind());
 }
 
@@ -36,7 +36,7 @@ TEST_F(TestApiBlackOp, isNull)
 {
   Op x;
   ASSERT_TRUE(x.isNull());
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
+  x = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
   ASSERT_FALSE(x.isNull());
 }
 
@@ -54,16 +54,16 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(0, plus.getNumIndices());
 
   // Operators with 1 index
-  Op divisible = d_solver.mkOp(DIVISIBLE, 4);
-  Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
-  Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
-  Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
-  Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
-  Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
-  Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, 10);
-  Op iand = d_solver.mkOp(IAND, 11);
-  Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 12);
-  Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
+  Op divisible = d_solver.mkOp(DIVISIBLE, {4});
+  Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, {5});
+  Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, {6});
+  Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, {7});
+  Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {8});
+  Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {9});
+  Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, {10});
+  Op iand = d_solver.mkOp(IAND, {11});
+  Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, {12});
+  Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, {13});
 
   ASSERT_EQ(1, divisible.getNumIndices());
   ASSERT_EQ(1, bvRepeat.getNumIndices());
@@ -77,13 +77,13 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(1, fpToSbv.getNumIndices());
 
   // Operators with 2 indices
-  Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, 1, 0);
-  Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 3, 2);
-  Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 5, 4);
-  Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
-  Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
-  Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
-  Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
+  Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, {1, 0});
+  Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, {3, 2});
+  Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, {5, 4});
+  Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, {7, 6});
+  Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, {9, 8});
+  Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, {11, 10});
+  Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, {15, 14});
 
   ASSERT_EQ(2, bvExtract.getNumIndices());
   ASSERT_EQ(2, toFpFromIeeeBv.getNumIndices());
@@ -107,16 +107,16 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_THROW(plus[0], CVC5ApiException);
 
   // Operators with 1 index
-  Op divisible = d_solver.mkOp(DIVISIBLE, 4);
-  Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, 5);
-  Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
-  Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
-  Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
-  Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
-  Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, 10);
-  Op iand = d_solver.mkOp(IAND, 11);
-  Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 12);
-  Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
+  Op divisible = d_solver.mkOp(DIVISIBLE, {4});
+  Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, {5});
+  Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, {6});
+  Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, {7});
+  Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {8});
+  Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {9});
+  Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, {10});
+  Op iand = d_solver.mkOp(IAND, {11});
+  Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, {12});
+  Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, {13});
 
   ASSERT_EQ(4, divisible[0].getUInt32Value());
   ASSERT_EQ(5, bvRepeat[0].getUInt32Value());
@@ -130,13 +130,13 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_EQ(13, fpToSbv[0].getUInt32Value());
 
   // Operators with 2 indices
-  Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, 1, 0);
-  Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, 3, 2);
-  Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, 5, 4);
-  Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, 7, 6);
-  Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, 9, 8);
-  Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, 11, 10);
-  Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, 15, 14);
+  Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, {1, 0});
+  Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, {3, 2});
+  Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, {5, 4});
+  Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, {7, 6});
+  Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, {9, 8});
+  Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, {11, 10});
+  Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, {15, 14});
 
   ASSERT_EQ(1, bvExtract[0].getUInt32Value());
   ASSERT_EQ(0, bvExtract[1].getUInt32Value());
@@ -164,7 +164,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
 
 TEST_F(TestApiBlackOp, opScopingToString)
 {
-  Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
+  Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, {5});
   std::string op_repr = bitvector_repeat_ot.toString();
   Solver solver2;
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);

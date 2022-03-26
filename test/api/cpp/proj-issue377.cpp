@@ -34,7 +34,7 @@ int main(void)
   Term t37 = slv.mkTerm(Kind::BITVECTOR_TO_NAT, {t35});
   Term t40 = slv.mkTerm(Kind::PI);
   Term t43 = slv.mkTerm(Kind::ADD, {t40, t40});
-  Term t45 = slv.mkTerm(slv.mkOp(Kind::IAND, 31), {t37, t5});
+  Term t45 = slv.mkTerm(slv.mkOp(Kind::IAND, {31}), {t37, t5});
   Term t66 = slv.mkTerm(Kind::EQUAL, {t43, t40});
   Term t101 = slv.mkTerm(Kind::LT, {t37, t45});
   slv.assertFormula({t66});
