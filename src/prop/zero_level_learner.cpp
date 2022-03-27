@@ -38,6 +38,7 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
       d_ldb(userContext()),
       d_nonZeroAssert(context(), false),
       d_ppnAtoms(userContext()),
+      d_ppnTerms(userContext()),
       d_ppnSyms(userContext()),
       d_assertNoLearnCount(0)
 {
@@ -48,10 +49,16 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
   {
     d_learnedTypes.insert(LearnedLitType::INTERNAL);
     d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+    d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
   }
   else if (lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE)
   {
     d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+  }
+  else if (lmode == options::DeepRestartLearnMode::INPUT_AND_PROP)
+  {
+    d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+    d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
   }
 }
 
@@ -87,6 +94,8 @@ void ZeroLevelLearner::notifyInputFormulas(
 {
   d_assertNoLearnCount = 0;
   std::unordered_set<TNode> visited;
+  std::unordered_set<TNode> visitedWithinAtom;
+  std::unordered_set<Node> inputSymbols;
   // We consider top level literals of assertions, including those occurring
   // as children of AND to be the preprocessed learned literals only, and not
   // the literals tracked by the preprocessor
@@ -114,6 +123,8 @@ void ZeroLevelLearner::notifyInputFormulas(
     visited.insert(atom);
     // output learned literals from preprocessing
     processLearnedLiteral(lit, LearnedLitType::PREPROCESS);
+    // also get its symbols
+    expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
   }
   // Compute the set of literals in the preprocessed assertions
   std::unordered_set<Node> inputAtoms;
@@ -121,13 +132,15 @@ void ZeroLevelLearner::notifyInputFormulas(
   {
     getAtoms(a, visited, inputAtoms);
   }
-  visited.clear();
-  std::unordered_set<Node> inputSymbols;
   for (const Node& a : inputAtoms)
   {
     d_ppnAtoms.insert(a);
     // also get its symbols
-    expr::getSymbols(a, inputSymbols, visited);
+    expr::getSymbols(a, inputSymbols, visitedWithinAtom);
+  }
+  for (const TNode& t : visitedWithinAtom)
+  {
+    d_ppnTerms.insert(t);
   }
   for (const Node& s : inputSymbols)
   {
@@ -137,7 +150,9 @@ void ZeroLevelLearner::notifyInputFormulas(
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
-  Trace("level-zero") << "#Non-learned symbols = " << d_ppnSyms.size()
+  Trace("level-zero") << "#Symbols = " << d_ppnSyms.size()
+                      << std::endl;
+  Trace("level-zero") << "#Subterms = " << d_ppnTerms.size()
                       << std::endl;
   Trace("level-zero") << "#Current top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
@@ -228,6 +243,22 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
           ltype = LearnedLitType::SOLVABLE;
+          break;
+        }
+      }
+    }
+    if (ltype!=LearnedLitType::SOLVABLE)
+    {
+      // maybe a constant prop?
+      if (lit.getKind() == kind::EQUAL)
+      {
+        for (size_t i=0; i<2; i++)
+        {
+          if (lit[i].isConst() && d_ppnTerms.find(lit[1-i])!=d_ppnTerms.end())
+          {
+            ltype = LearnedLitType::CONSTANT_PROP;
+            break;
+          }
         }
       }
     }

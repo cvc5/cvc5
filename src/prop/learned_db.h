@@ -40,6 +40,8 @@ enum class LearnedLitType
   INPUT,
   // a solvable literal
   SOLVABLE,
+  // a literal that can be made into a constant propagation
+  CONSTANT_PROP,
   // all literals
   INTERNAL
 };
@@ -82,6 +84,8 @@ class LearnedDb
   NodeSet d_inputLits;
   /** Solvable lits */
   NodeSet d_solvableLits;
+  /** Constant propagation lits */
+  NodeSet d_cpropLits;
   /** Internal lits */
   NodeSet d_internalLits;
 };

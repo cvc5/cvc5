@@ -507,6 +507,9 @@ name   = "SMT Layer"
 [[option.mode.INPUT_AND_SOLVABLE]]
   name = "input-and-solvable"
   help = "learn literals that appear in the input and those that can be solved for variables that appear in the input"
+[[option.mode.INPUT_AND_PROP]]
+  name = "input-and-prop"
+  help = "learn literals that appear in the input and those that can be solved for variables, or correspond to constant propagations for terms that appear in the input"
 [[option.mode.ALL]]
   name = "all"
   help = "learn all literals"

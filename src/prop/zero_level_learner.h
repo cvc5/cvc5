@@ -102,6 +102,10 @@ class ZeroLevelLearner : protected EnvObj
    */
   NodeSet d_ppnAtoms;
   /**
+   * Subterms of the above atoms.
+   */
+  NodeSet d_ppnTerms;
+  /**
    * Symbols in the above atoms.
    */
   NodeSet d_ppnSyms;

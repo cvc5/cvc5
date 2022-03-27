@@ -28,6 +28,7 @@ const char* toString(LearnedLitType ltype)
     case LearnedLitType::PREPROCESS: return "PREPROCESS";
     case LearnedLitType::INPUT: return "INPUT";
     case LearnedLitType::SOLVABLE: return "SOLVABLE";
+    case LearnedLitType::CONSTANT_PROP: return "CONSTANT_PROP";
     case LearnedLitType::INTERNAL: return "INTERNAL";
     default: return "?";
   }
@@ -44,6 +45,7 @@ LearnedDb::LearnedDb(context::Context* c)
       d_preprocessLits(c),
       d_inputLits(c),
       d_solvableLits(c),
+      d_cpropLits(c),
       d_internalLits(c)
 {
 }
@@ -80,6 +82,7 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(LearnedLitType ltype)
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
+    case LearnedLitType::CONSTANT_PROP: return d_cpropLits;
     default: Assert(ltype==LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
@@ -94,6 +97,7 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
     case LearnedLitType::PREPROCESS: return d_preprocessLits;
     case LearnedLitType::INPUT: return d_inputLits;
     case LearnedLitType::SOLVABLE: return d_solvableLits;
+    case LearnedLitType::CONSTANT_PROP: return d_cpropLits;
     default: Assert(ltype==LearnedLitType::INTERNAL); break;
   }
   return d_internalLits;
@@ -106,6 +110,7 @@ std::string LearnedDb::toStringDebug() const
   ss << toStringDebugType(LearnedLitType::PREPROCESS);
   ss << toStringDebugType(LearnedLitType::INPUT);
   ss << toStringDebugType(LearnedLitType::SOLVABLE);
+  ss << toStringDebugType(LearnedLitType::CONSTANT_PROP);
   ss << toStringDebugType(LearnedLitType::INTERNAL);
   return ss.str();
 }
