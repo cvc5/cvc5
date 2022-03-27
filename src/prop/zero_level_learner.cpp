@@ -150,10 +150,8 @@ void ZeroLevelLearner::notifyInputFormulas(
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
-  Trace("level-zero") << "#Symbols = " << d_ppnSyms.size()
-                      << std::endl;
-  Trace("level-zero") << "#Subterms = " << d_ppnTerms.size()
-                      << std::endl;
+  Trace("level-zero") << "#Symbols = " << d_ppnSyms.size() << std::endl;
+  Trace("level-zero") << "#Subterms = " << d_ppnTerms.size() << std::endl;
   Trace("level-zero") << "#Current top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;
@@ -247,14 +245,15 @@ LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(const Node& lit)
         }
       }
     }
-    if (ltype!=LearnedLitType::SOLVABLE)
+    if (ltype != LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == kind::EQUAL)
       {
-        for (size_t i=0; i<2; i++)
+        for (size_t i = 0; i < 2; i++)
         {
-          if (lit[i].isConst() && d_ppnTerms.find(lit[1-i])!=d_ppnTerms.end())
+          if (lit[i].isConst()
+              && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
           {
             ltype = LearnedLitType::CONSTANT_PROP;
             break;
