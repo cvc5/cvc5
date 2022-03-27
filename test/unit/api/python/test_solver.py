@@ -300,10 +300,10 @@ def test_mk_unresolved_sort(solver):
 
 
 def test_mk_sort_constructor_sort(solver):
-    solver.mkSortConstructorSort("s", 2)
-    solver.mkSortConstructorSort("", 2)
+    solver.mkUninterpretedSortConstructorSort("s", 2)
+    solver.mkUninterpretedSortConstructorSort("", 2)
     with pytest.raises(RuntimeError):
-        solver.mkSortConstructorSort("", 0)
+        solver.mkUninterpretedSortConstructorSort("", 0)
 
 
 def test_mk_tuple_sort(solver):
@@ -520,7 +520,7 @@ def test_mk_op(solver):
         solver.mkOp(Kind.Divisible, 1, 2)
 
     args = [1, 2, 2]
-    solver.mkOp(Kind.TupleProject, args)
+    solver.mkOp(Kind.TupleProject, *args)
 
 
 def test_mk_pi(solver):
@@ -2147,7 +2147,7 @@ def test_get_abduct_next(solver):
 
 def test_get_interpolant(solver):
     solver.setLogic("QF_LIA")
-    solver.setOption("produce-interpols", "default")
+    solver.setOption("produce-interpols", "true")
     solver.setOption("incremental", "false")
 
     intSort = solver.getIntegerSort()
@@ -2168,7 +2168,7 @@ def test_get_interpolant(solver):
 
 def test_get_interpolant_next(solver):
     solver.setLogic("QF_LIA")
-    solver.setOption("produce-interpols", "default")
+    solver.setOption("produce-interpols", "true")
     solver.setOption("incremental", "true")
 
     intSort = solver.getIntegerSort()
@@ -2548,22 +2548,22 @@ def test_tuple_project(solver):
     indices5 = [4]
     indices6 = [0, 4]
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices1), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices1), tuple)
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices2), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices2), tuple)
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices3), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices3), tuple)
 
-    solver.mkTerm(solver.mkOp(Kind.TupleProject, indices4), tuple)
+    solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices4), tuple)
 
     with pytest.raises(RuntimeError):
-        solver.mkTerm(solver.mkOp(Kind.TupleProject, indices5), tuple)
+        solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices5), tuple)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(solver.mkOp(Kind.TupleProject, indices6), tuple)
+        solver.mkTerm(solver.mkOp(Kind.TupleProject, *indices6), tuple)
 
     indices = [0, 3, 2, 0, 1, 2]
 
-    op = solver.mkOp(Kind.TupleProject, indices)
+    op = solver.mkOp(Kind.TupleProject, *indices)
     projection = solver.mkTerm(op, tuple)
 
     datatype = tuple.getSort().getDatatype()

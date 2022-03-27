@@ -159,7 +159,7 @@ void TermRegistry::preRegisterTerm(TNode n)
         || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
         || k == STRING_REPLACE_ALL || k == SEQ_NTH || k == STRING_REPLACE_RE
         || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
-        || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV
+        || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV
         || k == STRING_UPDATE)
     {
       std::stringstream ss;
