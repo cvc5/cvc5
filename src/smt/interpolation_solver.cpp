@@ -58,7 +58,7 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
   if (d_subsolver->solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
-    if (options().smt.checkInterpols)
+    if (options().smt.checkInterpolants)
     {
       checkInterpol(interpol, axioms, conj);
     }
