@@ -972,6 +972,21 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
   }
 
+  @Test void getCardinalityConstraint()
+  {
+    Sort su = d_solver.mkUninterpretedSort("u");
+    Term t = d_solver.mkCardinalityConstraint(su, 3);
+    assertTrue(t.isCardinalityConstraint());
+    std::pair<Sort, uint32_t> cc = t.getCardinalityConstraint();
+    assertEquals(cc.first, su);
+    assertEquals(cc.second, 3);
+    Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+    assertFalse(x.isCardinalityConstraint());
+    assertThrows(CVC5ApiException.class, () -> x.getCardinalityConstraint());
+    Term nullt;
+    assertThrows(CVC5ApiException.class, () -> nullt.isCardinalityConstraint());
+  }
+
   @Test void substitute()
   {
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
