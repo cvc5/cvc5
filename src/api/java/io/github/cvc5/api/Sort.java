@@ -365,7 +365,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * An instantiated sort is a sort that has been constructed from
    * instantiating sort parameters of a parametric sort with sort arguments
-   * (see Sort::instantiate()).
+   * (see Sort.instantiate()).
    *
    * @return true if this is an instantiated sort
    */
