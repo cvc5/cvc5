@@ -29,7 +29,7 @@
 
 using namespace std;
 using namespace cvc5::theory;
-
+ 
 namespace cvc5 {
 
 namespace theory {

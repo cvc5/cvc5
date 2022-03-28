@@ -60,7 +60,7 @@ class PartitionGenerator : protected EnvObj
    */
   TrustNode makeRevisedPartitions();
 
-  /**
+  /** 
    * Generate a lemma that is the negation of toBlock which ultimately blocks that path in the search. 
    */
   TrustNode blockPath(TNode toBlock);
