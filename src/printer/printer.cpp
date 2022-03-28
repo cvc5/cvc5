@@ -402,12 +402,12 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
                                      Node conj,
                                      TypeNode sygusType) const
 {
-  printUnknownCommand(out, "get-interpol");
+  printUnknownCommand(out, "get-interpolant");
 }
 
 void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
 {
-  printUnknownCommand(out, "get-interpol-next");
+  printUnknownCommand(out, "get-interpolant-next");
 }
 
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
