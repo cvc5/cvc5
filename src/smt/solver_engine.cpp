@@ -220,7 +220,7 @@ void SolverEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
-  if (d_env->getOptions().smt.interpols)
+  if (d_env->getOptions().smt.interpolants)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
@@ -1643,7 +1643,7 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   Node interpol;
   bool success =
       d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
-  // notify the state of whether the get-interpol call was successfuly, which
+  // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
   Assert(success == !interpol.isNull());
@@ -1657,12 +1657,13 @@ Node SolverEngine::getInterpolantNext()
   if (d_state->getMode() != SmtMode::INTERPOL)
   {
     throw RecoverableModalException(
-        "Cannot get-interpol-next unless immediately preceded by a successful "
-        "call to get-interpol(-next).");
+        "Cannot get-interpolant-next unless immediately preceded by a "
+        "successful "
+        "call to get-interpolant(-next).");
   }
   Node interpol;
   bool success = d_interpolSolver->getInterpolantNext(interpol);
-  // notify the state of whether the get-interpolant-next call was successful
+  // notify the state of whether the get-interpolantant-next call was successful
   d_state->notifyGetInterpol(success);
   Assert(success == !interpol.isNull());
   return interpol;

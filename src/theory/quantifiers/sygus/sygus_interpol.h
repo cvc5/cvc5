@@ -32,7 +32,7 @@ class SolverEngine;
 namespace theory {
 namespace quantifiers {
 /**
- * This is an utility for the SMT-LIB command (get-interpol <term>).
+ * This is an utility for the SMT-LIB command (get-interpolant <term>).
  * The utility turns a set of quantifier-free assertions into a sygus
  * conjecture that encodes an interpolation problem, and then solve the
  * interpolation problem by synthesizing it. In detail, if our input formula is
@@ -48,7 +48,7 @@ namespace quantifiers {
  *
  * This class uses a fresh copy of the SMT engine which is used for solving the
  * interpolation problem. In particular, consider the input: (assert A)
- *   (get-interpol s B)
+ *   (get-interpolant s B)
  * In the copy of the SMT engine where these commands are issued, we maintain
  * A in the assertion stack. In solving the interpolation problem, we will
  * need to call a SMT engine solver with a different assertion stack, which is

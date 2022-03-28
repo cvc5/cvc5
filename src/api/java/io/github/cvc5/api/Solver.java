@@ -2199,9 +2199,9 @@ public class Solver implements IPointer, AutoCloseable
    * Get an interpolant
    * SMT-LIB:
    * {@code
-   * ( get-interpol <conj> )
+   * ( get-interpolant <conj> )
    * }
-   * Requires 'produce-interpols' to be set to a mode different from 'none'.
+   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
    *
    * @apiNote This method is experimental and may change in future versions.
    *
@@ -2222,9 +2222,9 @@ public class Solver implements IPointer, AutoCloseable
    * Get an interpolant
    * SMT-LIB:
    * {@code
-   * ( get-interpol <conj> <g> )
+   * ( get-interpolant <conj> <g> )
    * }
-   * Requires 'produce-interpols' to be set to a mode different from 'none'.
+   * Requires 'produce-interpolants' to be set to a mode different from 'none'.
    *
    * @apiNote This method is experimental and may change in future versions.
    *
@@ -2244,7 +2244,7 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
    * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
@@ -2253,9 +2253,9 @@ public class Solver implements IPointer, AutoCloseable
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol-next)
+   *     (get-interpolant-next)
    *
-   * Requires to enable incremental mode, and option 'produce-interpols' to be
+   * Requires to enable incremental mode, and option 'produce-interpolants' to be
    * set to a mode different from 'none'.
    * \endverbatim
    *
