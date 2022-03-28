@@ -689,8 +689,10 @@ public class Solver implements IPointer, AutoCloseable
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
    *   (e.g. BITVECTOR_EXTRACT).
+   *
    * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
+   *
    * @param kind the kind to wrap
    */
   public Op mkOp(Kind kind)
@@ -1565,8 +1567,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
+   *
    * @apiNote This corresponds to mkUninterpretedSort() const if arity = 0, and
    *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -1880,11 +1884,13 @@ public class Solver implements IPointer, AutoCloseable
    * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   *
    * @apiNote In contrast to SMT-LIB, the API does not distinguish between
    *          named and unnamed assertions when producing an unsatisfiable
    *          core. Additionally, the API allows this option to be called after
    *          a check with assumptions. A subset of those assumptions may be
    *          included in the unsatisfiable core returned by this method.
+   *
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
