@@ -452,7 +452,20 @@ TEST_F(TestApiBlackSolver, mkBoolean)
 
 TEST_F(TestApiBlackSolver, mkRoundingMode)
 {
-  ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN)
+                .toString(),
+            "roundNearestTiesToEven");
+  ASSERT_EQ(
+      d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE).toString(),
+      "roundTowardPositive");
+  ASSERT_EQ(
+      d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE).toString(),
+      "roundTowardNegative");
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO).toString(),
+            "roundTowardZero");
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY)
+                .toString(),
+            "roundNearestTiesToAway");
 }
 
 TEST_F(TestApiBlackSolver, mkFloatingPoint)

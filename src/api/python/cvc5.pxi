@@ -22,7 +22,6 @@ from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport SynthResult as c_SynthResult
-from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport OptionInfo as c_OptionInfo
@@ -33,9 +32,6 @@ from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
-from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
-from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
-from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc5 cimport REQUIRES_FULL_CHECK, INCOMPLETE, TIMEOUT
 from cvc5 cimport RESOURCEOUT, MEMOUT, INTERRUPTED
 from cvc5 cimport NO_STATUS, UNSUPPORTED, UNKNOWN_REASON
@@ -46,6 +42,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+from cvc5types cimport RoundingMode as c_RoundingMode
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
@@ -660,44 +657,6 @@ cdef class SynthResult:
 
     def __repr__(self):
         return self.cr.toString().decode()
-
-cdef class RoundingMode:
-    """
-        Rounding modes for floating-point numbers.
-
-        For many floating-point operations, infinitely precise results may not be
-        representable with the number of available bits. Thus, the results are
-        rounded in a certain way to one of the representable floating-point numbers.
-
-        These rounding modes directly follow the SMT-LIB theory for floating-point
-        arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
-        The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
-        Standard 754.
-
-        Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
-    """
-    cdef c_RoundingMode crm
-    cdef str name
-    def __cinit__(self, int rm):
-        # crm always assigned externally
-        self.crm = <c_RoundingMode> rm
-        self.name = __rounding_modes[rm]
-
-    def __eq__(self, RoundingMode other):
-        return (<int> self.crm) == (<int> other.crm)
-
-    def __ne__(self, RoundingMode other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash((<int> self.crm, self.name))
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
-
 
 cdef class UnknownExplanation:
     """
@@ -1392,13 +1351,13 @@ cdef class Solver:
         term.cterm = self.csolver.mkFloatingPointNegZero(exp, sig)
         return term
 
-    def mkRoundingMode(self, RoundingMode rm):
+    def mkRoundingMode(self, rm):
         """Create a roundingmode constant.
 
         :param rm: the floating point rounding mode this constant represents
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.crm)
+        term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.value)
         return term
 
     def mkFloatingPoint(self, int exp, int sig, Term val):
@@ -3579,29 +3538,6 @@ cdef class Term:
             return res
 
 
-# Generate rounding modes
-cdef __rounding_modes = {
-    <int> ROUND_NEAREST_TIES_TO_EVEN: "RoundNearestTiesToEven",
-    <int> ROUND_TOWARD_POSITIVE: "RoundTowardPositive",
-    <int> ROUND_TOWARD_NEGATIVE: "RoundTowardNegative",
-    <int> ROUND_TOWARD_ZERO: "RoundTowardZero",
-    <int> ROUND_NEAREST_TIES_TO_AWAY: "RoundNearestTiesToAway"
-}
-
-mod_ref = sys.modules[__name__]
-for rm_int, name in __rounding_modes.items():
-    r = RoundingMode(rm_int)
-
-    if name in dir(mod_ref):
-        raise RuntimeError("Redefinition of Python RoundingMode %s."%name)
-
-    setattr(mod_ref, name, r)
-
-del r
-del rm_int
-del name
-
-
 # Generate unknown explanations
 cdef __unknown_explanations = {
     <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
@@ -3616,6 +3552,7 @@ cdef __unknown_explanations = {
     <int> UNKNOWN_REASON: "UnknownReason"
 }
 
+mod_ref = sys.modules[__name__]
 for ue_int, name in __unknown_explanations.items():
     u = UnknownExplanation(ue_int)
 
