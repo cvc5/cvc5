@@ -361,11 +361,12 @@ TEST_F(TestApiBlackSolver, mkUnresolvedSort)
   ASSERT_NO_THROW(d_solver.mkUnresolvedSort("", 1));
 }
 
-TEST_F(TestApiBlackSolver, mkSortConstructorSort)
+TEST_F(TestApiBlackSolver, mkUninterpretedSortConstructorSort)
 {
-  ASSERT_NO_THROW(d_solver.mkSortConstructorSort("s", 2));
-  ASSERT_NO_THROW(d_solver.mkSortConstructorSort("", 2));
-  ASSERT_THROW(d_solver.mkSortConstructorSort("", 0), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("s", 2));
+  ASSERT_NO_THROW(d_solver.mkUninterpretedSortConstructorSort("", 2));
+  ASSERT_THROW(d_solver.mkUninterpretedSortConstructorSort("", 0),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkTupleSort)
@@ -1401,7 +1402,7 @@ TEST_F(TestApiBlackSolver, getAbductNext)
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
-  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("produce-interpols", "true");
   d_solver.setOption("incremental", "false");
 
   Sort intSort = d_solver.getIntegerSort();
@@ -1429,7 +1430,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 TEST_F(TestApiBlackSolver, getInterpolantNext)
 {
   d_solver.setLogic("QF_LIA");
-  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("produce-interpols", "true");
   d_solver.setOption("incremental", "true");
 
   Sort intSort = d_solver.getIntegerSort();

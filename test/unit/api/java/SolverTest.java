@@ -342,11 +342,11 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkUnresolvedSort("", 1));
   }
 
-  @Test void mkSortConstructorSort() throws CVC5ApiException
+  @Test void mkUninterpretedSortConstructorSort() throws CVC5ApiException
   {
-    assertDoesNotThrow(() -> d_solver.mkSortConstructorSort("s", 2));
-    assertDoesNotThrow(() -> d_solver.mkSortConstructorSort("", 2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkSortConstructorSort("", 0));
+    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort("s", 2));
+    assertDoesNotThrow(() -> d_solver.mkUninterpretedSortConstructorSort("", 2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkUninterpretedSortConstructorSort("", 0));
   }
 
   @Test void mkTupleSort() throws CVC5ApiException
@@ -1394,7 +1394,7 @@ class SolverTest
   @Test void getInterpolant() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
-    d_solver.setOption("produce-interpols", "default");
+    d_solver.setOption("produce-interpols", "true");
     d_solver.setOption("incremental", "false");
 
     Sort intSort = d_solver.getIntegerSort();
@@ -1419,7 +1419,7 @@ class SolverTest
   @Test void getInterpolantNext() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
-    d_solver.setOption("produce-interpols", "default");
+    d_solver.setOption("produce-interpols", "true");
     d_solver.setOption("incremental", "true");
 
     Sort intSort = d_solver.getIntegerSort();

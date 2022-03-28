@@ -584,10 +584,14 @@ class CVC5_EXPORT Sort
   bool isUninterpretedSort() const;
 
   /**
-   * Is this a sort constructor kind?
+   * Is this an uninterpreted sort constructor kind?
+   *
+   * An uninterpreted sort constructor has arity > 0 and can be instantiated to
+   * construct uninterpreted sorts with given sort parameters.
+   *
    * @return true if this is a sort constructor kind
    */
-  bool isSortConstructor() const;
+  bool isUninterpretedSortConstructor() const;
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -595,8 +599,11 @@ class CVC5_EXPORT Sort
   Datatype getDatatype() const;
 
   /**
-   * Instantiate a parameterized datatype/sort sort.
+   * Instantiate a parameterized datatype sort or uninterpreted sort
+   * constructor sort.
+   *
    * Create sorts parameter with Solver::mkParamSort().
+   *
    * @param params the list of sort parameters to instantiate with
    */
   Sort instantiate(const std::vector<Sort>& params) const;
@@ -753,9 +760,9 @@ class CVC5_EXPORT Sort
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the arity of a sort constructor sort
+   * @return the arity of an uninterpreted sort constructor sort
    */
-  size_t getSortConstructorArity() const;
+  size_t getUninterpretedSortConstructorArity() const;
 
   /* Bit-vector sort ----------------------------------------------------- */
 
@@ -3282,12 +3289,16 @@ class CVC5_EXPORT Solver
   Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
 
   /**
-   * Create a sort constructor sort.
+   * Create an uninterpreted sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   *
    * @param symbol the symbol of the sort
-   * @param arity the arity of the sort
-   * @return the sort constructor sort
+   * @param arity the arity of the sort (must be > 0)
+   * @return the uninterpreted sort constructor sort
    */
-  Sort mkSortConstructorSort(const std::string& symbol, size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
+                                          size_t arity) const;
 
   /**
    * Create a tuple sort.
@@ -3819,6 +3830,11 @@ class CVC5_EXPORT Solver
    *
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
+   *
+   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
+   *       arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   *       if arity > 0.
    *
    * @param symbol the name of the sort
    * @param arity the arity of the sort

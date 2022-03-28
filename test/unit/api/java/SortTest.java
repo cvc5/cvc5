@@ -238,11 +238,11 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getNullSort().isUninterpretedSort());
   }
 
-  @Test void isSortConstructor() throws CVC5ApiException
+  @Test void isUninterpretedSortSortConstructor() throws CVC5ApiException
   {
-    Sort sc_sort = d_solver.mkSortConstructorSort("asdf", 1);
-    assertTrue(sc_sort.isSortConstructor());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isSortConstructor());
+    Sort sc_sort = d_solver.mkUninterpretedSortConstructorSort("asdf", 1);
+    assertTrue(sc_sort.isUninterpretedSortConstructor());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isUninterpretedSortConstructor());
   }
 
   @Test void getDatatype() throws CVC5ApiException
@@ -400,7 +400,7 @@ class SortTest
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
     assertFalse(uSort.isUninterpretedSortParameterized());
-    Sort sSort = d_solver.mkSortConstructorSort("s", 1);
+    Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
     Sort siSort = sSort.instantiate(new Sort[] {uSort});
     assertTrue(siSort.isUninterpretedSortParameterized());
     Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -411,7 +411,7 @@ class SortTest
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
     assertDoesNotThrow(() -> uSort.getUninterpretedSortParamSorts());
-    Sort sSort = d_solver.mkSortConstructorSort("s", 2);
+    Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
     Sort siSort = sSort.instantiate(new Sort[] {uSort, uSort});
     assertEquals(siSort.getUninterpretedSortParamSorts().length, 2);
     Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -420,7 +420,7 @@ class SortTest
 
   @Test void getUninterpretedSortConstructorName() throws CVC5ApiException
   {
-    Sort sSort = d_solver.mkSortConstructorSort("s", 2);
+    Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
     assertDoesNotThrow(() -> sSort.getSymbol());
     Sort bvSort = d_solver.mkBitVectorSort(32);
     assertThrows(CVC5ApiException.class, () -> bvSort.getSymbol());
@@ -428,10 +428,10 @@ class SortTest
 
   @Test void getUninterpretedSortConstructorArity() throws CVC5ApiException
   {
-    Sort sSort = d_solver.mkSortConstructorSort("s", 2);
-    assertDoesNotThrow(() -> sSort.getSortConstructorArity());
+    Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 2);
+    assertDoesNotThrow(() -> sSort.getUninterpretedSortConstructorArity());
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    assertThrows(CVC5ApiException.class, () -> bvSort.getSortConstructorArity());
+    assertThrows(CVC5ApiException.class, () -> bvSort.getUninterpretedSortConstructorArity());
   }
 
   @Test void getBitVectorSize() throws CVC5ApiException
