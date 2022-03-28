@@ -398,7 +398,7 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getUninterpretedSortName)
+TEST_F(TestApiBlackSort, getSymbol)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   ASSERT_NO_THROW(uSort.getSymbol());
