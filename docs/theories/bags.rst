@@ -65,58 +65,24 @@ our input.
 For example:
 
 .. code:: smtlib
-
-  (declare-fun x () (Set Int))
-  (declare-fun y () (Set Int))
-  (declare-fun z () (Set Int))
+  (set-logic ALL)
+  (declare-fun x () (Bag Int))
+  (declare-fun y () (Bag Int))
+  (declare-fun z () (Bag Int))
   (assert (bag.member 0 x))
   (assert (bag.member 1 y))
-  (assert (= z (as bag.universe (Set Int))))
   (check-sat)
 
 Here, a possible model is:
 
 .. code:: smtlib
 
-  (define-fun x () (bag.singleton 0))
-  (define-fun y () (bag.singleton 1))
-  (define-fun z () (bag.union (bag.singleton 1) (bag.singleton 0)))
-
-Notice that the universe set in this example is interpreted the same as ``z``,
-and is such that all sets in this example (``x``, ``y``, and ``z``) are subsets
-of it.
-
-The set complement operator for ``(Set T)`` is interpreted relative to the
-interpretation of the universe set for ``(Set T)``, and not relative to the set
-of all elements of sort ``T``.
-That is, for all sets ``X`` of sort ``(Set T)``, the complement operator is
-such that ``(= (bag.complement X) (bag.minus (as bag.universe (Set T)) X))``
-holds in all models.
-
-The motivation for these semantics is to ensure that the universe set for sort
-``T`` and applications of set complement can always be interpreted as a finite
-set in (quantifier-free) inputs, even if the cardinality of ``T`` is infinite. 
-Above, notice that we were able to find a model for the universe set of sort 
-``(Set Int)`` that contained two elements only.
-
-.. note::
-  In the presence of quantifiers, cvc5's implementation of the above theory
-  allows infinite sets.
-  In particular, the following formula is SAT (even though cvc5 is not able to
-  say this):
-
-  .. code:: smtlib
-
-    (set-logic ALL)
-    (declare-fun x () (Set Int))
-    (assert (forall ((z Int) (bag.member (* 2 z) x)))
-    (check-sat)
-
-  The reason for that is that making this formula (and similar ones) `unsat` is
-  counter-intuitive when quantifiers are present.
+  (define-fun x () (Bag Int) (bag 0 1))
+  (define-fun y () (Bag Int) (bag 1 1))
+  (define-fun z () (Bag Int) (bag.union_disjoint (bag 0 1) (bag 1 1)))
 
 
-Below is a more extensive example on how to use finite sets:
+Below is a more extensive example on how to use finite bags:
 
 .. api-examples::
     <examples>/api/cpp/sets.cpp
