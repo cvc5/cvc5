@@ -631,10 +631,10 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV
+  else if (nk0 == STRING_TO_LOWER || nk0 == STRING_TO_UPPER || nk0 == STRING_REV
            || nk0 == STRING_UPDATE)
   {
-    // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+    // len( f( x ) ) == len( x ) where f is to_lower, to_upper, or rev.
     // len( update( x, n, y ) ) = len( x )
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);

@@ -152,24 +152,6 @@ name   = "SMT Layer"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
-  name       = "sygusOut"
-  category   = "regular"
-  long       = "sygus-out=MODE"
-  type       = "SygusSolutionOutMode"
-  default    = "STANDARD"
-  help       = "output mode for sygus"
-  help_mode  = "Modes for sygus solution output."
-[[option.mode.STATUS]]
-  name = "status"
-  help = "Print only status for check-synth calls."
-[[option.mode.STATUS_AND_DEF]]
-  name = "status-and-def"
-  help = "Print status followed by definition corresponding to solution."
-[[option.mode.STANDARD]]
-  name = "sygus-standard"
-  help = "Print based on SyGuS standard."
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
@@ -370,7 +352,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "regular"
+  category   = "expert"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -443,16 +425,21 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "produceInterpols"
+  name       = "interpols"
   category   = "regular"
-  long       = "produce-interpols=MODE"
-  type       = "ProduceInterpols"
-  default    = "NONE"
-  help       = "support the get-interpol command"
+  long       = "produce-interpols"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on interpolation generation."
+
+[[option]]
+  name       = "interpolsMode"
+  category   = "regular"
+  long       = "interpols-mode=MODE"
+  type       = "InterpolsMode"
+  default    = "DEFAULT"
+  help       = "choose interpolants production mode, see --interpols-mode=help"
   help_mode  = "Interpolants grammar mode"
-[[option.mode.NONE]]
-  name = "none"
-  help = "don't compute interpolants"
 [[option.mode.DEFAULT]]
   name = "default"
   help = "use the default grammar for the theory or the user-defined grammar if given"

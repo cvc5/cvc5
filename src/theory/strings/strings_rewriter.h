@@ -57,7 +57,7 @@ class StringsRewriter : public SequencesRewriter
   /** rewrite string convert
    *
    * This is the entry point for post-rewriting terms n of the form
-   *   str.tolower( s ) and str.toupper( s )
+   *   str.to_lower( s ) and str.toupper( s )
    * Returns the rewritten form of n.
    */
   Node rewriteStrConvert(Node n);

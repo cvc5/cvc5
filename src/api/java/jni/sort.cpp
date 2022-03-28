@@ -251,20 +251,6 @@ Java_io_github_cvc5_api_Sort_isDatatype(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    isParametricDatatype
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isParametricDatatype(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isParametricDatatype());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
  * Method:    isConstructor
  * Signature: (J)Z
  */
@@ -454,15 +440,17 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isUninterpretedSort(
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    isSortConstructor
+ * Method:    isUninterpretedSortConstructor
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Sort_isSortConstructor(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Sort_isUninterpretedSortConstructor(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isSortConstructor());
+  return static_cast<jboolean>(current->isUninterpretedSortConstructor());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
@@ -880,15 +868,17 @@ Java_io_github_cvc5_api_Sort_getUninterpretedSortParamSorts(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    getSortConstructorArity
+ * Method:    getUninterpretedSortConstructorArity
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getSortConstructorArity(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jint JNICALL
+Java_io_github_cvc5_api_Sort_getUninterpretedSortConstructorArity(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getSortConstructorArity());
+  return static_cast<jint>(current->getUninterpretedSortConstructorArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

@@ -53,7 +53,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufHoExt"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
