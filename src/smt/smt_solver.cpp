@@ -241,7 +241,7 @@ void SmtSolver::processAssertions(Assertions& as)
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
     // if we deep restart, we always remember the preprocessed formulas, which
     // are the basis for the next check-sat.
-    if (options().smt.deepRestart)
+    if (options().smt.deepRestartMode != options::DeepRestartMode::NONE)
     {
       // incompatible with global negation
       Assert(!as.isGlobalNegated());
@@ -277,7 +277,7 @@ void SmtSolver::processAssertions(Assertions& as)
 
 void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 {
-  Assert(options().smt.deepRestart);
+  Assert(options().smt.deepRestartMode != options::DeepRestartMode::NONE);
   Assert(!zll.empty());
   Trace("deep-restart") << "Have " << zll.size()
                         << " zero level learned literals" << std::endl;

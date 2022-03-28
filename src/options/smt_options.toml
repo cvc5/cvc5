@@ -476,31 +476,16 @@ name   = "SMT Layer"
   help       = "checks whether produced solutions to get-abduct are correct"
 
 [[option]]
-  name       = "deepRestart"
-  category   = "regular"
-  long       = "deep-restart"
-  type       = "bool"
-  default    = "false"
-  help       = "use deep restart strategy"
-
-[[option]]
-  name       = "deepRestartFactor"
+  name       = "deepRestartMode"
   category   = "expert"
-  long       = "deep-restart-factor=F"
-  type       = "double"
-  default    = "3.0"
-  minimum    = "0.0"
-  maximum    = "1000.0"
-  help       = "sets the threshold for average assertions per literal before a deep restart"
-
-[[option]]
-  name       = "deepRestartLearnMode"
-  category   = "expert"
-  long       = "deep-restart-learn=MODE"
-  type       = "DeepRestartLearnMode"
-  default    = "INPUT"
-  help       = "learning mode for deep restarts"
-  help_mode  = "Learning mode for deep restarts"
+  long       = "deep-restart=MODE"
+  type       = "DeepRestartMode"
+  default    = "NONE"
+  help       = "mode for deep restarts"
+  help_mode  = "Mode for deep restarts"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use deep restart"
 [[option.mode.INPUT]]
   name = "input"
   help = "learn literals that appear in the input"
@@ -513,3 +498,13 @@ name   = "SMT Layer"
 [[option.mode.ALL]]
   name = "all"
   help = "learn all literals"
+
+[[option]]
+  name       = "deepRestartFactor"
+  category   = "expert"
+  long       = "deep-restart-factor=F"
+  type       = "double"
+  default    = "3.0"
+  minimum    = "0.0"
+  maximum    = "1000.0"
+  help       = "sets the threshold for average assertions per literal before a deep restart"

@@ -181,7 +181,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.quantifiers.sygusInference = false;
     opts.quantifiers.sygusRewSynthInput = false;
     // deep restart does not work with internal subsolvers?
-    opts.smt.deepRestart = false;
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 }
 
@@ -948,13 +948,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
         << std::endl;
     opts.arith.nlCovVarElim = false;
   }
-  if (opts.smt.deepRestart)
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
     // TODO: will be exception here
     verbose(1) << "SolverEngine: turning off deep restarts to support "
                   "proofs"
                << std::endl;
-    opts.smt.deepRestart = false;
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
   return false;
 }
@@ -1042,12 +1042,13 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
-  if (opts.smt.deepRestart)
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
+    // TODO: will be exception here
     verbose(1) << "SolverEngine: turning off deep restarts to support "
                   "incremental solving"
                << std::endl;
-    opts.smt.deepRestart = false;
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 
   // disable modes not supported by incremental
@@ -1074,12 +1075,12 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     notifyModifyOption("simplificationMode", "none", "unsat cores");
     opts.smt.simplificationMode = options::SimplificationMode::NONE;
-    if (opts.smt.deepRestart)
+    if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
     {
       verbose(1) << "SolverEngine: turning off deep restart to support unsat "
                     "cores"
                  << std::endl;
-      opts.smt.deepRestart = false;
+      opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
     }
   }
 
@@ -1197,13 +1198,13 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     notifyModifyOption("unconstrainedSimp", "false", "unsat cores");
     opts.smt.unconstrainedSimp = false;
   }
-  if (opts.smt.deepRestart)
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
     // TODO: will be exception here
     verbose(1) << "SolverEngine: turning off deep restarts to support "
                   "unsat cores"
                << std::endl;
-    opts.smt.deepRestart = false;
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
   return false;
 }
@@ -1224,13 +1225,13 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   {
     return true;
   }
-  if (opts.smt.deepRestart)
+  if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
     // TODO: will be exception here
     verbose(1) << "SolverEngine: turning off deep restarts to support "
                   "sygus"
                << std::endl;
-    opts.smt.deepRestart = false;
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
   return false;
 }
@@ -1588,7 +1589,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.globalNegate)
   {
     notifyModifyOption("deep-restart", "false", "global-negate");
-    opts.smt.deepRestart = false;
+    opts.smt.deepRestartMode = options::DeepRestartMode::NONE;
   }
 }
 

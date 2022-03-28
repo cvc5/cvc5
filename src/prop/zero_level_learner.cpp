@@ -43,22 +43,25 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env,
       d_assertNoLearnCount(0)
 {
   // get the learned types
-  d_learnedTypes.insert(LearnedLitType::INPUT);
-  options::DeepRestartLearnMode lmode = options().smt.deepRestartLearnMode;
-  if (lmode == options::DeepRestartLearnMode::ALL)
+  options::DeepRestartMode lmode = options().smt.deepRestartMode;
+  if (lmode != options::DeepRestartMode::NONE)
   {
-    d_learnedTypes.insert(LearnedLitType::INTERNAL);
-    d_learnedTypes.insert(LearnedLitType::SOLVABLE);
-    d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
-  }
-  else if (lmode == options::DeepRestartLearnMode::INPUT_AND_SOLVABLE)
-  {
-    d_learnedTypes.insert(LearnedLitType::SOLVABLE);
-  }
-  else if (lmode == options::DeepRestartLearnMode::INPUT_AND_PROP)
-  {
-    d_learnedTypes.insert(LearnedLitType::SOLVABLE);
-    d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
+    d_learnedTypes.insert(LearnedLitType::INPUT);
+    if (lmode == options::DeepRestartMode::ALL)
+    {
+      d_learnedTypes.insert(LearnedLitType::INTERNAL);
+      d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
+    }
+    else if (lmode == options::DeepRestartMode::INPUT_AND_SOLVABLE)
+    {
+      d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+    }
+    else if (lmode == options::DeepRestartMode::INPUT_AND_PROP)
+    {
+      d_learnedTypes.insert(LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(LearnedLitType::CONSTANT_PROP);
+    }
   }
 }
 
@@ -205,7 +208,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
     }
   }
   // request a deep restart?
-  if (options().smt.deepRestart)
+  if (options().smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
     if (hasLearnedLiteralForRestart() > 0)
     {
