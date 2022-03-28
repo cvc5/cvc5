@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols --interpols-mode=default
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=default
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic ALL)

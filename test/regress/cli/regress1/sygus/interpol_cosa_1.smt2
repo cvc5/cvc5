@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols --interpols-mode=conjecture --sygus-enum=fast --check-interpols
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=conjecture --sygus-enum=fast --check-interpols
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic ALL)
