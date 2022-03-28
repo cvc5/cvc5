@@ -1031,7 +1031,10 @@ void CardinalityExtension::mkModelValueElementsFor(
   TypeNode elementType = eqc.getType().getSetElementType();
   bool elementTypeFinite = d_env.isFiniteType(elementType);
   bool isBasic = isModelValueBasic(eqc);
-  Trace("sets-model") << "mkModelValueElementsFor: " << eqc << ", isBasic = " << isBasic << ", isFinite = " << elementTypeFinite << ", els = " << els << std::endl;
+  Trace("sets-model") << "mkModelValueElementsFor: " << eqc
+                      << ", isBasic = " << isBasic
+                      << ", isFinite = " << elementTypeFinite
+                      << ", els = " << els << std::endl;
   if (isBasic)
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
