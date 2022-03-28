@@ -983,7 +983,7 @@ class TermTest
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isCardinalityConstraint());
     assertThrows(CVC5ApiException.class, () -> x.getCardinalityConstraint());
-    Term nullt;
+    Term nullt = d_solver.getNullTerm();
     assertThrows(CVC5ApiException.class, () -> nullt.isCardinalityConstraint());
   }
 
