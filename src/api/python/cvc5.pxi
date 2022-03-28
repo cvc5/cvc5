@@ -1554,6 +1554,9 @@ cdef class Solver:
         assertions, and the current partial model, if one has been constructed.
         It also involves theory normalization.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param t: the formula to simplify
         :return: the simplified formula
         """

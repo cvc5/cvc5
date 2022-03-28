@@ -1911,6 +1911,8 @@ public class Solver implements IPointer, AutoCloseable
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return a map from (a subset of) the input assertions to a real value that
    * is an estimate of how difficult each assertion was to solve. Unmentioned
    * assertions can be assumed to have zero difficulty.
