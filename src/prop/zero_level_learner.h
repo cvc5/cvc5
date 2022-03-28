@@ -80,6 +80,8 @@ class ZeroLevelLearner : protected EnvObj
   bool isLearnable(LearnedLitType ltype) const;
   /** get solved */
   bool getSolved(const Node& lit, Subs& subs);
+  /** has learned literal */
+  bool hasLearnedLiteralForRestart() const;
 
   /** The prop engine we are using. */
   PropEngine* d_propEngine;

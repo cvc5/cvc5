@@ -125,6 +125,8 @@ void ZeroLevelLearner::notifyInputFormulas(
     processLearnedLiteral(lit, LearnedLitType::PREPROCESS);
     // also get its symbols
     expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
+    // remember we've seen it
+    d_levelZeroAsserts.insert(lit);
   }
   // Compute the set of literals in the preprocessed assertions
   std::unordered_set<Node> inputAtoms;
@@ -205,15 +207,14 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
   // request a deep restart?
   if (options().smt.deepRestart)
   {
-    if (d_ldb.getNumLearnedLiterals() > 0)
+    if (hasLearnedLiteralForRestart() > 0)
     {
       // if non-empty and non-learned atoms have been asserted beyond the
       // threshold
       if (d_assertNoLearnCount > d_deepRestartThreshold)
       {
         Trace("level-zero")
-            << "DEEP RESTART with " << d_ldb.getNumLearnedLiterals()
-            << " learned literals" << std::endl;
+            << "DEEP RESTART after " << d_assertNoLearnCount << " asserts." << std::endl;
         return false;
       }
     }
@@ -324,6 +325,18 @@ std::vector<Node> ZeroLevelLearner::getLearnedZeroLevelLiteralsForRestart()
     ret.insert(ret.end(), rett.begin(), rett.end());
   }
   return ret;
+}
+
+bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
+{
+  for (LearnedLitType ltype : d_learnedTypes)
+  {
+    if (d_ldb.getNumLearnedLiterals(ltype)>0)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool ZeroLevelLearner::isLearnable(LearnedLitType ltype) const
