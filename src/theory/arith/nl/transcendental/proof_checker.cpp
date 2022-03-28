@@ -192,7 +192,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   else if (id == PfRule::ARITH_TRANS_EXP_APPROX_BELOW)
   {
     Assert(children.empty());
-    Assert(args.size() == 2);
+    Assert(args.size() == 3);
     Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].isConst() && args[1].getType().isRealOrInt());
     Assert(args[2].getType().isReal());
