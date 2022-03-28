@@ -194,6 +194,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 2);
     Assert(args[0].isConst() && args[0].getType().isInteger());
+    Assert(args[1].isConst() && args[1].getType().isRealOrInt());
     Assert(args[2].getType().isReal());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
