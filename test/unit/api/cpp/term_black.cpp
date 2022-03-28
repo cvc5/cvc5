@@ -1108,7 +1108,7 @@ TEST_F(TestApiBlackTerm, getSequenceValue)
   ASSERT_THROW(su.getSequenceValue(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getCardinalityConstraint)
+TEST_F(TestApiBlackTerm, getCardinalityConstraint)
 {
   Sort su = d_solver.mkUninterpretedSort("u");
   Term t = d_solver.mkCardinalityConstraint(su, 3);
