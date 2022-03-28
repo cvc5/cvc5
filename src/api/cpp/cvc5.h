@@ -2303,12 +2303,17 @@ class CVC5_EXPORT Datatype
   size_t getNumConstructors() const;
 
   /**
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return the parameters of this datatype, if it is parametric. An exception
    * is thrown if this datatype is not parametric.
    */
   std::vector<Sort> getParameters() const;
 
-  /** @return true if this datatype is parametric */
+  /**
+   * @warning This method is experimental and may change in future versions.
+   * @return true if this datatype is parametric
+   */
   bool isParametric() const;
 
   /** @return true if this datatype corresponds to a co-datatype */
@@ -2317,7 +2322,10 @@ class CVC5_EXPORT Datatype
   /** @return true if this datatype corresponds to a tuple */
   bool isTuple() const;
 
-  /** @return true if this datatype corresponds to a record */
+  /**
+   * @warning This method is experimental and may change in future versions.
+   * @return true if this datatype corresponds to a record
+   */
   bool isRecord() const;
 
   /** @return true if this datatype is finite */
@@ -3233,6 +3241,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a sort parameter.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param symbol the name of the sort
    * @return the sort parameter
    */
@@ -3247,6 +3258,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a record sort
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param fields the list of fields of the record
    * @return the record sort
    */
@@ -3629,6 +3643,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
@@ -3678,6 +3695,11 @@ class CVC5_EXPORT Solver
   /* Create datatype constructor declarations                             */
   /* .................................................................... */
 
+  /**
+   * Create a datatype constructor declaration.
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
   DatatypeConstructorDecl mkDatatypeConstructorDecl(const std::string& name);
 
   /* .................................................................... */
@@ -3726,6 +3748,9 @@ class CVC5_EXPORT Solver
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param t the formula to simplify
    * @return the simplified formula
    */
@@ -4068,6 +4093,8 @@ class CVC5_EXPORT Solver
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return a map from (a subset of) the input assertions to a real value that
    *         is an estimate of how difficult each assertion was to solve.
    *         Unmentioned assertions can be assumed to have zero difficulty.
@@ -4198,10 +4225,10 @@ class CVC5_EXPORT Solver
    *     (get-qe <q>)
    * \endverbatim
    *
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * @note Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
    *
-   * @note Quantifier Elimination is is only complete for LRA and LIA.
+   * @warning This method is experimental and may change in future versions.
    *
    * @param q a quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
@@ -4229,8 +4256,11 @@ class CVC5_EXPORT Solver
    *     (get-qe-disjunct <q>)
    * \endverbatim
    *
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * @note Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
    *          where
@@ -4305,6 +4335,8 @@ class CVC5_EXPORT Solver
    *
    *     (declare-pool <symbol> <sort> ( <term>* ))
    * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
    *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
@@ -4612,6 +4644,9 @@ class CVC5_EXPORT Solver
    *
    * @note The sort of the term must be convertible into the target sort.
    *       Currently only Int to Real conversions are supported.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
