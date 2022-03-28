@@ -490,7 +490,7 @@ api::Sort SymbolTable::Implementation::lookupType(
                         "expected parametric datatype");
     return p.second.instantiate(params);
   }
-  bool isSortConstructor = p.second.isSortConstructor();
+  bool isSortConstructor = p.second.isUninterpretedSortConstructor();
   if (TraceIsOn("sort"))
   {
     Trace("sort") << "instantiating using a sort "

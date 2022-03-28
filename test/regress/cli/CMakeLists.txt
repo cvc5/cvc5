@@ -2562,6 +2562,7 @@ set(regress_1_tests
   regress1/strings/proj254-re-elim-agg.smt2
   regress1/strings/proj-issue281.smt2
   regress1/strings/proj-issue331.smt2
+  regress1/strings/proj-issue502-merge-type.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols=default --check-interpols
+; COMMAND-LINE: --produce-interpols --interpols-mode=default --check-interpols
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic LIA)
