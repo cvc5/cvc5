@@ -812,6 +812,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8183-tc-pi.smt2
   regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
+  regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/proj-issue376.smt2
   regress0/nl/nta/proj-issue403.smt2
   regress0/nl/nta/proj-issue460-pi-value.smt2
