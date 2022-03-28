@@ -3506,6 +3506,7 @@ class CVC5_EXPORT Solver
    * Create a separation logic nil term.
    *
    * @warning This method is experimental and may change in future versions.
+   *
    * @param sort the sort of the nil term
    * @return the separation logic nil term
    */

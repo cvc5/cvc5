@@ -1972,6 +1972,9 @@ cdef class Solver:
         Requires to enable option
         :ref:`produce-proofs <lbl-option-produce-proofs>`.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: a string representing the proof, according to the value of
                  proof-format-mode.
         """
@@ -2229,6 +2232,9 @@ cdef class Solver:
 
         Requires to enable option
         :ref:`produce-models <lbl-option-produce-models>`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
    
         :param sorts: The list of uninterpreted sorts that should be printed in
                       the model.
@@ -2553,6 +2559,9 @@ cdef class Solver:
         """
         Return a string that contains information about all instantiations made
         by the quantifiers module.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         """
         return self.csolver.getInstantiations()
 
@@ -2823,6 +2832,9 @@ cdef class Sort:
             constructor sort.
             Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :param params: the list of sort parameters to instantiate with
         """
         cdef Sort sort = Sort(self.solver)
@@ -2836,9 +2848,6 @@ cdef class Sort:
         """
         Substitution of Sorts.
 
-        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
-
         Note that this replacement is applied during a pre-order traversal and
         only once to the sort. It is not run until fix point. In the case that
         sort_or_list_1 contains duplicates, the replacement earliest in the list
@@ -2847,6 +2856,12 @@ cdef class Sort:
         For example,
         ``(Array A B) .substitute([A, C], [(Array C D), (Array A B)])`` will
         return ``(Array (Array C D) B)``.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
+        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
         """
 
         # The resulting sort after substitution

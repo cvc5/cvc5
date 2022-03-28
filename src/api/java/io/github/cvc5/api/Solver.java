@@ -967,6 +967,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a separation logic empty term.
    *
    * @apiNote This method is experimental and may change in future versions.
+   *
    * @return the separation logic empty term
    */
   public Term mkSepEmp()
@@ -981,6 +982,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a separation logic nil term.
    *
    * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sort the sort of the nil term
    * @return the separation logic nil term
    */
@@ -2380,6 +2382,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Return a string that contains information about all instantiations made by
    * the quantifiers module.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public String getInstantiations()
   {
