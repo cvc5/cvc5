@@ -1017,6 +1017,21 @@ TEST_F(TestApiBlackTerm, getSequence)
   ASSERT_EQ(std::vector<Term>({i1, i1, i2}), s5.getSequenceValue());
 }
 
+TEST_F(TestApiBlackSolver, isCardinalityConstraint)
+{
+  Sort su = d_solver.mkUninterpretedSort("u");
+  Term t = d_solver.mkCardinalityConstraint(su, 3);
+  ASSERT_TRUE(t.isCardinalityConstraint());
+  std::pair<Sort, uint32_t> cc = t.getCardinalityConstraint();
+  ASSERT_EQ(cc.first, su);
+  ASSERT_EQ(cc.second, 3);
+  Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+  ASSERT_FALSE(x.isCardinalityConstraint());
+  ASSERT_THROW(x.getCardinalityConstraint(), CVC5ApiException);
+  Term null;
+  ASSERT_THROW(null.isCardinalityConstraint(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
