@@ -280,6 +280,9 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * Is this a record sort?
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return true if the sort is a record sort
    */
   public boolean isRecord()

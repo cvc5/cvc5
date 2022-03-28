@@ -174,7 +174,11 @@ cdef class Datatype:
         return param_sorts
 
     def isParametric(self):
-        """:return: True if this datatype is parametric."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype is parametric.
+        """
         return self.cd.isParametric()
 
     def isCodatatype(self):
@@ -186,7 +190,11 @@ cdef class Datatype:
         return self.cd.isTuple()
 
     def isRecord(self):
-        """:return: True if this datatype corresponds to a record."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype corresponds to a record.
+        """
         return self.cd.isRecord()
 
     def isFinite(self):
@@ -897,6 +905,9 @@ cdef class Solver:
     def mkParamSort(self, symbolname):
         """ Create a sort parameter.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param symbol: the name of the sort
         :return: the sort parameter
         """
@@ -921,6 +932,9 @@ cdef class Solver:
     @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """Create a record sort
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param fields: the list of fields of the record, as a list or as distinct arguments
         :return: the record sort
@@ -1424,6 +1438,9 @@ cdef class Solver:
     def mkCardinalityConstraint(self, Sort sort, int index):
         """Create cardinality constraint.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param sort: Sort of the constraint
         :param index: The upper bound for the cardinality of the sort
         """
@@ -1473,8 +1490,8 @@ cdef class Solver:
 
     def mkDatatypeConstructorDecl(self, str name):
         """
-        :return: a datatype constructor declaration
         :param name: the constructor's name
+        :return: the DatatypeConstructorDecl
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
@@ -1536,6 +1553,9 @@ cdef class Solver:
         SAT Engine in the simplification, but uses the current definitions,
         assertions, and the current partial model, if one has been constructed.
         It also involves theory normalization.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param t: the formula to simplify
         :return: the simplified formula
@@ -2257,6 +2277,9 @@ cdef class Solver:
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: The term for the heap
         """
         cdef Term term = Term(self)
@@ -2265,6 +2288,9 @@ cdef class Solver:
 
     def getValueSepNil(self):
         """When using separation logic, obtain the term for nil.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :return: The term for nil
         """
@@ -2762,6 +2788,9 @@ cdef class Sort:
     def isRecord(self):
         """
             Is this a record sort?
+
+            .. warning:: This method is experimental and may change in future
+                        versions.
 
             :return: True if the sort is a record sort.
         """
