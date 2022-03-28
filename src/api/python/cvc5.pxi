@@ -3523,22 +3523,6 @@ cdef class Term:
 	"""
         return self.cterm.getBitVectorValue(base).decode()
 
-
-    def isCardinalityConstraint(self):
-        """
-
-	    :return: True iff this term is a cardinality constraint
-        """
-        return self.cterm.isCardinalityConstraint()
-
-    def getCardinalityConstraint(self):
-        """
-	   Asserts :py:meth:`getCardinalityConstraint()`.
-
-	   :return: the sort the cardinality constraint is for and its upper bound.
-	"""
-        return self.cterm.getCardinalityConstraint()
-
     def toPythonObj(self):
         """
         Converts a constant value Term to a Python object.
