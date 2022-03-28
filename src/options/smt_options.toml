@@ -425,16 +425,21 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "produceInterpols"
+  name       = "interpols"
   category   = "regular"
-  long       = "produce-interpols=MODE"
-  type       = "ProduceInterpols"
-  default    = "NONE"
-  help       = "support the get-interpol command"
+  long       = "produce-interpols"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on interpolation generation."
+
+[[option]]
+  name       = "interpolsMode"
+  category   = "regular"
+  long       = "interpols-mode=MODE"
+  type       = "InterpolsMode"
+  default    = "DEFAULT"
+  help       = "choose interpolants production mode, see --interpols-mode=help"
   help_mode  = "Interpolants grammar mode"
-[[option.mode.NONE]]
-  name = "none"
-  help = "don't compute interpolants"
 [[option.mode.DEFAULT]]
   name = "default"
   help = "use the default grammar for the theory or the user-defined grammar if given"

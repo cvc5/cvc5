@@ -7143,10 +7143,9 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
-                 != options::ProduceInterpols::NONE)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols=mode)";
+         "--produce-interpols)";
   //////// all checks before this line
   TypeNode nullType;
   Node result = d_slv->getInterpolant(*conj.d_node, nullType);
@@ -7159,10 +7158,9 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
-                 != options::ProduceInterpols::NONE)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols=mode)";
+         "--produce-interpols)";
   //////// all checks before this line
   Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
   return Term(this, result);
@@ -7173,10 +7171,9 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpols
-                 != options::ProduceInterpols::NONE)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols=mode)";
+         "--produce-interpols)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";
