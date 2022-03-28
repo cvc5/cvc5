@@ -823,7 +823,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tuple_update " << DType::indexOf(op) << ") ";
+      out << "(_ tuple.update " << DType::indexOf(op) << ") ";
     }
     else
     {
