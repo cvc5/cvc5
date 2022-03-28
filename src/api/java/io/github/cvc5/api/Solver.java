@@ -689,8 +689,10 @@ public class Solver implements IPointer, AutoCloseable
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
    *   (e.g. BITVECTOR_EXTRACT).
+   *
    * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
    *          in mkTerm directly without creating an op first.
+   *
    * @param kind the kind to wrap
    */
   public Op mkOp(Kind kind)
@@ -965,6 +967,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a separation logic empty term.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return the separation logic empty term
    */
   public Term mkSepEmp()
@@ -977,6 +982,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a separation logic nil term.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sort the sort of the nil term
    * @return the separation logic nil term
    */
@@ -1559,8 +1567,10 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
+   *
    * @apiNote This corresponds to mkUninterpretedSort() const if arity = 0, and
    *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -1769,6 +1779,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-learned-literals )
    * }
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return the list of learned literals
    */
   public Term[] getLearnedLiterals() {
@@ -1871,11 +1884,13 @@ public class Solver implements IPointer, AutoCloseable
    * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   *
    * @apiNote In contrast to SMT-LIB, the API does not distinguish between
    *          named and unnamed assertions when producing an unsatisfiable
    *          core. Additionally, the API allows this option to be called after
    *          a check with assumptions. A subset of those assumptions may be
    *          included in the unsatisfiable core returned by this method.
+   *
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -1916,6 +1931,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-proof )
    * }
    * Requires to enable option 'produce-proofs'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
@@ -1983,6 +2001,8 @@ public class Solver implements IPointer, AutoCloseable
    * current model. This method will only return false (for any v) if
    * the model-cores option has been set.
    *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param v The term in question
    * @return true if v is a model core symbol
    */
@@ -2000,6 +2020,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-model )
    * }
    * Requires to enable option 'produce-models'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
    * @param vars The list of free constants that should be printed in the
@@ -2079,6 +2102,9 @@ public class Solver implements IPointer, AutoCloseable
    * When using separation logic, this sets the location sort and the
    * datatype sort to the given ones. This method should be invoked exactly
    * once, before any separation logic constraints are provided.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
@@ -2091,6 +2117,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * When using separation logic, obtain the term for the heap.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return The term for the heap
    */
   public Term getValueSepHeap()
@@ -2103,6 +2132,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * When using separation logic, obtain the term for nil.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return The term for nil
    */
   public Term getValueSepNil()
@@ -2170,6 +2202,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-interpolant <conj> )
    * }
    * Requires 'produce-interpolants' to be set to a mode different from 'none'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
    *        A is the current set of assertions and B is given in the input by
@@ -2190,6 +2225,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-interpolant <conj> <g> )
    * }
    * Requires 'produce-interpolants' to be set to a mode different from 'none'.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
@@ -2221,6 +2259,8 @@ public class Solver implements IPointer, AutoCloseable
    * set to a mode different from 'none'.
    * \endverbatim
    *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return a Term I such that {@code A->I} and {@code I->B} are valid,
    *        where A is the current set of assertions and B is given in the input
    *        by conj on the last call to getInterpolant, or the null term if such
@@ -2241,6 +2281,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct <conj> )
    * }
    * Requires enabling option 'produce-abducts'
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @return a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
@@ -2261,6 +2304,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct <conj> <g> )
    * }
    * Requires enabling option 'produce-abducts'
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
    * @return a term C such that A^C is satisfiable, and A^~B^C is
@@ -2285,6 +2331,9 @@ public class Solver implements IPointer, AutoCloseable
    * ( get-abduct-next )
    * }
    * Requires enabling incremental mode and option 'produce-abducts'
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @return a term C such that A^C is satisfiable, and A^~B^C is
    *         unsatisfiable, where A is the current set of assertions and B is
    *         given in the input by conj in the last call to getAbduct, or the
@@ -2307,6 +2356,8 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public void blockModel()
   {
@@ -2323,6 +2374,8 @@ public class Solver implements IPointer, AutoCloseable
    * ( block-model-values ( <terms>+ ) )
    * }
    * Requires enabling 'produce-models' option.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2335,6 +2388,8 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Return a string that contains information about all instantiations made by
    * the quantifiers module.
+   *
+   * @apiNote This method is experimental and may change in future versions.
    */
   public String getInstantiations()
   {
