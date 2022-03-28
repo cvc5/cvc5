@@ -21,6 +21,7 @@
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
+#include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
@@ -185,6 +186,8 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
+    proof::AletheProofPrinter vpp;
+    vpp.print(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
   {
