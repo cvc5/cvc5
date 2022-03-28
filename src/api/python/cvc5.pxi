@@ -2370,10 +2370,10 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-interpol <conj> )
-            ( get-interpol <conj> <grammar> )
+            ( get-interpolant <conj> )
+            ( get-interpolant <conj> <grammar> )
 
-        Requires option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+        Requires option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
 
         Supports the following variants:
 
@@ -2398,7 +2398,7 @@ cdef class Solver:
     def getInterpolantNext(self):
         """
         Get the next interpolant. Can only be called immediately after
-        a succesful call to get-interpol or get-interpol-next. 
+        a succesful call to get-interpolant or get-interpolant-next. 
         Is guaranteed to produce a syntactically different interpolant wrt the
         last returned interpolant if successful.
 
@@ -2406,10 +2406,10 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-interpol-next )
+            ( get-interpolant-next )
 
         Requires to enable incremental mode, and 
-        option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+        option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
 
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found

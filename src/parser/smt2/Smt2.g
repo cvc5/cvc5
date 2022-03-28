@@ -2251,8 +2251,8 @@ GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
 GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
-GET_INTERPOL_TOK : 'get-interpol';
-GET_INTERPOL_NEXT_TOK : 'get-interpol-next';
+GET_INTERPOL_TOK : 'get-interpolant';
+GET_INTERPOL_NEXT_TOK : 'get-interpolant-next';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
 

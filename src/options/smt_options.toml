@@ -425,20 +425,20 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "interpols"
+  name       = "interpolants"
   category   = "regular"
-  long       = "produce-interpols"
+  long       = "produce-interpolants"
   type       = "bool"
   default    = "false"
   help       = "turn on interpolation generation."
 
 [[option]]
-  name       = "interpolsMode"
+  name       = "interpolantsMode"
   category   = "regular"
-  long       = "interpols-mode=MODE"
-  type       = "InterpolsMode"
+  long       = "interpolants-mode=MODE"
+  type       = "InterpolantsMode"
   default    = "DEFAULT"
-  help       = "choose interpolants production mode, see --interpols-mode=help"
+  help       = "choose interpolants production mode, see --interpolants-mode=help"
   help_mode  = "Interpolants grammar mode"
 [[option.mode.DEFAULT]]
   name = "default"
@@ -465,12 +465,12 @@ name   = "SMT Layer"
   help       = "support the get-abduct command"
 
 [[option]]
-  name       = "checkInterpols"
+  name       = "checkInterpolants"
   category   = "regular"
-  long       = "check-interpols"
+  long       = "check-interpolants"
   type       = "bool"
   default    = "false"
-  help       = "checks whether produced solutions to get-interpol are correct"
+  help       = "checks whether produced solutions to get-interpolant are correct"
 
 [[option]]
   name       = "checkAbducts"

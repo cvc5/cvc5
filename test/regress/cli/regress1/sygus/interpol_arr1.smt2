@@ -5,4 +5,4 @@
 (declare-fun a () (Array (_ BitVec 4) (_ BitVec 4)))
 (declare-fun y () (_ BitVec 4))
 (assert (= (select a y) (_ bv0 4)))
-(get-interpol A (distinct (select a y) (_ bv1 4)))
+(get-interpolant A (distinct (select a y) (_ bv1 4)))

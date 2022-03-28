@@ -7,7 +7,7 @@
 (declare-fun z ( ) Int)
 (push)
 (assert (= (* 2 x) y))
-(get-interpol A (distinct (+ (* 2 z) 1) y)
+(get-interpolant A (distinct (+ (* 2 z) 1) y)
 
 ; the grammar for the interpol-to-synthesize
 ((Start Bool) (StartInt Int))
@@ -20,7 +20,7 @@
 (pop)
 
 (assert (= (* 2 y) x))
-(get-interpol A (distinct (+ (* 2 z) 1) x)
+(get-interpolant A (distinct (+ (* 2 z) 1) x)
 ; the grammar for the interpol-to-synthesize
 ((Start Bool) (StartInt Int))
 (

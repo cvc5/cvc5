@@ -9,4 +9,4 @@
 (assert ((_ is nil) (tail x)))
 (assert (= (head x) 0))
 (assert (= x y))
-(get-interpol A (distinct y nil))
+(get-interpolant A (distinct y nil))

@@ -4309,12 +4309,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol <conj>)
+   *     (get-interpolant <conj>)
    *
    * Requires option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @param conj the conjecture term
    * @return a Term I such that A->I and I->B are valid, where A is the
@@ -4331,12 +4330,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol <conj> <grammar>)
+   *     (get-interpolant <conj> <grammar>)
    *
    * Requires option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
@@ -4348,7 +4346,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
    * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
@@ -4357,12 +4355,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol-next)
+   *     (get-interpolant-next)
    *
    * Requires to enable incremental mode, and option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @return a Term I such that A->I and I->B are valid, where A is the
    *         current set of assertions and B is given in the input by conj

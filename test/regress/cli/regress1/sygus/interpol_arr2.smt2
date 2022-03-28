@@ -12,4 +12,4 @@
 (assert (and A1 A2 A3 A4 A5))
 
 ;The conjuecture is: 2 <= x+y
-(get-interpol A (<= 2 (+ (select arr 2) (select arr 3))))
+(get-interpolant A (<= 2 (+ (select arr 2) (select arr 3))))

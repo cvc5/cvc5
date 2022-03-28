@@ -1921,8 +1921,8 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    // we must remember the name of the interpolant, in case get-interpol-next
-    // is called later.
+    // we must remember the name of the interpolant, in case
+    // get-interpolant-next is called later.
     sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
@@ -1972,7 +1972,7 @@ Command* GetInterpolCommand::clone() const
 
 std::string GetInterpolCommand::getCommandName() const
 {
-  return "get-interpol";
+  return "get-interpolant";
 }
 
 void GetInterpolCommand::toStream(std::ostream& out,
@@ -2038,7 +2038,7 @@ Command* GetInterpolNextCommand::clone() const
 
 std::string GetInterpolNextCommand::getCommandName() const
 {
-  return "get-interpol-next";
+  return "get-interpolant-next";
 }
 
 void GetInterpolNextCommand::toStream(std::ostream& out,

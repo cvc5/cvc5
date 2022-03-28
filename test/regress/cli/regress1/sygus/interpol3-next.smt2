@@ -4,5 +4,5 @@
 (set-logic LIA)
 (declare-fun a () Int)
 (assert (> a 1))
-(get-interpol A (> a 0))
-(get-interpol-next)
+(get-interpolant A (> a 0))
+(get-interpolant-next)

@@ -1012,7 +1012,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
   api::Solver* d_solver;
 }; /* class GetInstantiationsCommand */
 
-/** The command (get-interpol s B (G)?)
+/** The command (get-interpolant s B (G)?)
  *
  * This command asks for an interpolant from the current set of assertions and
  * conjecture (goal) B.
@@ -1056,7 +1056,7 @@ class CVC5_EXPORT GetInterpolCommand : public Command
   api::Term d_result;
 }; /* class GetInterpolCommand */
 
-/** The command (get-interpol-next) */
+/** The command (get-interpolant-next) */
 class CVC5_EXPORT GetInterpolNextCommand : public Command
 {
  public:
