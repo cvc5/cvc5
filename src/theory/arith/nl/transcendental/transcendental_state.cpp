@@ -102,9 +102,10 @@ void TranscendentalState::init(const std::vector<Node>& xts,
       }
       else
       {
+        // for others, if all arguments are variables, we don't have to purify
         for (const Node& ac : a)
         {
-          if (isTranscendentalKind(ac.getKind()))
+          if (!ac.isVar())
           {
             consider = false;
             break;
