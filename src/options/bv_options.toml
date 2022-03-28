@@ -3,7 +3,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSatSolver"
-  category   = "expert"
+  category   = "regular"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
   default    = "CADICAL"
@@ -36,7 +36,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bitvectorPropagate"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-propagate"
   type       = "bool"
   default    = "true"
@@ -125,7 +125,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvAssertInput"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-assert-input"
   type       = "bool"
   default    = "false"

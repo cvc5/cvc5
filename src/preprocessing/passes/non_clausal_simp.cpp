@@ -68,7 +68,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 {
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
-  if (Trace.isOn("non-clausal-simplify"))
+  if (TraceIsOn("non-clausal-simplify"))
   {
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
@@ -95,7 +95,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     Trace("non-clausal-simplify")
         << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-    Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
+    Trace("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
                    << std::endl;
     propagator->assertTrue((*assertionsToPreprocess)[i]);
   }
@@ -293,8 +293,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     if (!assertionNew.isNull())
     {
       Trace("non-clausal-simplify")

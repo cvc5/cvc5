@@ -67,30 +67,47 @@ void ZeroLevelLearner::getAtoms(TNode a,
 
 void ZeroLevelLearner::notifyInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap,
-    const std::vector<Node>& ppl)
+    const std::unordered_map<size_t, Node>& skolemMap)
 {
   d_assertNoLearnCount = 0;
-  // Copy the preprocessed assertions and skolem map information directly
-  // Also, compute the set of literals in the preprocessed assertions
   std::unordered_set<TNode> visited;
-  // learned literals and d_ppnAtoms are disjoint
-  for (const Node& lit : ppl)
+  // We consider top level literals of assertions, including those occurring
+  // as children of AND to be the preprocessed learned literals only, and not
+  // the literals tracked by the preprocessor
+  // (Preprocessor::getLearnedLiterals). This means that a learned literal from
+  // e.g. circuit propagation that is not trivially a top level assertion will
+  // be considered an ordinary learned literal.
+  // Note that d_pplAtoms and d_ppnAtoms are disjoint
+  std::vector<Node> toProcess = assertions;
+  size_t index = 0;
+  while (index < toProcess.size())
   {
+    TNode lit = toProcess[index];
+    index++;
+    if (lit.getKind() == kind::AND)
+    {
+      toProcess.insert(toProcess.end(), lit.begin(), lit.end());
+      continue;
+    }
     TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
+    if (expr::isBooleanConnective(atom))
+    {
+      continue;
+    }
     visited.insert(atom);
     d_pplAtoms.insert(atom);
   }
   if (isOutputOn(OutputTag::LEARNED_LITS))
   {
     // output learned literals from preprocessing
-    for (const Node& lit : ppl)
+    for (const Node& lit : d_pplAtoms)
     {
       output(OutputTag::LEARNED_LITS)
           << "(learned-lit " << SkolemManager::getOriginalForm(lit)
           << " :preprocess)" << std::endl;
     }
   }
+  // Compute the set of literals in the preprocessed assertions
   for (const Node& a : assertions)
   {
     getAtoms(a, visited, d_ppnAtoms);
@@ -99,7 +116,7 @@ void ZeroLevelLearner::notifyInputFormulas(
   Trace("level-zero") << "Preprocess status:" << std::endl;
   Trace("level-zero") << "#Non-learned lits = " << d_ppnAtoms.size()
                       << std::endl;
-  Trace("level-zero") << "#Learned lits = " << ppl.size() << std::endl;
+  Trace("level-zero") << "#Learned lits = " << d_pplAtoms.size() << std::endl;
   Trace("level-zero") << "#Top level subs = "
                       << d_env.getTopLevelSubstitutions().get().size()
                       << std::endl;

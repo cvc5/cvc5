@@ -49,7 +49,7 @@ int main()
   Solver slv;
 
   // required options
-  slv.setOption("lang", "sygus2");
+  slv.setOption("sygus", "true");
   slv.setOption("incremental", "false");
 
   // set the logic
@@ -68,14 +68,16 @@ int main()
 
   // (ite (< x 10) (= xp (+ x 1)) (= xp x))
   Term ite = slv.mkTerm(ITE,
-                        slv.mkTerm(LT, x, ten),
-                        slv.mkTerm(EQUAL, xp, slv.mkTerm(ADD, x, one)),
-                        slv.mkTerm(EQUAL, xp, x));
+                        {slv.mkTerm(LT, {x, ten}),
+                         slv.mkTerm(EQUAL, {xp, slv.mkTerm(ADD, {x, one})}),
+                         slv.mkTerm(EQUAL, {xp, x})});
 
   // define the pre-conditions, transition relations, and post-conditions
-  Term pre_f = slv.defineFun("pre-f", {x}, boolean, slv.mkTerm(EQUAL, x, zero));
+  Term pre_f =
+      slv.defineFun("pre-f", {x}, boolean, slv.mkTerm(EQUAL, {x, zero}));
   Term trans_f = slv.defineFun("trans-f", {x, xp}, boolean, ite);
-  Term post_f = slv.defineFun("post-f", {x}, boolean, slv.mkTerm(LEQ, x, ten));
+  Term post_f =
+      slv.defineFun("post-f", {x}, boolean, slv.mkTerm(LEQ, {x, ten}));
 
   // declare the invariant-to-synthesize
   Term inv_f = slv.synthInv("inv-f", {x});
@@ -83,7 +85,7 @@ int main()
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 
   // print solutions if available
-  if (slv.checkSynth().isUnsat())
+  if (slv.checkSynth().hasSolution())
   {
     // Output should be equivalent to:
     // (

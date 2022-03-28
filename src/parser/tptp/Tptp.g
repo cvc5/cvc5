@@ -75,9 +75,7 @@ using namespace cvc5::parser;
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
-#undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* @lexer::postinclude */
@@ -117,7 +115,7 @@ using namespace cvc5::parser;
 #undef SYM_MAN
 #define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
@@ -258,7 +256,8 @@ parseCommand returns [cvc5::Command* cmd = NULL]
       }
       seq->addCommand(new SetInfoCommand("filename", filename));
       if(PARSER_STATE->hasConjecture()) {
-        seq->addCommand(new QueryCommand(SOLVER->mkFalse()));
+        // note this does not impact how the TPTP status is reported currently
+        seq->addCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
       } else {
         seq->addCommand(new CheckSatCommand());
       }

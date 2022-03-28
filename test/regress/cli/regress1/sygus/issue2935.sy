@@ -1,0 +1,40 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic SLIA)
+
+(declare-datatype JSIdentifier ((JSInt (jsInt Int)) (JSString (jsString String))))
+
+(synth-fun f ((x1_ JSIdentifier)(x2_ String)) JSIdentifier
+	((ntJSIdentifier JSIdentifier) (ntInt Int) (ntString String) (ntBool Bool))
+	(
+		(ntJSIdentifier JSIdentifier
+			(x1_
+			(ite ntBool ntJSIdentifier ntJSIdentifier)
+			(JSString ntString)
+			)
+		)
+		(ntInt Int
+			(1
+				(+ ntInt ntInt)
+				(jsInt ntJSIdentifier)
+			)
+		)
+		(ntString String
+			(x2_
+				(str.substr ntString ntInt ntInt)
+				(jsString ntJSIdentifier)
+			)
+		)
+		(ntBool Bool
+			(
+				(= ntString ntString)
+			)
+		)
+	)
+)
+
+(constraint (= (f (JSString "") "") (JSString "")))
+(constraint (= (f (JSString "M") "W") (JSString "M")))
+(constraint (= (f (JSString "Moon") "") (JSString "on")))
+
+(check-synth)

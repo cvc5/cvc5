@@ -1,0 +1,30 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --sygus-repair-const
+(set-logic BV)
+(synth-fun f ( (x (_ BitVec 64))) (_ BitVec 64)
+((Start (_ BitVec 64)) (StartBool Bool))
+(
+(Start (_ BitVec 64) (
+        #x0000000000000000 
+        #x0000000000000001 
+        x 
+        (bvnot Start)
+		    (bvadd Start Start)
+		    (ite StartBool Start Start)
+		    (Constant (_ BitVec 64))
+ ))
+(StartBool Bool ((bvule Start Start)))
+)
+)
+(constraint (= (f #x6E393354DFFAAB51) #xC8E366559002AA57))
+(constraint (= (f #xFDA75AD598A27135) #xC8E366559002AA57))
+(constraint (= (f #x58682C0FA4F8DB6D) #xC8E366559002AA57))
+(constraint (= (f #x58FDC0941A7E079F) #xC8E366559002AA57))
+(constraint (= (f #xBDC9B88103ECB0C9) #xC8E366559002AA57))
+(constraint (= (f #x000000000001502F) #x0000000000000000))
+(constraint (= (f #x0000000000010999) #x0000000000000000))
+(constraint (= (f #x0000000000013169) #x0000000000000000))
+(constraint (= (f #x000000000001B1A9) #x0000000000000000))
+(constraint (= (f #x0000000000016D77) #x0000000000000000))
+(constraint (= (f #x0000000000000001) #x0000000000000000))
+(check-synth)

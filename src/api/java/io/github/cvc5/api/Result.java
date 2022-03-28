@@ -81,7 +81,7 @@ public class Result extends AbstractPointer
   }
 
   /**
-   * Return true if Result is empty, i.e., a nullary Result, and not an actual
+   * @return true if Result is empty, i.e., a nullary Result, and not an actual
    * result returned from a checkSat() (and friends) query.
    */
   public boolean isNull()
@@ -92,7 +92,7 @@ public class Result extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
-   * Return true if query was a satisfiable checkSat() or checkSatAssuming()
+   * @return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */
   public boolean isSat()
@@ -103,7 +103,7 @@ public class Result extends AbstractPointer
   private native boolean isSat(long pointer);
 
   /**
-   * Return true if query was an unsatisfiable checkSat() or
+   * @return true if query was an unsatisfiable checkSat() or
    * checkSatAssuming() query.
    */
   public boolean isUnsat()
@@ -114,47 +114,14 @@ public class Result extends AbstractPointer
   private native boolean isUnsat(long pointer);
 
   /**
-   * Return true if query was a checkSat() or checkSatAssuming() query and
+   * @return true if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */
-  public boolean isSatUnknown()
-  {
-    return isSatUnknown(pointer);
+  public boolean isUnknown() {
+    return isUnknown(pointer);
   }
 
-  private native boolean isSatUnknown(long pointer);
-
-  /**
-   * Return true if corresponding query was an entailed checkEntailed() query.
-   */
-  public boolean isEntailed()
-  {
-    return isEntailed(pointer);
-  }
-
-  private native boolean isEntailed(long pointer);
-
-  /**
-   * Return true if corresponding query was a checkEntailed() query that is
-   * not entailed.
-   */
-  public boolean isNotEntailed()
-  {
-    return isNotEntailed(pointer);
-  }
-
-  private native boolean isNotEntailed(long pointer);
-
-  /**
-   * Return true if query was a checkEntailed() query and cvc5 was not able to
-   * determine if it is entailed.
-   */
-  public boolean isEntailmentUnknown()
-  {
-    return isEntailmentUnknown(pointer);
-  }
-
-  private native boolean isEntailmentUnknown(long pointer);
+  private native boolean isUnknown(long pointer);
 
   /**
    * Operator overloading for equality of two results.

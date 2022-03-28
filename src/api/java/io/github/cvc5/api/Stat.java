@@ -23,8 +23,8 @@ import java.util.Map;
  * ({@code Map<String, Long>}).
  * The value type can be queried (using {@code isInt()}, {@code isDouble()}, etc.) and
  * the stored value can be accessed (using {@code getInt()}, {@code getDouble()}, etc.).
- * It is possible to query whether this statistic is an expert statistic by
- * {@code isExpert()} and whether its value is the default value by {@code isDefault()}.
+ * It is possible to query whether this statistic is an internal statistic by
+ * {@code isInternal()} and whether its value is the default value by {@code isDefault()}.
  */
 public class Stat extends AbstractPointer
 {
@@ -49,15 +49,15 @@ public class Stat extends AbstractPointer
   protected native String toString(long pointer);
 
   /**
-   * Is this value intended for experts only?
-   * @return Whether this is an expert statistic.
+   * Is this value intended for internal use only?
+   * @return Whether this is an internal statistic.
    */
-  public boolean isExpert()
+  public boolean isInternal()
   {
-    return isExpert(pointer);
+    return isInternal(pointer);
   }
 
-  private native boolean isExpert(long pointer);
+  private native boolean isInternal(long pointer);
 
   /**
    * Does this value hold the default value?

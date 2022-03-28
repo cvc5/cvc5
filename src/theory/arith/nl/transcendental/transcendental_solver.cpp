@@ -204,7 +204,7 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
 
 void TranscendentalSolver::checkTranscendentalTangentPlanes()
 {
-  if (Trace.isOn("nl-ext"))
+  if (TraceIsOn("nl-ext"))
   {
     if (!d_tstate.d_funcMap.empty())
     {
@@ -360,7 +360,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
           is_tangent = concavity == -1;
           is_secant = concavity == 1;
         }
-        if (Trace.isOn("nl-ext-tftp"))
+        if (TraceIsOn("nl-ext-tftp"))
         {
           Trace("nl-ext-tftp") << "*** Outside boundary point (";
           Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";

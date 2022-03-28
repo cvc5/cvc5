@@ -384,7 +384,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::INT_TO_BITVECTOR_OP:
       out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>()
                  .getSize()
@@ -395,7 +395,7 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_FP_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>()
                  .getSize()
@@ -406,14 +406,14 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_REAL_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPReal>().getSize().exponentWidth()
           << ' '
           << n.getConst<FloatingPointToFPReal>().getSize().significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP:
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>()
                  .getSize()
@@ -424,7 +424,7 @@ void Smt2Printer::toStream(std::ostream& out,
                  .significandWidth()
           << ")";
       break;
-    case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
+    case kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP:
       out << "(_ to_fp_unsigned "
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
                  .getSize()
@@ -433,13 +433,6 @@ void Smt2Printer::toStream(std::ostream& out,
           << n.getConst<FloatingPointToFPUnsignedBitVector>()
                  .getSize()
                  .significandWidth()
-          << ")";
-      break;
-    case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
-      out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().getSize().exponentWidth()
-          << ' '
-          << n.getConst<FloatingPointToFPGeneric>().getSize().significandWidth()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
@@ -755,12 +748,11 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 
   // fp theory
-  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
-  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
-  case kind::FLOATINGPOINT_TO_FP_REAL:
-  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
-  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
-  case kind::FLOATINGPOINT_TO_FP_GENERIC:
+  case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+  case kind::FLOATINGPOINT_TO_FP_FROM_FP:
+  case kind::FLOATINGPOINT_TO_FP_FROM_REAL:
+  case kind::FLOATINGPOINT_TO_FP_FROM_SBV:
+  case kind::FLOATINGPOINT_TO_FP_FROM_UBV:
   case kind::FLOATINGPOINT_TO_UBV:
   case kind::FLOATINGPOINT_TO_SBV:
     out << n.getOperator() << ' ';
@@ -843,7 +835,6 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   break;
-  case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
@@ -1197,12 +1188,11 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
   case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
 
-  case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_REAL: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: return "to_fp_unsigned";
-  case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
+  case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_FP: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_REAL: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_SBV: return "to_fp";
+  case kind::FLOATINGPOINT_TO_FP_FROM_UBV: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
   case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
@@ -1232,8 +1222,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_REPLACE_ALL: return "str.replace_all";
   case kind::STRING_REPLACE_RE: return "str.replace_re";
   case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
-  case kind::STRING_TOLOWER: return "str.tolower";
-  case kind::STRING_TOUPPER: return "str.toupper";
+  case kind::STRING_TO_LOWER: return "str.to_lower";
+  case kind::STRING_TO_UPPER: return "str.to_upper";
   case kind::STRING_REV: return "str.rev";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
@@ -1247,6 +1237,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
   case kind::REGEXP_NONE: return "re.none";
+  case kind::REGEXP_ALL: return "re.all";
   case kind::REGEXP_ALLCHAR: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";

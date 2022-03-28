@@ -41,10 +41,10 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
                                          const TypeNode& grammarType,
                                          Node& interpol)
 {
-  if (options().smt.produceInterpols == options::ProduceInterpols::NONE)
+  if (!options().smt.interpols)
   {
     const char* msg =
-        "Cannot get interpolation when produce-interpol options is off.";
+        "Cannot get interpolation when produce-interpols options is off.";
     throw ModalException(msg);
   }
   Trace("sygus-interpol") << "SolverEngine::getInterpol: conjecture " << conj
@@ -119,7 +119,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": result is " << r << std::endl;
     std::stringstream serr;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+    if (r.getStatus() != Result::UNSAT)
     {
       if (j == 0)
       {

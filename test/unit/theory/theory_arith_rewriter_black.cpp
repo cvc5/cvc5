@@ -31,7 +31,6 @@ class TestTheoryArithRewriterBlack : public TestSmt
 
 TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
 {
-  Trace.on("arith-rewriter");
   {
     RealAlgebraicNumber two({-8, 0, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(two);

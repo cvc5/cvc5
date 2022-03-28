@@ -171,7 +171,7 @@ void RelevanceManager::computeRelevance()
       return;
     }
   }
-  if (Trace.isOn("rel-manager"))
+  if (TraceIsOn("rel-manager"))
   {
     if (d_inFullEffortCheck)
     {

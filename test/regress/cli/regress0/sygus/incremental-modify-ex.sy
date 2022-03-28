@@ -1,0 +1,26 @@
+; COMMAND-LINE: -i --sygus-out=status
+;EXPECT: feasible
+;EXPECT: feasible
+(set-logic LIA)
+
+(synth-fun f ((x Int) (y Int)) Int
+  ((Start Int) (StartBool Bool))
+  ((Start Int (0 1 x y
+               (+ Start Start)
+               (- Start Start)
+               (ite StartBool Start Start)))
+   (StartBool Bool ((and StartBool StartBool)
+                    (not StartBool)
+                    (<= Start Start)))))
+
+
+(declare-var x Int)
+(declare-var y Int)
+
+(push 1)
+(constraint (>= (f x y) 0))
+(check-synth)
+(pop 1)
+
+(constraint (< (f x y) 0))
+(check-synth)

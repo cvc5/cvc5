@@ -22,12 +22,12 @@ usually an enumeration type. They are represented as ``std::map<std::string,
 uint64_t>`` where the key is the strings representation of one enumeration value
 and the value is the frequency of this particular value.
 
-Statistics are generally categorized into public and expert statistics, and
+Statistics are generally categorized into public and internal statistics, and
 furthermore into changed and defaulted statistics. By default, iterating a
 :cpp:class:`Statistics <cvc5::api::Statistics>` object only shows statistics
 that are both public and changed. The :cpp:func:`Statistics::begin()
-<cvc5::api::Statistics::begin()>` method has Boolean flags ``expert`` and
-``def`` to also show expert statistics and defaulted statistics, respectively.
+<cvc5::api::Statistics::begin()>` method has Boolean flags ``internal`` and
+``def`` to also show internal statistics and defaulted statistics, respectively.
 
 
 .. doxygenclass:: cvc5::api::Statistics

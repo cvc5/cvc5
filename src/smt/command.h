@@ -823,7 +823,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
  public:
   CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
   /** returns the result of the check-synth call */
-  api::Result getResult() const;
+  api::SynthResult getResult() const;
   /** prints the result of the check-synth-call */
   void printResult(std::ostream& out) const override;
   /** invokes this command
@@ -849,7 +849,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
   /** Whether this is a check-synth-next call */
   bool d_isNext;
   /** result of the check-synth call */
-  api::Result d_result;
+  api::SynthResult d_result;
   /** string stream that stores the output of the solution */
   std::stringstream d_solution;
 };
@@ -1052,8 +1052,6 @@ class CVC5_EXPORT GetInterpolCommand : public Command
   api::Term d_conj;
   /** The (optional) grammar of the interpolation query */
   api::Grammar* d_sygus_grammar;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 }; /* class GetInterpolCommand */
@@ -1081,8 +1079,6 @@ class CVC5_EXPORT GetInterpolNextCommand : public Command
  protected:
   /** The name of the interpolation predicate */
   std::string d_name;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 };
@@ -1131,8 +1127,6 @@ class CVC5_EXPORT GetAbductCommand : public Command
   api::Term d_conj;
   /** The (optional) grammar of the abduction query */
   api::Grammar* d_sygus_grammar;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 }; /* class GetAbductCommand */
@@ -1159,8 +1153,6 @@ class CVC5_EXPORT GetAbductNextCommand : public Command
  protected:
   /** The name of the abduction predicate */
   std::string d_name;
-  /** the return status of the command */
-  bool d_resultStatus;
   /** the return expression of the command */
   api::Term d_result;
 };

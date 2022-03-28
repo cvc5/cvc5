@@ -349,18 +349,18 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
 
 bool isStringKind(Kind k)
 {
-  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
-         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TO_LOWER
+         || k == STRING_TO_UPPER || k == STRING_LEQ || k == STRING_LT
          || k == STRING_FROM_CODE || k == STRING_TO_CODE;
 }
 
 bool isRegExpKind(Kind k)
 {
-  return k == REGEXP_NONE || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
-         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
-         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
-         || k == REGEXP_COMPLEMENT;
+  return k == REGEXP_NONE || k == REGEXP_ALL || k == REGEXP_ALLCHAR
+         || k == STRING_TO_REGEXP || k == REGEXP_CONCAT || k == REGEXP_UNION
+         || k == REGEXP_INTER || k == REGEXP_STAR || k == REGEXP_PLUS
+         || k == REGEXP_OPT || k == REGEXP_RANGE || k == REGEXP_LOOP
+         || k == REGEXP_RV || k == REGEXP_COMPLEMENT;
 }
 
 TypeNode getOwnerStringType(Node n)

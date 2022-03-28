@@ -138,6 +138,8 @@ void SineSolver::doReductions()
         else
         {
           // remember that the argument is equal to the boundary point
+          Trace("nl-ext") << "SineSolver::doReductions: substitution: " << tf[0]
+                          << " -> " << itv->second << std::endl;
           d_data->d_model.addSubstitution(tf[0], itv->second);
           // all congruent transcendental functions are exactly equal to its
           // value

@@ -24,7 +24,7 @@ if __name__ == "__main__":
   slv = cvc5.Solver()
 
   # required options
-  slv.setOption("lang", "sygus2")
+  slv.setOption("sygus", "true")
   slv.setOption("incremental", "false")
 
   # set the logic
@@ -66,8 +66,8 @@ if __name__ == "__main__":
   min = slv.synthFun("min", [x, y], integer)
 
   # declare universal variables.
-  varX = slv.mkSygusVar(integer, "x")
-  varY = slv.mkSygusVar(integer, "y")
+  varX = slv.declareSygusVar(integer, "x")
+  varY = slv.declareSygusVar(integer, "y")
 
   max_x_y = slv.mkTerm(Kind.ApplyUf, max, varX, varY)
   min_x_y = slv.mkTerm(Kind.ApplyUf, min, varX, varY)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
       Kind.Equal, slv.mkTerm(Kind.Add, max_x_y, min_x_y), slv.mkTerm(Kind.Add, varX, varY)))
 
   # print solutions if available
-  if (slv.checkSynth().isUnsat()):
+  if (slv.checkSynth().hasSolution()):
     # Output should be equivalent to:
     # (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
     # (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))

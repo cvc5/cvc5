@@ -1,0 +1,15 @@
+; COMMAND-LINE: --sygus-enum=random --sygus-out=status
+; EXPECT: feasible
+
+(set-logic BV)
+(set-option :sygus-enum-random-p 0)
+
+; Ensures random enumerator correctly handles cases where the coin flips to
+; tails but there is no no-argument constructor to pick.
+
+(synth-fun f () Bool
+  ((Start Bool) (Const Bool))
+  ((Start Bool ((not Const)))
+   (Const Bool (false))))
+
+(check-synth)

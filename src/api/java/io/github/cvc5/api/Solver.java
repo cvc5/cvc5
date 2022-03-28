@@ -132,6 +132,7 @@ public class Solver implements IPointer, AutoCloseable
   private native long getRegExpSort(long pointer);
   /**
    * @return sort RoundingMode
+   * @throws CVC5ApiException
    */
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
@@ -168,6 +169,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a bit-vector sort.
    * @param size the bit-width of the bit-vector sort
    * @return the bit-vector sort
+   * @throws CVC5ApiException
    */
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
@@ -182,6 +184,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a floating-point sort.
    * @param exp the bit-width of the exponent of the floating-point sort.
    * @param sig the bit-width of the significand of the floating-point sort.
+   * @throws CVC5ApiException
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
   {
@@ -198,6 +201,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param dtypedecl the datatype declaration from which the sort is
    *     created
    * @return the datatype sort
+   * @throws CVC5ApiException
    */
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
@@ -215,6 +219,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @return the datatype sorts
+   * @throws CVC5ApiException
    */
   public Sort[] mkDatatypeSorts(List<DatatypeDecl> dtypedecls) throws CVC5ApiException
   {
@@ -228,6 +233,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param dtypedecls the datatype declarations from which the sort is
    *     created
    * @return the datatype sorts
+   * @throws CVC5ApiException
    */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
@@ -260,6 +266,7 @@ public class Solver implements IPointer, AutoCloseable
    *     created
    * @param unresolvedSorts the set of unresolved sorts
    * @return the datatype sorts
+   * @throws CVC5ApiException
    */
   public List<Sort> mkDatatypeSorts(List<DatatypeDecl> dtypedecls, Set<Sort> unresolvedSorts)
       throws CVC5ApiException
@@ -429,6 +436,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the symbol of the sort
    * @param arity the number of sort parameters of the sort
    * @return the unresolved sort
+   * @throws CVC5ApiException
    */
   public Sort mkUnresolvedSort(String symbol, int arity) throws CVC5ApiException
   {
@@ -447,6 +455,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @param symbol the symbol of the sort
    * @return the unresolved sort
+   * @throws CVC5ApiException
    */
   public Sort mkUnresolvedSort(String symbol) throws CVC5ApiException
   {
@@ -455,18 +464,23 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with
+   * arity &gt; 0.
+   *
    * @param symbol the symbol of the sort
-   * @param arity the arity of the sort
+   * @param arity the arity of the sort (must be &gt; 0)
    * @return the sort constructor sort
+   * @throws CVC5ApiException
    */
-  public Sort mkSortConstructorSort(String symbol, int arity) throws CVC5ApiException
+  public Sort mkUninterpretedSortConstructorSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkSortConstructorSort(pointer, symbol, arity);
+    long sortPointer = mkUninterpretedSortConstructorSort(pointer, symbol, arity);
     return new Sort(this, sortPointer);
   }
 
-  private native long mkSortConstructorSort(long pointer, String symbol, int arity);
+  private native long mkUninterpretedSortConstructorSort(long pointer, String symbol, int arity);
 
   /**
    * Create a tuple sort.
@@ -719,6 +733,7 @@ public class Solver implements IPointer, AutoCloseable
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the unsigned int argument to this operator
+   * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
@@ -732,16 +747,16 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create operator of Kind:
    *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
-   *   - FLOATINGPOINT_TO_FP_REAL
-   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
-   *   - FLOATINGPOINT_TO_FP_GENERIC
+   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - FLOATINGPOINT_TO_FP_FROM_FP
+   *   - FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - FLOATINGPOINT_TO_FP_FROM_UBV
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first unsigned int argument to this operator
    * @param arg2 the second unsigned int argument to this operator
+   * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
   {
@@ -759,6 +774,7 @@ public class Solver implements IPointer, AutoCloseable
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
+   * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
@@ -823,6 +839,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123").
    * @return a constant of sort Integer assuming 's' represents an integer)
+   * @throws CVC5ApiException
    */
   public Term mkInteger(String s) throws CVC5ApiException
   {
@@ -850,6 +867,7 @@ public class Solver implements IPointer, AutoCloseable
    *          integer (e.g., "123") or real constant (e.g., "12.34" or
    * "12/34").
    * @return a constant of sort Real
+   * @throws CVC5ApiException
    */
   public Term mkReal(String s) throws CVC5ApiException
   {
@@ -1006,6 +1024,7 @@ public class Solver implements IPointer, AutoCloseable
    *     as
    * string
    * @return the String constant
+   * @throws CVC5ApiException
    */
   public Term mkString(int[] s) throws CVC5ApiException
   {
@@ -1060,6 +1079,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
    * @return the bit-vector constant
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size, long val) throws CVC5ApiException
   {
@@ -1081,6 +1101,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
   {
@@ -1112,6 +1133,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
@@ -1127,6 +1149,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
@@ -1142,6 +1165,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
@@ -1158,6 +1182,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
@@ -1174,6 +1199,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
@@ -1202,6 +1228,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
+   * @throws CVC5ApiException
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
   {
@@ -1218,6 +1245,7 @@ public class Solver implements IPointer, AutoCloseable
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
+   * @throws CVC5ApiException
    */
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {
@@ -1490,34 +1518,6 @@ public class Solver implements IPointer, AutoCloseable
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
 
   /**
-   * Check entailment of the given formula w.r.t. the current set of assertions.
-   * @param term the formula to check entailment for
-   * @return the result of the entailment check.
-   */
-  public Result checkEntailed(Term term)
-  {
-    long resultPointer = checkEntailed(pointer, term.getPointer());
-    return new Result(this, resultPointer);
-  }
-
-  private native long checkEntailed(long pointer, long termPointer);
-
-  /**
-   * Check entailment of the given set of given formulas w.r.t. the current
-   * set of assertions.
-   * @param terms the terms to check entailment for
-   * @return the result of the entailmentcheck.
-   */
-  public Result checkEntailed(Term[] terms)
-  {
-    long[] pointers = Utils.getPointers(terms);
-    long resultPointer = checkEntailed(pointer, pointers);
-    return new Result(this, resultPointer);
-  }
-
-  private native long checkEntailed(long pointer, long[] termPointers);
-
-  /**
    * Create datatype sort.
    * SMT-LIB:
    * {@code
@@ -1563,9 +1563,12 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( declare-sort <symbol> <numeral> )
    * }
+   * @apiNote This corresponds to mkUninterpretedSort() const if arity = 0, and
+   *          to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
+   * @throws CVC5ApiException
    */
   public Sort declareSort(String symbol, int arity) throws CVC5ApiException
   {
@@ -1872,9 +1875,14 @@ public class Solver implements IPointer, AutoCloseable
    * Get the unsatisfiable core.
    * SMT-LIB:
    * {@code
-   * ( get-unsat-core )
+   * (get-unsat-core)
    * }
    * Requires to enable option 'produce-unsat-cores'.
+   * @apiNote In contrast to SMT-LIB, the API does not distinguish between
+   *          named and unnamed assertions when producing an unsatisfiable
+   *          core. Additionally, the API allows this option to be called after
+   *          a check with assumptions. A subset of those assumptions may be
+   *          included in the unsatisfiable core returned by this method.
    * @return a set of terms representing the unsatisfiable core
    */
   public Term[] getUnsatCore()
@@ -2155,6 +2163,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( pop <numeral> )
    * }
+   * @throws CVC5ApiException
    */
   public void pop() throws CVC5ApiException
   {
@@ -2168,6 +2177,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( pop <numeral> )
    * }
    * @param nscopes the number of levels to pop
+   * @throws CVC5ApiException
    */
   public void pop(int nscopes) throws CVC5ApiException
   {
@@ -2188,16 +2198,17 @@ public class Solver implements IPointer, AutoCloseable
    * @apiNote This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
-   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
+   *        A is the current set of assertions and B is given in the input by
+   *        conj, or the null term if such a term cannot be found.
    */
-  public boolean getInterpolant(Term conj, Term output)
+  public Term getInterpolant(Term conj)
   {
-    return getInterpolant(pointer, conj.getPointer(), output.getPointer());
+    long interpolPtr = getInterpolant(pointer, conj.getPointer());
+    return new Term(this, interpolPtr);
   }
 
-  private native boolean getInterpolant(long pointer, long conjPointer, long outputPointer);
+  private native long getInterpolant(long pointer, long conjPointer);
 
   /**
    * Get an interpolant
@@ -2211,17 +2222,17 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
-   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
-   *        current set of assertions and B is given in the input by conj.
-   * @return true if it gets I successfully, false otherwise.
+   * @return a Term I such that {@code A->I} and {@code I->B} are valid, where
+   *        A is the current set of assertions and B is given in the input by
+   *        conj, or the null term if such a term cannot be found.
    */
-  public boolean getInterpolant(Term conj, Grammar grammar, Term output)
+  public Term getInterpolant(Term conj, Grammar grammar)
   {
-    return getInterpolant(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer());
+    long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
+    return new Term(this, interpolPtr);
   }
 
-  private native boolean getInterpolant(
-      long pointer, long conjPointer, long grammarPointer, long outputPointer);
+  private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
@@ -2242,17 +2253,18 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @apiNote This method is experimental and may change in future versions.
    *
-   * @param output a Term I such that {@code A->I} and {@code I->B} are valid,
+   * @return a Term I such that {@code A->I} and {@code I->B} are valid,
    *        where A is the current set of assertions and B is given in the input
-   *        by conj on the last call to getInterpolant.
-   * @return true if it gets interpolant @f$C@f$ successfully, false otherwise
+   *        by conj on the last call to getInterpolant, or the null term if such
+   *        a term cannot be found.
    */
-  public boolean getInterpolantNext(Term output)
+  public Term getInterpolantNext()
   {
-    return getInterpolantNext(pointer, output.getPointer());
+    long interpolPtr = getInterpolantNext(pointer);
+    return new Term(this, interpolPtr);
   }
 
-  private native boolean getInterpolantNext(long pointer, long outputPointer);
+  private native long getInterpolantNext(long pointer);
 
   /**
    * Get an abduct.
@@ -2265,17 +2277,18 @@ public class Solver implements IPointer, AutoCloseable
    * @apiNote This method is experimental and may change in future versions.
    *
    * @param conj the conjecture term
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   * @return a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   *        given in the input by conj, or the null term if such a term cannot
+   *        be found.
    */
-  public boolean getAbduct(Term conj, Term output)
+  public Term getAbduct(Term conj)
   {
-    return getAbduct(pointer, conj.getPointer(), output.getPointer());
+    long abdPtr = getAbduct(pointer, conj.getPointer());
+    return new Term(this, abdPtr);
   }
 
-  private native boolean getAbduct(long pointer, long conjPointer, long outputPointer);
+  private native long getAbduct(long pointer, long conjPointer);
   /**
    * Get an abduct.
    * SMT-LIB:
@@ -2288,18 +2301,18 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   * @return a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   *        given in the input by conj, or the null term if such a term cannot
+   *        be found.
    */
-  public boolean getAbduct(Term conj, Grammar grammar, Term output)
+  public Term getAbduct(Term conj, Grammar grammar)
   {
-    return getAbduct(pointer, conj.getPointer(), grammar.getPointer(), output.getPointer());
+    long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
+    return new Term(this, abdPtr);
   }
 
-  private native boolean getAbduct(
-      long pointer, long conjPointer, long grammarPointer, long outputPointer);
+  private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -2313,16 +2326,18 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @apiNote This method is experimental and may change in future versions.
    *
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj in the last call to getAbduct.
-   * @return true if it gets C successfully, false otherwise
+   * @return a term C such that A^C is satisfiable, and A^~B^C is
+   *         unsatisfiable, where A is the current set of assertions and B is
+   *         given in the input by conj in the last call to getAbduct, or the
+   *         null term if such a term cannot be found.
    */
-  public boolean getAbductNext(Term output) {
-    return getAbductNext(pointer, output.getPointer());
+  public Term getAbductNext()
+  {
+    long abdPtr = getAbductNext(pointer);
+    return new Term(this, abdPtr);
   }
 
-  private native boolean getAbductNext(long pointer, long outputPointer);
+  private native long getAbductNext(long pointer);
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -2363,10 +2378,15 @@ public class Solver implements IPointer, AutoCloseable
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   * @param out the output stream
+   * Return a string that contains information about all instantiations made by
+   * the quantifiers module.
    */
-  // TODO: void printInstantiations(std::ostream& out)
+  public String getInstantiations()
+  {
+    return getInstantiations(pointer);
+  }
+
+  private native String getInstantiations(long pointer);
 
   /**
    * Push a level to the assertion stack.
@@ -2374,6 +2394,7 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( push <numeral> )
    * }
+   * @throws CVC5ApiException
    */
   public void push() throws CVC5ApiException
   {
@@ -2387,6 +2408,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( push <numeral> )
    * }
    * @param nscopes the number of levels to push
+   * @throws CVC5ApiException
    */
   public void push(int nscopes) throws CVC5ApiException
   {
@@ -2418,6 +2440,7 @@ public class Solver implements IPointer, AutoCloseable
    * }
    * @param keyword the info flag
    * @param value the value of the info flag
+   * @throws CVC5ApiException
    */
   public void setInfo(String keyword, String value) throws CVC5ApiException
   {
@@ -2433,6 +2456,7 @@ public class Solver implements IPointer, AutoCloseable
    * ( set-logic <symbol> )
    * }
    * @param logic the logic to set
+   * @throws CVC5ApiException
    */
   public void setLogic(String logic) throws CVC5ApiException
   {
@@ -2479,9 +2503,9 @@ public class Solver implements IPointer, AutoCloseable
    * @param sort the sort of the universal variable
    * @return the universal variable
    */
-  public Term mkSygusVar(Sort sort)
+  public Term declareSygusVar(Sort sort)
   {
-    return mkSygusVar(sort, "");
+    return declareSygusVar(sort, "");
   }
   /**
    * Append \p symbol to the current list of universal variables.
@@ -2493,13 +2517,13 @@ public class Solver implements IPointer, AutoCloseable
    * @param symbol the name of the universal variable
    * @return the universal variable
    */
-  public Term mkSygusVar(Sort sort, String symbol)
+  public Term declareSygusVar(Sort sort, String symbol)
   {
-    long termPointer = mkSygusVar(pointer, sort.getPointer(), symbol);
+    long termPointer = declareSygusVar(pointer, sort.getPointer(), symbol);
     return new Term(this, termPointer);
   }
 
-  private native long mkSygusVar(long pointer, long sortPointer, String symbol);
+  private native long declareSygusVar(long pointer, long sortPointer, String symbol);
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
@@ -2663,13 +2687,14 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth )
    * }
-   * @return the result of the check, which is unsat if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  public Result checkSynth()
-  {
+  public SynthResult checkSynth() {
     long resultPointer = checkSynth(pointer);
-    return new Result(this, resultPointer);
+    return new SynthResult(this, resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -2683,13 +2708,14 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    *   ( check-synth-next )
    * }
-   * @return the result of the check, which is UNSAT if the check succeeded,
-   * in which case solutions are available via getSynthSolutions.
+   * @return the result of the check, which is "solution" if the check found a
+   *         solution in which case solutions are available via
+   *         getSynthSolutions, "no solution" if it was determined there is no
+   *         solution, or "unknown" otherwise.
    */
-  public Result checkSynthNext()
-  {
+  public SynthResult checkSynthNext() {
     long resultPointer = checkSynthNext(pointer);
-    return new Result(this, resultPointer);
+    return new SynthResult(this, resultPointer);
   }
 
   private native long checkSynthNext(long pointer);
@@ -2757,6 +2783,17 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long getNullResult(long pointer);
+
+  /**
+   * @return null synth result
+   */
+  public SynthResult getNullSynthResult()
+  {
+    long resultPointer = getNullSynthResult(pointer);
+    return new SynthResult(this, resultPointer);
+  }
+
+  private native long getNullSynthResult(long pointer);
 
   /**
    * @return null op

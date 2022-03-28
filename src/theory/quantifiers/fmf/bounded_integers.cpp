@@ -450,7 +450,7 @@ void BoundedIntegers::checkOwnership(Node f)
     }
   }while( success );
   
-  if( Trace.isOn("bound-int") ){
+  if( TraceIsOn("bound-int") ){
     Trace("bound-int") << "Bounds are : " << std::endl;
     for( unsigned i=0; i<f[0].getNumChildren(); i++) {
       Node v = f[0][i];
@@ -787,9 +787,8 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                             dt[index].getSelectorInternal(e.getType(), i),
-                             e);
+        Node se = nm->mkNode(
+            APPLY_SELECTOR, dt[index].getSelectorInternal(e.getType(), i), e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){
