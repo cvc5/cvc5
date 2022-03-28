@@ -255,8 +255,8 @@ cdef class DatatypeConstructor:
             :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm()
             <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
 
-        .. warning:: This method is experimental and may change in future
-                     versions.
+            .. warning:: This method is experimental and may change in future
+                         versions.
 
             :param retSort: the desired return sort of the constructor
             :return: the constructor operator as a term.

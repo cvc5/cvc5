@@ -604,14 +604,14 @@ class CVC5_EXPORT Sort
    *
    * Create sorts parameter with Solver::mkParamSort().
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param params the list of sort parameters to instantiate with
    */
   Sort instantiate(const std::vector<Sort>& params) const;
 
   /**
    * Substitution of Sorts.
-   * @param sort the subsort to be substituted within this sort.
-   * @param replacement the sort replacing the substituted subsort.
    *
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point.
@@ -619,18 +619,26 @@ class CVC5_EXPORT Sort
    * For example,
    * (Array A B).substitute({A, C}, {(Array C D), (Array A B)}) will
    * return (Array (Array C D) B).
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @param sort the subsort to be substituted within this sort.
+   * @param replacement the sort replacing the substituted subsort.
    */
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
   /**
    * Simultaneous substitution of Sorts.
-   * @param sorts the subsorts to be substituted within this sort.
-   * @param replacements the sort replacing the substituted subsorts.
    *
    * Note that this replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point. In the case that
    * sorts contains duplicates, the replacement earliest in the vector takes
    * priority.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @param sorts the subsorts to be substituted within this sort.
+   * @param replacements the sort replacing the substituted subsorts.
    */
   Sort substitute(const std::vector<Sort>& sorts,
                   const std::vector<Sort>& replacements) const;
@@ -3489,6 +3497,7 @@ class CVC5_EXPORT Solver
    * Create a separation logic empty term.
    *
    * @warning This method is experimental and may change in future versions.
+   *
    * @return the separation logic empty term
    */
   Term mkSepEmp() const;
@@ -4521,6 +4530,8 @@ class CVC5_EXPORT Solver
   void blockModelValues(const std::vector<Term>& terms) const;
 
   /**
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return a string that contains information about all instantiations made by
    * the quantifiers module.
    */
