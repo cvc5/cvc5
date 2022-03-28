@@ -388,7 +388,7 @@ class SortTest
     assertThrows(CVC5ApiException.class, () -> bvSort.getSequenceElementSort());
   }
 
-  @Test void getUninterpretedSortName() throws CVC5ApiException
+  @Test void getSymbol() throws CVC5ApiException
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
     assertDoesNotThrow(() -> uSort.getSymbol());

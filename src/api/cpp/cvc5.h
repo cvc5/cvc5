@@ -751,11 +751,6 @@ class CVC5_EXPORT Sort
   /* Uninterpreted sort -------------------------------------------------- */
 
   /**
-   * @return the name of an uninterpreted sort
-   */
-  std::string getUninterpretedSortName() const;
-
-  /**
    * @return true if an uninterpreted sort is parameterized
    */
   bool isUninterpretedSortParameterized() const;
