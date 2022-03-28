@@ -48,7 +48,7 @@ class SmtLibLexer(RegexLexer):
         '=>', '=', 'true', 'false', 'not', 'and', 'or', 'xor', 'distinct',
         'ite',
         # datatypes
-        'tuple', 'tuple_project', 'tuple_select',
+        'tuple', 'tuple\.project', 'tuple\.select',
         # fp
         'RNE', 'RNA', 'RTP', 'RTN', 'RTZ', 'fp', 'NaN', 'fp\.abs', 'fp\.neg',
         'fp\.add', 'fp\.sub', 'fp\.mul', 'fp\.div', 'fp\.fma', 'fp\.sqrt',
@@ -64,9 +64,10 @@ class SmtLibLexer(RegexLexer):
         # separation logic
         'emp', 'pto', 'sep', 'wand', 'nil',
         # sets / relations
-        'union', 'setminus', 'member', 'subset', 'emptyset', 'singleton',
-        'card', 'insert', 'complement', 'univset', 'transpose', 'tclosure',
-        'join', 'product', 'intersection',
+        'set\.union', 'set\.minus', 'set\.member', 'set\.subset', 'set\.empty',
+        'set\.singleton', 'set\.card', 'set\.insert', 'set\.complement',
+        'set\.universe', 'rel\.transpose', 'rel\.tclosure', 'rel\.join',
+        'rel\.product', 'rel\.intersection',
         # string
         'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.to_re', 'str\.in_re',
         're\.none', 're\.all', 're\.allchar', 're\.\+\+', 're\.union',
