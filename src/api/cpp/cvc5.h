@@ -4153,8 +4153,6 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
-   * \verbatim embed:rst:leading-asterisk
-   *
    * This returns false if the model value of free constant v was not essential
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any v) if
