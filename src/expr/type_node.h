@@ -597,6 +597,12 @@ private:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /**
+   * Return true if this is an instantiated parametric datatype or
+   * uninterpreted sort constructor type.
+   */
+  bool isInstantiated() const;
+
   /** Is this a sygus datatype type */
   bool isSygusDatatype() const;
 

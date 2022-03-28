@@ -360,6 +360,23 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isUninterpretedSortConstructor(long pointer);
 
   /**
+   * Is this an instantiated (parametric datatype or unintpreted sort
+   * constructor) sort?
+   *
+   * An instantiated sort is a sort that has been constructed from
+   * instantiating sort parameters of a parametric sort with sort arguments
+   * (see Sort::instantiate()).
+   *
+   * @return true if this is an instantiated sort
+   */
+  public boolean isInstantiated()
+  {
+    return isInstantiated(pointer);
+  }
+
+  private native boolean isInstantiated(long pointer);
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   public Datatype getDatatype()
@@ -642,16 +659,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native long getSequenceElementSort(long pointer);
 
   /* Uninterpreted sort -------------------------------------------------- */
-
-  /**
-   * @return true if an uninterpreted sort is parameterezied
-   */
-  public boolean isUninterpretedSortParameterized()
-  {
-    return isUninterpretedSortParameterized(pointer);
-  }
-
-  private native boolean isUninterpretedSortParameterized(long pointer);
 
   /**
    * @return the parameter sorts of an uninterpreted sort

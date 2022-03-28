@@ -399,6 +399,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isUninterpretedSortConstructor() except +
+        bint isInstantiated() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
@@ -417,7 +418,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSetElementSort() except +
         Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
-        bint isUninterpretedSortParameterized() except +
         vector[Sort] getUninterpretedSortParamSorts() except +
         size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
