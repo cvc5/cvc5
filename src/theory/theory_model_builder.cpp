@@ -531,7 +531,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             // non-linear arithmetic before the model is refined enough to
             // e.g. show transcendental function apps are not equal to rationals
             Trace("model-warn") << "Model values in the same equivalence class "
-                      << constRep << " " << n << std::endl;
+                                << constRep << " " << n << std::endl;
             if (!constRepBaseModelValue)
             {
               assignConstRep = isBaseValue;
