@@ -216,8 +216,8 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion)
       // threshold
       if (d_assertNoLearnCount > d_deepRestartThreshold)
       {
-        Trace("level-zero")
-            << "DEEP RESTART after " << d_assertNoLearnCount << " asserts." << std::endl;
+        Trace("level-zero") << "DEEP RESTART after " << d_assertNoLearnCount
+                            << " asserts." << std::endl;
         return false;
       }
     }
@@ -334,7 +334,7 @@ bool ZeroLevelLearner::hasLearnedLiteralForRestart() const
 {
   for (LearnedLitType ltype : d_learnedTypes)
   {
-    if (d_ldb.getNumLearnedLiterals(ltype)>0)
+    if (d_ldb.getNumLearnedLiterals(ltype) > 0)
     {
       return true;
     }
