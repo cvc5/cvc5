@@ -549,6 +549,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a record sort?
+   * @warning This method is experimental and may change in future versions.
    * @return true if the sort is a record sort
    */
   bool isRecord() const;

@@ -174,7 +174,11 @@ cdef class Datatype:
         return param_sorts
 
     def isParametric(self):
-        """:return: True if this datatype is parametric."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype is parametric.
+        """
         return self.cd.isParametric()
 
     def isCodatatype(self):
@@ -186,7 +190,11 @@ cdef class Datatype:
         return self.cd.isTuple()
 
     def isRecord(self):
-        """:return: True if this datatype corresponds to a record."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype corresponds to a record.
+        """
         return self.cd.isRecord()
 
     def isFinite(self):
@@ -2257,6 +2265,9 @@ cdef class Solver:
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: The term for the heap
         """
         cdef Term term = Term(self)
@@ -2265,6 +2276,9 @@ cdef class Solver:
 
     def getValueSepNil(self):
         """When using separation logic, obtain the term for nil.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :return: The term for nil
         """
@@ -2762,6 +2776,9 @@ cdef class Sort:
     def isRecord(self):
         """
             Is this a record sort?
+
+            .. warning:: This method is experimental and may change in future
+                        versions.
 
             :return: True if the sort is a record sort.
         """
