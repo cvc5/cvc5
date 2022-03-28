@@ -178,7 +178,7 @@ void ExponentialSolver::checkMonotonic()
     Assert(sargval.isConst());
     Node s = tf_arg_to_term[sarg];
     Node sval = d_data->d_model.computeAbstractModelValue(s);
-    Assert (sval.isConst());
+    Assert(sval.isConst());
 
     // store the concavity region
     d_data->d_tf_region[s] = 1;
