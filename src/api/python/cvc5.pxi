@@ -3540,9 +3540,9 @@ cdef class Term:
 
     def getCardinalityConstraint(self):
         """
-	   Asserts :py:meth:`isCardinalityConstraint()`.
+	   Asserts :py:meth:`getCardinalityConstraint()`.
 
-	   :return: the representation of a rational value as a python Fraction.
+	   :return: the sort the cardinality constraint is for and its upper bound.
 	"""
         return self.cterm.getCardinalityConstraint()
 
