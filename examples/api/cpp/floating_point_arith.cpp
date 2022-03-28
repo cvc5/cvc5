@@ -73,7 +73,7 @@ int main()
   // different rounding modes.
   Term rtp = solver.mkRoundingMode(ROUND_TOWARD_POSITIVE);
   Term rtn = solver.mkRoundingMode(ROUND_TOWARD_NEGATIVE);
-  Op op = solver.mkOp(FLOATINGPOINT_TO_SBV, 16);  // (_ fp.to_sbv 16)
+  Op op = solver.mkOp(FLOATINGPOINT_TO_SBV, {16});  // (_ fp.to_sbv 16)
   lhs = solver.mkTerm(op, {rtp, d});
   rhs = solver.mkTerm(op, {rtn, d});
   solver.assertFormula(solver.mkTerm(FLOATINGPOINT_IS_NORMAL, {d}));

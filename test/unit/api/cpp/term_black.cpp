@@ -155,7 +155,7 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_THROW(x.getOp(), CVC5ApiException);
 
   Term ab = d_solver.mkTerm(SELECT, {a, b});
-  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
+  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, {4, 0});
   Term extb = d_solver.mkTerm(ext, {b});
 
   ASSERT_TRUE(ab.hasOp());

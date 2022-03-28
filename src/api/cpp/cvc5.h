@@ -506,16 +506,6 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a parametric datatype sort? A parametric datatype sort is either
-   * one that is returned by a call to Solver::mkDatatypeSort() or
-   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
-   * datatype sort returned by Sort::instantiate() for parametric datatype
-   * sort `s`.
-   * @return true if the sort is a parametric datatype sort
-   */
-  bool isParametricDatatype() const;
-
-  /**
    * Is this a constructor sort?
    * @return true if the sort is a constructor sort
    */
@@ -594,10 +584,14 @@ class CVC5_EXPORT Sort
   bool isUninterpretedSort() const;
 
   /**
-   * Is this a sort constructor kind?
+   * Is this an uninterpreted sort constructor kind?
+   *
+   * An uninterpreted sort constructor has arity > 0 and can be instantiated to
+   * construct uninterpreted sorts with given sort parameters.
+   *
    * @return true if this is a sort constructor kind
    */
-  bool isSortConstructor() const;
+  bool isUninterpretedSortConstructor() const;
 
   /**
    * @return the underlying datatype of a datatype sort
@@ -605,8 +599,11 @@ class CVC5_EXPORT Sort
   Datatype getDatatype() const;
 
   /**
-   * Instantiate a parameterized datatype/sort sort.
+   * Instantiate a parameterized datatype sort or uninterpreted sort
+   * constructor sort.
+   *
    * Create sorts parameter with Solver::mkParamSort().
+   *
    * @param params the list of sort parameters to instantiate with
    */
   Sort instantiate(const std::vector<Sort>& params) const;
@@ -746,11 +743,6 @@ class CVC5_EXPORT Sort
   /* Uninterpreted sort -------------------------------------------------- */
 
   /**
-   * @return the name of an uninterpreted sort
-   */
-  std::string getUninterpretedSortName() const;
-
-  /**
    * @return true if an uninterpreted sort is parameterized
    */
   bool isUninterpretedSortParameterized() const;
@@ -763,9 +755,9 @@ class CVC5_EXPORT Sort
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
-   * @return the arity of a sort constructor sort
+   * @return the arity of an uninterpreted sort constructor sort
    */
-  size_t getSortConstructorArity() const;
+  size_t getUninterpretedSortConstructorArity() const;
 
   /* Bit-vector sort ----------------------------------------------------- */
 
@@ -3302,12 +3294,16 @@ class CVC5_EXPORT Solver
   Sort mkUnresolvedSort(const std::string& symbol, size_t arity = 0) const;
 
   /**
-   * Create a sort constructor sort.
+   * Create an uninterpreted sort constructor sort.
+   *
+   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
+   *
    * @param symbol the symbol of the sort
-   * @param arity the arity of the sort
-   * @return the sort constructor sort
+   * @param arity the arity of the sort (must be > 0)
+   * @return the uninterpreted sort constructor sort
    */
-  Sort mkSortConstructorSort(const std::string& symbol, size_t arity) const;
+  Sort mkUninterpretedSortConstructorSort(const std::string& symbol,
+                                          size_t arity) const;
 
   /**
    * Create a tuple sort.
@@ -3351,69 +3347,48 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create an operator for a builtin Kind.
+   * Create operator of Kind:
+   *   - #BITVECTOR_EXTRACT
+   *   - #BITVECTOR_REPEAT
+   *   - #BITVECTOR_ROTATE_LEFT
+   *   - #BITVECTOR_ROTATE_RIGHT
+   *   - #BITVECTOR_SIGN_EXTEND
+   *   - #BITVECTOR_ZERO_EXTEND
+   *   - #DIVISIBLE
+   *   - #FLOATINGPOINT_TO_FP_FROM_FP
+   *   - #FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+   *   - #FLOATINGPOINT_TO_FP_FROM_REAL
+   *   - #FLOATINGPOINT_TO_FP_FROM_SBV
+   *   - #FLOATINGPOINT_TO_FP_FROM_UBV
+   *   - #FLOATINGPOINT_TO_SBV
+   *   - #FLOATINGPOINT_TO_UBV
+   *   - #INT_TO_BITVECTOR
+   *   - #TUPLE_PROJECT
    *
-   * The Kind may not be the Kind for an indexed operator
-   * (e.g. BITVECTOR_EXTRACT).
+   * See cvc5::api::Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   * @param args the arguments (indices) of the operator
    *
-   * @note In this case, the ``Op`` simply wraps the ``Kind``.  The Kind can be
-   *       used in ``Solver::mkTerm`` directly without creating an ``Op`` first.
-   * @param kind the kind to wrap
+   * @note If ``args`` is empty, the Op simply wraps the cvc5::api::Kind.  The
+   * Kind can be used in Solver::mkTerm directly without creating an Op
+   * first.
    */
-  Op mkOp(Kind kind) const;
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args = {}) const;
+
+#ifndef DOXYGEN_SKIP
+  // Overload is only used to disambiguate the std::vector and std::string
+  // overloads.
+  Op mkOp(Kind kind, const std::initializer_list<uint32_t>& args) const;
+#endif
 
   /**
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See enum Kind for a description of the parameters.
+   * See cvc5::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
   Op mkOp(Kind kind, const std::string& arg) const;
-
-  /**
-   * Create operator of kind:
-   *   - DIVISIBLE
-   *   - BITVECTOR_REPEAT
-   *   - BITVECTOR_ZERO_EXTEND
-   *   - BITVECTOR_SIGN_EXTEND
-   *   - BITVECTOR_ROTATE_LEFT
-   *   - BITVECTOR_ROTATE_RIGHT
-   *   - INT_TO_BITVECTOR
-   *   - FLOATINGPOINT_TO_UBV
-   *   - FLOATINGPOINT_TO_UBV_TOTAL
-   *   - FLOATINGPOINT_TO_SBV
-   *   - FLOATINGPOINT_TO_SBV_TOTAL
-   *   - TUPLE_UPDATE
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg the uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg) const;
-
-  /**
-   * Create operator of Kind:
-   *   - BITVECTOR_EXTRACT
-   *   - FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - FLOATINGPOINT_TO_FP_FROM_FP
-   *   - FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - FLOATINGPOINT_TO_FP_FROM_UBV
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param arg1 the first uint32_t argument to this operator
-   * @param arg2 the second uint32_t argument to this operator
-   */
-  Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
-
-  /**
-   * Create operator of Kind:
-   *   - TUPLE_PROJECT
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the operator
-   * @param args the arguments (indices) of the operator
-   */
-  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -3861,6 +3836,11 @@ class CVC5_EXPORT Solver
    *     (declare-sort <symbol> <numeral>)
    * \endverbatim
    *
+   * @note This corresponds to mkUninterpretedSort(const std::string&) const if
+   *       arity = 0, and to
+   *       mkUninterpretedSortConstructorSort(const std::string&, size_t arity) const
+   *       if arity > 0.
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -4292,6 +4272,9 @@ class CVC5_EXPORT Solver
   /**
    * Declare a symbolic pool of terms with the given initial value.
    *
+   * For details on how pools are used to specify instructions for quantifier
+   * instantiation, see documentation for the #INST_POOL kind.
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -4303,6 +4286,7 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
+   * @return The pool symbol
    */
   Term declarePool(const std::string& symbol,
                    const Sort& sort,
@@ -4845,6 +4829,9 @@ class CVC5_EXPORT Solver
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+  /** Helper for creating operators. */
+  template <typename T>
+  Op mkOpHelper(Kind kind, const T& t) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(const T& t) const;

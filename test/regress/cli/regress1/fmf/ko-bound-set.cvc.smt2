@@ -2,7 +2,7 @@
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :finite-model-find true)
-(set-option :fmf-bound-int true)
+(set-option :fmf-bound true)
 (set-option :produce-models true)
 (declare-fun X () (Set Int))
 (declare-fun Y () (Set Int))
