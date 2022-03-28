@@ -47,12 +47,13 @@ PartitionGenerator::PartitionGenerator(Env& env,
   d_conflictSize = options().parallel.partitionConflictSize;
   if (!d_conflictSize)
   {
-    d_conflictSize = (uint64_t)log2(d_numPartitions);
+    d_conflictSize = static_cast<uint64_t>(log2(d_numPartitions));
   }
 }
 
-void PartitionGenerator::collectDecisionLiterals(std::vector<TNode>& literals)
+std::vector<TNode> PartitionGenerator::collectDecisionLiterals()
 {
+  std::vector<TNode> literals;
   std::vector<Node> decisionNodes = d_propEngine->getPropDecisions();
   // Make sure the literal does not have a boolean term or skolem in it.
   const std::unordered_set<Kind, kind::KindHashFunction> kinds = {
@@ -75,6 +76,7 @@ void PartitionGenerator::collectDecisionLiterals(std::vector<TNode>& literals)
 
     literals.push_back(originalN);
   }
+  return literals;
 }
 
 void PartitionGenerator::emitCube(Node toEmit)
@@ -93,12 +95,9 @@ TrustNode PartitionGenerator::blockPath(TNode toBlock)
 }
 
 // Send lemma that is the negation of all previously asserted lemmas.
-TrustNode PartitionGenerator::stopPartitioning()
+TrustNode PartitionGenerator::stopPartitioning() const
 {
-  std::vector<Node> unsat = {NodeManager::currentNM()->mkConst(true),
-                             NodeManager::currentNM()->mkConst(false)};
-  Node lemma = NodeManager::currentNM()->mkAnd(unsat);
-  return TrustNode::mkTrustLemma(lemma);
+  return TrustNode::mkTrustLemma(NodeManager::currentNM()->mkConst(false));
 }
 
 // This is the revised version of the old splitting strategy.
@@ -112,8 +111,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
   // If we're not at the last cube
   if (d_numPartitionsSoFar < d_numPartitions - 1)
   {
-    std::vector<TNode> literals;
-    collectDecisionLiterals(literals);
+    std::vector<TNode> literals = collectDecisionLiterals();
 
     // Make sure we have enough literals.
     // Conflict size can be set through options, but the default is log base 2
@@ -131,7 +129,6 @@ TrustNode PartitionGenerator::makeRevisedPartitions()
     d_cubes.push_back(conj);
     return blockPath(conj);
   }
-
   // At the last cube
   else
   {

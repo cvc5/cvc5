@@ -18,8 +18,6 @@
 #ifndef CVC5__THEORY__SPLITTER_H
 #define CVC5__THEORY__SPLITTER_H
 
-#include <fstream>
-#include <sstream>
 #include <vector>
 
 #include "proof/trust_node.h"
@@ -40,15 +38,13 @@ namespace theory {
 class PartitionGenerator : protected EnvObj
 {
  public:
-  // PartitionGenerator
   PartitionGenerator(Env& env,
                      TheoryEngine* theoryEngine,
                      prop::PropEngine* propEngine);
 
   /**
-   * Make partitions for parallel solving. isFromFullCheck communicates whether
-   * makePartitions was call from the theory engine at a full check of a
-   * standard check.
+   * Make partitions for parallel solving. e communicates the effort at which makePartitions was called.
+   * Returns a lemma blocking off the emitted cube from the search.
    */
   TrustNode makePartitions(Theory::Effort e);
 
@@ -65,20 +61,19 @@ class PartitionGenerator : protected EnvObj
   TrustNode makeRevisedPartitions();
 
   /**
-   * Block a path in the search by sending the not of toBlock as a lemma to the
-   * SAT solver.
+   * Generate a lemma that is the negation of toBlock which ultimately blocks that path in the search. 
    */
   TrustNode blockPath(TNode toBlock);
 
   /**
    * Stop partitioning and return unsat.
    */
-  TrustNode stopPartitioning();
+  TrustNode stopPartitioning() const;
 
   /**
    * Get the list of decisions from the SAT solver
    */
-  void collectDecisionLiterals(std::vector<TNode>& literals);
+  std::vector<TNode> collectDecisionLiterals();
 
   /**
    * Current propEngine.
@@ -125,4 +120,4 @@ class PartitionGenerator : protected EnvObj
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__SPLITTER_H */
+#endif /* CVC5__PARTITION__GENERATOR_H */
