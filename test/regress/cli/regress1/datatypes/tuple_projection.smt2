@@ -6,6 +6,6 @@
 (declare-fun x () String)
 (assert (= t (tuple "a" "b" "c" "d")))
 (assert (= x ((_ tuple.select 0) t)))
-(assert (= u ((_ tuple_project 2 3) t)))
-(assert (= v (tuple_project t)))
+(assert (= u ((_ tuple.project 2 3) t)))
+(assert (= v (tuple.project t)))
 (check-sat)

@@ -774,13 +774,13 @@ void Smt2Printer::toStream(std::ostream& out,
     TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
     if (op.getIndices().empty())
     {
-      // e.g. (tuple_project tuple)
-      out << "tuple_project " << n[0] << ")";
+      // e.g. (tuple.project tuple)
+      out << "tuple.project " << n[0] << ")";
     }
     else
     {
-      // e.g. ((_ tuple_project 2 4 4) tuple)
-      out << "(_ tuple_project" << op << ") " << n[0] << ")";
+      // e.g. ((_ tuple.project 2 4 4) tuple)
+      out << "(_ tuple.project" << op << ") " << n[0] << ")";
     }
     return;
   }
@@ -797,7 +797,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
+      out << "(_ tuple.select " << DType::indexOf(op) << ") ";
     }
   }
   break;
