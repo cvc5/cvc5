@@ -60,5 +60,6 @@ name   = "Parallel"
   category   = "expert"
   long       = "write-partitions-to=output"
   type       = "ManagedOut"
+  default    = "ManagedOut()"
   includes   = ["<iostream>", "options/managed_streams.h"]
   help       = "set the output channel for writing partitions"
