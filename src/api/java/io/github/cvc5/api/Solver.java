@@ -339,6 +339,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a sort parameter.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param symbol the name of the sort
    * @return the sort parameter
    */
@@ -365,6 +368,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a record sort
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param fields the list of fields of the record
    * @return the record sort
    */
@@ -1246,6 +1252,9 @@ public class Solver implements IPointer, AutoCloseable
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
@@ -1329,6 +1338,11 @@ public class Solver implements IPointer, AutoCloseable
   /* Create datatype constructor declarations                             */
   /* .................................................................... */
 
+  /**
+   * Create a datatype constructor declaration.
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
     long declPointer = mkDatatypeConstructorDecl(pointer, name);
@@ -1445,6 +1459,9 @@ public class Solver implements IPointer, AutoCloseable
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param t the formula to simplify
    * @return the simplified formula
    */
@@ -1763,17 +1780,6 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Echo a given string to the given output stream.
-   * SMT-LIB:
-   * {@code
-   * ( echo <std::string> )
-   * }
-   * @param out the output stream
-   * @param str the string to echo
-   */
-  // TODO: void echo(std::ostream& out, String  str)
-
-  /**
    * Get a list of literals that are entailed by the current set of assertions
    * SMT-LIB:
    * {@code
@@ -2044,8 +2050,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-qe <q> )
    * }
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
@@ -2070,8 +2079,11 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( get-qe-disjunct <q> )
    * }
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
@@ -2151,6 +2163,9 @@ public class Solver implements IPointer, AutoCloseable
    * {@code
    * ( declare-pool <symbol> <sort> ( <term>* ) )
    * }
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
@@ -2496,6 +2511,9 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @apiNote The sort of the term must be convertible into the target sort.
    *          Currently only Int to Real conversions are supported.
+   *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
