@@ -194,13 +194,13 @@ class Printer
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
-  /** Print get-interpol command */
+  /** Print get-interpolant command */
   virtual void toStreamCmdGetInterpol(std::ostream& out,
                                       const std::string& name,
                                       Node conj,
                                       TypeNode sygusType) const;
 
-  /** Print get-interpol-next command */
+  /** Print get-interpolant-next command */
   virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
 
   /** Print get-abduct command */

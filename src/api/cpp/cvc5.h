@@ -4370,12 +4370,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol <conj>)
+   *     (get-interpolant <conj>)
    *
    * Requires option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -4394,12 +4393,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol <conj> <grammar>)
+   *     (get-interpolant <conj> <grammar>)
    *
    * Requires option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -4413,7 +4411,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
    * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
@@ -4422,12 +4420,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol-next)
+   *     (get-interpolant-next)
    *
    * Requires to enable incremental mode, and option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
