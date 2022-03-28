@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --sygus-enum=fast --check-interpols -i
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --sygus-enum=fast --check-interpolants -i
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic NIA)

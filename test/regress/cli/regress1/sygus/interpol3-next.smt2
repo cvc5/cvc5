@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --check-interpols -i
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --check-interpolants -i
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic LIA)
