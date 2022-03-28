@@ -905,6 +905,9 @@ cdef class Solver:
     def mkParamSort(self, symbolname):
         """ Create a sort parameter.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param symbol: the name of the sort
         :return: the sort parameter
         """
@@ -929,6 +932,9 @@ cdef class Solver:
     @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """Create a record sort
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param fields: the list of fields of the record, as a list or as distinct arguments
         :return: the record sort
@@ -1432,6 +1438,9 @@ cdef class Solver:
     def mkCardinalityConstraint(self, Sort sort, int index):
         """Create cardinality constraint.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param sort: Sort of the constraint
         :param index: The upper bound for the cardinality of the sort
         """
@@ -1481,8 +1490,8 @@ cdef class Solver:
 
     def mkDatatypeConstructorDecl(self, str name):
         """
-        :return: a datatype constructor declaration
         :param name: the constructor's name
+        :return: the DatatypeConstructorDecl
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
