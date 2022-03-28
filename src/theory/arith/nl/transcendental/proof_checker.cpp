@@ -207,8 +207,8 @@ Node TranscendentalProofRuleChecker::checkInternal(
     return nm->mkNode(
         Kind::IMPLIES,
         nm->mkNode(Kind::GEQ, t, c),
-                      nm->mkNode(
-        Kind::GEQ, std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), evalt}));
+        nm->mkNode(Kind::GEQ,
+                   std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), evalt}));
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
