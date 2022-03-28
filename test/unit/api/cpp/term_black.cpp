@@ -1017,7 +1017,7 @@ TEST_F(TestApiBlackTerm, getSequence)
   ASSERT_EQ(std::vector<Term>({i1, i1, i2}), s5.getSequenceValue());
 }
 
-TEST_F(TestApiBlackSolver, isCardinalityConstraint)
+TEST_F(TestApiBlackSolver, getCardinalityConstraint)
 {
   Sort su = d_solver.mkUninterpretedSort("u");
   Term t = d_solver.mkCardinalityConstraint(su, 3);
