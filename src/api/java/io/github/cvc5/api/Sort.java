@@ -360,11 +360,11 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isUninterpretedSortConstructor(long pointer);
 
   /**
-   * Is this an instantiated (parametric datatype or unintpreted sort
+   * Is this an instantiated (parametric datatype or uninterpreted sort
    * constructor) sort?
    *
    * An instantiated sort is a sort that has been constructed from
-   * instantiating sort parameters of a parametric sort with sort arguments
+   * instantiating a sort with sort arguments
    * (see Sort.instantiate()).
    *
    * @return true if this is an instantiated sort

@@ -594,11 +594,11 @@ class CVC5_EXPORT Sort
   bool isUninterpretedSortConstructor() const;
 
   /**
-   * Is this an instantiated (parametric datatype or unintpreted sort
+   * Is this an instantiated (parametric datatype or uninterpreted sort
    * constructor) sort?
    *
    * An instantiated sort is a sort that has been constructed from
-   * instantiating sort parameters of a parametric sort with sort arguments
+   * instantiating a sort with sort arguments
    * (see Sort::instantiate(const std::vector<Sort>&) const)).
    *
    * @return true if this is an instantiated sort
