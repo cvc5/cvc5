@@ -2837,6 +2837,7 @@ cdef class Sort:
                          versions.
 
             :param params: the list of sort parameters to instantiate with
+            :return: the instantiated sort
         """
         cdef Sort sort = Sort(self.solver)
         cdef vector[c_Sort] v
@@ -2844,6 +2845,22 @@ cdef class Sort:
             v.push_back((<Sort?> s).csort)
         sort.csort = self.csort.instantiate(v)
         return sort
+
+    def getInstantiatedParameters(self):
+        """
+            Get the sorts used to instantiate the sort parameters of a
+            parametric sort (parametric datatype or uninterpreted sort
+            constructor sort, see Sort.instantiate()).
+
+            :return the sorts used to instantiate the sort parameters of a
+                    parametric sort
+        """
+        instantiated_sorts = []
+        for s in self.csort.getInstantiatedParameters():
+            sort = Sort(self.solver)
+            sort.csort = s
+            instantiated_sorts.append(sort)
+        return instantiated_sorts
 
     def substitute(self, sort_or_list_1, sort_or_list_2):
         """
@@ -3017,17 +3034,6 @@ cdef class Sort:
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
-    def getUninterpretedSortParamSorts(self):
-        """
-            :return: the parameter sorts of an uninterpreted sort
-        """
-        param_sorts = []
-        for s in self.csort.getUninterpretedSortParamSorts():
-            sort = Sort(self.solver)
-            sort.csort = s
-            param_sorts.append(sort)
-        return param_sorts
-
     def getUninterpretedSortConstructorArity(self):
         """
             :return: the arity of a sort constructor sort
@@ -3051,24 +3057,6 @@ cdef class Sort:
             :return: the width of the significand of the floating-point sort
         """
         return self.csort.getFloatingPointSignificandSize()
-
-    def getDatatypeParamSorts(self):
-        """
-             Return the parameters of a parametric datatype sort. If this sort
-             is a non-instantiated parametric datatype, this returns the
-             parameter sorts of the underlying datatype. If this sort is an
-             instantiated parametric datatype, then this returns the sort
-             parameters that were used to construct the sort via
-             :py:meth:`instantiate()`.
-
-             :return: the parameter sorts of a parametric datatype sort
-        """
-        param_sorts = []
-        for s in self.csort.getDatatypeParamSorts():
-            sort = Sort(self.solver)
-            sort.csort = s
-            param_sorts.append(sort)
-        return param_sorts
 
     def getDatatypeArity(self):
         """
