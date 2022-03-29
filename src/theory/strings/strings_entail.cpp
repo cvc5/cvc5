@@ -254,8 +254,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = d_rr->rewrite(
-                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1[i], n1re));
+            n1[i] = 
+                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1[i], n1re);
           }
           if (remainderDir != 1)
           {
@@ -268,8 +268,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = d_rr->rewrite(
-                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1rb, n1[i]));
+            n1[i] = 
+                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1rb, n1[i]);
           }
         }
         return i;
@@ -423,7 +423,7 @@ bool StringsEntail::componentContainsBase(
     {
       // cases for:
       //   n1 = x   containing   n2 = substr( x, n2[1], n2[2] )
-      if (n2.getKind() == STRING_SUBSTR)
+      if (!computeRemainder && n2.getKind() == STRING_SUBSTR)
       {
         if (n2[0] == n1)
         {
@@ -448,27 +448,6 @@ bool StringsEntail::componentContainsBase(
           }
           if (success)
           {
-            if (computeRemainder)
-            {
-              // we can only compute the remainder if start_pos and end_pos
-              // are known to be non-negative.
-              if (!d_arithEntail.check(start_pos)
-                  || !d_arithEntail.check(end_pos))
-              {
-                return false;
-              }
-              if (dir != -1)
-              {
-                n1rb = nm->mkNode(STRING_SUBSTR,
-                                  n2[0],
-                                  nm->mkConstInt(Rational(0)),
-                                  start_pos);
-              }
-              if (dir != 1)
-              {
-                n1re = nm->mkNode(STRING_SUBSTR, n2[0], end_pos, len_n2s);
-              }
-            }
             return true;
           }
         }

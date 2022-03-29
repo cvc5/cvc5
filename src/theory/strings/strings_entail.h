@@ -163,6 +163,17 @@ class StringsEntail
    *   returns 1,
    *   n1 is updated to { "c", x, "def" },
    *   nb is updated to { y, "ab" }
+   *
+   * Note that when computeRemainder is true, this check is less aggressive.
+   * In particular, the only terms we add to nb and ne are terms from n1 or
+   * substrings of words that appear in n1. If we would require constructing
+   * a (symbolic) substring term, we fail instead. For example:
+   *
+   * componentContains({ y }, { substr(y,0,1) }, {}, false, 1) returns 1,
+   * while componentContains({ y }, { substr(y,0,1) }, {}, true, 1) returns 0;
+   * it does not return 1 updating nb/ne to 
+   * { substr(y,0,1) } / { substr(y,1,len(y)-1) }. This is to avoid
+   * non-termination in the rewriter.
    */
   int componentContains(std::vector<Node>& n1,
                         std::vector<Node>& n2,
