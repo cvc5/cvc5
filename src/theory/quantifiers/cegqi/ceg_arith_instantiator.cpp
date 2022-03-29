@@ -991,8 +991,8 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
 }
 
 Node ArithInstantiator::mkVtsSum(const Node& val,
-                                  const Node& inf_coeff,
-                                  const Node& delta_coeff)
+                                 const Node& inf_coeff,
+                                 const Node& delta_coeff)
 {
   if (!inf_coeff.isNull())
   {

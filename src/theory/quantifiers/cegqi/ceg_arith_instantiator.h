@@ -212,8 +212,8 @@ class ArithInstantiator : public Instantiator
    * Make the node from base value, with infinity and delta coefficients.
    */
   Node mkVtsSum(const Node& val,
-                                    const Node& inf_coeff,
-                                    const Node& delta_coeff);
+                const Node& inf_coeff,
+                const Node& delta_coeff);
 };
 
 }  // namespace quantifiers
