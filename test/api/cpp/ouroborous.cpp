@@ -34,8 +34,9 @@
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 
+using namespace cvc5;
 using namespace cvc5::internal;
-using namespace cvc5::internal::parser;
+using namespace cvc5::parser;
 using namespace cvc5::internal::language;
 
 int runTest();
@@ -50,7 +51,7 @@ int main()
   {
     std::cerr << e.getMessage() << std::endl;
   }
-  catch (parser::ParserException& e)
+  catch (ParserException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
