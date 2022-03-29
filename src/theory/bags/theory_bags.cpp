@@ -144,6 +144,7 @@ void TheoryBags::initialize()
   d_state.reset();
   d_state.collectDisequalBagTerms();
   collectBagsAndCountTerms();
+  generateRelatedCardinalityTerms();
 }
 
 void TheoryBags::collectBagsAndCountTerms()
@@ -187,6 +188,92 @@ void TheoryBags::collectBagsAndCountTerms()
     }
     Trace("bags-eqc") << " } " << std::endl;
     ++repIt;
+  }
+}
+
+void TheoryBags::generateRelatedCardinalityTerms()
+{
+  const std::set<Node>& bags = d_state.getBags();
+  NodeManager* nm = NodeManager::currentNM();
+  for (const auto& pair : d_state.getCardinalityTerms())
+  {
+    Assert(pair.first.getKind() == BAG_CARD);
+    // get the representative of the bag in the card term
+    Node rep = d_state.getRepresentative(pair.first[0]);
+    // enumerate all bag terms that are related to the current bag
+    for (const auto& bag : bags)
+    {
+      if (rep == bag)
+      {
+        continue;
+      }
+
+      eq::EqClassIterator it = eq::EqClassIterator(
+          d_state.getRepresentative(bag), d_state.getEqualityEngine());
+      while (!it.isFinished())
+      {
+        Node n = (*it);
+        Kind k = n.getKind();
+        switch (k)
+        {
+          case BAG_EMPTY: break;
+          case BAG_MAKE: break;
+          case BAG_UNION_DISJOINT:
+          {
+            Node A = d_state.getRepresentative(n[0]);
+            Node B = d_state.getRepresentative(n[1]);
+            if (A == rep || B == rep)
+            {
+              d_state.addTerm(nm->mkNode(BAG_CARD, A));
+              d_state.addTerm(nm->mkNode(BAG_CARD, B));
+              d_state.addTerm(nm->mkNode(BAG_CARD, n));
+            }
+            break;
+          }
+          case BAG_UNION_MAX:
+          {
+            Node A = d_state.getRepresentative(n[0]);
+            Node B = d_state.getRepresentative(n[1]);
+            if (A == rep || B == rep)
+            {
+              d_state.addTerm(nm->mkNode(BAG_CARD, A));
+              d_state.addTerm(nm->mkNode(BAG_CARD, B));
+              d_state.addTerm(nm->mkNode(BAG_CARD, n));
+              // break the intersection symmetry using the node id
+              Node inter = A <= B ? nm->mkNode(BAG_INTER_MIN, A, B)
+                                  : nm->mkNode(BAG_INTER_MIN, B, A);
+              Node subtractAB = nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, A, B);
+              Node subtractBA = nm->mkNode(kind::BAG_DIFFERENCE_SUBTRACT, B, A);
+              d_state.addTerm(nm->mkNode(BAG_CARD, inter));
+              d_state.addTerm(nm->mkNode(BAG_CARD, subtractAB));
+              d_state.addTerm(nm->mkNode(BAG_CARD, subtractBA));
+            }
+            break;
+          }
+          case BAG_INTER_MIN: break;
+          case BAG_DIFFERENCE_SUBTRACT:
+          {
+            Node A = d_state.getRepresentative(n[0]);
+            Node B = d_state.getRepresentative(n[1]);
+            if (A == rep || B == rep)
+            {
+              d_state.addTerm(nm->mkNode(BAG_CARD, A));
+              d_state.addTerm(nm->mkNode(BAG_CARD, B));
+              d_state.addTerm(nm->mkNode(BAG_CARD, n));
+              // break the intersection symmetry using the node id
+              Node inter = A <= B ? nm->mkNode(BAG_INTER_MIN, A, B)
+                                  : nm->mkNode(BAG_INTER_MIN, B, A);
+
+              d_state.addTerm(nm->mkNode(BAG_CARD, inter));
+            }
+            break;
+          }
+          case BAG_DIFFERENCE_REMOVE: break;
+          default: break;
+        }
+        it++;
+      }
+    }
   }
 }
 

@@ -67,7 +67,7 @@ class TheoryBags : public Theory
    * collect bags' representatives and all count terms.
    */
   void collectBagsAndCountTerms();
-
+  void generateRelatedCardinalityTerms();
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort effort) override;
