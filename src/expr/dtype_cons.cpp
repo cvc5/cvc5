@@ -199,7 +199,7 @@ std::pair<CardinalityClass, bool> DTypeConstructor::computeCardinalityInfo(
   if (isParam)
   {
     paramTypes = t.getDType().getParameters();
-    instTypes = t.getParamTypes();
+    instTypes = t.getInstantiatedParamTypes();
   }
   for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
@@ -328,7 +328,7 @@ Cardinality DTypeConstructor::computeCardinality(
   if (isParam)
   {
     paramTypes = t.getDType().getParameters();
-    instTypes = t.getParamTypes();
+    instTypes = t.getInstantiatedParamTypes();
   }
   for (size_t i = 0, nargs = d_args.size(); i < nargs; i++)
   {
@@ -390,7 +390,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
   if (isParam)
   {
     paramTypes = t.getDType().getParameters();
-    instTypes = TypeNode(t).getParamTypes();
+    instTypes = TypeNode(t).getInstantiatedParamTypes();
   }
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {

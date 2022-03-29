@@ -665,6 +665,34 @@ Java_io_github_cvc5_api_Term_getUninterpretedSortValue(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Term
+ * Method:    isRoundingModeValue
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isRoundingModeValue(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isRoundingModeValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    getRoundingModeValue
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Term_getRoundingModeValue(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getRoundingModeValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
  * Method:    isTupleValue
  * Signature: (J)Z
  */

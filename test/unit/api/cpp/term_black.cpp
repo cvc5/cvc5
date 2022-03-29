@@ -920,6 +920,35 @@ TEST_F(TestApiBlackTerm, getUninterpretedSortValue)
   ASSERT_EQ(vx.getUninterpretedSortValue(), vy.getUninterpretedSortValue());
 }
 
+TEST_F(TestApiBlackTerm, isRoundingModeValue)
+{
+  ASSERT_FALSE(d_solver.mkInteger(15).isRoundingModeValue());
+  ASSERT_TRUE(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN)
+                  .isRoundingModeValue());
+  ASSERT_FALSE(
+      d_solver.mkConst(d_solver.getRoundingModeSort()).isRoundingModeValue());
+}
+
+TEST_F(TestApiBlackTerm, getRoundingModeValue)
+{
+  ASSERT_THROW(d_solver.mkInteger(15).getRoundingModeValue(), CVC5ApiException);
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN)
+                .getRoundingModeValue(),
+            RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE)
+                .getRoundingModeValue(),
+            RoundingMode::ROUND_TOWARD_POSITIVE);
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE)
+                .getRoundingModeValue(),
+            RoundingMode::ROUND_TOWARD_NEGATIVE);
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO)
+                .getRoundingModeValue(),
+            RoundingMode::ROUND_TOWARD_ZERO);
+  ASSERT_EQ(d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY)
+                .getRoundingModeValue(),
+            RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
+}
+
 TEST_F(TestApiBlackTerm, getTuple)
 {
   Sort s1 = d_solver.getIntegerSort();
