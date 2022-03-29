@@ -419,14 +419,18 @@ bool StringsEntail::componentContainsBase(
         }
       }
     }
+    else if (computeRemainder)
+    {
+      // Note the cases below would require constructing new terms
+      // as part of the remainder components. Thus, this is only checked
+      // when computeRemainder is false.
+      return false;
+    }
     else
     {
       // cases for:
       //   n1 = x   containing   n2 = substr( x, n2[1], n2[2] )
-      // Note the cases below would require constructing new substr terms
-      // as part of the remainder components. Thus, this is only checked
-      // when computeRemainder is false.
-      if (!computeRemainder && n2.getKind() == STRING_SUBSTR)
+      if (n2.getKind() == STRING_SUBSTR)
       {
         if (n2[0] == n1)
         {
@@ -456,7 +460,7 @@ bool StringsEntail::componentContainsBase(
         }
       }
 
-      if (!computeRemainder && dir == 0)
+      if (dir == 0)
       {
         if (n1.getKind() == STRING_REPLACE)
         {
