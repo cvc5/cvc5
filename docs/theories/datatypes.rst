@@ -144,7 +144,7 @@ For example:
 .. code:: smtlib
 
   (declare-const t (Tuple Int Int))
-  (assert (= ((_ tuple_select 0) t) 3))
+  (assert (= ((_ tuple.select 0) t) 3))
   (assert (not (= t (tuple 3 4))))
 
 
@@ -194,13 +194,21 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term t = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Selector     | ``((_ tuple_select i) t)``             | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
+| Tuple Selector     | ``((_ tuple.select i) t)``             | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getSelector(i);``                                                                                              |
+|                    |                                        | ``Term sel = dt[0].getSelector(i);``                                                                                            |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term s = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                                                                       |
+|                    |                                        | ``Term s = solver.mkTerm(Kind::APPLY_SELECTOR, {sel, t});``                                                                     |
++--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| Tuple Updater      | ``((_ tuple.update i) t r)``           | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
+|                    |                                        |                                                                                                                                 |
+|                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
+|                    |                                        |                                                                                                                                 |
+|                    |                                        | ``Term upd = dt[0].getSelector(i).getUpdaterTerm();``                                                                           |
+|                    |                                        |                                                                                                                                 |
+|                    |                                        | ``Term s = solver.mkTerm(Kind::APPLY_UPDATER, {upd, t, r});``                                                                   |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 | Record Sort        | n/a                                    | ``Sort s = mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields);``                                             |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
