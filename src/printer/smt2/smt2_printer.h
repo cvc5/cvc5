@@ -43,7 +43,7 @@ class Smt2Printer : public cvc5::internal::Printer
                 TNode n,
                 int toDepth,
                 size_t dag) const override;
-  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Writes the unsat core to the stream out.
@@ -248,11 +248,13 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print command sequence command */
   void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
+      std::ostream& out,
+      const std::vector<cvc5::Command*>& sequence) const override;
 
   /** Print declaration sequence command */
   void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
+      std::ostream& out,
+      const std::vector<cvc5::Command*>& sequence) const override;
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in

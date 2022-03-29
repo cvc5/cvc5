@@ -103,7 +103,7 @@ cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 cdef class Datatype:
     """
         A cvc5 datatype.
-        Wrapper class for :cpp:class:`cvc5::internal::api::Datatype`.
+        Wrapper class for :cpp:class:`cvc5::api::Datatype`.
     """
     cdef c_Datatype cd
     cdef Solver solver
@@ -132,7 +132,7 @@ cdef class Datatype:
     def getConstructorTerm(self, str name):
         """
             :param name: the name of the constructor.
-            :return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::internal::api::Datatype::getConstructorTerm>`).
+            :return: the term representing the datatype constructor with the given name (see :cpp:func:`Datatype::getConstructorTerm() <cvc5::api::Datatype::getConstructorTerm>`).
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cd.getConstructorTerm(name.encode())
@@ -199,7 +199,7 @@ cdef class Datatype:
         return self.cd.isFinite()
 
     def isWellFounded(self):
-        """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::internal::api::Datatype::isWellFounded>`)."""
+        """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
 
     def isNull(self):
@@ -222,7 +222,7 @@ cdef class Datatype:
 cdef class DatatypeConstructor:
     """
         A cvc5 datatype constructor.
-        Wrapper class for :cpp:class:`cvc5::internal::api::DatatypeConstructor`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`.
     """
     cdef c_DatatypeConstructor cdc
     cdef Solver solver
@@ -258,7 +258,7 @@ cdef class DatatypeConstructor:
         """
             Specialized method for parametric datatypes (see
             :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm()
-            <cvc5::internal::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
+            <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
 
             .. warning:: This method is experimental and may change in future
                          versions.
@@ -322,7 +322,7 @@ cdef class DatatypeConstructor:
 cdef class DatatypeConstructorDecl:
     """
         A cvc5 datatype constructor declaration.
-        Wrapper class for :cpp:class:`cvc5::internal::api::DatatypeConstructorDecl`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`.
     """
     cdef c_DatatypeConstructorDecl cddc
     cdef Solver solver
@@ -363,7 +363,7 @@ cdef class DatatypeConstructorDecl:
 cdef class DatatypeDecl:
     """
         A cvc5 datatype declaration.
-        Wrapper class for :cpp:class:`cvc5::internal::api::DatatypeDecl`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeDecl`.
     """
     cdef c_DatatypeDecl cdd
     cdef Solver solver
@@ -410,7 +410,7 @@ cdef class DatatypeDecl:
 cdef class DatatypeSelector:
     """
         A cvc5 datatype selector.
-        Wrapper class for :cpp:class:`cvc5::internal::api::DatatypeSelector`.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`.
     """
     cdef c_DatatypeSelector cds
     cdef Solver solver
@@ -465,7 +465,7 @@ cdef class Op:
         An operator is a term that represents certain operators,
         instantiated with its required parameters, e.g.,
         a term of kind :cpp:enumerator:`BITVECTOR_EXTRACT`.
-        Wrapper class for :cpp:class:`cvc5::internal::api::Op`.
+        Wrapper class for :cpp:class:`cvc5::api::Op`.
     """
     cdef c_Op cop
     cdef Solver solver
@@ -526,7 +526,7 @@ cdef class Op:
 cdef class Grammar:
     """
         A Sygus Grammar.
-        Wrapper class for :cpp:class:`cvc5::internal::api::Grammar`.
+        Wrapper class for :cpp:class:`cvc5::api::Grammar`.
     """
     cdef c_Grammar  cgrammar
     cdef Solver solver
@@ -574,7 +574,7 @@ cdef class Grammar:
 cdef class Result:
     """
         Encapsulation of a three-valued solver result, with explanations.
-        Wrapper class for :cpp:class:`cvc5::internal::api::Result`.
+        Wrapper class for :cpp:class:`cvc5::api::Result`.
     """
     cdef c_Result cr
     def __cinit__(self):
@@ -584,25 +584,25 @@ cdef class Result:
     def isNull(self):
         """
             :return: True if Result is empty, i.e., a nullary Result, and not an actual result returned from a
-                     :cpp:func:`Solver::checkSat() <cvc5::internal::api::Solver::checkSat>` (and friends) query.
+                     :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
         """
         return self.cr.isNull()
 
     def isSat(self):
         """
-            :return: True if query was a satisfiable :cpp:func:`Solver::checkSat() <cvc5::internal::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::internal::api::Solver::checkSatAssuming>` query.
+            :return: True if query was a satisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
         """
         return self.cr.isSat()
 
     def isUnsat(self):
         """
-            :return: True if query was an usatisfiable :cpp:func:`Solver::checkSat() <cvc5::internal::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::internal::api::Solver::checkSatAssuming>` query.
+            :return: True if query was an usatisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
         """
         return self.cr.isUnsat()
 
     def isUnknown(self):
         """
-            :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::internal::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::internal::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
+            :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
         return self.cr.isUnknown()
 
@@ -671,7 +671,7 @@ cdef class SynthResult:
 
 cdef class UnknownExplanation:
     """
-        Wrapper class for :cpp:enum:`cvc5::internal::api::Result::UnknownExplanation`.
+        Wrapper class for :cpp:enum:`cvc5::api::Result::UnknownExplanation`.
     """
     cdef c_UnknownExplanation cue
     cdef str name
@@ -697,7 +697,7 @@ cdef class UnknownExplanation:
 
 
 cdef class Solver:
-    """Wrapper class for :cpp:class:`cvc5::internal::api::Solver`."""
+    """Wrapper class for :cpp:class:`cvc5::api::Solver`."""
     cdef c_Solver* csolver
 
     def __cinit__(self):
@@ -3085,7 +3085,7 @@ cdef class Sort:
 cdef class Statistics:
     """
     The cvc5 Statistics.
-    Wrapper class for :cpp:class:`cvc5::internal::api::Statistics`.
+    Wrapper class for :cpp:class:`cvc5::api::Statistics`.
     Obtain a single statistic value using ``stats["name"]`` and a dictionary
     with all (visible) statistics using ``stats.get(internal=False, defaulted=False)``.
     """
@@ -3112,7 +3112,7 @@ cdef class Statistics:
         return self.__stat_to_dict(self.cstats.get(name.encode()))
 
     def get(self, bint internal = False, bint defaulted = False):
-        """Get all statistics. See :cpp:class:`cvc5::internal::api::Statistics::begin()` for more information."""
+        """Get all statistics. See :cpp:class:`cvc5::api::Statistics::begin()` for more information."""
         cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
         cdef pair[string,c_Stat]* s
         res = {}
@@ -3126,7 +3126,7 @@ cdef class Statistics:
 cdef class Term:
     """
     A cvc5 Term.
-    Wrapper class for :cpp:class:`cvc5::internal::api::Term`.
+    Wrapper class for :cpp:class:`cvc5::api::Term`.
     """
     cdef c_Term cterm
     cdef Solver solver
@@ -3458,7 +3458,7 @@ cdef class Term:
                 (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
 
         where ``c1 ... cn`` are values ordered by id such that
-        ``c1 > ... > cn`` (see also :cpp:func:`cvc5::internal::api::Term::operator>()`).
+        ``c1 > ... > cn`` (see also :cpp:func:`cvc5::api::Term::operator>()`).
 
         .. note::
             A universe set term ``(kind SET_UNIVERSE)`` is not considered to be

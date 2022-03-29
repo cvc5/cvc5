@@ -29,13 +29,13 @@
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 class Command;
 
 namespace parser {
 
-class InputStreamException : public Exception
+class InputStreamException : public internal::Exception
 {
  public:
   InputStreamException(const std::string& msg);
@@ -173,6 +173,6 @@ class CVC5_EXPORT Input
 }; /* class Input */
 
 }  // namespace parser
-}  // namespace cvc5::internal
+}  // namespace cvc5
 
 #endif /* CVC5__PARSER__ANTLR_INPUT_H */

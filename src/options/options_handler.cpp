@@ -293,9 +293,9 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
 
 void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
-  TraceChannel.getStream() << Command::printsuccess(value);
-  Warning.getStream() << Command::printsuccess(value);
-  *d_options->base.out << Command::printsuccess(value);
+  TraceChannel.getStream() << cvc5::Command::printsuccess(value);
+  Warning.getStream() << cvc5::Command::printsuccess(value);
+  *d_options->base.out << cvc5::Command::printsuccess(value);
 }
 
 void OptionsHandler::setResourceWeight(const std::string& flag,

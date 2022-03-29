@@ -38,7 +38,10 @@ namespace test {
 class TestParseBlackParserBuilder : public TestApi
 {
  protected:
-  void SetUp() override { d_symman.reset(new SymbolManager(&d_solver)); }
+  void SetUp() override
+  {
+    d_symman.reset(new internal::SymbolManager(&d_solver));
+  }
 
   void checkEmptyInput(Parser* parser)
   {
@@ -67,7 +70,7 @@ class TestParseBlackParserBuilder : public TestApi
     close(fd);
     return filename;
   }
-  std::unique_ptr<SymbolManager> d_symman;
+  std::unique_ptr<internal::SymbolManager> d_symman;
 };
 
 TEST_F(TestParseBlackParserBuilder, empty_file_input)

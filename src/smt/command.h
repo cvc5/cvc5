@@ -31,7 +31,7 @@
 #include "cvc5_export.h"
 #include "options/language.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 namespace api {
 class Solver;
@@ -129,8 +129,9 @@ class CVC5_EXPORT CommandStatus
 
  public:
   virtual ~CommandStatus() {}
-  void toStream(std::ostream& out,
-                Language language = Language::LANG_AUTO) const;
+  void toStream(
+      std::ostream& out,
+      internal::Language language = internal::Language::LANG_AUTO) const;
   virtual CommandStatus& clone() const = 0;
 }; /* class CommandStatus */
 
@@ -217,10 +218,11 @@ class CVC5_EXPORT Command
                       SymbolManager* sm,
                       std::ostream& out);
 
-  virtual void toStream(std::ostream& out,
-                        int toDepth = -1,
-                        size_t dag = 1,
-                        Language language = Language::LANG_AUTO) const = 0;
+  virtual void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      size_t dag = 1,
+      internal::Language language = internal::Language::LANG_AUTO) const = 0;
 
   std::string toString() const;
 
@@ -286,18 +288,18 @@ class CVC5_EXPORT Command
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
   // which is currently necessary for e.g. printing commands.
-  /** Helper to convert a Term to an internal Node */
-  static Node termToNode(const api::Term& term);
+  /** Helper to convert a Term to an internal internal::Node */
+  static internal::Node termToNode(const api::Term& term);
   /** Helper to convert a vector of Terms to internal Nodes. */
-  static std::vector<Node> termVectorToNodes(
+  static std::vector<internal::Node> termVectorToNodes(
       const std::vector<api::Term>& terms);
-  /** Helper to convert a Sort to an internal TypeNode */
-  static TypeNode sortToTypeNode(const api::Sort& sort);
+  /** Helper to convert a Sort to an internal internal::TypeNode */
+  static internal::TypeNode sortToTypeNode(const api::Sort& sort);
   /** Helper to convert a vector of Sorts to internal TypeNodes. */
-  static std::vector<TypeNode> sortVectorToTypeNodes(
+  static std::vector<internal::TypeNode> sortVectorToTypeNodes(
       const std::vector<api::Sort>& sorts);
-  /** Helper to convert a Grammar to an internal TypeNode */
-  static TypeNode grammarToTypeNode(api::Grammar* grammar);
+  /** Helper to convert a Grammar to an internal internal::TypeNode */
+  static internal::TypeNode grammarToTypeNode(api::Grammar* grammar);
 }; /* class Command */
 
 /**
@@ -315,7 +317,8 @@ class CVC5_EXPORT EmptyCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   std::string d_name;
@@ -338,7 +341,8 @@ class CVC5_EXPORT EchoCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   std::string d_output;
@@ -361,7 +365,8 @@ class CVC5_EXPORT AssertCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class AssertCommand */
 
 class CVC5_EXPORT PushCommand : public Command
@@ -373,7 +378,8 @@ class CVC5_EXPORT PushCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class PushCommand */
 
 class CVC5_EXPORT PopCommand : public Command
@@ -385,7 +391,8 @@ class CVC5_EXPORT PopCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class PopCommand */
 
 class CVC5_EXPORT DeclarationDefinitionCommand : public Command
@@ -417,7 +424,8 @@ class CVC5_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
 
 class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
@@ -442,7 +450,8 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class DeclarePoolCommand */
 
 class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
@@ -463,7 +472,8 @@ class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class DeclareSortCommand */
 
 class CVC5_EXPORT DefineSortCommand : public DeclarationDefinitionCommand
@@ -487,7 +497,8 @@ class CVC5_EXPORT DefineSortCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class DefineSortCommand */
 
 class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
@@ -511,7 +522,8 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The formal arguments for the function we are defining */
@@ -547,7 +559,8 @@ class CVC5_EXPORT DefineFunctionRecCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** functions we are defining */
@@ -576,7 +589,8 @@ class CVC5_EXPORT DeclareHeapCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The location sort */
@@ -601,7 +615,8 @@ class CVC5_EXPORT CheckSatCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  private:
   api::Result d_result;
@@ -627,7 +642,8 @@ class CVC5_EXPORT CheckSatAssumingCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  private:
   std::vector<api::Term> d_terms;
@@ -652,7 +668,8 @@ class CVC5_EXPORT QueryCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class QueryCommand */
 
 /* ------------------- sygus commands  ------------------ */
@@ -680,7 +697,8 @@ class CVC5_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** the declared variable */
@@ -728,7 +746,8 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** the function-to-synthesize */
@@ -764,7 +783,8 @@ class CVC5_EXPORT SygusConstraintCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** the declared constraint */
@@ -808,7 +828,8 @@ class CVC5_EXPORT SygusInvConstraintCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** the place holder predicates with which to build the actual constraint
@@ -843,7 +864,8 @@ class CVC5_EXPORT CheckSynthCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** Whether this is a check-synth-next call */
@@ -875,7 +897,8 @@ class CVC5_EXPORT SimplifyCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class SimplifyCommand */
 
 class CVC5_EXPORT GetValueCommand : public Command
@@ -897,7 +920,8 @@ class CVC5_EXPORT GetValueCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class GetValueCommand */
 
 class CVC5_EXPORT GetAssignmentCommand : public Command
@@ -916,7 +940,8 @@ class CVC5_EXPORT GetAssignmentCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class GetAssignmentCommand */
 
 class CVC5_EXPORT GetModelCommand : public Command
@@ -930,7 +955,8 @@ class CVC5_EXPORT GetModelCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** Result of printing the model */
@@ -949,7 +975,8 @@ class CVC5_EXPORT BlockModelCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class BlockModelCommand */
 
 /** The command to block model values. */
@@ -965,7 +992,8 @@ class CVC5_EXPORT BlockModelValuesCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The terms we are blocking */
@@ -986,7 +1014,8 @@ class CVC5_EXPORT GetProofCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  private:
   /** the result of the getProof call */
@@ -1006,7 +1035,8 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   api::Solver* d_solver;
@@ -1045,7 +1075,8 @@ class CVC5_EXPORT GetInterpolantCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The name of the interpolation predicate */
@@ -1076,7 +1107,8 @@ class CVC5_EXPORT GetInterpolantNextCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The name of the interpolation predicate */
@@ -1120,7 +1152,8 @@ class CVC5_EXPORT GetAbductCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The name of the abduction predicate */
@@ -1150,7 +1183,8 @@ class CVC5_EXPORT GetAbductNextCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The name of the abduction predicate */
@@ -1181,7 +1215,8 @@ class CVC5_EXPORT GetQuantifierEliminationCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class GetQuantifierEliminationCommand */
 
 class CVC5_EXPORT GetUnsatAssumptionsCommand : public Command
@@ -1196,7 +1231,8 @@ class CVC5_EXPORT GetUnsatAssumptionsCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   std::vector<api::Term> d_result;
@@ -1216,7 +1252,8 @@ class CVC5_EXPORT GetUnsatCoreCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The symbol manager we were invoked with */
@@ -1239,7 +1276,8 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** The symbol manager we were invoked with */
@@ -1262,7 +1300,8 @@ class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 
  protected:
   /** the result of the get learned literals call */
@@ -1285,7 +1324,8 @@ class CVC5_EXPORT GetAssertionsCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class GetAssertionsCommand */
 
 class CVC5_EXPORT SetBenchmarkLogicCommand : public Command
@@ -1303,7 +1343,8 @@ class CVC5_EXPORT SetBenchmarkLogicCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class SetBenchmarkLogicCommand */
 
 class CVC5_EXPORT SetInfoCommand : public Command
@@ -1324,7 +1365,8 @@ class CVC5_EXPORT SetInfoCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class SetInfoCommand */
 
 class CVC5_EXPORT GetInfoCommand : public Command
@@ -1346,7 +1388,8 @@ class CVC5_EXPORT GetInfoCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class GetInfoCommand */
 
 class CVC5_EXPORT SetOptionCommand : public Command
@@ -1367,7 +1410,8 @@ class CVC5_EXPORT SetOptionCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class SetOptionCommand */
 
 class CVC5_EXPORT GetOptionCommand : public Command
@@ -1389,7 +1433,8 @@ class CVC5_EXPORT GetOptionCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class GetOptionCommand */
 
 class CVC5_EXPORT DatatypeDeclarationCommand : public Command
@@ -1408,7 +1453,8 @@ class CVC5_EXPORT DatatypeDeclarationCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class DatatypeDeclarationCommand */
 
 class CVC5_EXPORT ResetCommand : public Command
@@ -1421,7 +1467,8 @@ class CVC5_EXPORT ResetCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class ResetCommand */
 
 class CVC5_EXPORT ResetAssertionsCommand : public Command
@@ -1434,7 +1481,8 @@ class CVC5_EXPORT ResetAssertionsCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class ResetAssertionsCommand */
 
 class CVC5_EXPORT QuitCommand : public Command
@@ -1447,7 +1495,8 @@ class CVC5_EXPORT QuitCommand : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class QuitCommand */
 
 class CVC5_EXPORT CommandSequence : public Command
@@ -1484,7 +1533,8 @@ class CVC5_EXPORT CommandSequence : public Command
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 }; /* class CommandSequence */
 
 class CVC5_EXPORT DeclarationSequence : public CommandSequence
@@ -1492,9 +1542,10 @@ class CVC5_EXPORT DeclarationSequence : public CommandSequence
   void toStream(std::ostream& out,
                 int toDepth = -1,
                 size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
+                internal::Language language =
+                    internal::Language::LANG_AUTO) const override;
 };
 
-}  // namespace cvc5::internal
+}  // namespace cvc5
 
 #endif /* CVC5__COMMAND_H */

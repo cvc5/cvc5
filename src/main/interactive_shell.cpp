@@ -52,7 +52,7 @@ using namespace std;
 
 namespace cvc5::internal {
 
-using namespace parser;
+using namespace cvc5::parser;
 using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";

@@ -28,12 +28,13 @@ using namespace cvc5::internal;
  */
 int main(int argc, char* argv[])
 {
-  std::unique_ptr<api::Solver> solver = std::make_unique<api::Solver>();
+  std::unique_ptr<cvc5::api::Solver> solver =
+      std::make_unique<cvc5::api::Solver>();
   try
   {
     return runCvc5(argc, argv, solver);
   }
-  catch (cvc5::internal::api::CVC5ApiOptionException& e)
+  catch (cvc5::api::CVC5ApiOptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;

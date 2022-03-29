@@ -29,7 +29,7 @@
 #include "parser/parser.h"
 #include "theory/logic_info.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 class Command;
 
@@ -49,7 +49,7 @@ class Smt2 : public Parser
   /** Have we seen a set-logic command yet? */
   bool d_seenSetLogic;
 
-  LogicInfo d_logic;
+  internal::LogicInfo d_logic;
   std::unordered_map<std::string, api::Kind> d_operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
@@ -104,7 +104,7 @@ class Smt2 : public Parser
 
   bool isOperatorEnabled(const std::string& name) const;
 
-  bool isTheoryEnabled(theory::TheoryId theory) const;
+  bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 
   /**
    * Checks if higher-order support is enabled.
@@ -216,7 +216,7 @@ class Smt2 : public Parser
   /**
    * Get the logic.
    */
-  const LogicInfo& getLogic() const { return d_logic; }
+  const internal::LogicInfo& getLogic() const { return d_logic; }
 
   /**
    * Create a Sygus grammar.
@@ -431,6 +431,6 @@ class Smt2 : public Parser
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace cvc5::internal
+}  // namespace cvc5
 
 #endif /* CVC5__PARSER__SMT2_H */

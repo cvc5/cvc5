@@ -22,7 +22,7 @@
 
 using namespace cvc5::internal::context;
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 // ---------------------------------------------- SymbolManager::Implementation
 
@@ -251,7 +251,7 @@ void SymbolManager::Implementation::popScope()
   Trace("sym-manager") << "SymbolManager: popScope" << std::endl;
   if (d_context.getLevel() == 0)
   {
-    throw ScopeException();
+    throw internal::ScopeException();
   }
   d_context.pop();
   Trace("sym-manager-debug")
@@ -306,7 +306,10 @@ SymbolManager::SymbolManager(api::Solver* s)
 
 SymbolManager::~SymbolManager() {}
 
-SymbolTable* SymbolManager::getSymbolTable() { return &d_symtabAllocated; }
+internal::SymbolTable* SymbolManager::getSymbolTable()
+{
+  return &d_symtabAllocated;
+}
 
 NamingResult SymbolManager::setExpressionName(api::Term t,
                                               const std::string& name,
@@ -431,4 +434,4 @@ void SymbolManager::resetAssertions()
   }
 }
 
-}  // namespace cvc5::internal
+}  // namespace cvc5

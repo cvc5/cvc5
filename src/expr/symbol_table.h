@@ -25,13 +25,13 @@
 #include "base/exception.h"
 #include "cvc5_export.h"
 
-namespace cvc5::internal {
-
-namespace api {
+namespace cvc5::api {
 class Solver;
 class Sort;
 class Term;
-}  // namespace api
+}  // namespace cvc5::api
+
+namespace cvc5::internal {
 
 class CVC5_EXPORT ScopeException : public Exception
 {
@@ -71,7 +71,7 @@ class CVC5_EXPORT SymbolTable
    * Returns false if the binding was invalid.
    */
   bool bind(const std::string& name,
-            api::Term obj,
+            cvc5::api::Term obj,
             bool doOverload = false);
 
   /**
@@ -84,7 +84,7 @@ class CVC5_EXPORT SymbolTable
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
    */
-  void bindType(const std::string& name, api::Sort t);
+  void bindType(const std::string& name, cvc5::api::Sort t);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -98,8 +98,8 @@ class CVC5_EXPORT SymbolTable
    * @param t the type to bind to <code>name</code>
    */
   void bindType(const std::string& name,
-                const std::vector<api::Sort>& params,
-                api::Sort t);
+                const std::vector<cvc5::api::Sort>& params,
+                cvc5::api::Sort t);
 
   /**
    * Check whether a name is bound to an expression with bind().
@@ -126,7 +126,7 @@ class CVC5_EXPORT SymbolTable
    * It returns the null expression if there is not a unique expression bound to
    * <code>name</code> in the current scope (i.e. if there is not exactly one).
    */
-  api::Term lookup(const std::string& name) const;
+  cvc5::api::Term lookup(const std::string& name) const;
 
   /**
    * Lookup a bound type.
@@ -134,7 +134,7 @@ class CVC5_EXPORT SymbolTable
    * @param name the type identifier to lookup
    * @returns the type bound to <code>name</code> in the current scope.
    */
-  api::Sort lookupType(const std::string& name) const;
+  cvc5::api::Sort lookupType(const std::string& name) const;
 
   /**
    * Lookup a bound parameterized type.
@@ -144,8 +144,8 @@ class CVC5_EXPORT SymbolTable
    * @returns the type bound to <code>name(<i>params</i>)</code> in
    * the current scope.
    */
-  api::Sort lookupType(const std::string& name,
-                       const std::vector<api::Sort>& params) const;
+  cvc5::api::Sort lookupType(const std::string& name,
+                             const std::vector<cvc5::api::Sort>& params) const;
 
   /**
    * Lookup the arity of a bound parameterized type.
@@ -173,14 +173,14 @@ class CVC5_EXPORT SymbolTable
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(api::Term fun) const;
+  bool isOverloadedFunction(cvc5::api::Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns the defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  api::Term getOverloadedConstantForType(const std::string& name,
-                                         api::Sort t) const;
+  cvc5::api::Term getOverloadedConstantForType(const std::string& name,
+                                               cvc5::api::Sort t) const;
 
   /**
    * If possible, returns the unique defined function for a name
@@ -193,8 +193,9 @@ class CVC5_EXPORT SymbolTable
    * no functions with name and expected argTypes, or alternatively there is
    * more than one function with name and expected argTypes.
    */
-  api::Term getOverloadedFunctionForTypes(
-      const std::string& name, const std::vector<api::Sort>& argTypes) const;
+  cvc5::api::Term getOverloadedFunctionForTypes(
+      const std::string& name,
+      const std::vector<cvc5::api::Sort>& argTypes) const;
   //------------------------ end operator overloading
 
  private:

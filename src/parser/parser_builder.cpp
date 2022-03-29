@@ -26,7 +26,7 @@
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 namespace parser {
 
 ParserBuilder::ParserBuilder(api::Solver* solver,
@@ -113,7 +113,7 @@ ParserBuilder& ParserBuilder::withOptions()
   auto info = d_solver->getOptionInfo("force-logic");
   if (info.setByUser)
   {
-    LogicInfo tmp(info.stringValue());
+    internal::LogicInfo tmp(info.stringValue());
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;
@@ -137,4 +137,4 @@ ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic)
 }
 
 }  // namespace parser
-}  // namespace cvc5::internal
+}  // namespace cvc5

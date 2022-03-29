@@ -23,7 +23,7 @@
 
 #include "api/cpp/cvc5.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 /** A parsed operator
  *
@@ -88,6 +88,6 @@ struct ParseOp
 
 std::ostream& operator<<(std::ostream& os, const ParseOp& p);
 
-}  // namespace cvc5::internal
+}  // namespace cvc5
 
 #endif /* CVC5__PARSER__PARSE_OP_H */

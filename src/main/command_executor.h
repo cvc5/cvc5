@@ -22,9 +22,11 @@
 #include "api/cpp/cvc5.h"
 #include "expr/symbol_manager.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 class Command;
+
+namespace internal {
 
 namespace main {
 
@@ -60,9 +62,9 @@ class CommandExecutor
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(cvc5::internal::Command* cmd);
+  bool doCommand(cvc5::Command* cmd);
 
-  bool doCommand(std::unique_ptr<cvc5::internal::Command>& cmd)
+  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
   {
     return doCommand(cmd.get());
   }
@@ -98,7 +100,7 @@ class CommandExecutor
 
 protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(cvc5::internal::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::Command* cmd);
 
 private:
   CommandExecutor();
@@ -111,6 +113,7 @@ bool solverInvoke(api::Solver* solver,
                   std::ostream& out);
 
 }  // namespace main
-}  // namespace cvc5::internal
+}  // namespace internal
+}  // namespace cvc5
 
 #endif /* CVC5__MAIN__COMMAND_EXECUTOR_H */

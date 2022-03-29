@@ -27,7 +27,7 @@
 // ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
 #undef ADD
 
-namespace cvc5::internal {
+namespace cvc5 {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
@@ -301,7 +301,7 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
   return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
-bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
+bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);
 }
@@ -331,7 +331,7 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
 api::Term Smt2::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint32_t>& numerals)
 {
-  if (d_logic.isTheoryEnabled(theory::THEORY_FP))
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
     if (name == "+oo")
     {
@@ -355,7 +355,8 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
     }
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_BV) && name.find("bv") == 0)
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_BV)
+      && name.find("bv") == 0)
   {
     std::string bvStr = name.substr(2);
     return d_solver->mkBitVector(numerals[0], bvStr, 10);
@@ -420,7 +421,7 @@ void Smt2::pushDefineFunRecScope(
 void Smt2::reset() {
   d_logicSet = false;
   d_seenSetLogic = false;
-  d_logic = LogicInfo();
+  d_logic = internal::LogicInfo();
   d_operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
 }
@@ -487,7 +488,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   // Core theory belongs to every logic
   addCoreSymbols();
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_UF))
+  {
     Parser::addOperator(api::APPLY_UF);
   }
 
@@ -496,7 +498,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::HO_APPLY, "@");
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH))
+  {
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true);
       addArithmeticOperators();
@@ -541,16 +544,19 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     }
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARRAYS))
+  {
     addOperator(api::SELECT, "select");
     addOperator(api::STORE, "store");
     addOperator(api::EQ_RANGE, "eqrange");
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_BV))
+  {
     addBitvectorOperators();
 
-    if (!strictModeEnabled() && d_logic.isTheoryEnabled(theory::THEORY_ARITH)
+    if (!strictModeEnabled()
+        && d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
         && d_logic.areIntegersUsed())
     {
       // Conversions between bit-vectors and integers
@@ -559,13 +565,15 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     }
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
+  {
     const std::vector<api::Sort> types;
     defineType("Tuple", d_solver->mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
+  {
     defineVar("set.empty", d_solver->mkEmptySet(d_solver->getNullSort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
@@ -592,7 +600,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::RELATION_IDEN, "rel.iden");
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
     defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
     addOperator(api::BAG_UNION_MAX, "bag.union_max");
@@ -615,7 +623,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_FOLD, "bag.fold");
     addOperator(api::TABLE_PRODUCT, "table.product");
   }
-  if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
     defineType("String", d_solver->getStringSort(), true);
     defineType("RegLan", d_solver->getRegExpSort(), true);
     defineType("Int", d_solver->getIntegerSort(), true);
@@ -634,7 +643,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addQuantifiersOperators();
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
+  {
     defineType("RoundingMode", d_solver->getRoundingModeSort(), true);
     defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true);
     defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true);
@@ -660,7 +670,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addFloatingPointOperators();
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_SEP))
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_SEP))
   {
     addSepOperators();
   }
@@ -728,11 +738,11 @@ void Smt2::checkThatLogicIsSet()
 
 void Smt2::checkLogicAllowsFreeSorts()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF)
-      && !d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)
-      && !d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)
-      && !d_logic.isTheoryEnabled(theory::THEORY_SETS)
-      && !d_logic.isTheoryEnabled(theory::THEORY_BAGS))
+  if (!d_logic.isTheoryEnabled(internal::theory::THEORY_UF)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_ARRAYS)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_SETS)
+      && !d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
     parseErrorLogic("Free sort symbols not allowed in ");
   }
@@ -740,7 +750,7 @@ void Smt2::checkLogicAllowsFreeSorts()
 
 void Smt2::checkLogicAllowsFunctions()
 {
-  if (!d_logic.isTheoryEnabled(theory::THEORY_UF) && !isHoEnabled())
+  if (!d_logic.isTheoryEnabled(internal::theory::THEORY_UF) && !isHoEnabled())
   {
     parseError(
         "Functions (of non-zero arity) cannot "
@@ -1266,4 +1276,4 @@ bool Smt2::isConstInt(const api::Term& t)
 }
 
 }  // namespace parser
-}  // namespace cvc5::internal
+}  // namespace cvc5

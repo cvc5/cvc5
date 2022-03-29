@@ -102,7 +102,7 @@ CPP_JAVA_MAPPING = \
         r"\buint32_t\b": "int",
         r"\buint64_t\b": "long",
         r"\bunsigned char\b": "byte",
-        r"cvc5::internal::api::": "cvc5.",
+        r"cvc5::api::": "cvc5.",
         r"Term::Term\(\)": "Solver.getNullTerm()",
         r"Solver::": "Solver.",
         r"std::vector<int>": "int[]",

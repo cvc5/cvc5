@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace cvc5::internal {
+namespace cvc5 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
@@ -455,7 +455,9 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       }
     }
     return types;
-  } catch (IllegalArgumentException& ie) {
+  }
+  catch (internal::IllegalArgumentException& ie)
+  {
     throw ParserException(ie.getMessage());
   }
 }
@@ -937,4 +939,4 @@ api::Term Parser::mkCharConstant(const std::string& s)
 }
 
 }  // namespace parser
-}  // namespace cvc5::internal
+}  // namespace cvc5

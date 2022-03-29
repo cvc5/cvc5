@@ -65,8 +65,8 @@ options {
 #include "parser/smt2/smt2.h"
 #include "parser/antlr_input.h"
 
-using namespace cvc5::internal;
-using namespace cvc5::internal::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 #undef PARSER_STATE
 #define PARSER_STATE ((Smt2*)LEXER->super)
@@ -81,13 +81,13 @@ using namespace cvc5::internal::parser;
 #include "parser/parser.h"
 #include "smt/command.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
   namespace api {
     class Term;
     class Sort;
   }
-  
+
 }/* cvc5 namespace */
 
 }/* @parser::includes */
@@ -108,8 +108,8 @@ namespace cvc5::internal {
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
-using namespace cvc5::internal;
-using namespace cvc5::internal::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which
  * will be defined by ANTLR *after* this section. (If they were functions,
@@ -131,9 +131,9 @@ using namespace cvc5::internal::parser;
  * @return the parsed expression, or the Null Expr if we've reached the
  * end of the input
  */
-parseExpr returns [cvc5::internal::api::Term expr = cvc5::internal::api::Term()]
+parseExpr returns [cvc5::api::Term expr = cvc5::api::Term()]
 @declarations {
-  cvc5::internal::api::Term expr2;
+  cvc5::api::Term expr2;
 }
   : term[expr, expr2]
   | EOF
@@ -143,9 +143,9 @@ parseExpr returns [cvc5::internal::api::Term expr = cvc5::internal::api::Term()]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [cvc5::internal::Command* cmd_return = NULL]
+parseCommand returns [cvc5::Command* cmd_return = NULL]
 @declarations {
-  std::unique_ptr<cvc5::internal::Command> cmd;
+  std::unique_ptr<cvc5::Command> cmd;
   std::string name;
 }
 @after {
@@ -179,7 +179,7 @@ parseCommand returns [cvc5::internal::Command* cmd_return = NULL]
  * @return the parsed SyGuS command, or NULL if we've reached the end of the
  * input
  */
-parseSygus returns [cvc5::internal::Command* cmd_return = NULL]
+parseSygus returns [cvc5::Command* cmd_return = NULL]
 @declarations {
   std::string name;
 }
@@ -194,16 +194,16 @@ parseSygus returns [cvc5::internal::Command* cmd_return = NULL]
  * Parse the internal portion of the command, ignoring the surrounding
  * parentheses.
  */
-command [std::unique_ptr<cvc5::internal::Command>* cmd]
+command [std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::string name;
   std::vector<std::string> names;
-  cvc5::internal::api::Term expr, expr2;
-  cvc5::internal::api::Sort t;
-  std::vector<cvc5::internal::api::Term> terms;
+  cvc5::api::Term expr, expr2;
+  cvc5::api::Sort t;
+  std::vector<cvc5::api::Term> terms;
   std::vector<api::Sort> sorts;
-  std::vector<std::pair<std::string, cvc5::internal::api::Sort> > sortedVarNames;
-  std::vector<cvc5::internal::api::Term> flattenVars;
+  std::vector<std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
+  std::vector<cvc5::api::Term> flattenVars;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -500,17 +500,17 @@ command [std::unique_ptr<cvc5::internal::Command>* cmd]
     }
   ;
 
-sygusCommand returns [std::unique_ptr<cvc5::internal::Command> cmd]
+sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
 @declarations {
-  cvc5::internal::api::Term expr, expr2, fun;
-  cvc5::internal::api::Sort t, range;
+  cvc5::api::Term expr, expr2, fun;
+  cvc5::api::Sort t, range;
   std::vector<std::string> names;
-  std::vector<std::pair<std::string, cvc5::internal::api::Sort> > sortedVarNames;
-  std::vector<cvc5::internal::api::Term> sygusVars;
+  std::vector<std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
+  std::vector<cvc5::api::Term> sygusVars;
   std::string name;
   bool isAssume;
   bool isInv;
-  cvc5::internal::api::Grammar* grammar = nullptr;
+  cvc5::api::Grammar* grammar = nullptr;
 }
   : /* declare-var */
     DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -612,18 +612,18 @@ sygusCommand returns [std::unique_ptr<cvc5::internal::Command> cmd]
  * The argument fun is a unique identifier to avoid naming clashes for the
  * datatypes constructed by this call.
  */
-sygusGrammar[cvc5::internal::api::Grammar*& ret,
-             const std::vector<cvc5::internal::api::Term>& sygusVars,
+sygusGrammar[cvc5::api::Grammar*& ret,
+             const std::vector<cvc5::api::Term>& sygusVars,
              const std::string& fun]
 @declarations
 {
   // the pre-declaration
-  std::vector<std::pair<std::string, cvc5::internal::api::Sort>> sortedVarNames;
+  std::vector<std::pair<std::string, cvc5::api::Sort>> sortedVarNames;
   // non-terminal symbols of the grammar
-  std::vector<cvc5::internal::api::Term> ntSyms;
-  cvc5::internal::api::Sort t;
+  std::vector<cvc5::api::Term> ntSyms;
+  cvc5::api::Sort t;
   std::string name;
-  cvc5::internal::api::Term e, e2;
+  cvc5::api::Term e, e2;
   unsigned dtProcessed = 0;
 }
   :
@@ -725,7 +725,7 @@ sygusGrammar[cvc5::internal::api::Grammar*& ret,
   }
 ;
 
-setInfoInternal[std::unique_ptr<cvc5::internal::Command>* cmd]
+setInfoInternal[std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::string name;
   api::Term sexpr;
@@ -734,7 +734,7 @@ setInfoInternal[std::unique_ptr<cvc5::internal::Command>* cmd]
     { cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr))); }
   ;
 
-setOptionInternal[std::unique_ptr<cvc5::internal::Command>* cmd]
+setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
 @init {
   std::string name;
   api::Term sexpr;
@@ -751,26 +751,26 @@ setOptionInternal[std::unique_ptr<cvc5::internal::Command>* cmd]
     }
   ;
 
-smt25Command[std::unique_ptr<cvc5::internal::Command>* cmd]
+smt25Command[std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::string name;
   std::string fname;
-  cvc5::internal::api::Term expr, expr2;
-  std::vector<std::pair<std::string, cvc5::internal::api::Sort> > sortedVarNames;
+  cvc5::api::Term expr, expr2;
+  std::vector<std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
   std::string s;
-  cvc5::internal::api::Sort t;
-  cvc5::internal::api::Term func;
-  std::vector<cvc5::internal::api::Term> bvs;
-  std::vector<std::vector<std::pair<std::string, cvc5::internal::api::Sort>>>
+  cvc5::api::Sort t;
+  cvc5::api::Term func;
+  std::vector<cvc5::api::Term> bvs;
+  std::vector<std::vector<std::pair<std::string, cvc5::api::Sort>>>
       sortedVarNamesList;
-  std::vector<std::vector<cvc5::internal::api::Term>> flattenVarsList;
-  std::vector<std::vector<cvc5::internal::api::Term>> formals;
-  std::vector<cvc5::internal::api::Term> funcs;
-  std::vector<cvc5::internal::api::Term> func_defs;
-  cvc5::internal::api::Term aexpr;
-  std::unique_ptr<cvc5::internal::CommandSequence> seq;
+  std::vector<std::vector<cvc5::api::Term>> flattenVarsList;
+  std::vector<std::vector<cvc5::api::Term>> formals;
+  std::vector<cvc5::api::Term> funcs;
+  std::vector<cvc5::api::Term> func_defs;
+  cvc5::api::Term aexpr;
+  std::unique_ptr<cvc5::CommandSequence> seq;
   std::vector<api::Sort> sorts;
-  std::vector<cvc5::internal::api::Term> flattenVars;
+  std::vector<cvc5::api::Term> flattenVars;
 }
     /* declare-const */
   : DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -896,17 +896,17 @@ smt25Command[std::unique_ptr<cvc5::internal::Command>* cmd]
     }
   ;
 
-extendedCommand[std::unique_ptr<cvc5::internal::Command>* cmd]
+extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
-  cvc5::internal::api::Term e, e2;
-  cvc5::internal::api::Sort t, s;
+  cvc5::api::Term e, e2;
+  cvc5::api::Sort t, s;
   std::string name;
   std::vector<std::string> names;
-  std::vector<cvc5::internal::api::Term> terms;
+  std::vector<cvc5::api::Term> terms;
   std::vector<api::Sort> sorts;
-  std::vector<std::pair<std::string, cvc5::internal::api::Sort> > sortedVarNames;
-  std::unique_ptr<cvc5::internal::CommandSequence> seq;
+  std::vector<std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
+  std::unique_ptr<cvc5::CommandSequence> seq;
   api::Grammar* g = nullptr;
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
@@ -920,7 +920,7 @@ extendedCommand[std::unique_ptr<cvc5::internal::Command>* cmd]
     {
       PARSER_STATE->checkThatLogicIsSet();
       PARSER_STATE->checkLogicAllowsFreeSorts();
-      seq.reset(new cvc5::internal::CommandSequence());
+      seq.reset(new cvc5::CommandSequence());
     }
     LPAREN_TOK
     ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
@@ -933,7 +933,7 @@ extendedCommand[std::unique_ptr<cvc5::internal::Command>* cmd]
     { cmd->reset(seq.release()); }
 
   | DECLARE_FUNS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::internal::CommandSequence()); }
+    { seq.reset(new cvc5::CommandSequence()); }
     LPAREN_TOK
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
@@ -958,7 +958,7 @@ extendedCommand[std::unique_ptr<cvc5::internal::Command>* cmd]
     RPAREN_TOK
     { cmd->reset(seq.release()); }
   | DECLARE_PREDS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { seq.reset(new cvc5::internal::CommandSequence()); }
+    { seq.reset(new cvc5::CommandSequence()); }
     LPAREN_TOK
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
@@ -1061,7 +1061,7 @@ extendedCommand[std::unique_ptr<cvc5::internal::Command>* cmd]
     )
   ;
 
-datatypeDefCommand[bool isCo, std::unique_ptr<cvc5::internal::Command>* cmd]
+datatypeDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
   std::string name;
@@ -1077,7 +1077,7 @@ datatypeDefCommand[bool isCo, std::unique_ptr<cvc5::internal::Command>* cmd]
  datatypesDef[isCo, dnames, arities, cmd]
  ;
 
-datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::internal::Command>* cmd]
+datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
   std::string name;
@@ -1110,7 +1110,7 @@ datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::internal::Command>* cmd]
 datatypesDef[bool isCo,
              const std::vector<std::string>& dnames,
              const std::vector<int>& arities,
-             std::unique_ptr<cvc5::internal::Command>* cmd]
+             std::unique_ptr<cvc5::Command>* cmd]
 @declarations {
   std::vector<api::DatatypeDecl> dts;
   std::string name;
@@ -1230,7 +1230,7 @@ simpleSymbolicExpr[std::string& s]
   | KEYWORD { s = AntlrInput::tokenText($KEYWORD); }
   ;
 
-symbolicExpr[cvc5::internal::api::Term& sexpr]
+symbolicExpr[cvc5::api::Term& sexpr]
 @declarations {
   std::string s;
   std::vector<api::Term> children;
@@ -1239,19 +1239,19 @@ symbolicExpr[cvc5::internal::api::Term& sexpr]
     { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
   | LPAREN_TOK
     ( symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN_TOK
-    { sexpr = SOLVER->mkTerm(cvc5::internal::api::SEXPR, children); }
+    { sexpr = SOLVER->mkTerm(cvc5::api::SEXPR, children); }
   ;
 
 /**
  * Matches a term.
  * @return the expression representing the term.
  */
-term[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& expr2]
+term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
   api::Kind kind = api::NULL_TERM;
-  cvc5::internal::api::Term f;
+  cvc5::api::Term f;
   std::string name;
-  cvc5::internal::api::Sort type;
+  cvc5::api::Sort type;
   ParseOp p;
 }
 : termNonVariable[expr, expr2]
@@ -1269,30 +1269,30 @@ term[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& expr2]
  * @return the expression expr representing the term or formula, and expr2, an
  * optional annotation for expr (for instance, for attributed expressions).
  */
-termNonVariable[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& expr2]
+termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
   Trace("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   api::Kind kind = api::NULL_TERM;
   std::string name;
-  std::vector<cvc5::internal::api::Term> args;
-  std::vector< std::pair<std::string, cvc5::internal::api::Sort> > sortedVarNames;
-  cvc5::internal::api::Term bvl;
-  cvc5::internal::api::Term f, f2, f3;
+  std::vector<cvc5::api::Term> args;
+  std::vector< std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
+  cvc5::api::Term bvl;
+  cvc5::api::Term f, f2, f3;
   std::string attr;
-  cvc5::internal::api::Term attexpr;
-  std::vector<cvc5::internal::api::Term> patexprs;
-  std::vector<cvc5::internal::api::Term> matchcases;
+  cvc5::api::Term attexpr;
+  std::vector<cvc5::api::Term> patexprs;
+  std::vector<cvc5::api::Term> matchcases;
   std::unordered_set<std::string> names;
-  std::vector< std::pair<std::string, cvc5::internal::api::Term> > binders;
-  cvc5::internal::api::Sort type;
-  cvc5::internal::api::Sort type2;
+  std::vector< std::pair<std::string, cvc5::api::Term> > binders;
+  cvc5::api::Sort type;
+  cvc5::api::Sort type2;
   api::Term atomTerm;
   ParseOp p;
   std::vector<api::Sort> argTypes;
 }
   : LPAREN_TOK quantOp[kind]
     {
-      if (!PARSER_STATE->isTheoryEnabled(theory::THEORY_QUANTIFIERS))
+      if (!PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_QUANTIFIERS))
       {
         PARSER_STATE->parseError("Quantifier used in non-quantified logic.");
       }
@@ -1400,7 +1400,7 @@ termNonVariable[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& expr
         )*
         RPAREN_TOK term[f3, f2] {
           // make the match case
-          std::vector<cvc5::internal::api::Term> cargs;
+          std::vector<cvc5::api::Term> cargs;
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
           api::Term c = MK_TERM(api::APPLY_CONSTRUCTOR,cargs);
@@ -1562,12 +1562,12 @@ termNonVariable[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& expr
  * expression (3), which may involve disambiguating f based on type T if it is
  * overloaded.
  */
-qualIdentifier[cvc5::internal::ParseOp& p]
+qualIdentifier[cvc5::ParseOp& p]
 @init {
   api::Kind k;
   std::string baseName;
-  cvc5::internal::api::Term f;
-  cvc5::internal::api::Sort type;
+  cvc5::api::Term f;
+  cvc5::api::Sort type;
 }
 : identifier[p]
   | LPAREN_TOK AS_TOK
@@ -1593,10 +1593,10 @@ qualIdentifier[cvc5::internal::ParseOp& p]
  * (3) An expression expr.
  * For examples, see documentation of qualIdentifier.
  */
-identifier[cvc5::internal::ParseOp& p]
+identifier[cvc5::ParseOp& p]
 @init {
-  cvc5::internal::api::Term f;
-  cvc5::internal::api::Term f2;
+  cvc5::api::Term f;
+  cvc5::api::Term f2;
   std::vector<uint32_t> numerals;
 }
 : functionName[p.d_name, CHECK_NONE]
@@ -1691,9 +1691,9 @@ identifier[cvc5::internal::ParseOp& p]
  * Matches an atomic term (a term with no subterms).
  * @return the expression expr representing the term or formula.
  */
-termAtomic[cvc5::internal::api::Term& atomTerm]
+termAtomic[cvc5::api::Term& atomTerm]
 @init {
-  cvc5::internal::api::Sort t;
+  cvc5::api::Sort t;
   std::string s;
   std::vector<uint32_t> numerals;
 }
@@ -1761,13 +1761,13 @@ termAtomic[cvc5::internal::api::Term& atomTerm]
 /**
  * Read attribute
  */
-attribute[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& retExpr]
+attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
 @init {
   api::Term sexpr;
   std::string s;
-  cvc5::internal::api::Term patexpr;
-  std::vector<cvc5::internal::api::Term> patexprs;
-  cvc5::internal::api::Term e2;
+  cvc5::api::Term patexpr;
+  std::vector<cvc5::api::Term> patexprs;
+  cvc5::api::Term e2;
   bool hasValue = false;
   api::Kind k;
 }
@@ -1822,13 +1822,13 @@ attribute[cvc5::internal::api::Term& expr, cvc5::internal::api::Term& retExpr]
  * Matches a sequence of terms and puts them into the formulas
  * vector.
  * @param formulas the vector to fill with terms
- * @param expr an cvc5::internal::api::Term reference for the elements of the sequence
+ * @param expr an cvc5::api::Term reference for the elements of the sequence
  */
-/* NOTE: We pass an cvc5::internal::api::Term in here just to avoid allocating a fresh cvc5::internal::api::Term every
+/* NOTE: We pass an cvc5::api::Term in here just to avoid allocating a fresh cvc5::api::Term every
  * time through this rule. */
-termList[std::vector<cvc5::internal::api::Term>& formulas, cvc5::internal::api::Term& expr]
+termList[std::vector<cvc5::api::Term>& formulas, cvc5::api::Term& expr]
 @declarations {
-  cvc5::internal::api::Term expr2;
+  cvc5::api::Term expr2;
 }
   : ( term[expr, expr2] { formulas.push_back(expr); } )+
   ;
@@ -1883,7 +1883,7 @@ str[std::string& s, bool fsmtlib]
     }
   ;
 
-quantOp[cvc5::internal::api::Kind& kind]
+quantOp[cvc5::api::Kind& kind]
 @init {
   Trace("parser") << "quant: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
@@ -1895,7 +1895,7 @@ quantOp[cvc5::internal::api::Kind& kind]
  * Matches a (possibly undeclared) function symbol (returning the string)
  * @param check what kind of check to do with the symbol
  */
-functionName[std::string& name, cvc5::internal::parser::DeclarationCheck check]
+functionName[std::string& name, cvc5::parser::DeclarationCheck check]
   : symbol[name,check,SYM_VARIABLE]
   ;
 
@@ -1903,16 +1903,16 @@ functionName[std::string& name, cvc5::internal::parser::DeclarationCheck check]
  * Matches a sequence of sort symbols and fills them into the given
  * vector.
  */
-sortList[std::vector<cvc5::internal::api::Sort>& sorts]
+sortList[std::vector<cvc5::api::Sort>& sorts]
 @declarations {
-  cvc5::internal::api::Sort t;
+  cvc5::api::Sort t;
 }
   : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )*
   ;
 
-nonemptySortList[std::vector<cvc5::internal::api::Sort>& sorts]
+nonemptySortList[std::vector<cvc5::api::Sort>& sorts]
 @declarations {
-  cvc5::internal::api::Sort t;
+  cvc5::api::Sort t;
 }
   : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )+
   ;
@@ -1921,10 +1921,10 @@ nonemptySortList[std::vector<cvc5::internal::api::Sort>& sorts]
  * Matches a sequence of (variable,sort) symbol pairs and fills them
  * into the given vector.
  */
-sortedVarList[std::vector<std::pair<std::string, cvc5::internal::api::Sort> >& sortedVars]
+sortedVarList[std::vector<std::pair<std::string, cvc5::api::Sort> >& sortedVars]
 @declarations {
   std::string name;
-  cvc5::internal::api::Sort t;
+  cvc5::api::Sort t;
 }
   : ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
       sortSymbol[t,CHECK_DECLARED] RPAREN_TOK
@@ -1936,13 +1936,13 @@ sortedVarList[std::vector<std::pair<std::string, cvc5::internal::api::Sort> >& s
  * Matches a sequence of (variable, sort) symbol pairs, registers them as bound
  * variables, and returns a term corresponding to the list of pairs.
  */
-boundVarList[cvc5::internal::api::Term& expr]
+boundVarList[cvc5::api::Term& expr]
 @declarations {
-  std::vector<std::pair<std::string, cvc5::internal::api::Sort>> sortedVarNames;
+  std::vector<std::pair<std::string, cvc5::api::Sort>> sortedVarNames;
 }
  : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
    {
-     std::vector<cvc5::internal::api::Term> args =
+     std::vector<cvc5::api::Term> args =
          PARSER_STATE->bindBoundVars(sortedVarNames);
      expr = MK_TERM(api::VARIABLE_LIST, args);
    }
@@ -1952,14 +1952,14 @@ boundVarList[cvc5::internal::api::Term& expr]
  * Matches the sort symbol, which can be an arbitrary symbol.
  * @param check the check to perform on the name
  */
-sortName[std::string& name, cvc5::internal::parser::DeclarationCheck check]
+sortName[std::string& name, cvc5::parser::DeclarationCheck check]
   : symbol[name,check,SYM_SORT]
   ;
 
-sortSymbol[cvc5::internal::api::Sort& t, cvc5::internal::parser::DeclarationCheck check]
+sortSymbol[cvc5::api::Sort& t, cvc5::parser::DeclarationCheck check]
 @declarations {
   std::string name;
-  std::vector<cvc5::internal::api::Sort> args;
+  std::vector<cvc5::api::Sort> args;
   std::vector<uint32_t> numerals;
   bool indexed = false;
 }
@@ -1994,10 +1994,10 @@ sortSymbol[cvc5::internal::api::Sort& t, cvc5::internal::parser::DeclarationChec
           if( numerals.size() != 2 ) {
             PARSER_STATE->parseError("Illegal floating-point type.");
           }
-          if(!validExponentSize(numerals[0])) {
+          if(!internal::validExponentSize(numerals[0])) {
             PARSER_STATE->parseError("Illegal floating-point exponent size");
           }
-          if(!validSignificandSize(numerals[1])) {
+          if(!internal::validSignificandSize(numerals[1])) {
             PARSER_STATE->parseError("Illegal floating-point significand size");
           }
           t = SOLVER->mkFloatingPointSort(numerals[0],numerals[1]);
@@ -2018,27 +2018,27 @@ sortSymbol[cvc5::internal::api::Sort& t, cvc5::internal::parser::DeclarationChec
           PARSER_STATE->parseError("Extra parentheses around sort name not "
                                    "permitted in SMT-LIB");
         } else if(name == "Array" &&
-           PARSER_STATE->isTheoryEnabled(theory::THEORY_ARRAYS) ) {
+           PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_ARRAYS) ) {
           if(args.size() != 2) {
             PARSER_STATE->parseError("Illegal array type.");
           }
           t = SOLVER->mkArraySort( args[0], args[1] );
         } else if(name == "Set" &&
-                  PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) ) {
+                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
         }
         else if(name == "Bag" &&
-                  PARSER_STATE->isTheoryEnabled(theory::THEORY_BAGS) ) {
+                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal bag type.");
           }
           t = SOLVER->mkBagSort( args[0] );
         }
         else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
-                  PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
+                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal sequence type.");
           }
@@ -2081,8 +2081,8 @@ sortSymbol[cvc5::internal::api::Sort& t, cvc5::internal::parser::DeclarationChec
  * symbol[] rule below.
  */
 symbolList[std::vector<std::string>& names,
-           cvc5::internal::parser::DeclarationCheck check,
-           cvc5::internal::parser::SymbolType type]
+           cvc5::parser::DeclarationCheck check,
+           cvc5::parser::SymbolType type]
 @declarations {
   std::string id;
 }
@@ -2096,8 +2096,8 @@ symbolList[std::vector<std::string>& names,
  * @param type the intended namespace for the symbol
  */
 symbol[std::string& id,
-       cvc5::internal::parser::DeclarationCheck check,
-       cvc5::internal::parser::SymbolType type]
+       cvc5::parser::DeclarationCheck check,
+       cvc5::parser::SymbolType type]
   : SIMPLE_SYMBOL
     { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(!PARSER_STATE->isAbstractValue(id)) {
@@ -2136,8 +2136,8 @@ nonemptyNumeralList[std::vector<uint32_t>& numerals]
 /**
  * Parses a datatype definition
  */
-datatypeDef[bool isCo, std::vector<cvc5::internal::api::DatatypeDecl>& datatypes,
-            std::vector< cvc5::internal::api::Sort >& params]
+datatypeDef[bool isCo, std::vector<cvc5::api::DatatypeDecl>& datatypes,
+            std::vector< cvc5::api::Sort >& params]
 @init {
   std::string id;
 }
@@ -2156,10 +2156,10 @@ datatypeDef[bool isCo, std::vector<cvc5::internal::api::DatatypeDecl>& datatypes
 /**
  * Parses a constructor defintion for type
  */
-constructorDef[cvc5::internal::api::DatatypeDecl& type]
+constructorDef[cvc5::api::DatatypeDecl& type]
 @init {
   std::string id;
-  cvc5::internal::api::DatatypeConstructorDecl* ctor = NULL;
+  cvc5::api::DatatypeConstructorDecl* ctor = NULL;
 }
   : symbol[id,CHECK_NONE,SYM_VARIABLE]
     {
@@ -2174,10 +2174,10 @@ constructorDef[cvc5::internal::api::DatatypeDecl& type]
     }
   ;
 
-selector[cvc5::internal::api::DatatypeConstructorDecl& ctor]
+selector[cvc5::api::DatatypeConstructorDecl& ctor]
 @init {
   std::string id;
-  cvc5::internal::api::Sort t, t2;
+  cvc5::api::Sort t, t2;
 }
   : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { 
@@ -2231,10 +2231,10 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
-SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'set.comprehension';
-TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
-UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'update';
-MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';
+SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }?'set.comprehension';
+TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
+UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
+MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
@@ -2282,9 +2282,9 @@ ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
-CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
+CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
+TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple_project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

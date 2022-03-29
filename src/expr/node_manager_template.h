@@ -32,13 +32,15 @@
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
 
-namespace cvc5::internal {
-
-using Record = std::vector<std::pair<std::string, TypeNode>>;
+namespace cvc5 {
 
 namespace api {
 class Solver;
 }
+
+namespace internal {
+
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 class ResourceManager;
 class SkolemManager;
@@ -1254,5 +1256,6 @@ ${metakind_mkConstDelete}
 // clang-format off
 
 }  // namespace cvc5::internal
+}
 
 #endif /* CVC5__NODE_MANAGER_H */

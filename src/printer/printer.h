@@ -25,10 +25,13 @@
 #include "smt/model.h"
 #include "util/result.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 class Command;
 class CommandStatus;
+
+namespace internal {
+
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
@@ -279,11 +282,11 @@ class Printer
 
   /** Print command sequence command */
   virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const;
+      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
   /** Print declaration sequence command */
   virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const;
+      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
  protected:
   /** Derived classes can construct, but no one else. */
@@ -330,6 +333,7 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace cvc5::internal
+}  // namespace internal
+}  // namespace cvc5
 
 #endif /* CVC5__PRINTER__PRINTER_H */

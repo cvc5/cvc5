@@ -17,7 +17,7 @@
 #include "api_utilities.h"
 #include "io_github_cvc5_api_Grammar.h"
 
-using namespace cvc5::internal::api;
+using namespace cvc5::api;
 
 /*
  * Class:     io_github_cvc5_api_Grammar

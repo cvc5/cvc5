@@ -1314,27 +1314,31 @@ void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c);
+static bool tryToStream(std::ostream& out, const cvc5::Command* c);
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c, Variant v);
+static bool tryToStream(std::ostream& out, const cvc5::Command* c, Variant v);
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v);
+static bool tryToStream(std::ostream& out,
+                        const cvc5::CommandStatus* s,
+                        Variant v);
 
-void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const
+void Smt2Printer::toStream(std::ostream& out,
+                           const cvc5::CommandStatus* s) const
 {
-  if (tryToStream<CommandSuccess>(out, s, d_variant) ||
-      tryToStream<CommandFailure>(out, s, d_variant) ||
-      tryToStream<CommandRecoverableFailure>(out, s, d_variant) ||
-      tryToStream<CommandUnsupported>(out, s, d_variant) ||
-      tryToStream<CommandInterrupted>(out, s, d_variant)) {
+  if (tryToStream<cvc5::CommandSuccess>(out, s, d_variant)
+      || tryToStream<cvc5::CommandFailure>(out, s, d_variant)
+      || tryToStream<cvc5::CommandRecoverableFailure>(out, s, d_variant)
+      || tryToStream<cvc5::CommandUnsupported>(out, s, d_variant)
+      || tryToStream<cvc5::CommandInterrupted>(out, s, d_variant))
+  {
     return;
   }
 
-  out << "ERROR: don't know how to print a CommandStatus of class: "
+  out << "ERROR: don't know how to print a cvc5::CommandStatus of class: "
       << typeid(*s).name() << endl;
 
-}/* Smt2Printer::toStream(CommandStatus*) */
+} /* Smt2Printer::toStream(cvc5::CommandStatus*) */
 
 void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
@@ -1493,16 +1497,16 @@ void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
 }
 
 void Smt2Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
-  for (Command* i : sequence)
+  for (cvc5::Command* i : sequence)
   {
     out << *i;
   }
 }
 
 void Smt2Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
+    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
 {
   toStreamCmdCommandSequence(out, sequence);
 }
@@ -2053,7 +2057,7 @@ void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
 */
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c)
+static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c));
@@ -2063,7 +2067,7 @@ static bool tryToStream(std::ostream& out, const Command* c)
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c, Variant v)
+static bool tryToStream(std::ostream& out, const cvc5::Command* c, Variant v)
 {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c), v);
@@ -2072,19 +2076,26 @@ static bool tryToStream(std::ostream& out, const Command* c, Variant v)
   return false;
 }
 
-static void toStream(std::ostream& out, const CommandSuccess* s, Variant v)
+static void toStream(std::ostream& out,
+                     const cvc5::CommandSuccess* s,
+                     Variant v)
 {
-  if(Command::printsuccess::getPrintSuccess(out)) {
+  if (cvc5::Command::printsuccess::getPrintSuccess(out))
+  {
     out << "success" << endl;
   }
 }
 
-static void toStream(std::ostream& out, const CommandInterrupted* s, Variant v)
+static void toStream(std::ostream& out,
+                     const cvc5::CommandInterrupted* s,
+                     Variant v)
 {
   out << "interrupted" << endl;
 }
 
-static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
+static void toStream(std::ostream& out,
+                     const cvc5::CommandUnsupported* s,
+                     Variant v)
 {
 #ifdef CVC5_COMPETITION_MODE
   // if in competition mode, lie and say we're ok
@@ -2101,17 +2112,24 @@ static void errorToStream(std::ostream& out, std::string message, Variant v)
   out << "(error " << cvc5::internal::quoteString(message) << ')' << endl;
 }
 
-static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {
+static void toStream(std::ostream& out,
+                     const cvc5::CommandFailure* s,
+                     Variant v)
+{
   errorToStream(out, s->getMessage(), v);
 }
 
-static void toStream(std::ostream& out, const CommandRecoverableFailure* s,
-                     Variant v) {
+static void toStream(std::ostream& out,
+                     const cvc5::CommandRecoverableFailure* s,
+                     Variant v)
+{
   errorToStream(out, s->getMessage(), v);
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
+static bool tryToStream(std::ostream& out,
+                        const cvc5::CommandStatus* s,
+                        Variant v)
 {
   if(typeid(*s) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(s), v);

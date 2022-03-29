@@ -32,7 +32,7 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 
-namespace cvc5::internal {
+namespace cvc5 {
 
 // Forward declarations
 class Command;
@@ -118,7 +118,7 @@ private:
  /**
   * This current symbol table used by this parser, from symbol manager.
   */
- SymbolTable* d_symtab;
+ internal::SymbolTable* d_symtab;
 
  /**
   * The level of the assertions in the declaration scope.  Things declared
@@ -773,6 +773,6 @@ public:
 }; /* class Parser */
 
 }  // namespace parser
-}  // namespace cvc5::internal
+}  // namespace cvc5
 
 #endif /* CVC5__PARSER__PARSER_STATE_H */

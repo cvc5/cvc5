@@ -90,7 +90,7 @@ class OstreamVoider
 //     }
 //   }
 #define CVC5_FATAL() \
-  FatalStream(__PRETTY_FUNCTION__, __FILE__, __LINE__).stream()
+  internal::FatalStream(__PRETTY_FUNCTION__, __FILE__, __LINE__).stream()
 
 /* GCC <= 9.2 ignores CVC5_NO_RETURN of ~FatalStream() if
  * used in template classes (e.g., CDHashMap::save()).  As a workaround we
@@ -103,7 +103,9 @@ class OstreamVoider
 // inserted into.
 #define CVC5_FATAL_IF(cond, function, file, line) \
   CVC5_PREDICT_FALSE(!(cond))                     \
-  ? (void)0 : OstreamVoider() & FatalStream(function, file, line).stream()
+  ? (void)0                                       \
+  : cvc5::internal::OstreamVoider()               \
+          & cvc5::internal::FatalStream(function, file, line).stream()
 
 // If `cond` is false, log an error message and abort()'s the process.
 // Otherwise, does nothing. This leaves a hanging std::ostream& that can be
