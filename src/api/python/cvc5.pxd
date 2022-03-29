@@ -528,35 +528,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         size_t operator()(const Term & t) except +
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
-=======
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::internal::api::RoundingMode":
-=======
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::RoundingMode":
->>>>>>> 03254b9156 (Separate api from internal.)
-=======
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::RoundingMode":
->>>>>>> 34381de8a3 (Remove api:: namespace.)
-    cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
-    cdef RoundingMode ROUND_TOWARD_POSITIVE,
-    cdef RoundingMode ROUND_TOWARD_NEGATIVE,
-    cdef RoundingMode ROUND_TOWARD_ZERO,
-    cdef RoundingMode ROUND_NEAREST_TIES_TO_AWAY
-
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::internal::api::Result::UnknownExplanation":
->>>>>>> c3aa979dbd (Introduce cvc5::internal.)
-=======
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
->>>>>>> 03254b9156 (Separate api from internal.)
-=======
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result::UnknownExplanation":
->>>>>>> 34381de8a3 (Remove api:: namespace.)
     cdef UnknownExplanation REQUIRES_FULL_CHECK
     cdef UnknownExplanation INCOMPLETE
     cdef UnknownExplanation TIMEOUT

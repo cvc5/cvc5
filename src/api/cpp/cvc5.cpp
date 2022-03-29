@@ -3040,7 +3040,7 @@ bool Term::isRoundingModeValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_ROUNDINGMODE;
+  return d_node->getKind() == internal::Kind::CONST_ROUNDINGMODE;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3049,7 +3049,7 @@ RoundingMode Term::getRoundingModeValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::CONST_ROUNDINGMODE, *d_node)
+      d_node->getKind() == internal::Kind::CONST_ROUNDINGMODE, *d_node)
       << "Term to be a floating-point rounding mode value when calling "
          "getRoundingModeValue()";
   //////// all checks before this line
@@ -3234,7 +3234,7 @@ bool Term::isCardinalityConstraint() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CARDINALITY_CONSTRAINT;
+  return d_node->getKind() == internal::Kind::CARDINALITY_CONSTRAINT;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3244,19 +3244,20 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::CARDINALITY_CONSTRAINT, *d_node)
+      d_node->getKind() == internal::Kind::CARDINALITY_CONSTRAINT, *d_node)
       << "Term to be a cardinality constraint when calling "
          "getCardinalityConstraint()";
   // this should never happen since we restrict what the user can create
-  CVC5_API_ARG_CHECK_EXPECTED(detail::checkIntegerBounds<std::uint32_t>(
-                                  d_node->getOperator()
-                                      .getConst<CardinalityConstraint>()
-                                      .getUpperBound()),
-                              *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(
+      detail::checkIntegerBounds<std::uint32_t>(
+          d_node->getOperator()
+              .getConst<internal::CardinalityConstraint>()
+              .getUpperBound()),
+      *d_node)
       << "Upper bound for cardinality constraint does not fit uint32_t";
   //////// all checks before this line
-  const CardinalityConstraint& cc =
-      d_node->getOperator().getConst<CardinalityConstraint>();
+  const internal::CardinalityConstraint& cc =
+      d_node->getOperator().getConst<internal::CardinalityConstraint>();
   return std::make_pair(Sort(d_solver, cc.getType()),
                         cc.getUpperBound().getUnsignedInt());
   ////////

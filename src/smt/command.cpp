@@ -1993,15 +1993,9 @@ void GetInterpolantCommand::toStream(std::ostream& out,
 
 GetInterpolantNextCommand::GetInterpolantNextCommand() {}
 
-<<<<<<< HEAD
-api::Term GetInterpolantNextCommand::getResult() const { return d_result; }
+Term GetInterpolantNextCommand::getResult() const { return d_result; }
 
-void GetInterpolantNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
-=======
-cvc5::Term GetInterpolNextCommand::getResult() const { return d_result; }
-
-void GetInterpolNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
->>>>>>> 34381de8a3 (Remove api:: namespace.)
+void GetInterpolantNextCommand::invoke(Solver* solver, SymbolManager* sm)
 {
   try
   {
