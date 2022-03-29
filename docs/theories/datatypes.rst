@@ -184,7 +184,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term ci = dt[i].getConstructor();``                                                                                           |
+|                    |                                        | ``Term ci = dt[i].getConstructorTerm();``                                                                                       |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {ci, <Term_1>, ..., <Term_n>});``                                             |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -192,7 +192,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term sij = dt[i].getSelector(j);``                                                                                            |
+|                    |                                        | ``Term sij = dt[i].getSelector(j).getSelectorTerm();``                                                                          |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_SELECTOR, {sij, t});``                                                                     |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -226,7 +226,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getConstructor();``                                                                                            |
+|                    |                                        | ``Term c = dt[0].getConstructorTerm();``                                                                                        |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -234,7 +234,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term sel = dt[0].getSelector(i);``                                                                                            |
+|                    |                                        | ``Term sel = dt[0].getSelector(i).getSelectorTerm();``                                                                          |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_SELECTOR, {sel, t});``                                                                     |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -268,7 +268,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getConstructor();``                                                                                            |
+|                    |                                        | ``Term c = dt[0].getConstructorTerm();``                                                                                        |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
@@ -276,7 +276,7 @@ a `cvc5::api::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
 |                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term sel = dt[0].getSelector(name);``                                                                                         |
+|                    |                                        | ``Term sel = dt[0].getSelector(name).getSelectorTerm();``                                                                       |
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_SELECTOR, {sel, t});``                                                                     |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
