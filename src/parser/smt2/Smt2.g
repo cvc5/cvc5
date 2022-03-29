@@ -1706,7 +1706,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   | DECIMAL_LITERAL
     {
       std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
-      atomTerm = SOLVER->mkReal(realStr));
+      atomTerm = SOLVER->mkReal(realStr);
     }
 
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
