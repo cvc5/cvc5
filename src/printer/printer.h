@@ -25,7 +25,7 @@
 #include "smt/model.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Command;
 class CommandStatus;
@@ -330,6 +330,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__PRINTER_H */

@@ -25,7 +25,7 @@
 #endif
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace context {
 
 #ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
@@ -262,6 +262,6 @@ inline bool operator!=(const ContextMemoryAllocator<T>& a1,
 }
 
 }  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CONTEXT__CONTEXT_MM_H */

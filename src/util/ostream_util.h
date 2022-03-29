@@ -21,7 +21,7 @@
 #include <ios>
 #include <iosfwd>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Saves the formatting of an ostream and restores the previous settings on
 // destruction. Example usage:
@@ -43,6 +43,6 @@ class StreamFormatScope
   std::streamsize d_precision;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTIL__OSTREAM_UTIL_H */

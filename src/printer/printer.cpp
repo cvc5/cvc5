@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 unique_ptr<Printer>
     Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
@@ -535,4 +535,4 @@ void Printer::toStreamCmdDeclarationSequence(
   printUnknownCommand(out, "sequence");
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

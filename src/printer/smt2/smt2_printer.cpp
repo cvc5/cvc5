@@ -60,7 +60,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace printer {
 namespace smt2 {
 
@@ -331,7 +331,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else
       {
-        out << cvc5::quoteSymbol(dt.getName());
+        out << cvc5::internal::quoteSymbol(dt.getName());
       }
       break;
     }
@@ -473,7 +473,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '(';
     }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << cvc5::quoteSymbol(name);
+      out << cvc5::internal::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
@@ -544,7 +544,7 @@ void Smt2Printer::toStream(std::ostream& out,
     // abstract value
     std::string s;
     n.getAttribute(expr::VarNameAttr(), s);
-    out << "(as @" << cvc5::quoteSymbol(s) << " " << n.getType() << ")";
+    out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
@@ -553,7 +553,7 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << cvc5::quoteSymbol(s);
+      out << cvc5::internal::quoteSymbol(s);
     }
     else
     {
@@ -1345,7 +1345,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
     const std::vector<std::string>& cnames = core.getCoreNames();
     for (const std::string& cn : cnames)
     {
-      out << cvc5::quoteSymbol(cn) << std::endl;
+      out << cvc5::internal::quoteSymbol(cn) << std::endl;
     }
   }
   else
@@ -1511,7 +1511,7 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
                                              TypeNode type) const
 {
-  out << "(declare-fun " << cvc5::quoteSymbol(id) << " (";
+  out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " (";
   if (type.isFunction())
   {
     const vector<TypeNode> argTypes = type.getArgTypes();
@@ -1534,7 +1534,7 @@ void Smt2Printer::toStreamCmdDeclarePool(
     TypeNode type,
     const std::vector<Node>& initValue) const
 {
-  out << "(declare-pool " << cvc5::quoteSymbol(id) << ' ' << type << " (";
+  out << "(declare-pool " << cvc5::internal::quoteSymbol(id) << ' ' << type << " (";
   for (size_t i = 0, n = initValue.size(); i < n; ++i)
   {
     if (i != 0) {
@@ -1551,7 +1551,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  out << "(define-fun " << cvc5::quoteSymbol(id) << " (";
+  out << "(define-fun " << cvc5::internal::quoteSymbol(id) << " (";
   if (!formals.empty())
   {
     vector<Node>::const_iterator i = formals.cbegin();
@@ -1657,7 +1657,7 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
                                         const std::vector<TypeNode>& params,
                                         TypeNode t) const
 {
-  out << "(define-sort " << cvc5::quoteSymbol(id) << " (";
+  out << "(define-sort " << cvc5::internal::quoteSymbol(id) << " (";
   if (params.size() > 0)
   {
     copy(
@@ -1781,7 +1781,7 @@ void Smt2Printer::toStream(std::ostream& out, const DType& dt) const
     {
       out << " ";
     }
-    out << "(" << cvc5::quoteSymbol(cons.getName());
+    out << "(" << cvc5::internal::quoteSymbol(cons.getName());
     for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
     {
       const DTypeSelector& arg = cons[j];
@@ -1814,7 +1814,7 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
   {
     Assert(t.isDatatype());
     const DType& d = t.getDType();
-    out << "(" << cvc5::quoteSymbol(d.getName());
+    out << "(" << cvc5::internal::quoteSymbol(d.getName());
     out << " " << d.getNumParameters() << ")";
   }
   out << ") (";
@@ -1859,7 +1859,7 @@ void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
                                   const std::string& output) const
 {
-  out << "(echo " << cvc5::quoteString(output) << ')' << std::endl;
+  out << "(echo " << cvc5::internal::quoteString(output) << ')' << std::endl;
 }
 
 /*
@@ -2003,7 +2003,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          Node conj,
                                          TypeNode sygusType) const
 {
-  out << "(get-interpolant " << cvc5::quoteSymbol(name) << ' ' << conj;
+  out << "(get-interpolant " << cvc5::internal::quoteSymbol(name) << ' ' << conj;
   if (!sygusType.isNull())
   {
     out << ' ' << sygusGrammarString(sygusType);
@@ -2098,7 +2098,7 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 
 static void errorToStream(std::ostream& out, std::string message, Variant v)
 {
-  out << "(error " << cvc5::quoteString(message) << ')' << endl;
+  out << "(error " << cvc5::internal::quoteString(message) << ')' << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {
@@ -2122,4 +2122,4 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
 
 }  // namespace smt2
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal

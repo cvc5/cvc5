@@ -21,10 +21,10 @@
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 
-using namespace cvc5::kind;
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 DTypeConstructor::DTypeConstructor(std::string name,
                                    unsigned weight)
@@ -692,4 +692,4 @@ std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

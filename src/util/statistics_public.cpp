@@ -21,7 +21,7 @@
 #include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 void registerPublicStatistics(StatisticsRegistry& reg)
 {
@@ -45,4 +45,4 @@ void registerPublicStatistics(StatisticsRegistry& reg)
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

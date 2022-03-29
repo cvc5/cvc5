@@ -42,7 +42,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::string sexprToString(api::Term sexpr)
 {
@@ -310,7 +310,7 @@ void EchoCommand::invoke(api::Solver* solver,
                          SymbolManager* sm,
                          std::ostream& out)
 {
-  out << cvc5::quoteString(d_output) << std::endl;
+  out << cvc5::internal::quoteString(d_output) << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
   d_commandStatus = CommandSuccess::instance();
@@ -2912,4 +2912,4 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out,
       out, sortVectorToTypeNodes(d_datatypes));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -28,7 +28,7 @@
 
 #include "base/configuration.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // forward declare all values to avoid inclusion
 struct StatisticAverageValue;
@@ -211,7 +211,7 @@ class TimerStat
 {
  public:
   /** Utility for RAII-style timing of code blocks */
-  using CodeTimer = cvc5::CodeTimer;
+  using CodeTimer = cvc5::internal::CodeTimer;
   /** Allow access to private constructor */
   friend class StatisticsRegistry;
   /** Value stored for this statistic */
@@ -347,6 +347,6 @@ class IntStat : public ValueStat<int64_t>
   IntStat(stat_type* data) : ValueStat(data) {}
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

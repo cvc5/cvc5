@@ -41,7 +41,7 @@
 #include "smt/command.h"
 #include "util/didyoumean.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace options {
 
 // helper functions
@@ -164,11 +164,11 @@ void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
 {
   if(Configuration::isMuzzledBuild()) {
-    TraceChannel.setStream(&cvc5::null_os);
-    WarningChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::internal::null_os);
+    WarningChannel.setStream(&cvc5::internal::null_os);
   } else {
     if(value < 0) {
-      WarningChannel.setStream(&cvc5::null_os);
+      WarningChannel.setStream(&cvc5::internal::null_os);
     } else {
       WarningChannel.setStream(&std::cerr);
     }
@@ -468,4 +468,4 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value)
 }
 
 }  // namespace options
-}  // namespace cvc5
+}  // namespace cvc5::internal

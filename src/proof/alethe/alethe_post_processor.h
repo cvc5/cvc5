@@ -20,7 +20,7 @@
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node_updater.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -152,6 +152,6 @@ class AletheProofPostprocess
 
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

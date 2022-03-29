@@ -29,7 +29,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_pools.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -116,6 +116,6 @@ class TermRegistry : protected EnvObj
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H */

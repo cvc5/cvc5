@@ -24,10 +24,10 @@
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
 
-// extern void Smt2ParserSetAntlrParser(cvc5::parser::AntlrParser*
+// extern void Smt2ParserSetAntlrParser(cvc5::internal::parser::AntlrParser*
 // newAntlrParser);
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Command;
 class Expr;
@@ -83,6 +83,6 @@ class SygusInput : public AntlrInput {
 };/* class SygusInput */
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARSER__SYGUS_INPUT_H */

@@ -32,7 +32,7 @@
 #include "api/cpp/cvc5_kind.h"
 #include "api/cpp/cvc5_types.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 #ifndef DOXYGEN_SKIP
 template <bool ref_count>
@@ -257,15 +257,15 @@ class CVC5_EXPORT Result
    * @param r the internal result that is to be wrapped by this result
    * @return the Result
    */
-  Result(const cvc5::Result& r);
+  Result(const cvc5::internal::Result& r);
 
   /**
    * The internal result wrapped by this result.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::Result`` is not ref counted.
+   *       since ``cvc5::internal::Result`` is not ref counted.
    */
-  std::shared_ptr<cvc5::Result> d_result;
+  std::shared_ptr<cvc5::internal::Result> d_result;
 };
 
 /**
@@ -341,14 +341,14 @@ class CVC5_EXPORT SynthResult
    *          result
    * @return the SynthResult
    */
-  SynthResult(const cvc5::SynthResult& r);
+  SynthResult(const cvc5::internal::SynthResult& r);
   /**
    * The internal result wrapped by this result.
    *
    * @note This is a `std::shared_ptr` rather than a `std::unique_ptr`
-   *       since `cvc5::SynthResult` is not ref counted.
+   *       since `cvc5::internal::SynthResult` is not ref counted.
    */
-  std::shared_ptr<cvc5::SynthResult> d_result;
+  std::shared_ptr<cvc5::internal::SynthResult> d_result;
 };
 
 /**
@@ -370,7 +370,7 @@ class Datatype;
  */
 class CVC5_EXPORT Sort
 {
-  friend class cvc5::Command;
+  friend class cvc5::internal::Command;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
@@ -826,7 +826,7 @@ class CVC5_EXPORT Sort
 
  private:
   /** @return the internal wrapped TypeNode of this sort. */
-  const cvc5::TypeNode& getTypeNode(void) const;
+  const cvc5::internal::TypeNode& getTypeNode(void) const;
 
   /** Helper to convert a set of Sorts to internal TypeNodes. */
   std::set<TypeNode> static sortSetToTypeNodes(const std::set<Sort>& sorts);
@@ -843,7 +843,7 @@ class CVC5_EXPORT Sort
    * @param t the internal type that is to be wrapped by this sort
    * @return the Sort
    */
-  Sort(const Solver* slv, const cvc5::TypeNode& t);
+  Sort(const Solver* slv, const cvc5::internal::TypeNode& t);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -860,10 +860,10 @@ class CVC5_EXPORT Sort
    * The internal type wrapped by this sort.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
-   *       avoid overhead due to memory allocation (``cvc5::Type`` is already
+   *       avoid overhead due to memory allocation (``cvc5::internal::Type`` is already
    *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
-  std::shared_ptr<cvc5::TypeNode> d_type;
+  std::shared_ptr<cvc5::internal::TypeNode> d_type;
 };
 
 /**
@@ -875,7 +875,7 @@ class CVC5_EXPORT Sort
 std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
 
 }  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
@@ -883,14 +883,14 @@ namespace std {
  * Hash function for Sorts.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::api::Sort>
+struct CVC5_EXPORT hash<cvc5::internal::api::Sort>
 {
-  size_t operator()(const cvc5::api::Sort& s) const;
+  size_t operator()(const cvc5::internal::api::Sort& s) const;
 };
 
 }  // namespace std
 
-namespace cvc5::api {
+namespace cvc5::internal::api {
 
 /* -------------------------------------------------------------------------- */
 /* Op                                                                     */
@@ -985,7 +985,7 @@ class CVC5_EXPORT Op
    * @param n the internal node that is to be wrapped by this term
    * @return the Term
    */
-  Op(const Solver* slv, const Kind k, const cvc5::Node& n);
+  Op(const Solver* slv, const Kind k, const cvc5::internal::Node& n);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1028,10 +1028,10 @@ class CVC5_EXPORT Op
    * The internal node wrapped by this operator.
    *
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
-   *       avoid overhead due to memory allocation (``cvc5::Node`` is already
+   *       avoid overhead due to memory allocation (``cvc5::internal::Node`` is already
    *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
-  std::shared_ptr<cvc5::Node> d_node;
+  std::shared_ptr<cvc5::internal::Node> d_node;
 };
 
 /**
@@ -1042,20 +1042,20 @@ class CVC5_EXPORT Op
  */
 std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
 
-}  // namespace cvc5::api
+}  // namespace cvc5::internal::api
 
 namespace std {
 /**
  * Hash function for Ops.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::api::Op>
+struct CVC5_EXPORT hash<cvc5::internal::api::Op>
 {
-  size_t operator()(const cvc5::api::Op& t) const;
+  size_t operator()(const cvc5::internal::api::Op& t) const;
 };
 }  // namespace std
 
-namespace cvc5::api {
+namespace cvc5::internal::api {
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -1065,7 +1065,7 @@ namespace cvc5::api {
  */
 class CVC5_EXPORT Term
 {
-  friend class cvc5::Command;
+  friend class cvc5::internal::Command;
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
@@ -1302,7 +1302,7 @@ class CVC5_EXPORT Term
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
-                   const std::shared_ptr<cvc5::Node>& e,
+                   const std::shared_ptr<cvc5::internal::Node>& e,
                    uint32_t p);
 
     /**
@@ -1355,7 +1355,7 @@ class CVC5_EXPORT Term
      */
     const Solver* d_solver;
     /** The original node to be iterated over. */
-    std::shared_ptr<cvc5::Node> d_origNode;
+    std::shared_ptr<cvc5::internal::Node> d_origNode;
     /** Keeps track of the iteration position. */
     uint32_t d_pos;
   };
@@ -1626,11 +1626,11 @@ class CVC5_EXPORT Term
 
   /** Helper method to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
-                         const cvc5::Node& node,
+                         const cvc5::internal::Node& node,
                          const Solver* slv);
   /** Helper method to collect all elements of a sequence. */
   static void collectSequence(std::vector<Term>& seq,
-                              const cvc5::Node& node,
+                              const cvc5::internal::Node& node,
                               const Solver* slv);
 
   /**
@@ -1639,10 +1639,10 @@ class CVC5_EXPORT Term
    * @param n the internal node that is to be wrapped by this term
    * @return the Term
    */
-  Term(const Solver* slv, const cvc5::Node& n);
+  Term(const Solver* slv, const cvc5::internal::Node& n);
 
   /** @return the internal wrapped Node of this term. */
-  const cvc5::Node& getNode(void) const;
+  const cvc5::internal::Node& getNode(void) const;
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1665,10 +1665,10 @@ class CVC5_EXPORT Term
   /**
    * The internal node wrapped by this term.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
-   *       avoid overhead due to memory allocation (``cvc5::Node`` is already
+   *       avoid overhead due to memory allocation (``cvc5::internal::Node`` is already
    *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
-  std::shared_ptr<cvc5::Node> d_node;
+  std::shared_ptr<cvc5::internal::Node> d_node;
 };
 
 /**
@@ -1731,20 +1731,20 @@ std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V>& unordered_map)
     CVC5_EXPORT;
 
-}  // namespace cvc5::api
+}  // namespace cvc5::internal::api
 
 namespace std {
 /**
  * Hash function for Terms.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::api::Term>
+struct CVC5_EXPORT hash<cvc5::internal::api::Term>
 {
-  size_t operator()(const cvc5::api::Term& t) const;
+  size_t operator()(const cvc5::internal::api::Term& t) const;
 };
 }  // namespace std
 
-namespace cvc5::api {
+namespace cvc5::internal::api {
 
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
@@ -1823,9 +1823,9 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::DTypeConstructor`` is not ref counted.
+   *       since ``cvc5::internal::DTypeConstructor`` is not ref counted.
    */
-  std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
+  std::shared_ptr<cvc5::internal::DTypeConstructor> d_ctor;
 };
 
 class Solver;
@@ -1912,7 +1912,7 @@ class CVC5_EXPORT DatatypeDecl
                bool isCoDatatype = false);
 
   /** @return the internal wrapped Dtype of this datatype declaration. */
-  cvc5::DType& getDatatype(void) const;
+  cvc5::internal::DType& getDatatype(void) const;
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1929,9 +1929,9 @@ class CVC5_EXPORT DatatypeDecl
    * The internal (intermediate) datatype wrapped by this datatype
    * declaration.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::DType`` is not ref counted.
+   *       since ``cvc5::internal::DType`` is not ref counted.
    */
-  std::shared_ptr<cvc5::DType> d_dtype;
+  std::shared_ptr<cvc5::internal::DType> d_dtype;
 };
 
 /**
@@ -1989,7 +1989,7 @@ class CVC5_EXPORT DatatypeSelector
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const Solver* slv, const cvc5::DTypeSelector& stor);
+  DatatypeSelector(const Solver* slv, const cvc5::internal::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2005,9 +2005,9 @@ class CVC5_EXPORT DatatypeSelector
   /**
    * The internal datatype selector wrapped by this datatype selector.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::DType`` is not ref counted.
+   *       since ``cvc5::internal::DType`` is not ref counted.
    */
-  std::shared_ptr<cvc5::DTypeSelector> d_stor;
+  std::shared_ptr<cvc5::internal::DTypeSelector> d_stor;
 };
 
 /**
@@ -2203,7 +2203,7 @@ class CVC5_EXPORT DatatypeConstructor
      * @param begin true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
-                   const cvc5::DTypeConstructor& ctor,
+                   const cvc5::internal::DTypeConstructor& ctor,
                    bool begin);
 
     /**
@@ -2242,7 +2242,7 @@ class CVC5_EXPORT DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const Solver* slv, const cvc5::DTypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const cvc5::internal::DTypeConstructor& ctor);
 
   /**
    * Return selector for name.
@@ -2265,9 +2265,9 @@ class CVC5_EXPORT DatatypeConstructor
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::DType`` is not ref counted.
+   *       since ``cvc5::internal::DType`` is not ref counted.
    */
-  std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
+  std::shared_ptr<cvc5::internal::DTypeConstructor> d_ctor;
 };
 
 /**
@@ -2459,7 +2459,7 @@ class CVC5_EXPORT Datatype
      * @param dtype the internal datatype to iterate over
      * @param begin true if this is a begin() iterator
      */
-    const_iterator(const Solver* slv, const cvc5::DType& dtype, bool begin);
+    const_iterator(const Solver* slv, const cvc5::internal::DType& dtype, bool begin);
 
     /**
      * The associated solver object.
@@ -2497,7 +2497,7 @@ class CVC5_EXPORT Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const Solver* slv, const cvc5::DType& dtype);
+  Datatype(const Solver* slv, const cvc5::internal::DType& dtype);
 
   /**
    * Return constructor for name.
@@ -2527,9 +2527,9 @@ class CVC5_EXPORT Datatype
   /**
    * The internal datatype wrapped by this datatype.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
-   *       since ``cvc5::DType`` is not ref counted.
+   *       since ``cvc5::internal::DType`` is not ref counted.
    */
-  std::shared_ptr<cvc5::DType> d_dtype;
+  std::shared_ptr<cvc5::internal::DType> d_dtype;
 };
 
 /**
@@ -2596,7 +2596,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC5_EXPORT Grammar
 {
-  friend class cvc5::Command;
+  friend class cvc5::internal::Command;
   friend class Solver;
 
  public:
@@ -3044,8 +3044,8 @@ class CVC5_EXPORT Solver
   friend class DriverOptions;
   friend class Grammar;
   friend class Op;
-  friend class cvc5::Command;
-  friend class cvc5::main::CommandExecutor;
+  friend class cvc5::internal::Command;
+  friend class cvc5::internal::main::CommandExecutor;
   friend class Sort;
   friend class Term;
 
@@ -3337,11 +3337,11 @@ class CVC5_EXPORT Solver
    *   - #INT_TO_BITVECTOR
    *   - #TUPLE_PROJECT
    *
-   * See cvc5::api::Kind for a description of the parameters.
+   * See cvc5::internal::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param args the arguments (indices) of the operator
    *
-   * @note If ``args`` is empty, the Op simply wraps the cvc5::api::Kind.  The
+   * @note If ``args`` is empty, the Op simply wraps the cvc5::internal::api::Kind.  The
    * Kind can be used in Solver::mkTerm directly without creating an Op
    * first.
    */
@@ -3356,7 +3356,7 @@ class CVC5_EXPORT Solver
   /**
    * Create operator of kind:
    *   - DIVISIBLE (to support arbitrary precision integers)
-   * See cvc5::api::Kind for a description of the parameters.
+   * See cvc5::internal::api::Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
@@ -4980,6 +4980,6 @@ class CVC5_EXPORT Solver
   std::unique_ptr<Random> d_rng;
 };
 
-}  // namespace cvc5::api
+}  // namespace cvc5::internal::api
 
 #endif

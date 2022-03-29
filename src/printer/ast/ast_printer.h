@@ -22,17 +22,17 @@
 
 #include "printer/printer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LetBinding;
 
 namespace printer {
 namespace ast {
 
-class AstPrinter : public cvc5::Printer
+class AstPrinter : public cvc5::internal::Printer
 {
  public:
-  using cvc5::Printer::toStream;
+  using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
@@ -186,6 +186,6 @@ class AstPrinter : public cvc5::Printer
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__AST_PRINTER_H */

@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
@@ -937,4 +937,4 @@ api::Term Parser::mkCharConstant(const std::string& s)
 }
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -28,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -287,4 +287,4 @@ SimplexDecisionProcedure::sgn_table::const_iterator SimplexDecisionProcedure::fi
 }
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

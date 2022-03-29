@@ -32,7 +32,7 @@
 #include "parser/line_buffer.h"
 #include "parser/parser_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
@@ -256,6 +256,6 @@ inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
 }
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARSER__ANTLR_INPUT_H */

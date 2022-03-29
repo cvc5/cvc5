@@ -17,7 +17,7 @@
 
 #include "theory/arith/theory_arith_private.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -35,4 +35,4 @@ void ArithState::setParent(TheoryArithPrivate* p) { d_parent = p; }
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

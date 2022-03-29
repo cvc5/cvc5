@@ -27,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
@@ -467,4 +467,4 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s)
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal

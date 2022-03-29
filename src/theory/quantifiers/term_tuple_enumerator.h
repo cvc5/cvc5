@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -101,5 +101,5 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif /* TERM_TUPLE_ENUMERATOR_H_7640 */

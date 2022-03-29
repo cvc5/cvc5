@@ -26,7 +26,7 @@
 #include "cvc5_export.h"
 #include "expr/symbol_table.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /** Represents the result of a call to `setExpressionName()`. */
 enum class NamingResult
@@ -189,6 +189,6 @@ class CVC5_EXPORT SymbolManager
   bool d_globalDeclarations;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__SYMBOL_MANAGER_H */

@@ -39,9 +39,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscNodeConverter::LfscNodeConverter()
@@ -1200,4 +1200,4 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

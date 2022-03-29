@@ -20,7 +20,7 @@
 
 #include <ostream>
 
-namespace cvc5::api {
+namespace cvc5::internal::api {
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -32,12 +32,12 @@ namespace cvc5::api {
  *
  * \internal
  *
- * Note that the API type `cvc5::api::Kind` roughly corresponds to
- * `cvc5::Kind`, but is a different type. It hides internal kinds that should
+ * Note that the API type `cvc5::internal::api::Kind` roughly corresponds to
+ * `cvc5::internal::Kind`, but is a different type. It hides internal kinds that should
  * not be exported to the API, and maps all kinds that we want to export to its
- * corresponding internal kinds. The underlying type of `cvc5::api::Kind` must
+ * corresponding internal kinds. The underlying type of `cvc5::internal::api::Kind` must
  * be signed (to enable range checks for validity). The size of this type
- * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
+ * depends on the size of `cvc5::internal::Kind` (`NodeValue::NBITS_KIND`, currently 10
  * bits, see expr/node_value.h).
  */
 enum Kind : int32_t
@@ -4180,7 +4180,7 @@ std::string kindToString(Kind k) CVC5_EXPORT;
  */
 std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
 
-}  // namespace cvc5::api
+}  // namespace cvc5::internal::api
 
 namespace std {
 
@@ -4188,12 +4188,12 @@ namespace std {
  * Hash function for Kinds.
  */
 template<>
-struct CVC5_EXPORT hash<cvc5::api::Kind>
+struct CVC5_EXPORT hash<cvc5::internal::api::Kind>
 {
   /**
    * Hashes a Kind to a size_t.
    */
-  size_t operator()(cvc5::api::Kind k) const;
+  size_t operator()(cvc5::internal::api::Kind k) const;
 };
 
 }

@@ -57,7 +57,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 #ifdef	ANTLR3_WINDOWS
@@ -526,4 +526,4 @@ getSourceName				(pANTLR3_INT_STREAM is)
 }
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal

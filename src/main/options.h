@@ -22,7 +22,7 @@
 
 #include "api/cpp/cvc5.h"
 
-namespace cvc5::main {
+namespace cvc5::internal::main {
 
 /**
  * Print overall command-line option usage message to the given output stream
@@ -47,6 +47,6 @@ std::vector<std::string> parse(api::Solver& solver,
                                char* argv[],
                                std::string& binaryName);
 
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options
 
 #endif

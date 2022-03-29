@@ -20,7 +20,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_model_builder.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 ModelManagerDistributed::ModelManagerDistributed(Env& env,
@@ -126,4 +126,4 @@ bool ModelManagerDistributed::finishBuildModel() const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -20,7 +20,7 @@
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
@@ -536,7 +536,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i) \
           << "a term associated with this solver object";       \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,   \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,   \
           "bound variable",                                     \
           bound_vars,                                           \
           i)                                                    \
@@ -568,7 +568,7 @@ namespace api {
           this == bv.d_solver, "bound variable", bound_vars, i)               \
           << "a term associated with this solver object";                     \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == cvc5::Kind::BOUND_VARIABLE,                 \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,                 \
           "bound variable",                                                   \
           bound_vars,                                                         \
           i)                                                                  \
@@ -676,5 +676,5 @@ namespace api {
       << expected << " but got " << nargs << "."
 
 }  // namespace api
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

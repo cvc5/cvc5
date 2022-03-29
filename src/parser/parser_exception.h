@@ -25,7 +25,7 @@
 #include "base/exception.h"
 #include "cvc5_export.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 class CVC5_EXPORT ParserException : public Exception
@@ -99,6 +99,6 @@ class ParserEndOfFileException : public ParserException
 }; /* class ParserEndOfFileException */
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARSER__PARSER_EXCEPTION_H */

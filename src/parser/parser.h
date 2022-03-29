@@ -32,7 +32,7 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // Forward declarations
 class Command;
@@ -773,6 +773,6 @@ public:
 }; /* class Parser */
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARSER__PARSER_STATE_H */

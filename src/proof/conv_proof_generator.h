@@ -22,7 +22,7 @@
 #include "proof/lazy_proof.h"
 #include "proof/proof_generator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class TermContext;
@@ -251,6 +251,6 @@ class TConvProofGenerator : public ProofGenerator
   std::string toStringDebug() const;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__CONV_PROOF_GENERATOR_H */

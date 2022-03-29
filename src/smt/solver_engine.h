@@ -31,7 +31,7 @@
 #include "util/result.h"
 #include "util/synth_result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -109,9 +109,9 @@ class QuantifiersEngine;
 
 class CVC5_EXPORT SolverEngine
 {
-  friend class ::cvc5::api::Solver;
-  friend class ::cvc5::smt::SolverEngineState;
-  friend class ::cvc5::smt::SolverEngineScope;
+  friend class ::cvc5::internal::api::Solver;
+  friend class ::cvc5::internal::smt::SolverEngineState;
+  friend class ::cvc5::internal::smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -1119,6 +1119,6 @@ class CVC5_EXPORT SolverEngine
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT_ENGINE_H */

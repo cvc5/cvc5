@@ -32,7 +32,7 @@
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using Record = std::vector<std::pair<std::string, TypeNode>>;
 
@@ -180,7 +180,7 @@ class NodeManager
   /**
    * Get the (singleton) operator of an OPERATOR-kinded kind.  The
    * returned node n will have kind BUILTIN, and calling
-   * n.getConst<cvc5::Kind>() will yield k.
+   * n.getConst<cvc5::internal::Kind>() will yield k.
    */
   TNode operatorOf(Kind k);
 
@@ -1049,7 +1049,7 @@ class NodeManager
    * ADD, are APPLYs of a ADD operator to arguments.  This array
    * holds the set of operators for these things.  A ADD operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<cvc5::Kind>(), you get kind::ADD back.
+   * plusOperator->getConst<cvc5::internal::Kind>(), you get kind::ADD back.
    */
   Node d_operators[kind::LAST_KIND];
 
@@ -1253,6 +1253,6 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 ${metakind_mkConstDelete}
 // clang-format off
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_MANAGER_H */

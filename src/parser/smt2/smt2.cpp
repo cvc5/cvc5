@@ -27,7 +27,7 @@
 // ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
 #undef ADD
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver,
@@ -1266,4 +1266,4 @@ bool Smt2::isConstInt(const api::Term& t)
 }
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal

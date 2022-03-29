@@ -29,7 +29,7 @@
 #include "smt/command.h"
 #include "smt/solver_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace main {
 
 // Function to cancel any (externally-imposed) limit on CPU time.
@@ -223,4 +223,4 @@ void CommandExecutor::flushOutputStreams() {
 }
 
 }  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::internal

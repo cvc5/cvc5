@@ -20,9 +20,9 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 
-using namespace cvc5::context;
+using namespace cvc5::internal::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 // ---------------------------------------------- SymbolManager::Implementation
 
@@ -431,4 +431,4 @@ void SymbolManager::resetAssertions()
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

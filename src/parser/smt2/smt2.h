@@ -29,7 +29,7 @@
 #include "parser/parser.h"
 #include "theory/logic_info.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Command;
 
@@ -431,6 +431,6 @@ class Smt2 : public Parser
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARSER__SMT2_H */

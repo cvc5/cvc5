@@ -24,7 +24,7 @@
 #include "expr/node_converter.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * This converts a node into one that does not involve (arithmetic) subtyping.
@@ -43,6 +43,6 @@ class SubtypeElimNodeConverter : public NodeConverter
   static bool isRealTypeStrict(TypeNode tn);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

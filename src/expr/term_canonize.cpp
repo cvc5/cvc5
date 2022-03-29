@@ -20,9 +20,9 @@
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 TermCanonize::TermCanonize(TypeClassCallback* tcc)
@@ -239,4 +239,4 @@ Node TermCanonize::getCanonicalTerm(TNode n,
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

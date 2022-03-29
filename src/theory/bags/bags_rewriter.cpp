@@ -20,9 +20,9 @@
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -663,4 +663,4 @@ BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

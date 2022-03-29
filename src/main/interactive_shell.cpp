@@ -50,7 +50,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace parser;
 using namespace language;
@@ -431,4 +431,4 @@ char* commandGenerator(const char* text, int state) {
 
 #endif /* HAVE_LIBEDITLINE */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

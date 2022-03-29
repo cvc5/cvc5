@@ -27,7 +27,7 @@
 #include "parser/smt2/Smt2Parser.h"
 #include "parser/smt2/smt2.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 /* Use lookahead=2 */
@@ -69,4 +69,4 @@ api::Term Smt2Input::parseExpr()
 }
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal

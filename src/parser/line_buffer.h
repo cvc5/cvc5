@@ -26,7 +26,7 @@
 #include <istream>
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace parser {
 
 class LineBuffer {
@@ -72,6 +72,6 @@ class LineBuffer {
 };
 
 }  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PARSER__LINE_BUFFER_H */

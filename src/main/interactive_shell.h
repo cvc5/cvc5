@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Command;
 
@@ -72,6 +72,6 @@ class InteractiveShell
   static const unsigned s_historyLimit = 500;
 };/* class InteractiveShell */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__INTERACTIVE_SHELL_H */

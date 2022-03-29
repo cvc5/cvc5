@@ -19,7 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -85,4 +85,4 @@ Node EmeEvalTds::eval(TNode n,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

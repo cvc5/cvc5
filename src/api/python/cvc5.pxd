@@ -51,7 +51,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         pass
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::internal::api":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](size_t idx) except +
@@ -182,7 +182,7 @@ cdef extern from "<variant>" namespace "std":
     bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
     T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::internal::api":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
@@ -202,7 +202,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isUnknown() except +
         string toString() except +
 
-    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
+    cdef extern from "api/cpp/cvc5.h" namespace "cvc5::Result":
         cdef cppclass UnknownExplanation:
             pass
 
@@ -528,7 +528,19 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t operator()(const Term & t) except +
 
 
+<<<<<<< HEAD
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
+=======
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::internal::api::RoundingMode":
+    cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
+    cdef RoundingMode ROUND_TOWARD_POSITIVE,
+    cdef RoundingMode ROUND_TOWARD_NEGATIVE,
+    cdef RoundingMode ROUND_TOWARD_ZERO,
+    cdef RoundingMode ROUND_NEAREST_TIES_TO_AWAY
+
+
+cdef extern from "api/cpp/cvc5.h" namespace "cvc5::internal::api::Result::UnknownExplanation":
+>>>>>>> c3aa979dbd (Introduce cvc5::internal.)
     cdef UnknownExplanation REQUIRES_FULL_CHECK
     cdef UnknownExplanation INCOMPLETE
     cdef UnknownExplanation TIMEOUT

@@ -88,7 +88,7 @@
 #include "util/uninterpreted_sort_value.h"
 #include "util/utility.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
@@ -112,592 +112,592 @@ struct APIStatistics
   }
 
 /* Mapping from external (API) kind to internal kind. */
-const static std::unordered_map<Kind, std::pair<cvc5::Kind, std::string>>
+const static std::unordered_map<Kind, std::pair<cvc5::internal::Kind, std::string>>
     s_kinds{
-        KIND_ENUM(INTERNAL_KIND, cvc5::Kind::UNDEFINED_KIND),
-        KIND_ENUM(UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND),
-        KIND_ENUM(NULL_TERM, cvc5::Kind::NULL_EXPR),
+        KIND_ENUM(INTERNAL_KIND, cvc5::internal::Kind::UNDEFINED_KIND),
+        KIND_ENUM(UNDEFINED_KIND, cvc5::internal::Kind::UNDEFINED_KIND),
+        KIND_ENUM(NULL_TERM, cvc5::internal::Kind::NULL_EXPR),
         /* Builtin ---------------------------------------------------------- */
         KIND_ENUM(UNINTERPRETED_SORT_VALUE,
-                  cvc5::Kind::UNINTERPRETED_SORT_VALUE),
-        KIND_ENUM(EQUAL, cvc5::Kind::EQUAL),
-        KIND_ENUM(DISTINCT, cvc5::Kind::DISTINCT),
-        KIND_ENUM(CONSTANT, cvc5::Kind::VARIABLE),
-        KIND_ENUM(VARIABLE, cvc5::Kind::BOUND_VARIABLE),
-        KIND_ENUM(SEXPR, cvc5::Kind::SEXPR),
-        KIND_ENUM(LAMBDA, cvc5::Kind::LAMBDA),
-        KIND_ENUM(WITNESS, cvc5::Kind::WITNESS),
+                  cvc5::internal::Kind::UNINTERPRETED_SORT_VALUE),
+        KIND_ENUM(EQUAL, cvc5::internal::Kind::EQUAL),
+        KIND_ENUM(DISTINCT, cvc5::internal::Kind::DISTINCT),
+        KIND_ENUM(CONSTANT, cvc5::internal::Kind::VARIABLE),
+        KIND_ENUM(VARIABLE, cvc5::internal::Kind::BOUND_VARIABLE),
+        KIND_ENUM(SEXPR, cvc5::internal::Kind::SEXPR),
+        KIND_ENUM(LAMBDA, cvc5::internal::Kind::LAMBDA),
+        KIND_ENUM(WITNESS, cvc5::internal::Kind::WITNESS),
         /* Boolean ---------------------------------------------------------- */
-        KIND_ENUM(CONST_BOOLEAN, cvc5::Kind::CONST_BOOLEAN),
-        KIND_ENUM(NOT, cvc5::Kind::NOT),
-        KIND_ENUM(AND, cvc5::Kind::AND),
-        KIND_ENUM(IMPLIES, cvc5::Kind::IMPLIES),
-        KIND_ENUM(OR, cvc5::Kind::OR),
-        KIND_ENUM(XOR, cvc5::Kind::XOR),
-        KIND_ENUM(ITE, cvc5::Kind::ITE),
+        KIND_ENUM(CONST_BOOLEAN, cvc5::internal::Kind::CONST_BOOLEAN),
+        KIND_ENUM(NOT, cvc5::internal::Kind::NOT),
+        KIND_ENUM(AND, cvc5::internal::Kind::AND),
+        KIND_ENUM(IMPLIES, cvc5::internal::Kind::IMPLIES),
+        KIND_ENUM(OR, cvc5::internal::Kind::OR),
+        KIND_ENUM(XOR, cvc5::internal::Kind::XOR),
+        KIND_ENUM(ITE, cvc5::internal::Kind::ITE),
         /* UF --------------------------------------------------------------- */
-        KIND_ENUM(APPLY_UF, cvc5::Kind::APPLY_UF),
-        KIND_ENUM(CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT),
-        KIND_ENUM(HO_APPLY, cvc5::Kind::HO_APPLY),
+        KIND_ENUM(APPLY_UF, cvc5::internal::Kind::APPLY_UF),
+        KIND_ENUM(CARDINALITY_CONSTRAINT, cvc5::internal::Kind::CARDINALITY_CONSTRAINT),
+        KIND_ENUM(HO_APPLY, cvc5::internal::Kind::HO_APPLY),
         /* Arithmetic ------------------------------------------------------- */
-        KIND_ENUM(ADD, cvc5::Kind::ADD),
-        KIND_ENUM(MULT, cvc5::Kind::MULT),
-        KIND_ENUM(IAND, cvc5::Kind::IAND),
-        KIND_ENUM(POW2, cvc5::Kind::POW2),
-        KIND_ENUM(SUB, cvc5::Kind::SUB),
-        KIND_ENUM(NEG, cvc5::Kind::NEG),
-        KIND_ENUM(DIVISION, cvc5::Kind::DIVISION),
-        KIND_ENUM(INTS_DIVISION, cvc5::Kind::INTS_DIVISION),
-        KIND_ENUM(INTS_MODULUS, cvc5::Kind::INTS_MODULUS),
-        KIND_ENUM(ABS, cvc5::Kind::ABS),
-        KIND_ENUM(DIVISIBLE, cvc5::Kind::DIVISIBLE),
-        KIND_ENUM(POW, cvc5::Kind::POW),
-        KIND_ENUM(EXPONENTIAL, cvc5::Kind::EXPONENTIAL),
-        KIND_ENUM(SINE, cvc5::Kind::SINE),
-        KIND_ENUM(COSINE, cvc5::Kind::COSINE),
-        KIND_ENUM(TANGENT, cvc5::Kind::TANGENT),
-        KIND_ENUM(COSECANT, cvc5::Kind::COSECANT),
-        KIND_ENUM(SECANT, cvc5::Kind::SECANT),
-        KIND_ENUM(COTANGENT, cvc5::Kind::COTANGENT),
-        KIND_ENUM(ARCSINE, cvc5::Kind::ARCSINE),
-        KIND_ENUM(ARCCOSINE, cvc5::Kind::ARCCOSINE),
-        KIND_ENUM(ARCTANGENT, cvc5::Kind::ARCTANGENT),
-        KIND_ENUM(ARCCOSECANT, cvc5::Kind::ARCCOSECANT),
-        KIND_ENUM(ARCSECANT, cvc5::Kind::ARCSECANT),
-        KIND_ENUM(ARCCOTANGENT, cvc5::Kind::ARCCOTANGENT),
-        KIND_ENUM(SQRT, cvc5::Kind::SQRT),
-        KIND_ENUM(CONST_RATIONAL, cvc5::Kind::CONST_RATIONAL),
-        KIND_ENUM(LT, cvc5::Kind::LT),
-        KIND_ENUM(LEQ, cvc5::Kind::LEQ),
-        KIND_ENUM(GT, cvc5::Kind::GT),
-        KIND_ENUM(GEQ, cvc5::Kind::GEQ),
-        KIND_ENUM(IS_INTEGER, cvc5::Kind::IS_INTEGER),
-        KIND_ENUM(TO_INTEGER, cvc5::Kind::TO_INTEGER),
-        KIND_ENUM(TO_REAL, cvc5::Kind::TO_REAL),
-        KIND_ENUM(PI, cvc5::Kind::PI),
+        KIND_ENUM(ADD, cvc5::internal::Kind::ADD),
+        KIND_ENUM(MULT, cvc5::internal::Kind::MULT),
+        KIND_ENUM(IAND, cvc5::internal::Kind::IAND),
+        KIND_ENUM(POW2, cvc5::internal::Kind::POW2),
+        KIND_ENUM(SUB, cvc5::internal::Kind::SUB),
+        KIND_ENUM(NEG, cvc5::internal::Kind::NEG),
+        KIND_ENUM(DIVISION, cvc5::internal::Kind::DIVISION),
+        KIND_ENUM(INTS_DIVISION, cvc5::internal::Kind::INTS_DIVISION),
+        KIND_ENUM(INTS_MODULUS, cvc5::internal::Kind::INTS_MODULUS),
+        KIND_ENUM(ABS, cvc5::internal::Kind::ABS),
+        KIND_ENUM(DIVISIBLE, cvc5::internal::Kind::DIVISIBLE),
+        KIND_ENUM(POW, cvc5::internal::Kind::POW),
+        KIND_ENUM(EXPONENTIAL, cvc5::internal::Kind::EXPONENTIAL),
+        KIND_ENUM(SINE, cvc5::internal::Kind::SINE),
+        KIND_ENUM(COSINE, cvc5::internal::Kind::COSINE),
+        KIND_ENUM(TANGENT, cvc5::internal::Kind::TANGENT),
+        KIND_ENUM(COSECANT, cvc5::internal::Kind::COSECANT),
+        KIND_ENUM(SECANT, cvc5::internal::Kind::SECANT),
+        KIND_ENUM(COTANGENT, cvc5::internal::Kind::COTANGENT),
+        KIND_ENUM(ARCSINE, cvc5::internal::Kind::ARCSINE),
+        KIND_ENUM(ARCCOSINE, cvc5::internal::Kind::ARCCOSINE),
+        KIND_ENUM(ARCTANGENT, cvc5::internal::Kind::ARCTANGENT),
+        KIND_ENUM(ARCCOSECANT, cvc5::internal::Kind::ARCCOSECANT),
+        KIND_ENUM(ARCSECANT, cvc5::internal::Kind::ARCSECANT),
+        KIND_ENUM(ARCCOTANGENT, cvc5::internal::Kind::ARCCOTANGENT),
+        KIND_ENUM(SQRT, cvc5::internal::Kind::SQRT),
+        KIND_ENUM(CONST_RATIONAL, cvc5::internal::Kind::CONST_RATIONAL),
+        KIND_ENUM(LT, cvc5::internal::Kind::LT),
+        KIND_ENUM(LEQ, cvc5::internal::Kind::LEQ),
+        KIND_ENUM(GT, cvc5::internal::Kind::GT),
+        KIND_ENUM(GEQ, cvc5::internal::Kind::GEQ),
+        KIND_ENUM(IS_INTEGER, cvc5::internal::Kind::IS_INTEGER),
+        KIND_ENUM(TO_INTEGER, cvc5::internal::Kind::TO_INTEGER),
+        KIND_ENUM(TO_REAL, cvc5::internal::Kind::TO_REAL),
+        KIND_ENUM(PI, cvc5::internal::Kind::PI),
         /* BV --------------------------------------------------------------- */
-        KIND_ENUM(CONST_BITVECTOR, cvc5::Kind::CONST_BITVECTOR),
-        KIND_ENUM(BITVECTOR_CONCAT, cvc5::Kind::BITVECTOR_CONCAT),
-        KIND_ENUM(BITVECTOR_AND, cvc5::Kind::BITVECTOR_AND),
-        KIND_ENUM(BITVECTOR_OR, cvc5::Kind::BITVECTOR_OR),
-        KIND_ENUM(BITVECTOR_XOR, cvc5::Kind::BITVECTOR_XOR),
-        KIND_ENUM(BITVECTOR_NOT, cvc5::Kind::BITVECTOR_NOT),
-        KIND_ENUM(BITVECTOR_NAND, cvc5::Kind::BITVECTOR_NAND),
-        KIND_ENUM(BITVECTOR_NOR, cvc5::Kind::BITVECTOR_NOR),
-        KIND_ENUM(BITVECTOR_XNOR, cvc5::Kind::BITVECTOR_XNOR),
-        KIND_ENUM(BITVECTOR_COMP, cvc5::Kind::BITVECTOR_COMP),
-        KIND_ENUM(BITVECTOR_MULT, cvc5::Kind::BITVECTOR_MULT),
-        KIND_ENUM(BITVECTOR_ADD, cvc5::Kind::BITVECTOR_ADD),
-        KIND_ENUM(BITVECTOR_SUB, cvc5::Kind::BITVECTOR_SUB),
-        KIND_ENUM(BITVECTOR_NEG, cvc5::Kind::BITVECTOR_NEG),
-        KIND_ENUM(BITVECTOR_UDIV, cvc5::Kind::BITVECTOR_UDIV),
-        KIND_ENUM(BITVECTOR_UREM, cvc5::Kind::BITVECTOR_UREM),
-        KIND_ENUM(BITVECTOR_SDIV, cvc5::Kind::BITVECTOR_SDIV),
-        KIND_ENUM(BITVECTOR_SREM, cvc5::Kind::BITVECTOR_SREM),
-        KIND_ENUM(BITVECTOR_SMOD, cvc5::Kind::BITVECTOR_SMOD),
-        KIND_ENUM(BITVECTOR_SHL, cvc5::Kind::BITVECTOR_SHL),
-        KIND_ENUM(BITVECTOR_LSHR, cvc5::Kind::BITVECTOR_LSHR),
-        KIND_ENUM(BITVECTOR_ASHR, cvc5::Kind::BITVECTOR_ASHR),
-        KIND_ENUM(BITVECTOR_ULT, cvc5::Kind::BITVECTOR_ULT),
-        KIND_ENUM(BITVECTOR_ULE, cvc5::Kind::BITVECTOR_ULE),
-        KIND_ENUM(BITVECTOR_UGT, cvc5::Kind::BITVECTOR_UGT),
-        KIND_ENUM(BITVECTOR_UGE, cvc5::Kind::BITVECTOR_UGE),
-        KIND_ENUM(BITVECTOR_SLT, cvc5::Kind::BITVECTOR_SLT),
-        KIND_ENUM(BITVECTOR_SLE, cvc5::Kind::BITVECTOR_SLE),
-        KIND_ENUM(BITVECTOR_SGT, cvc5::Kind::BITVECTOR_SGT),
-        KIND_ENUM(BITVECTOR_SGE, cvc5::Kind::BITVECTOR_SGE),
-        KIND_ENUM(BITVECTOR_ULTBV, cvc5::Kind::BITVECTOR_ULTBV),
-        KIND_ENUM(BITVECTOR_SLTBV, cvc5::Kind::BITVECTOR_SLTBV),
-        KIND_ENUM(BITVECTOR_ITE, cvc5::Kind::BITVECTOR_ITE),
-        KIND_ENUM(BITVECTOR_REDOR, cvc5::Kind::BITVECTOR_REDOR),
-        KIND_ENUM(BITVECTOR_REDAND, cvc5::Kind::BITVECTOR_REDAND),
-        KIND_ENUM(BITVECTOR_EXTRACT, cvc5::Kind::BITVECTOR_EXTRACT),
-        KIND_ENUM(BITVECTOR_REPEAT, cvc5::Kind::BITVECTOR_REPEAT),
-        KIND_ENUM(BITVECTOR_ZERO_EXTEND, cvc5::Kind::BITVECTOR_ZERO_EXTEND),
-        KIND_ENUM(BITVECTOR_SIGN_EXTEND, cvc5::Kind::BITVECTOR_SIGN_EXTEND),
-        KIND_ENUM(BITVECTOR_ROTATE_LEFT, cvc5::Kind::BITVECTOR_ROTATE_LEFT),
-        KIND_ENUM(BITVECTOR_ROTATE_RIGHT, cvc5::Kind::BITVECTOR_ROTATE_RIGHT),
-        KIND_ENUM(INT_TO_BITVECTOR, cvc5::Kind::INT_TO_BITVECTOR),
-        KIND_ENUM(BITVECTOR_TO_NAT, cvc5::Kind::BITVECTOR_TO_NAT),
+        KIND_ENUM(CONST_BITVECTOR, cvc5::internal::Kind::CONST_BITVECTOR),
+        KIND_ENUM(BITVECTOR_CONCAT, cvc5::internal::Kind::BITVECTOR_CONCAT),
+        KIND_ENUM(BITVECTOR_AND, cvc5::internal::Kind::BITVECTOR_AND),
+        KIND_ENUM(BITVECTOR_OR, cvc5::internal::Kind::BITVECTOR_OR),
+        KIND_ENUM(BITVECTOR_XOR, cvc5::internal::Kind::BITVECTOR_XOR),
+        KIND_ENUM(BITVECTOR_NOT, cvc5::internal::Kind::BITVECTOR_NOT),
+        KIND_ENUM(BITVECTOR_NAND, cvc5::internal::Kind::BITVECTOR_NAND),
+        KIND_ENUM(BITVECTOR_NOR, cvc5::internal::Kind::BITVECTOR_NOR),
+        KIND_ENUM(BITVECTOR_XNOR, cvc5::internal::Kind::BITVECTOR_XNOR),
+        KIND_ENUM(BITVECTOR_COMP, cvc5::internal::Kind::BITVECTOR_COMP),
+        KIND_ENUM(BITVECTOR_MULT, cvc5::internal::Kind::BITVECTOR_MULT),
+        KIND_ENUM(BITVECTOR_ADD, cvc5::internal::Kind::BITVECTOR_ADD),
+        KIND_ENUM(BITVECTOR_SUB, cvc5::internal::Kind::BITVECTOR_SUB),
+        KIND_ENUM(BITVECTOR_NEG, cvc5::internal::Kind::BITVECTOR_NEG),
+        KIND_ENUM(BITVECTOR_UDIV, cvc5::internal::Kind::BITVECTOR_UDIV),
+        KIND_ENUM(BITVECTOR_UREM, cvc5::internal::Kind::BITVECTOR_UREM),
+        KIND_ENUM(BITVECTOR_SDIV, cvc5::internal::Kind::BITVECTOR_SDIV),
+        KIND_ENUM(BITVECTOR_SREM, cvc5::internal::Kind::BITVECTOR_SREM),
+        KIND_ENUM(BITVECTOR_SMOD, cvc5::internal::Kind::BITVECTOR_SMOD),
+        KIND_ENUM(BITVECTOR_SHL, cvc5::internal::Kind::BITVECTOR_SHL),
+        KIND_ENUM(BITVECTOR_LSHR, cvc5::internal::Kind::BITVECTOR_LSHR),
+        KIND_ENUM(BITVECTOR_ASHR, cvc5::internal::Kind::BITVECTOR_ASHR),
+        KIND_ENUM(BITVECTOR_ULT, cvc5::internal::Kind::BITVECTOR_ULT),
+        KIND_ENUM(BITVECTOR_ULE, cvc5::internal::Kind::BITVECTOR_ULE),
+        KIND_ENUM(BITVECTOR_UGT, cvc5::internal::Kind::BITVECTOR_UGT),
+        KIND_ENUM(BITVECTOR_UGE, cvc5::internal::Kind::BITVECTOR_UGE),
+        KIND_ENUM(BITVECTOR_SLT, cvc5::internal::Kind::BITVECTOR_SLT),
+        KIND_ENUM(BITVECTOR_SLE, cvc5::internal::Kind::BITVECTOR_SLE),
+        KIND_ENUM(BITVECTOR_SGT, cvc5::internal::Kind::BITVECTOR_SGT),
+        KIND_ENUM(BITVECTOR_SGE, cvc5::internal::Kind::BITVECTOR_SGE),
+        KIND_ENUM(BITVECTOR_ULTBV, cvc5::internal::Kind::BITVECTOR_ULTBV),
+        KIND_ENUM(BITVECTOR_SLTBV, cvc5::internal::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(BITVECTOR_ITE, cvc5::internal::Kind::BITVECTOR_ITE),
+        KIND_ENUM(BITVECTOR_REDOR, cvc5::internal::Kind::BITVECTOR_REDOR),
+        KIND_ENUM(BITVECTOR_REDAND, cvc5::internal::Kind::BITVECTOR_REDAND),
+        KIND_ENUM(BITVECTOR_EXTRACT, cvc5::internal::Kind::BITVECTOR_EXTRACT),
+        KIND_ENUM(BITVECTOR_REPEAT, cvc5::internal::Kind::BITVECTOR_REPEAT),
+        KIND_ENUM(BITVECTOR_ZERO_EXTEND, cvc5::internal::Kind::BITVECTOR_ZERO_EXTEND),
+        KIND_ENUM(BITVECTOR_SIGN_EXTEND, cvc5::internal::Kind::BITVECTOR_SIGN_EXTEND),
+        KIND_ENUM(BITVECTOR_ROTATE_LEFT, cvc5::internal::Kind::BITVECTOR_ROTATE_LEFT),
+        KIND_ENUM(BITVECTOR_ROTATE_RIGHT, cvc5::internal::Kind::BITVECTOR_ROTATE_RIGHT),
+        KIND_ENUM(INT_TO_BITVECTOR, cvc5::internal::Kind::INT_TO_BITVECTOR),
+        KIND_ENUM(BITVECTOR_TO_NAT, cvc5::internal::Kind::BITVECTOR_TO_NAT),
         /* FP --------------------------------------------------------------- */
-        KIND_ENUM(CONST_FLOATINGPOINT, cvc5::Kind::CONST_FLOATINGPOINT),
-        KIND_ENUM(CONST_ROUNDINGMODE, cvc5::Kind::CONST_ROUNDINGMODE),
-        KIND_ENUM(FLOATINGPOINT_FP, cvc5::Kind::FLOATINGPOINT_FP),
-        KIND_ENUM(FLOATINGPOINT_EQ, cvc5::Kind::FLOATINGPOINT_EQ),
-        KIND_ENUM(FLOATINGPOINT_ABS, cvc5::Kind::FLOATINGPOINT_ABS),
-        KIND_ENUM(FLOATINGPOINT_NEG, cvc5::Kind::FLOATINGPOINT_NEG),
-        KIND_ENUM(FLOATINGPOINT_ADD, cvc5::Kind::FLOATINGPOINT_ADD),
-        KIND_ENUM(FLOATINGPOINT_SUB, cvc5::Kind::FLOATINGPOINT_SUB),
-        KIND_ENUM(FLOATINGPOINT_MULT, cvc5::Kind::FLOATINGPOINT_MULT),
-        KIND_ENUM(FLOATINGPOINT_DIV, cvc5::Kind::FLOATINGPOINT_DIV),
-        KIND_ENUM(FLOATINGPOINT_FMA, cvc5::Kind::FLOATINGPOINT_FMA),
-        KIND_ENUM(FLOATINGPOINT_SQRT, cvc5::Kind::FLOATINGPOINT_SQRT),
-        KIND_ENUM(FLOATINGPOINT_REM, cvc5::Kind::FLOATINGPOINT_REM),
-        KIND_ENUM(FLOATINGPOINT_RTI, cvc5::Kind::FLOATINGPOINT_RTI),
-        KIND_ENUM(FLOATINGPOINT_MIN, cvc5::Kind::FLOATINGPOINT_MIN),
-        KIND_ENUM(FLOATINGPOINT_MAX, cvc5::Kind::FLOATINGPOINT_MAX),
-        KIND_ENUM(FLOATINGPOINT_LEQ, cvc5::Kind::FLOATINGPOINT_LEQ),
-        KIND_ENUM(FLOATINGPOINT_LT, cvc5::Kind::FLOATINGPOINT_LT),
-        KIND_ENUM(FLOATINGPOINT_GEQ, cvc5::Kind::FLOATINGPOINT_GEQ),
-        KIND_ENUM(FLOATINGPOINT_GT, cvc5::Kind::FLOATINGPOINT_GT),
-        KIND_ENUM(FLOATINGPOINT_IS_NORMAL, cvc5::Kind::FLOATINGPOINT_IS_NORMAL),
+        KIND_ENUM(CONST_FLOATINGPOINT, cvc5::internal::Kind::CONST_FLOATINGPOINT),
+        KIND_ENUM(CONST_ROUNDINGMODE, cvc5::internal::Kind::CONST_ROUNDINGMODE),
+        KIND_ENUM(FLOATINGPOINT_FP, cvc5::internal::Kind::FLOATINGPOINT_FP),
+        KIND_ENUM(FLOATINGPOINT_EQ, cvc5::internal::Kind::FLOATINGPOINT_EQ),
+        KIND_ENUM(FLOATINGPOINT_ABS, cvc5::internal::Kind::FLOATINGPOINT_ABS),
+        KIND_ENUM(FLOATINGPOINT_NEG, cvc5::internal::Kind::FLOATINGPOINT_NEG),
+        KIND_ENUM(FLOATINGPOINT_ADD, cvc5::internal::Kind::FLOATINGPOINT_ADD),
+        KIND_ENUM(FLOATINGPOINT_SUB, cvc5::internal::Kind::FLOATINGPOINT_SUB),
+        KIND_ENUM(FLOATINGPOINT_MULT, cvc5::internal::Kind::FLOATINGPOINT_MULT),
+        KIND_ENUM(FLOATINGPOINT_DIV, cvc5::internal::Kind::FLOATINGPOINT_DIV),
+        KIND_ENUM(FLOATINGPOINT_FMA, cvc5::internal::Kind::FLOATINGPOINT_FMA),
+        KIND_ENUM(FLOATINGPOINT_SQRT, cvc5::internal::Kind::FLOATINGPOINT_SQRT),
+        KIND_ENUM(FLOATINGPOINT_REM, cvc5::internal::Kind::FLOATINGPOINT_REM),
+        KIND_ENUM(FLOATINGPOINT_RTI, cvc5::internal::Kind::FLOATINGPOINT_RTI),
+        KIND_ENUM(FLOATINGPOINT_MIN, cvc5::internal::Kind::FLOATINGPOINT_MIN),
+        KIND_ENUM(FLOATINGPOINT_MAX, cvc5::internal::Kind::FLOATINGPOINT_MAX),
+        KIND_ENUM(FLOATINGPOINT_LEQ, cvc5::internal::Kind::FLOATINGPOINT_LEQ),
+        KIND_ENUM(FLOATINGPOINT_LT, cvc5::internal::Kind::FLOATINGPOINT_LT),
+        KIND_ENUM(FLOATINGPOINT_GEQ, cvc5::internal::Kind::FLOATINGPOINT_GEQ),
+        KIND_ENUM(FLOATINGPOINT_GT, cvc5::internal::Kind::FLOATINGPOINT_GT),
+        KIND_ENUM(FLOATINGPOINT_IS_NORMAL, cvc5::internal::Kind::FLOATINGPOINT_IS_NORMAL),
         KIND_ENUM(FLOATINGPOINT_IS_SUBNORMAL,
-                  cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL),
-        KIND_ENUM(FLOATINGPOINT_IS_ZERO, cvc5::Kind::FLOATINGPOINT_IS_ZERO),
-        KIND_ENUM(FLOATINGPOINT_IS_INF, cvc5::Kind::FLOATINGPOINT_IS_INF),
-        KIND_ENUM(FLOATINGPOINT_IS_NAN, cvc5::Kind::FLOATINGPOINT_IS_NAN),
-        KIND_ENUM(FLOATINGPOINT_IS_NEG, cvc5::Kind::FLOATINGPOINT_IS_NEG),
-        KIND_ENUM(FLOATINGPOINT_IS_POS, cvc5::Kind::FLOATINGPOINT_IS_POS),
+                  cvc5::internal::Kind::FLOATINGPOINT_IS_SUBNORMAL),
+        KIND_ENUM(FLOATINGPOINT_IS_ZERO, cvc5::internal::Kind::FLOATINGPOINT_IS_ZERO),
+        KIND_ENUM(FLOATINGPOINT_IS_INF, cvc5::internal::Kind::FLOATINGPOINT_IS_INF),
+        KIND_ENUM(FLOATINGPOINT_IS_NAN, cvc5::internal::Kind::FLOATINGPOINT_IS_NAN),
+        KIND_ENUM(FLOATINGPOINT_IS_NEG, cvc5::internal::Kind::FLOATINGPOINT_IS_NEG),
+        KIND_ENUM(FLOATINGPOINT_IS_POS, cvc5::internal::Kind::FLOATINGPOINT_IS_POS),
         KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_FP,
-                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP),
+                  cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP),
         KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV),
+                  cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV),
         KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_REAL,
-                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL),
+                  cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL),
         KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_SBV,
-                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV),
+                  cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV),
         KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_UBV,
-                  cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV),
-        KIND_ENUM(FLOATINGPOINT_TO_UBV, cvc5::Kind::FLOATINGPOINT_TO_UBV),
-        KIND_ENUM(FLOATINGPOINT_TO_SBV, cvc5::Kind::FLOATINGPOINT_TO_SBV),
-        KIND_ENUM(FLOATINGPOINT_TO_REAL, cvc5::Kind::FLOATINGPOINT_TO_REAL),
+                  cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV),
+        KIND_ENUM(FLOATINGPOINT_TO_UBV, cvc5::internal::Kind::FLOATINGPOINT_TO_UBV),
+        KIND_ENUM(FLOATINGPOINT_TO_SBV, cvc5::internal::Kind::FLOATINGPOINT_TO_SBV),
+        KIND_ENUM(FLOATINGPOINT_TO_REAL, cvc5::internal::Kind::FLOATINGPOINT_TO_REAL),
         /* Arrays ----------------------------------------------------------- */
-        KIND_ENUM(SELECT, cvc5::Kind::SELECT),
-        KIND_ENUM(STORE, cvc5::Kind::STORE),
-        KIND_ENUM(CONST_ARRAY, cvc5::Kind::STORE_ALL),
-        KIND_ENUM(EQ_RANGE, cvc5::Kind::EQ_RANGE),
+        KIND_ENUM(SELECT, cvc5::internal::Kind::SELECT),
+        KIND_ENUM(STORE, cvc5::internal::Kind::STORE),
+        KIND_ENUM(CONST_ARRAY, cvc5::internal::Kind::STORE_ALL),
+        KIND_ENUM(EQ_RANGE, cvc5::internal::Kind::EQ_RANGE),
         /* Datatypes -------------------------------------------------------- */
-        KIND_ENUM(APPLY_SELECTOR, cvc5::Kind::APPLY_SELECTOR),
-        KIND_ENUM(APPLY_CONSTRUCTOR, cvc5::Kind::APPLY_CONSTRUCTOR),
-        KIND_ENUM(APPLY_TESTER, cvc5::Kind::APPLY_TESTER),
-        KIND_ENUM(APPLY_UPDATER, cvc5::Kind::APPLY_UPDATER),
-        KIND_ENUM(DT_SIZE, cvc5::Kind::DT_SIZE),
-        KIND_ENUM(MATCH, cvc5::Kind::MATCH),
-        KIND_ENUM(MATCH_CASE, cvc5::Kind::MATCH_CASE),
-        KIND_ENUM(MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE),
-        KIND_ENUM(TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT),
+        KIND_ENUM(APPLY_SELECTOR, cvc5::internal::Kind::APPLY_SELECTOR),
+        KIND_ENUM(APPLY_CONSTRUCTOR, cvc5::internal::Kind::APPLY_CONSTRUCTOR),
+        KIND_ENUM(APPLY_TESTER, cvc5::internal::Kind::APPLY_TESTER),
+        KIND_ENUM(APPLY_UPDATER, cvc5::internal::Kind::APPLY_UPDATER),
+        KIND_ENUM(DT_SIZE, cvc5::internal::Kind::DT_SIZE),
+        KIND_ENUM(MATCH, cvc5::internal::Kind::MATCH),
+        KIND_ENUM(MATCH_CASE, cvc5::internal::Kind::MATCH_CASE),
+        KIND_ENUM(MATCH_BIND_CASE, cvc5::internal::Kind::MATCH_BIND_CASE),
+        KIND_ENUM(TUPLE_PROJECT, cvc5::internal::Kind::TUPLE_PROJECT),
         /* Separation Logic ------------------------------------------------- */
-        KIND_ENUM(SEP_NIL, cvc5::Kind::SEP_NIL),
-        KIND_ENUM(SEP_EMP, cvc5::Kind::SEP_EMP),
-        KIND_ENUM(SEP_PTO, cvc5::Kind::SEP_PTO),
-        KIND_ENUM(SEP_STAR, cvc5::Kind::SEP_STAR),
-        KIND_ENUM(SEP_WAND, cvc5::Kind::SEP_WAND),
+        KIND_ENUM(SEP_NIL, cvc5::internal::Kind::SEP_NIL),
+        KIND_ENUM(SEP_EMP, cvc5::internal::Kind::SEP_EMP),
+        KIND_ENUM(SEP_PTO, cvc5::internal::Kind::SEP_PTO),
+        KIND_ENUM(SEP_STAR, cvc5::internal::Kind::SEP_STAR),
+        KIND_ENUM(SEP_WAND, cvc5::internal::Kind::SEP_WAND),
         /* Sets ------------------------------------------------------------- */
-        KIND_ENUM(SET_EMPTY, cvc5::Kind::SET_EMPTY),
-        KIND_ENUM(SET_UNION, cvc5::Kind::SET_UNION),
-        KIND_ENUM(SET_INTER, cvc5::Kind::SET_INTER),
-        KIND_ENUM(SET_MINUS, cvc5::Kind::SET_MINUS),
-        KIND_ENUM(SET_SUBSET, cvc5::Kind::SET_SUBSET),
-        KIND_ENUM(SET_MEMBER, cvc5::Kind::SET_MEMBER),
-        KIND_ENUM(SET_SINGLETON, cvc5::Kind::SET_SINGLETON),
-        KIND_ENUM(SET_INSERT, cvc5::Kind::SET_INSERT),
-        KIND_ENUM(SET_CARD, cvc5::Kind::SET_CARD),
-        KIND_ENUM(SET_COMPLEMENT, cvc5::Kind::SET_COMPLEMENT),
-        KIND_ENUM(SET_UNIVERSE, cvc5::Kind::SET_UNIVERSE),
-        KIND_ENUM(SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION),
-        KIND_ENUM(SET_CHOOSE, cvc5::Kind::SET_CHOOSE),
-        KIND_ENUM(SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON),
-        KIND_ENUM(SET_MAP, cvc5::Kind::SET_MAP),
+        KIND_ENUM(SET_EMPTY, cvc5::internal::Kind::SET_EMPTY),
+        KIND_ENUM(SET_UNION, cvc5::internal::Kind::SET_UNION),
+        KIND_ENUM(SET_INTER, cvc5::internal::Kind::SET_INTER),
+        KIND_ENUM(SET_MINUS, cvc5::internal::Kind::SET_MINUS),
+        KIND_ENUM(SET_SUBSET, cvc5::internal::Kind::SET_SUBSET),
+        KIND_ENUM(SET_MEMBER, cvc5::internal::Kind::SET_MEMBER),
+        KIND_ENUM(SET_SINGLETON, cvc5::internal::Kind::SET_SINGLETON),
+        KIND_ENUM(SET_INSERT, cvc5::internal::Kind::SET_INSERT),
+        KIND_ENUM(SET_CARD, cvc5::internal::Kind::SET_CARD),
+        KIND_ENUM(SET_COMPLEMENT, cvc5::internal::Kind::SET_COMPLEMENT),
+        KIND_ENUM(SET_UNIVERSE, cvc5::internal::Kind::SET_UNIVERSE),
+        KIND_ENUM(SET_COMPREHENSION, cvc5::internal::Kind::SET_COMPREHENSION),
+        KIND_ENUM(SET_CHOOSE, cvc5::internal::Kind::SET_CHOOSE),
+        KIND_ENUM(SET_IS_SINGLETON, cvc5::internal::Kind::SET_IS_SINGLETON),
+        KIND_ENUM(SET_MAP, cvc5::internal::Kind::SET_MAP),
         /* Relations -------------------------------------------------------- */
-        KIND_ENUM(RELATION_JOIN, cvc5::Kind::RELATION_JOIN),
-        KIND_ENUM(RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT),
-        KIND_ENUM(RELATION_TRANSPOSE, cvc5::Kind::RELATION_TRANSPOSE),
-        KIND_ENUM(RELATION_TCLOSURE, cvc5::Kind::RELATION_TCLOSURE),
-        KIND_ENUM(RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE),
-        KIND_ENUM(RELATION_IDEN, cvc5::Kind::RELATION_IDEN),
+        KIND_ENUM(RELATION_JOIN, cvc5::internal::Kind::RELATION_JOIN),
+        KIND_ENUM(RELATION_PRODUCT, cvc5::internal::Kind::RELATION_PRODUCT),
+        KIND_ENUM(RELATION_TRANSPOSE, cvc5::internal::Kind::RELATION_TRANSPOSE),
+        KIND_ENUM(RELATION_TCLOSURE, cvc5::internal::Kind::RELATION_TCLOSURE),
+        KIND_ENUM(RELATION_JOIN_IMAGE, cvc5::internal::Kind::RELATION_JOIN_IMAGE),
+        KIND_ENUM(RELATION_IDEN, cvc5::internal::Kind::RELATION_IDEN),
         /* Bags ------------------------------------------------------------- */
-        KIND_ENUM(BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX),
-        KIND_ENUM(BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT),
-        KIND_ENUM(BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN),
-        KIND_ENUM(BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT),
-        KIND_ENUM(BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE),
-        KIND_ENUM(BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG),
-        KIND_ENUM(BAG_COUNT, cvc5::Kind::BAG_COUNT),
-        KIND_ENUM(BAG_MEMBER, cvc5::Kind::BAG_MEMBER),
-        KIND_ENUM(BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL),
-        KIND_ENUM(BAG_MAKE, cvc5::Kind::BAG_MAKE),
-        KIND_ENUM(BAG_EMPTY, cvc5::Kind::BAG_EMPTY),
-        KIND_ENUM(BAG_CARD, cvc5::Kind::BAG_CARD),
-        KIND_ENUM(BAG_CHOOSE, cvc5::Kind::BAG_CHOOSE),
-        KIND_ENUM(BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON),
-        KIND_ENUM(BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET),
-        KIND_ENUM(BAG_TO_SET, cvc5::Kind::BAG_TO_SET),
-        KIND_ENUM(BAG_MAP, cvc5::Kind::BAG_MAP),
-        KIND_ENUM(BAG_FILTER, cvc5::Kind::BAG_FILTER),
-        KIND_ENUM(BAG_FOLD, cvc5::Kind::BAG_FOLD),
-        KIND_ENUM(TABLE_PRODUCT, cvc5::Kind::TABLE_PRODUCT),
+        KIND_ENUM(BAG_UNION_MAX, cvc5::internal::Kind::BAG_UNION_MAX),
+        KIND_ENUM(BAG_UNION_DISJOINT, cvc5::internal::Kind::BAG_UNION_DISJOINT),
+        KIND_ENUM(BAG_INTER_MIN, cvc5::internal::Kind::BAG_INTER_MIN),
+        KIND_ENUM(BAG_DIFFERENCE_SUBTRACT, cvc5::internal::Kind::BAG_DIFFERENCE_SUBTRACT),
+        KIND_ENUM(BAG_DIFFERENCE_REMOVE, cvc5::internal::Kind::BAG_DIFFERENCE_REMOVE),
+        KIND_ENUM(BAG_SUBBAG, cvc5::internal::Kind::BAG_SUBBAG),
+        KIND_ENUM(BAG_COUNT, cvc5::internal::Kind::BAG_COUNT),
+        KIND_ENUM(BAG_MEMBER, cvc5::internal::Kind::BAG_MEMBER),
+        KIND_ENUM(BAG_DUPLICATE_REMOVAL, cvc5::internal::Kind::BAG_DUPLICATE_REMOVAL),
+        KIND_ENUM(BAG_MAKE, cvc5::internal::Kind::BAG_MAKE),
+        KIND_ENUM(BAG_EMPTY, cvc5::internal::Kind::BAG_EMPTY),
+        KIND_ENUM(BAG_CARD, cvc5::internal::Kind::BAG_CARD),
+        KIND_ENUM(BAG_CHOOSE, cvc5::internal::Kind::BAG_CHOOSE),
+        KIND_ENUM(BAG_IS_SINGLETON, cvc5::internal::Kind::BAG_IS_SINGLETON),
+        KIND_ENUM(BAG_FROM_SET, cvc5::internal::Kind::BAG_FROM_SET),
+        KIND_ENUM(BAG_TO_SET, cvc5::internal::Kind::BAG_TO_SET),
+        KIND_ENUM(BAG_MAP, cvc5::internal::Kind::BAG_MAP),
+        KIND_ENUM(BAG_FILTER, cvc5::internal::Kind::BAG_FILTER),
+        KIND_ENUM(BAG_FOLD, cvc5::internal::Kind::BAG_FOLD),
+        KIND_ENUM(TABLE_PRODUCT, cvc5::internal::Kind::TABLE_PRODUCT),
         /* Strings ---------------------------------------------------------- */
-        KIND_ENUM(STRING_CONCAT, cvc5::Kind::STRING_CONCAT),
-        KIND_ENUM(STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP),
-        KIND_ENUM(STRING_LENGTH, cvc5::Kind::STRING_LENGTH),
-        KIND_ENUM(STRING_SUBSTR, cvc5::Kind::STRING_SUBSTR),
-        KIND_ENUM(STRING_UPDATE, cvc5::Kind::STRING_UPDATE),
-        KIND_ENUM(STRING_CHARAT, cvc5::Kind::STRING_CHARAT),
-        KIND_ENUM(STRING_CONTAINS, cvc5::Kind::STRING_CONTAINS),
-        KIND_ENUM(STRING_INDEXOF, cvc5::Kind::STRING_INDEXOF),
-        KIND_ENUM(STRING_INDEXOF_RE, cvc5::Kind::STRING_INDEXOF_RE),
-        KIND_ENUM(STRING_REPLACE, cvc5::Kind::STRING_REPLACE),
-        KIND_ENUM(STRING_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL),
-        KIND_ENUM(STRING_REPLACE_RE, cvc5::Kind::STRING_REPLACE_RE),
-        KIND_ENUM(STRING_REPLACE_RE_ALL, cvc5::Kind::STRING_REPLACE_RE_ALL),
-        KIND_ENUM(STRING_TO_LOWER, cvc5::Kind::STRING_TO_LOWER),
-        KIND_ENUM(STRING_TO_UPPER, cvc5::Kind::STRING_TO_UPPER),
-        KIND_ENUM(STRING_REV, cvc5::Kind::STRING_REV),
-        KIND_ENUM(STRING_FROM_CODE, cvc5::Kind::STRING_FROM_CODE),
-        KIND_ENUM(STRING_TO_CODE, cvc5::Kind::STRING_TO_CODE),
-        KIND_ENUM(STRING_LT, cvc5::Kind::STRING_LT),
-        KIND_ENUM(STRING_LEQ, cvc5::Kind::STRING_LEQ),
-        KIND_ENUM(STRING_PREFIX, cvc5::Kind::STRING_PREFIX),
-        KIND_ENUM(STRING_SUFFIX, cvc5::Kind::STRING_SUFFIX),
-        KIND_ENUM(STRING_IS_DIGIT, cvc5::Kind::STRING_IS_DIGIT),
-        KIND_ENUM(STRING_FROM_INT, cvc5::Kind::STRING_ITOS),
-        KIND_ENUM(STRING_TO_INT, cvc5::Kind::STRING_STOI),
-        KIND_ENUM(CONST_STRING, cvc5::Kind::CONST_STRING),
-        KIND_ENUM(STRING_TO_REGEXP, cvc5::Kind::STRING_TO_REGEXP),
-        KIND_ENUM(REGEXP_CONCAT, cvc5::Kind::REGEXP_CONCAT),
-        KIND_ENUM(REGEXP_UNION, cvc5::Kind::REGEXP_UNION),
-        KIND_ENUM(REGEXP_INTER, cvc5::Kind::REGEXP_INTER),
-        KIND_ENUM(REGEXP_DIFF, cvc5::Kind::REGEXP_DIFF),
-        KIND_ENUM(REGEXP_STAR, cvc5::Kind::REGEXP_STAR),
-        KIND_ENUM(REGEXP_PLUS, cvc5::Kind::REGEXP_PLUS),
-        KIND_ENUM(REGEXP_OPT, cvc5::Kind::REGEXP_OPT),
-        KIND_ENUM(REGEXP_RANGE, cvc5::Kind::REGEXP_RANGE),
-        KIND_ENUM(REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT),
-        KIND_ENUM(REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP),
-        KIND_ENUM(REGEXP_NONE, cvc5::Kind::REGEXP_NONE),
-        KIND_ENUM(REGEXP_ALL, cvc5::Kind::REGEXP_ALL),
-        KIND_ENUM(REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR),
-        KIND_ENUM(REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT),
+        KIND_ENUM(STRING_CONCAT, cvc5::internal::Kind::STRING_CONCAT),
+        KIND_ENUM(STRING_IN_REGEXP, cvc5::internal::Kind::STRING_IN_REGEXP),
+        KIND_ENUM(STRING_LENGTH, cvc5::internal::Kind::STRING_LENGTH),
+        KIND_ENUM(STRING_SUBSTR, cvc5::internal::Kind::STRING_SUBSTR),
+        KIND_ENUM(STRING_UPDATE, cvc5::internal::Kind::STRING_UPDATE),
+        KIND_ENUM(STRING_CHARAT, cvc5::internal::Kind::STRING_CHARAT),
+        KIND_ENUM(STRING_CONTAINS, cvc5::internal::Kind::STRING_CONTAINS),
+        KIND_ENUM(STRING_INDEXOF, cvc5::internal::Kind::STRING_INDEXOF),
+        KIND_ENUM(STRING_INDEXOF_RE, cvc5::internal::Kind::STRING_INDEXOF_RE),
+        KIND_ENUM(STRING_REPLACE, cvc5::internal::Kind::STRING_REPLACE),
+        KIND_ENUM(STRING_REPLACE_ALL, cvc5::internal::Kind::STRING_REPLACE_ALL),
+        KIND_ENUM(STRING_REPLACE_RE, cvc5::internal::Kind::STRING_REPLACE_RE),
+        KIND_ENUM(STRING_REPLACE_RE_ALL, cvc5::internal::Kind::STRING_REPLACE_RE_ALL),
+        KIND_ENUM(STRING_TO_LOWER, cvc5::internal::Kind::STRING_TO_LOWER),
+        KIND_ENUM(STRING_TO_UPPER, cvc5::internal::Kind::STRING_TO_UPPER),
+        KIND_ENUM(STRING_REV, cvc5::internal::Kind::STRING_REV),
+        KIND_ENUM(STRING_FROM_CODE, cvc5::internal::Kind::STRING_FROM_CODE),
+        KIND_ENUM(STRING_TO_CODE, cvc5::internal::Kind::STRING_TO_CODE),
+        KIND_ENUM(STRING_LT, cvc5::internal::Kind::STRING_LT),
+        KIND_ENUM(STRING_LEQ, cvc5::internal::Kind::STRING_LEQ),
+        KIND_ENUM(STRING_PREFIX, cvc5::internal::Kind::STRING_PREFIX),
+        KIND_ENUM(STRING_SUFFIX, cvc5::internal::Kind::STRING_SUFFIX),
+        KIND_ENUM(STRING_IS_DIGIT, cvc5::internal::Kind::STRING_IS_DIGIT),
+        KIND_ENUM(STRING_FROM_INT, cvc5::internal::Kind::STRING_ITOS),
+        KIND_ENUM(STRING_TO_INT, cvc5::internal::Kind::STRING_STOI),
+        KIND_ENUM(CONST_STRING, cvc5::internal::Kind::CONST_STRING),
+        KIND_ENUM(STRING_TO_REGEXP, cvc5::internal::Kind::STRING_TO_REGEXP),
+        KIND_ENUM(REGEXP_CONCAT, cvc5::internal::Kind::REGEXP_CONCAT),
+        KIND_ENUM(REGEXP_UNION, cvc5::internal::Kind::REGEXP_UNION),
+        KIND_ENUM(REGEXP_INTER, cvc5::internal::Kind::REGEXP_INTER),
+        KIND_ENUM(REGEXP_DIFF, cvc5::internal::Kind::REGEXP_DIFF),
+        KIND_ENUM(REGEXP_STAR, cvc5::internal::Kind::REGEXP_STAR),
+        KIND_ENUM(REGEXP_PLUS, cvc5::internal::Kind::REGEXP_PLUS),
+        KIND_ENUM(REGEXP_OPT, cvc5::internal::Kind::REGEXP_OPT),
+        KIND_ENUM(REGEXP_RANGE, cvc5::internal::Kind::REGEXP_RANGE),
+        KIND_ENUM(REGEXP_REPEAT, cvc5::internal::Kind::REGEXP_REPEAT),
+        KIND_ENUM(REGEXP_LOOP, cvc5::internal::Kind::REGEXP_LOOP),
+        KIND_ENUM(REGEXP_NONE, cvc5::internal::Kind::REGEXP_NONE),
+        KIND_ENUM(REGEXP_ALL, cvc5::internal::Kind::REGEXP_ALL),
+        KIND_ENUM(REGEXP_ALLCHAR, cvc5::internal::Kind::REGEXP_ALLCHAR),
+        KIND_ENUM(REGEXP_COMPLEMENT, cvc5::internal::Kind::REGEXP_COMPLEMENT),
         // maps to the same kind as the string versions
-        KIND_ENUM(SEQ_CONCAT, cvc5::Kind::STRING_CONCAT),
-        KIND_ENUM(SEQ_LENGTH, cvc5::Kind::STRING_LENGTH),
-        KIND_ENUM(SEQ_EXTRACT, cvc5::Kind::STRING_SUBSTR),
-        KIND_ENUM(SEQ_UPDATE, cvc5::Kind::STRING_UPDATE),
-        KIND_ENUM(SEQ_AT, cvc5::Kind::STRING_CHARAT),
-        KIND_ENUM(SEQ_CONTAINS, cvc5::Kind::STRING_CONTAINS),
-        KIND_ENUM(SEQ_INDEXOF, cvc5::Kind::STRING_INDEXOF),
-        KIND_ENUM(SEQ_REPLACE, cvc5::Kind::STRING_REPLACE),
-        KIND_ENUM(SEQ_REPLACE_ALL, cvc5::Kind::STRING_REPLACE_ALL),
-        KIND_ENUM(SEQ_REV, cvc5::Kind::STRING_REV),
-        KIND_ENUM(SEQ_PREFIX, cvc5::Kind::STRING_PREFIX),
-        KIND_ENUM(SEQ_SUFFIX, cvc5::Kind::STRING_SUFFIX),
-        KIND_ENUM(CONST_SEQUENCE, cvc5::Kind::CONST_SEQUENCE),
-        KIND_ENUM(SEQ_UNIT, cvc5::Kind::SEQ_UNIT),
-        KIND_ENUM(SEQ_NTH, cvc5::Kind::SEQ_NTH),
+        KIND_ENUM(SEQ_CONCAT, cvc5::internal::Kind::STRING_CONCAT),
+        KIND_ENUM(SEQ_LENGTH, cvc5::internal::Kind::STRING_LENGTH),
+        KIND_ENUM(SEQ_EXTRACT, cvc5::internal::Kind::STRING_SUBSTR),
+        KIND_ENUM(SEQ_UPDATE, cvc5::internal::Kind::STRING_UPDATE),
+        KIND_ENUM(SEQ_AT, cvc5::internal::Kind::STRING_CHARAT),
+        KIND_ENUM(SEQ_CONTAINS, cvc5::internal::Kind::STRING_CONTAINS),
+        KIND_ENUM(SEQ_INDEXOF, cvc5::internal::Kind::STRING_INDEXOF),
+        KIND_ENUM(SEQ_REPLACE, cvc5::internal::Kind::STRING_REPLACE),
+        KIND_ENUM(SEQ_REPLACE_ALL, cvc5::internal::Kind::STRING_REPLACE_ALL),
+        KIND_ENUM(SEQ_REV, cvc5::internal::Kind::STRING_REV),
+        KIND_ENUM(SEQ_PREFIX, cvc5::internal::Kind::STRING_PREFIX),
+        KIND_ENUM(SEQ_SUFFIX, cvc5::internal::Kind::STRING_SUFFIX),
+        KIND_ENUM(CONST_SEQUENCE, cvc5::internal::Kind::CONST_SEQUENCE),
+        KIND_ENUM(SEQ_UNIT, cvc5::internal::Kind::SEQ_UNIT),
+        KIND_ENUM(SEQ_NTH, cvc5::internal::Kind::SEQ_NTH),
         /* Quantifiers ------------------------------------------------------ */
-        KIND_ENUM(FORALL, cvc5::Kind::FORALL),
-        KIND_ENUM(EXISTS, cvc5::Kind::EXISTS),
-        KIND_ENUM(VARIABLE_LIST, cvc5::Kind::BOUND_VAR_LIST),
-        KIND_ENUM(INST_PATTERN, cvc5::Kind::INST_PATTERN),
-        KIND_ENUM(INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN),
-        KIND_ENUM(INST_POOL, cvc5::Kind::INST_POOL),
-        KIND_ENUM(INST_ADD_TO_POOL, cvc5::Kind::INST_ADD_TO_POOL),
-        KIND_ENUM(SKOLEM_ADD_TO_POOL, cvc5::Kind::SKOLEM_ADD_TO_POOL),
-        KIND_ENUM(INST_ATTRIBUTE, cvc5::Kind::INST_ATTRIBUTE),
-        KIND_ENUM(INST_PATTERN_LIST, cvc5::Kind::INST_PATTERN_LIST),
-        KIND_ENUM(LAST_KIND, cvc5::Kind::LAST_KIND),
+        KIND_ENUM(FORALL, cvc5::internal::Kind::FORALL),
+        KIND_ENUM(EXISTS, cvc5::internal::Kind::EXISTS),
+        KIND_ENUM(VARIABLE_LIST, cvc5::internal::Kind::BOUND_VAR_LIST),
+        KIND_ENUM(INST_PATTERN, cvc5::internal::Kind::INST_PATTERN),
+        KIND_ENUM(INST_NO_PATTERN, cvc5::internal::Kind::INST_NO_PATTERN),
+        KIND_ENUM(INST_POOL, cvc5::internal::Kind::INST_POOL),
+        KIND_ENUM(INST_ADD_TO_POOL, cvc5::internal::Kind::INST_ADD_TO_POOL),
+        KIND_ENUM(SKOLEM_ADD_TO_POOL, cvc5::internal::Kind::SKOLEM_ADD_TO_POOL),
+        KIND_ENUM(INST_ATTRIBUTE, cvc5::internal::Kind::INST_ATTRIBUTE),
+        KIND_ENUM(INST_PATTERN_LIST, cvc5::internal::Kind::INST_PATTERN_LIST),
+        KIND_ENUM(LAST_KIND, cvc5::internal::Kind::LAST_KIND),
     };
 
 /* Mapping from internal kind to external (API) kind. */
-const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
+const static std::unordered_map<cvc5::internal::Kind, Kind, cvc5::internal::kind::KindHashFunction>
     s_kinds_internal{
-        {cvc5::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
-        {cvc5::Kind::NULL_EXPR, NULL_TERM},
+        {cvc5::internal::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
+        {cvc5::internal::Kind::NULL_EXPR, NULL_TERM},
         /* Builtin --------------------------------------------------------- */
-        {cvc5::Kind::UNINTERPRETED_SORT_VALUE, UNINTERPRETED_SORT_VALUE},
-        {cvc5::Kind::EQUAL, EQUAL},
-        {cvc5::Kind::DISTINCT, DISTINCT},
-        {cvc5::Kind::VARIABLE, CONSTANT},
-        {cvc5::Kind::BOUND_VARIABLE, VARIABLE},
-        {cvc5::Kind::SEXPR, SEXPR},
-        {cvc5::Kind::LAMBDA, LAMBDA},
-        {cvc5::Kind::WITNESS, WITNESS},
+        {cvc5::internal::Kind::UNINTERPRETED_SORT_VALUE, UNINTERPRETED_SORT_VALUE},
+        {cvc5::internal::Kind::EQUAL, EQUAL},
+        {cvc5::internal::Kind::DISTINCT, DISTINCT},
+        {cvc5::internal::Kind::VARIABLE, CONSTANT},
+        {cvc5::internal::Kind::BOUND_VARIABLE, VARIABLE},
+        {cvc5::internal::Kind::SEXPR, SEXPR},
+        {cvc5::internal::Kind::LAMBDA, LAMBDA},
+        {cvc5::internal::Kind::WITNESS, WITNESS},
         /* Boolean --------------------------------------------------------- */
-        {cvc5::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
-        {cvc5::Kind::NOT, NOT},
-        {cvc5::Kind::AND, AND},
-        {cvc5::Kind::IMPLIES, IMPLIES},
-        {cvc5::Kind::OR, OR},
-        {cvc5::Kind::XOR, XOR},
-        {cvc5::Kind::ITE, ITE},
+        {cvc5::internal::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
+        {cvc5::internal::Kind::NOT, NOT},
+        {cvc5::internal::Kind::AND, AND},
+        {cvc5::internal::Kind::IMPLIES, IMPLIES},
+        {cvc5::internal::Kind::OR, OR},
+        {cvc5::internal::Kind::XOR, XOR},
+        {cvc5::internal::Kind::ITE, ITE},
         /* UF -------------------------------------------------------------- */
-        {cvc5::Kind::APPLY_UF, APPLY_UF},
-        {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
-        {cvc5::Kind::HO_APPLY, HO_APPLY},
+        {cvc5::internal::Kind::APPLY_UF, APPLY_UF},
+        {cvc5::internal::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
+        {cvc5::internal::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
-        {cvc5::Kind::ADD, ADD},
-        {cvc5::Kind::MULT, MULT},
-        {cvc5::Kind::IAND, IAND},
-        {cvc5::Kind::POW2, POW2},
-        {cvc5::Kind::SUB, SUB},
-        {cvc5::Kind::NEG, NEG},
-        {cvc5::Kind::DIVISION, DIVISION},
-        {cvc5::Kind::DIVISION_TOTAL, INTERNAL_KIND},
-        {cvc5::Kind::INTS_DIVISION, INTS_DIVISION},
-        {cvc5::Kind::INTS_DIVISION_TOTAL, INTERNAL_KIND},
-        {cvc5::Kind::INTS_MODULUS, INTS_MODULUS},
-        {cvc5::Kind::INTS_MODULUS_TOTAL, INTERNAL_KIND},
-        {cvc5::Kind::ABS, ABS},
-        {cvc5::Kind::DIVISIBLE, DIVISIBLE},
-        {cvc5::Kind::POW, POW},
-        {cvc5::Kind::EXPONENTIAL, EXPONENTIAL},
-        {cvc5::Kind::SINE, SINE},
-        {cvc5::Kind::COSINE, COSINE},
-        {cvc5::Kind::TANGENT, TANGENT},
-        {cvc5::Kind::COSECANT, COSECANT},
-        {cvc5::Kind::SECANT, SECANT},
-        {cvc5::Kind::COTANGENT, COTANGENT},
-        {cvc5::Kind::ARCSINE, ARCSINE},
-        {cvc5::Kind::ARCCOSINE, ARCCOSINE},
-        {cvc5::Kind::ARCTANGENT, ARCTANGENT},
-        {cvc5::Kind::ARCCOSECANT, ARCCOSECANT},
-        {cvc5::Kind::ARCSECANT, ARCSECANT},
-        {cvc5::Kind::ARCCOTANGENT, ARCCOTANGENT},
-        {cvc5::Kind::SQRT, SQRT},
-        {cvc5::Kind::DIVISIBLE_OP, DIVISIBLE},
-        {cvc5::Kind::CONST_RATIONAL, CONST_RATIONAL},
-        {cvc5::Kind::LT, LT},
-        {cvc5::Kind::LEQ, LEQ},
-        {cvc5::Kind::GT, GT},
-        {cvc5::Kind::GEQ, GEQ},
-        {cvc5::Kind::IS_INTEGER, IS_INTEGER},
-        {cvc5::Kind::TO_INTEGER, TO_INTEGER},
-        {cvc5::Kind::TO_REAL, TO_REAL},
-        {cvc5::Kind::PI, PI},
-        {cvc5::Kind::IAND_OP, IAND},
+        {cvc5::internal::Kind::ADD, ADD},
+        {cvc5::internal::Kind::MULT, MULT},
+        {cvc5::internal::Kind::IAND, IAND},
+        {cvc5::internal::Kind::POW2, POW2},
+        {cvc5::internal::Kind::SUB, SUB},
+        {cvc5::internal::Kind::NEG, NEG},
+        {cvc5::internal::Kind::DIVISION, DIVISION},
+        {cvc5::internal::Kind::DIVISION_TOTAL, INTERNAL_KIND},
+        {cvc5::internal::Kind::INTS_DIVISION, INTS_DIVISION},
+        {cvc5::internal::Kind::INTS_DIVISION_TOTAL, INTERNAL_KIND},
+        {cvc5::internal::Kind::INTS_MODULUS, INTS_MODULUS},
+        {cvc5::internal::Kind::INTS_MODULUS_TOTAL, INTERNAL_KIND},
+        {cvc5::internal::Kind::ABS, ABS},
+        {cvc5::internal::Kind::DIVISIBLE, DIVISIBLE},
+        {cvc5::internal::Kind::POW, POW},
+        {cvc5::internal::Kind::EXPONENTIAL, EXPONENTIAL},
+        {cvc5::internal::Kind::SINE, SINE},
+        {cvc5::internal::Kind::COSINE, COSINE},
+        {cvc5::internal::Kind::TANGENT, TANGENT},
+        {cvc5::internal::Kind::COSECANT, COSECANT},
+        {cvc5::internal::Kind::SECANT, SECANT},
+        {cvc5::internal::Kind::COTANGENT, COTANGENT},
+        {cvc5::internal::Kind::ARCSINE, ARCSINE},
+        {cvc5::internal::Kind::ARCCOSINE, ARCCOSINE},
+        {cvc5::internal::Kind::ARCTANGENT, ARCTANGENT},
+        {cvc5::internal::Kind::ARCCOSECANT, ARCCOSECANT},
+        {cvc5::internal::Kind::ARCSECANT, ARCSECANT},
+        {cvc5::internal::Kind::ARCCOTANGENT, ARCCOTANGENT},
+        {cvc5::internal::Kind::SQRT, SQRT},
+        {cvc5::internal::Kind::DIVISIBLE_OP, DIVISIBLE},
+        {cvc5::internal::Kind::CONST_RATIONAL, CONST_RATIONAL},
+        {cvc5::internal::Kind::LT, LT},
+        {cvc5::internal::Kind::LEQ, LEQ},
+        {cvc5::internal::Kind::GT, GT},
+        {cvc5::internal::Kind::GEQ, GEQ},
+        {cvc5::internal::Kind::IS_INTEGER, IS_INTEGER},
+        {cvc5::internal::Kind::TO_INTEGER, TO_INTEGER},
+        {cvc5::internal::Kind::TO_REAL, TO_REAL},
+        {cvc5::internal::Kind::PI, PI},
+        {cvc5::internal::Kind::IAND_OP, IAND},
         /* BV -------------------------------------------------------------- */
-        {cvc5::Kind::CONST_BITVECTOR, CONST_BITVECTOR},
-        {cvc5::Kind::BITVECTOR_CONCAT, BITVECTOR_CONCAT},
-        {cvc5::Kind::BITVECTOR_AND, BITVECTOR_AND},
-        {cvc5::Kind::BITVECTOR_OR, BITVECTOR_OR},
-        {cvc5::Kind::BITVECTOR_XOR, BITVECTOR_XOR},
-        {cvc5::Kind::BITVECTOR_NOT, BITVECTOR_NOT},
-        {cvc5::Kind::BITVECTOR_NAND, BITVECTOR_NAND},
-        {cvc5::Kind::BITVECTOR_NOR, BITVECTOR_NOR},
-        {cvc5::Kind::BITVECTOR_XNOR, BITVECTOR_XNOR},
-        {cvc5::Kind::BITVECTOR_COMP, BITVECTOR_COMP},
-        {cvc5::Kind::BITVECTOR_MULT, BITVECTOR_MULT},
-        {cvc5::Kind::BITVECTOR_ADD, BITVECTOR_ADD},
-        {cvc5::Kind::BITVECTOR_SUB, BITVECTOR_SUB},
-        {cvc5::Kind::BITVECTOR_NEG, BITVECTOR_NEG},
-        {cvc5::Kind::BITVECTOR_UDIV, BITVECTOR_UDIV},
-        {cvc5::Kind::BITVECTOR_UREM, BITVECTOR_UREM},
-        {cvc5::Kind::BITVECTOR_SDIV, BITVECTOR_SDIV},
-        {cvc5::Kind::BITVECTOR_SREM, BITVECTOR_SREM},
-        {cvc5::Kind::BITVECTOR_SMOD, BITVECTOR_SMOD},
-        {cvc5::Kind::BITVECTOR_SHL, BITVECTOR_SHL},
-        {cvc5::Kind::BITVECTOR_LSHR, BITVECTOR_LSHR},
-        {cvc5::Kind::BITVECTOR_ASHR, BITVECTOR_ASHR},
-        {cvc5::Kind::BITVECTOR_ULT, BITVECTOR_ULT},
-        {cvc5::Kind::BITVECTOR_ULE, BITVECTOR_ULE},
-        {cvc5::Kind::BITVECTOR_UGT, BITVECTOR_UGT},
-        {cvc5::Kind::BITVECTOR_UGE, BITVECTOR_UGE},
-        {cvc5::Kind::BITVECTOR_SLT, BITVECTOR_SLT},
-        {cvc5::Kind::BITVECTOR_SLE, BITVECTOR_SLE},
-        {cvc5::Kind::BITVECTOR_SGT, BITVECTOR_SGT},
-        {cvc5::Kind::BITVECTOR_SGE, BITVECTOR_SGE},
-        {cvc5::Kind::BITVECTOR_ULTBV, BITVECTOR_ULTBV},
-        {cvc5::Kind::BITVECTOR_SLTBV, BITVECTOR_SLTBV},
-        {cvc5::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
-        {cvc5::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
-        {cvc5::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
-        {cvc5::Kind::BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT},
-        {cvc5::Kind::BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT},
-        {cvc5::Kind::BITVECTOR_ZERO_EXTEND_OP, BITVECTOR_ZERO_EXTEND},
-        {cvc5::Kind::BITVECTOR_SIGN_EXTEND_OP, BITVECTOR_SIGN_EXTEND},
-        {cvc5::Kind::BITVECTOR_ROTATE_LEFT_OP, BITVECTOR_ROTATE_LEFT},
-        {cvc5::Kind::BITVECTOR_ROTATE_RIGHT_OP, BITVECTOR_ROTATE_RIGHT},
-        {cvc5::Kind::BITVECTOR_EXTRACT, BITVECTOR_EXTRACT},
-        {cvc5::Kind::BITVECTOR_REPEAT, BITVECTOR_REPEAT},
-        {cvc5::Kind::BITVECTOR_ZERO_EXTEND, BITVECTOR_ZERO_EXTEND},
-        {cvc5::Kind::BITVECTOR_SIGN_EXTEND, BITVECTOR_SIGN_EXTEND},
-        {cvc5::Kind::BITVECTOR_ROTATE_LEFT, BITVECTOR_ROTATE_LEFT},
-        {cvc5::Kind::BITVECTOR_ROTATE_RIGHT, BITVECTOR_ROTATE_RIGHT},
-        {cvc5::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR},
-        {cvc5::Kind::INT_TO_BITVECTOR, INT_TO_BITVECTOR},
-        {cvc5::Kind::BITVECTOR_TO_NAT, BITVECTOR_TO_NAT},
+        {cvc5::internal::Kind::CONST_BITVECTOR, CONST_BITVECTOR},
+        {cvc5::internal::Kind::BITVECTOR_CONCAT, BITVECTOR_CONCAT},
+        {cvc5::internal::Kind::BITVECTOR_AND, BITVECTOR_AND},
+        {cvc5::internal::Kind::BITVECTOR_OR, BITVECTOR_OR},
+        {cvc5::internal::Kind::BITVECTOR_XOR, BITVECTOR_XOR},
+        {cvc5::internal::Kind::BITVECTOR_NOT, BITVECTOR_NOT},
+        {cvc5::internal::Kind::BITVECTOR_NAND, BITVECTOR_NAND},
+        {cvc5::internal::Kind::BITVECTOR_NOR, BITVECTOR_NOR},
+        {cvc5::internal::Kind::BITVECTOR_XNOR, BITVECTOR_XNOR},
+        {cvc5::internal::Kind::BITVECTOR_COMP, BITVECTOR_COMP},
+        {cvc5::internal::Kind::BITVECTOR_MULT, BITVECTOR_MULT},
+        {cvc5::internal::Kind::BITVECTOR_ADD, BITVECTOR_ADD},
+        {cvc5::internal::Kind::BITVECTOR_SUB, BITVECTOR_SUB},
+        {cvc5::internal::Kind::BITVECTOR_NEG, BITVECTOR_NEG},
+        {cvc5::internal::Kind::BITVECTOR_UDIV, BITVECTOR_UDIV},
+        {cvc5::internal::Kind::BITVECTOR_UREM, BITVECTOR_UREM},
+        {cvc5::internal::Kind::BITVECTOR_SDIV, BITVECTOR_SDIV},
+        {cvc5::internal::Kind::BITVECTOR_SREM, BITVECTOR_SREM},
+        {cvc5::internal::Kind::BITVECTOR_SMOD, BITVECTOR_SMOD},
+        {cvc5::internal::Kind::BITVECTOR_SHL, BITVECTOR_SHL},
+        {cvc5::internal::Kind::BITVECTOR_LSHR, BITVECTOR_LSHR},
+        {cvc5::internal::Kind::BITVECTOR_ASHR, BITVECTOR_ASHR},
+        {cvc5::internal::Kind::BITVECTOR_ULT, BITVECTOR_ULT},
+        {cvc5::internal::Kind::BITVECTOR_ULE, BITVECTOR_ULE},
+        {cvc5::internal::Kind::BITVECTOR_UGT, BITVECTOR_UGT},
+        {cvc5::internal::Kind::BITVECTOR_UGE, BITVECTOR_UGE},
+        {cvc5::internal::Kind::BITVECTOR_SLT, BITVECTOR_SLT},
+        {cvc5::internal::Kind::BITVECTOR_SLE, BITVECTOR_SLE},
+        {cvc5::internal::Kind::BITVECTOR_SGT, BITVECTOR_SGT},
+        {cvc5::internal::Kind::BITVECTOR_SGE, BITVECTOR_SGE},
+        {cvc5::internal::Kind::BITVECTOR_ULTBV, BITVECTOR_ULTBV},
+        {cvc5::internal::Kind::BITVECTOR_SLTBV, BITVECTOR_SLTBV},
+        {cvc5::internal::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
+        {cvc5::internal::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
+        {cvc5::internal::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
+        {cvc5::internal::Kind::BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT},
+        {cvc5::internal::Kind::BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT},
+        {cvc5::internal::Kind::BITVECTOR_ZERO_EXTEND_OP, BITVECTOR_ZERO_EXTEND},
+        {cvc5::internal::Kind::BITVECTOR_SIGN_EXTEND_OP, BITVECTOR_SIGN_EXTEND},
+        {cvc5::internal::Kind::BITVECTOR_ROTATE_LEFT_OP, BITVECTOR_ROTATE_LEFT},
+        {cvc5::internal::Kind::BITVECTOR_ROTATE_RIGHT_OP, BITVECTOR_ROTATE_RIGHT},
+        {cvc5::internal::Kind::BITVECTOR_EXTRACT, BITVECTOR_EXTRACT},
+        {cvc5::internal::Kind::BITVECTOR_REPEAT, BITVECTOR_REPEAT},
+        {cvc5::internal::Kind::BITVECTOR_ZERO_EXTEND, BITVECTOR_ZERO_EXTEND},
+        {cvc5::internal::Kind::BITVECTOR_SIGN_EXTEND, BITVECTOR_SIGN_EXTEND},
+        {cvc5::internal::Kind::BITVECTOR_ROTATE_LEFT, BITVECTOR_ROTATE_LEFT},
+        {cvc5::internal::Kind::BITVECTOR_ROTATE_RIGHT, BITVECTOR_ROTATE_RIGHT},
+        {cvc5::internal::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR},
+        {cvc5::internal::Kind::INT_TO_BITVECTOR, INT_TO_BITVECTOR},
+        {cvc5::internal::Kind::BITVECTOR_TO_NAT, BITVECTOR_TO_NAT},
         /* FP -------------------------------------------------------------- */
-        {cvc5::Kind::CONST_FLOATINGPOINT, CONST_FLOATINGPOINT},
-        {cvc5::Kind::CONST_ROUNDINGMODE, CONST_ROUNDINGMODE},
-        {cvc5::Kind::FLOATINGPOINT_FP, FLOATINGPOINT_FP},
-        {cvc5::Kind::FLOATINGPOINT_EQ, FLOATINGPOINT_EQ},
-        {cvc5::Kind::FLOATINGPOINT_ABS, FLOATINGPOINT_ABS},
-        {cvc5::Kind::FLOATINGPOINT_NEG, FLOATINGPOINT_NEG},
-        {cvc5::Kind::FLOATINGPOINT_ADD, FLOATINGPOINT_ADD},
-        {cvc5::Kind::FLOATINGPOINT_SUB, FLOATINGPOINT_SUB},
-        {cvc5::Kind::FLOATINGPOINT_MULT, FLOATINGPOINT_MULT},
-        {cvc5::Kind::FLOATINGPOINT_DIV, FLOATINGPOINT_DIV},
-        {cvc5::Kind::FLOATINGPOINT_FMA, FLOATINGPOINT_FMA},
-        {cvc5::Kind::FLOATINGPOINT_SQRT, FLOATINGPOINT_SQRT},
-        {cvc5::Kind::FLOATINGPOINT_REM, FLOATINGPOINT_REM},
-        {cvc5::Kind::FLOATINGPOINT_RTI, FLOATINGPOINT_RTI},
-        {cvc5::Kind::FLOATINGPOINT_MIN, FLOATINGPOINT_MIN},
-        {cvc5::Kind::FLOATINGPOINT_MAX, FLOATINGPOINT_MAX},
-        {cvc5::Kind::FLOATINGPOINT_LEQ, FLOATINGPOINT_LEQ},
-        {cvc5::Kind::FLOATINGPOINT_LT, FLOATINGPOINT_LT},
-        {cvc5::Kind::FLOATINGPOINT_GEQ, FLOATINGPOINT_GEQ},
-        {cvc5::Kind::FLOATINGPOINT_GT, FLOATINGPOINT_GT},
-        {cvc5::Kind::FLOATINGPOINT_IS_NORMAL, FLOATINGPOINT_IS_NORMAL},
-        {cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL, FLOATINGPOINT_IS_SUBNORMAL},
-        {cvc5::Kind::FLOATINGPOINT_IS_ZERO, FLOATINGPOINT_IS_ZERO},
-        {cvc5::Kind::FLOATINGPOINT_IS_INF, FLOATINGPOINT_IS_INF},
-        {cvc5::Kind::FLOATINGPOINT_IS_NAN, FLOATINGPOINT_IS_NAN},
-        {cvc5::Kind::FLOATINGPOINT_IS_NEG, FLOATINGPOINT_IS_NEG},
-        {cvc5::Kind::FLOATINGPOINT_IS_POS, FLOATINGPOINT_IS_POS},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP,
+        {cvc5::internal::Kind::CONST_FLOATINGPOINT, CONST_FLOATINGPOINT},
+        {cvc5::internal::Kind::CONST_ROUNDINGMODE, CONST_ROUNDINGMODE},
+        {cvc5::internal::Kind::FLOATINGPOINT_FP, FLOATINGPOINT_FP},
+        {cvc5::internal::Kind::FLOATINGPOINT_EQ, FLOATINGPOINT_EQ},
+        {cvc5::internal::Kind::FLOATINGPOINT_ABS, FLOATINGPOINT_ABS},
+        {cvc5::internal::Kind::FLOATINGPOINT_NEG, FLOATINGPOINT_NEG},
+        {cvc5::internal::Kind::FLOATINGPOINT_ADD, FLOATINGPOINT_ADD},
+        {cvc5::internal::Kind::FLOATINGPOINT_SUB, FLOATINGPOINT_SUB},
+        {cvc5::internal::Kind::FLOATINGPOINT_MULT, FLOATINGPOINT_MULT},
+        {cvc5::internal::Kind::FLOATINGPOINT_DIV, FLOATINGPOINT_DIV},
+        {cvc5::internal::Kind::FLOATINGPOINT_FMA, FLOATINGPOINT_FMA},
+        {cvc5::internal::Kind::FLOATINGPOINT_SQRT, FLOATINGPOINT_SQRT},
+        {cvc5::internal::Kind::FLOATINGPOINT_REM, FLOATINGPOINT_REM},
+        {cvc5::internal::Kind::FLOATINGPOINT_RTI, FLOATINGPOINT_RTI},
+        {cvc5::internal::Kind::FLOATINGPOINT_MIN, FLOATINGPOINT_MIN},
+        {cvc5::internal::Kind::FLOATINGPOINT_MAX, FLOATINGPOINT_MAX},
+        {cvc5::internal::Kind::FLOATINGPOINT_LEQ, FLOATINGPOINT_LEQ},
+        {cvc5::internal::Kind::FLOATINGPOINT_LT, FLOATINGPOINT_LT},
+        {cvc5::internal::Kind::FLOATINGPOINT_GEQ, FLOATINGPOINT_GEQ},
+        {cvc5::internal::Kind::FLOATINGPOINT_GT, FLOATINGPOINT_GT},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_NORMAL, FLOATINGPOINT_IS_NORMAL},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_SUBNORMAL, FLOATINGPOINT_IS_SUBNORMAL},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_ZERO, FLOATINGPOINT_IS_ZERO},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_INF, FLOATINGPOINT_IS_INF},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_NAN, FLOATINGPOINT_IS_NAN},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_NEG, FLOATINGPOINT_IS_NEG},
+        {cvc5::internal::Kind::FLOATINGPOINT_IS_POS, FLOATINGPOINT_IS_POS},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP,
          FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
          FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP,
          FLOATINGPOINT_TO_FP_FROM_FP},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP, FLOATINGPOINT_TO_FP_FROM_FP},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP, FLOATINGPOINT_TO_FP_FROM_FP},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP,
          FLOATINGPOINT_TO_FP_FROM_REAL},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
          FLOATINGPOINT_TO_FP_FROM_REAL},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP,
          FLOATINGPOINT_TO_FP_FROM_SBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
          FLOATINGPOINT_TO_FP_FROM_SBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP,
          FLOATINGPOINT_TO_FP_FROM_UBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
          FLOATINGPOINT_TO_FP_FROM_UBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_UBV, FLOATINGPOINT_TO_UBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, INTERNAL_KIND},
-        {cvc5::Kind::FLOATINGPOINT_TO_UBV_TOTAL, INTERNAL_KIND},
-        {cvc5::Kind::FLOATINGPOINT_TO_SBV_OP, FLOATINGPOINT_TO_SBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_SBV, FLOATINGPOINT_TO_SBV},
-        {cvc5::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, INTERNAL_KIND},
-        {cvc5::Kind::FLOATINGPOINT_TO_SBV_TOTAL, INTERNAL_KIND},
-        {cvc5::Kind::FLOATINGPOINT_TO_REAL, FLOATINGPOINT_TO_REAL},
-        {cvc5::Kind::FLOATINGPOINT_TO_REAL_TOTAL, INTERNAL_KIND},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_UBV, FLOATINGPOINT_TO_UBV},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, INTERNAL_KIND},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_UBV_TOTAL, INTERNAL_KIND},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_SBV_OP, FLOATINGPOINT_TO_SBV},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_SBV, FLOATINGPOINT_TO_SBV},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, INTERNAL_KIND},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_SBV_TOTAL, INTERNAL_KIND},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_REAL, FLOATINGPOINT_TO_REAL},
+        {cvc5::internal::Kind::FLOATINGPOINT_TO_REAL_TOTAL, INTERNAL_KIND},
         /* Arrays ---------------------------------------------------------- */
-        {cvc5::Kind::SELECT, SELECT},
-        {cvc5::Kind::STORE, STORE},
-        {cvc5::Kind::STORE_ALL, CONST_ARRAY},
+        {cvc5::internal::Kind::SELECT, SELECT},
+        {cvc5::internal::Kind::STORE, STORE},
+        {cvc5::internal::Kind::STORE_ALL, CONST_ARRAY},
         /* Datatypes ------------------------------------------------------- */
-        {cvc5::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
-        {cvc5::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
-        {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
-        {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
-        {cvc5::Kind::DT_SIZE, DT_SIZE},
-        {cvc5::Kind::MATCH, MATCH},
-        {cvc5::Kind::MATCH_CASE, MATCH_CASE},
-        {cvc5::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
-        {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
-        {cvc5::Kind::TUPLE_PROJECT_OP, TUPLE_PROJECT},
+        {cvc5::internal::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
+        {cvc5::internal::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
+        {cvc5::internal::Kind::APPLY_TESTER, APPLY_TESTER},
+        {cvc5::internal::Kind::APPLY_UPDATER, APPLY_UPDATER},
+        {cvc5::internal::Kind::DT_SIZE, DT_SIZE},
+        {cvc5::internal::Kind::MATCH, MATCH},
+        {cvc5::internal::Kind::MATCH_CASE, MATCH_CASE},
+        {cvc5::internal::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
+        {cvc5::internal::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
+        {cvc5::internal::Kind::TUPLE_PROJECT_OP, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
-        {cvc5::Kind::SEP_NIL, SEP_NIL},
-        {cvc5::Kind::SEP_EMP, SEP_EMP},
-        {cvc5::Kind::SEP_PTO, SEP_PTO},
-        {cvc5::Kind::SEP_STAR, SEP_STAR},
-        {cvc5::Kind::SEP_WAND, SEP_WAND},
+        {cvc5::internal::Kind::SEP_NIL, SEP_NIL},
+        {cvc5::internal::Kind::SEP_EMP, SEP_EMP},
+        {cvc5::internal::Kind::SEP_PTO, SEP_PTO},
+        {cvc5::internal::Kind::SEP_STAR, SEP_STAR},
+        {cvc5::internal::Kind::SEP_WAND, SEP_WAND},
         /* Sets ------------------------------------------------------------ */
-        {cvc5::Kind::SET_EMPTY, SET_EMPTY},
-        {cvc5::Kind::SET_UNION, SET_UNION},
-        {cvc5::Kind::SET_INTER, SET_INTER},
-        {cvc5::Kind::SET_MINUS, SET_MINUS},
-        {cvc5::Kind::SET_SUBSET, SET_SUBSET},
-        {cvc5::Kind::SET_MEMBER, SET_MEMBER},
-        {cvc5::Kind::SET_SINGLETON, SET_SINGLETON},
-        {cvc5::Kind::SET_INSERT, SET_INSERT},
-        {cvc5::Kind::SET_CARD, SET_CARD},
-        {cvc5::Kind::SET_COMPLEMENT, SET_COMPLEMENT},
-        {cvc5::Kind::SET_UNIVERSE, SET_UNIVERSE},
-        {cvc5::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
-        {cvc5::Kind::SET_CHOOSE, SET_CHOOSE},
-        {cvc5::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
-        {cvc5::Kind::SET_MAP, SET_MAP},
+        {cvc5::internal::Kind::SET_EMPTY, SET_EMPTY},
+        {cvc5::internal::Kind::SET_UNION, SET_UNION},
+        {cvc5::internal::Kind::SET_INTER, SET_INTER},
+        {cvc5::internal::Kind::SET_MINUS, SET_MINUS},
+        {cvc5::internal::Kind::SET_SUBSET, SET_SUBSET},
+        {cvc5::internal::Kind::SET_MEMBER, SET_MEMBER},
+        {cvc5::internal::Kind::SET_SINGLETON, SET_SINGLETON},
+        {cvc5::internal::Kind::SET_INSERT, SET_INSERT},
+        {cvc5::internal::Kind::SET_CARD, SET_CARD},
+        {cvc5::internal::Kind::SET_COMPLEMENT, SET_COMPLEMENT},
+        {cvc5::internal::Kind::SET_UNIVERSE, SET_UNIVERSE},
+        {cvc5::internal::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
+        {cvc5::internal::Kind::SET_CHOOSE, SET_CHOOSE},
+        {cvc5::internal::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
+        {cvc5::internal::Kind::SET_MAP, SET_MAP},
         /* Relations ------------------------------------------------------- */
-        {cvc5::Kind::RELATION_JOIN, RELATION_JOIN},
-        {cvc5::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
-        {cvc5::Kind::RELATION_TRANSPOSE, RELATION_TRANSPOSE},
-        {cvc5::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
-        {cvc5::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
-        {cvc5::Kind::RELATION_IDEN, RELATION_IDEN},
+        {cvc5::internal::Kind::RELATION_JOIN, RELATION_JOIN},
+        {cvc5::internal::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
+        {cvc5::internal::Kind::RELATION_TRANSPOSE, RELATION_TRANSPOSE},
+        {cvc5::internal::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
+        {cvc5::internal::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
+        {cvc5::internal::Kind::RELATION_IDEN, RELATION_IDEN},
         /* Bags ------------------------------------------------------------ */
-        {cvc5::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
-        {cvc5::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
-        {cvc5::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
-        {cvc5::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
-        {cvc5::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
-        {cvc5::Kind::BAG_SUBBAG, BAG_SUBBAG},
-        {cvc5::Kind::BAG_COUNT, BAG_COUNT},
-        {cvc5::Kind::BAG_MEMBER, BAG_MEMBER},
-        {cvc5::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
-        {cvc5::Kind::BAG_MAKE, BAG_MAKE},
-        {cvc5::Kind::BAG_EMPTY, BAG_EMPTY},
-        {cvc5::Kind::BAG_CARD, BAG_CARD},
-        {cvc5::Kind::BAG_CHOOSE, BAG_CHOOSE},
-        {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
-        {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
-        {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
-        {cvc5::Kind::BAG_MAP, BAG_MAP},
-        {cvc5::Kind::BAG_FILTER, BAG_FILTER},
-        {cvc5::Kind::BAG_FOLD, BAG_FOLD},
-        {cvc5::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
+        {cvc5::internal::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
+        {cvc5::internal::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
+        {cvc5::internal::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
+        {cvc5::internal::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
+        {cvc5::internal::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
+        {cvc5::internal::Kind::BAG_SUBBAG, BAG_SUBBAG},
+        {cvc5::internal::Kind::BAG_COUNT, BAG_COUNT},
+        {cvc5::internal::Kind::BAG_MEMBER, BAG_MEMBER},
+        {cvc5::internal::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
+        {cvc5::internal::Kind::BAG_MAKE, BAG_MAKE},
+        {cvc5::internal::Kind::BAG_EMPTY, BAG_EMPTY},
+        {cvc5::internal::Kind::BAG_CARD, BAG_CARD},
+        {cvc5::internal::Kind::BAG_CHOOSE, BAG_CHOOSE},
+        {cvc5::internal::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
+        {cvc5::internal::Kind::BAG_FROM_SET, BAG_FROM_SET},
+        {cvc5::internal::Kind::BAG_TO_SET, BAG_TO_SET},
+        {cvc5::internal::Kind::BAG_MAP, BAG_MAP},
+        {cvc5::internal::Kind::BAG_FILTER, BAG_FILTER},
+        {cvc5::internal::Kind::BAG_FOLD, BAG_FOLD},
+        {cvc5::internal::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
         /* Strings --------------------------------------------------------- */
-        {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
-        {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
-        {cvc5::Kind::STRING_LENGTH, STRING_LENGTH},
-        {cvc5::Kind::STRING_SUBSTR, STRING_SUBSTR},
-        {cvc5::Kind::STRING_UPDATE, STRING_UPDATE},
-        {cvc5::Kind::STRING_CHARAT, STRING_CHARAT},
-        {cvc5::Kind::STRING_CONTAINS, STRING_CONTAINS},
-        {cvc5::Kind::STRING_INDEXOF, STRING_INDEXOF},
-        {cvc5::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
-        {cvc5::Kind::STRING_REPLACE, STRING_REPLACE},
-        {cvc5::Kind::STRING_REPLACE_ALL, STRING_REPLACE_ALL},
-        {cvc5::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},
-        {cvc5::Kind::STRING_REPLACE_RE_ALL, STRING_REPLACE_RE_ALL},
-        {cvc5::Kind::STRING_TO_LOWER, STRING_TO_LOWER},
-        {cvc5::Kind::STRING_TO_UPPER, STRING_TO_UPPER},
-        {cvc5::Kind::STRING_REV, STRING_REV},
-        {cvc5::Kind::STRING_FROM_CODE, STRING_FROM_CODE},
-        {cvc5::Kind::STRING_TO_CODE, STRING_TO_CODE},
-        {cvc5::Kind::STRING_LT, STRING_LT},
-        {cvc5::Kind::STRING_LEQ, STRING_LEQ},
-        {cvc5::Kind::STRING_PREFIX, STRING_PREFIX},
-        {cvc5::Kind::STRING_SUFFIX, STRING_SUFFIX},
-        {cvc5::Kind::STRING_IS_DIGIT, STRING_IS_DIGIT},
-        {cvc5::Kind::STRING_ITOS, STRING_FROM_INT},
-        {cvc5::Kind::STRING_STOI, STRING_TO_INT},
-        {cvc5::Kind::CONST_STRING, CONST_STRING},
-        {cvc5::Kind::STRING_TO_REGEXP, STRING_TO_REGEXP},
-        {cvc5::Kind::REGEXP_CONCAT, REGEXP_CONCAT},
-        {cvc5::Kind::REGEXP_UNION, REGEXP_UNION},
-        {cvc5::Kind::REGEXP_INTER, REGEXP_INTER},
-        {cvc5::Kind::REGEXP_DIFF, REGEXP_DIFF},
-        {cvc5::Kind::REGEXP_STAR, REGEXP_STAR},
-        {cvc5::Kind::REGEXP_PLUS, REGEXP_PLUS},
-        {cvc5::Kind::REGEXP_OPT, REGEXP_OPT},
-        {cvc5::Kind::REGEXP_RANGE, REGEXP_RANGE},
-        {cvc5::Kind::REGEXP_REPEAT, REGEXP_REPEAT},
-        {cvc5::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
-        {cvc5::Kind::REGEXP_LOOP, REGEXP_LOOP},
-        {cvc5::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
-        {cvc5::Kind::REGEXP_NONE, REGEXP_NONE},
-        {cvc5::Kind::REGEXP_ALL, REGEXP_ALL},
-        {cvc5::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
-        {cvc5::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
-        {cvc5::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
-        {cvc5::Kind::SEQ_UNIT, SEQ_UNIT},
-        {cvc5::Kind::SEQ_NTH, SEQ_NTH},
+        {cvc5::internal::Kind::STRING_CONCAT, STRING_CONCAT},
+        {cvc5::internal::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
+        {cvc5::internal::Kind::STRING_LENGTH, STRING_LENGTH},
+        {cvc5::internal::Kind::STRING_SUBSTR, STRING_SUBSTR},
+        {cvc5::internal::Kind::STRING_UPDATE, STRING_UPDATE},
+        {cvc5::internal::Kind::STRING_CHARAT, STRING_CHARAT},
+        {cvc5::internal::Kind::STRING_CONTAINS, STRING_CONTAINS},
+        {cvc5::internal::Kind::STRING_INDEXOF, STRING_INDEXOF},
+        {cvc5::internal::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
+        {cvc5::internal::Kind::STRING_REPLACE, STRING_REPLACE},
+        {cvc5::internal::Kind::STRING_REPLACE_ALL, STRING_REPLACE_ALL},
+        {cvc5::internal::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},
+        {cvc5::internal::Kind::STRING_REPLACE_RE_ALL, STRING_REPLACE_RE_ALL},
+        {cvc5::internal::Kind::STRING_TO_LOWER, STRING_TO_LOWER},
+        {cvc5::internal::Kind::STRING_TO_UPPER, STRING_TO_UPPER},
+        {cvc5::internal::Kind::STRING_REV, STRING_REV},
+        {cvc5::internal::Kind::STRING_FROM_CODE, STRING_FROM_CODE},
+        {cvc5::internal::Kind::STRING_TO_CODE, STRING_TO_CODE},
+        {cvc5::internal::Kind::STRING_LT, STRING_LT},
+        {cvc5::internal::Kind::STRING_LEQ, STRING_LEQ},
+        {cvc5::internal::Kind::STRING_PREFIX, STRING_PREFIX},
+        {cvc5::internal::Kind::STRING_SUFFIX, STRING_SUFFIX},
+        {cvc5::internal::Kind::STRING_IS_DIGIT, STRING_IS_DIGIT},
+        {cvc5::internal::Kind::STRING_ITOS, STRING_FROM_INT},
+        {cvc5::internal::Kind::STRING_STOI, STRING_TO_INT},
+        {cvc5::internal::Kind::CONST_STRING, CONST_STRING},
+        {cvc5::internal::Kind::STRING_TO_REGEXP, STRING_TO_REGEXP},
+        {cvc5::internal::Kind::REGEXP_CONCAT, REGEXP_CONCAT},
+        {cvc5::internal::Kind::REGEXP_UNION, REGEXP_UNION},
+        {cvc5::internal::Kind::REGEXP_INTER, REGEXP_INTER},
+        {cvc5::internal::Kind::REGEXP_DIFF, REGEXP_DIFF},
+        {cvc5::internal::Kind::REGEXP_STAR, REGEXP_STAR},
+        {cvc5::internal::Kind::REGEXP_PLUS, REGEXP_PLUS},
+        {cvc5::internal::Kind::REGEXP_OPT, REGEXP_OPT},
+        {cvc5::internal::Kind::REGEXP_RANGE, REGEXP_RANGE},
+        {cvc5::internal::Kind::REGEXP_REPEAT, REGEXP_REPEAT},
+        {cvc5::internal::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
+        {cvc5::internal::Kind::REGEXP_LOOP, REGEXP_LOOP},
+        {cvc5::internal::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
+        {cvc5::internal::Kind::REGEXP_NONE, REGEXP_NONE},
+        {cvc5::internal::Kind::REGEXP_ALL, REGEXP_ALL},
+        {cvc5::internal::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
+        {cvc5::internal::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
+        {cvc5::internal::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
+        {cvc5::internal::Kind::SEQ_UNIT, SEQ_UNIT},
+        {cvc5::internal::Kind::SEQ_NTH, SEQ_NTH},
         /* Quantifiers ----------------------------------------------------- */
-        {cvc5::Kind::FORALL, FORALL},
-        {cvc5::Kind::EXISTS, EXISTS},
-        {cvc5::Kind::BOUND_VAR_LIST, VARIABLE_LIST},
-        {cvc5::Kind::INST_PATTERN, INST_PATTERN},
-        {cvc5::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
-        {cvc5::Kind::INST_POOL, INST_POOL},
-        {cvc5::Kind::INST_ADD_TO_POOL, INST_ADD_TO_POOL},
-        {cvc5::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
-        {cvc5::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
-        {cvc5::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
+        {cvc5::internal::Kind::FORALL, FORALL},
+        {cvc5::internal::Kind::EXISTS, EXISTS},
+        {cvc5::internal::Kind::BOUND_VAR_LIST, VARIABLE_LIST},
+        {cvc5::internal::Kind::INST_PATTERN, INST_PATTERN},
+        {cvc5::internal::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
+        {cvc5::internal::Kind::INST_POOL, INST_POOL},
+        {cvc5::internal::Kind::INST_ADD_TO_POOL, INST_ADD_TO_POOL},
+        {cvc5::internal::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
+        {cvc5::internal::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
+        {cvc5::internal::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
-        {cvc5::Kind::LAST_KIND, LAST_KIND},
+        {cvc5::internal::Kind::LAST_KIND, LAST_KIND},
     };
 
 /* Set of kinds for indexed operators */
@@ -746,8 +746,8 @@ const static std::unordered_map<cvc5::RoundingMode, RoundingMode>
 
 namespace {
 
-/** Convert a cvc5::Kind (internal) to a cvc5::api::Kind (external). */
-cvc5::api::Kind intToExtKind(cvc5::Kind k)
+/** Convert a cvc5::internal::Kind (internal) to a cvc5::internal::api::Kind (external). */
+cvc5::internal::api::Kind intToExtKind(cvc5::internal::Kind k)
 {
   auto it = api::s_kinds_internal.find(k);
   if (it == api::s_kinds_internal.end())
@@ -757,13 +757,13 @@ cvc5::api::Kind intToExtKind(cvc5::Kind k)
   return it->second;
 }
 
-/** Convert a cvc5::api::Kind (external) to a cvc5::Kind (internal). */
-cvc5::Kind extToIntKind(cvc5::api::Kind k)
+/** Convert a cvc5::internal::api::Kind (external) to a cvc5::internal::Kind (internal). */
+cvc5::internal::Kind extToIntKind(cvc5::internal::api::Kind k)
 {
   auto it = api::s_kinds.find(k);
   if (it == api::s_kinds.end())
   {
-    return cvc5::Kind::UNDEFINED_KIND;
+    return cvc5::internal::Kind::UNDEFINED_KIND;
   }
   return it->second.first;
 }
@@ -778,18 +778,18 @@ bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
  * as datatype constructors/selectors/testers as terms
  * but interally they are not
  */
-bool isApplyKind(cvc5::Kind k)
+bool isApplyKind(cvc5::internal::Kind k)
 {
-  return (k == cvc5::Kind::APPLY_UF || k == cvc5::Kind::APPLY_CONSTRUCTOR
-          || k == cvc5::Kind::APPLY_SELECTOR || k == cvc5::Kind::APPLY_TESTER
-          || k == cvc5::Kind::APPLY_UPDATER);
+  return (k == cvc5::internal::Kind::APPLY_UF || k == cvc5::internal::Kind::APPLY_CONSTRUCTOR
+          || k == cvc5::internal::Kind::APPLY_SELECTOR || k == cvc5::internal::Kind::APPLY_TESTER
+          || k == cvc5::internal::Kind::APPLY_UPDATER);
 }
 
 #ifdef CVC5_ASSERTIONS
 /** Return true if given kind is a defined internal kind. */
-bool isDefinedIntKind(cvc5::Kind k)
+bool isDefinedIntKind(cvc5::internal::Kind k)
 {
-  return k != cvc5::Kind::UNDEFINED_KIND && k != cvc5::Kind::LAST_KIND;
+  return k != cvc5::internal::Kind::UNDEFINED_KIND && k != cvc5::internal::Kind::LAST_KIND;
 }
 #endif
 
@@ -798,7 +798,7 @@ uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  uint32_t min = cvc5::kind::metakind::getMinArityForKind(extToIntKind(k));
+  uint32_t min = cvc5::internal::kind::metakind::getMinArityForKind(extToIntKind(k));
 
   // At the API level, we treat functions/constructors/selectors/testers as
   // normal terms instead of making them part of the operator
@@ -814,7 +814,7 @@ uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  uint32_t max = cvc5::kind::metakind::getMaxArityForKind(extToIntKind(k));
+  uint32_t max = cvc5::internal::kind::metakind::getMaxArityForKind(extToIntKind(k));
 
   // At the API level, we treat functions/constructors/selectors/testers as
   // normal terms instead of making them part of the operator
@@ -922,11 +922,11 @@ class CVC5ApiUnsupportedExceptionStream
   {                                                                            \
     throw CVC5ApiOptionException(e.getMessage());                              \
   }                                                                            \
-  catch (const cvc5::RecoverableModalException& e)                             \
+  catch (const cvc5::internal::RecoverableModalException& e)                             \
   {                                                                            \
     throw CVC5ApiRecoverableException(e.getMessage());                         \
   }                                                                            \
-  catch (const cvc5::Exception& e) { throw CVC5ApiException(e.getMessage()); } \
+  catch (const cvc5::internal::Exception& e) { throw CVC5ApiException(e.getMessage()); } \
   catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
 
 }  // namespace
@@ -935,28 +935,28 @@ class CVC5ApiUnsupportedExceptionStream
 /* Result                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Result::Result(const cvc5::Result& r) : d_result(new cvc5::Result(r)) {}
+Result::Result(const cvc5::internal::Result& r) : d_result(new cvc5::internal::Result(r)) {}
 
-Result::Result() : d_result(new cvc5::Result()) {}
+Result::Result() : d_result(new cvc5::internal::Result()) {}
 
 bool Result::isNull() const
 {
-  return d_result->getStatus() == cvc5::Result::NONE;
+  return d_result->getStatus() == cvc5::internal::Result::NONE;
 }
 
 bool Result::isSat(void) const
 {
-  return d_result->getStatus() == cvc5::Result::SAT;
+  return d_result->getStatus() == cvc5::internal::Result::SAT;
 }
 
 bool Result::isUnsat(void) const
 {
-  return d_result->getStatus() == cvc5::Result::UNSAT;
+  return d_result->getStatus() == cvc5::internal::Result::UNSAT;
 }
 
 bool Result::isUnknown(void) const
 {
-  return d_result->getStatus() == cvc5::Result::UNKNOWN;
+  return d_result->getStatus() == cvc5::internal::Result::UNKNOWN;
 }
 
 bool Result::operator==(const Result& r) const
@@ -971,18 +971,18 @@ bool Result::operator!=(const Result& r) const
 
 Result::UnknownExplanation Result::getUnknownExplanation(void) const
 {
-  cvc5::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
+  cvc5::internal::Result::UnknownExplanation expl = d_result->getUnknownExplanation();
   switch (expl)
   {
-    case cvc5::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
-    case cvc5::Result::INCOMPLETE: return INCOMPLETE;
-    case cvc5::Result::TIMEOUT: return TIMEOUT;
-    case cvc5::Result::RESOURCEOUT: return RESOURCEOUT;
-    case cvc5::Result::MEMOUT: return MEMOUT;
-    case cvc5::Result::INTERRUPTED: return INTERRUPTED;
-    case cvc5::Result::NO_STATUS: return NO_STATUS;
-    case cvc5::Result::UNSUPPORTED: return UNSUPPORTED;
-    case cvc5::Result::OTHER: return OTHER;
+    case cvc5::internal::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
+    case cvc5::internal::Result::INCOMPLETE: return INCOMPLETE;
+    case cvc5::internal::Result::TIMEOUT: return TIMEOUT;
+    case cvc5::internal::Result::RESOURCEOUT: return RESOURCEOUT;
+    case cvc5::internal::Result::MEMOUT: return MEMOUT;
+    case cvc5::internal::Result::INTERRUPTED: return INTERRUPTED;
+    case cvc5::internal::Result::NO_STATUS: return NO_STATUS;
+    case cvc5::internal::Result::UNSUPPORTED: return UNSUPPORTED;
+    case cvc5::internal::Result::OTHER: return OTHER;
     default: return UNKNOWN_REASON;
   }
   return UNKNOWN_REASON;
@@ -1019,31 +1019,31 @@ std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
 /* SynthResult */
 /* -------------------------------------------------------------------------- */
 
-SynthResult::SynthResult(const cvc5::SynthResult& r)
-    : d_result(new cvc5::SynthResult(r))
+SynthResult::SynthResult(const cvc5::internal::SynthResult& r)
+    : d_result(new cvc5::internal::SynthResult(r))
 {
 }
 
-SynthResult::SynthResult() : d_result(new cvc5::SynthResult()) {}
+SynthResult::SynthResult() : d_result(new cvc5::internal::SynthResult()) {}
 
 bool SynthResult::isNull() const
 {
-  return d_result->getStatus() == cvc5::SynthResult::NONE;
+  return d_result->getStatus() == cvc5::internal::SynthResult::NONE;
 }
 
 bool SynthResult::hasSolution(void) const
 {
-  return d_result->getStatus() == cvc5::SynthResult::SOLUTION;
+  return d_result->getStatus() == cvc5::internal::SynthResult::SOLUTION;
 }
 
 bool SynthResult::hasNoSolution() const
 {
-  return d_result->getStatus() == cvc5::SynthResult::NO_SOLUTION;
+  return d_result->getStatus() == cvc5::internal::SynthResult::NO_SOLUTION;
 }
 
 bool SynthResult::isUnknown() const
 {
-  return d_result->getStatus() == cvc5::SynthResult::UNKNOWN;
+  return d_result->getStatus() == cvc5::internal::SynthResult::UNKNOWN;
 }
 
 std::string SynthResult::toString(void) const { return d_result->toString(); }
@@ -1058,12 +1058,12 @@ std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Sort::Sort(const Solver* slv, const cvc5::TypeNode& t)
-    : d_solver(slv), d_type(new cvc5::TypeNode(t))
+Sort::Sort(const Solver* slv, const cvc5::internal::TypeNode& t)
+    : d_solver(slv), d_type(new cvc5::internal::TypeNode(t))
 {
 }
 
-Sort::Sort() : d_solver(nullptr), d_type(new cvc5::TypeNode()) {}
+Sort::Sort() : d_solver(nullptr), d_type(new cvc5::internal::TypeNode()) {}
 
 Sort::~Sort()
 {
@@ -1434,7 +1434,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
                  || d_type->getSortConstructorArity() == params.size())
       << "Arity mismatch for instantiated sort constructor";
   //////// all checks before this line
-  std::vector<cvc5::TypeNode> tparams = sortVectorToTypeNodes(params);
+  std::vector<cvc5::internal::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
   {
     return Sort(d_solver, d_type->instantiateParametricDatatype(tparams));
@@ -1480,7 +1480,7 @@ Sort Sort::substitute(const std::vector<Sort>& sorts,
   CVC5_API_CHECK_SORTS(replacements);
   //////// all checks before this line
 
-  std::vector<cvc5::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
+  std::vector<cvc5::internal::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
                               tReplacements =
                                   sortVectorToTypeNodes(replacements);
   return Sort(d_solver,
@@ -1501,7 +1501,7 @@ std::string Sort::toString() const
   CVC5_API_TRY_CATCH_END;
 }
 
-const cvc5::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
+const cvc5::internal::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */
 
@@ -1791,15 +1791,15 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_solver(nullptr), d_kind(NULL_TERM), d_node(new cvc5::Node()) {}
+Op::Op() : d_solver(nullptr), d_kind(NULL_TERM), d_node(new cvc5::internal::Node()) {}
 
 Op::Op(const Solver* slv, const Kind k)
-    : d_solver(slv), d_kind(k), d_node(new cvc5::Node())
+    : d_solver(slv), d_kind(k), d_node(new cvc5::internal::Node())
 {
 }
 
-Op::Op(const Solver* slv, const Kind k, const cvc5::Node& n)
-    : d_solver(slv), d_kind(k), d_node(new cvc5::Node(n))
+Op::Op(const Solver* slv, const Kind k, const cvc5::internal::Node& n)
+    : d_solver(slv), d_kind(k), d_node(new cvc5::internal::Node(n))
 {
 }
 
@@ -1995,14 +1995,14 @@ Term Op::getIndexHelper(size_t index) const
     }
     case BITVECTOR_EXTRACT:
     {
-      cvc5::BitVectorExtract ext = d_node->getConst<BitVectorExtract>();
+      cvc5::internal::BitVectorExtract ext = d_node->getConst<BitVectorExtract>();
       t = index == 0 ? d_solver->mkRationalValHelper(ext.d_high)
                      : d_solver->mkRationalValHelper(ext.d_low);
       break;
     }
     case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
     {
-      cvc5::FloatingPointToFPIEEEBitVector ext =
+      cvc5::internal::FloatingPointToFPIEEEBitVector ext =
           d_node->getConst<FloatingPointToFPIEEEBitVector>();
 
       t = index == 0
@@ -2012,7 +2012,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     case FLOATINGPOINT_TO_FP_FROM_FP:
     {
-      cvc5::FloatingPointToFPFloatingPoint ext =
+      cvc5::internal::FloatingPointToFPFloatingPoint ext =
           d_node->getConst<FloatingPointToFPFloatingPoint>();
       t = index == 0
               ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
@@ -2021,7 +2021,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     case FLOATINGPOINT_TO_FP_FROM_REAL:
     {
-      cvc5::FloatingPointToFPReal ext =
+      cvc5::internal::FloatingPointToFPReal ext =
           d_node->getConst<FloatingPointToFPReal>();
 
       t = index == 0
@@ -2031,7 +2031,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     case FLOATINGPOINT_TO_FP_FROM_SBV:
     {
-      cvc5::FloatingPointToFPSignedBitVector ext =
+      cvc5::internal::FloatingPointToFPSignedBitVector ext =
           d_node->getConst<FloatingPointToFPSignedBitVector>();
       t = index == 0
               ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
@@ -2040,7 +2040,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     case FLOATINGPOINT_TO_FP_FROM_UBV:
     {
-      cvc5::FloatingPointToFPUnsignedBitVector ext =
+      cvc5::internal::FloatingPointToFPUnsignedBitVector ext =
           d_node->getConst<FloatingPointToFPUnsignedBitVector>();
       t = index == 0
               ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
@@ -2049,7 +2049,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     case REGEXP_LOOP:
     {
-      cvc5::RegExpLoop ext = d_node->getConst<RegExpLoop>();
+      cvc5::internal::RegExpLoop ext = d_node->getConst<RegExpLoop>();
       t = index == 0 ? d_solver->mkRationalValHelper(ext.d_loopMinOcc)
                      : d_solver->mkRationalValHelper(ext.d_loopMaxOcc);
 
@@ -2121,11 +2121,11 @@ bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term::Term() : d_solver(nullptr), d_node(new cvc5::Node()) {}
+Term::Term() : d_solver(nullptr), d_node(new cvc5::internal::Node()) {}
 
-Term::Term(const Solver* slv, const cvc5::Node& n) : d_solver(slv)
+Term::Term(const Solver* slv, const cvc5::internal::Node& n) : d_solver(slv)
 {
-  d_node.reset(new cvc5::Node(n));
+  d_node.reset(new cvc5::internal::Node(n));
 }
 
 Term::~Term()
@@ -2335,7 +2335,7 @@ Op Term::getOp() const
   {
     // it's an indexed operator
     // so we should return the indexed op
-    cvc5::Node op = d_node->getOperator();
+    cvc5::internal::Node op = d_node->getOperator();
     return Op(d_solver, intToExtKind(d_node->getKind()), op);
   }
   // Notice this is the only case where getKindHelper is used, since the
@@ -2483,7 +2483,7 @@ Term::const_iterator::const_iterator()
 }
 
 Term::const_iterator::const_iterator(const Solver* slv,
-                                     const std::shared_ptr<cvc5::Node>& n,
+                                     const std::shared_ptr<cvc5::internal::Node>& n,
                                      uint32_t p)
     : d_solver(slv), d_origNode(n), d_pos(p)
 {
@@ -2584,21 +2584,21 @@ Term::const_iterator Term::end() const
   return Term::const_iterator(d_solver, d_node, endpos);
 }
 
-const cvc5::Node& Term::getNode(void) const { return *d_node; }
+const cvc5::internal::Node& Term::getNode(void) const { return *d_node; }
 
 namespace detail {
-const Rational& getRational(const cvc5::Node& node)
+const Rational& getRational(const cvc5::internal::Node& node)
 {
   switch (node.getKind())
   {
-    case cvc5::Kind::CAST_TO_REAL: return node[0].getConst<Rational>();
-    case cvc5::Kind::CONST_RATIONAL: return node.getConst<Rational>();
+    case cvc5::internal::Kind::CAST_TO_REAL: return node[0].getConst<Rational>();
+    case cvc5::internal::Kind::CONST_RATIONAL: return node.getConst<Rational>();
     default:
       CVC5_API_CHECK(false) << "Node is not a rational.";
       return node.getConst<Rational>();
   }
 }
-Integer getInteger(const cvc5::Node& node)
+Integer getInteger(const cvc5::internal::Node& node)
 {
   return node.getConst<Rational>().getNumerator();
 }
@@ -2621,8 +2621,8 @@ bool checkReal64Bounds(const Rational& r)
 
 bool isReal(const Node& node)
 {
-  return node.getKind() == cvc5::Kind::CONST_RATIONAL
-         || node.getKind() == cvc5::Kind::CAST_TO_REAL;
+  return node.getKind() == cvc5::internal::Kind::CONST_RATIONAL
+         || node.getKind() == cvc5::internal::Kind::CAST_TO_REAL;
 }
 bool isReal32(const Node& node)
 {
@@ -2635,7 +2635,7 @@ bool isReal64(const Node& node)
 
 bool isInteger(const Node& node)
 {
-  return node.getKind() == cvc5::Kind::CONST_RATIONAL
+  return node.getKind() == cvc5::internal::Kind::CONST_RATIONAL
          && node.getConst<Rational>().isIntegral();
 }
 bool isInt32(const Node& node)
@@ -2781,7 +2781,7 @@ bool Term::isStringValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_STRING;
+  return d_node->getKind() == cvc5::internal::Kind::CONST_STRING;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2790,11 +2790,11 @@ std::wstring Term::getStringValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_STRING,
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::internal::Kind::CONST_STRING,
                               *d_node)
       << "Term to be a string value when calling getStringValue()";
   //////// all checks before this line
-  return d_node->getConst<cvc5::String>().toWString();
+  return d_node->getConst<cvc5::internal::String>().toWString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2896,7 +2896,7 @@ bool Term::isConstArray() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::STORE_ALL;
+  return d_node->getKind() == cvc5::internal::Kind::STORE_ALL;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2904,7 +2904,7 @@ Term Term::getConstArrayBase() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::STORE_ALL,
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::internal::Kind::STORE_ALL,
                               *d_node)
       << "Term to be a constant array when calling getConstArrayBase()";
   //////// all checks before this line
@@ -2919,7 +2919,7 @@ bool Term::isBooleanValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_BOOLEAN;
+  return d_node->getKind() == cvc5::internal::Kind::CONST_BOOLEAN;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2927,7 +2927,7 @@ bool Term::getBooleanValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_BOOLEAN,
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::internal::Kind::CONST_BOOLEAN,
                               *d_node)
       << "Term to be a Boolean value when calling getBooleanValue()";
   //////// all checks before this line
@@ -2941,7 +2941,7 @@ bool Term::isBitVectorValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_BITVECTOR;
+  return d_node->getKind() == cvc5::internal::Kind::CONST_BITVECTOR;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2949,7 +2949,7 @@ std::string Term::getBitVectorValue(std::uint32_t base) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_BITVECTOR,
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::internal::Kind::CONST_BITVECTOR,
                               *d_node)
       << "Term to be a bit-vector value when calling getBitVectorValue()";
   //////// all checks before this line
@@ -2963,7 +2963,7 @@ bool Term::isUninterpretedSortValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::UNINTERPRETED_SORT_VALUE;
+  return d_node->getKind() == cvc5::internal::Kind::UNINTERPRETED_SORT_VALUE;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2972,7 +2972,7 @@ std::string Term::getUninterpretedSortValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::UNINTERPRETED_SORT_VALUE, *d_node)
+      d_node->getKind() == cvc5::internal::Kind::UNINTERPRETED_SORT_VALUE, *d_node)
       << "Term to be an abstract value when calling "
          "getUninterpretedSortValue()";
   //////// all checks before this line
@@ -2988,7 +2988,7 @@ bool Term::isTupleValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR && d_node->isConst()
+  return d_node->getKind() == cvc5::internal::Kind::APPLY_CONSTRUCTOR && d_node->isConst()
          && d_node->getType().getDType().isTuple();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -2997,7 +2997,7 @@ std::vector<Term> Term::getTupleValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::APPLY_CONSTRUCTOR
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::internal::Kind::APPLY_CONSTRUCTOR
                                   && d_node->isConst()
                                   && d_node->getType().getDType().isTuple(),
                               *d_node)
@@ -3041,7 +3041,7 @@ bool Term::isFloatingPointPosZero() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  if (d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT)
+  if (d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT)
   {
     const auto& fp = d_node->getConst<FloatingPoint>();
     return fp.isZero() && fp.isPositive();
@@ -3055,7 +3055,7 @@ bool Term::isFloatingPointNegZero() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  if (d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT)
+  if (d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT)
   {
     const auto& fp = d_node->getConst<FloatingPoint>();
     return fp.isZero() && fp.isNegative();
@@ -3069,7 +3069,7 @@ bool Term::isFloatingPointPosInf() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  if (d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT)
+  if (d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT)
   {
     const auto& fp = d_node->getConst<FloatingPoint>();
     return fp.isInfinite() && fp.isPositive();
@@ -3083,7 +3083,7 @@ bool Term::isFloatingPointNegInf() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  if (d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT)
+  if (d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT)
   {
     const auto& fp = d_node->getConst<FloatingPoint>();
     return fp.isInfinite() && fp.isNegative();
@@ -3097,7 +3097,7 @@ bool Term::isFloatingPointNaN() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT
+  return d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT
          && d_node->getConst<FloatingPoint>().isNaN();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -3107,7 +3107,7 @@ bool Term::isFloatingPointValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT;
+  return d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3117,7 +3117,7 @@ std::tuple<std::uint32_t, std::uint32_t, Term> Term::getFloatingPointValue()
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::CONST_FLOATINGPOINT, *d_node)
+      d_node->getKind() == cvc5::internal::Kind::CONST_FLOATINGPOINT, *d_node)
       << "Term to be a floating-point value when calling "
          "getFloatingPointValue()";
   //////// all checks before this line
@@ -3140,16 +3140,16 @@ bool Term::isSetValue() const
 }
 
 void Term::collectSet(std::set<Term>& set,
-                      const cvc5::Node& node,
+                      const cvc5::internal::Node& node,
                       const Solver* slv)
 {
   // We asserted that node has a set type, and node.isConst()
   // Thus, node only contains of SET_EMPTY, SET_UNION and SET_SINGLETON.
   switch (node.getKind())
   {
-    case cvc5::Kind::SET_EMPTY: break;
-    case cvc5::Kind::SET_SINGLETON: set.emplace(Term(slv, node[0])); break;
-    case cvc5::Kind::SET_UNION:
+    case cvc5::internal::Kind::SET_EMPTY: break;
+    case cvc5::internal::Kind::SET_SINGLETON: set.emplace(Term(slv, node[0])); break;
+    case cvc5::internal::Kind::SET_UNION:
     {
       for (const auto& sub : node)
       {
@@ -3184,7 +3184,7 @@ bool Term::isSequenceValue() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::CONST_SEQUENCE;
+  return d_node->getKind() == cvc5::internal::Kind::CONST_SEQUENCE;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3192,7 +3192,7 @@ std::vector<Term> Term::getSequenceValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::Kind::CONST_SEQUENCE,
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == cvc5::internal::Kind::CONST_SEQUENCE,
                               *d_node)
       << "Term to be a sequence value when calling getSequenceValue()";
   //////// all checks before this line
@@ -3303,18 +3303,18 @@ Kind Term::getKindHelper() const
   {
     switch (d_node->getKind())
     {
-      case cvc5::Kind::STRING_CONCAT: return SEQ_CONCAT;
-      case cvc5::Kind::STRING_LENGTH: return SEQ_LENGTH;
-      case cvc5::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
-      case cvc5::Kind::STRING_UPDATE: return SEQ_UPDATE;
-      case cvc5::Kind::STRING_CHARAT: return SEQ_AT;
-      case cvc5::Kind::STRING_CONTAINS: return SEQ_CONTAINS;
-      case cvc5::Kind::STRING_INDEXOF: return SEQ_INDEXOF;
-      case cvc5::Kind::STRING_REPLACE: return SEQ_REPLACE;
-      case cvc5::Kind::STRING_REPLACE_ALL: return SEQ_REPLACE_ALL;
-      case cvc5::Kind::STRING_REV: return SEQ_REV;
-      case cvc5::Kind::STRING_PREFIX: return SEQ_PREFIX;
-      case cvc5::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
+      case cvc5::internal::Kind::STRING_CONCAT: return SEQ_CONCAT;
+      case cvc5::internal::Kind::STRING_LENGTH: return SEQ_LENGTH;
+      case cvc5::internal::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
+      case cvc5::internal::Kind::STRING_UPDATE: return SEQ_UPDATE;
+      case cvc5::internal::Kind::STRING_CHARAT: return SEQ_AT;
+      case cvc5::internal::Kind::STRING_CONTAINS: return SEQ_CONTAINS;
+      case cvc5::internal::Kind::STRING_INDEXOF: return SEQ_INDEXOF;
+      case cvc5::internal::Kind::STRING_REPLACE: return SEQ_REPLACE;
+      case cvc5::internal::Kind::STRING_REPLACE_ALL: return SEQ_REPLACE_ALL;
+      case cvc5::internal::Kind::STRING_REV: return SEQ_REV;
+      case cvc5::internal::Kind::STRING_PREFIX: return SEQ_PREFIX;
+      case cvc5::internal::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
       default:
         // fall through to conversion below
         break;
@@ -3351,7 +3351,7 @@ DatatypeConstructorDecl::DatatypeConstructorDecl()
 
 DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
                                                  const std::string& name)
-    : d_solver(slv), d_ctor(new cvc5::DTypeConstructor(name))
+    : d_solver(slv), d_ctor(new cvc5::internal::DTypeConstructor(name))
 {
 }
 DatatypeConstructorDecl::~DatatypeConstructorDecl()
@@ -3434,7 +3434,7 @@ DatatypeDecl::DatatypeDecl() : d_solver(nullptr), d_dtype(nullptr) {}
 DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
-    : d_solver(slv), d_dtype(new cvc5::DType(name, isCoDatatype))
+    : d_solver(slv), d_dtype(new cvc5::internal::DType(name, isCoDatatype))
 {
 }
 
@@ -3443,7 +3443,7 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const Sort& param,
                            bool isCoDatatype)
     : d_solver(slv),
-      d_dtype(new cvc5::DType(
+      d_dtype(new cvc5::internal::DType(
           name, std::vector<TypeNode>{*param.d_type}, isCoDatatype))
 {
 }
@@ -3455,8 +3455,8 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
     : d_solver(slv)
 {
   std::vector<TypeNode> tparams = Sort::sortVectorToTypeNodes(params);
-  d_dtype = std::shared_ptr<cvc5::DType>(
-      new cvc5::DType(name, tparams, isCoDatatype));
+  d_dtype = std::shared_ptr<cvc5::internal::DType>(
+      new cvc5::internal::DType(name, tparams, isCoDatatype));
 }
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
@@ -3538,15 +3538,15 @@ std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
   return out;
 }
 
-cvc5::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+cvc5::internal::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 /* DatatypeSelector --------------------------------------------------------- */
 
 DatatypeSelector::DatatypeSelector() : d_solver(nullptr), d_stor(nullptr) {}
 
 DatatypeSelector::DatatypeSelector(const Solver* slv,
-                                   const cvc5::DTypeSelector& stor)
-    : d_solver(slv), d_stor(new cvc5::DTypeSelector(stor))
+                                   const cvc5::internal::DTypeSelector& stor)
+    : d_solver(slv), d_stor(new cvc5::internal::DTypeSelector(stor))
 {
   CVC5_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
@@ -3633,8 +3633,8 @@ DatatypeConstructor::DatatypeConstructor() : d_solver(nullptr), d_ctor(nullptr)
 }
 
 DatatypeConstructor::DatatypeConstructor(const Solver* slv,
-                                         const cvc5::DTypeConstructor& ctor)
-    : d_solver(slv), d_ctor(new cvc5::DTypeConstructor(ctor))
+                                         const cvc5::internal::DTypeConstructor& ctor)
+    : d_solver(slv), d_ctor(new cvc5::internal::DTypeConstructor(ctor))
 {
   CVC5_API_CHECK(d_ctor->isResolved())
       << "Expected resolved datatype constructor";
@@ -3759,14 +3759,14 @@ DatatypeConstructor::const_iterator DatatypeConstructor::end() const
 }
 
 DatatypeConstructor::const_iterator::const_iterator(
-    const Solver* slv, const cvc5::DTypeConstructor& ctor, bool begin)
+    const Solver* slv, const cvc5::internal::DTypeConstructor& ctor, bool begin)
 {
   d_solver = slv;
   d_int_stors = &ctor.getArgs();
 
-  const std::vector<std::shared_ptr<cvc5::DTypeSelector>>& sels =
+  const std::vector<std::shared_ptr<cvc5::internal::DTypeSelector>>& sels =
       ctor.getArgs();
-  for (const std::shared_ptr<cvc5::DTypeSelector>& s : sels)
+  for (const std::shared_ptr<cvc5::internal::DTypeSelector>& s : sels)
   {
     /* Can not use emplace_back here since constructor is private. */
     d_stors.push_back(DatatypeSelector(d_solver, *s.get()));
@@ -3886,8 +3886,8 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 
 /* Datatype ----------------------------------------------------------------- */
 
-Datatype::Datatype(const Solver* slv, const cvc5::DType& dtype)
-    : d_solver(slv), d_dtype(new cvc5::DType(dtype))
+Datatype::Datatype(const Solver* slv, const cvc5::internal::DType& dtype)
+    : d_solver(slv), d_dtype(new cvc5::internal::DType(dtype))
 {
   CVC5_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
@@ -3979,7 +3979,7 @@ std::vector<Sort> Datatype::getParameters() const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(isParametric()) << "Expected parametric datatype";
   //////// all checks before this line
-  std::vector<cvc5::TypeNode> params = d_dtype->getParameters();
+  std::vector<cvc5::internal::TypeNode> params = d_dtype->getParameters();
   return Sort::typeNodeVectorToSorts(d_solver, params);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -4132,7 +4132,7 @@ DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
 }
 
 Datatype::const_iterator::const_iterator(const Solver* slv,
-                                         const cvc5::DType& dtype,
+                                         const cvc5::internal::DType& dtype,
                                          bool begin)
     : d_solver(slv), d_int_ctors(&dtype.getConstructors())
 {
@@ -4399,7 +4399,7 @@ Sort Grammar::resolve()
     bvl = Term(
         d_solver,
         d_solver->getNodeManager()->mkNode(
-            cvc5::kind::BOUND_VAR_LIST, Term::termVectorToNodes(d_sygusVars)));
+            cvc5::internal::kind::BOUND_VAR_LIST, Term::termVectorToNodes(d_sygusVars)));
   }
 
   std::unordered_map<Term, Sort> ntsToUnres(d_ntSyms.size());
@@ -4412,7 +4412,7 @@ Sort Grammar::resolve()
         Sort(d_solver, d_solver->getNodeManager()->mkSort(ntsymbol.toString()));
   }
 
-  std::vector<cvc5::DType> datatypes;
+  std::vector<cvc5::internal::DType> datatypes;
   std::set<TypeNode> unresTypes;
 
   datatypes.reserve(d_ntSyms.size());
@@ -4486,12 +4486,12 @@ void Grammar::addSygusConstructorTerm(
   {
     Term lbvl =
         Term(d_solver,
-             d_solver->getNodeManager()->mkNode(cvc5::kind::BOUND_VAR_LIST,
+             d_solver->getNodeManager()->mkNode(cvc5::internal::kind::BOUND_VAR_LIST,
                                                 Term::termVectorToNodes(args)));
     // its operator is a lambda
     op = Term(d_solver,
               d_solver->getNodeManager()->mkNode(
-                  cvc5::kind::LAMBDA, *lbvl.d_node, *op.d_node));
+                  cvc5::internal::kind::LAMBDA, *lbvl.d_node, *op.d_node));
   }
   std::vector<TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
   dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
@@ -4629,7 +4629,7 @@ std::ostream& DriverOptions::out() const
 
 struct Stat::StatData
 {
-  cvc5::StatExportData data;
+  cvc5::internal::StatExportData data;
   template <typename T>
   StatData(T&& t) : data(std::forward<T>(t))
   {
@@ -4720,7 +4720,7 @@ Stat::Stat(bool internal, bool defaulted, StatData&& sd)
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
-  return cvc5::detail::print(os, sv.d_data->data);
+  return cvc5::internal::detail::print(os, sv.d_data->data);
 }
 
 Statistics::BaseType::const_reference Statistics::iterator::operator*() const
@@ -4868,7 +4868,7 @@ void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
   if constexpr (configuration::isStatisticsBuild())
   {
     const TypeNode tn = sort.getTypeNode();
-    TypeConstant tc = tn.getKind() == cvc5::kind::TYPE_CONSTANT
+    TypeConstant tc = tn.getKind() == cvc5::internal::kind::TYPE_CONSTANT
                           ? tn.getConst<TypeConstant>()
                           : LAST_TYPE;
     if (is_var)
@@ -4924,9 +4924,9 @@ Term Solver::mkRealOrIntegerFromStrHelper(const std::string& s,
   //////// all checks before this line
   try
   {
-    cvc5::Rational r = s.find('/') != std::string::npos
-                           ? cvc5::Rational(s)
-                           : cvc5::Rational::fromDecimal(s);
+    cvc5::internal::Rational r = s.find('/') != std::string::npos
+                           ? cvc5::internal::Rational(s)
+                           : cvc5::internal::Rational::fromDecimal(s);
     return mkRationalValHelper(r, isInt);
   }
   catch (const std::invalid_argument& e)
@@ -4944,7 +4944,7 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
 {
   CVC5_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
   //////// all checks before this line
-  return mkValHelper(cvc5::BitVector(size, val));
+  return mkValHelper(cvc5::internal::BitVector(size, val));
 }
 
 Term Solver::mkBVFromStrHelper(uint32_t size,
@@ -4971,7 +4971,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
         << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
-  return mkValHelper(cvc5::BitVector(size, val));
+  return mkValHelper(cvc5::internal::BitVector(size, val));
 }
 
 Term Solver::getValueHelper(const Term& term) const
@@ -5012,7 +5012,7 @@ Term Solver::mkTermFromKind(Kind kind) const
       << "PI, REGEXP_NONE, REGEXP_ALL, REGEXP_ALLCHAR or SEP_EMP";
   //////// all checks before this line
   Node res;
-  cvc5::Kind k = extToIntKind(kind);
+  cvc5::internal::Kind k = extToIntKind(kind);
   if (kind == REGEXP_NONE || kind == REGEXP_ALL || kind == REGEXP_ALLCHAR)
   {
     Assert(isDefinedIntKind(k));
@@ -5041,7 +5041,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
     return mkTermFromKind(kind);
   }
   std::vector<Node> echildren = Term::termVectorToNodes(children);
-  cvc5::Kind k = extToIntKind(kind);
+  cvc5::internal::Kind k = extToIntKind(kind);
   Node res;
   if (echildren.size() > 2)
   {
@@ -5139,7 +5139,7 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   checkMkTerm(op.d_kind, children.size());
   //////// all checks before this line
 
-  const cvc5::Kind int_kind = extToIntKind(op.d_kind);
+  const cvc5::internal::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = Term::termVectorToNodes(children);
 
   NodeBuilder nb(int_kind);
@@ -5159,14 +5159,14 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   //       double checks
   //////// all checks before this line
 
-  std::vector<cvc5::DType> datatypes;
+  std::vector<cvc5::internal::DType> datatypes;
   for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
   {
     datatypes.push_back(dtypedecls[i].getDatatype());
   }
 
   std::set<TypeNode> utypes = Sort::sortSetToTypeNodes(unresolvedSorts);
-  std::vector<cvc5::TypeNode> dtypes =
+  std::vector<cvc5::internal::TypeNode> dtypes =
       getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
   std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
   return retTypes;
@@ -5239,7 +5239,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
                d_nodeMgr->mkNode(extToIntKind(DIVISION),
                                  *res.d_node,
                                  d_nodeMgr->mkConst(kind::CONST_RATIONAL,
-                                                    cvc5::Rational(1))));
+                                                    cvc5::internal::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
@@ -5354,7 +5354,7 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 {
   CVC5_API_KIND_CHECK(kind);
   Assert(isDefinedIntKind(extToIntKind(kind)));
-  const cvc5::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
+  const cvc5::internal::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
   CVC5_API_KIND_CHECK_EXPECTED(
       mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
       kind)
@@ -5686,7 +5686,7 @@ Term Solver::mkPi() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), cvc5::kind::PI);
+      d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), cvc5::internal::kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5710,7 +5710,7 @@ Term Solver::mkInteger(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term integer = mkRationalValHelper(cvc5::Rational(val));
+  Term integer = mkRationalValHelper(cvc5::internal::Rational(val));
   Assert(integer.getSort() == getIntegerSort());
   return integer;
   ////////
@@ -5735,7 +5735,7 @@ Term Solver::mkReal(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return mkRationalValHelper(cvc5::Rational(val), false);
+  return mkRationalValHelper(cvc5::internal::Rational(val), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5744,7 +5744,7 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return mkRationalValHelper(cvc5::Rational(num, den), false);
+  return mkRationalValHelper(cvc5::internal::Rational(num, den), false);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5754,7 +5754,7 @@ Term Solver::mkRegexpAll() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALL, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::internal::kind::REGEXP_ALL, std::vector<cvc5::internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5766,7 +5766,7 @@ Term Solver::mkRegexpNone() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_NONE, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::internal::kind::REGEXP_NONE, std::vector<cvc5::internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5778,7 +5778,7 @@ Term Solver::mkRegexpAllchar() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::internal::kind::REGEXP_ALLCHAR, std::vector<cvc5::internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5793,7 +5793,7 @@ Term Solver::mkEmptySet(const Sort& sort) const
   CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || this == sort.d_solver, sort)
       << "set sort associated with this solver object";
   //////// all checks before this line
-  return mkValHelper(cvc5::EmptySet(*sort.d_type));
+  return mkValHelper(cvc5::internal::EmptySet(*sort.d_type));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5806,7 +5806,7 @@ Term Solver::mkEmptyBag(const Sort& sort) const
   CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || this == sort.d_solver, sort)
       << "bag sort associated with this solver object";
   //////// all checks before this line
-  return mkValHelper(cvc5::EmptyBag(*sort.d_type));
+  return mkValHelper(cvc5::internal::EmptyBag(*sort.d_type));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5816,7 +5816,7 @@ Term Solver::mkSepEmp() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res = getNodeManager()->mkNullaryOperator(d_nodeMgr->booleanType(),
-                                                 cvc5::Kind::SEP_EMP);
+                                                 cvc5::internal::Kind::SEP_EMP);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5829,7 +5829,7 @@ Term Solver::mkSepNil(const Sort& sort) const
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
   Node res =
-      getNodeManager()->mkNullaryOperator(*sort.d_type, cvc5::kind::SEP_NIL);
+      getNodeManager()->mkNullaryOperator(*sort.d_type, cvc5::internal::kind::SEP_NIL);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5840,7 +5840,7 @@ Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return mkValHelper(cvc5::String(s, useEscSequences));
+  return mkValHelper(cvc5::internal::String(s, useEscSequences));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5849,7 +5849,7 @@ Term Solver::mkString(const std::wstring& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return mkValHelper(cvc5::String(s));
+  return mkValHelper(cvc5::internal::String(s));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5873,7 +5873,7 @@ Term Solver::mkUniverseSet(const Sort& sort) const
   //////// all checks before this line
 
   Node res = getNodeManager()->mkNullaryOperator(*sort.d_type,
-                                                 cvc5::kind::SET_UNIVERSE);
+                                                 cvc5::internal::kind::SET_UNIVERSE);
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(this, res);
@@ -5918,7 +5918,7 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
     // this is safe because the constant array stores its type
     n = n[0];
   }
-  Term res = mkValHelper(cvc5::ArrayStoreAll(*sort.d_type, n));
+  Term res = mkValHelper(cvc5::internal::ArrayStoreAll(*sort.d_type, n));
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5996,7 +5996,7 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
       << "bit-vector constant";
   //////// all checks before this line
   return mkValHelper(
-      cvc5::FloatingPoint(exp, sig, val.d_node->getConst<BitVector>()));
+      cvc5::internal::FloatingPoint(exp, sig, val.d_node->getConst<BitVector>()));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6010,8 +6010,8 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
   CVC5_API_ARG_CHECK_EXPECTED(upperBound > 0, upperBound) << "a value > 0";
   //////// all checks before this line
   Node cco =
-      d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, upperBound));
-  Node cc = d_nodeMgr->mkNode(cvc5::Kind::CARDINALITY_CONSTRAINT, cco);
+      d_nodeMgr->mkConst(cvc5::internal::CardinalityConstraint(*sort.d_type, upperBound));
+  Node cc = d_nodeMgr->mkNode(cvc5::internal::Kind::CARDINALITY_CONSTRAINT, cco);
   return Term(this, cc);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6146,7 +6146,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   CVC5_API_SOLVER_CHECK_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   //////// all checks before this line
-  std::vector<cvc5::Node> args;
+  std::vector<cvc5::internal::Node> args;
   for (size_t i = 0, size = sorts.size(); i < size; i++)
   {
     args.push_back(*(ensureTermSort(terms[i], sorts[i])).d_node);
@@ -6179,82 +6179,82 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
   {
     case BITVECTOR_EXTRACT:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
-      res = mkOpHelper(kind, cvc5::BitVectorExtract(args[0], args[1]));
+      res = mkOpHelper(kind, cvc5::internal::BitVectorExtract(args[0], args[1]));
       break;
     case BITVECTOR_REPEAT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::BitVectorRepeat(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::BitVectorRepeat(args[0]));
       break;
     case BITVECTOR_ROTATE_LEFT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::BitVectorRotateLeft(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::BitVectorRotateLeft(args[0]));
       break;
     case BITVECTOR_ROTATE_RIGHT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::BitVectorRotateRight(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::BitVectorRotateRight(args[0]));
       break;
     case BITVECTOR_SIGN_EXTEND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::BitVectorSignExtend(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::BitVectorSignExtend(args[0]));
       break;
     case BITVECTOR_ZERO_EXTEND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::BitVectorZeroExtend(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::BitVectorZeroExtend(args[0]));
       break;
     case DIVISIBLE:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::Divisible(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::Divisible(args[0]));
       break;
     case FLOATINGPOINT_TO_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::FloatingPointToSBV(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::FloatingPointToSBV(args[0]));
       break;
     case FLOATINGPOINT_TO_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::FloatingPointToUBV(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::FloatingPointToUBV(args[0]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       res = mkOpHelper(kind,
-                       cvc5::FloatingPointToFPIEEEBitVector(args[0], args[1]));
+                       cvc5::internal::FloatingPointToFPIEEEBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_FP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       res = mkOpHelper(kind,
-                       cvc5::FloatingPointToFPFloatingPoint(args[0], args[1]));
+                       cvc5::internal::FloatingPointToFPFloatingPoint(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_REAL:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
-      res = mkOpHelper(kind, cvc5::FloatingPointToFPReal(args[0], args[1]));
+      res = mkOpHelper(kind, cvc5::internal::FloatingPointToFPReal(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       res = mkOpHelper(
-          kind, cvc5::FloatingPointToFPSignedBitVector(args[0], args[1]));
+          kind, cvc5::internal::FloatingPointToFPSignedBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       res = mkOpHelper(
-          kind, cvc5::FloatingPointToFPUnsignedBitVector(args[0], args[1]));
+          kind, cvc5::internal::FloatingPointToFPUnsignedBitVector(args[0], args[1]));
       break;
     case IAND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::IntAnd(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::IntAnd(args[0]));
       break;
     case INT_TO_BITVECTOR:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::IntToBitVector(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::IntToBitVector(args[0]));
       break;
     case REGEXP_REPEAT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
-      res = mkOpHelper(kind, cvc5::RegExpRepeat(args[0]));
+      res = mkOpHelper(kind, cvc5::internal::RegExpRepeat(args[0]));
       break;
     case REGEXP_LOOP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
-      res = mkOpHelper(kind, cvc5::RegExpLoop(args[0], args[1]));
+      res = mkOpHelper(kind, cvc5::internal::RegExpLoop(args[0], args[1]));
       break;
     case TUPLE_PROJECT:
-      res = mkOpHelper(kind, cvc5::TupleProjectOp(args));
+      res = mkOpHelper(kind, cvc5::internal::TupleProjectOp(args));
       break;
     default:
       if (nargs == 0)
@@ -6292,7 +6292,7 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
    * as invalid. */
   CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
       << "a string representing an integer, real or rational value.";
-  res = mkOpHelper(kind, cvc5::Divisible(cvc5::Integer(arg)));
+  res = mkOpHelper(kind, cvc5::internal::Divisible(cvc5::internal::Integer(arg)));
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7355,7 +7355,7 @@ void Solver::setLogic(const std::string& logic) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
-  cvc5::LogicInfo logic_info(logic);
+  cvc5::internal::LogicInfo logic_info(logic);
   //////// all checks before this line
   d_slv->setLogic(logic_info);
   ////////
@@ -7594,12 +7594,12 @@ Term Solver::getSynthSolution(Term term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
 
-  std::map<cvc5::Node, cvc5::Node> map;
+  std::map<cvc5::internal::Node, cvc5::internal::Node> map;
   CVC5_API_CHECK(d_slv->getSynthSolutions(map))
       << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
-  std::map<cvc5::Node, cvc5::Node>::const_iterator it = map.find(*term.d_node);
+  std::map<cvc5::internal::Node, cvc5::internal::Node>::const_iterator it = map.find(*term.d_node);
 
   CVC5_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
   //////// all checks before this line
@@ -7615,7 +7615,7 @@ std::vector<Term> Solver::getSynthSolutions(
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms) << "non-empty vector";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
 
-  std::map<cvc5::Node, cvc5::Node> map;
+  std::map<cvc5::internal::Node, cvc5::internal::Node> map;
   CVC5_API_CHECK(d_slv->getSynthSolutions(map))
       << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
@@ -7626,7 +7626,7 @@ std::vector<Term> Solver::getSynthSolutions(
 
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
-    std::map<cvc5::Node, cvc5::Node>::const_iterator it =
+    std::map<cvc5::internal::Node, cvc5::internal::Node>::const_iterator it =
         map.find(*terms[i].d_node);
 
     CVC5_API_CHECK(it != map.cend())
@@ -7654,7 +7654,7 @@ bool Solver::isOutputOn(const std::string& tag) const
   {
     return d_slv->getEnv().isOutputOn(tag);
   }
-  catch (const cvc5::Exception& e)
+  catch (const cvc5::internal::Exception& e)
   {
     throw CVC5ApiException("Invalid output tag " + tag);
   }
@@ -7669,7 +7669,7 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   {
     return d_slv->getEnv().output(tag);
   }
-  catch (const cvc5::Exception& e)
+  catch (const cvc5::internal::Exception& e)
   {
     throw CVC5ApiException("Invalid output tag " + tag);
   }
@@ -7677,35 +7677,35 @@ std::ostream& Solver::getOutput(const std::string& tag) const
 
 }  // namespace api
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::api::Kind>::operator()(cvc5::api::Kind k) const
+size_t hash<cvc5::internal::api::Kind>::operator()(cvc5::internal::api::Kind k) const
 {
   return static_cast<size_t>(k);
 }
 
-size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
+size_t hash<cvc5::internal::api::Op>::operator()(const cvc5::internal::api::Op& t) const
 {
   if (t.isIndexedHelper())
   {
-    return std::hash<cvc5::Node>()(*t.d_node);
+    return std::hash<cvc5::internal::Node>()(*t.d_node);
   }
   else
   {
-    return std::hash<cvc5::api::Kind>()(t.d_kind);
+    return std::hash<cvc5::internal::api::Kind>()(t.d_kind);
   }
 }
 
-size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const
+size_t std::hash<cvc5::Sort>::operator()(const cvc5::Sort& s) const
 {
-  return std::hash<cvc5::TypeNode>()(*s.d_type);
+  return std::hash<cvc5::internal::TypeNode>()(*s.d_type);
 }
 
-size_t std::hash<cvc5::api::Term>::operator()(const cvc5::api::Term& t) const
+size_t std::hash<cvc5::internal::api::Term>::operator()(const cvc5::internal::api::Term& t) const
 {
-  return std::hash<cvc5::Node>()(*t.d_node);
+  return std::hash<cvc5::internal::Node>()(*t.d_node);
 }
 
 }  // namespace std

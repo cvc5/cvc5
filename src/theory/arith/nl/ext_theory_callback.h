@@ -19,7 +19,7 @@
 #include "expr/node.h"
 #include "theory/ext_theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 class EqualityEngine;
@@ -86,6 +86,6 @@ class NlExtTheoryCallback : public ExtTheoryCallback
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */

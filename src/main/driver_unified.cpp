@@ -40,11 +40,11 @@
 #include "util/result.h"
 
 using namespace std;
-using namespace cvc5;
-using namespace cvc5::parser;
-using namespace cvc5::main;
+using namespace cvc5::internal;
+using namespace cvc5::internal::parser;
+using namespace cvc5::internal::main;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace main {
 
 /** Full argv[0] */
@@ -54,10 +54,10 @@ const char* progPath;
 std::string progName;
 
 /** A pointer to the CommandExecutor (the signal handlers need it) */
-std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
+std::unique_ptr<cvc5::internal::main::CommandExecutor> pExecutor;
 
 }  // namespace main
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
@@ -154,8 +154,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    TraceChannel.setStream(&cvc5::null_os);
-    WarningChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::internal::null_os);
+    WarningChannel.setStream(&cvc5::internal::null_os);
   }
 
   int returnValue = 0;
