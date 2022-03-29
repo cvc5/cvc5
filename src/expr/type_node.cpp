@@ -360,10 +360,12 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
   return args;
 }
 
-std::vector<TypeNode> TypeNode::getParamTypes() const {
+std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
+{
+  Assert(isInstantiated());
   vector<TypeNode> params;
-  Assert(isParametricDatatype());
-  for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
+  for (uint32_t i = 1, i_end = getNumChildren(); i < i_end; ++i)
+  {
     params.push_back((*this)[i]);
   }
   return params;
@@ -415,6 +417,12 @@ bool TypeNode::isInstantiatedDatatype() const {
     }
   }
   return true;
+}
+
+bool TypeNode::isInstantiated() const
+{
+  return isInstantiatedDatatype()
+         || (isSort() && getNumChildren() > 0);
 }
 
 TypeNode TypeNode::instantiateParametricDatatype(

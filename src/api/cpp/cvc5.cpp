@@ -719,6 +719,31 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      FLOATINGPOINT_TO_FP_FROM_SBV,
      FLOATINGPOINT_TO_FP_FROM_UBV});
 
+/* -------------------------------------------------------------------------- */
+/* Rounding Mode for Floating Points                                          */
+/* -------------------------------------------------------------------------- */
+
+const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
+    {ROUND_NEAREST_TIES_TO_EVEN,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
+    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
+    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
+    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
+    {ROUND_NEAREST_TIES_TO_AWAY,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
+};
+
+const static std::unordered_map<cvc5::RoundingMode, RoundingMode>
+    s_rmodes_internal{
+        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
+         ROUND_NEAREST_TIES_TO_EVEN},
+        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_POSITIVE},
+        {cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_NEGATIVE},
+        {cvc5::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
+        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
+         ROUND_NEAREST_TIES_TO_AWAY},
+    };
+
 namespace {
 
 /** Convert a cvc5::Kind (internal) to a cvc5::api::Kind (external). */
@@ -1378,9 +1403,19 @@ Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isDatatype()) << "Expected datatype sort.";
+  CVC5_API_CHECK(d_type->isDatatype()) << "Expected datatype sort.";
   //////// all checks before this line
   return Datatype(d_solver, d_type->getDType());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Sort::isInstantiated() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_type->isInstantiated();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1639,20 +1674,6 @@ Sort Sort::getSequenceElementSort() const
 
 /* Uninterpreted sort -------------------------------------------------- */
 
-bool Sort::isUninterpretedSortParameterized() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  //////// all checks before this line
-
-  /* This method is not implemented in the NodeManager, since whether a
-   * uninterpreted sort is parameterized is irrelevant for solving. */
-  return d_type->getNumChildren() > 0;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1731,7 +1752,7 @@ std::vector<Sort> Sort::getDatatypeParamSorts() const
   CVC5_API_CHECK(d_type->isParametricDatatype())
       << "Not a parametric datatype sort.";
   //////// all checks before this line
-  return typeNodeVectorToSorts(d_solver, d_type->getParamTypes());
+  return typeNodeVectorToSorts(d_solver, d_type->getDType().getParameters());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3009,6 +3030,29 @@ std::vector<Term> Term::getTupleValue() const
     res.emplace_back(Term(d_solver, (*d_node)[i]));
   }
   return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::isRoundingModeValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == cvc5::Kind::CONST_ROUNDINGMODE;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+RoundingMode Term::getRoundingModeValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::CONST_ROUNDINGMODE, *d_node)
+      << "Term to be a floating-point rounding mode value when calling "
+         "getRoundingModeValue()";
+  //////// all checks before this line
+  return s_rmodes_internal.at(d_node->getConst<cvc5::RoundingMode>());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4546,33 +4590,6 @@ std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 {
   return out << grammar.toString();
 }
-
-/* -------------------------------------------------------------------------- */
-/* Rounding Mode for Floating Points                                          */
-/* -------------------------------------------------------------------------- */
-
-const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
-    {ROUND_NEAREST_TIES_TO_EVEN,
-     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
-    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
-    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
-    {ROUND_NEAREST_TIES_TO_AWAY,
-     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
-};
-
-const static std::unordered_map<cvc5::RoundingMode,
-                                RoundingMode,
-                                cvc5::RoundingModeHashFunction>
-    s_rmodes_internal{
-        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
-         ROUND_NEAREST_TIES_TO_EVEN},
-        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_POSITIVE},
-        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_NEGATIVE},
-        {cvc5::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
-        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
-         ROUND_NEAREST_TIES_TO_AWAY},
-    };
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
@@ -7143,9 +7160,9 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpolants)";
   //////// all checks before this line
   TypeNode nullType;
   Node result = d_slv->getInterpolant(*conj.d_node, nullType);
@@ -7158,9 +7175,9 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpolants)";
   //////// all checks before this line
   Node result = d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
   return Term(this, result);
@@ -7171,9 +7188,9 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpols)
+  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpols)";
+         "--produce-interpolants)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot get next interpolant when not solving incrementally (try "
          "--incremental)";
@@ -7666,12 +7683,6 @@ size_t hash<cvc5::api::Op>::operator()(const cvc5::api::Op& t) const
   {
     return std::hash<cvc5::api::Kind>()(t.d_kind);
   }
-}
-
-size_t std::hash<cvc5::api::RoundingMode>::operator()(
-    cvc5::api::RoundingMode rm) const
-{
-  return static_cast<size_t>(rm);
 }
 
 size_t std::hash<cvc5::api::Sort>::operator()(const cvc5::api::Sort& s) const

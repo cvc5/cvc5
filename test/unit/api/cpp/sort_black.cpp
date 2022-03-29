@@ -321,6 +321,28 @@ TEST_F(TestApiBlackSort, instantiate)
   ASSERT_THROW(
       dtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}),
       CVC5ApiException);
+  // instantiate uninterpreted sort constructor
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
+  ASSERT_NO_THROW(
+      sortConsSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
+}
+
+TEST_F(TestApiBlackSort, isInstantiated)
+{
+  Sort paramDtypeSort = create_param_datatype_sort();
+  ASSERT_FALSE(paramDtypeSort.isInstantiated());
+  Sort instParamDtypeSort =
+      paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()});
+  ASSERT_TRUE(instParamDtypeSort.isInstantiated());
+
+  Sort sortConsSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
+  ASSERT_FALSE(sortConsSort.isInstantiated());
+  Sort instSortConsSort =
+      sortConsSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()});
+  ASSERT_TRUE(instSortConsSort.isInstantiated());
+
+  ASSERT_FALSE(d_solver.getIntegerSort().isInstantiated());
+  ASSERT_FALSE(d_solver.mkBitVectorSort(32).isInstantiated());
 }
 
 TEST_F(TestApiBlackSort, getFunctionArity)
@@ -398,23 +420,12 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getUninterpretedSortName)
+TEST_F(TestApiBlackSort, getSymbol)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   ASSERT_NO_THROW(uSort.getSymbol());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getSymbol(), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSort, isUninterpretedSortParameterized)
-{
-  Sort uSort = d_solver.mkUninterpretedSort("u");
-  ASSERT_FALSE(uSort.isUninterpretedSortParameterized());
-  Sort sSort = d_solver.mkUninterpretedSortConstructorSort("s", 1);
-  Sort siSort = sSort.instantiate({uSort});
-  ASSERT_TRUE(siSort.isUninterpretedSortParameterized());
-  Sort bvSort = d_solver.mkBitVectorSort(32);
-  ASSERT_THROW(bvSort.isUninterpretedSortParameterized(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getUninterpretedSortParamSorts)

@@ -1897,32 +1897,33 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* class GetInterpolCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-GetInterpolCommand::GetInterpolCommand(const std::string& name, api::Term conj)
+GetInterpolantCommand::GetInterpolantCommand(const std::string& name,
+                                             api::Term conj)
     : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
-GetInterpolCommand::GetInterpolCommand(const std::string& name,
-                                       api::Term conj,
-                                       api::Grammar* g)
+GetInterpolantCommand::GetInterpolantCommand(const std::string& name,
+                                             api::Term conj,
+                                             api::Grammar* g)
     : d_name(name), d_conj(conj), d_sygus_grammar(g)
 {
 }
 
-api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
+api::Term GetInterpolantCommand::getConjecture() const { return d_conj; }
 
-const api::Grammar* GetInterpolCommand::getGrammar() const
+const api::Grammar* GetInterpolantCommand::getGrammar() const
 {
   return d_sygus_grammar;
 }
 
-api::Term GetInterpolCommand::getResult() const { return d_result; }
+api::Term GetInterpolantCommand::getResult() const { return d_result; }
 
-void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
+void GetInterpolantCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    // we must remember the name of the interpolant, in case get-interpol-next
-    // is called later.
+    // we must remember the name of the interpolant, in case
+    // get-interpolant-next is called later.
     sm->setLastSynthName(d_name);
     if (d_sygus_grammar == nullptr)
     {
@@ -1940,7 +1941,7 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetInterpolCommand::printResult(std::ostream& out) const
+void GetInterpolantCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
@@ -1962,23 +1963,23 @@ void GetInterpolCommand::printResult(std::ostream& out) const
   }
 }
 
-Command* GetInterpolCommand::clone() const
+Command* GetInterpolantCommand::clone() const
 {
-  GetInterpolCommand* c =
-      new GetInterpolCommand(d_name, d_conj, d_sygus_grammar);
+  GetInterpolantCommand* c =
+      new GetInterpolantCommand(d_name, d_conj, d_sygus_grammar);
   c->d_result = d_result;
   return c;
 }
 
-std::string GetInterpolCommand::getCommandName() const
+std::string GetInterpolantCommand::getCommandName() const
 {
-  return "get-interpol";
+  return "get-interpolant";
 }
 
-void GetInterpolCommand::toStream(std::ostream& out,
-                                  int toDepth,
-                                  size_t dag,
-                                  Language language) const
+void GetInterpolantCommand::toStream(std::ostream& out,
+                                     int toDepth,
+                                     size_t dag,
+                                     Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpol(
       out, d_name, termToNode(d_conj), grammarToTypeNode(d_sygus_grammar));
@@ -1988,11 +1989,11 @@ void GetInterpolCommand::toStream(std::ostream& out,
 /* class GetInterpolNextCommand */
 /* -------------------------------------------------------------------------- */
 
-GetInterpolNextCommand::GetInterpolNextCommand() {}
+GetInterpolantNextCommand::GetInterpolantNextCommand() {}
 
-api::Term GetInterpolNextCommand::getResult() const { return d_result; }
+api::Term GetInterpolantNextCommand::getResult() const { return d_result; }
 
-void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
+void GetInterpolantNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
@@ -2007,7 +2008,7 @@ void GetInterpolNextCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetInterpolNextCommand::printResult(std::ostream& out) const
+void GetInterpolantNextCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
@@ -2029,22 +2030,22 @@ void GetInterpolNextCommand::printResult(std::ostream& out) const
   }
 }
 
-Command* GetInterpolNextCommand::clone() const
+Command* GetInterpolantNextCommand::clone() const
 {
-  GetInterpolNextCommand* c = new GetInterpolNextCommand;
+  GetInterpolantNextCommand* c = new GetInterpolantNextCommand;
   c->d_result = d_result;
   return c;
 }
 
-std::string GetInterpolNextCommand::getCommandName() const
+std::string GetInterpolantNextCommand::getCommandName() const
 {
-  return "get-interpol-next";
+  return "get-interpolant-next";
 }
 
-void GetInterpolNextCommand::toStream(std::ostream& out,
-                                      int toDepth,
-                                      size_t dag,
-                                      Language language) const
+void GetInterpolantNextCommand::toStream(std::ostream& out,
+                                         int toDepth,
+                                         size_t dag,
+                                         Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetInterpolNext(out);
 }
