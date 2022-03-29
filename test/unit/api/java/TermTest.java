@@ -870,6 +870,31 @@ class TermTest
     assertDoesNotThrow(() -> vy.getUninterpretedSortValue());
   }
 
+  @Test void isRoundingModeValue() throws CVC5ApiException
+  {
+    assertFalse(d_solver.mkInteger(15).isRoundingModeValue());
+    assertTrue(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN).isRoundingModeValue());
+    assertFalse(d_solver.mkConst(d_solver.getRoundingModeSort()).isRoundingModeValue());
+  }
+
+  @Test void getRoundingModeValue() throws CVC5ApiException
+  {
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger(15).getRoundingModeValue());
+    assertEquals(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN).getRoundingModeValue(),
+        RoundingMode.ROUND_NEAREST_TIES_TO_EVEN);
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE).getRoundingModeValue(),
+        RoundingMode.ROUND_TOWARD_POSITIVE);
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE).getRoundingModeValue(),
+        RoundingMode.ROUND_TOWARD_NEGATIVE);
+    assertEquals(d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO).getRoundingModeValue(),
+        RoundingMode.ROUND_TOWARD_ZERO);
+    assertEquals(
+        d_solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_AWAY).getRoundingModeValue(),
+        RoundingMode.ROUND_NEAREST_TIES_TO_AWAY);
+  }
+
   @Test void getTuple()
   {
     Sort s1 = d_solver.getIntegerSort();
@@ -970,6 +995,21 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i1}), Arrays.asList(s3.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i2}), Arrays.asList(s4.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
+  }
+
+  @Test void getCardinalityConstraint() throws CVC5ApiException
+  {
+    Sort su = d_solver.mkUninterpretedSort("u");
+    Term t = d_solver.mkCardinalityConstraint(su, 3);
+    assertTrue(t.isCardinalityConstraint());
+    Pair<Sort, BigInteger> cc = t.getCardinalityConstraint();
+    assertEquals(cc.first, su);
+    assertEquals(cc.second, new BigInteger("3"));
+    Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+    assertFalse(x.isCardinalityConstraint());
+    assertThrows(CVC5ApiException.class, () -> x.getCardinalityConstraint());
+    Term nullt = d_solver.getNullTerm();
+    assertThrows(CVC5ApiException.class, () -> nullt.isCardinalityConstraint());
   }
 
   @Test void substitute()

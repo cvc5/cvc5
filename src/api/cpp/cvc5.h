@@ -1527,6 +1527,16 @@ class CVC5_EXPORT Term
   std::vector<Term> getTupleValue() const;
 
   /**
+   * @return true if the term is a floating-point rounding mode value.
+   */
+  bool isRoundingModeValue() const;
+  /**
+   * Asserts isRoundingModeValue().
+   * @return the floating-point rounding mode value held by the term.
+   */
+  RoundingMode getRoundingModeValue() const;
+
+  /**
    * @return true if the term is the floating-point value for positive zero.
    */
   bool isFloatingPointPosZero() const;
@@ -1596,6 +1606,16 @@ class CVC5_EXPORT Term
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
+
+  /**
+   * @return true if the term is a cardinality constraint
+   */
+  bool isCardinalityConstraint() const;
+  /**
+   * Asserts isCardinalityConstraint().
+   * @return the sort the cardinality constraint is for and its upper bound.
+   */
+  std::pair<Sort, uint32_t> getCardinalityConstraint() const;
 
  protected:
   /**
@@ -4581,20 +4601,6 @@ class CVC5_EXPORT Solver
   void setOption(const std::string& option, const std::string& value) const;
 
   /**
-   * If needed, convert this term to a given sort.
-   *
-   * @note The sort of the term must be convertible into the target sort.
-   *       Currently only Int to Real conversions are supported.
-   *
-   * @warning This method is experimental and may change in future versions.
-   *
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
-   */
-  Term ensureTermSort(const Term& t, const Sort& s) const;
-
-  /**
    * Append \p symbol to the current list of universal variables.
    *
    * SyGuS v2:
@@ -4940,6 +4946,18 @@ class CVC5_EXPORT Solver
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
+
+  /**
+   * If needed, convert this term to a given sort.
+   * 
+   * The sort of the term must be convertible into the target sort.
+   * Currently only Int to Real conversions are supported.
+   *
+   * @param t the term
+   * @param s the target sort
+   * @return the term wrapped into a sort conversion if needed
+   */
+  Term ensureTermSort(const Term& t, const Sort& s) const;
 
   /**
    * Check that the given term is a valid closed term, which can be used as an
