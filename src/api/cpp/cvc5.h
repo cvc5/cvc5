@@ -4591,20 +4591,6 @@ class CVC5_EXPORT Solver
   void setOption(const std::string& option, const std::string& value) const;
 
   /**
-   * If needed, convert this term to a given sort.
-   *
-   * @note The sort of the term must be convertible into the target sort.
-   *       Currently only Int to Real conversions are supported.
-   *
-   * @warning This method is experimental and may change in future versions.
-   *
-   * @param t the term
-   * @param s the target sort
-   * @return the term wrapped into a sort conversion if needed
-   */
-  Term ensureTermSort(const Term& t, const Sort& s) const;
-
-  /**
    * Append \p symbol to the current list of universal variables.
    *
    * SyGuS v2:
@@ -4950,6 +4936,18 @@ class CVC5_EXPORT Solver
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
+
+  /**
+   * If needed, convert this term to a given sort.
+   * 
+   * The sort of the term must be convertible into the target sort.
+   * Currently only Int to Real conversions are supported.
+   *
+   * @param t the term
+   * @param s the target sort
+   * @return the term wrapped into a sort conversion if needed
+   */
+  Term ensureTermSort(const Term& t, const Sort& s) const;
 
   /**
    * Check that the given term is a valid closed term, which can be used as an
