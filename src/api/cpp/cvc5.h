@@ -549,6 +549,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a record sort?
+   * @warning This method is experimental and may change in future versions.
    * @return true if the sort is a record sort
    */
   bool isRecord() const;
@@ -594,11 +595,11 @@ class CVC5_EXPORT Sort
   bool isUninterpretedSortConstructor() const;
 
   /**
-   * Is this an instantiated (parametric datatype or unintpreted sort
+   * Is this an instantiated (parametric datatype or uninterpreted sort
    * constructor) sort?
    *
    * An instantiated sort is a sort that has been constructed from
-   * instantiating sort parameters of a parametric sort with sort arguments
+   * instantiating a sort with sort arguments
    * (see Sort::instantiate(const std::vector<Sort>&) const)).
    *
    * @return true if this is an instantiated sort
@@ -2315,12 +2316,17 @@ class CVC5_EXPORT Datatype
   size_t getNumConstructors() const;
 
   /**
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return the parameters of this datatype, if it is parametric. An exception
    * is thrown if this datatype is not parametric.
    */
   std::vector<Sort> getParameters() const;
 
-  /** @return true if this datatype is parametric */
+  /**
+   * @warning This method is experimental and may change in future versions.
+   * @return true if this datatype is parametric
+   */
   bool isParametric() const;
 
   /** @return true if this datatype corresponds to a co-datatype */
@@ -2329,7 +2335,10 @@ class CVC5_EXPORT Datatype
   /** @return true if this datatype corresponds to a tuple */
   bool isTuple() const;
 
-  /** @return true if this datatype corresponds to a record */
+  /**
+   * @warning This method is experimental and may change in future versions.
+   * @return true if this datatype corresponds to a record
+   */
   bool isRecord() const;
 
   /** @return true if this datatype is finite */
@@ -2718,75 +2727,6 @@ class CVC5_EXPORT Grammar
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
-
-/* -------------------------------------------------------------------------- */
-/* Rounding Mode for Floating-Points                                          */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Rounding modes for floating-point numbers.
- *
- * For many floating-point operations, infinitely precise results may not be
- * representable with the number of available bits. Thus, the results are
- * rounded in a certain way to one of the representable floating-point numbers.
- *
- * \verbatim embed:rst:leading-asterisk
- * These rounding modes directly follow the SMT-LIB theory for floating-point
- * arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
- * The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
- * Standard 754.
- * \endverbatim
- */
-enum RoundingMode
-{
-  /**
-   * Round to the nearest even number.
-   * If the two nearest floating-point numbers bracketing an unrepresentable
-   * infinitely precise result are equally near, the one with an even least
-   * significant digit will be delivered.
-   */
-  ROUND_NEAREST_TIES_TO_EVEN,
-  /**
-   * Round towards positive infinity (+oo).
-   * The result shall be the format's floating-point number (possibly +oo)
-   * closest to and no less than the infinitely precise result.
-   */
-  ROUND_TOWARD_POSITIVE,
-  /**
-   * Round towards negative infinity (-oo).
-   * The result shall be the format's floating-point number (possibly -oo)
-   * closest to and no less than the infinitely precise result.
-   */
-  ROUND_TOWARD_NEGATIVE,
-  /**
-   * Round towards zero.
-   * The result shall be the format's floating-point number closest to and no
-   * greater in magnitude than the infinitely precise result.
-   */
-  ROUND_TOWARD_ZERO,
-  /**
-   * Round to the nearest number away from zero.
-   * If the two nearest floating-point numbers bracketing an unrepresentable
-   * infinitely precise result are equally near, the one with larger magnitude
-   * will be selected.
-   */
-  ROUND_NEAREST_TIES_TO_AWAY,
-};
-
-}  // namespace cvc5::api
-
-namespace std {
-
-/**
- * Hash function for RoundingModes.
- */
-template <>
-struct CVC5_EXPORT hash<cvc5::api::RoundingMode>
-{
-  size_t operator()(cvc5::api::RoundingMode rm) const;
-};
-}  // namespace std
-namespace cvc5::api {
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
@@ -3245,6 +3185,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a sort parameter.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param symbol the name of the sort
    * @return the sort parameter
    */
@@ -3259,6 +3202,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a record sort
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param fields the list of fields of the record
    * @return the record sort
    */
@@ -3641,6 +3587,9 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param sort the sort the cardinality constraint is for
    * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
@@ -3690,6 +3639,11 @@ class CVC5_EXPORT Solver
   /* Create datatype constructor declarations                             */
   /* .................................................................... */
 
+  /**
+   * Create a datatype constructor declaration.
+   * @param name the name of the datatype constructor
+   * @return the DatatypeConstructorDecl
+   */
   DatatypeConstructorDecl mkDatatypeConstructorDecl(const std::string& name);
 
   /* .................................................................... */
@@ -3738,6 +3692,9 @@ class CVC5_EXPORT Solver
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param t the formula to simplify
    * @return the simplified formula
    */
@@ -4080,6 +4037,8 @@ class CVC5_EXPORT Solver
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @return a map from (a subset of) the input assertions to a real value that
    *         is an estimate of how difficult each assertion was to solve.
    *         Unmentioned assertions can be assumed to have zero difficulty.
@@ -4210,10 +4169,10 @@ class CVC5_EXPORT Solver
    *     (get-qe <q>)
    * \endverbatim
    *
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * @note Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
    *
-   * @note Quantifier Elimination is is only complete for LRA and LIA.
+   * @warning This method is experimental and may change in future versions.
    *
    * @param q a quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
@@ -4241,8 +4200,11 @@ class CVC5_EXPORT Solver
    *     (get-qe-disjunct <q>)
    * \endverbatim
    *
-   * Requires a logic that supports quantifier elimination. Currently, the only
-   * logics supported by quantifier elimination is LRA and LIA.
+   * @note Quantifier Elimination is is only complete for logics such as LRA,
+   * LIA and BV.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param q a quantified formula of the form
    *          @f$Q\bar{x}_1... Q\bar{x}_n. P( x_1...x_i, y_1...y_j)@f$
    *          where
@@ -4318,6 +4280,8 @@ class CVC5_EXPORT Solver
    *     (declare-pool <symbol> <sort> ( <term>* ))
    * \endverbatim
    *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
@@ -4349,12 +4313,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol <conj>)
+   *     (get-interpolant <conj>)
    *
    * Requires option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -4373,12 +4336,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol <conj> <grammar>)
+   *     (get-interpolant <conj> <grammar>)
    *
    * Requires option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -4392,7 +4354,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the next interpolant. Can only be called immediately after a successful
-   * call to get-interpol or get-interpol-next. Is guaranteed to produce a
+   * call to get-interpolant or get-interpolant-next. Is guaranteed to produce a
    * syntactically different interpolant wrt the last returned interpolant if
    * successful.
    *
@@ -4401,12 +4363,11 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpol-next)
+   *     (get-interpolant-next)
    *
    * Requires to enable incremental mode, and option
-   * :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a
-   * mode different from `none`.
-   * \endverbatim
+   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
+   * a mode different from `none`. \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
@@ -4624,6 +4585,9 @@ class CVC5_EXPORT Solver
    *
    * @note The sort of the term must be convertible into the target sort.
    *       Currently only Int to Real conversions are supported.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed

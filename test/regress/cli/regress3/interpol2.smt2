@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols --interpols-mode=default --sygus-enum=fast --check-interpols
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --sygus-enum=fast --check-interpolants
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 
@@ -28,4 +28,4 @@
 (assert (and A1 A2 A3 A4 A5))
 
 ;The conjuecture is: 2 <= x+y
-(get-interpol A (<= 2 (+ x y)))
+(get-interpolant A (<= 2 (+ x y)))

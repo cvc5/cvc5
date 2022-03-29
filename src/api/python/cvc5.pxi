@@ -22,7 +22,6 @@ from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
 from cvc5 cimport SynthResult as c_SynthResult
-from cvc5 cimport RoundingMode as c_RoundingMode
 from cvc5 cimport UnknownExplanation as c_UnknownExplanation
 from cvc5 cimport Op as c_Op
 from cvc5 cimport OptionInfo as c_OptionInfo
@@ -33,9 +32,6 @@ from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Sort as c_Sort
-from cvc5 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
-from cvc5 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
-from cvc5 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc5 cimport REQUIRES_FULL_CHECK, INCOMPLETE, TIMEOUT
 from cvc5 cimport RESOURCEOUT, MEMOUT, INTERRUPTED
 from cvc5 cimport NO_STATUS, UNSUPPORTED, UNKNOWN_REASON
@@ -46,6 +42,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+from cvc5types cimport RoundingMode as c_RoundingMode
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
@@ -174,7 +171,11 @@ cdef class Datatype:
         return param_sorts
 
     def isParametric(self):
-        """:return: True if this datatype is parametric."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype is parametric.
+        """
         return self.cd.isParametric()
 
     def isCodatatype(self):
@@ -186,7 +187,11 @@ cdef class Datatype:
         return self.cd.isTuple()
 
     def isRecord(self):
-        """:return: True if this datatype corresponds to a record."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype corresponds to a record.
+        """
         return self.cd.isRecord()
 
     def isFinite(self):
@@ -664,44 +669,6 @@ cdef class SynthResult:
     def __repr__(self):
         return self.cr.toString().decode()
 
-cdef class RoundingMode:
-    """
-        Rounding modes for floating-point numbers.
-
-        For many floating-point operations, infinitely precise results may not be
-        representable with the number of available bits. Thus, the results are
-        rounded in a certain way to one of the representable floating-point numbers.
-
-        These rounding modes directly follow the SMT-LIB theory for floating-point
-        arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
-        The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
-        Standard 754.
-
-        Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
-    """
-    cdef c_RoundingMode crm
-    cdef str name
-    def __cinit__(self, int rm):
-        # crm always assigned externally
-        self.crm = <c_RoundingMode> rm
-        self.name = __rounding_modes[rm]
-
-    def __eq__(self, RoundingMode other):
-        return (<int> self.crm) == (<int> other.crm)
-
-    def __ne__(self, RoundingMode other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash((<int> self.crm, self.name))
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
-
-
 cdef class UnknownExplanation:
     """
         Wrapper class for :cpp:enum:`cvc5::api::Result::UnknownExplanation`.
@@ -897,6 +864,9 @@ cdef class Solver:
     def mkParamSort(self, symbolname):
         """ Create a sort parameter.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param symbol: the name of the sort
         :return: the sort parameter
         """
@@ -921,6 +891,9 @@ cdef class Solver:
     @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """Create a record sort
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param fields: the list of fields of the record, as a list or as distinct arguments
         :return: the record sort
@@ -1401,13 +1374,13 @@ cdef class Solver:
         term.cterm = self.csolver.mkFloatingPointNegZero(exp, sig)
         return term
 
-    def mkRoundingMode(self, RoundingMode rm):
+    def mkRoundingMode(self, rm):
         """Create a roundingmode constant.
 
         :param rm: the floating point rounding mode this constant represents
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.crm)
+        term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.value)
         return term
 
     def mkFloatingPoint(self, int exp, int sig, Term val):
@@ -1423,6 +1396,9 @@ cdef class Solver:
 
     def mkCardinalityConstraint(self, Sort sort, int index):
         """Create cardinality constraint.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param sort: Sort of the constraint
         :param index: The upper bound for the cardinality of the sort
@@ -1473,8 +1449,8 @@ cdef class Solver:
 
     def mkDatatypeConstructorDecl(self, str name):
         """
-        :return: a datatype constructor declaration
         :param name: the constructor's name
+        :return: the DatatypeConstructorDecl
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
@@ -1536,6 +1512,9 @@ cdef class Solver:
         SAT Engine in the simplification, but uses the current definitions,
         assertions, and the current partial model, if one has been constructed.
         It also involves theory normalization.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param t: the formula to simplify
         :return: the simplified formula
@@ -2257,6 +2236,9 @@ cdef class Solver:
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: The term for the heap
         """
         cdef Term term = Term(self)
@@ -2265,6 +2247,9 @@ cdef class Solver:
 
     def getValueSepNil(self):
         """When using separation logic, obtain the term for nil.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :return: The term for nil
         """
@@ -2397,10 +2382,10 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-interpol <conj> )
-            ( get-interpol <conj> <grammar> )
+            ( get-interpolant <conj> )
+            ( get-interpolant <conj> <grammar> )
 
-        Requires option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+        Requires option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
 
         Supports the following variants:
 
@@ -2428,7 +2413,7 @@ cdef class Solver:
     def getInterpolantNext(self):
         """
         Get the next interpolant. Can only be called immediately after
-        a succesful call to get-interpol or get-interpol-next. 
+        a succesful call to get-interpolant or get-interpolant-next. 
         Is guaranteed to produce a syntactically different interpolant wrt the
         last returned interpolant if successful.
 
@@ -2436,10 +2421,10 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-interpol-next )
+            ( get-interpolant-next )
 
         Requires to enable incremental mode, and 
-        option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+        option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
 
         .. warning:: This method is experimental and may change in future
                      versions.
@@ -2763,6 +2748,9 @@ cdef class Sort:
         """
             Is this a record sort?
 
+            .. warning:: This method is experimental and may change in future
+                        versions.
+
             :return: True if the sort is a record sort.
         """
         return self.csort.isRecord()
@@ -2820,12 +2808,12 @@ cdef class Sort:
 
     def isInstantiated(self):
         """
-            Is this an instantiated (parametric datatype or unintpreted sort
+            Is this an instantiated (parametric datatype or uninterpreted sort
             constructor) sort?
 
             An instantiated sort is a sort that has been constructed from
-            instantiating sort parameters of a parametric sort with sort
-            arguments (see Sort::instantiate()).
+            instantiating a sort parameters with sort arguments
+            (see Sort::instantiate()).
 
             :return: True if this is an instantiated sort.
         """
@@ -3641,29 +3629,6 @@ cdef class Term:
             return res
 
 
-# Generate rounding modes
-cdef __rounding_modes = {
-    <int> ROUND_NEAREST_TIES_TO_EVEN: "RoundNearestTiesToEven",
-    <int> ROUND_TOWARD_POSITIVE: "RoundTowardPositive",
-    <int> ROUND_TOWARD_NEGATIVE: "RoundTowardNegative",
-    <int> ROUND_TOWARD_ZERO: "RoundTowardZero",
-    <int> ROUND_NEAREST_TIES_TO_AWAY: "RoundNearestTiesToAway"
-}
-
-mod_ref = sys.modules[__name__]
-for rm_int, name in __rounding_modes.items():
-    r = RoundingMode(rm_int)
-
-    if name in dir(mod_ref):
-        raise RuntimeError("Redefinition of Python RoundingMode %s."%name)
-
-    setattr(mod_ref, name, r)
-
-del r
-del rm_int
-del name
-
-
 # Generate unknown explanations
 cdef __unknown_explanations = {
     <int> REQUIRES_FULL_CHECK: "RequiresFullCheck",
@@ -3678,6 +3643,7 @@ cdef __unknown_explanations = {
     <int> UNKNOWN_REASON: "UnknownReason"
 }
 
+mod_ref = sys.modules[__name__]
 for ue_int, name in __unknown_explanations.items():
     u = UnknownExplanation(ue_int)
 

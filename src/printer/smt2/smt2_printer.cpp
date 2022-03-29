@@ -2003,7 +2003,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          Node conj,
                                          TypeNode sygusType) const
 {
-  out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
+  out << "(get-interpolant " << cvc5::quoteSymbol(name) << ' ' << conj;
   if (!sygusType.isNull())
   {
     out << ' ' << sygusGrammarString(sygusType);
@@ -2013,7 +2013,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
 
 void Smt2Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
 {
-  out << "(get-interpol-next)" << std::endl;
+  out << "(get-interpolant-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,

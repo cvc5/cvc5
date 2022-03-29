@@ -99,21 +99,22 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.interpols);
+  Assert(options().smt.interpolants);
   // ASSUMPTIONS
-  if (options().smt.interpolsMode == options::InterpolsMode::ASSUMPTIONS)
+  if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
-  else if (options().smt.interpolsMode == options::InterpolsMode::CONJECTURE)
+  else if (options().smt.interpolantsMode
+           == options::InterpolantsMode::CONJECTURE)
   {
     expr::getOperatorsMap(conj, result);
   }
   // SHARED
-  else if (options().smt.interpolsMode == options::InterpolsMode::SHARED)
+  else if (options().smt.interpolantsMode == options::InterpolantsMode::SHARED)
   {
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node>> include_cons_axioms;
@@ -153,7 +154,7 @@ void SygusInterpol::getIncludeCons(
     }
   }
   // ALL
-  else if (options().smt.interpolsMode == options::InterpolsMode::ALL)
+  else if (options().smt.interpolantsMode == options::InterpolantsMode::ALL)
   {
     Node tmpAssumptions =
         (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
@@ -274,7 +275,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
     Trace("sygus-interpol")
         << "SolverEngine::getInterpol: could not find solution!" << std::endl;
     throw RecoverableModalException(
-        "Could not find solution for get-interpol.");
+        "Could not find solution for get-interpolant.");
     return false;
   }
   Trace("sygus-interpol") << "SolverEngine::getInterpol: solution is "
