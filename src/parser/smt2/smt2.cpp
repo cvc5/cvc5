@@ -160,8 +160,8 @@ void Smt2::addStringOperators() {
   {
     addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
     addOperator(api::STRING_UPDATE, "str.update");
-    addOperator(api::STRING_TOLOWER, "str.tolower");
-    addOperator(api::STRING_TOUPPER, "str.toupper");
+    addOperator(api::STRING_TO_LOWER, "str.to_lower");
+    addOperator(api::STRING_TO_UPPER, "str.to_upper");
     addOperator(api::STRING_REV, "str.rev");
     // sequence versions
     addOperator(api::SEQ_CONCAT, "seq.++");
@@ -329,7 +329,7 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
 }
 
 api::Term Smt2::mkIndexedConstant(const std::string& name,
-                                  const std::vector<uint64_t>& numerals)
+                                  const std::vector<uint32_t>& numerals)
 {
   if (d_logic.isTheoryEnabled(theory::THEORY_FP))
   {
@@ -902,7 +902,54 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   api::Op op;
-  if (p.d_kind != api::NULL_TERM)
+  if (p.d_kind == api::UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
+  {
+    // Resolve indexed symbols that cannot be resolved without knowing the type
+    // of the arguments. This is currently limited to `to_fp`.
+    Assert(p.d_name == "to_fp");
+    size_t nchildren = args.size();
+    if (nchildren == 1)
+    {
+      kind = api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
+      op = d_solver->mkOp(kind, p.d_indices);
+    }
+    else if (nchildren > 2)
+    {
+      std::stringstream ss;
+      ss << "Wrong number of arguments for indexed operator to_fp, expected "
+            "1 or 2, got "
+         << nchildren;
+      parseError(ss.str());
+    }
+    else if (!args[0].getSort().isRoundingMode())
+    {
+      std::stringstream ss;
+      ss << "Expected a rounding mode as the first argument, got "
+         << args[0].getSort();
+      parseError(ss.str());
+    }
+    else
+    {
+      api::Sort t = args[1].getSort();
+
+      if (t.isFloatingPoint())
+      {
+        kind = api::FLOATINGPOINT_TO_FP_FROM_FP;
+        op = d_solver->mkOp(kind, p.d_indices);
+      }
+      else if (t.isInteger() || t.isReal())
+      {
+        kind = api::FLOATINGPOINT_TO_FP_FROM_REAL;
+        op = d_solver->mkOp(kind, p.d_indices);
+      }
+      else
+      {
+        kind = api::FLOATINGPOINT_TO_FP_FROM_SBV;
+        op = d_solver->mkOp(kind, p.d_indices);
+      }
+    }
+  }
+  else if (p.d_kind != api::NULL_TERM)
   {
     // It is a special case, e.g. tuple_select or array constant specification.
     // We have to wait until the arguments are parsed to resolve it.
@@ -926,54 +973,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   {
     // it was given an operator
     op = p.d_op;
-  }
-  else if (isIndexedOperatorEnabled(p.d_name))
-  {
-    // Resolve indexed symbols that cannot be resolved without knowing the type
-    // of the arguments. This is currently limited to `to_fp`.
-    Assert(p.d_name == "to_fp");
-    size_t nchildren = args.size();
-    if (nchildren == 1)
-    {
-      op = d_solver->mkOp(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-                          p.d_indices[0],
-                          p.d_indices[1]);
-    }
-    else if (nchildren > 2)
-    {
-      std::stringstream ss;
-      ss << "Wrong number of arguments for indexed operator to_fp, expected "
-            "1 or 2, got "
-         << nchildren;
-      parseError(ss.str());
-    }
-    else if (!args[0].getSort().isRoundingMode())
-    {
-      std::stringstream ss;
-      ss << "Expected a rounding mode as the first argument, got "
-         << args[0].getSort();
-      parseError(ss.str());
-    }
-    else
-    {
-      api::Sort t = args[1].getSort();
-
-      if (t.isFloatingPoint())
-      {
-        op = d_solver->mkOp(
-            api::FLOATINGPOINT_TO_FP_FROM_FP, p.d_indices[0], p.d_indices[1]);
-      }
-      else if (t.isInteger() || t.isReal())
-      {
-        op = d_solver->mkOp(
-            api::FLOATINGPOINT_TO_FP_FROM_REAL, p.d_indices[0], p.d_indices[1]);
-      }
-      else
-      {
-        op = d_solver->mkOp(
-            api::FLOATINGPOINT_TO_FP_FROM_SBV, p.d_indices[0], p.d_indices[1]);
-      }
-    }
   }
   else
   {

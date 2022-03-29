@@ -67,8 +67,8 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
   d_extt.addFunctionKind(kind::STRING_LEQ);
   d_extt.addFunctionKind(kind::STRING_TO_CODE);
-  d_extt.addFunctionKind(kind::STRING_TOLOWER);
-  d_extt.addFunctionKind(kind::STRING_TOUPPER);
+  d_extt.addFunctionKind(kind::STRING_TO_LOWER);
+  d_extt.addFunctionKind(kind::STRING_TO_UPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
   d_extt.addFunctionKind(kind::SEQ_NTH);
@@ -213,7 +213,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
            || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
            || k == SEQ_NTH || k == STRING_REPLACE_RE
            || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV)
+           || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV)
         << "Unknown reduction: " << k;
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);

@@ -894,16 +894,30 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isCardinalityConstraint(
 /*
  * Class:     io_github_cvc5_api_Term
  * Method:    getCardinalityConstraint
- * Signature: (J)Ljava/lang/String;
+ * Signature: (J)Lio/github/cvc5/api/Pair;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getCardinalityConstraint(
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Term_getCardinalityConstraint(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  std::pair<Sort, uint32_t> cc = current->getCardinalityConstraint();
-  return static_cast<Pair<Sort, int> >(cc);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+  auto [sort, upperBound] = current->getCardinalityConstraint();
+  Sort* sortPointer = new Sort(sort);
+  jobject u = getBigIntegerObject<std::uint32_t>(env, upperBound);
+
+  // Long s = new Long(sortPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject s = env->NewObject(longClass, longConstructor, sortPointer);
+
+  // Pair pair = new Pair<Long, BigInteger>(s, u);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, s, u);
+
+  return pair;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*

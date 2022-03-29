@@ -53,6 +53,11 @@ public class OptionInfo extends AbstractPointer
     return pointer;
   }
 
+  public String toString()
+  {
+    return toString(pointer);
+  }
+
   /**
    * @return a string representation of this optionInfo.
    */
@@ -66,7 +71,7 @@ public class OptionInfo extends AbstractPointer
   }
 
   /** Has the current and the default value */
-  public abstract class ValueInfo<T> extends BaseInfo
+  public class ValueInfo<T> extends BaseInfo
   {
     private final T defaultValue;
     private final T currentValue;

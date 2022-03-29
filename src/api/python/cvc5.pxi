@@ -988,15 +988,19 @@ cdef class Solver:
         sort.csort = self.csolver.mkUnresolvedSort(name.encode(), arity)
         return sort
 
-    def mkSortConstructorSort(self, str symbol, size_t arity):
+    def mkUninterpretedSortConstructorSort(self, str symbol, size_t arity):
         """Create a sort constructor sort.
 
+        An uninterpreted sort constructor is an uninterpreted sort with
+        arity > 0.
+
         :param symbol: the symbol of the sort
-        :param arity: the arity of the sort
+        :param arity: the arity of the sort (must be > 0)
         :return: the sort constructor sort
         """
         cdef Sort sort = Sort(self)
-        sort.csort =self.csolver.mkSortConstructorSort(symbol.encode(), arity)
+        sort.csort = self.csolver.mkUninterpretedSortConstructorSort(
+            symbol.encode(), arity)
         return sort
 
     @expand_list_arg(num_req_args=0)
@@ -1063,40 +1067,28 @@ cdef class Solver:
         Supports the following uses:
 
         - ``Op mkOp(Kind kind)``
-        - ``Op mkOp(Kind kind, Kind k)``
         - ``Op mkOp(Kind kind, const string& arg)``
-        - ``Op mkOp(Kind kind, uint32_t arg)``
-        - ``Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)``
-        - ``Op mkOp(Kind kind, [uint32_t arg0, ...])`` (used for the TupleProject kind)
+        - ``Op mkOp(Kind kind, uint32_t arg0, ...)``
         """
         cdef Op op = Op(self)
         cdef vector[uint32_t] v
 
         if len(args) == 0:
             op.cop = self.csolver.mkOp(<c_Kind> k.value)
-        elif len(args) == 1:
-            if isinstance(args[0], str):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value,
-                                           <const string &>
-                                           args[0].encode())
-            elif isinstance(args[0], int):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int?> args[0])
-            elif isinstance(args[0], list):
-                for a in args[0]:
-                    if a < 0 or a >= 2 ** 31:
-                        raise ValueError("Argument {} must fit in a uint32_t".format(a))
-
-                    v.push_back((<uint32_t?> a))
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <const vector[uint32_t]&> v)
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
-        elif len(args) == 2:
-            if isinstance(args[0], int) and isinstance(args[1], int):
-                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int> args[0], <int> args[1])
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
+        elif len(args) == 1 and isinstance(args[0], str):
+            op.cop = self.csolver.mkOp(<c_Kind> k.value,
+                                       <const string &>
+                                       args[0].encode())
+        else:
+            for a in args:
+                if not isinstance(a, int):
+                  raise ValueError(
+                            "Expected uint32_t for argument {}".format(a))
+                if a < 0 or a >= 2 ** 31:
+                    raise ValueError(
+                            "Argument {} must fit in a uint32_t".format(a))
+                v.push_back((<uint32_t?> a))
+            op.cop = self.csolver.mkOp(<c_Kind> k.value, v)
         return op
 
     def mkTrue(self):
@@ -1841,6 +1833,11 @@ cdef class Solver:
         .. code-block:: smtlib
 
             ( declare-sort <symbol> <numeral> )
+
+        .. note::
+          This corresponds to :py:meth:`Solver.mkUninterpretedSort()` if
+          arity = 0, and to
+          :py:meth:`Solver.mkUninterpretedSortConstructorSort()` if arity > 0.
 
         :param symbol: the name of the sort
         :param arity: the arity of the sort
@@ -2655,14 +2652,6 @@ cdef class Sort:
         """
         return self.csort.isDatatype()
 
-    def isParametricDatatype(self):
-        """
-            Is this a parametric datatype sort?
-
-            :return: True if the sort is a parametric datatype sort.
-        """
-        return self.csort.isParametricDatatype()
-
     def isConstructor(self):
         """
             Is this a constructor sort?
@@ -2769,13 +2758,16 @@ cdef class Sort:
         """
         return self.csort.isUninterpretedSort()
 
-    def isSortConstructor(self):
+    def isUninterpretedSortConstructor(self):
         """
             Is this a sort constructor kind?
 
+            An uninterpreted sort constructor is an uninterpreted sort with
+            arity > 0.
+
             :return: True if this a sort constructor kind.
         """
-        return self.csort.isSortConstructor()
+        return self.csort.isUninterpretedSortConstructor()
 
     def getDatatype(self):
         """
@@ -2787,7 +2779,8 @@ cdef class Sort:
 
     def instantiate(self, params):
         """
-            Instantiate a parameterized datatype/sort sort.
+            Instantiate a parameterized datatype sort or uninterpreted sort
+            constructor sort.
             Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
             :param params: the list of sort parameters to instantiate with
@@ -2985,11 +2978,11 @@ cdef class Sort:
             param_sorts.append(sort)
         return param_sorts
 
-    def getSortConstructorArity(self):
+    def getUninterpretedSortConstructorArity(self):
         """
             :return: the arity of a sort constructor sort
         """
-        return self.csort.getSortConstructorArity()
+        return self.csort.getUninterpretedSortConstructorArity()
 
     def getBitVectorSize(self):
         """
@@ -3529,22 +3522,6 @@ cdef class Term:
 	   :return: the representation of a bit-vector value in string representation. 
 	"""
         return self.cterm.getBitVectorValue(base).decode()
-
-
-    def isCardinalityConstraint(self):
-        """
-
-	    :return: True iff this term is a cardinality constraint
-        """
-        return self.cterm.isCardinalityConstraint()
-
-    def getCardinalityConstraint(self):
-        """
-	   Asserts :py:meth:`isCardinalityConstraint()`.
-
-	   :return: the representation of a rational value as a python Fraction.
-	"""
-        return self.cterm.getCardinalityConstraint()
 
     def toPythonObj(self):
         """
