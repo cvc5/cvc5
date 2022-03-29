@@ -365,8 +365,8 @@ class StringsEntail
    *               str.substr(y,x,z),
    *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
    *
-   * Since we do not wish to introduce ITE terms in the rewriter, we instead
-   * return false, indicating that we cannot compute the remainder.
+   * Since we do not wish to introduce new (symbolic) terms, we
+   * instead return false, indicating that we cannot compute the remainder.
    */
   bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
