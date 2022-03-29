@@ -207,8 +207,8 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
     cpf.addProof(cp);
   }
   Node res = cur->getResult();
-  Trace("pf-process-debug") << "Updating ("
-                            << cur->getRule() << "): " << res << std::endl;
+  Trace("pf-process-debug")
+      << "Updating (" << cur->getRule() << "): " << res << std::endl;
   // only if the callback updated the node
   if (preVisit
           ? d_cb.update(res, id, ccn, cur->getArguments(), &cpf, continueUpdate)
