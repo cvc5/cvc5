@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs
+; DISABLE-TESTER: proof
 (set-logic QF_ABV)
 (set-info :status unsat)
 (declare-const a (Array Bool Bool))
