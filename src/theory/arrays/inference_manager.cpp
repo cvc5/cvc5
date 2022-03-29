@@ -49,7 +49,8 @@ bool InferenceManager::assertInference(TNode atom,
   Assert(atom.getKind() == EQUAL);
   if (atom[1].getType().isBoolean() && atom[1].isConst())
   {
-    // we require changing (= t true) to t, and (= t false) to (not t)
+    // we require changing (= t true) to t, and (= t false) to (not t), since
+    // the equality engine will expect explanations in these forms
     bool pol = atom[1].getConst<bool>();
     atom = atom[0];
     if (!pol)
