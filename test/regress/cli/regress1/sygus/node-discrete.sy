@@ -1,0 +1,216 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
+(set-logic ALL)
+
+(declare-datatype Packet ((P1) (P2)))
+
+(declare-datatype Node ((A) (B) (C)))
+
+(declare-datatype SPair ((mkPair (pnode Node) (ppacket Packet))))
+
+(declare-datatype State ((mkState (rcv (Array SPair Bool)))))
+(declare-datatype StateList ((consSL (headSL State) (tailSL StateList)) (nilSL)))
+
+; C is destination of P1 and P2
+(define-fun h_State ((s State)) Real
+  (+ 
+    (ite (select (rcv s) (mkPair C P1)) 1.0 0.0)
+    (ite (select (rcv s) (mkPair C P2)) 1.0 0.0)
+  )
+)
+
+; reliability
+(define-fun rel () Real 0.7)
+
+; new chance of feasible
+(define-fun updateReal ((addP Real) (currP Real)) Real
+  (+ currP (* (- 1.0 currP) addP))
+)
+
+; Actions and how they are interpreted
+
+(declare-datatype Action (
+  (sleep) 
+  (pushPck (push_dst Node) (push_pck Packet))
+  (pullPck (pull_src Node) (pull_pck Packet))
+))
+(declare-datatype ActionList ((consAL (headA Action) (tailA ActionList)) (nilAL)))
+
+;; returns true if action is valid for actor in state s
+(define-fun preconditionAction ((actor Node) (a Action) (s State)) Bool
+  (let ((rcv (rcv s)))
+  (ite ((_ is pullPck) a)
+    (let ((pck (pull_pck a)))
+    ; don't pull if already recieved the packet
+    (not (select rcv (mkPair actor pck)))
+    )
+    true
+  )
+  )
+)
+
+; which action fires in state s?
+(define-fun-rec actionListToAction ((actor Node) (al ActionList) (s State)) Action
+  (ite ((_ is consAL) al)
+    (let ((a (headA al)))
+    (ite (preconditionAction actor a s)
+      a
+      (actionListToAction actor (tailA al) s)
+    )
+    )
+    sleep
+  )
+)
+
+(declare-datatype PState ((mkPState (states StateList) (prob (Array State Real)))))
+
+(define-fun-rec h_PState_rec ((pssl StateList) (pspb (Array State Real))) Real
+  (ite ((_ is consSL) pssl)
+    (let ((s (headSL pssl)))
+      (+ (* (select pspb s) (h_State s)) (h_PState_rec (tailSL pssl) pspb))
+    )
+    0.0)
+)
+(define-fun h_PState ((ps PState)) Real
+  (h_PState_rec (states ps) (prob ps))
+)
+
+(define-fun nilPState () PState
+  (mkPState nilSL ((as const (Array State Real)) 0.0))
+)
+(define-fun-rec appendStateToPState ((s State) (r Real) (p PState)) PState
+  (let ((pstates (states p)))
+  (let ((pprob (prob p)))
+  (let ((pr (select pprob s)))
+  (mkPState
+    ; add to list if not there already
+    (ite (= pr 0.0)
+      (consSL s pstates)
+      pstates
+    )
+    (store 
+      pprob
+      s (+ r pr)
+    )
+  )
+  )))
+)
+
+
+(define-fun transNode ((actor Node) (a Action) (r Real) (s State) (psp PState)) PState
+  (let ((prevRcv (rcv s)))
+  (ite ((_ is pushPck) a)
+    (let ((dst (push_dst a))) 
+    (let ((pck (push_pck a)))
+    (let ((dst_pair (mkPair dst pck)))
+    (let ((src_pair (mkPair actor pck)))
+    (let ((chSuccess (ite (select prevRcv src_pair) rel 0.0)))
+    ; feasible and failure
+    (appendStateToPState
+      (mkState (store prevRcv dst_pair true))
+      (* r chSuccess)
+    (appendStateToPState
+      s 
+      (* r (- 1.0 chSuccess))
+      psp
+    ))
+    )))))
+  (ite ((_ is pullPck) a)
+    (let ((src (pull_src a))) 
+    (let ((pck (pull_pck a)))
+    (let ((dst_pair (mkPair actor pck)))
+    (let ((src_pair (mkPair src pck)))
+    (let ((chSuccess (ite (select prevRcv src_pair) rel 0.0)))
+    ; feasible and failure
+    (appendStateToPState
+      (mkState (store prevRcv dst_pair true))
+      (* r chSuccess)
+    (appendStateToPState
+      s 
+      (* r (- 1.0 chSuccess))
+      psp
+    ))
+    )))))
+    (appendStateToPState
+      s 
+      r
+      psp)
+  ))
+  )
+)
+
+(define-fun-rec transNodeListRec ((actor Node) (al ActionList) (ps PState) (pssl StateList) (psp PState)) PState
+  ; if more states to consider in s
+  (ite ((_ is consSL) pssl) 
+    (let ((s (headSL pssl)))
+    (let ((r (select (prob ps) s)))
+      (transNode actor (actionListToAction actor al s) r s 
+        (transNodeListRec actor al ps (tailSL pssl) psp))
+    ))
+    psp)
+)
+
+(define-fun-rec transNodeList ((actor Node) (al ActionList) (ps PState) (psp PState)) PState
+  (transNodeListRec actor al ps (states ps) psp)
+)
+
+(define-fun trans ((aa ActionList) (ab ActionList) (ac ActionList) (ps PState)) PState
+  ;(transNodeList A aa ps
+  ;(transNodeList B ab ps
+  (transNodeList C ac ps
+    nilPState);))
+)
+
+(synth-fun actionA () ActionList
+  ((GAL ActionList) (GA Action) (GN Node) (GP Packet))
+  (
+  (GAL ActionList (nilAL))
+  (GA Action ((pushPck GN GP) (pullPck GN GP)))
+  (GN Node (B C))
+  (GP Packet (P1 P2))
+  )
+)
+(synth-fun actionB () ActionList
+  ((GAL ActionList) (GA Action) (GN Node) (GP Packet))
+  (
+  (GAL ActionList (nilAL))
+  (GA Action ((pushPck GN GP) (pullPck GN GP)))
+  (GN Node (A C))
+  (GP Packet (P1 P2))
+  )
+)
+(synth-fun actionC () ActionList
+  ((GAL ActionList) (GA Action) (GN Node) (GP Packet))
+  (
+  (GAL ActionList ((consAL GA GAL) nilAL))
+  (GA Action ((pushPck GN GP) (pullPck GN GP)))
+  (GN Node (A B))
+  (GP Packet (P1 P2))
+  )
+)
+
+
+; A and B initially have packets P1 and P2
+(define-fun init-state () State
+  (mkState
+    (store 
+      (store
+        ((as const (Array SPair Bool)) false)
+        (mkPair B P2) true
+      )
+      (mkPair A P1) true
+    )
+  )
+)
+
+(define-fun init-pstate () PState
+  (appendStateToPState init-state 1.0 nilPState)
+)
+
+; expected value of packets is greater than 1.0 after 2 time steps.
+(constraint
+  (< 1.0 (h_PState
+         (trans actionA actionB actionC (trans actionA actionB actionC init-pstate))
+         ))
+  )
+(check-synth)

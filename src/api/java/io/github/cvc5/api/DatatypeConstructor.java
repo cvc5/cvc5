@@ -75,6 +75,8 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
    * (nullary) application of nil.
    *
+   * @apiNote This method is experimental and may change in future versions.
+   *
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
@@ -107,7 +109,11 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   }
   private native int getNumSelectors(long pointer);
 
-  /** @return the i^th DatatypeSelector. */
+  /**
+   * Get the DatatypeSelector at the given index
+   * @param index the given index i
+   * @return the i^th DatatypeSelector
+   */
   public DatatypeSelector getSelector(int index)
   {
     long selectorPointer = getSelector(pointer, index);

@@ -1,0 +1,13 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status
+
+(set-logic LIA)
+(synth-fun f ((x Int)) Int
+  ((Start Int))
+  ((Start Int (x 0 1 (+ Start Start)))))
+(declare-var y Int)
+(assume (>= y 0))
+(constraint (>= (f y) 0))
+(constraint (>= (f y) y))
+; lambda x. x is a valid solution
+(check-synth)

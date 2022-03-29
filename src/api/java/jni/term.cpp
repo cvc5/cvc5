@@ -665,6 +665,34 @@ Java_io_github_cvc5_api_Term_getUninterpretedSortValue(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Term
+ * Method:    isRoundingModeValue
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isRoundingModeValue(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isRoundingModeValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    getRoundingModeValue
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Term_getRoundingModeValue(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getRoundingModeValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
  * Method:    isTupleValue
  * Signature: (J)Z
  */
@@ -874,6 +902,49 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Term_getSequenceValue(
   std::vector<Term> terms = current->getSequenceValue();
   jlongArray ret = getPointersFromObjects<Term>(env, terms);
   return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    isCardinalityConstraint
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isCardinalityConstraint(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isCardinalityConstraint());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    getCardinalityConstraint
+ * Signature: (J)Lio/github/cvc5/api/Pair;
+ */
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Term_getCardinalityConstraint(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  auto [sort, upperBound] = current->getCardinalityConstraint();
+  Sort* sortPointer = new Sort(sort);
+  jobject u = getBigIntegerObject<std::uint32_t>(env, upperBound);
+
+  // Long s = new Long(sortPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject s = env->NewObject(longClass, longConstructor, sortPointer);
+
+  // Pair pair = new Pair<Long, BigInteger>(s, u);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, s, u);
+
+  return pair;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

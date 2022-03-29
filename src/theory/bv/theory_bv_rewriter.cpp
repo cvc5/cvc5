@@ -36,8 +36,8 @@ RewriteResponse TheoryBVRewriter::preRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, true);
   if (res.d_node != node)
   {
-    Debug("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite")
+    Trace("bitvector-rewrite") << "TheoryBV::preRewrite    " << node << std::endl;
+    Trace("bitvector-rewrite")
         << "TheoryBV::preRewrite to " << res.d_node << std::endl;
   }
   return res; 
@@ -47,8 +47,8 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   RewriteResponse res = d_rewriteTable[node.getKind()](node, false);
   if (res.d_node != node)
   {
-    Debug("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
-    Debug("bitvector-rewrite")
+    Trace("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
+    Trace("bitvector-rewrite")
         << "TheoryBV::postRewrite to " << res.d_node << std::endl;
   }
   return res; 
@@ -56,7 +56,7 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
 
 TrustNode TheoryBVRewriter::expandDefinition(Node node)
 {
-  Debug("bitvector-expandDefinition")
+  Trace("bitvector-expandDefinition")
       << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
   Node ret;
   switch (node.getKind())
@@ -225,16 +225,14 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
   Node resultNode = node;
-  
-  // // if(RewriteRule<NotXor>::applies(node)) {
-  // //   resultNode = RewriteRule<NotXor>::run<false>(node);
-  // //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  // // }
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalNot>,
-      RewriteRule<NotIdemp>
-    >::apply(node);
-  
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<NotIdemp>, RewriteRule<EvalNot>>::apply(
+          node);
+
+  // It is is safe to return REWRITE_DONE here, because `NotIdemp` removes all
+  // pairs of `bvnot` and then `EvalNot` evaluates the remaining `bvnot` if
+  // applicable.
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
@@ -713,7 +711,7 @@ RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite) {
 }
 
 RewriteResponse TheoryBVRewriter::UndefinedRewrite(TNode node, bool prerewrite) {
-  Debug("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
+  Trace("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
   Unimplemented(); 
 } 
 

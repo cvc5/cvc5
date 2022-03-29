@@ -523,6 +523,28 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getUninterpretedSortValue(long pointer);
 
   /**
+   * @return true if the term is a floating-point rounding mode value.
+   */
+  public boolean isRoundingModeValue()
+  {
+    return isRoundingModeValue(pointer);
+  }
+
+  private native boolean isRoundingModeValue(long pointer);
+
+  /**
+   * Asserts isRoundingModeValue().
+   * @return the floating-point rounding mode value held by the term.
+   */
+  public RoundingMode getRoundingModeValue() throws CVC5ApiException
+  {
+    int value = getRoundingModeValue(pointer);
+    return RoundingMode.fromInt(value);
+  }
+
+  private native int getRoundingModeValue(long pointer);
+
+  /**
    * @return true if the term is a tuple value.
    */
   public boolean isTupleValue()
@@ -659,6 +681,29 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native long[] getSequenceValue(long pointer);
+
+  /**
+   * @return true if the term is a cardinality constraint
+   */
+  public boolean isCardinalityConstraint()
+  {
+    return isCardinalityConstraint(pointer);
+  }
+
+  private native boolean isCardinalityConstraint(long pointer);
+
+ /**
+   * Asserts isCardinalityConstraint().
+   * @return the sort the cardinality constraint is for and its upper bound.
+   */
+  public Pair<Sort, BigInteger> getCardinalityConstraint()
+  {
+    Pair<Long, BigInteger> pair = getCardinalityConstraint(pointer);
+    Sort sort = new Sort(solver, pair.first);
+    return new Pair<Sort, BigInteger>(sort, pair.second);
+  }
+
+  private native Pair<Long, BigInteger> getCardinalityConstraint(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

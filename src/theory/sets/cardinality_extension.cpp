@@ -772,7 +772,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       }
       if (!only[0].empty() || !only[1].empty())
       {
-        if (Trace.isOn("sets-nf-debug"))
+        if (TraceIsOn("sets-nf-debug"))
         {
           Trace("sets-nf-debug") << "Unique venn regions : " << std::endl;
           for (unsigned e = 0; e < 2; e++)
@@ -822,39 +822,52 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             bool disjoint = false;
             Trace("sets-nf-debug")
                 << "Try split " << o0 << " against " << o1 << std::endl;
-            // split them
-            for (unsigned e = 0; e < 2; e++)
+            if (!d_state.areDisequal(o0, o1))
             {
-              Node r1 = e == 0 ? o0 : o1;
-              Node r2 = e == 0 ? o1 : o0;
-              // check if their intersection exists modulo equality
-              Node r1r2i = d_state.getBinaryOpTerm(SET_INTER, r1, r2);
-              if (!r1r2i.isNull())
-              {
-                Trace("sets-nf-debug")
-                    << "Split term already exists, but not in cardinality "
-                       "graph : "
-                    << r1r2i << ", should be empty." << std::endl;
-                // their intersection is empty (probably?)
-                // e.g. these are two disjoint venn regions, proceed to next
-                // pair
-                Assert(d_state.areEqual(emp_set, r1r2i));
-                disjoint = true;
-                break;
-              }
-            }
-            if (!disjoint)
-            {
-              // simply introduce their intersection
-              Assert(o0 != o1);
-              Node kca = d_treg.getProxy(o0);
-              Node kcb = d_treg.getProxy(o1);
-              Node intro = rewrite(nm->mkNode(SET_INTER, kca, kcb));
-              Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
-                               << ", term is " << intro << std::endl;
-              intro_sets.push_back(intro);
-              Assert(!d_state.hasTerm(intro));
+              // Just try to make them equal. This is analogous
+              // to the STRINGS_LEN_SPLIT inference in strings.
+              d_im.split(
+                  o0.eqNode(o1), InferenceId::SETS_CARD_SPLIT_EQ, 1);
+              Assert(d_im.hasSent());
               return;
+            }
+            else
+            {
+              // split them by introducing an intersection term, which is
+              // analogous to e.g. STRINGS_SSPLIT_VAR in strings.
+              for (unsigned e = 0; e < 2; e++)
+              {
+                Node r1 = e == 0 ? o0 : o1;
+                Node r2 = e == 0 ? o1 : o0;
+                // check if their intersection exists modulo equality
+                Node r1r2i = d_state.getBinaryOpTerm(SET_INTER, r1, r2);
+                if (!r1r2i.isNull())
+                {
+                  Trace("sets-nf-debug")
+                      << "Split term already exists, but not in cardinality "
+                        "graph : "
+                      << r1r2i << ", should be empty." << std::endl;
+                  // their intersection is empty (probably?)
+                  // e.g. these are two disjoint venn regions, proceed to next
+                  // pair
+                  Assert(d_state.areEqual(emp_set, r1r2i));
+                  disjoint = true;
+                  break;
+                }
+              }
+              if (!disjoint)
+              {
+                // simply introduce their intersection
+                Assert(o0 != o1);
+                Node kca = d_treg.getProxy(o0);
+                Node kcb = d_treg.getProxy(o1);
+                Node intro = rewrite(nm->mkNode(SET_INTER, kca, kcb));
+                Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
+                                << ", term is " << intro << std::endl;
+                intro_sets.push_back(intro);
+                Assert(!d_state.hasTerm(intro));
+                return;
+              }
             }
           }
         }
@@ -1017,7 +1030,12 @@ void CardinalityExtension::mkModelValueElementsFor(
 {
   TypeNode elementType = eqc.getType().getSetElementType();
   bool elementTypeFinite = d_env.isFiniteType(elementType);
-  if (isModelValueBasic(eqc))
+  bool isBasic = isModelValueBasic(eqc);
+  Trace("sets-model") << "mkModelValueElementsFor: " << eqc
+                      << ", isBasic = " << isBasic
+                      << ", isFinite = " << elementTypeFinite
+                      << ", els = " << els << std::endl;
+  if (isBasic)
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
     if (it != d_eqc_to_card_term.end())

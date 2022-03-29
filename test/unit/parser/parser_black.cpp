@@ -87,7 +87,7 @@ class TestParserBlackParser : public TestInternal
     Command* cmd;
     while ((cmd = parser->nextCommand()) != NULL)
     {
-      Debug("parser") << "Parsed command: " << (*cmd) << std::endl;
+      Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
       delete cmd;
     }
 
@@ -108,7 +108,7 @@ class TestParserBlackParser : public TestInternal
           Command* cmd;
           while ((cmd = parser->nextCommand()) != NULL)
           {
-            Debug("parser") << "Parsed command: " << (*cmd) << std::endl;
+            Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
             delete cmd;
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;

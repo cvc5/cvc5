@@ -274,7 +274,7 @@ bool hasBoundVar(TNode n)
     }
     n.setAttribute(HasBoundVarAttr(), hasBv);
     n.setAttribute(HasBoundVarComputedAttr(), true);
-    Debug("bva") << n << " has bva : " << n.getAttribute(HasBoundVarAttr())
+    Trace("bva") << n << " has bva : " << n.getAttribute(HasBoundVarAttr())
                  << std::endl;
     return hasBv;
   }

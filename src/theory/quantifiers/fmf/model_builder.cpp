@@ -107,7 +107,7 @@ bool QModelBuilder::preProcessBuildModelStd(TheoryModel* m) {
 
 void QModelBuilder::debugModel( TheoryModel* m ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
-  if( Trace.isOn("quant-check-model") ){
+  if( TraceIsOn("quant-check-model") ){
     FirstOrderModel* fm = d_model;
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;

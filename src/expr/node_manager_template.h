@@ -936,12 +936,12 @@ class NodeManager
 
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
-    if (Debug.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
-      Debug("gc") << "zombifying node value " << nv << " [" << nv->d_id
+      Trace("gc") << "zombifying node value " << nv << " [" << nv->d_id
                   << "]: ";
-      nv->printAst(Debug("gc"));
-      Debug("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
+      nv->printAst(Trace("gc"));
+      Trace("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
                   << std::endl;
     }
 
@@ -969,9 +969,9 @@ class NodeManager
   inline void markRefCountMaxedOut(expr::NodeValue* nv)
   {
     Assert(nv->HasMaximizedReferenceCount());
-    if (Debug.isOn("gc"))
+    if (TraceIsOn("gc"))
     {
-      Debug("gc") << "marking node value " << nv << " [" << nv->d_id
+      Trace("gc") << "marking node value " << nv << " [" << nv->d_id
                   << "]: as maxed out" << std::endl;
     }
     d_maxedOut.push_back(nv);
@@ -1077,7 +1077,7 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  Debug("arrays") << "making array type " << indexType << " "
+  Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
@@ -1085,7 +1085,7 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  Debug("sets") << "making sets type " << elementType << std::endl;
+  Trace("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
