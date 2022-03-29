@@ -994,20 +994,21 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
                                  const Node& inf_coeff,
                                  const Node& delta_coeff)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  Node vval = val;
   if (!inf_coeff.isNull())
   {
     Assert(!d_vts_sym[0].isNull());
-    val = nm->mkNode(ADD, val, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
-    val = rewrite(val);
+    vval = nm->mkNode(ADD, vval, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
   }
   if (!delta_coeff.isNull())
   {
     // create delta here if necessary
-    val = nm->mkNode(
-        ADD, val, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
-    val = rewrite(val);
+    vval = nm->mkNode(
+        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
   }
-  return val;
+  vval = rewrite(vval);
+  return vval;
 }
 
 Node ArithInstantiator::negate(const Node& t) const
