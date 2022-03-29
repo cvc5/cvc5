@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-interpols --interpols-mode=default --sygus-enum=fast --check-interpols -i
+; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --sygus-enum=fast --check-interpolants -i
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic NIA)
@@ -7,7 +7,7 @@
 (declare-fun z ( ) Int)
 (push)
 (assert (= (* 2 x) y))
-(get-interpol A (distinct (+ (* 2 z) 1) y)
+(get-interpolant A (distinct (+ (* 2 z) 1) y)
 
 ; the grammar for the interpol-to-synthesize
 ((Start Bool) (StartInt Int))
@@ -20,7 +20,7 @@
 (pop)
 
 (assert (= (* 2 y) x))
-(get-interpol A (distinct (+ (* 2 z) 1) x)
+(get-interpolant A (distinct (+ (* 2 z) 1) x)
 ; the grammar for the interpol-to-synthesize
 ((Start Bool) (StartInt Int))
 (

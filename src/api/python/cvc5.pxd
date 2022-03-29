@@ -8,6 +8,7 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
+from cvc5types cimport RoundingMode
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -200,9 +201,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint hasNoSolution() except +
         bint isUnknown() except +
         string toString() except +
-
-    cdef cppclass RoundingMode:
-        pass
 
     cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result":
         cdef cppclass UnknownExplanation:
@@ -399,6 +397,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isUninterpretedSortConstructor() except +
+        bint isInstantiated() except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
@@ -417,7 +416,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort getSetElementSort() except +
         Sort getBagElementSort() except +
         Sort getSequenceElementSort() except +
-        bint isUninterpretedSortParameterized() except +
         vector[Sort] getUninterpretedSortParamSorts() except +
         size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
@@ -507,6 +505,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getBitVectorValue(uint32_t base) except +
         bint isUninterpretedSortValue() except +
         string getUninterpretedSortValue() except +
+        bint isTupleValue() except +
+        vector[Term] getTupleValue() except +
+        bint isRoundingModeValue() except +
+        RoundingMode getRoundingModeValue() except +
+
         bint isFloatingPointPosZero() except +
         bint isFloatingPointNegZero() except +
         bint isFloatingPointPosInf() except +
@@ -519,21 +522,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         set[Term] getSetValue() except +
         bint isSequenceValue() except +
         vector[Term] getSequenceValue() except +
-        bint isTupleValue() except +
-        vector[Term] getTupleValue() except +
 
 
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
         size_t operator()(const Term & t) except +
-
-
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::RoundingMode":
-    cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
-    cdef RoundingMode ROUND_TOWARD_POSITIVE,
-    cdef RoundingMode ROUND_TOWARD_NEGATIVE,
-    cdef RoundingMode ROUND_TOWARD_ZERO,
-    cdef RoundingMode ROUND_NEAREST_TIES_TO_AWAY
 
 
 cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api::Result::UnknownExplanation":
