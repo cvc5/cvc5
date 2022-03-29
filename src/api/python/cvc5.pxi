@@ -3516,11 +3516,19 @@ cdef class Term:
         return elems
 
     def isCardinalityConstraint(self):
-        """:return: True if the term is a cardinality constraint."""
+        """
+        .. warning:: This method is experimental and may change in future
+                     versions.
+	:return: True if the term is a cardinality constraint.
+	"""
         return self.cterm.isCardinalityConstraint()
 
     def getCardinalityConstraint(self):
-        """:return: the sort the cardinality constraint is for and its upper bound."""
+        """
+        .. warning:: This method is experimental and may change in future
+                     versions.
+	:return: the sort the cardinality constraint is for and its upper bound.
+	"""
         cdef pair[c_Sort, uint32_t] p
         p = self.cterm.getCardinalityConstraint()
         cdef Sort sort = Sort(self.solver)
