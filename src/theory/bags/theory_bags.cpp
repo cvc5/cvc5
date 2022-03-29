@@ -427,10 +427,16 @@ void TheoryBags::computeModelValueRec(TheoryModel* m,
                                       Node n,
                                       const std::set<Node>& termSet)
 {
+  Trace("bags-model") << "TheoryBags::computeModelValueRec " << n << std::endl;
   TypeNode tn = n.getType();
   if (!tn.isBag())
   {
     // we are only concerned here about bag terms
+    return;
+  }
+  if (n.isConst())
+  {
+    processedBags[n] = n;
     return;
   }
   Node r = d_state.getRepresentative(n);
