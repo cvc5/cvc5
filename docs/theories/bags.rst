@@ -17,7 +17,7 @@ a `cvc5::api::Solver solver` object.
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Sort                 | ``(Bag <Sort>)``                             | ``solver.mkBagSort(cvc5::api::Sort elementSort);``                      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Bag Int)``               | ``Sort s = solver.mkBagSort(solver.getIntegerSort());``                 |
+| Constants            | ``(declare-const X (Bag String)``            | ``Sort s = solver.mkBagSort(solver.getStringSort());``                  |
 |                      |                                              |                                                                         |
 |                      |                                              | ``Term X = solver.mkConst(s, "X");``                                    |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
@@ -35,7 +35,7 @@ a `cvc5::api::Solver solver` object.
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Duplicate elimination| ``(bag.duplicate_removal X)``                | ``Term t = solver.mkTerm(Kind::BAG_DUPLICATE_REMOVAL, X);``             |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Membership           | ``(bag.member x X)``                         | ``Term x = solver.mkConst(solver.getIntegerSort(), "x");``              |
+| Membership           | ``(bag.member x X)``                         | ``Term x = solver.mkConst(solver.getStringSort(), "x");``               |
 |                      |                                              |                                                                         |
 |                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_MEMBER, x, X);``                     |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
