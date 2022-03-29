@@ -97,7 +97,7 @@ std::string parse(std::string instr,
     while (Command* c = parser->nextCommand())
     {
       delete c;
-  }
+    }
   assert(parser->done());  // parser should be done
   parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
   cvc5::Term e = parser->nextExpression();
