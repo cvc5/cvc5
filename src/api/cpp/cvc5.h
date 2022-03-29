@@ -615,13 +615,24 @@ class CVC5_EXPORT Sort
    * Instantiate a parameterized datatype sort or uninterpreted sort
    * constructor sort.
    *
-   * Create sorts parameter with Solver::mkParamSort().
+   * Create sort parameters with Solver::mkParamSort().
    *
    * @warning This method is experimental and may change in future versions.
    *
    * @param params the list of sort parameters to instantiate with
+   * @return the instantiated sort
    */
   Sort instantiate(const std::vector<Sort>& params) const;
+
+  /**
+   * Get the sorts used to instantiate the sort parameters of a parametric
+   * sort (parametric datatype or uninterpreted sort constructor sort,
+   * see Sort::instantiate(const std::vector<Sort>& const)).
+   *
+   * @return the sorts used to instantiate the sort parameters of a
+   *         parametric sort
+   */
+  std::vector<Sort> getInstantiatedParameters() const;
 
   /**
    * Substitution of Sorts.
@@ -768,11 +779,6 @@ class CVC5_EXPORT Sort
    */
   bool isUninterpretedSortParameterized() const;
 
-  /**
-   * @return the parameter sorts of an uninterpreted sort
-   */
-  std::vector<Sort> getUninterpretedSortParamSorts() const;
-
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
@@ -800,18 +806,6 @@ class CVC5_EXPORT Sort
   uint32_t getFloatingPointSignificandSize() const;
 
   /* Datatype sort ------------------------------------------------------- */
-
-  /**
-   *
-   * Return the parameters of a parametric datatype sort. If this sort is a
-   * non-instantiated parametric datatype, this returns the parameter sorts of
-   * the underlying datatype. If this sort is an instantiated parametric
-   * datatype, then this returns the sort parameters that were used to
-   * construct the sort via Sort::instantiate().
-   *
-   * @return the parameter sorts of a parametric datatype sort.
-   */
-  std::vector<Sort> getDatatypeParamSorts() const;
 
   /**
    * @return the arity of a datatype sort

@@ -364,7 +364,9 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 {
   Assert(isInstantiated());
   vector<TypeNode> params;
-  for (uint32_t i = 1, i_end = getNumChildren(); i < i_end; ++i)
+  for (uint32_t i = isInstantiatedDatatype() ? 1 : 0, i_end = getNumChildren();
+       i < i_end;
+       ++i)
   {
     params.push_back((*this)[i]);
   }
