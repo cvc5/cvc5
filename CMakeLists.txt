@@ -298,7 +298,7 @@ endif()
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
 else()
-  find_package(PythonInterp 3.6 REQUIRED)
+  find_package(PythonInterp 3 REQUIRED)
 endif()
 
 find_package(GMP 6.1 REQUIRED)
