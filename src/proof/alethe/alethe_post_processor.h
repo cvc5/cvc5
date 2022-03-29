@@ -56,8 +56,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * CONTRACTION.
    */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
+                        const std::vector<Node>& fa,
+                        bool& continueUpdate) override;
   /**
    * This method is used to add an additional application of the or-rule between
    * a conclusion (cl (or F1 ... Fn)) and a rule that uses this conclusion as a
