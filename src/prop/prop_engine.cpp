@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "decision/decision_engine_old.h"
 #include "decision/justification_strategy.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
@@ -74,25 +73,20 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
+      d_theoryLemmaPg(d_env.getProofNodeManager(), d_env.getUserContext()),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
 {
-  Debug("prop") << "Constructing the PropEngine" << std::endl;
+  Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
-  ResourceManager* rm = d_env.getResourceManager();
 
   options::DecisionMode dmode = options().decision.decisionMode;
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(env));
-  }
-  else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
-           || dmode == options::DecisionMode::STOPONLY_OLD)
-  {
-    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {
@@ -106,11 +100,10 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // theory proxy first
   d_theoryProxy = new TheoryProxy(
       d_env, this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get());
-  d_cnfStream = new CnfStream(d_satSolver,
+  d_cnfStream = new CnfStream(env,
+                              d_satSolver,
                               d_theoryProxy,
                               userContext,
-                              &d_env,
-                              rm,
                               FormulaLitPolicy::TRACK,
                               "prop");
 
@@ -127,10 +120,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   if (satProofs)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext,
+        env,
         *d_cnfStream,
-        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
-        pnm));
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
@@ -154,7 +146,7 @@ void PropEngine::finishInit()
 }
 
 PropEngine::~PropEngine() {
-  Debug("prop") << "Destructing the PropEngine" << std::endl;
+  Trace("prop") << "Destructing the PropEngine" << std::endl;
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_satSolver;
@@ -178,28 +170,10 @@ void PropEngine::assertInputFormulas(
     std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  // notify the theory engine of preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(assertions);
-  // Now, notify the theory proxy of the assertions and skolem definitions.
-  // Notice we do this before asserting the formulas to the CNF stream below,
-  // since (preregistration) lemmas may occur during calls to assertInternal.
-  // These lemmas we want to be notified about after the theory proxy has
-  // been notified about all input assertions.
-  std::unordered_map<size_t, Node>::iterator it;
-  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
-  {
-    // is the assertion a skolem definition?
-    it = skolemMap.find(i);
-    Node skolem;
-    if (it != skolemMap.end())
-    {
-      skolem = it->second;
-    }
-    d_theoryProxy->notifyAssertion(assertions[i], skolem, false);
-  }
+  d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
   for (const Node& node : assertions)
   {
-    Debug("prop") << "assertFormula(" << node << ")" << std::endl;
+    Trace("prop") << "assertFormula(" << node << ")" << std::endl;
     assertInternal(node, false, false, true);
   }
 }
@@ -226,7 +200,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
     }
   }
 
-  if (Trace.isOn("te-lemma"))
+  if (TraceIsOn("te-lemma"))
   {
     Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
     for (const theory::SkolemLemma& lem : ppLemmas)
@@ -243,11 +217,20 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
-  Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
+  Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
-  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
-         || options().smt.unsatCores);
-  assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
+  // should have a proof generator if the theory engine is proof producing
+  Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
+  // if we are producing proofs for the SAT solver but not for theory engine,
+  // then we need to prevent the lemma of being added as an assumption (since
+  // the generator will be null). We use the default proof generator for lemmas.
+  if (isProofEnabled() && !d_env.isTheoryProofProducing()
+      && !trn.getGenerator())
+  {
+    d_theoryLemmaPg.addStep(node, PfRule::THEORY_LEMMA, {}, {node});
+    trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
+  }
+  assertInternal(node, negated, removable, false, trn.getGenerator());
 }
 
 void PropEngine::assertInternal(
@@ -293,15 +276,11 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
-  // assert to decision engine
+  // Assert to decision engine. Notice this must come before the calls to
+  // assertTrustedLemmaInternal below, since the decision engine requires
+  // setting up information about the relevance of skolems before literals
+  // are potentially asserted to the theory engine, which it listens to for
+  // tracking active skolem definitions.
   if (!removable)
   {
     // also add to the decision engine, where notice we don't need proofs
@@ -315,10 +294,18 @@ void PropEngine::assertLemmasInternal(
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
   }
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
+  }
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
-  Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << std::endl;
+  Trace("prop") << "requirePhase(" << n << ", " << phase << ")" << std::endl;
 
   Assert(n.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(n);
@@ -347,7 +334,7 @@ int32_t PropEngine::getIntroLevel(Node lit) const
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::NodeToLiteralMap& transCache =
     d_cnfStream->getTranslationCache();
-  Debug("prop-value") << "Literal | Value | Expr" << std::endl
+  Trace("prop-value") << "Literal | Value | Expr" << std::endl
                       << "----------------------------------------"
                       << "-----------------" << std::endl;
   for(CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
@@ -359,14 +346,14 @@ void PropEngine::printSatisfyingAssignment(){
     if(!l.isNegated()) {
       Node n = curr.first;
       SatValue value = d_satSolver->modelValue(l);
-      Debug("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
+      Trace("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
     }
   }
 }
 
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "PropEngine::checkSat()" << std::endl;
+  Trace("prop") << "PropEngine::checkSat()" << std::endl;
 
   // Mark that we are in the checkSat
   ScopedBool scopedBool(d_inCheckSat);
@@ -377,7 +364,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
-    return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+    return Result(Result::UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
 
   // Reset the interrupted flag
@@ -400,7 +387,7 @@ Result PropEngine::checkSat() {
   }
 
   if( result == SAT_VALUE_UNKNOWN ) {
-    ResourceManager* rm = d_env.getResourceManager();
+    ResourceManager* rm = resourceManager();
     Result::UnknownExplanation why = Result::INTERRUPTED;
     if (rm->outOfTime())
     {
@@ -410,16 +397,17 @@ Result PropEngine::checkSat() {
     {
       why = Result::RESOURCEOUT;
     }
-    return Result(Result::SAT_UNKNOWN, why);
+    return Result(Result::UNKNOWN, why);
   }
 
-  if( result == SAT_VALUE_TRUE && Debug.isOn("prop") ) {
+  if( result == SAT_VALUE_TRUE && TraceIsOn("prop") ) {
     printSatisfyingAssignment();
   }
 
-  Debug("prop") << "PropEngine::checkSat() => " << result << std::endl;
-  if(result == SAT_VALUE_TRUE && d_theoryEngine->isIncomplete()) {
-    return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
+  Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
+  if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
+  {
+    return Result(Result::UNKNOWN, Result::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
@@ -547,20 +535,20 @@ void PropEngine::push()
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
-  Debug("prop") << "push()" << std::endl;
+  Trace("prop") << "push()" << std::endl;
 }
 
 void PropEngine::pop()
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
-  Debug("prop") << "pop()" << std::endl;
+  Trace("prop") << "pop()" << std::endl;
 }
 
 void PropEngine::resetTrail()
 {
   d_satSolver->resetTrail();
-  Debug("prop") << "resetTrail()" << std::endl;
+  Trace("prop") << "resetTrail()" << std::endl;
 }
 
 unsigned PropEngine::getAssertionLevel() const
@@ -578,7 +566,7 @@ void PropEngine::interrupt()
 
   d_interrupted = true;
   d_satSolver->interrupt();
-  Debug("prop") << "interrupt()" << std::endl;
+  Trace("prop") << "interrupt()" << std::endl;
 }
 
 void PropEngine::spendResource(Resource r)
@@ -664,6 +652,9 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   {
     return nullptr;
   }
+  Trace("sat-proof") << "PropEngine::getProof: getting proof with cnfStream's "
+                        "lazycdproof cxt lvl "
+                     << userContext()->getLevel() << "\n";
   return d_ppm->getProof();
 }
 
@@ -689,6 +680,11 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
   return cdp.getProofFor(fnode);
+}
+
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
+{
+  return d_theoryProxy->getLearnedZeroLevelLiterals();
 }
 
 }  // namespace prop

@@ -47,7 +47,7 @@ public class SygusInv
     try (Solver slv = new Solver())
     {
       // required options
-      slv.setOption("lang", "sygus2");
+      slv.setOption("sygus", "true");
       slv.setOption("incremental", "false");
 
       // set the logic
@@ -67,7 +67,7 @@ public class SygusInv
       // (ite (< x 10) (= xp (+ x 1)) (= xp x))
       Term ite = slv.mkTerm(ITE,
           slv.mkTerm(LT, x, ten),
-          slv.mkTerm(EQUAL, xp, slv.mkTerm(PLUS, x, one)),
+          slv.mkTerm(EQUAL, xp, slv.mkTerm(ADD, x, one)),
           slv.mkTerm(EQUAL, xp, x));
 
       // define the pre-conditions, transition relations, and post-conditions
@@ -81,7 +81,7 @@ public class SygusInv
       slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 
       // print solutions if available
-      if (slv.checkSynth().isUnsat())
+      if (slv.checkSynth().hasSolution())
       {
         // Output should be equivalent to:
         // (

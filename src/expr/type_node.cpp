@@ -42,6 +42,15 @@ TypeNode TypeNode::substitute(
   if(i != cache.end()) {
     return (*i).second;
   }
+  else if (*this == type)
+  {
+    return replacement;
+  }
+
+  if (d_nv->getNumChildren() == 0)
+  {
+    return *this;
+  }
 
   // otherwise compute
   NodeBuilder nb(getKind());
@@ -57,7 +66,7 @@ TypeNode TypeNode::substitute(
     }
     else
     {
-      (*j).substitute(type, replacement);
+      nb << (*j).substitute(type, replacement);
     }
   }
 
@@ -351,10 +360,12 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
   return args;
 }
 
-std::vector<TypeNode> TypeNode::getParamTypes() const {
+std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
+{
+  Assert(isInstantiated());
   vector<TypeNode> params;
-  Assert(isParametricDatatype());
-  for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
+  for (uint32_t i = 1, i_end = getNumChildren(); i < i_end; ++i)
+  {
     params.push_back((*this)[i]);
   }
   return params;
@@ -406,6 +417,12 @@ bool TypeNode::isInstantiatedDatatype() const {
     }
   }
   return true;
+}
+
+bool TypeNode::isInstantiated() const
+{
+  return isInstantiatedDatatype()
+         || (isSort() && getNumChildren() > 0);
 }
 
 TypeNode TypeNode::instantiateParametricDatatype(

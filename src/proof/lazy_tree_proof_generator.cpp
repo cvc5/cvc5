@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include "base/output.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node.h"
@@ -32,14 +33,19 @@ LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm,
 }
 void LazyTreeProofGenerator::openChild()
 {
+  Trace("proof-ltpg") << "openChild() start" << std::endl << *this << std::endl;
   detail::TreeProofNode& pn = getCurrent();
   pn.d_children.emplace_back();
   d_stack.emplace_back(&pn.d_children.back());
+  Trace("proof-ltpg") << "openChild() end" << std::endl << *this << std::endl;
 }
 void LazyTreeProofGenerator::closeChild()
 {
+  Trace("proof-ltpg") << "closeChild() start" << std::endl
+                      << *this << std::endl;
   Assert(getCurrent().d_rule != PfRule::UNKNOWN);
   d_stack.pop_back();
+  Trace("proof-ltpg") << "closeChild() end" << std::endl << *this << std::endl;
 }
 detail::TreeProofNode& LazyTreeProofGenerator::getCurrent()
 {
@@ -122,7 +128,7 @@ void LazyTreeProofGenerator::print(std::ostream& os,
                                    const std::string& prefix,
                                    const detail::TreeProofNode& pn) const
 {
-  os << prefix << pn.d_rule << ": ";
+  os << prefix << pn.d_rule << " [" << pn.d_objectId << "]: ";
   container_to_stream(os, pn.d_premise);
   os << " ==> " << pn.d_proven << std::endl;
   if (!pn.d_args.empty())

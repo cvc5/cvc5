@@ -34,7 +34,7 @@ class Constraint;
 typedef Constraint* ConstraintP;
 typedef const Constraint* ConstraintCP;
 
-static const ConstraintP NullConstraint = NULL;
+static constexpr ConstraintP NullConstraint = nullptr;
 
 class ConstraintDatabase;
 
@@ -43,8 +43,8 @@ typedef std::vector<ConstraintCP> ConstraintCPVec;
 typedef std::vector<Rational> RationalVector;
 typedef RationalVector* RationalVectorP;
 typedef const RationalVector* RationalVectorCP;
-static const RationalVectorCP RationalVectorCPSentinel = NULL;
-static const RationalVectorP RationalVectorPSentinel = NULL;
+static constexpr RationalVectorCP RationalVectorCPSentinel = nullptr;
+static constexpr RationalVectorP RationalVectorPSentinel = nullptr;
 
 }  // namespace arith
 }  // namespace theory

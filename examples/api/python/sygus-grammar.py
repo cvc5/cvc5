@@ -18,14 +18,14 @@
 
 import copy
 import utils 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = pycvc5.Solver()
+  slv = cvc5.Solver()
 
   # required options
-  slv.setOption("lang", "sygus2")
+  slv.setOption("sygus", "true")
   slv.setOption("incremental", "false")
 
   # set the logic
@@ -42,8 +42,8 @@ if __name__ == "__main__":
 
   # define the rules
   zero = slv.mkInteger(0)
-  neg_x = slv.mkTerm(Kind.Uminus, x)
-  plus = slv.mkTerm(Kind.Plus, x, start)
+  neg_x = slv.mkTerm(Kind.Neg, x)
+  plus = slv.mkTerm(Kind.Add, x, start)
 
   # create the grammar object
   g1 = slv.mkSygusGrammar({x}, {start})
@@ -70,7 +70,7 @@ if __name__ == "__main__":
   id4 = slv.synthFun("id4", {x}, integer, g1)
 
   # declare universal variables.
-  varX = slv.mkSygusVar(integer, "x")
+  varX = slv.declareSygusVar(integer, "x")
 
   id1_x = slv.mkTerm(Kind.ApplyUf, id1, varX)
   id2_x = slv.mkTerm(Kind.ApplyUf, id2, varX)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
   slv.addSygusConstraint(slv.mkTerm(Kind.And, [slv.mkTerm(Kind.Equal, id1_x, id2_x), slv.mkTerm(Kind.Equal, id1_x, id3_x), slv.mkTerm(Kind.Equal, id1_x, id4_x), slv.mkTerm(Kind.Equal, id1_x, varX)]))
 
   # print solutions if available
-  if (slv.checkSynth().isUnsat()):
+  if (slv.checkSynth().hasSolution()):
     # Output should be equivalent to:
     # (define-fun id1 ((x Int)) Int (+ x (+ x (- x))))
     # (define-fun id2 ((x Int)) Int x)

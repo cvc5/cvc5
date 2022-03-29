@@ -196,14 +196,6 @@ Node CegGrammarConstructor::process(Node q,
       Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
       Assert(!templ_arg.isNull());
-      // if there is a template for this argument, make a sygus type on top of it
-      if (options().quantifiers.sygusTemplEmbedGrammar)
-      {
-        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
-                             << " with arg " << templ_arg << std::endl;
-        Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
-        tn = mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
-      }
     }
 
     // ev is the first-order variable corresponding to this synth fun
@@ -246,35 +238,39 @@ Node CegGrammarConstructor::process(Node q,
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of
       // it
-      if (!options().quantifiers.sygusTemplEmbedGrammar)
+      // otherwise, apply it as a preprocessing pass
+      Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
+                           << " with arg " << templ_arg << std::endl;
+      Trace("cegqi-debug")
+          << "  apply this template as a substituion during preprocess..."
+          << std::endl;
+      std::vector<Node> schildren;
+      std::vector<Node> largs;
+      for (unsigned j = 0; j < sfvl.getNumChildren(); j++)
       {
-        // otherwise, apply it as a preprocessing pass
-        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
-                             << " with arg " << templ_arg << std::endl;
-        Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
-        std::vector< Node > schildren;
-        std::vector< Node > largs;
-        for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
-          schildren.push_back( sfvl[j] );
-          largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
-        }
-        std::vector< Node > subsfn_children;
-        subsfn_children.push_back( sf );
-        subsfn_children.insert( subsfn_children.end(), schildren.begin(), schildren.end() );
-        Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
-        TNode subsf = subsfn;
-        Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> " << subsf << std::endl;
-        templ = templ.substitute( templ_arg, subsf );
-        // substitute lambda arguments
-        templ = templ.substitute( schildren.begin(), schildren.end(), largs.begin(), largs.end() );
-        Node subsn =
-            nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
-        TNode var = sf;
-        TNode subs = subsn;
-        Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs << std::endl;
-        qbody_subs = qbody_subs.substitute( var, subs );
-        Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
+        schildren.push_back(sfvl[j]);
+        largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
       }
+      std::vector<Node> subsfn_children;
+      subsfn_children.push_back(sf);
+      subsfn_children.insert(
+          subsfn_children.end(), schildren.begin(), schildren.end());
+      Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
+      TNode subsf = subsfn;
+      Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> "
+                           << subsf << std::endl;
+      templ = templ.substitute(templ_arg, subsf);
+      // substitute lambda arguments
+      templ = templ.substitute(
+          schildren.begin(), schildren.end(), largs.begin(), largs.end());
+      Node subsn =
+          nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
+      TNode var = sf;
+      TNode subs = subsn;
+      Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs
+                           << std::endl;
+      qbody_subs = qbody_subs.substitute(var, subs);
+      Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
     }
     d_tds->registerSygusType(tn);
     Assert(tn.isDatatype());
@@ -439,8 +435,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   {
     // generate constant array over the first element of the constituent type
     Node c = nm->mkGroundTerm(type);
-    // note that c should never contain an uninterpreted constant
-    Assert(!expr::hasSubtermKind(UNINTERPRETED_CONSTANT, c));
+    // note that c should never contain an uninterpreted sort value
+    Assert(!expr::hasSubtermKind(UNINTERPRETED_SORT_VALUE, c));
     ops.push_back(c);
   }
   else if (type.isRoundingMode())
@@ -773,8 +769,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (types[i].isRealOrInt())
     {
-      // Add PLUS, MINUS
-      Kind kinds[2] = {PLUS, MINUS};
+      // Add ADD, SUB
+      Kind kinds[2] = {ADD, SUB};
       for (const Kind kind : kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
@@ -802,9 +798,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<TypeNode> cargsEmpty;
         sdts.back().addConstructor(
             nm->mkConstInt(Rational(1)), "1", cargsEmpty);
-        /* Add operator PLUS */
-        Kind kind = PLUS;
-        Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
+        /* Add operator ADD */
+        Kind kind = ADD;
+        Trace("sygus-grammar-def") << "\t...add for ADD to Pos_Int\n";
         std::vector<TypeNode> cargsPlus;
         cargsPlus.push_back(unresPosInt);
         cargsPlus.push_back(unresPosInt);
@@ -938,7 +934,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
         std::vector<TypeNode> cargsSeqUnit;
         cargsSeqUnit.push_back(unresElemType);
-        sdts[i].addConstructor(SEQ_UNIT, cargsSeqUnit);
+        // lambda x . (seq.unit (seq_unit_op T) x) where T = x.getType()
+        Node x = nm->mkBoundVar(etype);
+        Node vars = nm->mkNode(BOUND_VAR_LIST, x);
+        Node seqUnit = nm->mkSeqUnit(etype, x);
+        Node lambda = nm->mkNode(LAMBDA, vars, seqUnit);
+        sdts[i].addConstructor(lambda, "seq.unit", cargsSeqUnit);
       }
     }
     else if (types[i].isArray())
@@ -1267,7 +1268,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
       Assert(sumChildren.size() > 1);
-      Node ops = nm->mkNode(PLUS, sumChildren);
+      Node ops = nm->mkNode(ADD, sumChildren);
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
@@ -1288,7 +1289,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsPlus;
       cargsPlus.push_back(unres_types[iat]);
       cargsPlus.push_back(unres_types[iat]);
-      sdts[iat].d_sdt.addConstructor(PLUS, cargsPlus);
+      sdts[iat].d_sdt.addConstructor(ADD, cargsPlus);
     }
     // add the ITE, regardless of sum-of-monomials vs polynomial
     std::vector<TypeNode> cargsIte;
@@ -1412,13 +1413,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     else if (types[i].isFloatingPoint())
     {
       Trace("sygus-grammar-def") << "...add FP predicates" << std::endl;
-      std::vector<Kind> fp_unary_predicates = {FLOATINGPOINT_ISN,
-                                               FLOATINGPOINT_ISSN,
-                                               FLOATINGPOINT_ISZ,
-                                               FLOATINGPOINT_ISINF,
-                                               FLOATINGPOINT_ISNAN,
-                                               FLOATINGPOINT_ISNEG,
-                                               FLOATINGPOINT_ISPOS};
+      std::vector<Kind> fp_unary_predicates = {FLOATINGPOINT_IS_NORMAL,
+                                               FLOATINGPOINT_IS_SUBNORMAL,
+                                               FLOATINGPOINT_IS_ZERO,
+                                               FLOATINGPOINT_IS_INF,
+                                               FLOATINGPOINT_IS_NAN,
+                                               FLOATINGPOINT_IS_NEG,
+                                               FLOATINGPOINT_IS_POS};
       for (const Kind kind : fp_unary_predicates)
       {
         sdtBool.addConstructor(kind, cargs);

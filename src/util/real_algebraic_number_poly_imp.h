@@ -20,7 +20,9 @@
 
 #include <vector>
 
+#ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
+#endif
 
 #include "util/integer.h"
 #include "util/rational.h"
@@ -38,14 +40,19 @@ namespace cvc5 {
  * square roots), but no trancendentals (like pi).
  * Note that the interval representation uses dyadic rationals (denominators are
  * only powers of two).
+ *
+ * If libpoly is not available, this class serves as a wrapper around Rational
+ * to allow using RealAlgebraicNumber, even if libpoly is not enabled.
  */
 class RealAlgebraicNumber
 {
  public:
   /** Construct as zero. */
   RealAlgebraicNumber() = default;
+#ifdef CVC5_POLY_IMP
   /** Move from a poly::AlgebraicNumber type. */
   RealAlgebraicNumber(poly::AlgebraicNumber&& an);
+#endif
   /** Copy from an Integer. */
   RealAlgebraicNumber(const Integer& i);
   /** Copy from a Rational. */
@@ -89,16 +96,41 @@ class RealAlgebraicNumber
   /** Move assignment. */
   RealAlgebraicNumber& operator=(RealAlgebraicNumber&& ran) = default;
 
+#ifdef CVC5_POLY_IMP
   /** Get the internal value as a const reference. */
   const poly::AlgebraicNumber& getValue() const { return d_value; }
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
+#else
+  /** Get the internal value as a const reference. */
+  const Rational& getValue() const { return d_value; }
+  /** Get the internal value as a non-const reference. */
+  Rational& getValue() { return d_value; }
+#endif
+
+  /**
+   * Check if this real algebraic number is actually rational.
+   * If true, the value is rational and toRational() can safely be called.
+   * If false, the value may still be rational, but was not recognized as
+   * such yet.
+   */
+  bool isRational() const;
+  /**
+   * Returns the stored value as a rational.
+   * The value is exact if isRational() returns true, otherwise it may only be a
+   * rational approximation (of unknown precision).
+   */
+  Rational toRational() const;
 
  private:
   /**
    * Stores the actual real algebraic number.
    */
+#ifdef CVC5_POLY_IMP
   poly::AlgebraicNumber d_value;
+#else
+  Rational d_value;
+#endif
 }; /* class RealAlgebraicNumber */
 
 /** Stream a real algebraic number to an output stream. */
@@ -128,6 +160,9 @@ RealAlgebraicNumber operator-(const RealAlgebraicNumber& ran);
 /** Multiply two real algebraic numbers. */
 RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs,
                               const RealAlgebraicNumber& rhs);
+/** Divide two real algebraic numbers. */
+RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs,
+                              const RealAlgebraicNumber& rhs);
 
 /** Add and assign two real algebraic numbers. */
 RealAlgebraicNumber& operator+=(RealAlgebraicNumber& lhs,
@@ -146,7 +181,25 @@ int sgn(const RealAlgebraicNumber& ran);
 bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
 bool isOne(const RealAlgebraicNumber& ran);
+/** Compute the inverse of a real algebraic number. */
+RealAlgebraicNumber inverse(const RealAlgebraicNumber& ran);
+
+using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
 
 }  // namespace cvc5
+
+namespace std {
+template <>
+struct hash<cvc5::RealAlgebraicNumber>
+{
+  /**
+   * Computes a hash of the given real algebraic number. Given that the internal
+   * representation of real algebraic numbers are inherently mutable (th
+   * interval may be refined for comparisons) we hash a well-defined rational
+   * approximation.
+   */
+  size_t operator()(const cvc5::RealAlgebraicNumber& ran) const;
+};
+}  // namespace std
 
 #endif /* CVC5__REAL_ALGEBRAIC_NUMBER_H */

@@ -137,6 +137,9 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return the result of replacing 'term' by 'replacement' in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point.
    */
   public Term substitute(Term term, Term replacement)
   {
@@ -149,6 +152,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
+   *
+   * Note that this replacement is applied during a pre-order traversal and
+   * only once to the term. It is not run until fix point. In the case that
+   * terms contains duplicates, the replacement earliest in the vector takes
+   * priority. For example, calling substitute on f(x,y) with
+   *   terms = { x, z }, replacements = { g(z), w }
+   * results in the term f(g(z),y).
    */
   public Term substitute(List<Term> terms, List<Term> replacements)
   {
@@ -492,25 +502,47 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getBitVectorValue(long pointer, int base);
 
   /**
-   * @return true if the term is an abstract value.
+   * @return true if the term is an uninterpreted sort value.
    */
-  public boolean isAbstractValue()
+  public boolean isUninterpretedSortValue()
   {
-    return isAbstractValue(pointer);
+    return isUninterpretedSortValue(pointer);
   }
 
-  private native boolean isAbstractValue(long pointer);
+  private native boolean isUninterpretedSortValue(long pointer);
 
   /**
-   * Asserts isAbstractValue().
-   * @return the representation of an abstract value as a string.
+   * Asserts isUninterpretedSortValue().
+   * @return the representation of an uninterpreted sort value as a string.
    */
-  public String getAbstractValue()
+  public String getUninterpretedSortValue()
   {
-    return getAbstractValue(pointer);
+    return getUninterpretedSortValue(pointer);
   }
 
-  private native String getAbstractValue(long pointer);
+  private native String getUninterpretedSortValue(long pointer);
+
+  /**
+   * @return true if the term is a floating-point rounding mode value.
+   */
+  public boolean isRoundingModeValue()
+  {
+    return isRoundingModeValue(pointer);
+  }
+
+  private native boolean isRoundingModeValue(long pointer);
+
+  /**
+   * Asserts isRoundingModeValue().
+   * @return the floating-point rounding mode value held by the term.
+   */
+  public RoundingMode getRoundingModeValue() throws CVC5ApiException
+  {
+    int value = getRoundingModeValue(pointer);
+    return RoundingMode.fromInt(value);
+  }
+
+  private native int getRoundingModeValue(long pointer);
 
   /**
    * @return true if the term is a tuple value.
@@ -651,30 +683,27 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long[] getSequenceValue(long pointer);
 
   /**
-   * @return true if the term is a value from an uninterpreted sort.
+   * @return true if the term is a cardinality constraint
    */
-  public boolean isUninterpretedValue()
+  public boolean isCardinalityConstraint()
   {
-    return isUninterpretedValue(pointer);
+    return isCardinalityConstraint(pointer);
   }
 
-  private native boolean isUninterpretedValue(long pointer);
+  private native boolean isCardinalityConstraint(long pointer);
 
-  /**
-  boolean @return()
-   * Asserts isUninterpretedValue().
-   * @return the representation of an uninterpreted value as a pair of its
-  sort and its
-   * index.
+ /**
+   * Asserts isCardinalityConstraint().
+   * @return the sort the cardinality constraint is for and its upper bound.
    */
-  public Pair<Sort, Integer> getUninterpretedValue()
+  public Pair<Sort, BigInteger> getCardinalityConstraint()
   {
-    Pair<Long, Integer> pair = getUninterpretedValue(pointer);
+    Pair<Long, BigInteger> pair = getCardinalityConstraint(pointer);
     Sort sort = new Sort(solver, pair.first);
-    return new Pair<Sort, Integer>(sort, pair.second);
+    return new Pair<Sort, BigInteger>(sort, pair.second);
   }
 
-  private native Pair<Long, Integer> getUninterpretedValue(long pointer);
+  private native Pair<Long, BigInteger> getCardinalityConstraint(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

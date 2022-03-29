@@ -1,0 +1,168 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --decision=justification
+(set-logic LIA)
+
+(synth-fun findIdx  ((y1 Int) (y2 Int) (y3 Int) (y4 Int) (y5 Int) (k1 Int)) Int
+  ((Start Int) (NT1 Int) (NT2 Bool) (NT3 Int) (NT4 Int) (NT5 Bool) (NT6 Bool) (NT7 Int) (NT8 Int) (NT9 Int) (NT10 Int)
+   (NT11 Int) (NT12 Bool) (NT13 Int) (NT14 Int) (NT15 Bool) (NT16 Bool) (NT17 Bool) (NT18 Bool) (NT19 Bool)) (
+  (Start Int (
+    NT1
+    NT3
+    NT4
+    NT7
+    NT8
+    NT9
+    NT10
+    NT11
+    NT13
+    NT14
+))
+  (NT1 Int (
+    y5
+    k1
+    1
+    y2
+    0
+    y1
+    2
+    5
+    y4
+    4
+    y3
+    3
+))
+  (NT2 Bool (
+    (< NT1 NT1)
+    (> NT1 NT1)
+    (>= NT1 NT1)
+    (<= NT1 NT1)
+))
+  (NT3 Int (
+    (ite NT2 NT1 NT1)
+))
+  (NT4  Int (
+    (ite NT5 NT1 NT1)
+    (ite NT2 NT3 NT1)
+))
+  (NT5 Bool (
+    (< NT3 NT1)
+    (<= NT3 NT1)
+    (>= NT3 NT1)
+    (> NT3 NT1)
+))
+  (NT6 Bool (
+    (<= NT4 NT1)
+    (> NT4 NT1)
+    (<= NT3 NT3)
+    (> NT3 NT3)
+    (>= NT4 NT1)
+    (< NT4 NT1)
+    (< NT3 NT3)
+    (>= NT3 NT3)
+))
+  (NT7 Int (
+    (ite NT6 NT1 NT1)
+    (ite NT2 NT4 NT1)
+))
+  (NT8 Int (
+    (ite NT2 NT7 NT1)
+    (ite NT5 NT4 NT1)
+    (ite NT15 NT1 NT1)
+    (ite NT5 NT1 NT4)
+))
+  (NT9 Int (
+    (ite NT2 NT8 NT1)
+    (ite NT12 NT1 NT1)
+    (ite NT6 NT1 NT4)
+    (ite NT6 NT4 NT1)
+    (ite NT5 NT7 NT1)
+))
+  (NT10 Int (
+    (ite NT5 NT8 NT1)
+    (ite NT16 NT1 NT1)
+    (ite NT2 NT9 NT1)
+    (ite NT6 NT7 NT1)
+    (ite NT5 NT4 NT4)
+))
+  (NT11 Int (
+    (ite NT6 NT8 NT1)
+    (ite NT2 NT10 NT1)
+    (ite NT5 NT9 NT1)
+    (ite NT17 NT1 NT1)
+    (ite NT6 NT4 NT4)
+))
+  (NT12 Bool (
+    (< NT4 NT4)
+    (> NT4 NT4)
+    (<= NT8 NT1)
+    (< NT8 NT1)
+    (<= NT4 NT4)
+    (> NT8 NT1)
+    (>= NT8 NT1)
+    (>= NT4 NT4)
+))
+  (NT13 Int (
+    (ite NT18 NT1 NT1)
+    (ite NT12 NT7 NT1)
+    (ite NT5 NT10 NT1)
+    (ite NT6 NT9 NT1)
+    (ite NT12 NT1 NT7)
+    (ite NT2 NT11 NT1)
+))
+  (NT14 Int (
+    (ite NT12 NT1 NT8)
+    (ite NT6 NT10 NT1)
+    (ite NT5 NT11 NT1)
+    (ite NT19 NT1 NT1)
+    (ite NT12 NT8 NT1)
+    (ite NT2 NT13 NT1)
+))
+  (NT15 Bool (
+    (>= NT7 NT1)
+    (< NT7 NT1)
+    (> NT7 NT1)
+    (<= NT7 NT1)
+))
+  (NT16 Bool (
+    (< NT9 NT1)
+    (>= NT9 NT1)
+    (> NT9 NT1)
+    (<= NT9 NT1)
+))
+  (NT17 Bool (
+    (< NT7 NT7)
+    (<= NT10 NT1)
+    (>= NT10 NT1)
+    (> NT10 NT1)
+    (< NT10 NT1)
+    (> NT7 NT7)
+    (>= NT7 NT7)
+    (<= NT7 NT7)
+))
+  (NT18 Bool (
+    (< NT11 NT1)
+    (> NT11 NT1)
+    (>= NT11 NT1)
+    (<= NT11 NT1)
+))
+  (NT19 Bool (
+    (>= NT13 NT1)
+    (>= NT8 NT8)
+    (< NT13 NT1)
+    (> NT13 NT1)
+    (< NT8 NT8)
+    (> NT8 NT8)
+    (<= NT8 NT8)
+    (<= NT13 NT1)
+))
+))
+
+(declare-var x1 Int)
+(declare-var x2 Int)
+(declare-var x3 Int)
+(declare-var x4 Int)
+(declare-var x5 Int)
+(declare-var k Int)
+
+(constraint (=> (and (< x1 x2) (and (< x2 x3) (and (< x3 x4) (< x4 x5)))) (=> (< k x1) (= (findIdx x1 x2 x3 x4 x5 k) 0))))
+(check-synth)

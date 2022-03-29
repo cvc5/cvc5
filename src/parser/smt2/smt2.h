@@ -83,15 +83,22 @@ class Smt2 : public Parser
    * Registers an indexed function symbol.
    *
    * @param tKind The kind of the term that uses the operator kind (e.g.
-   *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
-   *              because that is what we use to create expressions. Eventually
-   *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
+   *              BITVECTOR_EXTRACT). If an indexed function symbol is
+   *              overloaded (e.g., `to_fp`), this argument should
+   *              be`UNDEFINED_KIND`.
    * @param name The name of the symbol (e.g. "extract")
    */
   void addIndexedOperator(api::Kind tKind,
-                          api::Kind opKind,
                           const std::string& name);
+  /**
+   * Checks whether an indexed operator is enabled. All indexed operators in
+   * the current logic are considered to be enabled. This includes operators
+   * such as `to_fp`, which do not correspond to a single kind.
+   *
+   * @param name The name of the indexed operator.
+   * @return true if the indexed operator is enabled.
+   */
+  bool isIndexedOperatorEnabled(const std::string& name) const;
 
   api::Kind getOperatorKind(const std::string& name) const;
 
@@ -122,7 +129,7 @@ class Smt2 : public Parser
    *         not valid.
    */
   api::Term mkIndexedConstant(const std::string& name,
-                              const std::vector<uint64_t>& numerals);
+                              const std::vector<uint32_t>& numerals);
 
   /**
    * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
@@ -132,12 +139,6 @@ class Smt2 : public Parser
    *         error if the name is not valid.
    */
   api::Kind getIndexedOpKind(const std::string& name);
-
-  /**
-   * Returns the expression that name should be interpreted as.
-   */
-  api::Term getExpressionForNameAndType(const std::string& name,
-                                        api::Sort t) override;
 
   /**
    * If we are in a version < 2.6, this updates name to the tester name of cons,
@@ -296,9 +297,9 @@ class Smt2 : public Parser
   /** Make abstract value
    *
    * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isAbstractValue(name) is true.
+   * name should be such that isUninterpretedSortValue(name) is true.
    */
-  api::Term mkAbstractValue(const std::string& name);
+  api::Term mkUninterpretedSortValue(const std::string& name);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -390,8 +391,8 @@ class Smt2 : public Parser
    * selector expression based on the type of args[0].
    * - If the overall kind of the expression is chainable, we may convert it
    * to a left- or right-associative chain.
-   * - If the overall kind is MINUS and args has size 1, then we return an
-   * application of UMINUS.
+   * - If the overall kind is SUB and args has size 1, then we return an
+   * application of NEG.
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */

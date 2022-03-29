@@ -1,0 +1,10 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --no-sygus-pbe --sygus-si=none --sygus-grammar-cons=any-term
+(set-logic ALL)
+(synth-fun f ((x String) (y String)) Int)
+(declare-var x String)
+(constraint (= (f "A" "BC") 11))
+(constraint (= (f "BB" "CC") 18))
+(constraint (= (f "BCB" "") 25))
+(constraint (= (f "BCBD" "") 32))
+(check-synth)

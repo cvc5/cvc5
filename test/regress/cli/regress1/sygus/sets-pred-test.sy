@@ -1,0 +1,12 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+(synth-fun P ((x (Set Int))) Bool)
+
+(constraint (not (P (as set.empty (Set Int)))))
+(constraint (not (P (set.insert 1 2 (as set.empty (Set Int))))))
+(constraint (P (set.insert 0 (as set.empty (Set Int)))))
+(constraint (P (set.insert 0 4 5 (as set.empty (Set Int)))))
+(constraint (not (P (set.singleton 45))))
+
+(check-synth)

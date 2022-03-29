@@ -1,0 +1,10 @@
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none
+; EXPECT: feasible
+
+(set-logic BV)
+
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32))
+
+(declare-var x (_ BitVec 32))
+(constraint (= (bvor x #x00000001) (f x)))
+(check-synth)

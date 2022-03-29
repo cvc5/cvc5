@@ -1,0 +1,22 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+
+(synth-fun SC ((y (_ BitVec 32)) (w (_ BitVec 32)) ) (_ BitVec 32)
+  ((Start (_ BitVec 32)) (StartBool Bool))
+  (
+   (Start (_ BitVec 32) (
+     y
+     w
+     #x00000000
+     (bvadd Start Start)
+     (ite StartBool Start Start)
+   ))
+   (StartBool Bool ((= Start #x10000000) (= Start #x00000000)))
+))
+
+(constraint (= (SC #x00000000 #x00001000) #x00001000))
+(constraint (= (SC #x00001000 #x00001000) #x00001000))
+(constraint (= (SC #x01001000 #x00001000) #x01001000))
+
+(check-synth)

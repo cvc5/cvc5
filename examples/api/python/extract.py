@@ -16,7 +16,7 @@
 # extract-new.cpp.
 ##
 
-from pycvc5 import Solver, Kind
+from cvc5 import Solver, Kind
 
 if __name__ == "__main__":
     slv = Solver()
@@ -38,14 +38,11 @@ if __name__ == "__main__":
     ext_0_0 = slv.mkOp(Kind.BVExtract, 0, 0)
     x_0_0 = slv.mkTerm(ext_0_0, x)
 
-    # test getting indices
-    assert ext_30_0.getIndices() == (30, 0)
-
     eq = slv.mkTerm(Kind.Equal, x_31_1, x_30_0)
     print("Asserting:", eq)
     slv.assertFormula(eq)
 
     eq2 = slv.mkTerm(Kind.Equal, x_31_31, x_0_0)
-    print("Check entailment assuming:", eq2)
-    print("Expect ENTAILED")
-    print("cvc5:", slv.checkEntailed(eq2))
+    print("Check sat assuming:", eq2.notTerm())
+    print("Expect UNSAT")
+    print("cvc5:", slv.checkSatAssuming(eq2.notTerm()))

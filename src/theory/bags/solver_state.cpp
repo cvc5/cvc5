@@ -40,82 +40,67 @@ void SolverState::registerBag(TNode n)
   d_bags.insert(n);
 }
 
-void SolverState::registerCountTerm(TNode n)
+void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
 {
-  Assert(n.getKind() == BAG_COUNT);
-  Node element = n[0];
-  Node bag = getRepresentative(n[1]);
-  d_bagElements[bag].insert(element);
+  Assert(bag.getType().isBag() && bag == getRepresentative(bag));
+  Assert(element.getType().isSubtypeOf(bag.getType().getBagElementType())
+         && element == getRepresentative(element));
+  Assert(skolem.isVar() && skolem.getType().isInteger());
+  std::pair<Node, Node> pair = std::make_pair(element, skolem);
+  if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
+      == d_bagElements[bag].end())
+  {
+    d_bagElements[bag].push_back(pair);
+  }
 }
+
+void SolverState::registerCardinalityTerm(Node n, Node skolem)
+{
+  Assert(n.getKind() == BAG_CARD);
+  Assert(skolem.isVar());
+  d_cardTerms[n] = skolem;
+}
+
+Node SolverState::getCardinalitySkolem(Node n)
+{
+  Assert(n.getKind() == BAG_CARD);
+  Node bag = getRepresentative(n[0]);
+  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  return d_cardTerms[cardTerm];
+}
+
+bool SolverState::hasCardinalityTerms() const { return !d_cardTerms.empty(); }
 
 const std::set<Node>& SolverState::getBags() { return d_bags; }
 
-const std::set<Node>& SolverState::getElements(Node B)
+const std::map<Node, Node>& SolverState::getCardinalityTerms()
+{
+  return d_cardTerms;
+}
+
+std::set<Node> SolverState::getElements(Node B)
 {
   Node bag = getRepresentative(B);
+  std::set<Node> elements;
+  std::vector<std::pair<Node, Node>> pairs = d_bagElements[bag];
+  for (std::pair<Node, Node> pair : pairs)
+  {
+    elements.insert(pair.first);
+  }
+  return elements;
+}
+
+const std::vector<std::pair<Node, Node>>& SolverState::getElementCountPairs(
+    Node n)
+{
+  Node bag = getRepresentative(n);
   return d_bagElements[bag];
 }
 
-const std::set<Node>& SolverState::getDisequalBagTerms() { return d_deq; }
-
-void SolverState::reset()
+struct BagsDeqAttributeId
 {
-  d_bagElements.clear();
-  d_bags.clear();
-  d_deq.clear();
-}
-
-void SolverState::initialize()
-{
-  reset();
-  collectBagsAndCountTerms();
-  collectDisequalBagTerms();
-}
-
-void SolverState::collectBagsAndCountTerms()
-{
-  eq::EqClassesIterator repIt = eq::EqClassesIterator(d_ee);
-  while (!repIt.isFinished())
-  {
-    Node eqc = (*repIt);
-    Trace("bags-eqc") << "Eqc [ " << eqc << " ] = { ";
-
-    if (eqc.getType().isBag())
-    {
-      registerBag(eqc);
-    }
-
-    eq::EqClassIterator it = eq::EqClassIterator(eqc, d_ee);
-    while (!it.isFinished())
-    {
-      Node n = (*it);
-      Trace("bags-eqc") << (*it) << " ";
-      Kind k = n.getKind();
-      if (k == BAG_MAKE)
-      {
-        // for terms (bag x c) we need to store x by registering the count term
-        // (bag.count x (bag x c))
-        Node count = d_nm->mkNode(BAG_COUNT, n[0], n);
-        registerCountTerm(count);
-        Trace("SolverState::collectBagsAndCountTerms")
-            << "registered " << count << endl;
-      }
-      if (k == BAG_COUNT)
-      {
-        // this takes care of all count terms in each equivalent class
-        registerCountTerm(n);
-        Trace("SolverState::collectBagsAndCountTerms")
-            << "registered " << n << endl;
-      }
-      ++it;
-    }
-    Trace("bags-eqc") << " } " << std::endl;
-    ++repIt;
-  }
-
-  Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
-  Trace("bags-eqc") << "bag elements: " << d_bagElements << endl;
-}
+};
+typedef expr::Attribute<BagsDeqAttributeId, Node> BagsDeqAttribute;
 
 void SolverState::collectDisequalBagTerms()
 {
@@ -126,10 +111,30 @@ void SolverState::collectDisequalBagTerms()
     if (n.getKind() == EQUAL && n[0].getType().isBag())
     {
       Trace("bags-eqc") << "Disequal terms: " << n << std::endl;
-      d_deq.insert(n);
+      Node A = getRepresentative(n[0]);
+      Node B = getRepresentative(n[1]);
+      Node equal = A <= B ? A.eqNode(B) : B.eqNode(A);
+      if (d_deq.find(equal) == d_deq.end())
+      {
+        TypeNode elementType = A.getType().getBagElementType();
+        SkolemManager* sm = d_nm->getSkolemManager();
+        Node skolem = sm->mkSkolemFunction(
+            SkolemFunId::BAG_DEQ_DIFF, elementType, {A, B});
+        d_deq[equal] = skolem;
+      }
     }
     ++it;
   }
+}
+
+const std::map<Node, Node>& SolverState::getDisequalBagTerms() { return d_deq; }
+
+void SolverState::reset()
+{
+  d_bagElements.clear();
+  d_bags.clear();
+  d_deq.clear();
+  d_cardTerms.clear();
 }
 
 }  // namespace bags

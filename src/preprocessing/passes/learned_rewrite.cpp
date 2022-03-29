@@ -81,7 +81,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       TNode atom = pol ? l : l[0];
       Kind ak = atom.getKind();
       Assert(ak != LT && ak != GT && ak != LEQ);
-      if ((ak == EQUAL && pol) || ak == GEQ)
+      if ((ak == EQUAL && pol && atom[0].getType().isRealOrInt()) || ak == GEQ)
       {
         // provide as < if negated >=
         Node atomu;
@@ -319,7 +319,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
       bool lbSuccess = true;
       bool ubSuccess = true;
       Rational one(1);
-      if (Trace.isOn("learned-rewrite-arith-lit"))
+      if (TraceIsOn("learned-rewrite-arith-lit"))
       {
         Trace("learned-rewrite-arith-lit")
             << "Arithmetic lit: " << nr << std::endl;
@@ -407,7 +407,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
 
 Node LearnedRewrite::returnRewriteLearned(Node n, Node nr, LearnedRewriteId id)
 {
-  if (Trace.isOn("learned-rewrite"))
+  if (TraceIsOn("learned-rewrite"))
   {
     Trace("learned-rewrite") << "LearnedRewrite::Rewrite: (" << id << ") " << n
                              << " == " << nr << std::endl;

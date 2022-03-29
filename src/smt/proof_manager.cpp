@@ -21,6 +21,7 @@
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
+#include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
@@ -40,7 +41,7 @@ PfManager::PfManager(Env& env)
     : EnvObj(env),
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
-          options().proof.proofPedantic)),
+          static_cast<uint32_t>(options().proof.proofPedantic))),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(nullptr),
@@ -77,7 +78,7 @@ PfManager::PfManager(Env& env)
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
-      != options::ProofGranularityMode::OFF)
+      != options::ProofGranularityMode::MACRO)
   {
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
@@ -113,7 +114,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   // response. This method would need to cache its result otherwise.
   Trace("smt-proof") << "SolverEngine::setFinalProof(): get proof body...\n";
 
-  if (Trace.isOn("smt-proof-debug"))
+  if (TraceIsOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
         << "SolverEngine::setFinalProof(): Proof node for false:\n";
@@ -124,7 +125,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   std::vector<Node> assertions;
   getAssertions(as, assertions);
 
-  if (Trace.isOn("smt-proof"))
+  if (TraceIsOn("smt-proof"))
   {
     Trace("smt-proof")
         << "SolverEngine::setFinalProof(): get free assumptions..."
@@ -185,6 +186,8 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
+    proof::AletheProofPrinter vpp;
+    vpp.print(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
   {
@@ -224,6 +227,7 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
                                        Assertions& as)
 {
+  Trace("difficulty-proc") << "Translate difficulty start" << std::endl;
   Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
   if (dmap.empty())
   {
@@ -231,6 +235,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   }
   std::map<Node, Node> dmapp = dmap;
   dmap.clear();
+  Trace("difficulty-proc") << "Get ppAsserts" << std::endl;
   std::vector<Node> ppAsserts;
   for (const std::pair<const Node, Node>& ppa : dmapp)
   {
@@ -241,12 +246,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
+  Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
   CDProof cdp(d_pnm.get());
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
+  Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
   Assert(fpf->getRule() == PfRule::SCOPE);
@@ -256,6 +263,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   DifficultyPostprocessCallback dpc;
   ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  Trace("difficulty-proc") << "Compute accumulated difficulty" << std::endl;
   // For each child of SAT_REFUTATION, we increment the difficulty on all
   // "source" free assumptions (see DifficultyPostprocessCallback) by the
   // difficulty of the preprocessed assertion.
@@ -274,6 +282,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   }
   // get the accumulated difficulty map from the callback
   dpc.getDifficultyMap(dmap);
+  Trace("difficulty-proc") << "Translate difficulty end" << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
@@ -298,9 +307,8 @@ std::shared_ptr<ProofNode> PfManager::getFinalProof(
 void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
+  // note that the assertion list is always available
   const context::CDList<Node>& al = as.getAssertionList();
-  Assert(options().smt.produceAssertions)
-      << "Expected produce assertions to be true when checking proof";
   for (const Node& a : al)
   {
     assertions.push_back(a);

@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of sets.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # Optionally, set the logic. We need at least UF for equality predicate,
     # integers (LIA) and sets (FS).
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     theorem = slv.mkTerm(Kind.Equal, lhs, rhs)
 
     print("cvc5 reports: {} is {}".format(theorem,
-                                          slv.checkEntailed(theorem)))
+                                          slv.checkSatAssuming(theorem.notTerm())))
 
     # Verify emptset is a subset of any set
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     theorem = slv.mkTerm(Kind.SetSubset, emptyset, A)
 
     print("cvc5 reports: {} is {}".format(theorem,
-                                          slv.checkEntailed(theorem)))
+                                          slv.checkSatAssuming(theorem.notTerm())))
 
     # Find me an element in 1, 2 intersection 2, 3, if there is one.
 

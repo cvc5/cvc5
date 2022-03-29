@@ -1,0 +1,32 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --sygus-enum=fast
+
+(set-logic ALL)
+
+(declare-datatype Formula (
+  (P (Id Int))
+  (Op1 (op1 Int) (f Formula))
+  (Op2 (op2 Int) (f1 Formula) (f2 Formula))
+  )
+)
+
+(synth-fun phi () Formula
+  ((<F> Formula) (<O2> Int))
+  ((<F> Formula (
+     (P <O2>)
+     (Op1 <O2> <F>)
+     (Op2 <O2> <F> <F>)
+     )
+   )
+   (<O2> Int (0 1))
+   )
+)
+(define-fun holds ((f Formula)) Bool
+  (and ((_ is Op2) f) (= (op2 f) 1))
+)
+(define-fun holds2 ((f Formula)) Bool
+  (and ((_ is Op2) f) (= (op1 (f1 f)) 1))
+)
+(constraint (holds phi))
+(check-synth)
+

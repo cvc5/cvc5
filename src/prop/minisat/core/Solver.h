@@ -74,7 +74,7 @@ class Solver : protected EnvObj
   /** The pointer to the proxy that provides interfaces to the SMT engine */
   cvc5::prop::TheoryProxy* d_proxy;
 
-  /** The context from the SMT solver */
+  /** The contexts from the SMT solver */
   cvc5::context::Context* d_context;
 
   /** The current assertion level (user) */
@@ -164,6 +164,16 @@ public:
   * SAT proofs are not required for assumption-based unsat cores.
   */
  bool needProof() const;
+
+ /*
+  * Returns true if the solver should add all clauses at the current assertion
+  * level.
+  *
+  * FIXME (cvc5-projects/issues/503): This is a workaround. While proofs are now
+  * compatible with the assertion level optimization, it has to be seen for
+  * non-sat-proofs-based unsat cores.
+  */
+ bool assertionLevelOnly() const;
 
  // Less than for literals in a lemma
  struct lemma_lt
@@ -575,7 +585,7 @@ inline bool Solver::isPropagatedBy(Var x, const Clause& c) const
 
 inline bool Solver::isDecision(Var x) const
 {
-  Debug("minisat") << "var " << x << " is a decision iff "
+  Trace("minisat") << "var " << x << " is a decision iff "
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;

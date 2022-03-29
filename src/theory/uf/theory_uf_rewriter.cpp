@@ -73,7 +73,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         {
           subs.push_back(s);
         }
-        if (Trace.isOn("uf-ho-beta"))
+        if (TraceIsOn("uf-ho-beta"))
         {
           Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
                               << " vars into " << subs.size() << " terms :\n";
@@ -126,13 +126,13 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       // been introduced
       if (d_isHigherOrder)
       {
-        Node arg = Rewriter::rewrite(node[1]);
+        Node arg = node[1];
         Node var = node[0][0][0];
         new_body = expr::substituteCaptureAvoiding(new_body, var, arg);
       }
       else
       {
-        TNode arg = Rewriter::rewrite(node[1]);
+        TNode arg = node[1];
         TNode var = node[0][0][0];
         new_body = new_body.substitute(var, arg);
       }

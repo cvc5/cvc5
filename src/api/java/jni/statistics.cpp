@@ -72,6 +72,22 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_get(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_Statistics
  * Method:    getIterator
+ * Signature: (JZZ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_getIteratorOpts(
+    JNIEnv* env, jobject, jlong pointer, jboolean internal, jboolean defaulted)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Statistics* current = reinterpret_cast<Statistics*>(pointer);
+  Statistics::iterator* it =
+      new Statistics::iterator(current->begin(internal, defaulted));
+  return reinterpret_cast<jlong>(it);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Statistics
+ * Method:    getIterator
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_getIterator(
@@ -80,7 +96,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_getIterator(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
   Statistics::iterator* it =
-      new Statistics::iterator(current->begin(true, true));
+      new Statistics::iterator(current->begin());
   return reinterpret_cast<jlong>(it);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

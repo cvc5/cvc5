@@ -16,11 +16,11 @@
 # linear_arith-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     slv.setLogic("QF_LIRA")
 
     # Prove that if given x (Integer) and y (Real) and some constraints
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Terms
     three_y = slv.mkTerm(Kind.Mult, three, y)
-    diff = slv.mkTerm(Kind.Minus, y, x)
+    diff = slv.mkTerm(Kind.Sub, y, x)
 
     # Formulas
     x_geq_3y = slv.mkTerm(Kind.Geq, x, three_y)
@@ -56,9 +56,9 @@ if __name__ == "__main__":
     slv.push()
     diff_leq_two_thirds = slv.mkTerm(Kind.Leq, diff, two_thirds)
     print("Prove that", diff_leq_two_thirds, "with cvc5")
-    print("cvc5 should report ENTAILED")
+    print("cvc5 should report UNSAT")
     print("Result from cvc5 is:",
-          slv.checkEntailed(diff_leq_two_thirds))
+          slv.checkSatAssuming(diff_leq_two_thirds.notTerm()))
     slv.pop()
 
     print()

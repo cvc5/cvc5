@@ -194,11 +194,14 @@ class Printer
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
-  /** Print get-interpol command */
+  /** Print get-interpolant command */
   virtual void toStreamCmdGetInterpol(std::ostream& out,
                                       const std::string& name,
                                       Node conj,
                                       TypeNode sygusType) const;
+
+  /** Print get-interpolant-next command */
+  virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
 
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
@@ -222,6 +225,9 @@ class Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-learned-literals command */
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;

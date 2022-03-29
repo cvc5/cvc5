@@ -17,14 +17,14 @@
 ##
 
 import utils
-import pycvc5
-from pycvc5 import Kind
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = pycvc5.Solver()
+  slv = cvc5.Solver()
 
   # required options
-  slv.setOption("lang", "sygus2")
+  slv.setOption("sygus", "true")
   slv.setOption("incremental", "false")
 
   # set the logic
@@ -44,7 +44,7 @@ if __name__ == "__main__":
   # (ite (< x 10) (= xp (+ x 1)) (= xp x))
   ite = slv.mkTerm(Kind.Ite,
                         slv.mkTerm(Kind.Lt, x, ten),
-                        slv.mkTerm(Kind.Equal, xp, slv.mkTerm(Kind.Plus, x, one)),
+                        slv.mkTerm(Kind.Equal, xp, slv.mkTerm(Kind.Add, x, one)),
                         slv.mkTerm(Kind.Equal, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
@@ -58,7 +58,7 @@ if __name__ == "__main__":
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f)
 
   # print solutions if available
-  if slv.checkSynth().isUnsat():
+  if slv.checkSynth().hasSolution():
     # Output should be equivalent to:
     # (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
     terms = [inv_f]

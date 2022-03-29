@@ -32,7 +32,7 @@ class SolverEngine;
 namespace theory {
 namespace quantifiers {
 /**
- * This is an utility for the SMT-LIB command (get-interpol <term>).
+ * This is an utility for the SMT-LIB command (get-interpolant <term>).
  * The utility turns a set of quantifier-free assertions into a sygus
  * conjecture that encodes an interpolation problem, and then solve the
  * interpolation problem by synthesizing it. In detail, if our input formula is
@@ -48,7 +48,7 @@ namespace quantifiers {
  *
  * This class uses a fresh copy of the SMT engine which is used for solving the
  * interpolation problem. In particular, consider the input: (assert A)
- *   (get-interpol s B)
+ *   (get-interpolant s B)
  * In the copy of the SMT engine where these commands are issued, we maintain
  * A in the assertion stack. In solving the interpolation problem, we will
  * need to call a SMT engine solver with a different assertion stack, which is
@@ -83,6 +83,21 @@ class SygusInterpol : protected EnvObj
                           const Node& conj,
                           const TypeNode& itpGType,
                           Node& interpol);
+
+  /**
+   * Returns the sygus conjecture in interpol corresponding to the interpolation
+   * problem for input problem (F above) given by axioms (Fa above), and conj
+   * (Fc above). And solve the interpolation by sygus. Note that axioms is
+   * expected to be a subset of assertions in SMT-LIB.
+   *
+   * @param name the name for the interpol-to-synthesize.
+   * @param axioms the assertions (Fa above)
+   * @param conj the conjecture (Fc above)
+   * @param itpGType (if non-null) a sygus datatype type that encodes the
+   * grammar that should be used for solutions of the interpolation conjecture.
+   * @interpol the solution to the sygus conjecture.
+   */
+  bool solveInterpolationNext(Node& interpol);
 
  private:
   /**
@@ -212,6 +227,13 @@ class SygusInterpol : protected EnvObj
    * the sygus conjecture to synthesis for interpolation problem
    */
   Node d_sygusConj;
+  /**
+   * The predicate for interpolation in the subsolver, which we pass to
+   * findInterpol above when the solving is successful.
+   */
+  Node d_itp;
+  /** The subsolver to initialize */
+  std::unique_ptr<SolverEngine> d_subSolver;
 };
 
 }  // namespace quantifiers

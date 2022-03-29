@@ -91,7 +91,7 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
     // apply new classifier
     Assert(d_rep_to_class.find(trie->d_lazy_child) != d_rep_to_class.end());
     std::vector<Node> prev_sep_class = d_rep_to_class[trie->d_lazy_child];
-    if (Trace.isOn("lazy-trie-multi"))
+    if (TraceIsOn("lazy-trie-multi"))
     {
       Trace("lazy-trie-multi") << "...last level. Prev sep class: \n";
       for (const Node& n : prev_sep_class)

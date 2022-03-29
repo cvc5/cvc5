@@ -24,6 +24,8 @@
 // ANTLR defines these, which is really bad!
 #undef true
 #undef false
+// ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
+#undef ADD
 
 namespace cvc5 {
 namespace parser {
@@ -41,10 +43,10 @@ Smt2::Smt2(api::Solver* solver,
 Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
-  addOperator(api::PLUS, "+");
-  addOperator(api::MINUS, "-");
-  // api::MINUS is converted to api::UMINUS if there is only a single operand
-  Parser::addOperator(api::UMINUS);
+  addOperator(api::ADD, "+");
+  addOperator(api::SUB, "-");
+  // api::SUB is converted to api::NEG if there is only a single operand
+  Parser::addOperator(api::NEG);
   addOperator(api::MULT, "*");
   addOperator(api::LT, "<");
   addOperator(api::LEQ, "<=");
@@ -113,16 +115,12 @@ void Smt2::addBitvectorOperators() {
   addOperator(api::BITVECTOR_REDOR, "bvredor");
   addOperator(api::BITVECTOR_REDAND, "bvredand");
 
-  addIndexedOperator(api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
-  addIndexedOperator(api::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
-  addIndexedOperator(
-      api::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
-  addIndexedOperator(
-      api::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
-  addIndexedOperator(
-      api::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
-  addIndexedOperator(
-      api::BITVECTOR_ROTATE_RIGHT, api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
+  addIndexedOperator(api::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(api::BITVECTOR_REPEAT, "repeat");
+  addIndexedOperator(api::BITVECTOR_ZERO_EXTEND, "zero_extend");
+  addIndexedOperator(api::BITVECTOR_SIGN_EXTEND, "sign_extend");
+  addIndexedOperator(api::BITVECTOR_ROTATE_LEFT, "rotate_left");
+  addIndexedOperator(api::BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
 void Smt2::addDatatypesOperators()
@@ -138,9 +136,8 @@ void Smt2::addDatatypesOperators()
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(
-        api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
-    addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
+    addIndexedOperator(api::APPLY_SELECTOR, "tuple_select");
+    addIndexedOperator(api::APPLY_UPDATER, "tuple_update");
   }
 }
 
@@ -163,8 +160,8 @@ void Smt2::addStringOperators() {
   {
     addOperator(api::STRING_INDEXOF_RE, "str.indexof_re");
     addOperator(api::STRING_UPDATE, "str.update");
-    addOperator(api::STRING_TOLOWER, "str.tolower");
-    addOperator(api::STRING_TOUPPER, "str.toupper");
+    addOperator(api::STRING_TO_LOWER, "str.to_lower");
+    addOperator(api::STRING_TO_UPPER, "str.to_upper");
     addOperator(api::STRING_REV, "str.rev");
     // sequence versions
     addOperator(api::SEQ_CONCAT, "seq.++");
@@ -195,8 +192,8 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_STAR, "re.*");
   addOperator(api::REGEXP_PLUS, "re.+");
   addOperator(api::REGEXP_OPT, "re.opt");
-  addIndexedOperator(api::REGEXP_REPEAT, api::REGEXP_REPEAT, "re.^");
-  addIndexedOperator(api::REGEXP_LOOP, api::REGEXP_LOOP, "re.loop");
+  addIndexedOperator(api::REGEXP_REPEAT, "re.^");
+  addIndexedOperator(api::REGEXP_LOOP, "re.loop");
   addOperator(api::REGEXP_RANGE, "re.range");
   addOperator(api::REGEXP_COMPLEMENT, "re.comp");
   addOperator(api::REGEXP_DIFF, "re.diff");
@@ -223,40 +220,26 @@ void Smt2::addFloatingPointOperators() {
   addOperator(api::FLOATINGPOINT_LT, "fp.lt");
   addOperator(api::FLOATINGPOINT_GEQ, "fp.geq");
   addOperator(api::FLOATINGPOINT_GT, "fp.gt");
-  addOperator(api::FLOATINGPOINT_ISN, "fp.isNormal");
-  addOperator(api::FLOATINGPOINT_ISSN, "fp.isSubnormal");
-  addOperator(api::FLOATINGPOINT_ISZ, "fp.isZero");
-  addOperator(api::FLOATINGPOINT_ISINF, "fp.isInfinite");
-  addOperator(api::FLOATINGPOINT_ISNAN, "fp.isNaN");
-  addOperator(api::FLOATINGPOINT_ISNEG, "fp.isNegative");
-  addOperator(api::FLOATINGPOINT_ISPOS, "fp.isPositive");
+  addOperator(api::FLOATINGPOINT_IS_NORMAL, "fp.isNormal");
+  addOperator(api::FLOATINGPOINT_IS_SUBNORMAL, "fp.isSubnormal");
+  addOperator(api::FLOATINGPOINT_IS_ZERO, "fp.isZero");
+  addOperator(api::FLOATINGPOINT_IS_INF, "fp.isInfinite");
+  addOperator(api::FLOATINGPOINT_IS_NAN, "fp.isNaN");
+  addOperator(api::FLOATINGPOINT_IS_NEG, "fp.isNegative");
+  addOperator(api::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,
-                     api::FLOATINGPOINT_TO_FP_GENERIC,
-                     "to_fp");
-  addIndexedOperator(api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-                     "to_fp_unsigned");
-  addIndexedOperator(
-      api::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
-  addIndexedOperator(
-      api::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
+  addIndexedOperator(api::UNDEFINED_KIND, "to_fp");
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
+  addIndexedOperator(api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
+  addIndexedOperator(api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-                       "to_fp_bv");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-                       "to_fp_fp");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_REAL,
-                       api::FLOATINGPOINT_TO_FP_REAL,
-                       "to_fp_real");
-    addIndexedOperator(api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-                       "to_fp_signed");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, "to_fp_bv");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_FP, "to_fp_fp");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_REAL, "to_fp_real");
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FROM_SBV, "to_fp_signed");
   }
 }
 
@@ -275,9 +258,9 @@ void Smt2::addSepOperators() {
 
 void Smt2::addCoreSymbols()
 {
-  defineType("Bool", d_solver->getBooleanSort(), true, true);
-  defineVar("true", d_solver->mkTrue(), true, true);
-  defineVar("false", d_solver->mkFalse(), true, true);
+  defineType("Bool", d_solver->getBooleanSort(), true);
+  defineVar("true", d_solver->mkTrue(), true);
+  defineVar("false", d_solver->mkFalse(), true);
   addOperator(api::AND, "and");
   addOperator(api::DISTINCT, "distinct");
   addOperator(api::EQUAL, "=");
@@ -290,18 +273,22 @@ void Smt2::addCoreSymbols()
 
 void Smt2::addOperator(api::Kind kind, const std::string& name)
 {
-  Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
+  Trace("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
   Parser::addOperator(kind);
   d_operatorKindMap[name] = kind;
 }
 
 void Smt2::addIndexedOperator(api::Kind tKind,
-                              api::Kind opKind,
                               const std::string& name)
 {
   Parser::addOperator(tKind);
-  d_indexedOpKindMap[name] = opKind;
+  d_indexedOpKindMap[name] = tKind;
+}
+
+bool Smt2::isIndexedOperatorEnabled(const std::string& name) const
+{
+  return d_indexedOpKindMap.find(name) != d_indexedOpKindMap.end();
 }
 
 api::Kind Smt2::getOperatorKind(const std::string& name) const
@@ -327,16 +314,6 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-api::Term Smt2::getExpressionForNameAndType(const std::string& name,
-                                            api::Sort t)
-{
-  if (isAbstractValue(name))
-  {
-    return mkAbstractValue(name);
-  }
-  return Parser::getExpressionForNameAndType(name, t);
-}
-
 bool Smt2::getTesterName(api::Term cons, std::string& name)
 {
   if ((v2_6() || sygus()) && strictModeEnabled())
@@ -352,29 +329,29 @@ bool Smt2::getTesterName(api::Term cons, std::string& name)
 }
 
 api::Term Smt2::mkIndexedConstant(const std::string& name,
-                                  const std::vector<uint64_t>& numerals)
+                                  const std::vector<uint32_t>& numerals)
 {
   if (d_logic.isTheoryEnabled(theory::THEORY_FP))
   {
     if (name == "+oo")
     {
-      return d_solver->mkPosInf(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointPosInf(numerals[0], numerals[1]);
     }
     else if (name == "-oo")
     {
-      return d_solver->mkNegInf(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointNegInf(numerals[0], numerals[1]);
     }
     else if (name == "NaN")
     {
-      return d_solver->mkNaN(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointNaN(numerals[0], numerals[1]);
     }
     else if (name == "+zero")
     {
-      return d_solver->mkPosZero(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointPosZero(numerals[0], numerals[1]);
     }
     else if (name == "-zero")
     {
-      return d_solver->mkNegZero(numerals[0], numerals[1]);
+      return d_solver->mkFloatingPointNegZero(numerals[0], numerals[1]);
     }
   }
 
@@ -418,7 +395,7 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, false, true);
+  return bindVar(fname, ft, true);
 }
 
 void Smt2::pushDefineFunRecScope(
@@ -452,8 +429,8 @@ std::unique_ptr<Command> Smt2::invConstraint(
     const std::vector<std::string>& names)
 {
   checkThatLogicIsSet();
-  Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
-  Debug("parser-sygus") << "Sygus : read inv-constraint..." << std::endl;
+  Trace("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
+  Trace("parser-sygus") << "Sygus : read inv-constraint..." << std::endl;
 
   if (names.size() != 4)
   {
@@ -514,9 +491,14 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     Parser::addOperator(api::APPLY_UF);
   }
 
+  if (d_logic.isHigherOrder())
+  {
+    addOperator(api::HO_APPLY, "@");
+  }
+
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
-      defineType("Int", d_solver->getIntegerSort(), true, true);
+      defineType("Int", d_solver->getIntegerSort(), true);
       addArithmeticOperators();
       if (!strictModeEnabled() || !d_logic.isLinear())
       {
@@ -524,12 +506,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
         addOperator(api::INTS_MODULUS, "mod");
         addOperator(api::ABS, "abs");
       }
-      addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
+      addIndexedOperator(api::DIVISIBLE, "divisible");
     }
 
     if (d_logic.areRealsUsed())
     {
-      defineType("Real", d_solver->getRealSort(), true, true);
+      defineType("Real", d_solver->getRealSort(), true);
       addArithmeticOperators();
       addOperator(api::DIVISION, "/");
       if (!strictModeEnabled())
@@ -553,7 +535,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if (!strictModeEnabled())
     {
       // integer version of AND
-      addIndexedOperator(api::IAND, api::IAND, "iand");
+      addIndexedOperator(api::IAND, "iand");
       // pow2
       addOperator(api::POW2, "int.pow2");
     }
@@ -573,14 +555,13 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       // Conversions between bit-vectors and integers
       addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
-      addIndexedOperator(
-          api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
+      addIndexedOperator(api::INT_TO_BITVECTOR, "int2bv");
     }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
     const std::vector<api::Sort> types;
-    defineType("Tuple", d_solver->mkTupleSort(types), true, true);
+    defineType("Tuple", d_solver->mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
@@ -621,6 +602,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
     addOperator(api::BAG_SUBBAG, "bag.subbag");
     addOperator(api::BAG_COUNT, "bag.count");
+    addOperator(api::BAG_MEMBER, "bag.member");
     addOperator(api::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
     addOperator(api::BAG_MAKE, "bag");
     addOperator(api::BAG_CARD, "bag.card");
@@ -629,12 +611,14 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_FROM_SET, "bag.from_set");
     addOperator(api::BAG_TO_SET, "bag.to_set");
     addOperator(api::BAG_MAP, "bag.map");
+    addOperator(api::BAG_FILTER, "bag.filter");
     addOperator(api::BAG_FOLD, "bag.fold");
+    addOperator(api::TABLE_PRODUCT, "table.product");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
-    defineType("String", d_solver->getStringSort(), true, true);
-    defineType("RegLan", d_solver->getRegExpSort(), true, true);
-    defineType("Int", d_solver->getIntegerSort(), true, true);
+    defineType("String", d_solver->getStringSort(), true);
+    defineType("RegLan", d_solver->getRegExpSort(), true);
+    defineType("Int", d_solver->getIntegerSort(), true);
 
     defineVar("re.none", d_solver->mkRegexpNone());
     defineVar("re.allchar", d_solver->mkRegexpAllchar());
@@ -651,11 +635,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
-    defineType("RoundingMode", d_solver->getRoundingModeSort(), true, true);
-    defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true, true);
-    defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true, true);
-    defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true, true);
-    defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true, true);
+    defineType("RoundingMode", d_solver->getRoundingModeSort(), true);
+    defineType("Float16", d_solver->mkFloatingPointSort(5, 11), true);
+    defineType("Float32", d_solver->mkFloatingPointSort(8, 24), true);
+    defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true);
+    defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true);
 
     defineVar("RNE", d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",
@@ -680,6 +664,10 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     addSepOperators();
   }
+
+  // builtin symbols of the logic are declared at context level zero, hence
+  // we push the outermost scope here
+  pushScope(true);
 
   std::string logic = sygus() ? d_logic.getLogicString() : name;
   if (!fromCommand)
@@ -766,7 +754,7 @@ void Smt2::checkLogicAllowsFunctions()
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
 static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
-  Debug("parser") << "Including " << filename << std::endl;
+  Trace("parser") << "Including " << filename << std::endl;
   // Create a new input stream and take advantage of built in stream stacking
   // in C target runtime.
   //
@@ -777,7 +765,7 @@ static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
   in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
 #endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   if( in == NULL ) {
-    Debug("parser") << "Can't open " << filename << std::endl;
+    Trace("parser") << "Can't open " << filename << std::endl;
     return false;
   }
   // Same thing as the predefined PUSHSTREAM(in);
@@ -827,16 +815,9 @@ bool Smt2::isAbstractValue(const std::string& name)
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-api::Term Smt2::mkAbstractValue(const std::string& name)
-{
-  Assert(isAbstractValue(name));
-  // remove the '@'
-  return d_solver->mkAbstractValue(name.substr(1));
-}
-
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 {
-  Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
+  Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
   if (p.d_kind == api::CONST_ARRAY)
@@ -882,7 +863,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
 {
   Trace("parser") << "parseOpToExpr: " << p << std::endl;
   api::Term expr;
-  if (p.d_kind != api::NULL_EXPR || !p.d_type.isNull())
+  if (p.d_kind != api::NULL_TERM || !p.d_type.isNull())
   {
     parseError(
         "Bad syntax for qualified identifier operator in term position.");
@@ -909,21 +890,68 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   // First phase: process the operator
-  if (Debug.isOn("parser"))
+  if (TraceIsOn("parser"))
   {
-    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
+    Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<api::Term>::iterator i = args.begin(); i != args.end();
          ++i)
     {
-      Debug("parser") << "++ " << *i << std::endl;
+      Trace("parser") << "++ " << *i << std::endl;
     }
   }
   api::Op op;
-  if (p.d_kind != api::NULL_EXPR)
+  if (p.d_kind == api::UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
   {
-    // It is a special case, e.g. tupSel or array constant specification.
+    // Resolve indexed symbols that cannot be resolved without knowing the type
+    // of the arguments. This is currently limited to `to_fp`.
+    Assert(p.d_name == "to_fp");
+    size_t nchildren = args.size();
+    if (nchildren == 1)
+    {
+      kind = api::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
+      op = d_solver->mkOp(kind, p.d_indices);
+    }
+    else if (nchildren > 2)
+    {
+      std::stringstream ss;
+      ss << "Wrong number of arguments for indexed operator to_fp, expected "
+            "1 or 2, got "
+         << nchildren;
+      parseError(ss.str());
+    }
+    else if (!args[0].getSort().isRoundingMode())
+    {
+      std::stringstream ss;
+      ss << "Expected a rounding mode as the first argument, got "
+         << args[0].getSort();
+      parseError(ss.str());
+    }
+    else
+    {
+      api::Sort t = args[1].getSort();
+
+      if (t.isFloatingPoint())
+      {
+        kind = api::FLOATINGPOINT_TO_FP_FROM_FP;
+        op = d_solver->mkOp(kind, p.d_indices);
+      }
+      else if (t.isInteger() || t.isReal())
+      {
+        kind = api::FLOATINGPOINT_TO_FP_FROM_REAL;
+        op = d_solver->mkOp(kind, p.d_indices);
+      }
+      else
+      {
+        kind = api::FLOATINGPOINT_TO_FP_FROM_SBV;
+        op = d_solver->mkOp(kind, p.d_indices);
+      }
+    }
+  }
+  else if (p.d_kind != api::NULL_TERM)
+  {
+    // It is a special case, e.g. tuple_select or array constant specification.
     // We have to wait until the arguments are parsed to resolve it.
   }
   else if (!p.d_expr.isNull())
@@ -936,7 +964,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
       kind = fkind;
-      Debug("parser") << "Got function kind " << kind << " for expression "
+      Trace("parser") << "Got function kind " << kind << " for expression "
                       << std::endl;
     }
     args.insert(args.begin(), p.d_expr);
@@ -953,7 +981,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
-      Debug("parser") << "Got builtin kind " << kind << " for name"
+      Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;
     }
     else
@@ -1004,42 +1032,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term constVal = args[0];
 
-    // To parse array constants taking reals whose values are specified by
-    // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
-    // the fact that (/ 1 3) is the division of constants 1 and 3, and not
-    // the resulting constant rational value. Thus, we must construct the
-    // resulting rational here. This also is applied for integral real values
-    // like 5.0 which are converted to (/ 5 1) to distinguish them from
-    // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero. A similar issue happens for
-    // negative integers and reals, with unary minus.
-    // NOTE this should be applied more eagerly when UMINUS/DIVISION is
-    // constructed.
-    bool isNeg = false;
-    if (constVal.getKind() == api::UMINUS)
-    {
-      isNeg = true;
-      constVal = constVal[0];
-    }
-    if (constVal.getKind() == api::DIVISION && isConstInt(constVal[0])
-        && isConstInt(constVal[1]))
-    {
-      std::stringstream sdiv;
-      sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
-      constVal = d_solver->mkReal(sdiv.str());
-    }
-    else if (isConstInt(constVal) && isNeg)
-    {
-      std::stringstream sneg;
-      sneg << "-" << constVal;
-      constVal = d_solver->mkInteger(sneg.str());
-    }
-    else
-    {
-      constVal = args[0];
-    }
-
-    if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
+    if (p.d_type.getArrayElementSort() != constVal.getSort())
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
@@ -1050,7 +1043,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     api::Term ret = d_solver->mkConstArray(p.d_type, constVal);
-    Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
   else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
@@ -1083,24 +1076,24 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     api::Term ret;
     if (p.d_kind == api::APPLY_SELECTOR)
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+      ret = d_solver->mkTerm(api::APPLY_SELECTOR,
+                             {dt[0][n].getSelectorTerm(), args[0]});
     }
     else
     {
-      ret = d_solver->mkTerm(
-          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+      ret = d_solver->mkTerm(api::APPLY_UPDATER,
+                             {dt[0][n].getUpdaterTerm(), args[0], args[1]});
     }
-    Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind == api::TUPLE_PROJECT)
   {
-    api::Term ret = d_solver->mkTerm(p.d_op, args[0]);
-    Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
+    api::Term ret = d_solver->mkTerm(p.d_op, args);
+    Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind != api::NULL_EXPR)
+  else if (p.d_kind != api::NULL_TERM)
   {
     // it should not have an expression or type specified at this point
     if (!p.d_expr.isNull() || !p.d_type.isNull())
@@ -1132,19 +1125,40 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
-      Debug("parser") << "applyParseOp: return unary " << args[0] << std::endl;
+      Trace("parser") << "applyParseOp: return unary " << args[0] << std::endl;
       return args[0];
     }
-    else if (kind == api::MINUS && args.size() == 1)
+    else if (kind == api::SUB && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::UMINUS, args[0]);
-      Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
+      if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
+      {
+        // (- n) denotes a negative value
+        std::stringstream suminus;
+        suminus << "-" << args[0].getIntegerValue();
+        api::Term ret = d_solver->mkInteger(suminus.str());
+        Trace("parser") << "applyParseOp: return negative constant " << ret
+                        << std::endl;
+        return ret;
+      }
+      api::Term ret = d_solver->mkTerm(api::NEG, {args[0]});
+      Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
+      return ret;
+    }
+    else if (kind == api::DIVISION && args.size() == 2 && isConstInt(args[0])
+             && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign() > 0)
+    {
+      // (/ m n) or (/ (- m) n) denote values in reals
+      std::stringstream sdiv;
+      sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
+      api::Term ret = d_solver->mkReal(sdiv.str());
+      Trace("parser") << "applyParseOp: return rational constant " << ret
+                      << std::endl;
       return ret;
     }
     if (kind == api::SET_SINGLETON && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
-      Debug("parser") << "applyParseOp: return set.singleton " << ret
+      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, {args[0]});
+      Trace("parser") << "applyParseOp: return set.singleton " << ret
                       << std::endl;
       return ret;
     }
@@ -1164,7 +1178,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);
-    Debug("parser") << "applyParseOp: return default builtin " << ret
+    Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
     return ret;
   }
@@ -1184,11 +1198,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
               "Cannot partially apply functions unless logic is prefixed by "
               "HO_.");
         }
-        Debug("parser") << "Partial application of " << args[0];
-        Debug("parser") << " : #argTypes = " << arity;
-        Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
+        Trace("parser") << "Partial application of " << args[0];
+        Trace("parser") << " : #argTypes = " << arity;
+        Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
         api::Term ret = d_solver->mkTerm(api::HO_APPLY, args);
-        Debug("parser") << "applyParseOp: return curry higher order " << ret
+        Trace("parser") << "applyParseOp: return curry higher order " << ret
                         << std::endl;
         // must curry the partial application
         return ret;
@@ -1198,18 +1212,18 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (!op.isNull())
   {
     api::Term ret = d_solver->mkTerm(op, args);
-    Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
+    Trace("parser") << "applyParseOp: return op : " << ret << std::endl;
     return ret;
   }
-  if (kind == api::NULL_EXPR)
+  if (kind == api::NULL_TERM)
   {
     // should never happen in the new API
     parseError("do not know how to process parse op");
   }
-  Debug("parser") << "Try default term construction for kind " << kind
+  Trace("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
   api::Term ret = d_solver->mkTerm(kind, args);
-  Debug("parser") << "applyParseOp: return : " << ret << std::endl;
+  Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
 }
 
@@ -1248,7 +1262,7 @@ bool Smt2::isConstInt(const api::Term& t)
   api::Kind k = t.getKind();
   // !!! Note when arithmetic subtyping is eliminated, this will update to
   // CONST_INTEGER.
-  return k == api::CONST_RATIONAL;
+  return k == api::CONST_RATIONAL && t.getSort().isInteger();
 }
 
 }  // namespace parser

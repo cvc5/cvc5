@@ -36,15 +36,15 @@ InterpolationSolver::InterpolationSolver(Env& env) : EnvObj(env) {}
 
 InterpolationSolver::~InterpolationSolver() {}
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      const TypeNode& grammarType,
-                                      Node& interpol)
+bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
+                                         const Node& conj,
+                                         const TypeNode& grammarType,
+                                         Node& interpol)
 {
-  if (options().smt.produceInterpols == options::ProduceInterpols::NONE)
+  if (!options().smt.interpolants)
   {
     const char* msg =
-        "Cannot get interpolation when produce-interpol options is off.";
+        "Cannot get interpolation when produce-interpolants options is off.";
     throw ModalException(msg);
   }
   Trace("sygus-interpol") << "SolverEngine::getInterpol: conjecture " << conj
@@ -54,11 +54,11 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
   conjn = rewrite(conjn);
   std::string name("__internal_interpol");
 
-  quantifiers::SygusInterpol interpolSolver(d_env);
-  if (interpolSolver.solveInterpolation(
+  d_subsolver = std::make_unique<quantifiers::SygusInterpol>(d_env);
+  if (d_subsolver->solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
-    if (options().smt.checkInterpols)
+    if (options().smt.checkInterpolants)
     {
       checkInterpol(interpol, axioms, conj);
     }
@@ -67,12 +67,12 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
   return false;
 }
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      Node& interpol)
+bool InterpolationSolver::getInterpolantNext(Node& interpol)
 {
-  TypeNode grammarType;
-  return getInterpol(axioms, conj, grammarType, interpol);
+  // should already have initialized a subsolver, since we are immediately
+  // preceeded by a successful call to get-interpolant(-next).
+  Assert(d_subsolver != nullptr);
+  return d_subsolver->solveInterpolationNext(interpol);
 }
 
 void InterpolationSolver::checkInterpol(Node interpol,
@@ -119,7 +119,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": result is " << r << std::endl;
     std::stringstream serr;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+    if (r.getStatus() != Result::UNSAT)
     {
       if (j == 0)
       {

@@ -15,16 +15,17 @@
 
 import pytest
 
-import pycvc5
-from pycvc5 import Term
+import cvc5
+from cvc5 import Term
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def test_add_rule(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -58,6 +59,7 @@ def test_add_rule(solver):
 
 
 def test_add_rules(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
@@ -89,6 +91,7 @@ def test_add_rules(solver):
 
 
 def test_add_any_constant(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
 
     null_term = Term(solver)
@@ -112,6 +115,7 @@ def test_add_any_constant(solver):
 
 
 def test_add_any_variable(solver):
+    solver.setOption("sygus", "true")
     boolean = solver.getBooleanSort()
 
     null_term = Term(solver)

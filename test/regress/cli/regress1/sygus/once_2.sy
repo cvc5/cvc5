@@ -1,0 +1,44 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic BV)
+
+(define-sort Stream () (_ BitVec 2))
+
+(define-fun BV_ONE () Stream (_ bv1 2))
+
+(define-fun
+  O ( (X Stream) ) Stream
+  (bvneg (bvand X (bvnot (bvsub X BV_ONE))))
+)
+
+(synth-fun op ((x Stream)) Stream
+  (( y_term Stream))
+  (( y_term Stream (
+    ( Constant Stream)
+    ( Variable Stream)
+    ( bvnot y_term )
+    ( bvand y_term y_term )
+    ( bvor y_term y_term )
+    ( bvneg y_term )
+    ( bvadd y_term y_term )
+    ( bvsub y_term y_term )
+    ( bvmul y_term y_term )
+    ( bvudiv y_term y_term )
+    ( bvurem y_term y_term )
+    ( bvshl y_term y_term )
+    ( bvlshr y_term y_term )
+  ))
+))
+
+(define-fun C ((x Stream)) Bool
+  (= (op x) (O x))
+)
+
+(constraint (and
+(C (_ bv0 2))
+(C (_ bv1 2))
+(C (_ bv2 2))
+(C (_ bv3 2))
+))
+
+(check-synth)

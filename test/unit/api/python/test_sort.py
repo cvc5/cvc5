@@ -16,13 +16,13 @@
 ##
 
 import pytest
-import pycvc5
-from pycvc5 import Sort
+import cvc5
+from cvc5 import Sort
 
 
 @pytest.fixture
 def solver():
-    return pycvc5.Solver()
+    return cvc5.Solver()
 
 
 def create_datatype_sort(solver):
@@ -133,12 +133,6 @@ def test_is_datatype(solver):
     Sort(solver).isDatatype()
 
 
-def test_is_parametric_datatype(solver):
-    param_dt_sort = create_param_datatype_sort(solver)
-    assert param_dt_sort.isParametricDatatype()
-    Sort(solver).isParametricDatatype()
-
-
 def test_is_constructor(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
@@ -228,47 +222,9 @@ def test_is_uninterpreted(solver):
 
 
 def test_is_sort_constructor(solver):
-    sc_sort = solver.mkSortConstructorSort("asdf", 1)
-    assert sc_sort.isSortConstructor()
-    Sort(solver).isSortConstructor()
-
-
-def test_is_first_class(solver):
-    fun_sort = solver.mkFunctionSort(solver.getRealSort(),
-                                     solver.getIntegerSort())
-    assert solver.getIntegerSort().isFirstClass()
-    assert fun_sort.isFirstClass()
-    reSort = solver.getRegExpSort()
-    assert not reSort.isFirstClass()
-    Sort(solver).isFirstClass()
-
-
-def test_is_function_like(solver):
-    fun_sort = solver.mkFunctionSort(solver.getRealSort(),
-                                     solver.getIntegerSort())
-    assert not solver.getIntegerSort().isFunctionLike()
-    assert fun_sort.isFunctionLike()
-
-    dt_sort = create_datatype_sort(solver)
-    dt = dt_sort.getDatatype()
-    cons_sort = dt[0][1].getSelectorTerm().getSort()
-    assert cons_sort.isFunctionLike()
-
-    Sort(solver).isFunctionLike()
-
-
-def test_is_subsort_of(solver):
-    assert solver.getIntegerSort().isSubsortOf(solver.getIntegerSort())
-    assert solver.getIntegerSort().isSubsortOf(solver.getRealSort())
-    assert not solver.getIntegerSort().isSubsortOf(solver.getBooleanSort())
-    Sort(solver).isSubsortOf(Sort(solver))
-
-
-def test_is_comparable_to(solver):
-    assert solver.getIntegerSort().isComparableTo(solver.getIntegerSort())
-    assert solver.getIntegerSort().isComparableTo(solver.getRealSort())
-    assert not solver.getIntegerSort().isComparableTo(solver.getBooleanSort())
-    Sort(solver).isComparableTo(Sort(solver))
+    sc_sort = solver.mkUninterpretedSortConstructorSort("asdf", 1)
+    assert sc_sort.isUninterpretedSortConstructor()
+    Sort(solver).isUninterpretedSortConstructor()
 
 
 def test_get_datatype(solver):
@@ -343,7 +299,23 @@ def test_instantiate(solver):
     dtypeSort = solver.mkDatatypeSort(dtypeSpec)
     with pytest.raises(RuntimeError):
         dtypeSort.instantiate([solver.getIntegerSort()])
+    # instantiate uninterpreted sort constructor
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 1)
+    sortConsSort.instantiate([solver.getIntegerSort()])
 
+def test_is_instantiated(solver):
+    paramDtypeSort = create_param_datatype_sort(solver)
+    assert not paramDtypeSort.isInstantiated()
+    instParamDtypeSort = paramDtypeSort.instantiate([solver.getIntegerSort()]);
+    assert instParamDtypeSort.isInstantiated()
+
+    sortConsSort = solver.mkUninterpretedSortConstructorSort("s", 1)
+    assert not sortConsSort.isInstantiated()
+    instSortConsSort = sortConsSort.instantiate([solver.getIntegerSort()])
+    assert instSortConsSort.isInstantiated()
+
+    assert not solver.getIntegerSort().isInstantiated()
+    assert not solver.mkBitVectorSort(32).isInstantiated()
 
 def test_get_function_arity(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
@@ -422,27 +394,16 @@ def test_get_sequence_element_sort(solver):
 
 def test_get_uninterpreted_sort_name(solver):
     uSort = solver.mkUninterpretedSort("u")
-    uSort.getUninterpretedSortName()
+    uSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getUninterpretedSortName()
-
-
-def test_is_uninterpreted_sort_parameterized(solver):
-    uSort = solver.mkUninterpretedSort("u")
-    assert not uSort.isUninterpretedSortParameterized()
-    sSort = solver.mkSortConstructorSort("s", 1)
-    siSort = sSort.instantiate([uSort])
-    assert siSort.isUninterpretedSortParameterized()
-    bvSort = solver.mkBitVectorSort(32)
-    with pytest.raises(RuntimeError):
-        bvSort.isUninterpretedSortParameterized()
+        bvSort.getSymbol()
 
 
 def test_get_uninterpreted_sort_paramsorts(solver):
     uSort = solver.mkUninterpretedSort("u")
     uSort.getUninterpretedSortParamSorts()
-    sSort = solver.mkSortConstructorSort("s", 2)
+    sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
     siSort = sSort.instantiate([uSort, uSort])
     assert len(siSort.getUninterpretedSortParamSorts()) == 2
     bvSort = solver.mkBitVectorSort(32)
@@ -451,19 +412,19 @@ def test_get_uninterpreted_sort_paramsorts(solver):
 
 
 def test_get_uninterpreted_sort_constructor_name(solver):
-    sSort = solver.mkSortConstructorSort("s", 2)
-    sSort.getSortConstructorName()
+    sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
+    sSort.getSymbol()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getSortConstructorName()
+        bvSort.getSymbol()
 
 
 def test_get_uninterpreted_sort_constructor_arity(solver):
-    sSort = solver.mkSortConstructorSort("s", 2)
-    sSort.getSortConstructorArity()
+    sSort = solver.mkUninterpretedSortConstructorSort("s", 2)
+    sSort.getUninterpretedSortConstructorArity()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
-        bvSort.getSortConstructorArity()
+        bvSort.getUninterpretedSortConstructorArity()
 
 
 def test_get_bv_size(solver):
@@ -560,35 +521,12 @@ def test_sort_compare(solver):
     assert (intSort > bvSort or intSort == bvSort) == (intSort >= bvSort)
 
 
-def test_sort_subtyping(solver):
-    intSort = solver.getIntegerSort()
-    realSort = solver.getRealSort()
-    assert intSort.isSubsortOf(realSort)
-    assert not realSort.isSubsortOf(intSort)
-    assert intSort.isComparableTo(realSort)
-    assert realSort.isComparableTo(intSort)
-
-    arraySortII = solver.mkArraySort(intSort, intSort)
-    arraySortIR = solver.mkArraySort(intSort, realSort)
-    assert not arraySortII.isComparableTo(intSort)
-    # we do not support subtyping for arrays
-    assert not arraySortII.isComparableTo(arraySortIR)
-
-    setSortI = solver.mkSetSort(intSort)
-    setSortR = solver.mkSetSort(realSort)
-    # we don't support subtyping for sets
-    assert not setSortI.isComparableTo(setSortR)
-    assert not setSortI.isSubsortOf(setSortR)
-    assert not setSortR.isComparableTo(setSortI)
-    assert not setSortR.isSubsortOf(setSortI)
-
-
 def test_sort_scoped_tostring(solver):
     name = "uninterp-sort"
     bvsort8 = solver.mkBitVectorSort(8)
     uninterp_sort = solver.mkUninterpretedSort(name)
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
-    solver2 = pycvc5.Solver()
+    solver2 = cvc5.Solver()
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name

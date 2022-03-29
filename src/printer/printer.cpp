@@ -402,7 +402,12 @@ void Printer::toStreamCmdGetInterpol(std::ostream& out,
                                      Node conj,
                                      TypeNode sygusType) const
 {
-  printUnknownCommand(out, "get-interpol");
+  printUnknownCommand(out, "get-interpolant");
+}
+
+void Printer::toStreamCmdGetInterpolNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-interpolant-next");
 }
 
 void Printer::toStreamCmdGetAbduct(std::ostream& out,
@@ -438,6 +443,11 @@ void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   printUnknownCommand(out, "get-difficulty");
+}
+
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-learned-literals");
 }
 
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const

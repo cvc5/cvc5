@@ -121,7 +121,7 @@ using namespace cvc5::parser;
 #undef SYM_MAN
 #define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
@@ -233,7 +233,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     n=INTEGER_LITERAL
-    { Debug("parser") << "declare sort: '" << name
+    { Trace("parser") << "declare sort: '" << name
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
@@ -270,7 +270,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
-    { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
+    { Trace("parser") << "declare fun: '" << name << "'" << std::endl;
       if( !sorts.empty() ) {
         t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
@@ -281,13 +281,13 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       // we allow overloading for function declarations
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-fun are not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-fun are not allowed in sygus "
+                                 "version 2.0");
       }
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -298,7 +298,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     { /* add variables to parser state before parsing term */
-      Debug("parser") << "define fun: '" << name << "'" << std::endl;
+      Trace("parser") << "define fun: '" << name << "'" << std::endl;
       if( sortedVarNames.size() > 0 ) {
         sorts.reserve(sortedVarNames.size());
         for(std::vector<std::pair<std::string, api::Sort> >::const_iterator i =
@@ -404,6 +404,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | /* get-difficulty */
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
+  | /* get-learned-literals */
+    GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetLearnedLiteralsCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -515,7 +518,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     {
-      api::Term var = SOLVER->mkSygusVar(t, name);
+      api::Term var = SOLVER->declareSygusVar(t, name);
       PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
@@ -539,7 +542,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       sygusGrammar[grammar, sygusVars, name]
     )?
     {
-      Debug("parser-sygus") << "Define synth fun : " << name << std::endl;
+      Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
 
       fun = isInv ? (grammar == nullptr
                          ? SOLVER->synthInv(name, sygusVars)
@@ -548,7 +551,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
                          ? SOLVER->synthFun(name, sygusVars, range)
                          : SOLVER->synthFun(name, sygusVars, range, *grammar));
 
-      Debug("parser-sygus") << "...read synth fun " << name << std::endl;
+      Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
       PARSER_STATE->defineVar(name, fun);
@@ -561,7 +564,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
       PARSER_STATE->checkThatLogicIsSet();
     }
     term[expr, expr2]
-    { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
+    { Trace("parser-sygus") << "...read constraint " << expr << std::endl;
       cmd.reset(new SygusConstraintCommand(expr, isAssume));
     }
   | /* inv-constraint */
@@ -777,11 +780,11 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { // allow overloading here
       if( PARSER_STATE->sygus() )
       {
-        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
-                                      "version 2.0");
+        PARSER_STATE->parseError("declare-const is not allowed in sygus "
+                                 "version 2.0");
       }
       api::Term c =
-          PARSER_STATE->bindVar(name, t, false, true);
+          PARSER_STATE->bindVar(name, t, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -947,7 +950,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, false, true);
+            PARSER_STATE->bindVar(name, tt, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -967,7 +970,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, false, true);
+            PARSER_STATE->bindVar(name, t, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1020,7 +1023,11 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetInterpolCommand(name, e, g));
+      cmd->reset(new GetInterpolantCommand(name, e, g));
+    }
+  | GET_INTERPOL_NEXT_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+      cmd->reset(new GetInterpolantNextCommand);
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
@@ -1035,7 +1042,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     ( term[e, e2]
       { terms.push_back( e ); }
     )* RPAREN_TOK
-    { Debug("parser") << "declare pool: '" << name << "'" << std::endl;
+    { Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       api::Term pool = SOLVER->declarePool(name, t, terms);
       PARSER_STATE->defineVar(name, pool);
       cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
@@ -1081,7 +1088,7 @@ datatypesDefCommand[bool isCo, std::unique_ptr<cvc5::Command>* cmd]
   LPAREN_TOK /* datatype definition prelude */
   ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL RPAREN_TOK
     { unsigned arity = AntlrInput::tokenToUnsigned(n);
-      Debug("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
+      Trace("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
       dnames.push_back(name);
       arities.push_back( static_cast<int>(arity) );
     }
@@ -1131,7 +1138,7 @@ datatypesDef[bool isCo,
     }
     ( LPAREN_TOK {
       params.clear();
-      Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
+      Trace("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
       if( dts.size()>=dnames.size() ){
         PARSER_STATE->parseError("Too many datatypes defined in this block.");
       }
@@ -1151,7 +1158,7 @@ datatypesDef[bool isCo,
           // now declare it as an unresolved type
           PARSER_STATE->mkUnresolvedType(dnames[dts.size()], params.size());
         }
-        Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
+        Trace("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(SOLVER->mkDatatypeDecl(dnames[dts.size()], params, isCo));
       }
       LPAREN_TOK
@@ -1166,7 +1173,7 @@ datatypesDef[bool isCo,
           // now declare it as an unresolved type
           PARSER_STATE->mkUnresolvedType(dnames[dts.size()], 0);
         }
-        Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
+        Trace("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(SOLVER->mkDatatypeDecl(dnames[dts.size()],
                                              params,
                                              isCo));
@@ -1241,7 +1248,7 @@ symbolicExpr[cvc5::api::Term& sexpr]
  */
 term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
-  api::Kind kind = api::NULL_EXPR;
+  api::Kind kind = api::NULL_TERM;
   cvc5::api::Term f;
   std::string name;
   cvc5::api::Sort type;
@@ -1264,8 +1271,8 @@ term[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  */
 termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
 @init {
-  Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  api::Kind kind = api::NULL_EXPR;
+  Trace("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  api::Kind kind = api::NULL_TERM;
   std::string name;
   std::vector<cvc5::api::Term> args;
   std::vector< std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
@@ -1364,7 +1371,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           PARSER_STATE->pushScope();
           // f should be a constructor
           type = f.getSort();
-          Debug("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
+          Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
           if (!type.isConstructor())
           {
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
@@ -1497,7 +1504,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
   {
     std::vector<uint32_t> indices;
     api::Op op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, expr);
+    expr = SOLVER->mkTerm(op, {expr});
   }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
@@ -1590,7 +1597,7 @@ identifier[cvc5::ParseOp& p]
 @init {
   cvc5::api::Term f;
   cvc5::api::Term f2;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
 }
 : functionName[p.d_name, CHECK_NONE]
 
@@ -1637,19 +1644,21 @@ identifier[cvc5::ParseOp& p]
         // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
         // i_1, ..., i_n are numerals
         p.d_kind = api::TUPLE_PROJECT;
-        std::vector<uint32_t> indices(numerals.size());
-        for(size_t i = 0; i < numerals.size(); ++i)
-        {
-          // convert uint64_t to uint32_t
-          indices[i] = numerals[i];
-        }
-        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
+        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, numerals);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
+        if (k == api::UNDEFINED_KIND)
+        {
+          // We don't know which kind to use until we know the type of the
+          // arguments
+          p.d_name = opName;
+          p.d_indices = numerals;
+          p.d_kind = api::UNDEFINED_KIND;
+        }
+        else if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
           // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
           // for tuple selectors and updaters
@@ -1664,13 +1673,9 @@ identifier[cvc5::ParseOp& p]
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
-        else if (numerals.size() == 1)
+        else if (numerals.size() == 1 || numerals.size() == 2)
         {
-          p.d_op = SOLVER->mkOp(k, numerals[0]);
-        }
-        else if (numerals.size() == 2)
-        {
-          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+          p.d_op = SOLVER->mkOp(k, numerals);
         }
         else
         {
@@ -1690,7 +1695,7 @@ termAtomic[cvc5::api::Term& atomTerm]
 @init {
   cvc5::api::Sort t;
   std::string s;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
 }
     /* constants */
   : INTEGER_LITERAL
@@ -1701,8 +1706,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   | DECIMAL_LITERAL
     {
       std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
-      atomTerm = SOLVER->ensureTermSort(SOLVER->mkReal(realStr),
-                                        SOLVER->getRealSort());
+      atomTerm = SOLVER->mkReal(realStr);
     }
 
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
@@ -1798,7 +1802,9 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       api::Term keyword = SOLVER->mkString("qid");
-      api::Term name = SOLVER->mkString(s);
+      // must create a variable whose name is the name of the quantified
+      // formula, not a string.
+      api::Term name = SOLVER->mkConst(SOLVER->getBooleanSort(), s);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1879,7 +1885,7 @@ str[std::string& s, bool fsmtlib]
 
 quantOp[cvc5::api::Kind& kind]
 @init {
-  Debug("parser") << "quant: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Trace("parser") << "quant: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : EXISTS_TOK    { $kind = api::EXISTS; }
   | FORALL_TOK    { $kind = api::FORALL; }
@@ -1954,7 +1960,7 @@ sortSymbol[cvc5::api::Sort& t, cvc5::parser::DeclarationCheck check]
 @declarations {
   std::string name;
   std::vector<cvc5::api::Sort> args;
-  std::vector<uint64_t> numerals;
+  std::vector<uint32_t> numerals;
   bool indexed = false;
 }
   : sortName[name,CHECK_NONE]
@@ -2046,12 +2052,12 @@ sortSymbol[cvc5::api::Sort& t, cvc5::parser::DeclarationCheck check]
           // make unresolved type
           if(args.empty()) {
             t = PARSER_STATE->mkUnresolvedType(name);
-            Debug("parser-param") << "param: make unres type " << name
+            Trace("parser-param") << "param: make unres type " << name
                                   << std::endl;
           } else {
             t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
             t = t.instantiate( args );
-            Debug("parser-param")
+            Trace("parser-param")
                 << "param: make unres param type " << name << " " << args.size()
                 << " " << PARSER_STATE->getArity( name ) << std::endl;
           }
@@ -2121,7 +2127,7 @@ symbol[std::string& id,
  * Matches a nonempty list of numerals.
  * @param numerals the (empty) vector to house the numerals.
  */
-nonemptyNumeralList[std::vector<uint64_t>& numerals]
+nonemptyNumeralList[std::vector<uint32_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
     )+
@@ -2163,7 +2169,7 @@ constructorDef[cvc5::api::DatatypeDecl& type]
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor
       type.addConstructor(*ctor);
-      Debug("parser-idt") << "constructor: " << id.c_str() << std::endl;
+      Trace("parser-idt") << "constructor: " << id.c_str() << std::endl;
       delete ctor;
     }
   ;
@@ -2176,7 +2182,7 @@ selector[cvc5::api::DatatypeConstructorDecl& ctor]
   : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { 
       ctor.addSelector(id, t);
-      Debug("parser-idt") << "selector: " << id.c_str()
+      Trace("parser-idt") << "selector: " << id.c_str()
                           << " of type " << t << std::endl;
     }
   ;
@@ -2198,6 +2204,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 GET_DIFFICULTY_TOK : 'get-difficulty';
+GET_LEARNED_LITERALS_TOK : { !PARSER_STATE->strictModeEnabled() }? 'get-learned-literals';
 EXIT_TOK : 'exit';
 RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
@@ -2243,7 +2250,8 @@ GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
 GET_ABDUCT_NEXT_TOK : 'get-abduct-next';
-GET_INTERPOL_TOK : 'get-interpol';
+GET_INTERPOL_TOK : 'get-interpolant';
+GET_INTERPOL_NEXT_TOK : 'get-interpolant-next';
 DECLARE_HEAP : 'declare-heap';
 DECLARE_POOL : 'declare-pool';
 
@@ -2340,7 +2348,7 @@ fragment NUMERAL
   char *start = (char*) GETCHARINDEX();
 }
   : DIGIT+
-    { Debug("parser-extra") << "NUMERAL: "
+    { Trace("parser-extra") << "NUMERAL: "
        << (uintptr_t)start << ".." << GETCHARINDEX()
        << " strict? " << (bool)(PARSER_STATE->strictModeEnabled())
        << " ^0? " << (bool)(*start == '0')
