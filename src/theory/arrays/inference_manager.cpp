@@ -62,7 +62,7 @@ bool InferenceManager::assertInference(TNode atom,
   // we simply assert the internal fact
   if (isProofEnabled())
   {
-    Node fact = polarity ? Node(atom) : atom.notNode();
+    Node fact = polarity ? Node(atom) : atom.negate();
     std::vector<Node> children;
     std::vector<Node> args;
     // convert to proof rule application
