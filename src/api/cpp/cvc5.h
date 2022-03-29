@@ -1527,6 +1527,16 @@ class CVC5_EXPORT Term
   std::vector<Term> getTupleValue() const;
 
   /**
+   * @return true if the term is a floating-point rounding mode value.
+   */
+  bool isRoundingModeValue() const;
+  /**
+   * Asserts isRoundingModeValue().
+   * @return the floating-point rounding mode value held by the term.
+   */
+  RoundingMode getRoundingModeValue() const;
+
+  /**
    * @return true if the term is the floating-point value for positive zero.
    */
   bool isFloatingPointPosZero() const;

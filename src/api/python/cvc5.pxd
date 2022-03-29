@@ -505,6 +505,11 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         string getBitVectorValue(uint32_t base) except +
         bint isUninterpretedSortValue() except +
         string getUninterpretedSortValue() except +
+        bint isTupleValue() except +
+        vector[Term] getTupleValue() except +
+        bint isRoundingModeValue() except +
+        RoundingMode getRoundingModeValue() except +
+
         bint isFloatingPointPosZero() except +
         bint isFloatingPointNegZero() except +
         bint isFloatingPointPosInf() except +
@@ -517,8 +522,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         set[Term] getSetValue() except +
         bint isSequenceValue() except +
         vector[Term] getSequenceValue() except +
-        bint isTupleValue() except +
-        vector[Term] getTupleValue() except +
 
 
     cdef cppclass TermHashFunction:

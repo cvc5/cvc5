@@ -719,6 +719,31 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      FLOATINGPOINT_TO_FP_FROM_SBV,
      FLOATINGPOINT_TO_FP_FROM_UBV});
 
+/* -------------------------------------------------------------------------- */
+/* Rounding Mode for Floating Points                                          */
+/* -------------------------------------------------------------------------- */
+
+const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
+    {ROUND_NEAREST_TIES_TO_EVEN,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
+    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
+    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
+    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
+    {ROUND_NEAREST_TIES_TO_AWAY,
+     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
+};
+
+const static std::unordered_map<cvc5::RoundingMode, RoundingMode>
+    s_rmodes_internal{
+        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
+         ROUND_NEAREST_TIES_TO_EVEN},
+        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_POSITIVE},
+        {cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_NEGATIVE},
+        {cvc5::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
+        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
+         ROUND_NEAREST_TIES_TO_AWAY},
+    };
+
 namespace {
 
 /** Convert a cvc5::Kind (internal) to a cvc5::api::Kind (external). */
@@ -3009,6 +3034,29 @@ std::vector<Term> Term::getTupleValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::isRoundingModeValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == cvc5::Kind::CONST_ROUNDINGMODE;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+RoundingMode Term::getRoundingModeValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == cvc5::Kind::CONST_ROUNDINGMODE, *d_node)
+      << "Term to be a floating-point rounding mode value when calling "
+         "getRoundingModeValue()";
+  //////// all checks before this line
+  return s_rmodes_internal.at(d_node->getConst<cvc5::RoundingMode>());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Term::isFloatingPointPosZero() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4542,33 +4590,6 @@ std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 {
   return out << grammar.toString();
 }
-
-/* -------------------------------------------------------------------------- */
-/* Rounding Mode for Floating Points                                          */
-/* -------------------------------------------------------------------------- */
-
-const static std::unordered_map<RoundingMode, cvc5::RoundingMode> s_rmodes{
-    {ROUND_NEAREST_TIES_TO_EVEN,
-     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-    {ROUND_TOWARD_POSITIVE, cvc5::RoundingMode::ROUND_TOWARD_POSITIVE},
-    {ROUND_TOWARD_NEGATIVE, cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE},
-    {ROUND_TOWARD_ZERO, cvc5::RoundingMode::ROUND_TOWARD_ZERO},
-    {ROUND_NEAREST_TIES_TO_AWAY,
-     cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
-};
-
-const static std::unordered_map<cvc5::RoundingMode,
-                                RoundingMode,
-                                cvc5::RoundingModeHashFunction>
-    s_rmodes_internal{
-        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
-         ROUND_NEAREST_TIES_TO_EVEN},
-        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_POSITIVE},
-        {cvc5::RoundingMode::ROUND_TOWARD_POSITIVE, ROUND_TOWARD_NEGATIVE},
-        {cvc5::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
-        {cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
-         ROUND_NEAREST_TIES_TO_AWAY},
-    };
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
