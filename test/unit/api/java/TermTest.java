@@ -979,7 +979,7 @@ class TermTest
     assertTrue(t.isCardinalityConstraint());
     Pair<Sort, BigInteger> cc = t.getCardinalityConstraint();
     assertEquals(cc.first, su);
-    assertEquals(cc.second, 3);
+    assertEquals(cc.second, new BigInteger("3"));
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isCardinalityConstraint());
     assertThrows(CVC5ApiException.class, () -> x.getCardinalityConstraint());
