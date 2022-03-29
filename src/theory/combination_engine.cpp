@@ -25,7 +25,7 @@
 #include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 CombinationEngine::CombinationEngine(Env& env,
@@ -127,4 +127,4 @@ void CombinationEngine::resetRound()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

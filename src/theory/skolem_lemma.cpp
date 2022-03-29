@@ -17,7 +17,7 @@
 
 #include "expr/skolem_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 SkolemLemma::SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
@@ -28,4 +28,4 @@ SkolemLemma::SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
 Node SkolemLemma::getProven() const { return d_lemma.getProven(); }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

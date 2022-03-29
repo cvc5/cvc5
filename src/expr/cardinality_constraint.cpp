@@ -19,7 +19,7 @@
 
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 CardinalityConstraint::CardinalityConstraint(const TypeNode& type,
                                              const Integer& ub)
@@ -105,4 +105,4 @@ size_t CombinedCardinalityConstraintHashFunction::operator()(
   return cc.getUpperBound().hash();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

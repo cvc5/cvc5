@@ -26,7 +26,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace decision {
 
 /**
@@ -103,6 +103,6 @@ class AssertionList
 };
 
 }  // namespace decision
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__ASSERTION_LIST_H */

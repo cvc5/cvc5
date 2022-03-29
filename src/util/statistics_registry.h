@@ -76,7 +76,7 @@
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 struct StatisticBaseValue;
 
@@ -265,6 +265,6 @@ class StatisticsRegistry : protected EnvObj
 /** Calls `sr.print(os)`. */
 std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__STATISTICS_REGISTRY_H */

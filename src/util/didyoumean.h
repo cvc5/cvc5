@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class CVC5_EXPORT DidYouMean {
  public:
@@ -47,4 +47,4 @@ class CVC5_EXPORT DidYouMean {
   std::vector<std::string> d_words;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

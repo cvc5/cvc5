@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace boolean {
 
@@ -73,4 +73,4 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 }  // namespace boolean
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

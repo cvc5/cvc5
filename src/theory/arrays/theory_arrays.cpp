@@ -35,7 +35,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -2236,4 +2236,4 @@ void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

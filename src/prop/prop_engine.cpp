@@ -41,7 +41,7 @@
 #include "util/resource_manager.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 /** Keeps a boolean flag scoped */
@@ -688,4 +688,4 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -23,9 +23,9 @@
 #include "smt/env.h"
 #include "theory/relevance_manager.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 RelevanceManager::RelevanceManager(Env& env, Valuation val)
@@ -554,4 +554,4 @@ void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

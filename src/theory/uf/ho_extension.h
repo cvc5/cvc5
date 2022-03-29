@@ -28,7 +28,7 @@
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -235,6 +235,6 @@ class HoExtension : protected EnvObj
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

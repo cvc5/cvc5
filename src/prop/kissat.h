@@ -28,7 +28,7 @@ extern "C" {
 #include <kissat/kissat.h>
 }
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class KissatSolver : public SatSolver
@@ -95,7 +95,7 @@ class KissatSolver : public SatSolver
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5_USE_KISSAT
 #endif  // CVC5__PROP__KISSAT_H

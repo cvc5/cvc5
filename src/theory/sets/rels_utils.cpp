@@ -19,9 +19,9 @@
 #include "expr/dtype_cons.h"
 #include "theory/datatypes/tuple_utils.h"
 
-using namespace cvc5::theory::datatypes;
+using namespace cvc5::internal::theory::datatypes;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -78,4 +78,4 @@ Node RelsUtils::constructPair(Node rel, Node a, Node b)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

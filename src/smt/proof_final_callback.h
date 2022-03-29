@@ -26,7 +26,7 @@
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 /** Final callback class, for stats and pedantic checking */
@@ -74,6 +74,6 @@ class ProofFinalCallback : public ProofNodeUpdaterCallback
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

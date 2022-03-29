@@ -21,7 +21,7 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -85,6 +85,6 @@ class RegExpElimination
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__REGEXP_ELIM_H */

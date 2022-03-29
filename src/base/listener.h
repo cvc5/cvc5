@@ -20,7 +20,7 @@
 #ifndef CVC5__LISTENER_H
 #define CVC5__LISTENER_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Listener interface class.
@@ -37,6 +37,6 @@ class Listener
   virtual void notify() = 0;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__LISTENER_H */

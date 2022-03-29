@@ -22,9 +22,9 @@
 #include "expr/type_matcher.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 DType::DType(std::string name, bool isCo)
     : d_name(name),
@@ -948,4 +948,4 @@ std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
   return out << "index_" << dic.getIndex();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

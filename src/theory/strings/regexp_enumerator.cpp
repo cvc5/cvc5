@@ -15,7 +15,7 @@
 
 #include "theory/strings/regexp_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -47,4 +47,4 @@ bool RegExpEnumerator::isFinished() { return d_senum.isFinished(); }
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

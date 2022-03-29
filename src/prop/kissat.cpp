@@ -22,7 +22,7 @@
 #include "base/check.h"
 #include "util/statistics_registry.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 using KissatLit = int32_t;
@@ -162,6 +162,6 @@ KissatSolver::Statistics::Statistics(StatisticsRegistry& registry,
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5_USE_KISSAT

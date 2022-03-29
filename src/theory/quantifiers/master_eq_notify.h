@@ -22,7 +22,7 @@
 
 #include "theory/uf/equality_engine_notify.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
   
 class QuantifiersEngine;
@@ -63,6 +63,6 @@ class MasterNotifyClass : public theory::eq::EqualityEngineNotify
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__MASTER_EQ_NOTIFY__H */

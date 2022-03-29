@@ -15,7 +15,7 @@
 
 #include "theory/quantifiers/ematching/trigger_trie.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace inst {
@@ -75,4 +75,4 @@ void TriggerTrie::addTrigger(const std::vector<Node>& nodes, inst::Trigger* t)
 }  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -19,7 +19,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 AnnotationProofGenerator::AnnotationProofGenerator(ProofNodeManager* pnm,
                                                    context::Context* c,
@@ -84,4 +84,4 @@ bool AnnotationProofGenerator::hasProofFor(Node f)
 
 std::string AnnotationProofGenerator::identify() const { return d_name; }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

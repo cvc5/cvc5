@@ -22,7 +22,7 @@
 
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * This class is used for inferring the parameters of an instantiated
@@ -69,6 +69,6 @@ class TypeMatcher
   void addTypes(const std::vector<TypeNode>& types);
 }; /* class TypeMatcher */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__MATCHER_H */
