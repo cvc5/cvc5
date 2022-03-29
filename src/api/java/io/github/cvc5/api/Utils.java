@@ -15,7 +15,6 @@
 
 package io.github.cvc5.api;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;

@@ -692,7 +692,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native boolean isCardinalityConstraint(long pointer);
 
- /**
+  /**
    * Asserts isCardinalityConstraint().
    * @return the sort the cardinality constraint is for and its upper bound.
    */

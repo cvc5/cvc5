@@ -26,6 +26,7 @@ BinPackParameters: false
 BreakBeforeBinaryOperators: NonAssignment
 BraceWrapping:
   AfterCaseLabel: true
+  AfterObjCDeclaration: true
   AfterClass: true
   AfterControlStatement: true
   AfterEnum: true

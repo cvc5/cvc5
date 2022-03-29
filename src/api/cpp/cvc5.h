@@ -3930,7 +3930,6 @@ class CVC5_EXPORT Solver
    * @param terms the list of function bodies of the functions
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
-   * @return the function
    */
   void defineFunsRec(const std::vector<Term>& funs,
                      const std::vector<std::vector<Term>>& bound_vars,
