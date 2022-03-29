@@ -446,7 +446,7 @@ bool DType::computeCardinalityRecSingleton(
       TypeNode tc = d_constructors[0]->getArgType(i);
       // if it is an uninterpreted sort, then we depend on it having cardinality
       // one
-      if (tc.isSort())
+      if (tc.isUninterpretedSort())
       {
         if (std::find(u_assume.begin(), u_assume.end(), tc) == u_assume.end())
         {

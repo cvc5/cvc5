@@ -645,14 +645,14 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
     // first step, above).
-    if (ut.isSort())
+    if (ut.isUninterpretedSort())
     {
       placeholders.push_back(ut);
       replacements.push_back((*resolver).second);
     }
     else
     {
-      Assert(ut.isSortConstructor());
+      Assert(ut.isUninterpretedSortConstructor());
       paramTypes.push_back(ut);
       paramReplacements.push_back((*resolver).second);
     }

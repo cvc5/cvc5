@@ -1385,7 +1385,7 @@ bool Sort::isUninterpretedSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isSort();
+  return d_type->isUninterpretedSort();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1394,7 +1394,7 @@ bool Sort::isUninterpretedSortConstructor() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_type->isSortConstructor();
+  return d_type->isUninterpretedSortConstructor();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1425,13 +1425,15 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_DOMAIN_SORTS(params);
-  CVC5_API_CHECK(d_type->isParametricDatatype() || d_type->isSortConstructor())
+  CVC5_API_CHECK(d_type->isParametricDatatype()
+                 || d_type->isUninterpretedSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(!d_type->isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
       << "Arity mismatch for instantiated parametric datatype";
-  CVC5_API_CHECK(!d_type->isSortConstructor()
-                 || d_type->getSortConstructorArity() == params.size())
+  CVC5_API_CHECK(!d_type->isUninterpretedSortConstructor()
+                 || d_type->getUninterpretedSortConstructorArity()
+                        == params.size())
       << "Arity mismatch for instantiated sort constructor";
   //////// all checks before this line
   std::vector<cvc5::TypeNode> tparams = sortVectorToTypeNodes(params);
@@ -1439,7 +1441,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   {
     return Sort(d_solver, d_type->instantiateParametricDatatype(tparams));
   }
-  Assert(d_type->isSortConstructor());
+  Assert(d_type->isUninterpretedSortConstructor());
   return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -1699,9 +1701,10 @@ size_t Sort::getUninterpretedSortConstructorArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isSortConstructor()) << "Not a sort constructor sort.";
+  CVC5_API_CHECK(d_type->isUninterpretedSortConstructor())
+      << "Not a sort constructor sort.";
   //////// all checks before this line
-  return d_type->getSortConstructorArity();
+  return d_type->getUninterpretedSortConstructorArity();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

@@ -650,13 +650,13 @@ private:
   uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
-  bool isSort() const;
+  bool isUninterpretedSort() const;
 
   /** Is this a sort constructor kind */
-  bool isSortConstructor() const;
+  bool isUninterpretedSortConstructor() const;
 
   /** Get sort constructor arity */
-  uint64_t getSortConstructorArity() const;
+  uint64_t getUninterpretedSortConstructorArity() const;
 
   /**
    * Get name, for uninterpreted sorts and uninterpreted sort constructors.

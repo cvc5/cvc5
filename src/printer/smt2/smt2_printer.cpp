@@ -1383,7 +1383,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
                                     TypeNode tn,
                                     const std::vector<Node>& elements) const
 {
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
     out << "ERROR: don't know how to print non uninterpreted sort in model: "
         << tn << std::endl;
@@ -1647,8 +1647,10 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          TypeNode type) const
 {
-  Assert(type.isSort() || type.isSortConstructor());
-  size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
+  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
+  size_t arity = type.isUninterpretedSortConstructor()
+                     ? type.getUninterpretedSortConstructorArity()
+                     : 0;
   out << "(declare-sort " << type << " " << arity << ")" << std::endl;
 }
 

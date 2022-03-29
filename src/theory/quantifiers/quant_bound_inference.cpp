@@ -73,7 +73,7 @@ bool QuantifiersBoundInference::isFiniteBound(Node q, Node v)
     return true;
   }
   TypeNode tn = v.getType();
-  if (tn.isSort() && d_isFmf)
+  if (tn.isUninterpretedSort() && d_isFmf)
   {
     return true;
   }

@@ -239,7 +239,7 @@ std::unordered_set<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 
     for (const TNode& var : vars)
     {
-      if (var.getType().isSort())
+      if (var.getType().isUninterpretedSort())
       {
         res.insert(var);
       }

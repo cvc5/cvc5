@@ -73,7 +73,7 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
-    if (!cc.getType().isSort())
+    if (!cc.getType().isUninterpretedSort())
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must apply to uninterpreted sort");

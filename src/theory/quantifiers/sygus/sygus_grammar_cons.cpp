@@ -533,7 +533,7 @@ bool CegGrammarConstructor::isHandledType(TypeNode t)
   collectSygusGrammarTypesFor(t, types);
   for (const TypeNode& tn : types)
   {
-    if (tn.isSort() || tn.isFloatingPoint())
+    if (tn.isUninterpretedSort() || tn.isFloatingPoint())
     {
       return false;
     }
@@ -1050,7 +1050,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(cop, dt[l].getName(), cargsCons);
       }
     }
-    else if (types[i].isSort() || types[i].isFunction()
+    else if (types[i].isUninterpretedSort() || types[i].isFunction()
              || types[i].isRoundingMode())
     {
       // do nothing

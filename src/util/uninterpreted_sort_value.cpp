@@ -35,7 +35,7 @@ UninterpretedSortValue::UninterpretedSortValue(const TypeNode& type,
                                                const Integer& index)
     : d_type(new TypeNode(type)), d_index(index)
 {
-  PrettyCheckArgument(type.isSort(),
+  PrettyCheckArgument(type.isUninterpretedSort(),
                       type,
                       "uninterpreted constants can only be created for "
                       "uninterpreted sorts, not `%s'",

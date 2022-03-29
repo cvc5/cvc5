@@ -157,7 +157,7 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
 bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
 {
   RepSet* rs = d_model->getRepSetPtr();
-  if (tn.isSort())
+  if (tn.isUninterpretedSort())
   {
     // must ensure uninterpreted type is non-empty.
     if (!rs->hasType(tn))

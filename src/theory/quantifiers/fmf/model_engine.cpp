@@ -139,7 +139,8 @@ void ModelEngine::registerQuantifier( Node f ){
     bool canHandle = true;
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
-      if( !tn.isSort() ){
+      if (!tn.isUninterpretedSort())
+      {
         if (!d_env.isFiniteType(tn))
         {
           if( tn.isInteger() ){
@@ -168,8 +169,10 @@ int ModelEngine::checkModel(){
        it != fm->getRepSetPtr()->d_type_reps.end();
        ++it)
   {
-    if( it->first.isSort() ){
-      Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
+    if (it->first.isUninterpretedSort())
+    {
+      Trace("model-engine") << "Cardinality( " << it->first << " )"
+                            << " = " << it->second.size() << std::endl;
       Trace("model-engine-debug") << "        Reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
         Trace("model-engine-debug") << it->second[i] << "  ";

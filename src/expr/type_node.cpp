@@ -96,7 +96,7 @@ CardinalityClass TypeNode::getCardinalityClass()
         getAttribute(TypeCardinalityClassAttr()));
   }
   CardinalityClass ret = CardinalityClass::INFINITE;
-  if (isSort())
+  if (isUninterpretedSort())
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
@@ -217,7 +217,8 @@ bool TypeNode::isClosedEnumerable()
   if (!getAttribute(IsClosedEnumerableComputedAttr()))
   {
     bool ret = true;
-    if (isArray() || isSort() || isCodatatype() || isFunction() || isRegExp())
+    if (isArray() || isUninterpretedSort() || isCodatatype() || isFunction()
+        || isRegExp())
     {
       ret = false;
     }
@@ -422,7 +423,7 @@ bool TypeNode::isInstantiatedDatatype() const {
 bool TypeNode::isInstantiated() const
 {
   return isInstantiatedDatatype()
-         || (isSort() && getNumChildren() > 0);
+         || (isUninterpretedSort() && getNumChildren() > 0);
 }
 
 TypeNode TypeNode::instantiateParametricDatatype(
@@ -441,22 +442,23 @@ TypeNode TypeNode::instantiateParametricDatatype(
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
 }
 
-uint64_t TypeNode::getSortConstructorArity() const
+uint64_t TypeNode::getUninterpretedSortConstructorArity() const
 {
-  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
+  Assert(isUninterpretedSortConstructor()
+         && hasAttribute(expr::SortArityAttr()));
   return getAttribute(expr::SortArityAttr());
 }
 
 std::string TypeNode::getName() const
 {
-  Assert(isSort() || isSortConstructor());
+  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {
-  Assert(isSortConstructor());
+  Assert(isUninterpretedSortConstructor());
   return NodeManager::currentNM()->mkSort(*this, params);
 }
 
@@ -568,12 +570,14 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
 }
 
 /** Is this a sort kind */
-bool TypeNode::isSort() const {
+bool TypeNode::isUninterpretedSort() const
+{
   return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) );
 }
 
 /** Is this a sort constructor kind */
-bool TypeNode::isSortConstructor() const {
+bool TypeNode::isUninterpretedSortConstructor() const
+{
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
