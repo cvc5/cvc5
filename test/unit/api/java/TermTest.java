@@ -971,7 +971,7 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {i2}), Arrays.asList(s4.getSequenceValue()));
     assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
   }
-/*
+
   @Test void getCardinalityConstraint()
   {
     Sort su = d_solver.mkUninterpretedSort("u");
@@ -986,7 +986,7 @@ class TermTest
     Term nullt = d_solver.getNullTerm();
     assertThrows(CVC5ApiException.class, () -> nullt.isCardinalityConstraint());
   }
-*/
+
   @Test void substitute()
   {
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
