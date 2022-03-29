@@ -140,20 +140,33 @@ class ProofNodeUpdater
    */
   void processInternal(std::shared_ptr<ProofNode> pf, std::vector<Node>& fa);
   /**
-   * Update proof node cur based on the callback. This modifies curr using
-   * ProofNodeManager::updateNode based on the proof node constructed to
-   * replace it by the callback. Return true if cur was updated. If
-   * continueUpdate is updated to false, then cur is not updated further
-   * and its children are not traversed.
+   * Update proof node cur based on the callback and on whether we are updating
+   * at pre visit or post visit time. This modifies curr using
+   * ProofNodeManager::updateNode based on the proof node constructed to replace
+   * it by the callback. If we are debugging free assumptions, the set fa is
+   * used to check whether the updated proof node is closed with relation to
+   * them. Return true if cur was updated, and continueUpdate may be set to
+   * false by the callback.
+   */
+  bool updateProofNode(std::shared_ptr<ProofNode> cur,
+                       const std::vector<Node>& fa,
+                       bool& continueUpdate,
+                       bool preVisit = true);
+  /**
+   * Update the node cur if it should be updated according to the callback. If
+   * continueUpdate is updated to false, then cur is not updated further and its
+   * children are not traversed.
    */
   bool runUpdate(std::shared_ptr<ProofNode> cur,
                  const std::vector<Node>& fa,
                  bool& continueUpdate);
   /**
    * Finalize the node cur. This is called at the moment that it is established
-   * that cur will appear in the final proof. We do any final debug checking
-   * and add it to resCache/resCacheNcWaiting if we are merging subproofs, where
-   * these map result formulas to proof nodes with/without assumptions.
+   * that cur will appear in the final proof. We do any final debug checking and
+   * add it to resCache/resCacheNcWaiting if we are merging subproofs, where
+   * these map result formulas to proof nodes with/without assumptions. If we
+   * are updating nodes at post visit time, then we run updateProofNode on it.
+   *
    */
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
