@@ -77,6 +77,10 @@ class TheoryBags : public Theory
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
+  void computeModelValueRec(TheoryModel* m,
+                            std::map<Node, Node>& processedBags,
+                            Node n,
+                            const std::set<Node>& termSet);
   TrustNode explain(TNode) override;
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }

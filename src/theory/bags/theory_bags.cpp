@@ -415,105 +415,115 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
   {
-    TypeNode tn = n.getType();
-    if (!tn.isBag())
-    {
-      // we are only concerned here about bag terms
-      continue;
-    }
-    Node r = d_state.getRepresentative(n);
-
-    if (processedBags.find(r) != processedBags.end())
-    {
-      // skip bags whose representatives are already processed
-      continue;
-    }
-
-    const std::vector<std::pair<Node, Node>>& solverElements =
-        d_state.getElementCountPairs(r);
-    std::vector<std::pair<Node, Node>> elements;
-    for (std::pair<Node, Node> pair : solverElements)
-    {
-      if (termSet.find(pair.first) == termSet.end())
-      {
-        continue;
-      }
-      elements.push_back(pair);
-    }
-
-    std::map<Node, Node> elementReps;
-    for (std::pair<Node, Node> pair : elements)
-    {
-      Node key = d_state.getRepresentative(pair.first);
-      Node countSkolem = pair.second;
-      Node value = m->getRepresentative(countSkolem);
-      elementReps[key] = value;
-    }
-    Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
-    constructedBag = rewrite(constructedBag);
-    NodeManager* nm = NodeManager::currentNM();
-    if (d_state.hasCardinalityTerms())
-    {
-      if (d_cardSolver.isLeaf(n))
-      {
-        Node constructedBagCard = rewrite(nm->mkNode(BAG_CARD, constructedBag));
-        Trace("bags-model")
-            << "constructed bag cardinality: " << constructedBagCard
-            << std::endl;
-        Node rCard = nm->mkNode(BAG_CARD, r);
-        Node rCardSkolem = d_state.getCardinalitySkolem(rCard);
-        Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
-        if (!rCardSkolem.isNull())
-        {
-          Node rCardModelValue = m->getRepresentative(rCardSkolem);
-          const Rational& rCardRational = rCardModelValue.getConst<Rational>();
-          const Rational& constructedRational =
-              constructedBagCard.getConst<Rational>();
-          Trace("bags-model")
-              << "constructedRational : " << constructedRational << std::endl;
-          Trace("bags-model")
-              << "rCardRational : " << rCardRational << std::endl;
-          Assert(constructedRational <= rCardRational);
-          TypeNode elementType = r.getType().getBagElementType();
-          if (constructedRational < rCardRational
-              && !d_env.isFiniteType(elementType))
-          {
-            Node newElement =
-                nm->getSkolemManager()->mkDummySkolem("slack", elementType);
-            Trace("bags-model") << "newElement is " << newElement << std::endl;
-            Rational difference = rCardRational - constructedRational;
-            Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
-            Node slackBag = nm->mkBag(elementType, newElement, multiplicity);
-            constructedBag =
-                nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
-            constructedBag = rewrite(constructedBag);
-          }
-        }
-      }
-      else
-      {
-        std::set<Node> children = d_cardSolver.getChildren(n);
-        Assert(!children.empty());
-        constructedBag = nm->mkConst(EmptyBag(r.getType()));
-        for (Node child : children)
-        {
-          Trace("bags-model")
-              << "child bag for " << n << " is: " << child << std::endl;
-          constructedBag =
-              nm->mkNode(BAG_UNION_DISJOINT, child, constructedBag);
-        }
-        constructedBag = rewrite(constructedBag);
-        Trace("bags-model") << "constructed bag for " << n
-                            << " is: " << constructedBag << std::endl;
-      }
-    }
-    m->assertEquality(constructedBag, n, true);
-    m->assertSkeleton(constructedBag);
-    processedBags[r] = constructedBag;
+    computeModelValueRec(m, processedBags, n, termSet);
   }
 
   Trace("bags-model") << "processedBags:  " << processedBags << std::endl;
   return true;
+}
+
+void TheoryBags::computeModelValueRec(TheoryModel* m,
+                                      std::map<Node, Node>& processedBags,
+                                      Node n,
+                                      const std::set<Node>& termSet)
+{
+  TypeNode tn = n.getType();
+  if (!tn.isBag())
+  {
+    // we are only concerned here about bag terms
+    return;
+  }
+  Node r = d_state.getRepresentative(n);
+  if (processedBags.find(r) != processedBags.end())
+  {
+    // skip bags whose representatives are already processed
+    return;
+  }
+
+  const std::vector<std::pair<Node, Node>>& solverElements =
+      d_state.getElementCountPairs(r);
+  std::vector<std::pair<Node, Node>> elements;
+  for (std::pair<Node, Node> pair : solverElements)
+  {
+    if (termSet.find(pair.first) == termSet.end())
+    {
+      continue;
+    }
+    elements.push_back(pair);
+  }
+
+  std::map<Node, Node> elementReps;
+  for (std::pair<Node, Node> pair : elements)
+  {
+    Node key = d_state.getRepresentative(pair.first);
+    Node countSkolem = pair.second;
+    Node value = m->getRepresentative(countSkolem);
+    elementReps[key] = value;
+  }
+  Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
+  constructedBag = rewrite(constructedBag);
+  NodeManager* nm = NodeManager::currentNM();
+  if (d_state.hasCardinalityTerms())
+  {
+    if (d_cardSolver.isLeaf(n))
+    {
+      Node constructedBagCard = rewrite(nm->mkNode(BAG_CARD, constructedBag));
+      Trace("bags-model") << "constructed bag cardinality: "
+                          << constructedBagCard << std::endl;
+      Node rCard = nm->mkNode(BAG_CARD, r);
+      Node rCardSkolem = d_state.getCardinalitySkolem(rCard);
+      Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
+      if (!rCardSkolem.isNull())
+      {
+        Node rCardModelValue = m->getRepresentative(rCardSkolem);
+        const Rational& rCardRational = rCardModelValue.getConst<Rational>();
+        const Rational& constructedRational =
+            constructedBagCard.getConst<Rational>();
+        Trace("bags-model")
+            << "constructedRational : " << constructedRational << std::endl;
+        Trace("bags-model") << "rCardRational : " << rCardRational << std::endl;
+        Assert(constructedRational <= rCardRational);
+        TypeNode elementType = r.getType().getBagElementType();
+        if (constructedRational < rCardRational
+            && !d_env.isFiniteType(elementType))
+        {
+          Node newElement =
+              nm->getSkolemManager()->mkDummySkolem("slack", elementType);
+          Trace("bags-model") << "newElement is " << newElement << std::endl;
+          Rational difference = rCardRational - constructedRational;
+          Node multiplicity = nm->mkConst(CONST_RATIONAL, difference);
+          Node slackBag = nm->mkBag(elementType, newElement, multiplicity);
+          constructedBag =
+              nm->mkNode(kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
+          constructedBag = rewrite(constructedBag);
+        }
+      }
+    }
+    else
+    {
+      std::set<Node> children = d_cardSolver.getChildren(n);
+      Assert(!children.empty());
+      for (const Node& child : children)
+      {
+        // process children before parents.
+        computeModelValueRec(m, processedBags, child, termSet);
+      }
+      constructedBag = nm->mkConst(EmptyBag(r.getType()));
+      for (Node child : children)
+      {
+        Trace("bags-model")
+            << "child bag for " << n << " is: " << child << std::endl;
+        constructedBag = nm->mkNode(
+            BAG_UNION_DISJOINT, processedBags[child], constructedBag);
+      }
+      constructedBag = rewrite(constructedBag);
+      Trace("bags-model") << "constructed bag for " << n
+                          << " is: " << constructedBag << std::endl;
+    }
+  }
+  m->assertEquality(constructedBag, n, true);
+  m->assertSkeleton(constructedBag);
+  processedBags[r] = constructedBag;
 }
 
 TrustNode TheoryBags::explain(TNode node) { return d_im.explainLit(node); }

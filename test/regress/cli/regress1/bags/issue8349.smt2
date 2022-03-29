@@ -1,0 +1,8 @@
+(set-logic ALL)
+(set-option :fmf-bound true)
+(declare-fun b (Int) Bool)
+(declare-fun x () (Bag Int))
+(declare-fun e () (Bag Int))
+(assert (= 1 (bag.card x)))
+(assert (and (bag.subbag e x) (b (bag.card e))))
+(check-sat)
