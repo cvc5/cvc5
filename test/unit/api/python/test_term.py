@@ -13,7 +13,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Kind
+from cvc5 import Kind, RoundingMode
 from cvc5 import Sort, Term
 from fractions import Fraction
 
@@ -970,6 +970,34 @@ def test_get_uninterpreted_sort_value(solver):
     assert vx.isUninterpretedSortValue()
     assert vy.isUninterpretedSortValue()
     assert vx.getUninterpretedSortValue() == vy.getUninterpretedSortValue()
+
+
+def test_is_rounding_mode_value(solver):
+    assert not solver.mkInteger(15).isRoundingModeValue()
+    assert solver.mkRoundingMode(
+        RoundingMode.RoundNearestTiesToEven).isRoundingModeValue()
+    assert not solver.mkConst(
+        solver.getRoundingModeSort()).isRoundingModeValue()
+
+
+def test_get_rounding_mode_value(solver):
+    with pytest.raises(RuntimeError):
+        solver.mkInteger(15).getRoundingModeValue()
+    assert solver.mkRoundingMode(
+        RoundingMode.RoundNearestTiesToEven).getRoundingModeValue(
+        ) == RoundingMode.RoundNearestTiesToEven
+    assert solver.mkRoundingMode(
+        RoundingMode.RoundTowardPositive).getRoundingModeValue(
+        ) == RoundingMode.RoundTowardPositive
+    assert solver.mkRoundingMode(
+        RoundingMode.RoundTowardNegative).getRoundingModeValue(
+        ) == RoundingMode.RoundTowardNegative
+    assert solver.mkRoundingMode(
+        RoundingMode.RoundTowardZero).getRoundingModeValue(
+        ) == RoundingMode.RoundTowardZero
+    assert solver.mkRoundingMode(
+        RoundingMode.RoundNearestTiesToAway).getRoundingModeValue(
+        ) == RoundingMode.RoundNearestTiesToAway
 
 
 def test_get_tuple(solver):

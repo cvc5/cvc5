@@ -108,7 +108,7 @@ class SolverEngineState : protected EnvObj
   /**
    * Notify that we finished an interpolation query, where success is whether
    * the command was successful. This is managed independently of the above
-   * calls for notifying check-sat. In other words, if a get-interpol command
+   * calls for notifying check-sat. In other words, if a get-interpolant command
    * is issued to an SolverEngine, it may use a satisfiability call (if desired)
    * to solve the interpolation query. This method is called *in addition* to
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.

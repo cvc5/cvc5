@@ -247,7 +247,14 @@ void TheorySetsPrivate::fullEffortCheck()
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
+          if (TraceIsOn("sets-eqc"))
+          {
+            Trace("sets-eqc") << n;
+            if (n.isConst())
+            {
+              Trace("sets-eqc") << " (const) ";
+            }
+          }
         }
         TypeNode tnn = n.getType();
         if (isSet)
@@ -1211,7 +1218,13 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node, "setChoose");
+  // the skolem will occur in a term context, thus we give it Boolean
+  // term variable kind immediately.
+  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
+                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                         : SkolemManager::SKOLEM_DEFAULT;
+  Node x = sm->mkPurifySkolem(
+      node, "setChoose", "a variable used to eliminate set choose", flags);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);

@@ -456,6 +456,20 @@ Java_io_github_cvc5_api_Sort_isUninterpretedSortConstructor(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Sort
+ * Method:    isInstantiated
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Sort_isInstantiated(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isInstantiated());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Sort
  * Method:    getDatatype
  * Signature: (J)J
  */
@@ -824,22 +838,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Sort_getSequenceElementSort(
   Sort* retPointer = new Sort(current->getSequenceElementSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Sort
- * Method:    isUninterpretedSortParameterized
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL
-Java_io_github_cvc5_api_Sort_isUninterpretedSortParameterized(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jboolean>(current->isUninterpretedSortParameterized());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*

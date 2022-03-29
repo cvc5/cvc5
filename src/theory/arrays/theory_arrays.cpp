@@ -795,6 +795,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     d_infoMap.setConstArr(node, node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
     d_defValues[node] = defaultValue;
+    setNonLinear(node);
     break;
   }
   default:
