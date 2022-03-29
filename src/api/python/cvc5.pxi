@@ -171,7 +171,11 @@ cdef class Datatype:
         return param_sorts
 
     def isParametric(self):
-        """:return: True if this datatype is parametric."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype is parametric.
+        """
         return self.cd.isParametric()
 
     def isCodatatype(self):
@@ -183,7 +187,11 @@ cdef class Datatype:
         return self.cd.isTuple()
 
     def isRecord(self):
-        """:return: True if this datatype corresponds to a record."""
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+            :return: True if this datatype corresponds to a record.
+        """
         return self.cd.isRecord()
 
     def isFinite(self):
@@ -251,6 +259,9 @@ cdef class DatatypeConstructor:
             Specialized method for parametric datatypes (see
             :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm()
             <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
 
             :param retSort: the desired return sort of the constructor
             :return: the constructor operator as a term.
@@ -853,6 +864,9 @@ cdef class Solver:
     def mkParamSort(self, symbolname):
         """ Create a sort parameter.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param symbol: the name of the sort
         :return: the sort parameter
         """
@@ -877,6 +891,9 @@ cdef class Solver:
     @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
         """Create a record sort
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param fields: the list of fields of the record, as a list or as distinct arguments
         :return: the record sort
@@ -1177,6 +1194,9 @@ cdef class Solver:
     def mkSepEmp(self):
         """Create a separation logic empty term.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: the separation logic empty term
         """
         cdef Term term = Term(self)
@@ -1185,6 +1205,9 @@ cdef class Solver:
 
     def mkSepNil(self, Sort sort):
         """Create a separation logic nil term.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param sort: the sort of the nil term
         :return: the separation logic nil term
@@ -1374,6 +1397,9 @@ cdef class Solver:
     def mkCardinalityConstraint(self, Sort sort, int index):
         """Create cardinality constraint.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param sort: Sort of the constraint
         :param index: The upper bound for the cardinality of the sort
         """
@@ -1423,8 +1449,8 @@ cdef class Solver:
 
     def mkDatatypeConstructorDecl(self, str name):
         """
-        :return: a datatype constructor declaration
         :param name: the constructor's name
+        :return: the DatatypeConstructorDecl
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
@@ -1486,6 +1512,9 @@ cdef class Solver:
         SAT Engine in the simplification, but uses the current definitions,
         assertions, and the current partial model, if one has been constructed.
         It also involves theory normalization.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param t: the formula to simplify
         :return: the simplified formula
@@ -1922,6 +1951,9 @@ cdef class Solver:
         Requires to enable option
         :ref:`produce-proofs <lbl-option-produce-proofs>`.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: a string representing the proof, according to the value of
                  proof-format-mode.
         """
@@ -1935,6 +1967,9 @@ cdef class Solver:
         .. code-block:: smtlib
 
             ( get-learned-literals )
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :return: the list of literals
         """
@@ -2157,6 +2192,9 @@ cdef class Solver:
         using the current model. This method will only return false (for any v)
         if the model-cores option has been set.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param v: The term in question
         :return: true if v is a model core symbol
         """
@@ -2173,6 +2211,9 @@ cdef class Solver:
 
         Requires to enable option
         :ref:`produce-models <lbl-option-produce-models>`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
    
         :param sorts: The list of uninterpreted sorts that should be printed in
                       the model.
@@ -2195,6 +2236,9 @@ cdef class Solver:
     def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :return: The term for the heap
         """
         cdef Term term = Term(self)
@@ -2203,6 +2247,9 @@ cdef class Solver:
 
     def getValueSepNil(self):
         """When using separation logic, obtain the term for nil.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :return: The term for nil
         """
@@ -2215,6 +2262,9 @@ cdef class Solver:
         When using separation logic, this sets the location sort and the
         datatype sort to the given ones. This method should be invoked exactly
         once, before any separation logic constraints are provided.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param locSort: The location sort of the heap
         :param dataSort: The data sort of the heap
@@ -2229,6 +2279,9 @@ cdef class Solver:
         .. code-block:: smtlib
 
             ( declare-pool <symbol> <sort> ( <term>* ) )
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param symbol: The name of the pool
         :param sort: The sort of the elements of the pool.
@@ -2329,15 +2382,18 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-interpol <conj> )
-            ( get-interpol <conj> <grammar> )
+            ( get-interpolant <conj> )
+            ( get-interpolant <conj> <grammar> )
 
-        Requires option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+        Requires option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
 
         Supports the following variants:
 
         - ``Term getInteprolant(Term conj)``
         - ``Term getInteprolant(Term conj, Grammar grammar)``
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
@@ -2357,7 +2413,7 @@ cdef class Solver:
     def getInterpolantNext(self):
         """
         Get the next interpolant. Can only be called immediately after
-        a succesful call to get-interpol or get-interpol-next. 
+        a succesful call to get-interpolant or get-interpolant-next. 
         Is guaranteed to produce a syntactically different interpolant wrt the
         last returned interpolant if successful.
 
@@ -2365,10 +2421,13 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( get-interpol-next )
+            ( get-interpolant-next )
 
         Requires to enable incremental mode, and 
-        option :ref:`produce-interpols <lbl-option-produce-interpols>` to be set to a mode different from `none`.
+        option :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to a mode different from `none`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
 
         :param output: the term where the result will be stored
         :return: True iff an interpolant was found
@@ -2393,6 +2452,9 @@ cdef class Solver:
 
         - ``Term getAbduct(Term conj)``
         - ``Term getAbduct(Term conj, Grammar grammar)``
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         
         :param conj: the conjecture term
         :param output: the term where the result will be stored
@@ -2423,6 +2485,10 @@ cdef class Solver:
 
         Requires to enable incremental mode, and 
         option :ref:`produce-abducts <lbl-option-produce-abducts>`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
         :param output: the term where the result will be stored
         :return: True iff an abduct was found
         """
@@ -2446,6 +2512,9 @@ cdef class Solver:
         and setting option
         :ref:`block-models <lbl-option-block-models>`
         to a mode other than ``none``.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         """
         self.csolver.blockModel()
 
@@ -2462,6 +2531,9 @@ cdef class Solver:
 
         Requires enabling option
         :ref:`produce-models <lbl-option-produce-models>`.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         """
         cdef vector[c_Term] nts
         for t in terms:
@@ -2472,6 +2544,9 @@ cdef class Solver:
         """
         Return a string that contains information about all instantiations made
         by the quantifiers module.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
         """
         return self.csolver.getInstantiations()
 
@@ -2673,6 +2748,9 @@ cdef class Sort:
         """
             Is this a record sort?
 
+            .. warning:: This method is experimental and may change in future
+                        versions.
+
             :return: True if the sort is a record sort.
         """
         return self.csort.isRecord()
@@ -2742,6 +2820,9 @@ cdef class Sort:
             constructor sort.
             Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
             :param params: the list of sort parameters to instantiate with
         """
         cdef Sort sort = Sort(self.solver)
@@ -2755,9 +2836,6 @@ cdef class Sort:
         """
         Substitution of Sorts.
 
-        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
-
         Note that this replacement is applied during a pre-order traversal and
         only once to the sort. It is not run until fix point. In the case that
         sort_or_list_1 contains duplicates, the replacement earliest in the list
@@ -2766,6 +2844,12 @@ cdef class Sort:
         For example,
         ``(Array A B) .substitute([A, C], [(Array C D), (Array A B)])`` will
         return ``(Array (Array C D) B)``.
+
+        .. warning:: This method is experimental and may change in future
+                     versions.
+
+        :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+        :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
         """
 
         # The resulting sort after substitution

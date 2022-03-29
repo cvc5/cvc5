@@ -1415,7 +1415,7 @@ TEST_F(TestApiBlackSolver, getAbductNext)
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
   d_solver.setLogic("QF_LIA");
-  d_solver.setOption("produce-interpols", "true");
+  d_solver.setOption("produce-interpolants", "true");
   d_solver.setOption("incremental", "false");
 
   Sort intSort = d_solver.getIntegerSort();
@@ -1443,7 +1443,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 TEST_F(TestApiBlackSolver, getInterpolantNext)
 {
   d_solver.setLogic("QF_LIA");
-  d_solver.setOption("produce-interpols", "true");
+  d_solver.setOption("produce-interpolants", "true");
   d_solver.setOption("incremental", "true");
 
   Sort intSort = d_solver.getIntegerSort();

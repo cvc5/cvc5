@@ -1403,7 +1403,7 @@ class SolverTest
   @Test void getInterpolant() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
-    d_solver.setOption("produce-interpols", "true");
+    d_solver.setOption("produce-interpolants", "true");
     d_solver.setOption("incremental", "false");
 
     Sort intSort = d_solver.getIntegerSort();
@@ -1428,7 +1428,7 @@ class SolverTest
   @Test void getInterpolantNext() throws CVC5ApiException
   {
     d_solver.setLogic("QF_LIA");
-    d_solver.setOption("produce-interpols", "true");
+    d_solver.setOption("produce-interpolants", "true");
     d_solver.setOption("incremental", "true");
 
     Sort intSort = d_solver.getIntegerSort();

@@ -2156,7 +2156,7 @@ def test_get_abduct_next(solver):
 
 def test_get_interpolant(solver):
     solver.setLogic("QF_LIA")
-    solver.setOption("produce-interpols", "true")
+    solver.setOption("produce-interpolants", "true")
     solver.setOption("incremental", "false")
 
     intSort = solver.getIntegerSort()
@@ -2177,7 +2177,7 @@ def test_get_interpolant(solver):
 
 def test_get_interpolant_next(solver):
     solver.setLogic("QF_LIA")
-    solver.setOption("produce-interpols", "true")
+    solver.setOption("produce-interpolants", "true")
     solver.setOption("incremental", "true")
 
     intSort = solver.getIntegerSort()
